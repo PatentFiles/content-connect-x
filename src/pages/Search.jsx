@@ -29,15 +29,14 @@ export default function Search() {
     sceneTypes: [],
     tags: [],
     compensation: [],
-    availabilityMode: [],
     skills: [],
+    nearMe: false,
     travelAvailable: false,
     verifiedOnly: true,
     recentlyActive: false,
     sortBy: 'recently_active',
     city: '',
     state: '',
-    country: '',
   });
 
   // Check auth and access
@@ -239,15 +238,14 @@ export default function Search() {
                   sceneTypes: [],
                   tags: [],
                   compensation: [],
-                  availabilityMode: [],
                   skills: [],
+                  nearMe: false,
                   travelAvailable: false,
                   verifiedOnly: true,
                   recentlyActive: false,
                   sortBy: 'recently_active',
                   city: '',
                   state: '',
-                  country: '',
                 });
                 setSelectedRole('');
               }}

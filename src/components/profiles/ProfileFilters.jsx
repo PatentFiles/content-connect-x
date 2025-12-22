@@ -36,11 +36,7 @@ const sceneTypeOptions = [
   { value: 'kink_edge', label: 'Kink / Edge' },
 ];
 
-const availabilityOptions = [
-  { value: 'onsite', label: 'On-site Only' },
-  { value: 'remote', label: 'Remote' },
-  { value: 'hybrid', label: 'Hybrid' },
-];
+
 
 const creatorSkillOptions = [
   { value: 'top', label: 'Top' },
@@ -114,13 +110,12 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
     filters.sceneTypes?.length > 0,
     filters.tags?.length > 0,
     filters.compensation?.length > 0,
-    filters.availabilityMode?.length > 0,
     filters.skills?.length > 0,
+    filters.nearMe,
     filters.travelAvailable,
     filters.recentlyActive,
     filters.city,
     filters.state,
-    filters.country,
   ].filter(Boolean).length;
 
   const toggleSection = (section) => {
@@ -316,16 +311,13 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
                 {expandedSections.availability && (
                   <div className="space-y-3 mt-2">
                     <div className="flex flex-wrap gap-2">
-                      {availabilityOptions.map(opt => (
-                        <CCButton
-                          key={opt.value}
-                          variant={filters.availabilityMode?.includes(opt.value) ? 'primary' : 'outline'}
-                          size="sm"
-                          onClick={() => toggleArrayFilter('availabilityMode', opt.value)}
-                        >
-                          {opt.label}
-                        </CCButton>
-                      ))}
+                      <CCButton
+                        variant={filters.nearMe ? 'primary' : 'outline'}
+                        size="sm"
+                        onClick={() => updateFilter('nearMe', !filters.nearMe)}
+                      >
+                        My Location
+                      </CCButton>
                       <CCButton
                         variant={filters.travelAvailable ? 'primary' : 'outline'}
                         size="sm"

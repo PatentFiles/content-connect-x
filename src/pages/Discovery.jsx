@@ -18,15 +18,14 @@ export default function Discovery() {
     sceneTypes: [],
     tags: [],
     compensation: [],
-    availabilityMode: [],
     skills: [],
+    nearMe: false,
     travelAvailable: false,
     verifiedOnly: true,
     recentlyActive: false,
     sortBy: 'distance',
     city: '',
     state: '',
-    country: '',
   });
 
   // Check auth and access
@@ -234,15 +233,14 @@ export default function Discovery() {
                 sceneTypes: [],
                 tags: [],
                 compensation: [],
-                availabilityMode: [],
                 skills: [],
+                nearMe: false,
                 travelAvailable: false,
                 verifiedOnly: true,
                 recentlyActive: false,
                 sortBy: 'distance',
                 city: '',
                 state: '',
-                country: '',
               })}
             />
           </div>
