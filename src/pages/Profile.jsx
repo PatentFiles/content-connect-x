@@ -27,6 +27,7 @@ import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCModal from '@/components/ui-custom/CCModal';
 import LocationSelector from '@/components/location/LocationSelector';
 import SocialLinksDisplay from '@/components/socials/SocialLinksDisplay';
+import BioGenerator from '@/components/profile/BioGenerator';
 
 const genderOptions = [
   { value: 'woman', label: 'Woman' },
@@ -249,6 +250,10 @@ export default function Profile() {
                         placeholder="Tell others about yourself..."
                       />
                     </div>
+                    <BioGenerator 
+                      currentBio={editData.bio}
+                      onSelectBio={(bio) => setEditData({...editData, bio})}
+                    />
                     <LocationSelector
                       value={editData.base_location || {}}
                       onChange={(location) => setEditData({...editData, base_location: location})}
