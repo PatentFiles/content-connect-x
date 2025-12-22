@@ -112,11 +112,11 @@ export default function DealRooms() {
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center justify-center gap-3 flex-1">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4F8CFF]/20 to-[#FF2DAA]/20 flex items-center justify-center">
                 <Briefcase className="w-5 h-5 text-[#4F8CFF]" />
               </div>
-              <div>
+              <div className="text-center">
                 <h1 className="text-xl font-semibold text-[#E8EEF9]">Deal Rooms</h1>
                 <p className="text-xs text-[#6B7A94]">Manage your collaborations</p>
               </div>
@@ -129,7 +129,7 @@ export default function DealRooms() {
           </div>
 
           {/* Filters */}
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+          <div className="flex gap-2 justify-center overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
             {['all', 'draft', 'negotiating', 'agreed', 'signed', 'completed'].map((status) => (
               <CCButton
                 key={status}

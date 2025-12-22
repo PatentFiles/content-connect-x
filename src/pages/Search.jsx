@@ -155,7 +155,7 @@ export default function Search() {
           </div>
 
           {/* Role Quick Filters */}
-          <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+          <div className="flex gap-2 justify-center overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
             <CCButton
               variant={!selectedRole ? 'primary' : 'outline'}
               size="sm"
