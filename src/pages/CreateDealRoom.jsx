@@ -41,6 +41,7 @@ const compensationTypes = [
   { value: 'rev_share_external', label: 'Revenue Share', description: 'Split revenue externally' },
 ];
 
+const sceneOptions = ['Solo', 'B/G', 'G/G', 'B/B', 'Gangbang', 'B/G/B', 'B/B/G', 'B/G/G', 'IR', 'Group', 'Oral', 'Manual', 'Toys'];
 const acts = ['Creampie', 'Facial', 'CIM (cum in mouth)', 'Swallowing', 'Anal', 'DP (double penetration)', 'DVP (double vaginal penetration)', 'DAP (double anal penetration)'];
 
 export default function CreateDealRoom() {
@@ -48,6 +49,7 @@ export default function CreateDealRoom() {
   const [formData, setFormData] = useState({
     participant_ids: [],
     scene_type: '',
+    scene_selected: [],
     acts_selected: [],
     acts_other_text: '',
     boundaries: {
@@ -137,6 +139,14 @@ export default function CreateDealRoom() {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
+  const toggleScene = (scene) => {
+    const current = formData.scene_selected;
+    const updated = current.includes(scene)
+      ? current.filter(s => s !== scene)
+      : [...current, scene];
+    updateForm('scene_selected', updated);
+  };
+
   const toggleAct = (act) => {
     const current = formData.acts_selected;
     const updated = current.includes(act)
@@ -153,7 +163,7 @@ export default function CreateDealRoom() {
   if (!isVerified) return <AccessGate type="verification" />;
   if (!isSubscribed) return <AccessGate type="subscription" />;
 
-  const totalSteps = 5;
+  const totalSteps = 6;
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
@@ -186,37 +196,63 @@ export default function CreateDealRoom() {
 
       {/* Content */}
       <div className="max-w-3xl mx-auto px-4 py-6">
-        {/* Step 1: Scene Type & Acts */}
+        {/* Step 1: Scene Type */}
         {step === 1 && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Scene Details</h2>
-            <p className="text-[#9AA6BC] mb-6">Select the scene type and acts.</p>
+            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">What type of content?</h2>
+            <p className="text-[#9AA6BC] mb-6">Select the scene category that best fits your collaboration.</p>
+
+            <div className="space-y-4">
+              {sceneTypes.map((type) => (
+                <CCCard
+                  key={type.value}
+                  hover
+                  clickable
+                  padding="lg"
+                  className={formData.scene_type === type.value ? 'ring-2 ring-[#4F8CFF]' : ''}
+                  onClick={() => updateForm('scene_type', type.value)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-[#E8EEF9]">{type.label}</h3>
+                      <p className="text-sm text-[#9AA6BC]">{type.description}</p>
+                    </div>
+                    {formData.scene_type === type.value && (
+                      <div className="w-6 h-6 rounded-full bg-[#4F8CFF] flex items-center justify-center">
+                        <Check className="w-4 h-4 text-white" />
+                      </div>
+                    )}
+                  </div>
+                </CCCard>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Step 2: Scene & Acts */}
+        {step === 2 && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Scene & Acts</h2>
+            <p className="text-[#9AA6BC] mb-6">Select the scene and specific acts.</p>
 
             <CCCard padding="lg" className="mb-6">
               <h3 className="font-semibold text-[#E8EEF9] mb-4">Select Scene</h3>
-              <div className="space-y-3">
-                {sceneTypes.map((type) => (
-                  <label
-                    key={type.value}
-                    className="flex items-center gap-3 p-3 rounded-lg border border-[#263248] cursor-pointer hover:bg-[#1A2438] transition-colors"
-                    style={{ backgroundColor: formData.scene_type === type.value ? '#1A2438' : 'transparent' }}
+              <div className="flex flex-wrap gap-2">
+                {sceneOptions.map((scene) => (
+                  <CCButton
+                    key={scene}
+                    variant={formData.scene_selected.includes(scene) ? 'primary' : 'outline'}
+                    size="sm"
+                    onClick={() => toggleScene(scene)}
                   >
-                    <input
-                      type="radio"
-                      name="scene_type"
-                      value={type.value}
-                      checked={formData.scene_type === type.value}
-                      onChange={(e) => updateForm('scene_type', e.target.value)}
-                      className="w-5 h-5"
-                    />
-                    <div>
-                      <p className="font-semibold text-[#E8EEF9]">{type.label}</p>
-                      <p className="text-sm text-[#9AA6BC]">{type.description}</p>
-                    </div>
-                  </label>
+                    {scene}
+                  </CCButton>
                 ))}
               </div>
             </CCCard>
@@ -245,8 +281,8 @@ export default function CreateDealRoom() {
           </motion.div>
         )}
 
-        {/* Step 2: Boundaries */}
-        {step === 2 && (
+        {/* Step 3: Boundaries */}
+        {step === 3 && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -287,8 +323,8 @@ export default function CreateDealRoom() {
           </motion.div>
         )}
 
-        {/* Step 3: Compensation */}
-        {step === 3 && (
+        {/* Step 4: Compensation */}
+        {step === 4 && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -358,8 +394,8 @@ export default function CreateDealRoom() {
           </motion.div>
         )}
 
-        {/* Step 4: Schedule & Location */}
-        {step === 4 && (
+        {/* Step 5: Schedule & Location */}
+        {step === 5 && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -430,8 +466,8 @@ export default function CreateDealRoom() {
           </motion.div>
         )}
 
-        {/* Step 5: Deliverables & Rights */}
-        {step === 5 && (
+        {/* Step 6: Deliverables & Rights */}
+        {step === 6 && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
