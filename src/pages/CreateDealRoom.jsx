@@ -41,8 +41,8 @@ const compensationTypes = [
   { value: 'rev_share_external', label: 'Revenue Share', description: 'Split revenue externally' },
 ];
 
-const standardActs = ['Solo', 'B/G', 'G/G', 'B/B', 'Group', 'Oral', 'Manual', 'Toys'];
-const fetishActs = ['BDSM', 'Bondage', 'Domination', 'Submission', 'Roleplay', 'Latex', 'Leather', 'Feet', 'Cosplay'];
+const standardActs = ['Solo', 'B/G', 'G/G', 'B/B', 'Gangbang', 'B/G/B', 'B/B/G', 'B/G/G', 'IR', 'Group', 'Oral', 'Manual', 'Toys'];
+const fetishActs = ['BDSM', 'Bondage', 'Domination', 'Submission', 'Cuckold', 'Hotwife', 'Pegging', 'Roleplay', 'Latex', 'Leather', 'Feet', 'Cosplay'];
 const kinkEdgeActs = ['Impact Play', 'Wax Play', 'Sensory Deprivation', 'Restraints', 'Power Exchange'];
 
 export default function CreateDealRoom() {
@@ -86,6 +86,7 @@ export default function CreateDealRoom() {
       exclusivity: false,
       credit_required: true,
     },
+    participant_emails: '',
   });
 
   // Auth check
@@ -117,11 +118,17 @@ export default function CreateDealRoom() {
 
   // Create mutation
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.DealRoom.create({
-      ...data,
-      participant_ids: [user.email, ...data.participant_ids],
-      status: 'draft',
-    }),
+    mutationFn: (data) => {
+      const participantEmails = data.participant_emails 
+        ? data.participant_emails.split(',').map(e => e.trim()).filter(e => e)
+        : [];
+      
+      return base44.entities.DealRoom.create({
+        ...data,
+        participant_ids: [user.email, ...participantEmails],
+        status: 'draft',
+      });
+    },
     onSuccess: (result) => {
       window.location.href = createPageUrl(`ViewDealRoom?id=${result.id}`);
     },
@@ -481,14 +488,36 @@ export default function CreateDealRoom() {
               />
             </CCCard>
 
-            <CCCard padding="lg">
+            <CCCard padding="lg" className="mb-6">
               <h3 className="font-semibold text-[#E8EEF9] mb-4">Usage Rights</h3>
-              <CCInput
-                label="Platforms"
-                placeholder="OnlyFans, Fansly, Personal Website..."
-                hint="Where content can be published"
-                className="mb-4"
-              />
+              <div className="mb-4">
+                <label className="text-sm text-[#9AA6BC] mb-2 block">Platforms</label>
+                <p className="text-xs text-[#6B7A94] mb-3">Where content can be published</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {['OnlyFans', 'Fansly', 'Pornhub', 'ManyVids', 'Clips4Sale', 'Personal Website', 'Twitter/X', 'Instagram'].map(platform => {
+                    const platformList = formData.usage_rights.platforms || [];
+                    return (
+                      <label key={platform} className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={platformList.includes(platform)}
+                          onChange={(e) => {
+                            const updated = e.target.checked
+                              ? [...platformList, platform]
+                              : platformList.filter(p => p !== platform);
+                            updateForm('usage_rights', {
+                              ...formData.usage_rights,
+                              platforms: updated
+                            });
+                          }}
+                          className="w-4 h-4 rounded border-[#263248] bg-[#121824] text-[#4F8CFF] focus:ring-[#4F8CFF]/50"
+                        />
+                        <span className="text-sm text-[#E8EEF9]">{platform}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
               <div className="space-y-3">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input
@@ -510,11 +539,22 @@ export default function CreateDealRoom() {
                       ...formData.usage_rights,
                       credit_required: e.target.checked
                     })}
-                    className="w-5 h-5 rounded border-[#263248] bg-[#121824] text-[#4F8CFF] focus:ring-[#4F8CFF]/50"
+                    className="w-5 h-5 rounded border-[#4F8CFF] bg-[#121824] text-[#4F8CFF] focus:ring-[#4F8CFF]/50"
                   />
                   <span className="text-[#E8EEF9]">Credit required when posting</span>
                 </label>
               </div>
+            </CCCard>
+
+            <CCCard padding="lg">
+              <h3 className="font-semibold text-[#E8EEF9] mb-4">Participants</h3>
+              <CCInput
+                label="Participant Emails"
+                placeholder="email1@example.com, email2@example.com"
+                hint="Comma-separated emails of other participants"
+                value={formData.participant_emails}
+                onChange={(e) => updateForm('participant_emails', e.target.value)}
+              />
             </CCCard>
           </motion.div>
         )}

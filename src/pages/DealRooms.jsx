@@ -169,7 +169,7 @@ export default function DealRooms() {
             icon={Briefcase}
             title="No deal rooms yet"
             description="Create a deal room to start negotiating collaborations with other verified members."
-            action={() => {}}
+            action={() => window.location.href = createPageUrl('CreateDealRoom')}
             actionLabel="Create Deal Room"
           />
         ) : (
