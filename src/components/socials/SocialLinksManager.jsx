@@ -150,16 +150,16 @@ export default function SocialLinksManager({ user }) {
           <CCCard key={group} padding="none">
             <button
               onClick={() => toggleGroup(group)}
-              className="w-full p-4 flex items-center justify-between hover:bg-[#1A2438] transition-colors"
+              className="w-full p-4 flex items-center hover:bg-[#1A2438] transition-colors relative"
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 justify-center flex-1">
                 <h3 className="font-semibold text-[#E8EEF9]">{groupLabels[group]}</h3>
                 {groupLinks.length > 0 && (
                   <CCBadge variant="primary" size="sm">{groupLinks.length}</CCBadge>
                 )}
 
               </div>
-              {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+              {isExpanded ? <ChevronUp className="w-5 h-5 absolute right-4" /> : <ChevronDown className="w-5 h-5 absolute right-4" />}
             </button>
 
             {isExpanded && (
