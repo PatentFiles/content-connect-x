@@ -27,7 +27,7 @@ const visibilityOptions = [
   { value: 'PUBLIC', label: 'Public' },
   { value: 'VERIFIED_ONLY', label: 'Verified Members Only' },
   { value: 'MATCHED_ONLY', label: 'After Match / Conversation' },
-  { value: 'DEAL_ROOM_ONLY', label: 'Deal Room Only' },
+  { value: 'DEAL_ROOM_ONLY', label: 'Collaboration Only' },
   { value: 'PRIVATE', label: 'Private (Only Me)' },
 ];
 
@@ -157,9 +157,7 @@ export default function SocialLinksManager({ user }) {
                 {groupLinks.length > 0 && (
                   <CCBadge variant="primary" size="sm">{groupLinks.length}</CCBadge>
                 )}
-                {(group === 'DIRECT_CONTACT' || group === 'KINK_COMMUNITY' || group === 'GAY_PLATFORMS') && (
-                  <CCBadge variant="warning" size="sm">Sensitive</CCBadge>
-                )}
+
               </div>
               {isExpanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
             </button>
@@ -168,12 +166,7 @@ export default function SocialLinksManager({ user }) {
               <div className="p-4 space-y-4 border-t border-[#263248]">
                 {group === 'DIRECT_CONTACT' && (
                   <div className="p-3 bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-lg">
-                    <p className="text-sm text-[#F59E0B]">⚠️ Default visibility: Deal Room Only</p>
-                  </div>
-                )}
-                {(group === 'KINK_COMMUNITY' || group === 'GAY_PLATFORMS') && (
-                  <div className="p-3 bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-lg">
-                    <p className="text-sm text-[#F59E0B]">⚠️ Default visibility: After Match Only</p>
+                    <p className="text-sm text-[#F59E0B]">⚠️ Default visibility: Collaboration Only</p>
                   </div>
                 )}
 

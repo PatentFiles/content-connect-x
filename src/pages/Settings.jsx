@@ -277,7 +277,7 @@ export default function Settings() {
             <div className="space-y-4">
               {[
                 { key: 'new_messages', title: 'New Messages', desc: 'Get notified when you receive messages' },
-                { key: 'deal_room_updates', title: 'Deal Room Updates', desc: 'Updates on your deal rooms' },
+                { key: 'deal_room_updates', title: 'Collaboration Updates', desc: 'Updates on your collaborations' },
                 { key: 'contract_signatures', title: 'Contract Signatures', desc: 'When contracts are signed' },
                 { key: 'profile_views', title: 'Profile Views', desc: 'When someone views your profile' },
                 { key: 'marketing', title: 'Marketing', desc: 'News and updates from Content Connect' },
