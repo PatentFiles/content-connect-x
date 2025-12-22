@@ -14,7 +14,8 @@ import {
   AlertCircle,
   Search,
   ChevronRight,
-  Plus
+  Plus,
+  BookTemplate
 } from 'lucide-react';
 import { toast } from 'sonner';
 import CCButton from '@/components/ui-custom/CCButton';
@@ -48,9 +49,18 @@ export default function Contracts() {
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [templatesModalOpen, setTemplatesModalOpen] = useState(false);
   const [selectedCollaboration, setSelectedCollaboration] = useState('');
   const [contractTitle, setContractTitle] = useState('');
-  const [templateType, setTemplateType] = useState('custom');
+  const [selectedTemplate, setSelectedTemplate] = useState('');
+  const [templateFormOpen, setTemplateFormOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState(null);
+  const [templateForm, setTemplateForm] = useState({
+    name: '',
+    description: '',
+    category: 'custom',
+    content: '',
+  });
   const queryClient = useQueryClient();
 
   // Check auth and access
@@ -94,6 +104,16 @@ export default function Contracts() {
     enabled: !!user && isVerified && isSubscribed,
   });
 
+  // Fetch contract templates
+  const { data: templates = [] } = useQuery({
+    queryKey: ['contractTemplates', user?.email],
+    queryFn: async () => {
+      const all = await base44.entities.ContractTemplate.list('-created_date');
+      return all.filter(t => t.is_public || t.created_by === user?.email);
+    },
+    enabled: !!user,
+  });
+
   // Fetch signatures
   const { data: signatures = [] } = useQuery({
     queryKey: ['signatures', contracts],
@@ -108,11 +128,14 @@ export default function Contracts() {
   const createContractMutation = useMutation({
     mutationFn: async (data) => {
       const collaboration = collaborations.find(c => c.id === data.collaboration_id);
+      const template = templates.find(t => t.id === data.template_id);
+      
       return base44.entities.Contract.create({
         deal_room_id: data.collaboration_id,
         title: data.title,
-        template_type: data.template_type,
+        template_type: template?.category || 'custom',
         content: {
+          template_content: template?.content || '',
           collaboration_details: {
             name: collaboration?.collaboration_name,
             scene_type: collaboration?.scene_type,
@@ -140,12 +163,48 @@ export default function Contracts() {
       setCreateModalOpen(false);
       setSelectedCollaboration('');
       setContractTitle('');
-      setTemplateType('custom');
+      setSelectedTemplate('');
       window.location.href = createPageUrl(`ViewContract?id=${result.id}`);
     },
     onError: () => {
       toast.error('Failed to create contract');
     },
+  });
+
+  // Template mutations
+  const createTemplateMutation = useMutation({
+    mutationFn: (data) => base44.entities.ContractTemplate.create({
+      ...data,
+      created_by: user.email,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contractTemplates'] });
+      toast.success('Template created successfully');
+      setTemplateFormOpen(false);
+      setTemplateForm({ name: '', description: '', category: 'custom', content: '' });
+    },
+    onError: () => toast.error('Failed to create template'),
+  });
+
+  const updateTemplateMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.ContractTemplate.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contractTemplates'] });
+      toast.success('Template updated successfully');
+      setTemplateFormOpen(false);
+      setEditingTemplate(null);
+      setTemplateForm({ name: '', description: '', category: 'custom', content: '' });
+    },
+    onError: () => toast.error('Failed to update template'),
+  });
+
+  const deleteTemplateMutation = useMutation({
+    mutationFn: (id) => base44.entities.ContractTemplate.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contractTemplates'] });
+      toast.success('Template deleted successfully');
+    },
+    onError: () => toast.error('Failed to delete template'),
   });
 
   const handleCreateContract = () => {
@@ -156,8 +215,31 @@ export default function Contracts() {
     createContractMutation.mutate({
       collaboration_id: selectedCollaboration,
       title: contractTitle,
-      template_type: templateType,
+      template_id: selectedTemplate,
     });
+  };
+
+  const handleSaveTemplate = () => {
+    if (!templateForm.name || !templateForm.content) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    if (editingTemplate) {
+      updateTemplateMutation.mutate({ id: editingTemplate.id, data: templateForm });
+    } else {
+      createTemplateMutation.mutate(templateForm);
+    }
+  };
+
+  const handleEditTemplate = (template) => {
+    setEditingTemplate(template);
+    setTemplateForm({
+      name: template.name,
+      description: template.description || '',
+      category: template.category,
+      content: template.content,
+    });
+    setTemplateFormOpen(true);
   };
 
   if (userLoading) {
@@ -207,9 +289,14 @@ export default function Contracts() {
                 <p className="text-xs text-[#6B7A94]">Manage collaboration agreements</p>
               </div>
             </div>
-            <CCButton variant="primary" icon={Plus} onClick={() => setCreateModalOpen(true)}>
-              New Contract
-            </CCButton>
+            <div className="flex gap-2">
+              <CCButton variant="outline" icon={BookTemplate} onClick={() => setTemplatesModalOpen(true)}>
+                Templates
+              </CCButton>
+              <CCButton variant="primary" icon={Plus} onClick={() => setCreateModalOpen(true)}>
+                New Contract
+              </CCButton>
+            </div>
           </div>
 
           {/* Search */}
@@ -383,16 +470,36 @@ export default function Contracts() {
             ))}
           </CCSelect>
 
-          <CCSelect
-            label="Contract Template"
-            value={templateType}
-            onChange={(e) => setTemplateType(e.target.value)}
-          >
-            <option value="custom">Custom Agreement</option>
-            <option value="creator_to_creator">Creator to Creator</option>
-            <option value="studio_contract">Studio Contract</option>
-            <option value="photographer_contract">Photographer Contract</option>
-          </CCSelect>
+          <div>
+            <label className="block text-sm font-medium text-[#E8EEF9] mb-2">
+              Contract Template
+            </label>
+            <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
+              {templates.length === 0 ? (
+                <p className="text-sm text-[#6B7A94] py-2">No templates available</p>
+              ) : (
+                templates.map(template => (
+                  <div
+                    key={template.id}
+                    onClick={() => setSelectedTemplate(template.id)}
+                    className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                      selectedTemplate === template.id
+                        ? 'border-[#4F8CFF] bg-[#4F8CFF]/10'
+                        : 'border-[#263248] hover:border-[#3A4A6B]'
+                    }`}
+                  >
+                    <p className="text-sm font-medium text-[#E8EEF9]">{template.name}</p>
+                    {template.description && (
+                      <p className="text-xs text-[#6B7A94] mt-1">{template.description}</p>
+                    )}
+                    <CCBadge size="sm" className="mt-2">
+                      {template.category.replace('_', ' ')}
+                    </CCBadge>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
 
           {selectedCollaboration && (
             <div className="bg-[#0B0F14] border border-[#263248] rounded-lg p-4">
@@ -424,6 +531,157 @@ export default function Contracts() {
               disabled={!selectedCollaboration || !contractTitle}
             >
               Create Contract
+            </CCButton>
+          </div>
+        </div>
+      </CCModal>
+
+      {/* Templates Management Modal */}
+      <CCModal
+        isOpen={templatesModalOpen}
+        onClose={() => setTemplatesModalOpen(false)}
+        title="Contract Templates"
+        description="Manage your contract templates"
+      >
+        <div className="space-y-4">
+          <CCButton 
+            variant="primary" 
+            icon={Plus} 
+            fullWidth
+            onClick={() => {
+              setTemplateFormOpen(true);
+              setEditingTemplate(null);
+              setTemplateForm({ name: '', description: '', category: 'custom', content: '' });
+            }}
+          >
+            Create New Template
+          </CCButton>
+
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {templates.length === 0 ? (
+              <CCEmpty
+                icon={BookTemplate}
+                title="No templates yet"
+                description="Create your first contract template"
+              />
+            ) : (
+              templates.map(template => (
+                <CCCard key={template.id} padding="md">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-[#E8EEF9]">{template.name}</h4>
+                      {template.description && (
+                        <p className="text-sm text-[#6B7A94] mt-1">{template.description}</p>
+                      )}
+                      <div className="flex gap-2 mt-2">
+                        <CCBadge size="sm" variant="outline">
+                          {template.category.replace('_', ' ')}
+                        </CCBadge>
+                        {template.is_public && (
+                          <CCBadge size="sm" variant="primary">Public</CCBadge>
+                        )}
+                      </div>
+                    </div>
+                    {template.created_by === user?.email && (
+                      <div className="flex gap-2">
+                        <CCButton
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleEditTemplate(template)}
+                        >
+                          Edit
+                        </CCButton>
+                        <CCButton
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteTemplateMutation.mutate(template.id)}
+                          loading={deleteTemplateMutation.isPending}
+                          className="text-[#EF4444] hover:text-[#DC2626]"
+                        >
+                          Delete
+                        </CCButton>
+                      </div>
+                    )}
+                  </div>
+                </CCCard>
+              ))
+            )}
+          </div>
+        </div>
+      </CCModal>
+
+      {/* Template Form Modal */}
+      <CCModal
+        isOpen={templateFormOpen}
+        onClose={() => {
+          setTemplateFormOpen(false);
+          setEditingTemplate(null);
+          setTemplateForm({ name: '', description: '', category: 'custom', content: '' });
+        }}
+        title={editingTemplate ? 'Edit Template' : 'Create Template'}
+        description="Fill in the template details"
+      >
+        <div className="space-y-4">
+          <CCInput
+            label="Template Name"
+            placeholder="e.g., Standard Creator Agreement"
+            value={templateForm.name}
+            onChange={(e) => setTemplateForm({ ...templateForm, name: e.target.value })}
+            required
+          />
+
+          <CCInput
+            label="Description"
+            placeholder="Brief description of this template"
+            value={templateForm.description}
+            onChange={(e) => setTemplateForm({ ...templateForm, description: e.target.value })}
+          />
+
+          <CCSelect
+            label="Category"
+            value={templateForm.category}
+            onChange={(e) => setTemplateForm({ ...templateForm, category: e.target.value })}
+          >
+            <option value="custom">Custom</option>
+            <option value="creator_to_creator">Creator to Creator</option>
+            <option value="studio_contract">Studio Contract</option>
+            <option value="photographer_contract">Photographer Contract</option>
+            <option value="videographer_contract">Videographer Contract</option>
+          </CCSelect>
+
+          <div>
+            <label className="block text-sm font-medium text-[#E8EEF9] mb-2">
+              Template Content <span className="text-[#FF2DAA]">*</span>
+            </label>
+            <textarea
+              value={templateForm.content}
+              onChange={(e) => setTemplateForm({ ...templateForm, content: e.target.value })}
+              placeholder="Enter the contract template content here..."
+              className="w-full h-64 bg-[#121824] border border-[#263248] rounded-lg text-[#E8EEF9] placeholder-[#6B7A94] p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF]"
+            />
+            <p className="text-xs text-[#6B7A94] mt-2">
+              Use placeholders like {`{collaboration_name}`}, {`{scene_type}`}, {`{compensation}`} to auto-fill from collaboration
+            </p>
+          </div>
+
+          <div className="flex gap-3 justify-end pt-4">
+            <CCButton 
+              variant="outline" 
+              onClick={() => {
+                setTemplateFormOpen(false);
+                setEditingTemplate(null);
+                setTemplateForm({ name: '', description: '', category: 'custom', content: '' });
+              }}
+            >
+              Cancel
+            </CCButton>
+            <CCButton 
+              variant="primary" 
+              onClick={handleSaveTemplate}
+              loading={createTemplateMutation.isPending || updateTemplateMutation.isPending}
+              disabled={!templateForm.name || !templateForm.content}
+            >
+              {editingTemplate ? 'Update' : 'Create'} Template
             </CCButton>
           </div>
         </div>
