@@ -24,7 +24,7 @@ import RoleManager from '@/components/collaboration/RoleManager';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
-export default function ViewDealRoom() {
+export default function ViewCollaboration() {
   const [activeTab, setActiveTab] = useState('chat');
   const [message, setMessage] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -146,7 +146,7 @@ export default function ViewDealRoom() {
   }, [messages]);
 
   if (roomLoading) return <CCLoadingScreen />;
-  if (!dealRoom) return <CCEmpty title="Deal room not found" />;
+  if (!dealRoom) return <CCEmpty title="Collaboration not found" />;
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
@@ -162,7 +162,7 @@ export default function ViewDealRoom() {
               </Link>
               <div>
                 <h1 className="text-xl font-semibold text-[#E8EEF9]">
-                  {dealRoom.scene_type || 'Deal Room'}
+                  {dealRoom.scene_type || 'Collaboration'}
                 </h1>
                 <div className="flex items-center gap-2 text-xs text-[#6B7A94]">
                   <CCAvatarGroup avatars={profiles.map(p => ({ src: p.avatar_url, alt: p.display_name }))} max={3} />
@@ -325,7 +325,7 @@ export default function ViewDealRoom() {
         {activeTab === 'details' && (
           <div className="space-y-4">
             <CCCard className="p-4">
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Deal Details</h3>
+              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Collaboration Details</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-[#6B7A94]">Status:</span>

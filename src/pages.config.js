@@ -15,8 +15,8 @@ import Settings from './pages/Settings';
 import Shortlists from './pages/Shortlists';
 import Terms from './pages/Terms';
 import Verification from './pages/Verification';
-import ViewDealRoom from './pages/ViewDealRoom';
 import ViewProfile from './pages/ViewProfile';
+import ViewCollaboration from './pages/ViewCollaboration';
 import __Layout from './Layout.jsx';
 
 
@@ -38,8 +38,8 @@ export const PAGES = {
     "Shortlists": Shortlists,
     "Terms": Terms,
     "Verification": Verification,
-    "ViewDealRoom": ViewDealRoom,
     "ViewProfile": ViewProfile,
+    "ViewCollaboration": ViewCollaboration,
 }
 
 export const pagesConfig = {
