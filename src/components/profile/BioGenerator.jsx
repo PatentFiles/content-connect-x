@@ -8,6 +8,7 @@ export default function BioGenerator({ onSelectBio, currentBio }) {
   const [generating, setGenerating] = useState(false);
   const [inputs, setInputs] = useState({
     roleType: 'creator',
+    sexuality: '',
     collaborationTypes: '',
     personalityTraits: '',
     specialties: '',
@@ -26,6 +27,7 @@ export default function BioGenerator({ onSelectBio, currentBio }) {
 
 User Details:
 - Role: ${inputs.roleType}
+${inputs.sexuality ? `- Sexuality: ${inputs.sexuality}` : ''}
 ${inputs.collaborationTypes ? `- Looking for: ${inputs.collaborationTypes}` : ''}
 ${inputs.personalityTraits ? `- Personality: ${inputs.personalityTraits}` : ''}
 ${inputs.specialties ? `- Specialties: ${inputs.specialties}` : ''}
@@ -91,6 +93,24 @@ Return as JSON array of objects with "style" and "text" fields.`;
             <option value="agent">Agent</option>
             <option value="studio">Studio</option>
           </select>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="block text-sm font-medium text-[#E8EEF9]">Sexuality</label>
+          <select
+            value={inputs.sexuality}
+            onChange={(e) => setInputs({ ...inputs, sexuality: e.target.value })}
+            className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+          >
+            <option value="">Select sexuality...</option>
+            <option value="straight">Straight</option>
+            <option value="gay">Gay</option>
+            <option value="lesbian">Lesbian</option>
+            <option value="bisexual">Bisexual</option>
+            <option value="pansexual">Pansexual</option>
+            <option value="fluid">Fluid</option>
+          </select>
+          <p className="text-xs text-[#6B7A94]">Your sexual orientation</p>
         </div>
 
         <div className="space-y-1.5">
