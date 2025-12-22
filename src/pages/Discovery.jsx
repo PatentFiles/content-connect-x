@@ -49,26 +49,29 @@ export default function Discovery() {
   const isVerified = verification?.[0]?.status === 'approved';
   const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
-  // Fetch profiles
-  const { data: profiles = [], isLoading: profilesLoading } = useQuery({
-    queryKey: ['discoveryProfiles', filters],
+  // Fetch all profiles
+  const { data: allProfiles = [], isLoading: profilesLoading } = useQuery({
+    queryKey: ['allProfiles'],
     queryFn: async () => {
-      let allProfiles = await base44.entities.UserProfile.filter({ profile_complete: true });
-      // Filter out own profile
-      allProfiles = allProfiles.filter(p => p.user_id !== user?.email);
-      
-      // Apply filters
-      if (filters.roleTypes.length > 0) {
-        allProfiles = allProfiles.filter(p => filters.roleTypes.includes(p.role_type));
-      }
-      if (filters.travelAvailable) {
-        allProfiles = allProfiles.filter(p => p.travel_enabled);
-      }
-      
-      return allProfiles.slice(0, 20);
+      let profiles = await base44.entities.UserProfile.filter({ profile_complete: true });
+      return profiles.filter(p => p.user_id !== user?.email);
     },
     enabled: !!user && isVerified && isSubscribed,
   });
+
+  // Apply filters client-side
+  const profiles = React.useMemo(() => {
+    let filtered = [...allProfiles];
+    
+    if (filters.roleTypes.length > 0) {
+      filtered = filtered.filter(p => filters.roleTypes.includes(p.role_type));
+    }
+    if (filters.travelAvailable) {
+      filtered = filtered.filter(p => p.travel_enabled);
+    }
+    
+    return filtered.slice(0, 20);
+  }, [allProfiles, filters]);
 
   // Fetch creator details for profiles
   const { data: creatorDetails = [] } = useQuery({
