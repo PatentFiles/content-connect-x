@@ -97,19 +97,21 @@ export default function Layout({ children, currentPageName }) {
     return (
       <div className="min-h-screen bg-[#0B0F14]">
         <Toaster position="top-center" theme="dark" />
-        <NavBar 
-          user={user}
-          profile={{...profile, verified: isVerified}}
-          isAuthenticated={isAuthenticated}
-          onMenuToggle={() => setMenuOpen(!menuOpen)}
-          menuOpen={menuOpen}
-        />
-        <Sidebar 
-          currentPage={currentPageName}
-          profile={{...profile, verified: isVerified}}
-          onLogout={handleLogout}
-        />
-        <main className="pt-16 md:pl-64 min-h-screen">
+        <div className="relative z-0">
+          <NavBar 
+            user={user}
+            profile={{...profile, verified: isVerified}}
+            isAuthenticated={isAuthenticated}
+            onMenuToggle={() => setMenuOpen(!menuOpen)}
+            menuOpen={menuOpen}
+          />
+          <Sidebar 
+            currentPage={currentPageName}
+            profile={{...profile, verified: isVerified}}
+            onLogout={handleLogout}
+          />
+        </div>
+        <main className="pt-16 md:pl-64 min-h-screen relative z-0">
           {children}
         </main>
         <BottomNav currentPage={currentPageName} />
