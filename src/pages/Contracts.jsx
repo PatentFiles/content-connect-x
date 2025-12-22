@@ -22,6 +22,9 @@ import CCInput from '@/components/ui-custom/CCInput';
 import { CCLoadingScreen, CCSkeletonLoader } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import AccessGate from '@/components/auth/AccessGate';
+import CCModal from '@/components/ui-custom/CCModal';
+import CCInput from '@/components/ui-custom/CCInput';
+import CCSelect from '@/components/ui-custom/CCSelect';
 
 const statusConfig = {
   draft: { label: 'Draft', variant: 'default', icon: FileText },
@@ -272,6 +275,82 @@ export default function Contracts() {
           </div>
         )}
       </div>
+
+      {/* Create Contract Modal */}
+      <CCModal
+        isOpen={createModalOpen}
+        onClose={() => setCreateModalOpen(false)}
+        title="Create Contract"
+        description="Create a new contract from one of your collaborations"
+      >
+        <div className="space-y-4">
+          <CCInput
+            label="Contract Title"
+            placeholder="e.g., Content Creation Agreement"
+            value={contractTitle}
+            onChange={(e) => setContractTitle(e.target.value)}
+            required
+          />
+          
+          <CCSelect
+            label="Select Collaboration"
+            value={selectedCollaboration}
+            onChange={(e) => setSelectedCollaboration(e.target.value)}
+            required
+          >
+            <option value="">Choose a collaboration...</option>
+            {collaborations.map(collab => (
+              <option key={collab.id} value={collab.id}>
+                {collab.collaboration_name || `${collab.scene_type || 'Collaboration'} - ${new Date(collab.created_date).toLocaleDateString()}`}
+              </option>
+            ))}
+          </CCSelect>
+
+          <CCSelect
+            label="Contract Template"
+            value={templateType}
+            onChange={(e) => setTemplateType(e.target.value)}
+          >
+            <option value="custom">Custom Agreement</option>
+            <option value="creator_to_creator">Creator to Creator</option>
+            <option value="studio_contract">Studio Contract</option>
+            <option value="photographer_contract">Photographer Contract</option>
+          </CCSelect>
+
+          {selectedCollaboration && (
+            <div className="bg-[#0B0F14] border border-[#263248] rounded-lg p-4">
+              <p className="text-xs text-[#6B7A94] mb-2">Contract will include:</p>
+              <ul className="text-sm text-[#E8EEF9] space-y-1">
+                {(() => {
+                  const collab = collaborations.find(c => c.id === selectedCollaboration);
+                  return (
+                    <>
+                      <li>• Scene: {collab?.scene_type || 'N/A'}</li>
+                      <li>• Compensation: {collab?.compensation_type?.replace('_', ' ') || 'N/A'}</li>
+                      <li>• Participants: {collab?.participant_ids?.length || 0}</li>
+                      <li>• Location: {collab?.location?.city || 'TBD'}</li>
+                    </>
+                  );
+                })()}
+              </ul>
+            </div>
+          )}
+
+          <div className="flex gap-3 justify-end pt-4">
+            <CCButton variant="outline" onClick={() => setCreateModalOpen(false)}>
+              Cancel
+            </CCButton>
+            <CCButton 
+              variant="primary" 
+              onClick={handleCreateContract}
+              loading={createContractMutation.isPending}
+              disabled={!selectedCollaboration || !contractTitle}
+            >
+              Create Contract
+            </CCButton>
+          </div>
+        </div>
+      </CCModal>
     </div>
   );
 }

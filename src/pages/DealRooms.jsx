@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
@@ -15,8 +15,10 @@ import {
   Users,
   Calendar,
   DollarSign,
-  Edit
+  Edit,
+  Trash2
 } from 'lucide-react';
+import { toast } from 'sonner';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
@@ -24,6 +26,7 @@ import { CCAvatarGroup } from '@/components/ui-custom/CCAvatars';
 import { CCLoadingScreen, CCSkeletonLoader } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import AccessGate from '@/components/auth/AccessGate';
+import CCModal from '@/components/ui-custom/CCModal';
 
 const statusConfig = {
   draft: { label: 'Draft', variant: 'default', icon: FileText },
@@ -37,6 +40,9 @@ const statusConfig = {
 
 export default function DealRooms() {
   const [filter, setFilter] = useState('all');
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [collaborationToDelete, setCollaborationToDelete] = useState(null);
+  const queryClient = useQueryClient();
 
   // Check auth and access
   const { data: user, isLoading: userLoading } = useQuery({
@@ -79,6 +85,33 @@ export default function DealRooms() {
     },
     enabled: dealRooms.length > 0,
   });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: (id) => base44.entities.DealRoom.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dealRooms'] });
+      toast.success('Collaboration deleted successfully');
+      setDeleteModalOpen(false);
+      setCollaborationToDelete(null);
+    },
+    onError: () => {
+      toast.error('Failed to delete collaboration');
+    },
+  });
+
+  const handleDeleteClick = (room, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCollaborationToDelete(room);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (collaborationToDelete) {
+      deleteMutation.mutate(collaborationToDelete.id);
+    }
+  };
 
   if (userLoading) {
     return <CCLoadingScreen message="Loading..." />;
@@ -242,11 +275,22 @@ export default function DealRooms() {
                       </div>
 
                       <div className="flex items-center justify-between pt-3 border-t border-[#263248]">
-                        <Link to={createPageUrl(`CreateDealRoom?id=${room.id}`)}>
-                          <CCButton variant="ghost" size="sm" icon={Edit}>
-                            Edit
+                        <div className="flex gap-2">
+                          <Link to={createPageUrl(`CreateDealRoom?id=${room.id}`)}>
+                            <CCButton variant="ghost" size="sm" icon={Edit}>
+                              Edit
+                            </CCButton>
+                          </Link>
+                          <CCButton 
+                            variant="ghost" 
+                            size="sm" 
+                            icon={Trash2}
+                            onClick={(e) => handleDeleteClick(room, e)}
+                            className="text-[#EF4444] hover:text-[#DC2626] hover:bg-[#EF4444]/10"
+                          >
+                            Delete
                           </CCButton>
-                        </Link>
+                        </div>
                         <Link to={createPageUrl(`ViewDealRoom?id=${room.id}`)}>
                           <span className="text-sm text-[#4F8CFF] flex items-center gap-1">
                             View Details <ChevronRight className="w-4 h-4" />
@@ -260,6 +304,39 @@ export default function DealRooms() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <CCModal
+        isOpen={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        title="Delete Collaboration"
+        description="Are you sure you want to delete this collaboration? This action cannot be undone."
+      >
+        <div className="space-y-4">
+          {collaborationToDelete && (
+            <div className="bg-[#0B0F14] border border-[#263248] rounded-lg p-4">
+              <p className="text-[#E8EEF9] font-medium">
+                {collaborationToDelete.collaboration_name || `${collaborationToDelete.participant_ids?.length || 0} Participants`}
+              </p>
+              <p className="text-sm text-[#6B7A94] capitalize mt-1">
+                {collaborationToDelete.scene_type || 'Scene'} • {collaborationToDelete.compensation_type?.replace('_', ' ') || 'TBD'}
+              </p>
+            </div>
+          )}
+          <div className="flex gap-3 justify-end">
+            <CCButton variant="outline" onClick={() => setDeleteModalOpen(false)}>
+              Cancel
+            </CCButton>
+            <CCButton 
+              variant="danger" 
+              onClick={confirmDelete}
+              loading={deleteMutation.isPending}
+            >
+              Delete
+            </CCButton>
+          </div>
+        </div>
+      </CCModal>
     </div>
   );
 }
