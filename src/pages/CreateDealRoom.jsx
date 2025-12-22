@@ -41,9 +41,7 @@ const compensationTypes = [
   { value: 'rev_share_external', label: 'Revenue Share', description: 'Split revenue externally' },
 ];
 
-const standardActs = ['Solo', 'B/G', 'G/G', 'B/B', 'Gangbang', 'B/G/B', 'B/B/G', 'B/G/G', 'IR', 'Group', 'Oral', 'Manual', 'Toys'];
-const fetishActs = ['BDSM', 'Bondage', 'Domination', 'Submission', 'Cuckold', 'Hotwife', 'Pegging', 'Roleplay', 'Latex', 'Leather', 'Feet', 'Cosplay'];
-const kinkEdgeActs = ['Impact Play', 'Wax Play', 'Sensory Deprivation', 'Restraints', 'Power Exchange'];
+const acts = ['Creampie', 'Facial', 'CIM (cum in mouth)', 'Swallowing', 'Anal', 'DP (double penetration)', 'DVP (double vaginal penetration)', 'DAP (double anal penetration)'];
 
 export default function CreateDealRoom() {
   const [step, setStep] = useState(1);
@@ -83,6 +81,7 @@ export default function CreateDealRoom() {
     },
     usage_rights: {
       platforms: [],
+      other_platforms: '',
       exclusivity: false,
       credit_required: true,
     },
@@ -146,15 +145,6 @@ export default function CreateDealRoom() {
     updateForm('acts_selected', updated);
   };
 
-  const getActsList = () => {
-    switch (formData.scene_type) {
-      case 'standard': return standardActs;
-      case 'fetish': return fetishActs;
-      case 'kink_edge': return kinkEdgeActs;
-      default: return [];
-    }
-  };
-
   if (userLoading) {
     return <CCLoadingScreen message="Loading..." />;
   }
@@ -196,55 +186,45 @@ export default function CreateDealRoom() {
 
       {/* Content */}
       <div className="max-w-3xl mx-auto px-4 py-6">
-        {/* Step 1: Scene Type */}
+        {/* Step 1: Scene Type & Acts */}
         {step === 1 && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">What type of content?</h2>
-            <p className="text-[#9AA6BC] mb-6">Select the scene category that best fits your collaboration.</p>
-
-            <div className="space-y-4">
-              {sceneTypes.map((type) => (
-                <CCCard
-                  key={type.value}
-                  hover
-                  clickable
-                  padding="lg"
-                  className={formData.scene_type === type.value ? 'ring-2 ring-[#4F8CFF]' : ''}
-                  onClick={() => updateForm('scene_type', type.value)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold text-[#E8EEF9]">{type.label}</h3>
-                      <p className="text-sm text-[#9AA6BC]">{type.description}</p>
-                    </div>
-                    {formData.scene_type === type.value && (
-                      <div className="w-6 h-6 rounded-full bg-[#4F8CFF] flex items-center justify-center">
-                        <Check className="w-4 h-4 text-white" />
-                      </div>
-                    )}
-                  </div>
-                </CCCard>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Step 2: Acts & Boundaries */}
-        {step === 2 && (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Content Details</h2>
-            <p className="text-[#9AA6BC] mb-6">Select acts to include and define boundaries.</p>
+            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Scene Details</h2>
+            <p className="text-[#9AA6BC] mb-6">Select the scene type and acts.</p>
 
             <CCCard padding="lg" className="mb-6">
+              <h3 className="font-semibold text-[#E8EEF9] mb-4">Select Scene</h3>
+              <div className="space-y-3">
+                {sceneTypes.map((type) => (
+                  <label
+                    key={type.value}
+                    className="flex items-center gap-3 p-3 rounded-lg border border-[#263248] cursor-pointer hover:bg-[#1A2438] transition-colors"
+                    style={{ backgroundColor: formData.scene_type === type.value ? '#1A2438' : 'transparent' }}
+                  >
+                    <input
+                      type="radio"
+                      name="scene_type"
+                      value={type.value}
+                      checked={formData.scene_type === type.value}
+                      onChange={(e) => updateForm('scene_type', e.target.value)}
+                      className="w-5 h-5"
+                    />
+                    <div>
+                      <p className="font-semibold text-[#E8EEF9]">{type.label}</p>
+                      <p className="text-sm text-[#9AA6BC]">{type.description}</p>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            </CCCard>
+
+            <CCCard padding="lg">
               <h3 className="font-semibold text-[#E8EEF9] mb-4">Select Acts</h3>
-              <div className="flex flex-wrap gap-2">
-                {getActsList().map((act) => (
+              <div className="flex flex-wrap gap-2 mb-4">
+                {acts.map((act) => (
                   <CCButton
                     key={act}
                     variant={formData.acts_selected.includes(act) ? 'primary' : 'outline'}
@@ -260,9 +240,19 @@ export default function CreateDealRoom() {
                 placeholder="Any additional acts not listed..."
                 value={formData.acts_other_text}
                 onChange={(e) => updateForm('acts_other_text', e.target.value)}
-                className="mt-4"
               />
             </CCCard>
+          </motion.div>
+        )}
+
+        {/* Step 2: Boundaries */}
+        {step === 2 && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Boundaries</h2>
+            <p className="text-[#9AA6BC] mb-6">Define your boundaries and limits.</p>
 
             <CCCard padding="lg">
               <h3 className="font-semibold text-[#E8EEF9] mb-4 flex items-center gap-2">
@@ -493,7 +483,7 @@ export default function CreateDealRoom() {
               <div className="mb-4">
                 <label className="text-sm text-[#9AA6BC] mb-2 block">Platforms</label>
                 <p className="text-xs text-[#6B7A94] mb-3">Where content can be published</p>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2 mb-3">
                   {['OnlyFans', 'Fansly', 'Pornhub', 'ManyVids', 'Clips4Sale', 'Personal Website', 'Twitter/X', 'Instagram'].map(platform => {
                     const platformList = formData.usage_rights.platforms || [];
                     return (
@@ -517,6 +507,14 @@ export default function CreateDealRoom() {
                     );
                   })}
                 </div>
+                <CCInput
+                  placeholder="Other platforms (comma-separated)"
+                  value={formData.usage_rights.other_platforms}
+                  onChange={(e) => updateForm('usage_rights', {
+                    ...formData.usage_rights,
+                    other_platforms: e.target.value
+                  })}
+                />
               </div>
               <div className="space-y-3">
                 <label className="flex items-center gap-3 cursor-pointer">
