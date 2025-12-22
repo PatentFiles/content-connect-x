@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Search as SearchIcon, X, Filter, Users, Camera, Video, Briefcase, Building } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
-import CCInput from '@/components/ui-custom/CCInput';
+
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCLoadingScreen, CCProfileCardSkeleton } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
@@ -25,12 +25,19 @@ export default function Search() {
   const [selectedRole, setSelectedRole] = useState('');
   const [filters, setFilters] = useState({
     roleTypes: [],
-    lookingFor: [],
-    distance: 500,
+    orientations: [],
+    sceneTypes: [],
+    tags: [],
     compensation: [],
+    availabilityMode: [],
+    skills: [],
     travelAvailable: false,
     verifiedOnly: true,
+    recentlyActive: false,
     sortBy: 'recently_active',
+    city: '',
+    state: '',
+    country: '',
   });
 
   // Check auth and access
@@ -54,8 +61,21 @@ export default function Search() {
   const isVerified = verification?.[0]?.status === 'approved';
   const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
-  // Fetch profiles
-  const { data: profiles = [], isLoading: profilesLoading, refetch } = useQuery({
+  // Fetch all creator details and verifications
+  const { data: allVerifications = [] } = useQuery({
+    queryKey: ['allVerifications'],
+    queryFn: () => base44.entities.VerificationRecord.list(),
+    enabled: !!user && isVerified && isSubscribed,
+  });
+
+  const { data: allCreatorDetails = [] } = useQuery({
+    queryKey: ['allCreatorDetails'],
+    queryFn: () => base44.entities.CreatorDetails.list(),
+    enabled: !!user && isVerified && isSubscribed,
+  });
+
+  // Fetch profiles with filters
+  const { data: profiles = [], isLoading: profilesLoading } = useQuery({
     queryKey: ['searchProfiles', searchQuery, selectedRole, filters],
     queryFn: async () => {
       let allProfiles = await base44.entities.UserProfile.filter({ profile_complete: true });
@@ -74,18 +94,82 @@ export default function Search() {
       // Role filter
       if (selectedRole) {
         allProfiles = allProfiles.filter(p => p.role_type === selectedRole);
-      } else if (filters.roleTypes.length > 0) {
+      } else if (filters.roleTypes?.length > 0) {
         allProfiles = allProfiles.filter(p => filters.roleTypes.includes(p.role_type));
       }
 
-      // Other filters
+      // Orientation filter (creators only)
+      if (filters.orientations?.length > 0) {
+        allProfiles = allProfiles.filter(p => {
+          if (p.role_type !== 'creator') return true;
+          const details = allCreatorDetails.find(d => d.user_id === p.user_id);
+          return details && filters.orientations.includes(details.orientation_category);
+        });
+      }
+
+      // Scene type & tags
+      if (filters.sceneTypes?.length > 0) {
+        allProfiles = allProfiles.filter(p => {
+          const details = allCreatorDetails.find(d => d.user_id === p.user_id);
+          return details && details.content_categories?.some(cat => filters.sceneTypes.includes(cat));
+        });
+      }
+
+      if (filters.tags?.length > 0) {
+        allProfiles = allProfiles.filter(p => {
+          const details = allCreatorDetails.find(d => d.user_id === p.user_id);
+          return details && details.tags?.some(tag => filters.tags.includes(tag));
+        });
+      }
+
+      // Compensation
+      if (filters.compensation?.length > 0) {
+        allProfiles = allProfiles.filter(p => {
+          const details = allCreatorDetails.find(d => d.user_id === p.user_id);
+          const collabTypes = details?.collab_types || [];
+          return filters.compensation.some(comp => collabTypes.includes(comp));
+        });
+      }
+
+      // Travel & Location
       if (filters.travelAvailable) {
         allProfiles = allProfiles.filter(p => p.travel_enabled);
+      }
+
+      if (filters.city) {
+        allProfiles = allProfiles.filter(p => 
+          p.base_location?.city?.toLowerCase().includes(filters.city.toLowerCase())
+        );
+      }
+
+      if (filters.state) {
+        allProfiles = allProfiles.filter(p => 
+          p.base_location?.state?.toLowerCase().includes(filters.state.toLowerCase())
+        );
+      }
+
+      // Verified only
+      if (filters.verifiedOnly) {
+        const verifiedUserIds = allVerifications
+          .filter(v => v.status === 'approved')
+          .map(v => v.user_id);
+        allProfiles = allProfiles.filter(p => verifiedUserIds.includes(p.user_id));
+      }
+
+      // Recently active
+      if (filters.recentlyActive) {
+        const threeDaysAgo = new Date();
+        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+        allProfiles = allProfiles.filter(p => 
+          p.last_active_at && new Date(p.last_active_at) > threeDaysAgo
+        );
       }
 
       // Sort
       if (filters.sortBy === 'recently_active') {
         allProfiles.sort((a, b) => new Date(b.last_active_at || 0) - new Date(a.last_active_at || 0));
+      } else if (filters.sortBy === 'response_time') {
+        allProfiles.sort((a, b) => (a.response_time_hours || 999) - (b.response_time_hours || 999));
       }
 
       return allProfiles.slice(0, 50);
@@ -127,14 +211,23 @@ export default function Search() {
         <div className="max-w-6xl mx-auto px-4 py-4">
           {/* Search Input */}
           <div className="flex gap-3 mb-4">
-            <div className="flex-1">
-              <CCInput
+            <div className="flex-1 relative">
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7A94]" />
+              <input
+                type="text"
                 placeholder="Search by name, location, or keywords..."
-                icon={SearchIcon}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                iconRight={searchQuery ? X : undefined}
+                className="w-full bg-[#121824] border border-[#263248] rounded-lg pl-10 pr-10 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
               />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7A94] hover:text-[#E8EEF9]"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
             <ProfileFilters
               filters={filters}
@@ -142,12 +235,19 @@ export default function Search() {
               onReset={() => {
                 setFilters({
                   roleTypes: [],
-                  lookingFor: [],
-                  distance: 500,
+                  orientations: [],
+                  sceneTypes: [],
+                  tags: [],
                   compensation: [],
+                  availabilityMode: [],
+                  skills: [],
                   travelAvailable: false,
                   verifiedOnly: true,
+                  recentlyActive: false,
                   sortBy: 'recently_active',
+                  city: '',
+                  state: '',
+                  country: '',
                 });
                 setSelectedRole('');
               }}

@@ -14,19 +14,19 @@ import AccessGate from '@/components/auth/AccessGate';
 export default function Discovery() {
   const [filters, setFilters] = useState({
     roleTypes: [],
-    lookingFor: [],
-    distance: 50,
+    orientations: [],
+    sceneTypes: [],
+    tags: [],
     compensation: [],
+    availabilityMode: [],
+    skills: [],
     travelAvailable: false,
     verifiedOnly: true,
+    recentlyActive: false,
     sortBy: 'distance',
-    skills: [],
-    workLocation: [],
-    minRating: 0,
     city: '',
     state: '',
     country: '',
-    radius: 50,
   });
 
   // Check auth and access
@@ -62,13 +62,19 @@ export default function Discovery() {
   const isVerified = verification?.[0]?.status === 'approved';
   const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
-  // Fetch all profiles
+  // Fetch all profiles and creator details
   const { data: allProfiles = [], isLoading: profilesLoading } = useQuery({
     queryKey: ['allProfiles'],
     queryFn: async () => {
       let profiles = await base44.entities.UserProfile.filter({ profile_complete: true });
       return profiles.filter(p => p.user_id !== user?.email);
     },
+    enabled: !!user && isVerified && isSubscribed,
+  });
+
+  const { data: allCreatorDetails = [] } = useQuery({
+    queryKey: ['allCreatorDetails'],
+    queryFn: () => base44.entities.CreatorDetails.list(),
     enabled: !!user && isVerified && isSubscribed,
   });
 
@@ -79,25 +85,48 @@ export default function Discovery() {
     let filtered = [...allProfiles];
     
     // Role type filter
-    if (filters.roleTypes && filters.roleTypes.length > 0) {
+    if (filters.roleTypes?.length > 0) {
       filtered = filtered.filter(p => filters.roleTypes.includes(p.role_type));
     }
     
-    // Looking for filter
-    if (filters.lookingFor && filters.lookingFor.length > 0) {
+    // Orientation filter (creators only)
+    if (filters.orientations?.length > 0) {
       filtered = filtered.filter(p => {
-        // Check if profile has any of the selected genders in their looking_for
-        const profileLookingFor = p.looking_for_genders || [];
-        return filters.lookingFor.some(gender => profileLookingFor.includes(gender));
+        if (p.role_type !== 'creator') return true;
+        const details = allCreatorDetails.find(d => d.user_id === p.user_id);
+        return details && filters.orientations.includes(details.orientation_category);
+      });
+    }
+    
+    // Scene type filter
+    if (filters.sceneTypes?.length > 0) {
+      filtered = filtered.filter(p => {
+        const details = allCreatorDetails.find(d => d.user_id === p.user_id);
+        return details && details.content_categories?.some(cat => filters.sceneTypes.includes(cat));
+      });
+    }
+    
+    // Tag filter
+    if (filters.tags?.length > 0) {
+      filtered = filtered.filter(p => {
+        const details = allCreatorDetails.find(d => d.user_id === p.user_id);
+        return details && details.tags?.some(tag => filters.tags.includes(tag));
       });
     }
     
     // Compensation filter
-    if (filters.compensation && filters.compensation.length > 0) {
+    if (filters.compensation?.length > 0) {
       filtered = filtered.filter(p => {
-        const profileCompTypes = p.collab_types || [];
-        return filters.compensation.some(comp => profileCompTypes.includes(comp));
+        const details = allCreatorDetails.find(d => d.user_id === p.user_id);
+        const collabTypes = details?.collab_types || [];
+        return filters.compensation.some(comp => collabTypes.includes(comp));
       });
+    }
+    
+    // Availability mode filter
+    if (filters.availabilityMode?.length > 0) {
+      // This would need availability_mode field in profile - for now just pass through
+      filtered = filtered.filter(p => true);
     }
     
     // Travel available filter
@@ -113,6 +142,15 @@ export default function Discovery() {
       filtered = filtered.filter(p => verifiedUserIds.includes(p.user_id));
     }
     
+    // Recently active filter
+    if (filters.recentlyActive) {
+      const threeDaysAgo = new Date();
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+      filtered = filtered.filter(p => 
+        p.last_active_at && new Date(p.last_active_at) > threeDaysAgo
+      );
+    }
+    
     // Location filters
     if (filters.city) {
       filtered = filtered.filter(p => 
@@ -123,19 +161,6 @@ export default function Discovery() {
       filtered = filtered.filter(p => 
         p.base_location?.state?.toLowerCase().includes(filters.state.toLowerCase())
       );
-    }
-    if (filters.country) {
-      filtered = filtered.filter(p => 
-        p.base_location?.country?.toLowerCase().includes(filters.country.toLowerCase())
-      );
-    }
-    
-    // Rating filter (using response_time_hours as proxy for now)
-    if (filters.minRating > 0) {
-      filtered = filtered.filter(p => {
-        const rating = p.response_time_hours ? Math.max(1, 5 - (p.response_time_hours / 24)) : 3;
-        return rating >= filters.minRating;
-      });
     }
     
     // Sort
@@ -156,7 +181,7 @@ export default function Discovery() {
     }
     
     return filtered.slice(0, 20);
-  }, [allProfiles, filters, allVerifications]);
+  }, [allProfiles, filters, allVerifications, allCreatorDetails]);
 
   // Fetch creator details for profiles
   const { data: creatorDetails = [] } = useQuery({
@@ -205,19 +230,19 @@ export default function Discovery() {
               onChange={setFilters}
               onReset={() => setFilters({
                 roleTypes: [],
-                lookingFor: [],
-                distance: 50,
+                orientations: [],
+                sceneTypes: [],
+                tags: [],
                 compensation: [],
+                availabilityMode: [],
+                skills: [],
                 travelAvailable: false,
                 verifiedOnly: true,
+                recentlyActive: false,
                 sortBy: 'distance',
-                skills: [],
-                workLocation: [],
-                minRating: 0,
                 city: '',
                 state: '',
                 country: '',
-                radius: 50,
               })}
             />
           </div>
