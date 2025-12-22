@@ -128,6 +128,7 @@ Return as JSON array of objects with "style" and "text" fields.`;
               { value: 'ggg', label: 'G/G/G' },
               { value: 'gangbang', label: 'Gangbang' },
               { value: 'group', label: 'Group' },
+              { value: 'ir', label: 'IR' },
               { value: 'fetish', label: 'Fetish' },
               { value: 'kink', label: 'Kink/BDSM' },
             ].map(type => (
