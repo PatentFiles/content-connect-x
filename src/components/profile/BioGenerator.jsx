@@ -115,13 +115,22 @@ Return as JSON array of objects with "style" and "text" fields.`;
 
         <div className="space-y-1.5">
           <label className="block text-sm font-medium text-[#E8EEF9]">Collaboration Types</label>
-          <input
-            type="text"
-            placeholder="e.g., B/G, G/G, solo, fetish content"
+          <select
             value={inputs.collaborationTypes}
             onChange={(e) => setInputs({ ...inputs, collaborationTypes: e.target.value })}
-            className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
-          />
+            className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+          >
+            <option value="">Select collaboration type...</option>
+            <option value="solo">Solo</option>
+            <option value="bg">B/G (Boy/Girl)</option>
+            <option value="gg">G/G (Girl/Girl)</option>
+            <option value="bb">B/B (Boy/Boy)</option>
+            <option value="group">Group</option>
+            <option value="fetish">Fetish</option>
+            <option value="kink">Kink/BDSM</option>
+            <option value="standard">Standard</option>
+            <option value="custom">Custom/Various</option>
+          </select>
           <p className="text-xs text-[#6B7A94]">What types of collaborations are you interested in?</p>
         </div>
 
