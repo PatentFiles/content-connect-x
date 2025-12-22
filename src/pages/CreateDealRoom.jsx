@@ -41,7 +41,7 @@ const compensationTypes = [
   { value: 'rev_share_external', label: 'Revenue Share', description: 'Split revenue externally' },
 ];
 
-const standardScenes = ['Solo', 'B/G', 'G/G', 'B/B', 'Gangbang', 'B/G/B', 'B/B/G', 'B/G/G', 'IR', 'Group', 'Oral', 'Manual', 'Toys'];
+const standardScenes = ['Solo', 'B/G', 'G/G', 'B/B', 'Gangbang', 'B/G/B', 'B/B/G', 'B/G/G', 'G/G/B', 'G/G/G', 'B/B/B', 'G/B/G/B', 'IR', 'Group', 'Oral', 'Toys'];
 const fetishScenes = ['BDSM', 'Bondage', 'Domination', 'Submission', 'Cuckold', 'Hotwife', 'Pegging', 'Roleplay', 'Latex', 'Leather', 'Feet', 'Cosplay'];
 const kinkEdgeScenes = ['Impact Play', 'Wax Play', 'Sensory Deprivation', 'Restraints', 'Power Exchange'];
 const acts = ['Creampie', 'Facial', 'CIM (cum in mouth)', 'Swallowing', 'Anal', 'DP (double penetration)', 'DVP (double vaginal penetration)', 'DAP (double anal penetration)'];
