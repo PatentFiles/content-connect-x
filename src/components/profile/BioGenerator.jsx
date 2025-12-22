@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Sparkles, RefreshCw } from 'lucide-react';
-import CCButton from '@/components/ui-custom/CCButton';
-import CCInput from '@/components/ui-custom/CCInput';
-import CCSelect from '@/components/ui-custom/CCSelect';
-import CCCard from '@/components/ui-custom/CCCard';
+import CCButton from '@/components/ui-custom/CCButton.jsx';
+import CCInput from '@/components/ui-custom/CCInput.jsx';
+import CCSelect from '@/components/ui-custom/CCSelect.jsx';
+import CCCard from '@/components/ui-custom/CCCard.jsx';
 import { toast } from 'sonner';
 
 export default function BioGenerator({ onSelectBio, currentBio }) {
