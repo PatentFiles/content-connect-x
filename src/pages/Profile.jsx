@@ -295,10 +295,22 @@ export default function Profile() {
                       <p className="text-sm text-[#6B7A94]">Display Name</p>
                       <p className="text-[#E8EEF9] mt-1">{profile?.display_name || 'Not set'}</p>
                     </div>
-                    {details?.orientation_category && (
+                    {profile?.role_type === 'creator' && details?.orientation_category && (
                       <div>
                         <p className="text-sm text-[#6B7A94]">Sexuality</p>
                         <p className="text-[#E8EEF9] mt-1 capitalize">{details.orientation_category.replace('_', ' ')}</p>
+                      </div>
+                    )}
+                    {profile?.age && (
+                      <div>
+                        <p className="text-sm text-[#6B7A94]">Age</p>
+                        <p className="text-[#E8EEF9] mt-1">{profile.age}</p>
+                      </div>
+                    )}
+                    {profile?.ethnicity && (
+                      <div>
+                        <p className="text-sm text-[#6B7A94]">Ethnicity</p>
+                        <p className="text-[#E8EEF9] mt-1">{profile.ethnicity}</p>
                       </div>
                     )}
                     <div>
