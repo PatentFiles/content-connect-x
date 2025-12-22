@@ -107,10 +107,10 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
         title="Filters"
         size="xl"
       >
-        <div className="space-y-6 max-h-[70vh] overflow-y-auto">
+        <div className="space-y-6 max-h-[60vh] overflow-y-auto px-2">
           {/* Role Type */}
           <div>
-            <label className="text-sm font-medium text-[#E8EEF9] mb-3 block">Role Type</label>
+            <label className="text-sm font-medium text-[#E8EEF9] mb-3 block text-center">Role Type</label>
             <div className="flex flex-wrap gap-2">
               {roleOptions.map(opt => (
                 <CCButton
@@ -127,7 +127,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
 
           {/* Looking For */}
           <div>
-            <label className="text-sm font-medium text-[#E8EEF9] mb-3 block">Looking For</label>
+            <label className="text-sm font-medium text-[#E8EEF9] mb-3 block text-center">Looking For</label>
             <div className="flex flex-wrap gap-2">
               {genderOptions.map(opt => (
                 <CCButton
@@ -144,7 +144,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
 
           {/* Distance */}
           <div>
-            <label className="text-sm font-medium text-[#E8EEF9] mb-3 block">
+            <label className="text-sm font-medium text-[#E8EEF9] mb-3 block text-center">
               Distance: {filters.distance || 50} miles
             </label>
             <input
@@ -163,7 +163,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
 
           {/* Compensation */}
           <div>
-            <label className="text-sm font-medium text-[#E8EEF9] mb-3 block">Compensation</label>
+            <label className="text-sm font-medium text-[#E8EEF9] mb-3 block text-center">Compensation</label>
             <div className="flex flex-wrap gap-2">
               {compensationOptions.map(opt => (
                 <CCButton
@@ -180,7 +180,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
 
           {/* Skills */}
           <div>
-            <label className="text-sm font-medium text-[#E8EEF9] mb-3 block">Skills & Specialties</label>
+            <label className="text-sm font-medium text-[#E8EEF9] mb-3 block text-center">Skills & Specialties</label>
             <div className="flex flex-wrap gap-2">
               {skillOptions.map(opt => (
                 <CCButton
@@ -197,7 +197,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
 
           {/* Work Location Type */}
           <div>
-            <label className="text-sm font-medium text-[#E8EEF9] mb-3 block">Work Location</label>
+            <label className="text-sm font-medium text-[#E8EEF9] mb-3 block text-center">Work Location</label>
             <div className="flex flex-wrap gap-2">
               {workLocationOptions.map(opt => (
                 <CCButton
@@ -214,7 +214,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
 
           {/* Rating Filter */}
           <div>
-            <label className="text-sm font-medium text-[#E8EEF9] mb-3 block">
+            <label className="text-sm font-medium text-[#E8EEF9] mb-3 block text-center">
               Minimum Rating: {filters.minRating || 0} <Star className="w-4 h-4 inline text-[#F59E0B]" />
             </label>
             <input
@@ -234,7 +234,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
 
           {/* Travel Available */}
           <div>
-            <label className="text-sm font-medium text-[#E8EEF9] mb-3 block">Availability</label>
+            <label className="text-sm font-medium text-[#E8EEF9] mb-3 block text-center">Availability</label>
             <div className="flex flex-wrap gap-2">
               <CCButton
                 variant={filters.travelAvailable ? 'primary' : 'outline'}
@@ -257,7 +257,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
           <div>
             <button
               onClick={() => setShowAdvancedLocation(!showAdvancedLocation)}
-              className="flex items-center gap-2 text-sm font-medium text-[#E8EEF9] mb-3"
+              className="flex items-center justify-center gap-2 text-sm font-medium text-[#E8EEF9] mb-3 w-full"
             >
               <MapPin className="w-4 h-4" />
               Advanced Location Search
