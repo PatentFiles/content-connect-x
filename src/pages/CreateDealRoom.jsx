@@ -41,7 +41,9 @@ const compensationTypes = [
   { value: 'rev_share_external', label: 'Revenue Share', description: 'Split revenue externally' },
 ];
 
-const sceneOptions = ['Solo', 'B/G', 'G/G', 'B/B', 'Gangbang', 'B/G/B', 'B/B/G', 'B/G/G', 'IR', 'Group', 'Oral', 'Manual', 'Toys'];
+const standardScenes = ['Solo', 'B/G', 'G/G', 'B/B', 'Gangbang', 'B/G/B', 'B/B/G', 'B/G/G', 'IR', 'Group', 'Oral', 'Manual', 'Toys'];
+const fetishScenes = ['BDSM', 'Bondage', 'Domination', 'Submission', 'Cuckold', 'Hotwife', 'Pegging', 'Roleplay', 'Latex', 'Leather', 'Feet', 'Cosplay'];
+const kinkEdgeScenes = ['Impact Play', 'Wax Play', 'Sensory Deprivation', 'Restraints', 'Power Exchange'];
 const acts = ['Creampie', 'Facial', 'CIM (cum in mouth)', 'Swallowing', 'Anal', 'DP (double penetration)', 'DVP (double vaginal penetration)', 'DAP (double anal penetration)'];
 
 export default function CreateDealRoom() {
@@ -137,6 +139,15 @@ export default function CreateDealRoom() {
 
   const updateForm = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const getSceneOptions = () => {
+    switch (formData.scene_type) {
+      case 'standard': return standardScenes;
+      case 'fetish': return fetishScenes;
+      case 'kink_edge': return kinkEdgeScenes;
+      default: return [];
+    }
   };
 
   const toggleScene = (scene) => {
@@ -244,7 +255,7 @@ export default function CreateDealRoom() {
             <CCCard padding="lg" className="mb-6">
               <h3 className="font-semibold text-[#E8EEF9] mb-4">Select Scene</h3>
               <div className="flex flex-wrap gap-2">
-                {sceneOptions.map((scene) => (
+                {getSceneOptions().map((scene) => (
                   <CCButton
                     key={scene}
                     variant={formData.scene_selected.includes(scene) ? 'primary' : 'outline'}
