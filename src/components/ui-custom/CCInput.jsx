@@ -1,7 +1,7 @@
-import React, { forwardRef } from 'react';
+import React from 'react';
 import { cn } from '@/lib/utils';
 
-const CCInput = forwardRef(({
+function CCInput({
   label,
   error,
   hint,
@@ -13,7 +13,7 @@ const CCInput = forwardRef(({
   disabled,
   type = 'text',
   ...props
-}, ref) => {
+}) {
   return (
     <div className={cn('space-y-1.5', className)}>
       {label && (
@@ -29,7 +29,6 @@ const CCInput = forwardRef(({
           </div>
         )}
         <input
-          ref={ref}
           type={type}
           disabled={disabled}
           className={cn(
@@ -60,8 +59,6 @@ const CCInput = forwardRef(({
       )}
     </div>
   );
-});
-
-CCInput.displayName = 'CCInput';
+}
 
 export default CCInput;
