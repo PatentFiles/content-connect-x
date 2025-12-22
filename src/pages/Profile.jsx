@@ -271,6 +271,24 @@ export default function Profile() {
                         />
                       </div>
                     </div>
+                    {profile?.role_type === 'creator' && (
+                      <>
+                        <CCSelect
+                          label="Gender"
+                          options={genderOptions}
+                          value={editData.gender_identity || ''}
+                          onChange={(e) => setEditData({...editData, gender_identity: e.target.value})}
+                          placeholder="Select gender"
+                        />
+                        <CCSelect
+                          label="Sexuality"
+                          options={orientationOptions}
+                          value={editData.orientation_category || ''}
+                          onChange={(e) => setEditData({...editData, orientation_category: e.target.value})}
+                          placeholder="Select sexuality"
+                        />
+                      </>
+                    )}
                     <div>
                       <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Bio</label>
                       <textarea

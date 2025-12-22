@@ -122,13 +122,6 @@ export default function ProfileCard({
                 </div>
               </div>
 
-              {/* Bio */}
-              {profile.bio && (
-                <p className="text-sm text-[#9AA6BC] mb-3 line-clamp-2">
-                  {profile.bio}
-                </p>
-              )}
-
               {/* Location */}
               {profile.base_location && (
                 <p className="text-sm text-[#9AA6BC] flex items-center gap-1 mb-3">
@@ -137,58 +130,13 @@ export default function ProfileCard({
                 </p>
               )}
 
-              {/* Travel dates */}
-              {profile.travel_enabled && profile.travel_dates?.length > 0 && (
-                <div className="mb-3">
-                  <p className="text-xs text-[#6B7A94] mb-1">Traveling soon:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {profile.travel_dates.slice(0, 2).map((travel, i) => (
-                      <CCBadge key={i} variant="outline" size="sm" icon={Calendar}>
-                        {travel.location}
-                      </CCBadge>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Tags */}
-              {creatorDetails?.tags?.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-4">
-                  {creatorDetails.tags.slice(0, 4).map((tag) => (
-                    <CCBadge key={tag} variant="outline" size="sm">
-                      {tag}
-                    </CCBadge>
-                  ))}
-                  {creatorDetails.tags.length > 4 && (
-                    <CCBadge variant="outline" size="sm">
-                      +{creatorDetails.tags.length - 4}
-                    </CCBadge>
-                  )}
-                </div>
-              )}
-
-              {/* Collab types */}
-              {creatorDetails?.collab_types?.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-4">
-                  {creatorDetails.collab_types.map((type) => (
-                    <CCBadge
-                      key={type}
-                      variant={type === 'paid' ? 'success' : type === 'trade' ? 'warning' : 'default'}
-                      size="sm"
-                    >
-                      {type.charAt(0).toUpperCase() + type.slice(1)}
-                    </CCBadge>
-                  ))}
-                </div>
-              )}
-
               {/* Actions */}
               {showActions && (
                 <div className="flex gap-2 pt-3 border-t border-[#263248]">
                   <CCButton
                     variant="outline"
                     size="sm"
-                    className="flex-1"
+                    fullWidth
                     icon={Heart}
                     onClick={(e) => {
                       e.preventDefault();
@@ -201,7 +149,7 @@ export default function ProfileCard({
                   <CCButton
                     variant="primary"
                     size="sm"
-                    className="flex-1"
+                    fullWidth
                     icon={MessageCircle}
                     onClick={(e) => {
                       e.preventDefault();
