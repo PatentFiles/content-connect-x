@@ -17,7 +17,6 @@ import {
   Lock
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
-import CCInput from '@/components/ui-custom/CCInput';
 import CCSelect from '@/components/ui-custom/CCSelect';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
@@ -236,11 +235,15 @@ export default function Profile() {
               <div className="space-y-4">
                 {isEditing ? (
                   <>
-                    <CCInput
-                      label="Display Name"
-                      value={editData.display_name || ''}
-                      onChange={(e) => setEditData({...editData, display_name: e.target.value})}
-                    />
+                    <div>
+                      <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Display Name</label>
+                      <input
+                        type="text"
+                        value={editData.display_name || ''}
+                        onChange={(e) => setEditData({...editData, display_name: e.target.value})}
+                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                      />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Bio</label>
                       <textarea
