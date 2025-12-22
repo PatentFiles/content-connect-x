@@ -15,8 +15,12 @@ import {
   Lock,
   Eye,
   EyeOff,
-  Trash2
+  Trash2,
+  Crown
 } from 'lucide-react';
+import PricingManager from '@/components/admin/PricingManager';
+import CouponManager from '@/components/admin/CouponManager';
+import UserManager from '@/components/admin/UserManager';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
@@ -47,6 +51,12 @@ export default function Settings() {
     enabled: !!user?.email,
   });
 
+  const { data: userSettings = [] } = useQuery({
+    queryKey: ['userSettings', user?.email],
+    queryFn: () => base44.entities.UserSettings.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+
   const handleLogout = () => {
     base44.auth.logout();
   };
@@ -57,12 +67,39 @@ export default function Settings() {
 
   const currentSubscription = subscription[0];
   const currentProfile = profile[0];
+  const settings = userSettings[0];
+  const isAdmin = currentProfile?.is_admin || user?.role === 'admin';
+
+  const updateSettingsMutation = useMutation({
+    mutationFn: async (data) => {
+      if (settings) {
+        return base44.entities.UserSettings.update(settings.id, data);
+      } else {
+        return base44.entities.UserSettings.create({ ...data, user_id: user.email });
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['userSettings']);
+    },
+  });
+
+  const updateSetting = (section, key, value) => {
+    const updated = {
+      ...settings,
+      [section]: {
+        ...settings?.[section],
+        [key]: value,
+      },
+    };
+    updateSettingsMutation.mutate(updated);
+  };
 
   const tabs = [
     { value: 'account', label: 'Account', icon: User },
     { value: 'privacy', label: 'Privacy', icon: Shield },
     { value: 'notifications', label: 'Notifications', icon: Bell },
     { value: 'subscription', label: 'Subscription', icon: CreditCard },
+    ...(isAdmin ? [{ value: 'admin', label: 'Admin', icon: Crown }] : []),
   ];
 
   return (
@@ -178,7 +215,12 @@ export default function Settings() {
                   <p className="text-sm text-[#6B7A94]">Display your location on profile</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" defaultChecked className="sr-only peer" />
+                  <input 
+                    type="checkbox" 
+                    checked={settings?.privacy?.show_location ?? true}
+                    onChange={(e) => updateSetting('privacy', 'show_location', e.target.checked)}
+                    className="sr-only peer" 
+                  />
                   <div className="w-11 h-6 bg-[#263248] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#4F8CFF]/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4F8CFF]"></div>
                 </label>
               </div>
@@ -188,7 +230,12 @@ export default function Settings() {
                   <p className="text-sm text-[#6B7A94]">Let others see when you're online</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" defaultChecked className="sr-only peer" />
+                  <input 
+                    type="checkbox" 
+                    checked={settings?.privacy?.show_online_status ?? true}
+                    onChange={(e) => updateSetting('privacy', 'show_online_status', e.target.checked)}
+                    className="sr-only peer" 
+                  />
                   <div className="w-11 h-6 bg-[#263248] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#4F8CFF]/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4F8CFF]"></div>
                 </label>
               </div>
@@ -198,7 +245,12 @@ export default function Settings() {
                   <p className="text-sm text-[#6B7A94]">Require approval before receiving messages</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" />
+                  <input 
+                    type="checkbox" 
+                    checked={settings?.privacy?.message_requests_approval ?? false}
+                    onChange={(e) => updateSetting('privacy', 'message_requests_approval', e.target.checked)}
+                    className="sr-only peer" 
+                  />
                   <div className="w-11 h-6 bg-[#263248] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#4F8CFF]/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4F8CFF]"></div>
                 </label>
               </div>
@@ -212,19 +264,24 @@ export default function Settings() {
             <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Notification Preferences</h3>
             <div className="space-y-4">
               {[
-                { title: 'New Messages', desc: 'Get notified when you receive messages' },
-                { title: 'Deal Room Updates', desc: 'Updates on your deal rooms' },
-                { title: 'Contract Signatures', desc: 'When contracts are signed' },
-                { title: 'Profile Views', desc: 'When someone views your profile' },
-                { title: 'Marketing', desc: 'News and updates from Content Connect' },
-              ].map((item, i) => (
-                <div key={i} className="flex items-center justify-between py-3 border-b border-[#263248] last:border-0">
+                { key: 'new_messages', title: 'New Messages', desc: 'Get notified when you receive messages' },
+                { key: 'deal_room_updates', title: 'Deal Room Updates', desc: 'Updates on your deal rooms' },
+                { key: 'contract_signatures', title: 'Contract Signatures', desc: 'When contracts are signed' },
+                { key: 'profile_views', title: 'Profile Views', desc: 'When someone views your profile' },
+                { key: 'marketing', title: 'Marketing', desc: 'News and updates from Content Connect' },
+              ].map((item) => (
+                <div key={item.key} className="flex items-center justify-between py-3 border-b border-[#263248] last:border-0">
                   <div>
                     <p className="text-[#E8EEF9]">{item.title}</p>
                     <p className="text-sm text-[#6B7A94]">{item.desc}</p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
-                    <input type="checkbox" defaultChecked={i < 4} className="sr-only peer" />
+                    <input 
+                      type="checkbox" 
+                      checked={settings?.notifications?.[item.key] ?? (item.key !== 'marketing')}
+                      onChange={(e) => updateSetting('notifications', item.key, e.target.checked)}
+                      className="sr-only peer" 
+                    />
                     <div className="w-11 h-6 bg-[#263248] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#4F8CFF]/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4F8CFF]"></div>
                   </label>
                 </div>
@@ -272,6 +329,17 @@ export default function Settings() {
             )}
           </CCCard>
         </CCTabsContent>
+
+        {/* Admin Tab */}
+        {isAdmin && (
+          <CCTabsContent value="admin" activeTab={activeTab}>
+            <div className="space-y-8">
+              <PricingManager />
+              <CouponManager user={user} />
+              <UserManager currentUser={user} />
+            </div>
+          </CCTabsContent>
+        )}
 
         {/* Logout Button */}
         <div className="mt-8">

@@ -25,6 +25,7 @@ import CCAvatar from '@/components/ui-custom/CCAvatars';
 import { CCTabs, CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCModal from '@/components/ui-custom/CCModal';
+import LocationSelector from '@/components/location/LocationSelector';
 
 const genderOptions = [
   { value: 'woman', label: 'Woman' },
@@ -247,14 +248,9 @@ export default function Profile() {
                         placeholder="Tell others about yourself..."
                       />
                     </div>
-                    <CCInput
-                      label="City"
-                      value={editData.base_location?.city || ''}
-                      onChange={(e) => setEditData({
-                        ...editData, 
-                        base_location: {...editData.base_location, city: e.target.value}
-                      })}
-                      icon={MapPin}
+                    <LocationSelector
+                      value={editData.base_location || {}}
+                      onChange={(location) => setEditData({...editData, base_location: location})}
                     />
                   </>
                 ) : (
@@ -267,7 +263,9 @@ export default function Profile() {
                       <p className="text-sm text-[#6B7A94]">Location</p>
                       <p className="text-[#E8EEF9] mt-1 flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
-                        {profile?.base_location?.city || 'Not set'}
+                        {profile?.base_location?.city && profile?.base_location?.state && profile?.base_location?.country 
+                          ? `${profile.base_location.city}, ${profile.base_location.state}, ${profile.base_location.country}`
+                          : profile?.base_location?.city || 'Not set'}
                       </p>
                     </div>
                   </>
