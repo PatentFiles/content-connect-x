@@ -280,14 +280,9 @@ export default function Contracts() {
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="mb-4">
-            <div className="flex items-center justify-center gap-3 mb-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4F8CFF]/20 to-[#FF2DAA]/20 flex items-center justify-center">
-                <FileText className="w-5 h-5 text-[#4F8CFF]" />
-              </div>
-              <div className="text-center">
-                <h1 className="text-xl font-semibold text-[#E8EEF9]">Contracts</h1>
-                <p className="text-xs text-[#6B7A94]">Manage collaboration agreements</p>
-              </div>
+            <div className="text-center mb-3">
+              <h1 className="text-xl font-semibold text-[#E8EEF9]">Contracts</h1>
+              <p className="text-xs text-[#6B7A94]">Manage collaboration agreements</p>
             </div>
             <div className="flex gap-2 justify-center">
               <CCButton variant="outline" icon={BookTemplate} onClick={() => setTemplatesModalOpen(true)}>
@@ -456,19 +451,23 @@ export default function Contracts() {
             required
           />
           
-          <CCSelect
-            label="Select Collaboration"
-            value={selectedCollaboration}
-            onChange={(e) => setSelectedCollaboration(e.target.value)}
-            required
-          >
-            <option value="">Choose a collaboration...</option>
-            {collaborations.map(collab => (
-              <option key={collab.id} value={collab.id}>
-                {collab.collaboration_name || `${collab.scene_type || 'Collaboration'} - ${new Date(collab.created_date).toLocaleDateString()}`}
-              </option>
-            ))}
-          </CCSelect>
+          <div>
+            <label className="block text-sm font-medium text-[#E8EEF9] mb-2">
+              Select Collaboration <span className="text-[#FF2DAA]">*</span>
+            </label>
+            <select
+              value={selectedCollaboration}
+              onChange={(e) => setSelectedCollaboration(e.target.value)}
+              className="w-full bg-[#121824] border border-[#263248] rounded-lg text-[#E8EEF9] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+            >
+              <option value="">Choose a collaboration...</option>
+              {collaborations.map(collab => (
+                <option key={collab.id} value={collab.id}>
+                  {collab.collaboration_name || `${collab.scene_type || 'Collaboration'} - ${new Date(collab.created_date).toLocaleDateString()}`}
+                </option>
+              ))}
+            </select>
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-[#E8EEF9] mb-2">
@@ -637,17 +636,22 @@ export default function Contracts() {
             onChange={(e) => setTemplateForm({ ...templateForm, description: e.target.value })}
           />
 
-          <CCSelect
-            label="Category"
-            value={templateForm.category}
-            onChange={(e) => setTemplateForm({ ...templateForm, category: e.target.value })}
-          >
-            <option value="custom">Custom</option>
-            <option value="creator_to_creator">Creator to Creator</option>
-            <option value="studio_contract">Studio Contract</option>
-            <option value="photographer_contract">Photographer Contract</option>
-            <option value="videographer_contract">Videographer Contract</option>
-          </CCSelect>
+          <div>
+            <label className="block text-sm font-medium text-[#E8EEF9] mb-2">
+              Category
+            </label>
+            <select
+              value={templateForm.category}
+              onChange={(e) => setTemplateForm({ ...templateForm, category: e.target.value })}
+              className="w-full bg-[#121824] border border-[#263248] rounded-lg text-[#E8EEF9] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+            >
+              <option value="custom">Custom</option>
+              <option value="creator_to_creator">Creator to Creator</option>
+              <option value="studio_contract">Studio Contract</option>
+              <option value="photographer_contract">Photographer Contract</option>
+              <option value="videographer_contract">Videographer Contract</option>
+            </select>
+          </div>
 
           <div>
             <label className="block text-sm font-medium text-[#E8EEF9] mb-2">
