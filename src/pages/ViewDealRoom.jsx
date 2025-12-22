@@ -15,14 +15,15 @@ import CCInput from '@/components/ui-custom/CCInput';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import { CCAvatarGroup } from '@/components/ui-custom/CCAvatars';
+import CollaborativeEditor from '@/components/dealroom/CollaborativeEditor';
+import TaskManager from '@/components/dealroom/TaskManager';
+import ContractManager from '@/components/dealroom/ContractManager';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
 export default function ViewDealRoom() {
   const [activeTab, setActiveTab] = useState('chat');
   const [message, setMessage] = useState('');
-  const [newTask, setNewTask] = useState({ title: '', description: '', assigned_to: '', due_date: '' });
-  const [showTaskForm, setShowTaskForm] = useState(false);
   const [uploading, setUploading] = useState(false);
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
@@ -106,50 +107,7 @@ export default function ViewDealRoom() {
     },
   });
 
-  // Create task mutation
-  const createTaskMutation = useMutation({
-    mutationFn: (data) => base44.entities.DealRoomTask.create({
-      ...data,
-      deal_room_id: dealRoomId,
-      created_by: user.email,
-    }),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['dealRoomTasks']);
-      setNewTask({ title: '', description: '', assigned_to: '', due_date: '' });
-      setShowTaskForm(false);
-      toast.success('Task created');
-    },
-  });
 
-  // Update task mutation
-  const updateTaskMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.DealRoomTask.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['dealRoomTasks']);
-    },
-  });
-
-  // Create contract mutation
-  const createContractMutation = useMutation({
-    mutationFn: async () => {
-      return base44.entities.Contract.create({
-        deal_room_id: dealRoomId,
-        template_type: 'creator_to_creator',
-        status: 'draft',
-        content: {
-          title: `Deal Room Contract - ${dealRoom.scene_type || 'Collaboration'}`,
-          parties: dealRoom.participant_ids?.map(id => {
-            const profile = profiles.find(p => p.user_id === id);
-            return { user_id: id, name: profile?.display_name };
-          }),
-        },
-      });
-    },
-    onSuccess: (contract) => {
-      toast.success('Contract created');
-      window.location.href = createPageUrl(`ViewContract?id=${contract.id}`);
-    },
-  });
 
   const handleSendMessage = () => {
     if (!message.trim()) return;
@@ -166,11 +124,6 @@ export default function ViewDealRoom() {
     setUploading(true);
     await uploadFileMutation.mutateAsync(file);
     setUploading(false);
-  };
-
-  const handleCreateTask = () => {
-    if (!newTask.title) return;
-    createTaskMutation.mutate(newTask);
   };
 
   useEffect(() => {
@@ -202,14 +155,12 @@ export default function ViewDealRoom() {
                 </div>
               </div>
             </div>
-            <CCButton variant="primary" onClick={() => createContractMutation.mutate()}>
-              Create Contract
-            </CCButton>
+            <CCBadge variant="primary">{dealRoom.status}</CCBadge>
           </div>
 
           {/* Tabs */}
           <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-            {['chat', 'files', 'tasks', 'details'].map((tab) => (
+            {['chat', 'documents', 'files', 'tasks', 'contracts', 'details'].map((tab) => (
               <CCButton
                 key={tab}
                 variant={activeTab === tab ? 'primary' : 'outline'}
@@ -314,107 +265,28 @@ export default function ViewDealRoom() {
           </div>
         )}
 
+        {/* Documents Tab */}
+        {activeTab === 'documents' && (
+          <CollaborativeEditor dealRoomId={dealRoomId} user={user} />
+        )}
+
         {/* Tasks Tab */}
         {activeTab === 'tasks' && (
-          <div>
-            <div className="mb-4">
-              <CCButton variant="primary" icon={Plus} onClick={() => setShowTaskForm(!showTaskForm)}>
-                New Task
-              </CCButton>
-            </div>
+          <TaskManager 
+            dealRoomId={dealRoomId} 
+            tasks={tasks} 
+            profiles={profiles} 
+            user={user} 
+          />
+        )}
 
-            {showTaskForm && (
-              <CCCard className="p-4 mb-4">
-                <div className="space-y-3">
-                  <CCInput
-                    label="Task Title"
-                    placeholder="Enter task title"
-                    value={newTask.title}
-                    onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                  />
-                  <CCInput
-                    label="Description"
-                    placeholder="Task description"
-                    value={newTask.description}
-                    onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                  />
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-sm text-[#9AA6BC] mb-1 block">Assign To</label>
-                      <select
-                        value={newTask.assigned_to}
-                        onChange={(e) => setNewTask({ ...newTask, assigned_to: e.target.value })}
-                        className="w-full bg-[#151D2B] border border-[#263248] rounded-lg px-3 py-2 text-sm text-[#E8EEF9]"
-                      >
-                        <option value="">Select participant</option>
-                        {profiles.map(p => (
-                          <option key={p.user_id} value={p.user_id}>{p.display_name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <CCInput
-                      label="Due Date"
-                      type="date"
-                      value={newTask.due_date}
-                      onChange={(e) => setNewTask({ ...newTask, due_date: e.target.value })}
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <CCButton variant="primary" onClick={handleCreateTask}>Create</CCButton>
-                    <CCButton variant="outline" onClick={() => setShowTaskForm(false)}>Cancel</CCButton>
-                  </div>
-                </div>
-              </CCCard>
-            )}
-
-            <div className="space-y-3">
-              {tasks.length === 0 ? (
-                <CCEmpty icon={CheckCircle2} title="No tasks yet" description="Create tasks to track progress" />
-              ) : (
-                tasks.map((task) => {
-                  const assignee = profiles.find(p => p.user_id === task.assigned_to);
-                  const statusIcon = task.status === 'completed' ? CheckCircle2 : 
-                                   task.status === 'in_progress' ? Clock : Circle;
-                  return (
-                    <CCCard key={task.id} className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-3 flex-1">
-                          <button
-                            onClick={() => updateTaskMutation.mutate({
-                              id: task.id,
-                              data: { status: task.status === 'completed' ? 'pending' : 'completed' }
-                            })}
-                            className="mt-1"
-                          >
-                            {React.createElement(statusIcon, {
-                              className: `w-5 h-5 ${task.status === 'completed' ? 'text-[#22C55E]' : 'text-[#6B7A94]'}`
-                            })}
-                          </button>
-                          <div className="flex-1">
-                            <p className={`text-sm font-medium ${task.status === 'completed' ? 'line-through text-[#6B7A94]' : 'text-[#E8EEF9]'}`}>
-                              {task.title}
-                            </p>
-                            {task.description && (
-                              <p className="text-xs text-[#6B7A94] mt-1">{task.description}</p>
-                            )}
-                            <div className="flex items-center gap-3 mt-2 text-xs text-[#6B7A94]">
-                              {assignee && <span>Assigned to {assignee.display_name}</span>}
-                              {task.due_date && (
-                                <span className="flex items-center gap-1">
-                                  <Calendar className="w-3 h-3" />
-                                  {format(new Date(task.due_date), 'MMM d')}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CCCard>
-                  );
-                })
-              )}
-            </div>
-          </div>
+        {/* Contracts Tab */}
+        {activeTab === 'contracts' && (
+          <ContractManager 
+            dealRoomId={dealRoomId} 
+            profiles={profiles} 
+            user={user} 
+          />
         )}
 
         {/* Details Tab */}
