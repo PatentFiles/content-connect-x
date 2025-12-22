@@ -26,6 +26,7 @@ import { CCTabs, CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCModal from '@/components/ui-custom/CCModal';
 import LocationSelector from '@/components/location/LocationSelector';
+import SocialLinksDisplay from '@/components/socials/SocialLinksDisplay';
 
 const genderOptions = [
   { value: 'woman', label: 'Woman' },
@@ -343,60 +344,7 @@ export default function Profile() {
             {/* Social Links */}
             <CCCard padding="lg">
               <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Social Links</h3>
-              <div className="space-y-3">
-                {isEditing ? (
-                  <>
-                    <CCInput
-                      label="OnlyFans"
-                      placeholder="https://onlyfans.com/..."
-                      value={editData.socials?.onlyfans || ''}
-                      onChange={(e) => setEditData({
-                        ...editData,
-                        socials: {...editData.socials, onlyfans: e.target.value}
-                      })}
-                    />
-                    <CCInput
-                      label="Twitter/X"
-                      placeholder="https://twitter.com/..."
-                      value={editData.socials?.twitter || ''}
-                      onChange={(e) => setEditData({
-                        ...editData,
-                        socials: {...editData.socials, twitter: e.target.value}
-                      })}
-                    />
-                    <CCInput
-                      label="Instagram"
-                      placeholder="https://instagram.com/..."
-                      value={editData.socials?.instagram || ''}
-                      onChange={(e) => setEditData({
-                        ...editData,
-                        socials: {...editData.socials, instagram: e.target.value}
-                      })}
-                    />
-                  </>
-                ) : (
-                  <div className="space-y-2">
-                    {details?.socials?.onlyfans && (
-                      <a href={details.socials.onlyfans} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#4F8CFF] hover:underline">
-                        <LinkIcon className="w-4 h-4" /> OnlyFans
-                      </a>
-                    )}
-                    {details?.socials?.twitter && (
-                      <a href={details.socials.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#4F8CFF] hover:underline">
-                        <LinkIcon className="w-4 h-4" /> Twitter/X
-                      </a>
-                    )}
-                    {details?.socials?.instagram && (
-                      <a href={details.socials.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#4F8CFF] hover:underline">
-                        <LinkIcon className="w-4 h-4" /> Instagram
-                      </a>
-                    )}
-                    {!details?.socials?.onlyfans && !details?.socials?.twitter && !details?.socials?.instagram && (
-                      <p className="text-[#6B7A94]">No social links added</p>
-                    )}
-                  </div>
-                )}
-              </div>
+              <SocialLinksDisplay userId={user?.email} viewerContext="OWNER" />
             </CCCard>
           </div>
         </CCTabsContent>
