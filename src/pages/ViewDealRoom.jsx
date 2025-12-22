@@ -18,6 +18,9 @@ import { CCAvatarGroup } from '@/components/ui-custom/CCAvatars';
 import CollaborativeEditor from '@/components/dealroom/CollaborativeEditor';
 import TaskManager from '@/components/dealroom/TaskManager';
 import ContractManager from '@/components/dealroom/ContractManager';
+import TaskBoard from '@/components/collaboration/TaskBoard';
+import CalendarView from '@/components/collaboration/CalendarView';
+import RoleManager from '@/components/collaboration/RoleManager';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -78,6 +81,18 @@ export default function ViewDealRoom() {
     queryFn: () => base44.entities.DealRoomTask.filter({ deal_room_id: dealRoomId }, '-created_date'),
     enabled: !!dealRoomId,
   });
+
+  // Fetch user role
+  const { data: userRoles = [] } = useQuery({
+    queryKey: ['userRole', dealRoomId, user?.email],
+    queryFn: () => base44.entities.CollaborationRole.filter({ 
+      deal_room_id: dealRoomId, 
+      user_id: user?.email 
+    }),
+    enabled: !!dealRoomId && !!user?.email,
+  });
+
+  const userRole = userRoles[0] || { role: 'viewer', permissions: {} };
 
   // Send message mutation
   const sendMessageMutation = useMutation({
@@ -160,7 +175,7 @@ export default function ViewDealRoom() {
 
           {/* Tabs */}
           <div className="flex gap-2 overflow-x-auto scrollbar-hide">
-            {['chat', 'documents', 'files', 'tasks', 'contracts', 'details'].map((tab) => (
+            {['chat', 'documents', 'files', 'tasks', 'calendar', 'contracts', 'roles', 'details'].map((tab) => (
               <CCButton
                 key={tab}
                 variant={activeTab === tab ? 'primary' : 'outline'}
@@ -272,11 +287,28 @@ export default function ViewDealRoom() {
 
         {/* Tasks Tab */}
         {activeTab === 'tasks' && (
-          <TaskManager 
-            dealRoomId={dealRoomId} 
-            tasks={tasks} 
-            profiles={profiles} 
-            user={user} 
+          <TaskBoard
+            dealRoomId={dealRoomId}
+            participants={profiles}
+            userRole={userRole}
+          />
+        )}
+
+        {/* Calendar Tab */}
+        {activeTab === 'calendar' && (
+          <CalendarView
+            dealRoomId={dealRoomId}
+            participants={profiles}
+            userRole={userRole}
+          />
+        )}
+
+        {/* Roles Tab */}
+        {activeTab === 'roles' && (
+          <RoleManager
+            dealRoomId={dealRoomId}
+            participants={profiles}
+            currentUserRole={userRole}
           />
         )}
 
