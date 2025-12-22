@@ -61,13 +61,23 @@ export default function Discovery() {
 
   // Apply filters client-side
   const profiles = React.useMemo(() => {
+    if (!allProfiles || allProfiles.length === 0) return [];
+    
     let filtered = [...allProfiles];
     
-    if (filters.roleTypes.length > 0) {
+    // Role type filter
+    if (filters.roleTypes && filters.roleTypes.length > 0) {
       filtered = filtered.filter(p => filters.roleTypes.includes(p.role_type));
     }
+    
+    // Travel available filter
     if (filters.travelAvailable) {
       filtered = filtered.filter(p => p.travel_enabled);
+    }
+    
+    // Verified only filter
+    if (filters.verifiedOnly) {
+      // This would need verification data, skipping for now
     }
     
     return filtered.slice(0, 20);
