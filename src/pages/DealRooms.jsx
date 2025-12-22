@@ -129,7 +129,7 @@ export default function DealRooms() {
           </div>
 
           {/* Filters */}
-          <div className="flex gap-2 justify-center overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+          <div className="flex gap-2 justify-center items-center overflow-x-auto pb-2 scrollbar-hide">
             {['all', 'draft', 'negotiating', 'agreed', 'signed', 'completed'].map((status) => (
               <CCButton
                 key={status}
