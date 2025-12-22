@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { Toaster } from 'sonner';
 import NavBar from '@/components/layout/NavBar';
 import BottomNav from '@/components/layout/BottomNav';
 import Sidebar from '@/components/layout/Sidebar';
@@ -76,6 +77,7 @@ export default function Layout({ children, currentPageName }) {
   if (isPublicPage) {
     return (
       <div className="min-h-screen bg-[#0B0F14]">
+        <Toaster position="top-center" theme="dark" />
         <NavBar 
           user={user}
           profile={profile}
@@ -94,6 +96,7 @@ export default function Layout({ children, currentPageName }) {
   if (isAppPage && isAuthenticated) {
     return (
       <div className="min-h-screen bg-[#0B0F14]">
+        <Toaster position="top-center" theme="dark" />
         <NavBar 
           user={user}
           profile={{...profile, verified: isVerified}}
@@ -117,6 +120,7 @@ export default function Layout({ children, currentPageName }) {
   // Default layout
   return (
     <div className="min-h-screen bg-[#0B0F14]">
+      <Toaster position="top-center" theme="dark" />
       <NavBar 
         user={user}
         profile={profile}

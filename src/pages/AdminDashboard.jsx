@@ -43,7 +43,7 @@ export default function AdminDashboard() {
     enabled: !!user?.email,
   });
 
-  const isAdmin = profile[0]?.role_type === 'admin' || user?.role === 'admin';
+  const isAdmin = profile[0]?.is_admin || profile[0]?.role_type === 'admin' || user?.role === 'admin';
 
   // Fetch pending verifications
   const { data: pendingVerifications = [], isLoading: verificationsLoading } = useQuery({

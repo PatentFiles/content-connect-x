@@ -25,7 +25,7 @@ import CCBadge from '../ui-custom/CCBadge';
 const mainNavItems = [
   { name: 'Discover', page: 'Discovery', icon: Compass },
   { name: 'Search', page: 'Search', icon: Search },
-  { name: 'Messages', page: 'Messages', icon: MessageCircle, badge: 3 },
+  { name: 'Messages', page: 'Messages', icon: MessageCircle },
   { name: 'Deal Rooms', page: 'DealRooms', icon: Briefcase },
   { name: 'Contracts', page: 'Contracts', icon: FileText },
   { name: 'Favorites', page: 'Shortlists', icon: Heart },
