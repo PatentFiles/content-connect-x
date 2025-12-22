@@ -37,14 +37,14 @@ export default function CCModal({
           />
           
           {/* Modal */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2 }}
               className={cn(
-                'w-full bg-[#151D2B] border border-[#263248] rounded-2xl shadow-2xl',
+                'w-full bg-[#151D2B] border border-[#263248] rounded-2xl shadow-2xl my-8 max-h-[90vh] flex flex-col',
                 sizes[size],
                 className
               )}
@@ -74,7 +74,7 @@ export default function CCModal({
               )}
               
               {/* Content */}
-              <div className="p-6">
+              <div className="p-6 overflow-y-auto flex-1">
                 {children}
               </div>
             </motion.div>

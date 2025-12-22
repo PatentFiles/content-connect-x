@@ -105,9 +105,9 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         title="Filters"
-        size="xl"
+        size="2xl"
       >
-        <div className="space-y-6 max-h-[60vh] overflow-y-auto px-2">
+        <div className="space-y-6 py-4">
           {/* Role Type */}
           <div>
             <label className="text-sm font-medium text-[#E8EEF9] mb-3 block text-center">Role Type</label>
@@ -314,7 +314,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
           />
 
           {/* Actions */}
-          <div className="sticky bottom-0 left-0 right-0 p-4 bg-[#151D2B] border-t border-[#263248] flex gap-3 -mx-4 -mb-4">
+          <div className="pt-4 border-t border-[#263248] flex gap-3 mt-6">
             <CCButton
               variant="outline"
               size="lg"
