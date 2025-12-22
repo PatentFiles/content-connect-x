@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
@@ -13,8 +13,10 @@ import {
   Clock,
   AlertCircle,
   Search,
-  ChevronRight
+  ChevronRight,
+  Plus
 } from 'lucide-react';
+import { toast } from 'sonner';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
@@ -23,7 +25,6 @@ import { CCLoadingScreen, CCSkeletonLoader } from '@/components/ui-custom/CCLoad
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import AccessGate from '@/components/auth/AccessGate';
 import CCModal from '@/components/ui-custom/CCModal';
-import CCInput from '@/components/ui-custom/CCInput';
 import CCSelect from '@/components/ui-custom/CCSelect';
 
 const statusConfig = {
@@ -46,6 +47,11 @@ const templateLabels = {
 export default function Contracts() {
   const [filter, setFilter] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [selectedCollaboration, setSelectedCollaboration] = useState('');
+  const [contractTitle, setContractTitle] = useState('');
+  const [templateType, setTemplateType] = useState('custom');
+  const queryClient = useQueryClient();
 
   // Check auth and access
   const { data: user, isLoading: userLoading } = useQuery({
@@ -78,6 +84,16 @@ export default function Contracts() {
     enabled: !!user && isVerified && isSubscribed,
   });
 
+  // Fetch collaborations for contract creation
+  const { data: collaborations = [] } = useQuery({
+    queryKey: ['collaborations', user?.email],
+    queryFn: async () => {
+      const allRooms = await base44.entities.DealRoom.list('-created_date');
+      return allRooms.filter(r => r.participant_ids?.includes(user?.email));
+    },
+    enabled: !!user && isVerified && isSubscribed,
+  });
+
   // Fetch signatures
   const { data: signatures = [] } = useQuery({
     queryKey: ['signatures', contracts],
@@ -87,6 +103,62 @@ export default function Contracts() {
     },
     enabled: contracts.length > 0,
   });
+
+  // Create contract mutation
+  const createContractMutation = useMutation({
+    mutationFn: async (data) => {
+      const collaboration = collaborations.find(c => c.id === data.collaboration_id);
+      return base44.entities.Contract.create({
+        deal_room_id: data.collaboration_id,
+        title: data.title,
+        template_type: data.template_type,
+        content: {
+          collaboration_details: {
+            name: collaboration?.collaboration_name,
+            scene_type: collaboration?.scene_type,
+            scenes: collaboration?.scene_selected,
+            acts: collaboration?.acts_selected,
+            compensation: collaboration?.compensation_details,
+            schedule: collaboration?.schedule,
+            location: collaboration?.location,
+            deliverables: collaboration?.deliverables,
+            usage_rights: collaboration?.usage_rights,
+          }
+        },
+        status: 'draft',
+        created_by: user.email,
+        signatories: collaboration?.participant_ids?.map(email => ({
+          user_id: email,
+          name: email,
+          signed: false
+        })) || []
+      });
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      toast.success('Contract created successfully');
+      setCreateModalOpen(false);
+      setSelectedCollaboration('');
+      setContractTitle('');
+      setTemplateType('custom');
+      window.location.href = createPageUrl(`ViewContract?id=${result.id}`);
+    },
+    onError: () => {
+      toast.error('Failed to create contract');
+    },
+  });
+
+  const handleCreateContract = () => {
+    if (!selectedCollaboration || !contractTitle) {
+      toast.error('Please select a collaboration and enter a contract title');
+      return;
+    }
+    createContractMutation.mutate({
+      collaboration_id: selectedCollaboration,
+      title: contractTitle,
+      template_type: templateType,
+    });
+  };
 
   if (userLoading) {
     return <CCLoadingScreen message="Loading..." />;
@@ -132,9 +204,12 @@ export default function Contracts() {
               </div>
               <div className="text-center">
                 <h1 className="text-xl font-semibold text-[#E8EEF9]">Contracts</h1>
-                <p className="text-xs text-[#6B7A94]">Your agreements and releases</p>
+                <p className="text-xs text-[#6B7A94]">Manage collaboration agreements</p>
               </div>
             </div>
+            <CCButton variant="primary" icon={Plus} onClick={() => setCreateModalOpen(true)}>
+              New Contract
+            </CCButton>
           </div>
 
           {/* Search */}
@@ -182,7 +257,9 @@ export default function Contracts() {
           <CCEmpty
             icon={FileText}
             title="No contracts yet"
-            description="Contracts are generated from completed Deal Rooms. Start a collaboration to create your first contract."
+            description="Create contracts for your collaborations to formalize agreements."
+            action={() => setCreateModalOpen(true)}
+            actionLabel="Create Contract"
           />
         ) : (
           <div className="space-y-4">
