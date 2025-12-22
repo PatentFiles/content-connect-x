@@ -8,6 +8,10 @@ import Discovery from './pages/Discovery';
 import Search from './pages/Search';
 import Messages from './pages/Messages';
 import Profile from './pages/Profile';
+import DealRooms from './pages/DealRooms';
+import Contracts from './pages/Contracts';
+import Verification from './pages/Verification';
+import Shortlists from './pages/Shortlists';
 
 
 export const PAGES = {
@@ -21,6 +25,10 @@ export const PAGES = {
     "Search": Search,
     "Messages": Messages,
     "Profile": Profile,
+    "DealRooms": DealRooms,
+    "Contracts": Contracts,
+    "Verification": Verification,
+    "Shortlists": Shortlists,
 }
 
 export const pagesConfig = {
