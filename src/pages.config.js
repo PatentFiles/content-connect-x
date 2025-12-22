@@ -12,6 +12,9 @@ import DealRooms from './pages/DealRooms';
 import Contracts from './pages/Contracts';
 import Verification from './pages/Verification';
 import Shortlists from './pages/Shortlists';
+import Settings from './pages/Settings';
+import AdminDashboard from './pages/AdminDashboard';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -29,9 +32,12 @@ export const PAGES = {
     "Contracts": Contracts,
     "Verification": Verification,
     "Shortlists": Shortlists,
+    "Settings": Settings,
+    "AdminDashboard": AdminDashboard,
 }
 
 export const pagesConfig = {
     mainPage: "Landing",
     Pages: PAGES,
+    Layout: __Layout,
 };
