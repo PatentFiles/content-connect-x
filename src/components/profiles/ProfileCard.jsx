@@ -86,17 +86,32 @@ export default function ProfileCard({
             <div className="pt-12">
               {/* Name & Role */}
               <div className="flex items-start justify-between mb-2">
-                <div>
+                <div className="flex-1">
                   <h3 className="text-lg font-semibold text-[#E8EEF9] flex items-center gap-2">
                     {profile.display_name || 'Anonymous'}
                     {isVerified && (
                       <ShieldCheck className="w-4 h-4 text-[#4F8CFF]" />
                     )}
                   </h3>
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
                     <CCBadge variant={roleColors[profile.role_type]} size="sm">
                       {roleLabels[profile.role_type]}
                     </CCBadge>
+                    {creatorDetails?.orientation_category && (
+                      <CCBadge variant="outline" size="sm">
+                        {creatorDetails.orientation_category.replace('_', ' ')}
+                      </CCBadge>
+                    )}
+                    {profile.age && (
+                      <span className="text-xs text-[#9AA6BC]">
+                        {profile.age}
+                      </span>
+                    )}
+                    {creatorDetails?.gender_identity && (
+                      <span className="text-xs text-[#9AA6BC] capitalize">
+                        {creatorDetails.gender_identity.replace('_', ' ')}
+                      </span>
+                    )}
                     {profile.response_time_hours && (
                       <span className="text-xs text-[#6B7A94] flex items-center gap-1">
                         <Clock className="w-3 h-3" />
@@ -106,6 +121,13 @@ export default function ProfileCard({
                   </div>
                 </div>
               </div>
+
+              {/* Bio */}
+              {profile.bio && (
+                <p className="text-sm text-[#9AA6BC] mb-3 line-clamp-2">
+                  {profile.bio}
+                </p>
+              )}
 
               {/* Location */}
               {profile.base_location && (
