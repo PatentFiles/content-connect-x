@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
@@ -47,7 +47,14 @@ const kinkEdgeScenes = ['Impact Play', 'Wax Play', 'Sensory Deprivation', 'Restr
 const acts = ['Creampie', 'Facial', 'CIM (cum in mouth)', 'Swallowing', 'Anal', 'DP (double penetration)', 'DVP (double vaginal penetration)', 'DAP (double anal penetration)'];
 
 export default function CreateDealRoom() {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  
+  // Get collaboration ID from URL for editing
+  const urlParams = new URLSearchParams(window.location.search);
+  const collaborationId = urlParams.get('id');
+  const isEditing = !!collaborationId;
+
   const [formData, setFormData] = useState({
     collaboration_name: '',
     participant_ids: [],
@@ -187,21 +194,26 @@ export default function CreateDealRoom() {
     queryFn: () => base44.entities.Tag.filter({ status: 'approved' }),
   });
 
-  // Create mutation
+  // Create/Update mutation
   const createMutation = useMutation({
     mutationFn: (data) => {
       const participantEmails = data.participant_emails 
         ? data.participant_emails.split(',').map(e => e.trim()).filter(e => e)
         : [];
       
-      return base44.entities.DealRoom.create({
+      const payload = {
         ...data,
         participant_ids: [user.email, ...participantEmails],
         status: 'draft',
-      });
+      };
+
+      if (isEditing) {
+        return base44.entities.DealRoom.update(collaborationId, payload);
+      }
+      return base44.entities.DealRoom.create(payload);
     },
     onSuccess: (result) => {
-      window.location.href = createPageUrl(`ViewDealRoom?id=${result.id}`);
+      navigate(createPageUrl(isEditing ? 'DealRooms' : `ViewDealRoom?id=${result.id}`));
     },
   });
 
@@ -234,7 +246,7 @@ export default function CreateDealRoom() {
     updateForm('acts_selected', updated);
   };
 
-  if (userLoading || (isEditing && loadingCollab)) {
+  if (userLoading || (isEditing && loadingCollab && !existingCollaboration)) {
     return <CCLoadingScreen message="Loading..." />;
   }
 
@@ -254,7 +266,9 @@ export default function CreateDealRoom() {
               <Briefcase className="w-5 h-5 text-[#4F8CFF]" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-[#E8EEF9]">Create Deal Room</h1>
+              <h1 className="text-xl font-semibold text-[#E8EEF9]">
+                {isEditing ? 'Edit Collaboration' : 'Create Collaboration'}
+              </h1>
               <p className="text-xs text-[#6B7A94]">Step {step} of {totalSteps}</p>
             </div>
           </div>
@@ -275,6 +289,16 @@ export default function CreateDealRoom() {
 
       {/* Content */}
       <div className="max-w-3xl mx-auto px-4 py-6">
+        {/* Collaboration Name */}
+        <CCCard padding="lg" className="mb-6">
+          <CCInput
+            label="Collaboration Name (Optional)"
+            placeholder="e.g., Miami Beach Shoot, Studio Session..."
+            value={formData.collaboration_name}
+            onChange={(e) => updateForm('collaboration_name', e.target.value)}
+          />
+        </CCCard>
+
         {/* Step 1: Scene Type */}
         {step === 1 && (
           <motion.div
@@ -699,7 +723,7 @@ export default function CreateDealRoom() {
               onClick={() => createMutation.mutate(formData)}
               loading={createMutation.isPending}
             >
-              Create Deal Room
+              {isEditing ? 'Update Collaboration' : 'Create Collaboration'}
             </CCButton>
           )}
         </div>
