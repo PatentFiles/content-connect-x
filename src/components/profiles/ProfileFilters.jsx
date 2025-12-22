@@ -5,7 +5,7 @@ import CCButton from '../ui-custom/CCButton';
 import CCSelect from '../ui-custom/CCSelect';
 import CCInput from '../ui-custom/CCInput';
 import CCBadge from '../ui-custom/CCBadge';
-import { CCDrawer } from '../ui-custom/CCModal';
+import CCModal from '../ui-custom/CCModal';
 
 const roleOptions = [
   { value: 'creator', label: 'Creator' },
@@ -100,14 +100,14 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
         )}
       </CCButton>
 
-      {/* Filter Drawer */}
-      <CCDrawer
+      {/* Filter Modal */}
+      <CCModal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
         title="Filters"
-        side="bottom"
+        size="xl"
       >
-        <div className="space-y-6 pb-20">
+        <div className="space-y-6 max-h-[70vh] overflow-y-auto">
           {/* Role Type */}
           <div>
             <label className="text-sm font-medium text-[#E8EEF9] mb-3 block">Role Type</label>
@@ -314,7 +314,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
           />
 
           {/* Actions */}
-          <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#151D2B] border-t border-[#263248] flex gap-3">
+          <div className="sticky bottom-0 left-0 right-0 p-4 bg-[#151D2B] border-t border-[#263248] flex gap-3 -mx-4 -mb-4">
             <CCButton
               variant="outline"
               size="lg"
@@ -337,7 +337,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
             </CCButton>
           </div>
         </div>
-      </CCDrawer>
+      </CCModal>
     </>
   );
 }
