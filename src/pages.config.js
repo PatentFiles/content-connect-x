@@ -14,6 +14,8 @@ import Verification from './pages/Verification';
 import Shortlists from './pages/Shortlists';
 import Settings from './pages/Settings';
 import AdminDashboard from './pages/AdminDashboard';
+import ViewProfile from './pages/ViewProfile';
+import CreateDealRoom from './pages/CreateDealRoom';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +36,8 @@ export const PAGES = {
     "Shortlists": Shortlists,
     "Settings": Settings,
     "AdminDashboard": AdminDashboard,
+    "ViewProfile": ViewProfile,
+    "CreateDealRoom": CreateDealRoom,
 }
 
 export const pagesConfig = {
