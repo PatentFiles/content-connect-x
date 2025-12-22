@@ -25,7 +25,6 @@ import SocialLinksManager from '@/components/socials/SocialLinksManager';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
-import CCInput from '@/components/ui-custom/CCInput';
 import { CCTabs, CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs';
 import CCModal from '@/components/ui-custom/CCModal';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';

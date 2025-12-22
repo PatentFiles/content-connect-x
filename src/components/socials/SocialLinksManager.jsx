@@ -4,7 +4,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ChevronDown, ChevronUp, Plus, Trash2, ShieldCheck, AlertCircle } from 'lucide-react';
 import CCButton from '../ui-custom/CCButton';
 import CCCard from '../ui-custom/CCCard';
-import CCInput from '../ui-custom/CCInput';
 import CCSelect from '../ui-custom/CCSelect';
 import CCBadge from '../ui-custom/CCBadge';
 import { toast } from 'sonner';
@@ -220,12 +219,18 @@ export default function SocialLinksManager({ user }) {
                               </div>
                             </div>
 
-                            <CCInput
-                              label={platform.input_type === 'HANDLE' ? 'Handle' : platform.input_type === 'URL' ? 'URL' : 'Value'}
-                              value={link.value}
-                              onChange={(e) => handleUpdateLink(link.id, 'value', e.target.value)}
-                              placeholder={platform.input_type === 'HANDLE' ? 'username' : platform.input_type === 'URL' ? 'https://...' : 'Enter value'}
-                            />
+                            <div>
+                              <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">
+                                {platform.input_type === 'HANDLE' ? 'Handle' : platform.input_type === 'URL' ? 'URL' : 'Value'}
+                              </label>
+                              <input
+                                type="text"
+                                value={link.value}
+                                onChange={(e) => handleUpdateLink(link.id, 'value', e.target.value)}
+                                placeholder={platform.input_type === 'HANDLE' ? 'username' : platform.input_type === 'URL' ? 'https://...' : 'Enter value'}
+                                className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+                              />
+                            </div>
 
                             {platform.input_type === 'HANDLE' && platform.base_url && link.value && (
                               <p className="text-xs text-[#6B7A94]">
