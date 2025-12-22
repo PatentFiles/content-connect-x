@@ -313,6 +313,12 @@ export default function Profile() {
                         <p className="text-[#E8EEF9] mt-1">{profile.ethnicity}</p>
                       </div>
                     )}
+                    {profile?.role_type === 'creator' && details?.gender_identity && (
+                      <div>
+                        <p className="text-sm text-[#6B7A94]">Gender</p>
+                        <p className="text-[#E8EEF9] mt-1 capitalize">{details.gender_identity.replace('_', ' ')}</p>
+                      </div>
+                    )}
                     <div>
                       <p className="text-sm text-[#6B7A94]">Bio</p>
                       <p className="text-[#E8EEF9] mt-1">{profile?.bio || 'No bio yet'}</p>
