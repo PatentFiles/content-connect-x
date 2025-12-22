@@ -20,6 +20,13 @@ export default function Discovery() {
     travelAvailable: false,
     verifiedOnly: true,
     sortBy: 'distance',
+    skills: [],
+    workLocation: [],
+    minRating: 0,
+    city: '',
+    state: '',
+    country: '',
+    radius: 50,
   });
 
   // Check auth and access
@@ -75,9 +82,47 @@ export default function Discovery() {
       filtered = filtered.filter(p => p.travel_enabled);
     }
     
-    // Verified only filter
-    if (filters.verifiedOnly) {
-      // This would need verification data, skipping for now
+    // Location filters
+    if (filters.city) {
+      filtered = filtered.filter(p => 
+        p.base_location?.city?.toLowerCase().includes(filters.city.toLowerCase())
+      );
+    }
+    if (filters.state) {
+      filtered = filtered.filter(p => 
+        p.base_location?.state?.toLowerCase().includes(filters.state.toLowerCase())
+      );
+    }
+    if (filters.country) {
+      filtered = filtered.filter(p => 
+        p.base_location?.country?.toLowerCase().includes(filters.country.toLowerCase())
+      );
+    }
+    
+    // Rating filter (using response_time_hours as proxy for now)
+    if (filters.minRating > 0) {
+      filtered = filtered.filter(p => {
+        // Convert response time to a rating-like score (faster = better)
+        const rating = p.response_time_hours ? Math.max(1, 5 - (p.response_time_hours / 24)) : 3;
+        return rating >= filters.minRating;
+      });
+    }
+    
+    // Sort
+    if (filters.sortBy === 'recently_active') {
+      filtered.sort((a, b) => 
+        new Date(b.last_active_at || 0) - new Date(a.last_active_at || 0)
+      );
+    } else if (filters.sortBy === 'response_time') {
+      filtered.sort((a, b) => 
+        (a.response_time_hours || 999) - (b.response_time_hours || 999)
+      );
+    } else if (filters.sortBy === 'rating') {
+      filtered.sort((a, b) => {
+        const ratingA = a.response_time_hours ? Math.max(1, 5 - (a.response_time_hours / 24)) : 3;
+        const ratingB = b.response_time_hours ? Math.max(1, 5 - (b.response_time_hours / 24)) : 3;
+        return ratingB - ratingA;
+      });
     }
     
     return filtered.slice(0, 20);
@@ -136,6 +181,13 @@ export default function Discovery() {
                 travelAvailable: false,
                 verifiedOnly: true,
                 sortBy: 'distance',
+                skills: [],
+                workLocation: [],
+                minRating: 0,
+                city: '',
+                state: '',
+                country: '',
+                radius: 50,
               })}
             />
           </div>
