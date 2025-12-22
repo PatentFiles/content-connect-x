@@ -8,13 +8,13 @@ import {
   Circle, Clock, Upload, Download, Users, Plus, X,
   Calendar, Flag, MoreVertical
 } from 'lucide-react';
-import CCButton from '../components/ui-custom/CCButton.jsx';
-import CCCard from '../components/ui-custom/CCCard.jsx';
-import CCBadge from '../components/ui-custom/CCBadge.jsx';
-import CCInput from '../components/ui-custom/CCInput.js';
-import { CCLoadingScreen } from '../components/ui-custom/CCLoading.jsx';
-import CCEmpty from '../components/ui-custom/CCEmpty.jsx';
-import { CCAvatarGroup } from '../components/ui-custom/CCAvatars.jsx';
+import CCButton from '@/components/ui-custom/CCButton';
+import CCCard from '@/components/ui-custom/CCCard';
+import CCBadge from '@/components/ui-custom/CCBadge';
+import CCInput from '@/components/ui-custom/CCInput';
+import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
+import CCEmpty from '@/components/ui-custom/CCEmpty';
+import { CCAvatarGroup } from '@/components/ui-custom/CCAvatars';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
