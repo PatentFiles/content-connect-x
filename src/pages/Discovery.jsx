@@ -35,6 +35,12 @@ export default function Discovery() {
     queryFn: () => base44.auth.me(),
   });
 
+  const { data: allVerifications = [] } = useQuery({
+    queryKey: ['allVerifications'],
+    queryFn: () => base44.entities.VerificationRecord.list(),
+    enabled: !!user,
+  });
+
   const { data: verification } = useQuery({
     queryKey: ['verification', user?.email],
     queryFn: () => base44.entities.VerificationRecord.filter({ user_id: user?.email }),
@@ -77,9 +83,34 @@ export default function Discovery() {
       filtered = filtered.filter(p => filters.roleTypes.includes(p.role_type));
     }
     
+    // Looking for filter
+    if (filters.lookingFor && filters.lookingFor.length > 0) {
+      filtered = filtered.filter(p => {
+        // Check if profile has any of the selected genders in their looking_for
+        const profileLookingFor = p.looking_for_genders || [];
+        return filters.lookingFor.some(gender => profileLookingFor.includes(gender));
+      });
+    }
+    
+    // Compensation filter
+    if (filters.compensation && filters.compensation.length > 0) {
+      filtered = filtered.filter(p => {
+        const profileCompTypes = p.collab_types || [];
+        return filters.compensation.some(comp => profileCompTypes.includes(comp));
+      });
+    }
+    
     // Travel available filter
     if (filters.travelAvailable) {
       filtered = filtered.filter(p => p.travel_enabled);
+    }
+    
+    // Verified only filter
+    if (filters.verifiedOnly) {
+      const verifiedUserIds = allVerifications
+        .filter(v => v.status === 'approved')
+        .map(v => v.user_id);
+      filtered = filtered.filter(p => verifiedUserIds.includes(p.user_id));
     }
     
     // Location filters
@@ -102,7 +133,6 @@ export default function Discovery() {
     // Rating filter (using response_time_hours as proxy for now)
     if (filters.minRating > 0) {
       filtered = filtered.filter(p => {
-        // Convert response time to a rating-like score (faster = better)
         const rating = p.response_time_hours ? Math.max(1, 5 - (p.response_time_hours / 24)) : 3;
         return rating >= filters.minRating;
       });
@@ -126,7 +156,7 @@ export default function Discovery() {
     }
     
     return filtered.slice(0, 20);
-  }, [allProfiles, filters]);
+  }, [allProfiles, filters, allVerifications]);
 
   // Fetch creator details for profiles
   const { data: creatorDetails = [] } = useQuery({

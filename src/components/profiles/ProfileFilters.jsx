@@ -55,7 +55,20 @@ const sortOptions = [
 export default function ProfileFilters({ filters, onChange, onReset }) {
   const [isOpen, setIsOpen] = useState(false);
   const [showAdvancedLocation, setShowAdvancedLocation] = useState(false);
-  const activeFilterCount = Object.values(filters).filter(v => v && (Array.isArray(v) ? v.length > 0 : true)).length;
+  
+  // Count only non-default filters
+  const activeFilterCount = [
+    filters.roleTypes?.length > 0,
+    filters.lookingFor?.length > 0,
+    filters.compensation?.length > 0,
+    filters.skills?.length > 0,
+    filters.workLocation?.length > 0,
+    filters.travelAvailable,
+    filters.minRating > 0,
+    filters.city,
+    filters.state,
+    filters.country,
+  ].filter(Boolean).length;
 
   const updateFilter = (key, value) => {
     onChange({ ...filters, [key]: value });
