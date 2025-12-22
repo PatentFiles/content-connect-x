@@ -6,7 +6,6 @@ import { Ticket, Plus, Copy, Eye, EyeOff, Edit2, Trash2, Sparkles, CheckCircle }
 import CCButton from '../ui-custom/CCButton';
 import CCCard from '../ui-custom/CCCard';
 import CCBadge from '../ui-custom/CCBadge';
-import CCInput from '../ui-custom/CCInput';
 import CCSelect from '../ui-custom/CCSelect';
 import CCModal from '../ui-custom/CCModal';
 import CCEmpty from '../ui-custom/CCEmpty';
@@ -206,13 +205,16 @@ export default function CouponManager({ user }) {
       >
         <div className="space-y-4">
           <div className="flex gap-2">
-            <CCInput
-              label="Coupon Code"
-              placeholder="SUMMER2024"
-              value={formData.code || ''}
-              onChange={(e) => setFormData({...formData, code: e.target.value.toUpperCase()})}
-              className="flex-1"
-            />
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Coupon Code</label>
+              <input
+                type="text"
+                placeholder="SUMMER2024"
+                value={formData.code || ''}
+                onChange={(e) => setFormData({...formData, code: e.target.value.toUpperCase()})}
+                className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+              />
+            </div>
             <div className="flex items-end">
               <CCButton
                 variant="outline"
@@ -224,12 +226,16 @@ export default function CouponManager({ user }) {
             </div>
           </div>
 
-          <CCInput
-            label="Description (optional)"
-            placeholder="Summer promotion"
-            value={formData.description || ''}
-            onChange={(e) => setFormData({...formData, description: e.target.value})}
-          />
+          <div>
+            <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Description (optional)</label>
+            <input
+              type="text"
+              placeholder="Summer promotion"
+              value={formData.description || ''}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+            />
+          </div>
 
           <div className="grid grid-cols-2 gap-4">
             <CCSelect
@@ -238,50 +244,65 @@ export default function CouponManager({ user }) {
               value={formData.discount_type || ''}
               onChange={(e) => setFormData({...formData, discount_type: e.target.value})}
             />
-            <CCInput
-              label={
-                formData.discount_type === 'PERCENT' ? 'Percentage (%)' :
+            <div>
+              <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">
+                {formData.discount_type === 'PERCENT' ? 'Percentage (%)' :
                 formData.discount_type === 'FIXED' ? 'Amount ($)' :
                 formData.discount_type === 'FREE_MONTHS' ? 'Free Months' :
-                'Value'
-              }
-              type="number"
-              step={formData.discount_type === 'PERCENT' ? '1' : '0.01'}
-              value={formData.discount_value || ''}
-              onChange={(e) => setFormData({...formData, discount_value: e.target.value})}
-            />
+                'Value'}
+              </label>
+              <input
+                type="number"
+                step={formData.discount_type === 'PERCENT' ? '1' : '0.01'}
+                value={formData.discount_value || ''}
+                onChange={(e) => setFormData({...formData, discount_value: e.target.value})}
+                className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <CCInput
-              label="Start Date (optional)"
-              type="datetime-local"
-              value={formData.starts_at || ''}
-              onChange={(e) => setFormData({...formData, starts_at: e.target.value})}
-            />
-            <CCInput
-              label="Expiration Date (optional)"
-              type="datetime-local"
-              value={formData.expires_at || ''}
-              onChange={(e) => setFormData({...formData, expires_at: e.target.value})}
-            />
+            <div>
+              <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Start Date (optional)</label>
+              <input
+                type="datetime-local"
+                value={formData.starts_at || ''}
+                onChange={(e) => setFormData({...formData, starts_at: e.target.value})}
+                className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Expiration Date (optional)</label>
+              <input
+                type="datetime-local"
+                value={formData.expires_at || ''}
+                onChange={(e) => setFormData({...formData, expires_at: e.target.value})}
+                className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <CCInput
-              label="Max Total Uses (optional)"
-              type="number"
-              placeholder="Unlimited"
-              value={formData.max_redemptions_total || ''}
-              onChange={(e) => setFormData({...formData, max_redemptions_total: e.target.value})}
-            />
-            <CCInput
-              label="Max Uses Per User (optional)"
-              type="number"
-              placeholder="Unlimited"
-              value={formData.max_redemptions_per_user || ''}
-              onChange={(e) => setFormData({...formData, max_redemptions_per_user: e.target.value})}
-            />
+            <div>
+              <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Max Total Uses (optional)</label>
+              <input
+                type="number"
+                placeholder="Unlimited"
+                value={formData.max_redemptions_total || ''}
+                onChange={(e) => setFormData({...formData, max_redemptions_total: e.target.value})}
+                className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Max Uses Per User (optional)</label>
+              <input
+                type="number"
+                placeholder="Unlimited"
+                value={formData.max_redemptions_per_user || ''}
+                onChange={(e) => setFormData({...formData, max_redemptions_per_user: e.target.value})}
+                className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+              />
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">

@@ -6,7 +6,6 @@ import { DollarSign, Plus, Edit2, Trash2, Eye, EyeOff, Save, X, ArrowUp, ArrowDo
 import CCButton from '../ui-custom/CCButton';
 import CCCard from '../ui-custom/CCCard';
 import CCBadge from '../ui-custom/CCBadge';
-import CCInput from '../ui-custom/CCInput';
 import CCSelect from '../ui-custom/CCSelect';
 import CCModal from '../ui-custom/CCModal';
 import CCEmpty from '../ui-custom/CCEmpty';
@@ -168,19 +167,27 @@ export default function PricingManager() {
       >
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <CCInput
-              label="Plan Name"
-              placeholder="e.g., Creator Pro"
-              value={formData.name || ''}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-            />
-            <CCInput
-              label="Plan ID"
-              placeholder="e.g., creator_pro"
-              value={formData.plan_id || ''}
-              onChange={(e) => setFormData({...formData, plan_id: e.target.value})}
-              hint="Unique identifier (lowercase, underscores)"
-            />
+            <div>
+              <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Plan Name</label>
+              <input
+                type="text"
+                placeholder="e.g., Creator Pro"
+                value={formData.name || ''}
+                onChange={(e) => setFormData({...formData, name: e.target.value})}
+                className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Plan ID</label>
+              <input
+                type="text"
+                placeholder="e.g., creator_pro"
+                value={formData.plan_id || ''}
+                onChange={(e) => setFormData({...formData, plan_id: e.target.value})}
+                className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+              />
+              <p className="text-xs text-[#6B7A94] mt-1">Unique identifier (lowercase, underscores)</p>
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -199,20 +206,26 @@ export default function PricingManager() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <CCInput
-              label="Monthly Price ($)"
-              type="number"
-              step="0.01"
-              value={formData.price_monthly || ''}
-              onChange={(e) => setFormData({...formData, price_monthly: e.target.value})}
-            />
-            <CCInput
-              label="Yearly Price ($)"
-              type="number"
-              step="0.01"
-              value={formData.price_yearly || ''}
-              onChange={(e) => setFormData({...formData, price_yearly: e.target.value})}
-            />
+            <div>
+              <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Monthly Price ($)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.price_monthly || ''}
+                onChange={(e) => setFormData({...formData, price_monthly: e.target.value})}
+                className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Yearly Price ($)</label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.price_yearly || ''}
+                onChange={(e) => setFormData({...formData, price_yearly: e.target.value})}
+                className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+              />
+            </div>
           </div>
 
           <div>

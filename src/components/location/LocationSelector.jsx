@@ -102,12 +102,16 @@ export default function LocationSelector({ value, onChange, className }) {
             placeholder="Select city"
           />
         ) : (
-          <CCInput
-            label="City"
-            placeholder="Enter city name"
-            value={selectedCity}
-            onChange={(e) => setSelectedCity(e.target.value)}
-          />
+          <div>
+            <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">City</label>
+            <input
+              type="text"
+              placeholder="Enter city name"
+              value={selectedCity}
+              onChange={(e) => setSelectedCity(e.target.value)}
+              className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+            />
+          </div>
         )}
       </div>
     </div>

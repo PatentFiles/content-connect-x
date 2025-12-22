@@ -6,7 +6,6 @@ import { Users, Search, ShieldCheck, Crown, ChevronDown, ChevronUp, Eye, Ban, Us
 import CCButton from '../ui-custom/CCButton';
 import CCCard from '../ui-custom/CCCard';
 import CCBadge from '../ui-custom/CCBadge';
-import CCInput from '../ui-custom/CCInput';
 import CCAvatar from '../ui-custom/CCAvatars';
 import CCEmpty from '../ui-custom/CCEmpty';
 import { toast } from 'sonner';
@@ -67,12 +66,16 @@ export default function UserManager({ currentUser }) {
       </div>
 
       {/* Search */}
-      <CCInput
-        placeholder="Search by name, email, or role..."
-        icon={Search}
-        value={searchQuery}
-        onChange={(e) => setSearchQuery(e.target.value)}
-      />
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7A94]" />
+        <input
+          type="text"
+          placeholder="Search by name, email, or role..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full bg-[#121824] border border-[#263248] rounded-lg pl-10 pr-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+        />
+      </div>
 
       {/* Users List */}
       {profilesLoading ? (
