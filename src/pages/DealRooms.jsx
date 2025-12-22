@@ -291,7 +291,7 @@ export default function DealRooms() {
                             Delete
                           </CCButton>
                         </div>
-                        <Link to={createPageUrl(`ViewDealRoom?id=${room.id}`)}>
+                        <Link to={createPageUrl(`ViewCollaboration?id=${room.id}`)}>
                           <span className="text-sm text-[#4F8CFF] flex items-center gap-1">
                             View Details <ChevronRight className="w-4 h-4" />
                           </span>
