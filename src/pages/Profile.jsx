@@ -127,6 +127,8 @@ export default function Profile() {
   const handleSave = () => {
     const profileData = {
       display_name: editData.display_name || profile?.display_name,
+      age: editData.age || profile?.age,
+      ethnicity: editData.ethnicity || profile?.ethnicity,
       bio: editData.bio || profile?.bio,
       base_location: editData.base_location || profile?.base_location,
       travel_enabled: editData.travel_enabled ?? profile?.travel_enabled,
@@ -203,6 +205,8 @@ export default function Profile() {
                   onClick={isEditing ? handleSave : () => {
                     setEditData({
                       display_name: profile?.display_name,
+                      age: profile?.age,
+                      ethnicity: profile?.ethnicity,
                       bio: profile?.bio,
                       base_location: profile?.base_location,
                       travel_enabled: profile?.travel_enabled,
@@ -244,6 +248,28 @@ export default function Profile() {
                         onChange={(e) => setEditData({...editData, display_name: e.target.value})}
                         className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
                       />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Age</label>
+                        <input
+                          type="number"
+                          value={editData.age || ''}
+                          onChange={(e) => setEditData({...editData, age: parseInt(e.target.value) || 0})}
+                          className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                          placeholder="Age"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Ethnicity/Race</label>
+                        <input
+                          type="text"
+                          value={editData.ethnicity || ''}
+                          onChange={(e) => setEditData({...editData, ethnicity: e.target.value})}
+                          className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                          placeholder="e.g., Caucasian, Latino, etc."
+                        />
+                      </div>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Bio</label>
@@ -297,7 +323,7 @@ export default function Profile() {
                         onChange={(e) => setEditData({...editData, gender_identity: e.target.value})}
                       />
                       <CCSelect
-                        label="Orientation"
+                        label="Sexuality"
                         options={orientationOptions}
                         value={editData.orientation_category || ''}
                         onChange={(e) => setEditData({...editData, orientation_category: e.target.value})}
@@ -331,7 +357,7 @@ export default function Profile() {
                         <p className="text-[#E8EEF9] mt-1 capitalize">{details?.gender_identity?.replace('_', ' ') || 'Not set'}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-[#6B7A94]">Orientation</p>
+                        <p className="text-sm text-[#6B7A94]">Sexuality</p>
                         <p className="text-[#E8EEF9] mt-1 capitalize">{details?.orientation_category?.replace('_', ' ') || 'Not set'}</p>
                       </div>
                       <div>
