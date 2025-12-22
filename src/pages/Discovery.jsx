@@ -275,10 +275,12 @@ export default function Discovery() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {profiles.map((profile) => {
               const details = creatorDetails.find(d => d.user_id === profile.user_id);
+              const verification = allVerifications.find(v => v.user_id === profile.user_id);
+              const isVerified = verification?.status === 'approved';
               return (
                 <ProfileCard
                   key={profile.id}
-                  profile={profile}
+                  profile={{...profile, verified: isVerified}}
                   creatorDetails={details}
                   distance={Math.random() * 50}
                   onFavorite={(p) => console.log('Favorite:', p)}
@@ -302,11 +304,13 @@ export default function Discovery() {
         <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
           {profiles.filter(p => p.travel_enabled && p.travel_dates?.length > 0).slice(0, 5).map((profile) => {
             const details = creatorDetails.find(d => d.user_id === profile.user_id);
+            const verification = allVerifications.find(v => v.user_id === profile.user_id);
+            const isVerified = verification?.status === 'approved';
             return (
               <div key={profile.id} className="w-72 flex-shrink-0">
                 <ProfileCard
                   key={profile.id}
-                  profile={profile}
+                  profile={{...profile, verified: isVerified}}
                   creatorDetails={details}
                   showActions={false}
                   compact
