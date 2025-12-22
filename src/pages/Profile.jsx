@@ -26,6 +26,7 @@ import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCModal from '@/components/ui-custom/CCModal';
 import LocationSelector from '@/components/location/LocationSelector';
 import SocialLinksDisplay from '@/components/socials/SocialLinksDisplay';
+import SocialLinksManager from '@/components/socials/SocialLinksManager';
 import BioGenerator from '@/components/profile/BioGenerator';
 
 const genderOptions = [
@@ -350,9 +351,9 @@ export default function Profile() {
             )}
 
             {/* Social Links */}
-            <CCCard padding="lg">
+            <CCCard padding="lg" className="md:col-span-2">
               <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Social Links</h3>
-              <SocialLinksDisplay userId={user?.email} viewerContext="OWNER" />
+              <SocialLinksManager user={user} />
             </CCCard>
           </div>
         </CCTabsContent>
