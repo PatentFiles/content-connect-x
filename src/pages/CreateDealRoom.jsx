@@ -49,6 +49,7 @@ const acts = ['Creampie', 'Facial', 'CIM (cum in mouth)', 'Swallowing', 'Anal', 
 export default function CreateDealRoom() {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
+    collaboration_name: '',
     participant_ids: [],
     scene_type: '',
     scene_selected: [],
@@ -110,6 +111,73 @@ export default function CreateDealRoom() {
     enabled: !!user?.email,
   });
 
+  // Load existing collaboration if editing
+  const { data: existingCollaboration, isLoading: loadingCollab } = useQuery({
+    queryKey: ['collaboration', collaborationId],
+    queryFn: async () => {
+      const rooms = await base44.entities.DealRoom.filter({ id: collaborationId });
+      return rooms[0];
+    },
+    enabled: isEditing,
+  });
+
+  // Populate form with existing data
+  useEffect(() => {
+    if (existingCollaboration && isEditing) {
+      setFormData({
+        collaboration_name: existingCollaboration.collaboration_name || '',
+        participant_ids: existingCollaboration.participant_ids || [],
+        scene_type: existingCollaboration.scene_type || '',
+        scene_selected: existingCollaboration.scene_selected || [],
+        acts_selected: existingCollaboration.acts_selected || [],
+        acts_other_text: existingCollaboration.acts_other_text || '',
+        boundaries: existingCollaboration.boundaries || {
+          hard_no: [],
+          soft_limits: [],
+          aftercare_required: false,
+          aftercare_notes: ''
+        },
+        compensation_type: existingCollaboration.compensation_type || '',
+        compensation_details: existingCollaboration.compensation_details || {
+          amount: 0,
+          currency: 'USD',
+          split_details: '',
+          notes: ''
+        },
+        schedule: existingCollaboration.schedule || {
+          proposed_dates: [],
+          confirmed_date: '',
+          start_time: '',
+          end_time: '',
+          duration_hours: 0
+        },
+        location: existingCollaboration.location || {
+          type: '',
+          address: '',
+          city: '',
+          notes: ''
+        },
+        deliverables: existingCollaboration.deliverables || {
+          photo: false,
+          video: false,
+          raw_files: false,
+          editing_included: false,
+          delivery_timeline_days: 0,
+          notes: ''
+        },
+        usage_rights: existingCollaboration.usage_rights || {
+          platforms: [],
+          other_platforms: '',
+          exclusivity: false,
+          exclusivity_period_days: 0,
+          resale_allowed: false,
+          credit_required: false,
+          notes: ''
+        }
+      });
+    }
+  }, [existingCollaboration, isEditing]);
+
   const isVerified = verification?.[0]?.status === 'approved';
   const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
@@ -166,7 +234,7 @@ export default function CreateDealRoom() {
     updateForm('acts_selected', updated);
   };
 
-  if (userLoading) {
+  if (userLoading || (isEditing && loadingCollab)) {
     return <CCLoadingScreen message="Loading..." />;
   }
 

@@ -14,7 +14,8 @@ import {
   ChevronRight,
   Users,
   Calendar,
-  DollarSign
+  DollarSign,
+  Edit
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
@@ -117,13 +118,13 @@ export default function DealRooms() {
                 <Briefcase className="w-5 h-5 text-[#4F8CFF]" />
               </div>
               <div className="text-center">
-                <h1 className="text-xl font-semibold text-[#E8EEF9]">Deal Rooms</h1>
+                <h1 className="text-xl font-semibold text-[#E8EEF9]">Collaborations</h1>
                 <p className="text-xs text-[#6B7A94]">Manage your collaborations</p>
               </div>
             </div>
             <Link to={createPageUrl('CreateDealRoom')}>
               <CCButton variant="primary" icon={Plus}>
-                New Deal
+                New Collaboration
               </CCButton>
             </Link>
           </div>
@@ -167,10 +168,10 @@ export default function DealRooms() {
         ) : filteredRooms.length === 0 ? (
           <CCEmpty
             icon={Briefcase}
-            title="No deal rooms yet"
-            description="Create a deal room to start negotiating collaborations with other verified members."
+            title="No collaborations yet"
+            description="Create a collaboration to start working with other verified members."
             action={() => window.location.href = createPageUrl('CreateDealRoom')}
-            actionLabel="Create Deal Room"
+            actionLabel="Create Collaboration"
           />
         ) : (
           <div className="space-y-4">
@@ -182,14 +183,13 @@ export default function DealRooms() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
-                  <Link to={createPageUrl(`ViewDealRoom?id=${room.id}`)}>
-                    <CCCard hover clickable padding="lg">
+                    <CCCard hover padding="lg">
                       <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 flex-1">
                           <CCAvatarGroup avatars={getParticipantAvatars(room)} max={3} />
-                          <div>
+                          <div className="flex-1">
                             <p className="text-[#E8EEF9] font-medium">
-                              {room.participant_ids?.length || 0} Participants
+                              {room.collaboration_name || `${room.participant_ids?.length || 0} Participants`}
                             </p>
                             <p className="text-sm text-[#6B7A94] capitalize">
                               {room.scene_type || 'Scene'} • {room.compensation_type?.replace('_', ' ') || 'TBD'}
@@ -201,17 +201,31 @@ export default function DealRooms() {
                         </CCBadge>
                       </div>
 
-                      <div className="flex flex-wrap gap-4 text-sm text-[#9AA6BC]">
+                      {/* Scenes */}
+                      {room.scene_selected?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {room.scene_selected.map(scene => (
+                            <CCBadge key={scene} variant="primary" size="sm">{scene}</CCBadge>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Acts */}
+                      {room.acts_selected?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mb-3">
+                          {room.acts_selected.map(act => (
+                            <CCBadge key={act} variant="outline" size="sm">{act}</CCBadge>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Date/Time & Details */}
+                      <div className="flex flex-wrap gap-3 text-sm text-[#9AA6BC] mb-2">
                         {room.schedule?.confirmed_date && (
                           <span className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
                             {new Date(room.schedule.confirmed_date).toLocaleDateString()}
-                          </span>
-                        )}
-                        {room.location?.city && (
-                          <span className="flex items-center gap-1">
-                            <Users className="w-4 h-4" />
-                            {room.location.city}
+                            {room.schedule?.start_time && ` at ${room.schedule.start_time}`}
                           </span>
                         )}
                         {room.compensation_details?.amount && (
@@ -222,24 +236,24 @@ export default function DealRooms() {
                         )}
                       </div>
 
-                      {room.acts_selected?.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-3">
-                          {room.acts_selected.slice(0, 3).map(act => (
-                            <CCBadge key={act} variant="outline" size="sm">{act}</CCBadge>
-                          ))}
-                          {room.acts_selected.length > 3 && (
-                            <CCBadge variant="outline" size="sm">+{room.acts_selected.length - 3}</CCBadge>
-                          )}
-                        </div>
-                      )}
+                      {/* Created date */}
+                      <div className="text-xs text-[#6B7A94] mb-3">
+                        Created {new Date(room.created_date).toLocaleDateString()} at {new Date(room.created_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
 
-                      <div className="flex items-center justify-end mt-4 pt-3 border-t border-[#263248]">
-                        <span className="text-sm text-[#4F8CFF] flex items-center gap-1">
-                          View Details <ChevronRight className="w-4 h-4" />
-                        </span>
+                      <div className="flex items-center justify-between pt-3 border-t border-[#263248]">
+                        <Link to={createPageUrl(`CreateDealRoom?id=${room.id}`)}>
+                          <CCButton variant="ghost" size="sm" icon={Edit}>
+                            Edit
+                          </CCButton>
+                        </Link>
+                        <Link to={createPageUrl(`ViewDealRoom?id=${room.id}`)}>
+                          <span className="text-sm text-[#4F8CFF] flex items-center gap-1">
+                            View Details <ChevronRight className="w-4 h-4" />
+                          </span>
+                        </Link>
                       </div>
                     </CCCard>
-                  </Link>
                 </motion.div>
               );
             })}
