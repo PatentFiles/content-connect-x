@@ -9,7 +9,7 @@ export default function BioGenerator({ onSelectBio, currentBio }) {
   const [inputs, setInputs] = useState({
     roleType: 'creator',
     sexuality: '',
-    collaborationTypes: '',
+    collaborationTypes: [],
     personalityTraits: '',
     specialties: '',
   });
@@ -28,7 +28,7 @@ export default function BioGenerator({ onSelectBio, currentBio }) {
 User Details:
 - Role: ${inputs.roleType}
 ${inputs.sexuality ? `- Sexuality: ${inputs.sexuality}` : ''}
-${inputs.collaborationTypes ? `- Looking for: ${inputs.collaborationTypes}` : ''}
+${inputs.collaborationTypes?.length > 0 ? `- Looking for: ${inputs.collaborationTypes.join(', ')}` : ''}
 ${inputs.personalityTraits ? `- Personality: ${inputs.personalityTraits}` : ''}
 ${inputs.specialties ? `- Specialties: ${inputs.specialties}` : ''}
 
@@ -115,23 +115,45 @@ Return as JSON array of objects with "style" and "text" fields.`;
 
         <div className="space-y-1.5">
           <label className="block text-sm font-medium text-[#E8EEF9]">Collaboration Types</label>
-          <select
-            value={inputs.collaborationTypes}
-            onChange={(e) => setInputs({ ...inputs, collaborationTypes: e.target.value })}
-            className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
-          >
-            <option value="">Select collaboration type...</option>
-            <option value="solo">Solo</option>
-            <option value="bg">B/G (Boy/Girl)</option>
-            <option value="gg">G/G (Girl/Girl)</option>
-            <option value="bb">B/B (Boy/Boy)</option>
-            <option value="group">Group</option>
-            <option value="fetish">Fetish</option>
-            <option value="kink">Kink/BDSM</option>
-            <option value="standard">Standard</option>
-            <option value="custom">Custom/Various</option>
-          </select>
-          <p className="text-xs text-[#6B7A94]">What types of collaborations are you interested in?</p>
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { value: 'solo', label: 'Solo' },
+              { value: 'bg', label: 'B/G' },
+              { value: 'gg', label: 'G/G' },
+              { value: 'bb', label: 'B/B' },
+              { value: 'bbg', label: 'B/B/G' },
+              { value: 'bgg', label: 'B/G/G' },
+              { value: 'ggb', label: 'G/G/B' },
+              { value: 'bbb', label: 'B/B/B' },
+              { value: 'ggg', label: 'G/G/G' },
+              { value: 'gangbang', label: 'Gangbang' },
+              { value: 'group', label: 'Group' },
+              { value: 'fetish', label: 'Fetish' },
+              { value: 'kink', label: 'Kink/BDSM' },
+            ].map(type => (
+              <button
+                key={type.value}
+                type="button"
+                onClick={() => {
+                  const current = inputs.collaborationTypes || [];
+                  const updated = current.includes(type.value)
+                    ? current.filter(v => v !== type.value)
+                    : [...current, type.value];
+                  setInputs({ ...inputs, collaborationTypes: updated });
+                }}
+                className={cn(
+                  'px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200',
+                  'border focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50',
+                  inputs.collaborationTypes?.includes(type.value)
+                    ? 'bg-[#4F8CFF] border-[#4F8CFF] text-white'
+                    : 'bg-[#121824] border-[#263248] text-[#9AA6BC] hover:border-[#3A4A6B]'
+                )}
+              >
+                {type.label}
+              </button>
+            ))}
+          </div>
+          <p className="text-xs text-[#6B7A94]">Select all that apply</p>
         </div>
 
         <div className="space-y-1.5">
