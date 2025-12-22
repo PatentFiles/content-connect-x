@@ -111,7 +111,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
           {/* Role Type */}
           <div>
             <label className="text-sm font-medium text-[#E8EEF9] mb-3 block text-center">Role Type</label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 justify-center">
               {roleOptions.map(opt => (
                 <CCButton
                   key={opt.value}
@@ -128,7 +128,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
           {/* Looking For */}
           <div>
             <label className="text-sm font-medium text-[#E8EEF9] mb-3 block text-center">Looking For</label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 justify-center">
               {genderOptions.map(opt => (
                 <CCButton
                   key={opt.value}
@@ -164,7 +164,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
           {/* Compensation */}
           <div>
             <label className="text-sm font-medium text-[#E8EEF9] mb-3 block text-center">Compensation</label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 justify-center">
               {compensationOptions.map(opt => (
                 <CCButton
                   key={opt.value}
@@ -181,7 +181,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
           {/* Skills */}
           <div>
             <label className="text-sm font-medium text-[#E8EEF9] mb-3 block text-center">Skills & Specialties</label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 justify-center">
               {skillOptions.map(opt => (
                 <CCButton
                   key={opt.value}
@@ -198,7 +198,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
           {/* Work Location Type */}
           <div>
             <label className="text-sm font-medium text-[#E8EEF9] mb-3 block text-center">Work Location</label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 justify-center">
               {workLocationOptions.map(opt => (
                 <CCButton
                   key={opt.value}
@@ -235,7 +235,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
           {/* Travel Available */}
           <div>
             <label className="text-sm font-medium text-[#E8EEF9] mb-3 block text-center">Availability</label>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 justify-center">
               <CCButton
                 variant={filters.travelAvailable ? 'primary' : 'outline'}
                 size="sm"
