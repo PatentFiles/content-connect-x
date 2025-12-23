@@ -626,12 +626,6 @@ export default function Profile() {
               </>
             )}
 
-            {/* Creator Sections - EDIT MODE */}
-            {profile?.role_type === 'creator' && isEditing && (
-              <div className="space-y-6">
-              </div>
-            </CCCard>
-
             {/* Creator Sections */}
             {profile?.role_type === 'creator' && (
               <>
