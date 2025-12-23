@@ -32,6 +32,8 @@ import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('account');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showNameModal, setShowNameModal] = useState(false);
+  const [editingName, setEditingName] = useState('');
   const queryClient = useQueryClient();
 
   const { data: user, isLoading } = useQuery({
@@ -55,6 +57,16 @@ export default function Settings() {
     queryKey: ['userSettings', user?.email],
     queryFn: () => base44.entities.UserSettings.filter({ user_id: user?.email }),
     enabled: !!user?.email,
+  });
+
+  const updateNameMutation = useMutation({
+    mutationFn: async (name) => {
+      return base44.auth.updateMe({ full_name: name });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['currentUser']);
+      setShowNameModal(false);
+    },
   });
 
   const handleLogout = () => {
@@ -141,7 +153,16 @@ export default function Settings() {
                     <p className="text-sm text-[#6B7A94]">Full Name</p>
                     <p className="text-[#E8EEF9]">{user?.full_name || 'Not set'}</p>
                   </div>
-                  <CCButton variant="outline" size="sm">Edit</CCButton>
+                  <CCButton 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      setEditingName(user?.full_name || '');
+                      setShowNameModal(true);
+                    }}
+                  >
+                    Edit
+                  </CCButton>
                 </div>
                 <div className="flex items-center justify-between py-3">
                   <div>
@@ -366,6 +387,38 @@ export default function Settings() {
           </CCButton>
         </div>
       </div>
+
+      {/* Edit Name Modal */}
+      <CCModal
+        isOpen={showNameModal}
+        onClose={() => setShowNameModal(false)}
+        title="Edit Full Name"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Full Name</label>
+            <input
+              type="text"
+              value={editingName}
+              onChange={(e) => setEditingName(e.target.value)}
+              className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+              placeholder="Enter your full name"
+            />
+          </div>
+          <div className="flex gap-3 justify-end">
+            <CCButton variant="outline" onClick={() => setShowNameModal(false)}>
+              Cancel
+            </CCButton>
+            <CCButton 
+              variant="primary"
+              onClick={() => updateNameMutation.mutate(editingName)}
+              loading={updateNameMutation.isPending}
+            >
+              Save
+            </CCButton>
+          </div>
+        </div>
+      </CCModal>
 
       {/* Delete Account Modal */}
       <CCModal
