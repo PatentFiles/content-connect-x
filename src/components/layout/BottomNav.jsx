@@ -17,7 +17,7 @@ const navItems = [
   { name: 'Discover', page: 'Discovery', icon: Compass },
   { name: 'Search', page: 'Search', icon: Search },
   { name: 'Messages', page: 'Messages', icon: MessageCircle },
-  { name: 'Deals', page: 'DealRooms', icon: Briefcase },
+  { name: 'Collaborations', page: 'DealRooms', icon: Briefcase },
   { name: 'Profile', page: 'Profile', icon: User },
 ];
 
