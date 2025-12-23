@@ -992,444 +992,151 @@ export default function Profile() {
 
             {/* AI Bio Generator - At the very bottom */}
             {isEditing && (
-              <>
-                {/* Scene Pairings */}
-                <CCCard padding="lg">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Heart className="w-5 h-5 text-[#FF2DAA]" />
-                    <h3 className="text-lg font-semibold text-[#E8EEF9]">Scene Pairings</h3>
-                  </div>
-                  {isEditing ? (
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap gap-2">
-                        {scenePairings.map(sp => (
-                          <CCButton
-                            key={sp.value}
-                            variant={editData.scene_pairings?.includes(sp.value) ? 'primary' : 'outline'}
-                            size="sm"
-                            onClick={() => toggleArrayValue('scene_pairings', sp.value)}
-                          >
-                            {sp.label}
-                          </CCButton>
-                        ))}
-                      </div>
-                      {editData.scene_pairings?.includes('other') && (
-                        <input
-                          type="text"
-                          value={editData.scene_pairings_other || ''}
-                          onChange={(e) => setEditData({...editData, scene_pairings_other: e.target.value})}
-                          className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                          placeholder="Specify other scene pairings..."
-                        />
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {details?.scene_pairings?.map(sp => (
-                        <CCBadge key={sp} variant="accent">{sp.replace(/_/g, ' ')}</CCBadge>
-                      )) || <p className="text-[#6B7A94]">Not set</p>}
-                    </div>
-                  )}
-                </CCCard>
-
-                {/* Compensation Preferences */}
-                <CCCard padding="lg">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Briefcase className="w-5 h-5 text-[#4F8CFF]" />
-                    <h3 className="text-lg font-semibold text-[#E8EEF9]">Compensation Preferences</h3>
-                  </div>
-                  {isEditing ? (
-                    <div className="flex flex-wrap gap-2">
-                      {compensationPreferences.map(cp => (
-                        <CCButton
-                          key={cp.value}
-                          variant={editData.compensation_preferences?.includes(cp.value) ? 'primary' : 'outline'}
-                          size="sm"
-                          onClick={() => toggleArrayValue('compensation_preferences', cp.value)}
-                        >
-                          {cp.label}
-                        </CCButton>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {details?.compensation_preferences?.map(cp => (
-                        <CCBadge key={cp} variant={cp === 'paid' ? 'success' : cp === 'trade' ? 'warning' : 'default'}>
-                          {cp}
-                        </CCBadge>
-                      )) || <p className="text-[#6B7A94]">Not set</p>}
-                    </div>
-                  )}
-                </CCCard>
-
-                {/* Standard Acts */}
-                <CCCard padding="lg">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Activity className="w-5 h-5 text-[#4F8CFF]" />
-                    <h3 className="text-lg font-semibold text-[#E8EEF9]">Standard Acts</h3>
-                  </div>
-                  {isEditing ? (
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap gap-2">
-                        {standardActs.map(sa => (
-                          <CCButton
-                            key={sa.value}
-                            variant={editData.standard_acts?.includes(sa.value) ? 'primary' : 'outline'}
-                            size="sm"
-                            onClick={() => toggleArrayValue('standard_acts', sa.value)}
-                          >
-                            {sa.label}
-                          </CCButton>
-                        ))}
-                      </div>
-                      {editData.standard_acts?.includes('other') && (
-                        <input
-                          type="text"
-                          value={editData.standard_acts_other || ''}
-                          onChange={(e) => setEditData({...editData, standard_acts_other: e.target.value})}
-                          className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                          placeholder="Specify other acts..."
-                        />
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {details?.standard_acts?.map(sa => (
-                        <CCBadge key={sa} variant="primary">{sa.replace(/_/g, ' ')}</CCBadge>
-                      )) || <p className="text-[#6B7A94]">Not set</p>}
-                    </div>
-                  )}
-                </CCCard>
-
-                {/* Fetish Acts */}
-                <CCCard padding="lg">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Activity className="w-5 h-5 text-[#FF2DAA]" />
-                    <h3 className="text-lg font-semibold text-[#E8EEF9]">Fetish Acts</h3>
-                  </div>
-                  {isEditing ? (
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap gap-2">
-                        {fetishActs.map(fa => (
-                          <CCButton
-                            key={fa.value}
-                            variant={editData.fetish_acts?.includes(fa.value) ? 'accent' : 'outline'}
-                            size="sm"
-                            onClick={() => toggleArrayValue('fetish_acts', fa.value)}
-                          >
-                            {fa.label}
-                          </CCButton>
-                        ))}
-                      </div>
-                      {editData.fetish_acts?.includes('other') && (
-                        <input
-                          type="text"
-                          value={editData.fetish_acts_other || ''}
-                          onChange={(e) => setEditData({...editData, fetish_acts_other: e.target.value})}
-                          className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                          placeholder="Specify other fetish acts..."
-                        />
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {details?.fetish_acts?.map(fa => (
-                        <CCBadge key={fa} variant="accent">{fa.replace(/_/g, ' ')}</CCBadge>
-                      )) || <p className="text-[#6B7A94]">Not set</p>}
-                    </div>
-                  )}
-                </CCCard>
-
-                {/* Kink / Edge Acts */}
-                <CCCard padding="lg">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Activity className="w-5 h-5 text-[#9333EA]" />
-                    <h3 className="text-lg font-semibold text-[#E8EEF9]">Kink / Edge Acts</h3>
-                  </div>
-                  {isEditing ? (
-                    <div className="space-y-3">
-                      <div className="flex flex-wrap gap-2">
-                        {kinkEdgeActs.map(ke => (
-                          <CCButton
-                            key={ke.value}
-                            variant={editData.kink_edge_acts?.includes(ke.value) ? 'primary' : 'outline'}
-                            size="sm"
-                            onClick={() => toggleArrayValue('kink_edge_acts', ke.value)}
-                          >
-                            {ke.label}
-                          </CCButton>
-                        ))}
-                      </div>
-                      {editData.kink_edge_acts?.includes('other') && (
-                        <input
-                          type="text"
-                          value={editData.kink_edge_acts_other || ''}
-                          onChange={(e) => setEditData({...editData, kink_edge_acts_other: e.target.value})}
-                          className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                          placeholder="Specify other kink/edge acts..."
-                        />
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {details?.kink_edge_acts?.map(ke => (
-                        <CCBadge key={ke} variant="default">{ke.replace(/_/g, ' ')}</CCBadge>
-                      )) || <p className="text-[#6B7A94]">Not set</p>}
-                    </div>
-                  )}
-                </CCCard>
-
-                {/* Performance Positioning */}
-                <CCCard padding="lg">
-                  <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Performance Positioning</h3>
-                  {isEditing ? (
-                    <div className="flex flex-wrap gap-2">
-                      {performancePositioning.filter(showPositioning).map(pp => (
-                        <CCButton
-                          key={pp.value}
-                          variant={editData.performance_positioning?.includes(pp.value) ? 'primary' : 'outline'}
-                          size="sm"
-                          onClick={() => toggleArrayValue('performance_positioning', pp.value)}
-                        >
-                          {pp.label}
-                        </CCButton>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {details?.performance_positioning?.map(pp => (
-                        <CCBadge key={pp} variant="primary">{pp}</CCBadge>
-                      )) || <p className="text-[#6B7A94]">Not set</p>}
-                    </div>
-                  )}
-                </CCCard>
-
-                {/* Physical Details */}
-                <CCCard padding="lg">
-                  <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Physical Details</h3>
-                  {isEditing ? (
-                    <div className="space-y-4">
-                      {showFemaleFields && (
-                        <>
-                          <div className="flex items-center gap-3">
-                            <input
-                              type="checkbox"
-                              checked={editData.physical_details?.natural_breasts || false}
-                              onChange={(e) => setEditData({
-                                ...editData, 
-                                physical_details: {...editData.physical_details, natural_breasts: e.target.checked}
-                              })}
-                            />
-                            <label className="text-sm text-[#E8EEF9]">Natural Breasts</label>
-                          </div>
-                          <div className="grid grid-cols-2 gap-3">
-                            <div>
-                              <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Breast Size</label>
-                              <input
-                                type="text"
-                                value={editData.physical_details?.breast_size || ''}
-                                onChange={(e) => setEditData({
-                                  ...editData,
-                                  physical_details: {...editData.physical_details, breast_size: e.target.value}
-                                })}
-                                className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9]"
-                                placeholder="e.g., 34C"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Dress Size</label>
-                              <input
-                                type="text"
-                                value={editData.physical_details?.dress_size || ''}
-                                onChange={(e) => setEditData({
-                                  ...editData,
-                                  physical_details: {...editData.physical_details, dress_size: e.target.value}
-                                })}
-                                className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9]"
-                                placeholder="e.g., 6"
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Measurements</label>
-                            <input
-                              type="text"
-                              value={editData.physical_details?.measurements || ''}
-                              onChange={(e) => setEditData({
-                                ...editData,
-                                physical_details: {...editData.physical_details, measurements: e.target.value}
-                              })}
-                              className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9]"
-                              placeholder="e.g., 34-24-36"
-                            />
-                          </div>
-                        </>
-                      )}
-                      {showMaleFields && (
-                        <>
-                          <div>
-                            <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Endowment Size (inches)</label>
-                            <input
-                              type="text"
-                              value={editData.physical_details?.endowment_size || ''}
-                              onChange={(e) => setEditData({
-                                ...editData,
-                                physical_details: {...editData.physical_details, endowment_size: e.target.value}
-                              })}
-                              className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9]"
-                              placeholder="e.g., 7"
-                            />
-                          </div>
-                          <CCSelect
-                            label="Circumcision Status"
-                            options={[
-                              { value: 'cut', label: 'Cut' },
-                              { value: 'uncut', label: 'Uncut' },
-                            ]}
-                            value={editData.physical_details?.circumcision_status || ''}
-                            onChange={(e) => setEditData({
-                              ...editData,
-                              physical_details: {...editData.physical_details, circumcision_status: e.target.value}
-                            })}
-                          />
-                        </>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {details?.physical_details && Object.keys(details.physical_details).length > 0 ? (
-                        <>
-                          {details.physical_details.breast_size && (
-                            <p className="text-[#E8EEF9]">Breast Size: {details.physical_details.breast_size}</p>
-                          )}
-                          {details.physical_details.measurements && (
-                            <p className="text-[#E8EEF9]">Measurements: {details.physical_details.measurements}</p>
-                          )}
-                          {details.physical_details.endowment_size && (
-                            <p className="text-[#E8EEF9]">Endowment: {details.physical_details.endowment_size}"</p>
-                          )}
-                        </>
-                      ) : (
-                        <p className="text-[#6B7A94]">Not set</p>
-                      )}
-                    </div>
-                  )}
-                </CCCard>
-
-                {/* Availability & Travel */}
-                <CCCard padding="lg">
-                  <div className="flex items-center gap-2 mb-4">
-                    <MapPinned className="w-5 h-5 text-[#4F8CFF]" />
-                    <h3 className="text-lg font-semibold text-[#E8EEF9]">Availability & Travel</h3>
-                  </div>
-                  {isEditing ? (
-                    <div className="space-y-4">
-                      <CCSelect
-                        label="Availability Type"
-                        options={[
-                          { value: 'local_only', label: 'Local Only' },
-                          { value: 'available_for_travel', label: 'Available for Travel' },
-                        ]}
-                        value={editData.availability_type || ''}
-                        onChange={(e) => setEditData({...editData, availability_type: e.target.value})}
-                      />
-                      {editData.availability_type === 'available_for_travel' && (
-                        <div>
-                          <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Travel Regions</label>
-                          <input
-                            type="text"
-                            value={editData.travel_regions?.join(', ') || ''}
-                            onChange={(e) => setEditData({...editData, travel_regions: e.target.value.split(',').map(t => t.trim())})}
-                            className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9]"
-                            placeholder="e.g., West Coast, Europe, etc."
-                          />
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div>
-                      <p className="text-[#E8EEF9]">
-                        {details?.availability_type?.replace('_', ' ') || 'Not set'}
-                      </p>
-                      {details?.travel_regions?.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {details.travel_regions.map(tr => (
-                            <CCBadge key={tr}>{tr}</CCBadge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </CCCard>
-
-                {/* Health & Testing */}
-                <CCCard padding="lg">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Shield className="w-5 h-5 text-[#22C55E]" />
-                    <h3 className="text-lg font-semibold text-[#E8EEF9]">Health & Testing</h3>
-                    <CCBadge variant="warning" size="sm">Private by Default</CCBadge>
-                  </div>
-                  {isEditing ? (
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Testing Status</label>
-                        <input
-                          type="text"
-                          value={editData.health_testing?.testing_status || ''}
-                          onChange={(e) => setEditData({
-                            ...editData,
-                            health_testing: {...editData.health_testing, testing_status: e.target.value}
-                          })}
-                          className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9]"
-                          placeholder="e.g., Clean, Tested"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Last Test Date</label>
-                        <input
-                          type="date"
-                          value={editData.health_testing?.last_test_date || ''}
-                          onChange={(e) => setEditData({
-                            ...editData,
-                            health_testing: {...editData.health_testing, last_test_date: e.target.value}
-                          })}
-                          className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9]"
-                        />
-                      </div>
-                      <CCSelect
-                        label="Testing Visibility"
-                        options={[
-                          { value: 'private', label: 'Private' },
-                          { value: 'collaboration_room_only', label: 'Collaboration Room Only' },
-                          { value: 'verified_collaborators', label: 'Verified Collaborators' },
-                        ]}
-                        value={editData.health_testing?.testing_visibility || 'private'}
-                        onChange={(e) => setEditData({
-                          ...editData,
-                          health_testing: {...editData.health_testing, testing_visibility: e.target.value}
-                        })}
-                      />
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {details?.health_testing?.testing_status ? (
-                        <>
-                          <p className="text-[#E8EEF9]">Status: {details.health_testing.testing_status}</p>
-                          {details.health_testing.last_test_date && (
-                            <p className="text-[#E8EEF9]">Last Test: {new Date(details.health_testing.last_test_date).toLocaleDateString()}</p>
-                          )}
-                          <p className="text-[#6B7A94] text-sm">Visibility: {details.health_testing.testing_visibility?.replace('_', ' ') || 'private'}</p>
-                        </>
-                      ) : (
-                        <p className="text-[#6B7A94]">Not set</p>
-                      )}
-                    </div>
-                  )}
-                </CCCard>
+              <CCCard padding="lg">
+                <BioGenerator 
+                  profile={profile}
+                  details={details}
+                  onSelectBio={(bio) => setEditData({...editData, bio})}
+                />
+              </CCCard>
             )}
+          </div>
+        </CCTabsContent>
 
-            {/* AI Bio Generator - At the very bottom */}
-            {isEditing && (
+        <CCTabsContent value="galleries" activeTab={activeTab}>
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Public Gallery */}
+            <CCCard padding="lg">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-[#E8EEF9]">Public Gallery</h3>
+                <CCButton 
+                  variant="outline" 
+                  size="sm" 
+                  icon={Plus}
+                  onClick={() => document.getElementById('public-gallery-upload').click()}
+                >
+                  Add
+                </CCButton>
+                <input
+                  id="public-gallery-upload"
+                  type="file"
+                  accept="image/*,video/*"
+                  multiple
+                  className="hidden"
+                  onChange={async (e) => {
+                    const files = Array.from(e.target.files || []);
+                    const publicGallery = galleries.find(g => g.type === 'public');
+                    const items = publicGallery?.items || [];
+                    
+                    for (const file of files) {
+                      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                      items.push({
+                        id: Date.now().toString(),
+                        url: file_url,
+                        type: file.type.startsWith('video') ? 'video' : 'image',
+                        order: items.length
+                      });
+                    }
+                    
+                    if (publicGallery) {
+                      await base44.entities.Gallery.update(publicGallery.id, { items });
+                    } else {
+                      await base44.entities.Gallery.create({
+                        user_id: user.email,
+                        type: 'public',
+                        name: 'Public Gallery',
+                        items
+                      });
+                    }
+                    queryClient.invalidateQueries(['myGalleries']);
+                  }}
+                />
+              </div>
+              <p className="text-sm text-[#6B7A94] mb-4">G-rated images visible to all verified members.</p>
+              <div className="grid grid-cols-3 gap-2">
+                {galleries.find(g => g.type === 'public')?.items?.map((item, i) => (
+                  <div key={i} className="aspect-square bg-[#121824] rounded-lg overflow-hidden">
+                    <img src={item.url} alt="" className="w-full h-full object-cover" />
+                  </div>
+                )) || (
+                  <div className="col-span-3 py-8 text-center text-[#6B7A94]">
+                    <Image className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    No images yet
+                  </div>
+                )}
+              </div>
+            </CCCard>
+
+            {/* Private Gallery */}
+            <CCCard padding="lg">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-[#E8EEF9] flex items-center gap-2">
+                  <Lock className="w-4 h-4" /> Private Gallery
+                </h3>
+                <CCButton 
+                  variant="outline" 
+                  size="sm" 
+                  icon={Plus}
+                  onClick={() => document.getElementById('private-gallery-upload').click()}
+                >
+                  Add
+                </CCButton>
+                <input
+                  id="private-gallery-upload"
+                  type="file"
+                  accept="image/*,video/*"
+                  multiple
+                  className="hidden"
+                  onChange={async (e) => {
+                    const files = Array.from(e.target.files || []);
+                    const privateGallery = galleries.find(g => g.type === 'private');
+                    const items = privateGallery?.items || [];
+                    
+                    for (const file of files) {
+                      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                      items.push({
+                        id: Date.now().toString(),
+                        url: file_url,
+                        type: file.type.startsWith('video') ? 'video' : 'image',
+                        order: items.length
+                      });
+                    }
+                    
+                    if (privateGallery) {
+                      await base44.entities.Gallery.update(privateGallery.id, { items });
+                    } else {
+                      await base44.entities.Gallery.create({
+                        user_id: user.email,
+                        type: 'private',
+                        name: 'Private Gallery',
+                        items
+                      });
+                    }
+                    queryClient.invalidateQueries(['myGalleries']);
+                  }}
+                />
+              </div>
+              <p className="text-sm text-[#6B7A94] mb-4">Only visible to users you grant permission.</p>
+              <div className="grid grid-cols-3 gap-2">
+                {galleries.find(g => g.type === 'private')?.items?.map((item, i) => (
+                  <div key={i} className="aspect-square bg-[#121824] rounded-lg overflow-hidden">
+                    <img src={item.url} alt="" className="w-full h-full object-cover" />
+                  </div>
+                )) || (
+                  <div className="col-span-3 py-8 text-center text-[#6B7A94]">
+                    <Image className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                    No images yet
+                  </div>
+                )}
+              </div>
+            </CCCard>
+          </div>
+        </CCTabsContent>
+      </div>
+    </div>
+  );
+}
+
               <CCCard padding="lg">
                 <BioGenerator 
                   profile={profile}
