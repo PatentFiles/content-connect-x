@@ -50,6 +50,15 @@ function UserManagement({ currentUser }) {
     },
   });
 
+  const changeRoleMutation = useMutation({
+    mutationFn: ({ profileId, roleType }) => {
+      return base44.entities.UserProfile.update(profileId, { role_type: roleType });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['allProfilesForUsers']);
+    },
+  });
+
   const getProfileForUser = (email) => allProfiles.find(p => p.user_id === email);
 
   const filteredUsers = allUsers.filter(u => {
@@ -103,22 +112,38 @@ function UserManagement({ currentUser }) {
                         )}
                       </div>
                       <p className="text-sm text-[#6B7A94]">{user.email}</p>
-                      {profile?.role_type && profile.role_type !== 'admin' && (
-                        <CCBadge 
-                          variant={
-                            profile.role_type === 'creator' ? 'primary' :
-                            profile.role_type === 'agent' ? 'accent' :
-                            profile.role_type === 'studio' ? 'success' :
-                            profile.role_type === 'photographer' ? 'warning' :
-                            profile.role_type === 'videographer' ? 'danger' :
-                            'default'
-                          } 
-                          size="sm" 
-                          className="mt-1"
+                      <div className="flex items-center gap-2 mt-1">
+                        <select
+                          value={profile?.role_type || ''}
+                          onChange={(e) => profile && changeRoleMutation.mutate({ 
+                            profileId: profile.id, 
+                            roleType: e.target.value 
+                          })}
+                          className="bg-[#121824] border border-[#263248] rounded-lg px-3 py-1.5 text-sm text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
                         >
-                          {profile.role_type}
-                        </CCBadge>
-                      )}
+                          <option value="">Select role</option>
+                          <option value="creator">Creator</option>
+                          <option value="agent">Agent</option>
+                          <option value="studio">Studio</option>
+                          <option value="photographer">Photographer</option>
+                          <option value="videographer">Videographer</option>
+                        </select>
+                        {profile?.role_type && profile.role_type !== 'admin' && (
+                          <CCBadge 
+                            variant={
+                              profile.role_type === 'creator' ? 'primary' :
+                              profile.role_type === 'agent' ? 'accent' :
+                              profile.role_type === 'studio' ? 'success' :
+                              profile.role_type === 'photographer' ? 'warning' :
+                              profile.role_type === 'videographer' ? 'danger' :
+                              'default'
+                            } 
+                            size="sm"
+                          >
+                            {profile.role_type}
+                          </CCBadge>
+                        )}
+                      </div>
                     </div>
                   </div>
                   {!isCurrentUser && (

@@ -197,6 +197,7 @@ export default function Profile() {
       age: editData.age || profile?.age,
       ethnicity: editData.ethnicity || profile?.ethnicity,
       bio: editData.bio || profile?.bio,
+      role_type: editData.role_type || profile?.role_type,
       base_location: editData.base_location || profile?.base_location,
       travel_enabled: editData.travel_enabled ?? profile?.travel_enabled,
       profile_complete: true,
@@ -344,6 +345,7 @@ export default function Profile() {
                       age: profile?.age,
                       ethnicity: profile?.ethnicity,
                       bio: profile?.bio,
+                      role_type: profile?.role_type,
                       base_location: profile?.base_location,
                       travel_enabled: profile?.travel_enabled,
                       gender_identity: details?.gender_identity,
@@ -420,6 +422,19 @@ export default function Profile() {
                         />
                       </div>
                     </div>
+                    <CCSelect
+                      label="Role"
+                      options={[
+                        { value: 'creator', label: 'Creator' },
+                        { value: 'agent', label: 'Agent' },
+                        { value: 'studio', label: 'Studio' },
+                        { value: 'photographer', label: 'Photographer' },
+                        { value: 'videographer', label: 'Videographer' },
+                      ]}
+                      value={editData.role_type || profile?.role_type || ''}
+                      onChange={(e) => setEditData({...editData, role_type: e.target.value})}
+                      placeholder="Select your role"
+                    />
                     <div className="grid grid-cols-2 gap-3">
                       <CCSelect
                         label="Gender Identity"
