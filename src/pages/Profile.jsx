@@ -30,11 +30,10 @@ import SocialLinksManager from '@/components/socials/SocialLinksManager';
 import BioGenerator from '@/components/profile/BioGenerator';
 
 const genderOptions = [
-  { value: 'woman', label: 'Woman' },
-  { value: 'man', label: 'Man' },
-  { value: 'trans_woman', label: 'Trans Woman' },
-  { value: 'trans_man', label: 'Trans Man' },
-  { value: 'non_binary', label: 'Non-Binary' },
+  { value: 'woman', label: 'Female' },
+  { value: 'man', label: 'Male' },
+  { value: 'trans_woman', label: 'Trans Female' },
+  { value: 'trans_man', label: 'Trans Male' },
 ];
 
 const orientationOptions = [
@@ -324,16 +323,22 @@ export default function Profile() {
                       <p className="text-sm text-[#6B7A94]">Display Name</p>
                       <p className="text-[#E8EEF9] mt-1">{profile?.display_name || 'Not set'}</p>
                     </div>
-                    {profile?.role_type === 'creator' && details?.orientation_category && (
-                      <div>
-                        <p className="text-sm text-[#6B7A94]">Sexuality</p>
-                        <p className="text-[#E8EEF9] mt-1 capitalize">{details.orientation_category.replace('_', ' ')}</p>
-                      </div>
-                    )}
                     {profile?.age && (
                       <div>
                         <p className="text-sm text-[#6B7A94]">Age</p>
                         <p className="text-[#E8EEF9] mt-1">{profile.age}</p>
+                      </div>
+                    )}
+                    {profile?.role_type === 'creator' && details?.gender_identity && (
+                      <div>
+                        <p className="text-sm text-[#6B7A94]">Gender</p>
+                        <p className="text-[#E8EEF9] mt-1 capitalize">{details.gender_identity === 'woman' ? 'Female' : details.gender_identity === 'man' ? 'Male' : details.gender_identity.replace('_', ' ')}</p>
+                      </div>
+                    )}
+                    {profile?.role_type === 'creator' && details?.orientation_category && (
+                      <div>
+                        <p className="text-sm text-[#6B7A94]">Sexuality</p>
+                        <p className="text-[#E8EEF9] mt-1 capitalize">{details.orientation_category.replace('_', ' ')}</p>
                       </div>
                     )}
                     {profile?.ethnicity && (
@@ -342,16 +347,32 @@ export default function Profile() {
                         <p className="text-[#E8EEF9] mt-1">{profile.ethnicity}</p>
                       </div>
                     )}
-                    {profile?.role_type === 'creator' && details?.gender_identity && (
-                      <div>
-                        <p className="text-sm text-[#6B7A94]">Gender</p>
-                        <p className="text-[#E8EEF9] mt-1 capitalize">{details.gender_identity.replace('_', ' ')}</p>
-                      </div>
-                    )}
                     <div>
                       <p className="text-sm text-[#6B7A94]">Bio</p>
                       <p className="text-[#E8EEF9] mt-1">{profile?.bio || 'No bio yet'}</p>
                     </div>
+                    {profile?.role_type === 'creator' && details?.collab_types && details.collab_types.length > 0 && (
+                      <div>
+                        <p className="text-sm text-[#6B7A94]">Collaboration Types</p>
+                        <div className="flex gap-2 mt-2">
+                          {details.collab_types.map(type => (
+                            <CCBadge key={type} variant={type === 'paid' ? 'success' : type === 'trade' ? 'warning' : 'default'}>
+                              {type}
+                            </CCBadge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {profile?.role_type === 'creator' && details?.tags && details.tags.length > 0 && (
+                      <div>
+                        <p className="text-sm text-[#6B7A94]">Personality & Specialties</p>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {details.tags.map(tag => (
+                            <CCBadge key={tag} variant="outline">{tag}</CCBadge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                     <div>
                       <p className="text-sm text-[#6B7A94]">Location</p>
                       <p className="text-[#E8EEF9] mt-1 flex items-center gap-1">
