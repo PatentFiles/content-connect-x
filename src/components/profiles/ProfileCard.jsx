@@ -119,42 +119,39 @@ export default function ProfileCard({
             </div>
           </div>
 
-          {/* Profile Info */}
-          <div className="px-4 pb-4 pt-3">
-
-              {/* Actions */}
-              {showActions && (
-                <div className="flex gap-2 pt-3 border-t border-[#263248]">
-                  <CCButton
-                    variant="outline"
-                    size="sm"
-                    fullWidth
-                    icon={Heart}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onFavorite?.(profile);
-                    }}
-                  >
-                    Save
-                  </CCButton>
-                  <CCButton
-                    variant="primary"
-                    size="sm"
-                    fullWidth
-                    icon={MessageCircle}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      onMessage?.(profile);
-                    }}
-                  >
-                    Message
-                  </CCButton>
-                </div>
-              )}
+          {/* Actions */}
+          {showActions && (
+            <div className="px-4 pb-4 pt-3">
+              <div className="flex gap-2">
+                <CCButton
+                  variant="outline"
+                  size="sm"
+                  fullWidth
+                  icon={Heart}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onFavorite?.(profile);
+                  }}
+                >
+                  Save
+                </CCButton>
+                <CCButton
+                  variant="primary"
+                  size="sm"
+                  fullWidth
+                  icon={MessageCircle}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    onMessage?.(profile);
+                  }}
+                >
+                  Message
+                </CCButton>
+              </div>
             </div>
-          </div>
+          )}
         </CCCard>
       </Link>
     </motion.div>
