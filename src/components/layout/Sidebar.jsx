@@ -31,6 +31,10 @@ const mainNavItems = [
   { name: 'Favorites', page: 'Shortlists', icon: Heart },
 ];
 
+const adminNavItems = [
+  { name: 'Admin Dashboard', page: 'AdminDashboard', icon: Shield },
+];
+
 const settingsItems = [
   { name: 'My Profile', page: 'Profile', icon: User },
   { name: 'Settings', page: 'Settings', icon: Settings },
@@ -61,6 +65,38 @@ export default function Sidebar({ currentPage, profile, onLogout }) {
 
       {/* Main Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+        {profile?.is_admin && (
+          <>
+            <p className="text-xs font-medium text-[#6B7A94] uppercase tracking-wider px-3 mb-2">Admin</p>
+            {adminNavItems.map((item) => {
+              const isActive = currentPage === item.page;
+              return (
+                <Link
+                  key={item.page}
+                  to={createPageUrl(item.page)}
+                  className={cn(
+                    'relative flex items-center gap-3 px-3 py-2.5 rounded-lg',
+                    'transition-colors duration-200',
+                    isActive 
+                      ? 'bg-[#4F8CFF]/10 text-[#4F8CFF]' 
+                      : 'text-[#9AA6BC] hover:bg-[#151D2B] hover:text-[#E8EEF9]'
+                  )}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="sidebarIndicator"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#4F8CFF] rounded-r-full"
+                      transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
+                    />
+                  )}
+                  <item.icon className="w-5 h-5" />
+                  <span className="text-sm font-medium">{item.name}</span>
+                </Link>
+              );
+            })}
+            <div className="pb-2 mb-2 border-b border-[#263248]" />
+          </>
+        )}
         <p className="text-xs font-medium text-[#6B7A94] uppercase tracking-wider px-3 mb-2">Main</p>
         {mainNavItems.map((item) => {
           const isActive = currentPage === item.page;
