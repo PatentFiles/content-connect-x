@@ -15,9 +15,11 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to={createPageUrl('Landing')} className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4F8CFF] to-[#FF2DAA] flex items-center justify-center">
-            <span className="text-white font-bold text-sm">CC</span>
-          </div>
+          <img 
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69495df631e52046b1356040/51f211167_image.png"
+            alt="Content Connect"
+            className="w-8 h-8 rounded-lg object-contain"
+          />
           <span className="text-[#E8EEF9] font-semibold text-lg hidden sm:block">Content Connect</span>
         </Link>
 
