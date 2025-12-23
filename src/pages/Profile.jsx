@@ -477,7 +477,7 @@ export default function Profile() {
             </CCCard>
 
             {/* Creator Sections - VIEW MODE */}
-            {profile?.role_type === 'creator' && !isEditing && (
+            {(profile?.role_type === 'creator' || profile?.is_admin) && !isEditing && (
               <>
                 {/* Scene Pairings */}
                 {details?.scene_pairings && details.scene_pairings.length > 0 && (
@@ -627,7 +627,7 @@ export default function Profile() {
             )}
 
             {/* Creator Sections */}
-            {profile?.role_type === 'creator' && (
+            {(profile?.role_type === 'creator' || profile?.is_admin) && (
               <>
                 {/* Scene Pairings */}
                 <CCCard padding="lg">
