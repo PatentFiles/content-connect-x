@@ -103,7 +103,7 @@ function UserManagement({ currentUser }) {
                         )}
                       </div>
                       <p className="text-sm text-[#6B7A94]">{user.email}</p>
-                      {profile?.role_type && (
+                      {profile?.role_type && profile.role_type !== 'admin' && (
                         <CCBadge variant="accent" size="sm" className="mt-1">
                           {profile.role_type}
                         </CCBadge>
