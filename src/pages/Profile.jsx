@@ -419,11 +419,6 @@ export default function Profile() {
               </CCCard>
             )}
 
-            {/* Social Links */}
-            <CCCard padding="lg" className="md:col-span-2">
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Social Links</h3>
-              <SocialLinksManager user={user} />
-            </CCCard>
           </div>
         </CCTabsContent>
 
