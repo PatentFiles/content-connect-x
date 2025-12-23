@@ -256,11 +256,15 @@ export default function Profile() {
       {/* Cover & Avatar */}
       <div className="relative">
         <div className="h-48 md:h-64 relative overflow-hidden group">
-          <img 
-            src={profile?.cover_url || "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69495df631e52046b1356040/7a1a144af_image.png"}
-            alt="Cover"
-            className="w-full h-full object-cover"
-          />
+          {profile?.cover_url ? (
+            <img 
+              src={profile.cover_url}
+              alt="Cover"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-[#4F8CFF] via-[#7B5FA9] to-[#FF2DAA]" />
+          )}
           <button 
             onClick={() => document.getElementById('cover-upload').click()}
             className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
