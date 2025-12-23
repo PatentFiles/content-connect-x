@@ -257,7 +257,7 @@ export default function Profile() {
       <div className="relative">
         <div className="h-48 md:h-64 relative overflow-hidden group">
           <img 
-            src={profile?.cover_url || "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69495df631e52046b1356040/730e18d7f_image.png"}
+            src={profile?.cover_url || "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69495df631e52046b1356040/7a1a144af_image.png"}
             alt="Cover"
             className="w-full h-full object-cover"
           />

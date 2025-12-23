@@ -13,7 +13,8 @@ import {
   Search,
   Filter,
   Eye,
-  Ban
+  Ban,
+  ChevronRight
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
@@ -28,6 +29,7 @@ import CCEmpty from '@/components/ui-custom/CCEmpty';
 // User Management Component
 function UserManagement({ currentUser }) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandedUserId, setExpandedUserId] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: allUsers = [], isLoading: usersLoading } = useQuery({
@@ -38,6 +40,11 @@ function UserManagement({ currentUser }) {
   const { data: allProfiles = [] } = useQuery({
     queryKey: ['allProfilesForUsers'],
     queryFn: () => base44.entities.UserProfile.list(),
+  });
+
+  const { data: allCreatorDetails = [] } = useQuery({
+    queryKey: ['allCreatorDetails'],
+    queryFn: () => base44.entities.CreatorDetails.list(),
   });
 
   const toggleAdminMutation = useMutation({
@@ -60,6 +67,7 @@ function UserManagement({ currentUser }) {
   });
 
   const getProfileForUser = (email) => allProfiles.find(p => p.user_id === email);
+  const getCreatorDetailsForUser = (email) => allCreatorDetails.find(d => d.user_id === email);
 
   const filteredUsers = allUsers.filter(u => {
     if (!searchQuery) return true;
@@ -95,11 +103,17 @@ function UserManagement({ currentUser }) {
         <div className="space-y-3">
           {filteredUsers.map((user) => {
             const profile = getProfileForUser(user.email);
+            const creatorDetails = getCreatorDetailsForUser(user.email);
             const isCurrentUser = user.email === currentUser.email;
+            const isExpanded = expandedUserId === user.id;
             
             return (
-              <CCCard key={user.id} padding="md">
-                <div className="flex items-center justify-between">
+              <CCCard key={user.id} padding="md" className="overflow-hidden">
+                {/* Collapsed View */}
+                <div 
+                  className="flex items-center justify-between cursor-pointer"
+                  onClick={() => setExpandedUserId(isExpanded ? null : user.id)}
+                >
                   <div className="flex items-center gap-4">
                     <CCAvatar src={profile?.avatar_url} size="md" />
                     <div>
@@ -110,25 +124,7 @@ function UserManagement({ currentUser }) {
                         {user.role === 'admin' && (
                           <CCBadge variant="warning" size="sm">Admin</CCBadge>
                         )}
-                      </div>
-                      <p className="text-sm text-[#6B7A94]">{user.email}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <select
-                          value={profile?.role_type || ''}
-                          onChange={(e) => profile && changeRoleMutation.mutate({ 
-                            profileId: profile.id, 
-                            roleType: e.target.value 
-                          })}
-                          className="bg-[#121824] border border-[#263248] rounded-lg px-3 py-1.5 text-sm text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                        >
-                          <option value="">Select role</option>
-                          <option value="creator">Creator</option>
-                          <option value="agent">Agent</option>
-                          <option value="studio">Studio</option>
-                          <option value="photographer">Photographer</option>
-                          <option value="videographer">Videographer</option>
-                        </select>
-                        {profile?.role_type && profile.role_type !== 'admin' && (
+                        {profile?.role_type && (
                           <CCBadge 
                             variant={
                               profile.role_type === 'creator' ? 'primary' :
@@ -144,25 +140,105 @@ function UserManagement({ currentUser }) {
                           </CCBadge>
                         )}
                       </div>
+                      <p className="text-sm text-[#6B7A94]">{user.email}</p>
                     </div>
                   </div>
-                  {!isCurrentUser && (
-                    <CCButton
-                      variant={user.role === 'admin' ? 'warning' : 'primary'}
-                      size="sm"
-                      onClick={() => toggleAdminMutation.mutate({ 
-                        userId: user.id, 
-                        currentRole: user.role 
-                      })}
-                      loading={toggleAdminMutation.isPending}
-                    >
-                      {user.role === 'admin' ? 'Remove Admin' : 'Make Admin'}
-                    </CCButton>
-                  )}
-                  {isCurrentUser && (
-                    <CCBadge variant="primary" size="sm">You</CCBadge>
-                  )}
+                  <motion.div
+                    animate={{ rotate: isExpanded ? 90 : 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ChevronRight className="w-5 h-5 text-[#6B7A94]" />
+                  </motion.div>
                 </div>
+
+                {/* Expanded View */}
+                {isExpanded && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="mt-4 pt-4 border-t border-[#263248] space-y-3"
+                  >
+                    {/* User Info Grid */}
+                    <div className="grid grid-cols-2 gap-3 text-sm">
+                      {profile?.age && (
+                        <div>
+                          <p className="text-[#6B7A94]">Age</p>
+                          <p className="text-[#E8EEF9]">{profile.age}</p>
+                        </div>
+                      )}
+                      {creatorDetails?.gender_identity && (
+                        <div>
+                          <p className="text-[#6B7A94]">Gender</p>
+                          <p className="text-[#E8EEF9] capitalize">{creatorDetails.gender_identity.replace(/_/g, ' ')}</p>
+                        </div>
+                      )}
+                      {profile?.base_location?.city && (
+                        <div>
+                          <p className="text-[#6B7A94]">Location</p>
+                          <p className="text-[#E8EEF9]">
+                            {profile.base_location.city}
+                            {profile.base_location.state && `, ${profile.base_location.state}`}
+                          </p>
+                        </div>
+                      )}
+                      {creatorDetails?.orientation_category && creatorDetails.orientation_category.length > 0 && (
+                        <div>
+                          <p className="text-[#6B7A94]">Orientation</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {creatorDetails.orientation_category.map(o => (
+                              <CCBadge key={o} variant="outline" size="sm">{o}</CCBadge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Role Management */}
+                    <div className="flex items-center gap-2 pt-2">
+                      <label className="text-sm text-[#6B7A94]">Change Role:</label>
+                      <select
+                        value={profile?.role_type || ''}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          profile && changeRoleMutation.mutate({ 
+                            profileId: profile.id, 
+                            roleType: e.target.value 
+                          });
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="bg-[#121824] border border-[#263248] rounded-lg px-3 py-1.5 text-sm text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                      >
+                        <option value="">Select role</option>
+                        <option value="creator">Creator</option>
+                        <option value="agent">Agent</option>
+                        <option value="studio">Studio</option>
+                        <option value="photographer">Photographer</option>
+                        <option value="videographer">Videographer</option>
+                      </select>
+                      {!isCurrentUser && (
+                        <CCButton
+                          variant={user.role === 'admin' ? 'warning' : 'primary'}
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleAdminMutation.mutate({ 
+                              userId: user.id, 
+                              currentRole: user.role 
+                            });
+                          }}
+                          loading={toggleAdminMutation.isPending}
+                        >
+                          {user.role === 'admin' ? 'Remove Admin' : 'Make Admin'}
+                        </CCButton>
+                      )}
+                      {isCurrentUser && (
+                        <CCBadge variant="primary" size="sm">You</CCBadge>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
               </CCCard>
             );
           })}
