@@ -69,9 +69,26 @@ export default function Portfolio() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    const isVideo = file.type.startsWith('video/');
     setUploading(true);
     const { file_url } = await base44.integrations.Core.UploadFile({ file });
-    setNewItem({ ...newItem, media_url: file_url, thumbnail_url: file_url });
+    if (isVideo) {
+      setVideoFile(file_url);
+      setNewItem({ ...newItem, media_url: file_url, media_type: 'video' });
+    } else {
+      setNewItem({ ...newItem, media_url: file_url, thumbnail_url: file_url, media_type: 'image' });
+    }
+    setUploading(false);
+  };
+
+  const handleThumbnailUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    setThumbnailFile(file_url);
+    setNewItem({ ...newItem, thumbnail_url: file_url });
     setUploading(false);
   };
 
@@ -444,7 +461,35 @@ export default function Portfolio() {
                 disabled={uploading}
               />
             </label>
+            {newItem.media_url && (
+              <div className="mt-3 aspect-video rounded-lg overflow-hidden bg-[#151D2B]">
+                {newItem.media_type === 'video' ? (
+                  <video src={newItem.media_url} className="w-full h-full object-cover" controls />
+                ) : (
+                  <img src={newItem.media_url} alt="Preview" className="w-full h-full object-cover" />
+                )}
+              </div>
+            )}
           </div>
+
+          {newItem.media_type === 'video' && (
+            <div>
+              <label className="block text-sm font-medium text-[#E8EEF9] mb-2">
+                Video Thumbnail (Optional)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleThumbnailUpload}
+                className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2 text-[#E8EEF9]"
+              />
+              {newItem.thumbnail_url && (
+                <div className="mt-3 h-24 rounded-lg overflow-hidden bg-[#151D2B]">
+                  <img src={newItem.thumbnail_url} alt="Thumbnail" className="w-full h-full object-cover" />
+                </div>
+              )}
+            </div>
+          )}
 
           <CCInput
             label="Title"
