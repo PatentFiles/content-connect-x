@@ -25,6 +25,117 @@ import CCModal from '@/components/ui-custom/CCModal';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 
+// User Management Component
+function UserManagement({ currentUser }) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const queryClient = useQueryClient();
+
+  const { data: allUsers = [], isLoading: usersLoading } = useQuery({
+    queryKey: ['allUsers'],
+    queryFn: () => base44.entities.User.list('-created_date'),
+  });
+
+  const { data: allProfiles = [] } = useQuery({
+    queryKey: ['allProfilesForUsers'],
+    queryFn: () => base44.entities.UserProfile.list(),
+  });
+
+  const toggleAdminMutation = useMutation({
+    mutationFn: ({ userId, currentRole }) => {
+      const newRole = currentRole === 'admin' ? 'user' : 'admin';
+      return base44.entities.User.update(userId, { role: newRole });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['allUsers']);
+    },
+  });
+
+  const getProfileForUser = (email) => allProfiles.find(p => p.user_id === email);
+
+  const filteredUsers = allUsers.filter(u => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    const profile = getProfileForUser(u.email);
+    return u.email?.toLowerCase().includes(q) ||
+           u.full_name?.toLowerCase().includes(q) ||
+           profile?.display_name?.toLowerCase().includes(q);
+  });
+
+  return (
+    <div className="space-y-4">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7A94]" />
+        <input
+          type="text"
+          placeholder="Search users by email or name..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full bg-[#121824] border border-[#263248] rounded-lg pl-10 pr-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+        />
+      </div>
+
+      {usersLoading ? (
+        <div className="text-center py-8 text-[#9AA6BC]">Loading users...</div>
+      ) : filteredUsers.length === 0 ? (
+        <CCEmpty
+          icon={Users}
+          title="No users found"
+          description={searchQuery ? 'Try different search terms.' : 'No users registered yet.'}
+        />
+      ) : (
+        <div className="space-y-3">
+          {filteredUsers.map((user) => {
+            const profile = getProfileForUser(user.email);
+            const isCurrentUser = user.email === currentUser.email;
+            
+            return (
+              <CCCard key={user.id} padding="md">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <CCAvatar src={profile?.avatar_url} size="md" />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-[#E8EEF9]">
+                          {profile?.display_name || user.full_name || 'No name'}
+                        </p>
+                        {user.role === 'admin' && (
+                          <CCBadge variant="warning" size="sm">Admin</CCBadge>
+                        )}
+                      </div>
+                      <p className="text-sm text-[#6B7A94]">{user.email}</p>
+                      {profile?.role_type && (
+                        <CCBadge variant="accent" size="sm" className="mt-1">
+                          {profile.role_type}
+                        </CCBadge>
+                      )}
+                    </div>
+                  </div>
+                  {!isCurrentUser && (
+                    <CCButton
+                      variant={user.role === 'admin' ? 'warning' : 'primary'}
+                      size="sm"
+                      onClick={() => toggleAdminMutation.mutate({ 
+                        userId: user.id, 
+                        currentRole: user.role 
+                      })}
+                      loading={toggleAdminMutation.isPending}
+                    >
+                      {user.role === 'admin' ? 'Remove Admin' : 'Make Admin'}
+                    </CCButton>
+                  )}
+                  {isCurrentUser && (
+                    <CCBadge variant="primary" size="sm">You</CCBadge>
+                  )}
+                </div>
+              </CCCard>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('verifications');
   const [selectedVerification, setSelectedVerification] = useState(null);
@@ -65,6 +176,14 @@ export default function AdminDashboard() {
     queryFn: () => base44.entities.Report.filter({ status: 'pending' }),
     enabled: isAdmin,
   });
+
+  // Fetch total users count
+  const { data: allUsers = [] } = useQuery({
+    queryKey: ['totalUsers'],
+    queryFn: () => base44.entities.User.list(),
+    enabled: isAdmin,
+  });
+  const totalUsersCount = allUsers.length;
 
   // Fetch user profiles for verifications
   const { data: userProfiles = [] } = useQuery({
@@ -202,7 +321,7 @@ export default function AdminDashboard() {
                 <Users className="w-5 h-5 text-[#22C55E]" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#E8EEF9]">--</p>
+                <p className="text-2xl font-bold text-[#E8EEF9]">{totalUsersCount}</p>
                 <p className="text-xs text-[#6B7A94]">Total Users</p>
               </div>
             </div>
@@ -357,16 +476,7 @@ export default function AdminDashboard() {
 
         {/* Users Tab */}
         <CCTabsContent value="users" activeTab={activeTab}>
-          <CCCard padding="lg">
-            <CCInput
-              placeholder="Search users by email or name..."
-              icon={Search}
-              className="mb-4"
-            />
-            <p className="text-center text-[#6B7A94] py-8">
-              User management features coming soon
-            </p>
-          </CCCard>
+          <UserManagement currentUser={user} />
         </CCTabsContent>
       </div>
 
