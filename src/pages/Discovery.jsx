@@ -90,6 +90,19 @@ export default function Discovery() {
     enabled: !!user && isVerified && isSubscribed,
   });
 
+  // Fetch representation data for creators
+  const { data: allAgentReps = [] } = useQuery({
+    queryKey: ['allAgentReps'],
+    queryFn: () => base44.entities.AgentRepresentation.filter({ status: 'ACTIVE' }),
+    enabled: !!user && isVerified && isSubscribed,
+  });
+
+  const { data: allStudioRosters = [] } = useQuery({
+    queryKey: ['allStudioRosters'],
+    queryFn: () => base44.entities.StudioRoster.filter({ status: 'ACTIVE' }),
+    enabled: !!user && isVerified && isSubscribed,
+  });
+
   // Apply filters client-side
   const profiles = React.useMemo(() => {
     if (!allProfiles || allProfiles.length === 0) return [];
@@ -317,6 +330,10 @@ export default function Discovery() {
               const details = creatorDetails.find(d => d.user_id === profile.user_id);
               const verification = allVerifications.find(v => v.user_id === profile.user_id);
               const isVerified = verification?.status === 'approved';
+              const isRepresented = profile.role_type === 'creator' && (
+                allAgentReps.some(r => r.creator_user_id === profile.user_id) ||
+                allStudioRosters.some(r => r.creator_user_id === profile.user_id)
+              );
               const myLocation = myProfile?.[0]?.base_location;
               const distance = myLocation?.lat && myLocation?.lng && profile.base_location?.lat && profile.base_location?.lng
                 ? calculateDistance(myLocation.lat, myLocation.lng, profile.base_location.lat, profile.base_location.lng)
@@ -327,6 +344,7 @@ export default function Discovery() {
                   profile={{...profile, verified: isVerified}}
                   creatorDetails={details}
                   distance={distance}
+                  isRepresented={isRepresented}
                   onFavorite={(p) => console.log('Favorite:', p)}
                   onMessage={(p) => console.log('Message:', p)}
                 />
@@ -351,12 +369,17 @@ export default function Discovery() {
               const details = creatorDetails.find(d => d.user_id === profile.user_id);
               const verification = allVerifications.find(v => v.user_id === profile.user_id);
               const isVerified = verification?.status === 'approved';
+              const isRepresented = profile.role_type === 'creator' && (
+                allAgentReps.some(r => r.creator_user_id === profile.user_id) ||
+                allStudioRosters.some(r => r.creator_user_id === profile.user_id)
+              );
               return (
                 <div key={profile.id} className="w-72 flex-shrink-0">
                   <ProfileCard
                     key={profile.id}
                     profile={{...profile, verified: isVerified}}
                     creatorDetails={details}
+                    isRepresented={isRepresented}
                     showActions={false}
                     compact
                   />
