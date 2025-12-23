@@ -46,7 +46,7 @@ const fetishScenes = ['BDSM', 'Bondage', 'Domination', 'Submission', 'Cuckold', 
 const kinkEdgeScenes = ['Impact Play', 'Wax Play', 'Sensory Deprivation', 'Restraints', 'Power Exchange'];
 const acts = ['Creampie', 'Facial', 'CIM (cum in mouth)', 'Swallowing', 'Anal', 'DP (double penetration)', 'DVP (double vaginal penetration)', 'DAP (double anal penetration)'];
 
-export default function CreateDealRoom() {
+export default function CreateCollaboration() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   
@@ -213,7 +213,7 @@ export default function CreateDealRoom() {
       return base44.entities.DealRoom.create(payload);
     },
     onSuccess: (result) => {
-      navigate(createPageUrl(isEditing ? 'DealRooms' : `ViewDealRoom?id=${result.id}`));
+      navigate(createPageUrl(isEditing ? 'Collaborations' : `ViewCollaboration?id=${result.id}`));
     },
   });
 

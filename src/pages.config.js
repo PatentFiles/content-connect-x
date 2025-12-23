@@ -1,7 +1,5 @@
 import AdminDashboard from './pages/AdminDashboard';
 import Contracts from './pages/Contracts';
-import CreateDealRoom from './pages/CreateDealRoom';
-import DealRooms from './pages/DealRooms';
 import Discovery from './pages/Discovery';
 import FAQ from './pages/FAQ';
 import HowItWorks from './pages/HowItWorks';
@@ -15,14 +13,14 @@ import Settings from './pages/Settings';
 import Shortlists from './pages/Shortlists';
 import Terms from './pages/Terms';
 import Verification from './pages/Verification';
+import CreateCollaboration from './pages/CreateCollaboration';
+import Collaborations from './pages/Collaborations';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AdminDashboard": AdminDashboard,
     "Contracts": Contracts,
-    "CreateDealRoom": CreateDealRoom,
-    "DealRooms": DealRooms,
     "Discovery": Discovery,
     "FAQ": FAQ,
     "HowItWorks": HowItWorks,
@@ -36,6 +34,8 @@ export const PAGES = {
     "Shortlists": Shortlists,
     "Terms": Terms,
     "Verification": Verification,
+    "CreateCollaboration": CreateCollaboration,
+    "Collaborations": Collaborations,
 }
 
 export const pagesConfig = {

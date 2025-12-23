@@ -38,7 +38,7 @@ const statusConfig = {
   cancelled: { label: 'Cancelled', variant: 'danger', icon: null },
 };
 
-export default function DealRooms() {
+export default function Collaborations() {
   const [filter, setFilter] = useState('all');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [collaborationToDelete, setCollaborationToDelete] = useState(null);
@@ -155,7 +155,7 @@ export default function DealRooms() {
                 <p className="text-xs text-[#6B7A94]">Manage your collaborations</p>
               </div>
             </div>
-            <Link to={createPageUrl('CreateDealRoom')}>
+            <Link to={createPageUrl('CreateCollaboration')}>
               <CCButton variant="primary" icon={Plus}>
                 New Collaboration
               </CCButton>
@@ -203,7 +203,7 @@ export default function DealRooms() {
             icon={Briefcase}
             title="No collaborations yet"
             description="Create a collaboration to start working with other verified members."
-            action={() => window.location.href = createPageUrl('CreateDealRoom')}
+            action={() => window.location.href = createPageUrl('CreateCollaboration')}
             actionLabel="Create Collaboration"
           />
         ) : (
@@ -276,7 +276,7 @@ export default function DealRooms() {
 
                       <div className="flex items-center justify-between pt-3 border-t border-[#263248]">
                         <div className="flex gap-2">
-                          <Link to={createPageUrl(`CreateDealRoom?id=${room.id}`)}>
+                          <Link to={createPageUrl(`CreateCollaboration?id=${room.id}`)}>
                             <CCButton variant="ghost" size="sm" icon={Edit}>
                               Edit
                             </CCButton>
