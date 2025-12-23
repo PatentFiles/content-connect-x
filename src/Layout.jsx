@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
+import { createPageUrl } from '@/utils';
 import NavBar from '@/components/layout/NavBar';
 import BottomNav from '@/components/layout/BottomNav';
 import Sidebar from '@/components/layout/Sidebar';
@@ -68,6 +69,17 @@ export default function Layout({ children, currentPageName }) {
   const profile = profiles[0];
   const isVerified = verifications[0]?.status === 'approved';
   const isAuthenticated = !!user;
+
+  // Handle redirect after login
+  useEffect(() => {
+    if (isAuthenticated && !userLoading) {
+      const redirectPath = sessionStorage.getItem('redirectAfterLogin');
+      if (redirectPath && window.location.pathname !== redirectPath) {
+        sessionStorage.removeItem('redirectAfterLogin');
+        window.location.href = redirectPath;
+      }
+    }
+  }, [isAuthenticated, userLoading]);
 
   const handleLogout = async () => {
     await base44.auth.logout();
