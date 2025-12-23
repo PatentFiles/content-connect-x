@@ -75,7 +75,7 @@ export default function Profile() {
   const { data: creatorDetails = [] } = useQuery({
     queryKey: ['myCreatorDetails', user?.email],
     queryFn: () => base44.entities.CreatorDetails.filter({ user_id: user?.email }),
-    enabled: !!user?.email && profile?.role_type === 'creator',
+    enabled: !!user?.email,
   });
   const details = creatorDetails[0];
 
@@ -135,16 +135,14 @@ export default function Profile() {
     };
     updateProfileMutation.mutate(profileData);
 
-    if (profile?.role_type === 'creator') {
-      const creatorData = {
-        gender_identity: editData.gender_identity || details?.gender_identity,
-        orientation_category: editData.orientation_category || details?.orientation_category,
-        looking_for_genders: editData.looking_for_genders || details?.looking_for_genders,
-        collab_types: editData.collab_types || details?.collab_types,
-        tags: editData.tags || details?.tags,
-      };
-      updateDetailsMutation.mutate(creatorData);
-    }
+    const creatorData = {
+      gender_identity: editData.gender_identity || details?.gender_identity,
+      orientation_category: editData.orientation_category || details?.orientation_category,
+      looking_for_genders: editData.looking_for_genders || details?.looking_for_genders,
+      collab_types: editData.collab_types || details?.collab_types,
+      tags: editData.tags || details?.tags,
+    };
+    updateDetailsMutation.mutate(creatorData);
   };
 
   if (userLoading || profileLoading) {
@@ -281,57 +279,53 @@ export default function Profile() {
                         />
                       </div>
                     </div>
-                    {profile?.role_type === 'creator' && (
-                      <>
-                        <div className="grid grid-cols-2 gap-3">
-                          <CCSelect
-                            label="Gender"
-                            options={genderOptions}
-                            value={editData.gender_identity || ''}
-                            onChange={(e) => setEditData({...editData, gender_identity: e.target.value})}
-                            placeholder="Select gender"
-                          />
-                          <CCSelect
-                            label="Sexuality"
-                            options={orientationOptions}
-                            value={editData.orientation_category || ''}
-                            onChange={(e) => setEditData({...editData, orientation_category: e.target.value})}
-                            placeholder="Select sexuality"
-                          />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Collaboration Types</label>
-                          <div className="flex flex-wrap gap-2">
-                            {collabTypes.map(type => (
-                              <CCButton
-                                key={type.value}
-                                variant={editData.collab_types?.includes(type.value) ? 'primary' : 'outline'}
-                                size="sm"
-                                onClick={() => {
-                                  const current = editData.collab_types || [];
-                                  const updated = current.includes(type.value)
-                                    ? current.filter(v => v !== type.value)
-                                    : [...current, type.value];
-                                  setEditData({...editData, collab_types: updated});
-                                }}
-                              >
-                                {type.label}
-                              </CCButton>
-                            ))}
-                          </div>
-                        </div>
-                        <div>
-                          <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Personality & Specialties</label>
-                          <input
-                            type="text"
-                            value={editData.tags?.join(', ') || ''}
-                            onChange={(e) => setEditData({...editData, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean)})}
-                            className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                            placeholder="e.g., Kinky, Fetish-friendly, BDSM (comma separated)"
-                          />
-                        </div>
-                      </>
-                    )}
+                    <div className="grid grid-cols-2 gap-3">
+                      <CCSelect
+                        label="Gender"
+                        options={genderOptions}
+                        value={editData.gender_identity || ''}
+                        onChange={(e) => setEditData({...editData, gender_identity: e.target.value})}
+                        placeholder="Select gender"
+                      />
+                      <CCSelect
+                        label="Sexuality"
+                        options={orientationOptions}
+                        value={editData.orientation_category || ''}
+                        onChange={(e) => setEditData({...editData, orientation_category: e.target.value})}
+                        placeholder="Select sexuality"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Collaboration Types</label>
+                      <div className="flex flex-wrap gap-2">
+                        {collabTypes.map(type => (
+                          <CCButton
+                            key={type.value}
+                            variant={editData.collab_types?.includes(type.value) ? 'primary' : 'outline'}
+                            size="sm"
+                            onClick={() => {
+                              const current = editData.collab_types || [];
+                              const updated = current.includes(type.value)
+                                ? current.filter(v => v !== type.value)
+                                : [...current, type.value];
+                              setEditData({...editData, collab_types: updated});
+                            }}
+                          >
+                            {type.label}
+                          </CCButton>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Personality & Specialties</label>
+                      <input
+                        type="text"
+                        value={editData.tags?.join(', ') || ''}
+                        onChange={(e) => setEditData({...editData, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean)})}
+                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                        placeholder="e.g., Kinky, Fetish-friendly, BDSM (comma separated)"
+                      />
+                    </div>
                     <LocationSelector
                       value={editData.base_location || {}}
                       onChange={(location) => setEditData({...editData, base_location: location})}
