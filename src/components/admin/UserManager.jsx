@@ -115,7 +115,9 @@ export default function UserManager({ currentUser }) {
                         </div>
                         <p className="text-sm text-[#6B7A94]">{profile.user_id}</p>
                         <div className="flex flex-wrap gap-2 mt-2">
-                          <CCBadge variant="accent" size="sm">{profile.role_type}</CCBadge>
+                          {profile.role_type && profile.role_type !== 'admin' && (
+                            <CCBadge variant="accent" size="sm">{profile.role_type}</CCBadge>
+                          )}
                           <CCBadge 
                             variant={verification?.status === 'approved' ? 'success' : 'warning'} 
                             size="sm"
