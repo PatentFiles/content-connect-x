@@ -2,11 +2,11 @@ import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
-import CreatorDashboard from '@/components/dashboards/CreatorDashboard';
-import AgentDashboard from '@/components/dashboards/AgentDashboard';
-import StudioDashboard from '@/components/dashboards/StudioDashboard';
-import PhotographerDashboard from '@/components/dashboards/PhotographerDashboard';
-import VideographerDashboard from '@/components/dashboards/VideographerDashboard';
+import CreatorDashboard from '@/components/dashboards/CreatorDashboard.js';
+import AgentDashboard from '@/components/dashboards/AgentDashboard.js';
+import StudioDashboard from '@/components/dashboards/StudioDashboard.js';
+import PhotographerDashboard from '@/components/dashboards/PhotographerDashboard.js';
+import VideographerDashboard from '@/components/dashboards/VideographerDashboard.js';
 
 export default function Dashboard() {
   const { data: user, isLoading: userLoading } = useQuery({
