@@ -22,6 +22,7 @@ import Shortlists from './pages/Shortlists';
 import Terms from './pages/Terms';
 import Verification from './pages/Verification';
 import ViewProfile from './pages/ViewProfile';
+import CompliancePortal from './pages/CompliancePortal';
 import __Layout from './Layout.jsx';
 
 
@@ -50,6 +51,7 @@ export const PAGES = {
     "Terms": Terms,
     "Verification": Verification,
     "ViewProfile": ViewProfile,
+    "CompliancePortal": CompliancePortal,
 }
 
 export const pagesConfig = {

@@ -19,6 +19,7 @@ import ConfirmationManager from '@/components/collaboration/ConfirmationManager'
 import RolePermissions from '@/components/collaboration/RolePermissions';
 import ExportManager from '@/components/collaboration/ExportManager';
 import RiskScoringDisplay from '@/components/admin/RiskScoringEngine';
+import InsuranceManager from '@/components/admin/InsuranceManager';
 
 export default function CollaborationDetail() {
   const [searchParams] = useSearchParams();
@@ -288,7 +289,10 @@ export default function CollaborationDetail() {
                   />
                 </CCCard>
                 {isAdmin && (
-                  <RiskScoringDisplay collaborationId={collaboration.id} />
+                  <>
+                    <RiskScoringDisplay collaborationId={collaboration.id} />
+                    <InsuranceManager collaborationId={collaboration.id} currentUser={user} />
+                  </>
                 )}
               </>
             )}

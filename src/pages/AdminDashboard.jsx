@@ -30,6 +30,9 @@ import UserModerationPanel from '@/components/admin/UserModerationPanel';
 import CollaborationModerationPanel from '@/components/admin/CollaborationModerationPanel';
 import ArbitrationCaseManager from '@/components/admin/ArbitrationCaseManager';
 import ComplianceDashboard from '@/components/admin/ComplianceDashboard';
+import JurisdictionManager from '@/components/admin/JurisdictionManager';
+import InsuranceManager from '@/components/admin/InsuranceManager';
+import DisputeSimulator from '@/components/admin/DisputeSimulator';
 
 // User Management Component
 function UserManagement({ currentUser }) {
@@ -383,6 +386,8 @@ export default function AdminDashboard() {
     { value: 'collaborations', label: 'Collaborations', icon: AlertTriangle },
     { value: 'arbitration', label: 'Arbitration', icon: Shield },
     { value: 'compliance', label: 'Compliance', icon: CheckCircle },
+    { value: 'jurisdiction', label: 'Jurisdictions', icon: Shield },
+    { value: 'disputes', label: 'Dispute Testing', icon: AlertTriangle },
     { value: 'tags', label: 'Tags', icon: Tag },
     { value: 'reports', label: 'Reports', icon: AlertTriangle },
   ];
@@ -624,6 +629,16 @@ export default function AdminDashboard() {
         {/* Compliance Tab */}
         <CCTabsContent value="compliance" activeTab={activeTab}>
           <ComplianceDashboard />
+        </CCTabsContent>
+
+        {/* Jurisdiction Tab */}
+        <CCTabsContent value="jurisdiction" activeTab={activeTab}>
+          <JurisdictionManager currentAdmin={user} />
+        </CCTabsContent>
+
+        {/* Dispute Testing Tab */}
+        <CCTabsContent value="disputes" activeTab={activeTab}>
+          <DisputeSimulator currentAdmin={user} />
         </CCTabsContent>
       </div>
 
