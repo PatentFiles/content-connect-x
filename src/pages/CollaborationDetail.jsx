@@ -7,7 +7,7 @@ import { ArrowLeft, Users, Calendar, FileText, CheckSquare, Activity } from 'luc
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
-import CCTabs from '@/components/ui-custom/CCTabs';
+import { CCTabs } from '@/components/ui-custom/CCTabs';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import TaskManager from '@/components/collaboration/TaskManager';
 import DocumentRepository from '@/components/collaboration/DocumentRepository';
