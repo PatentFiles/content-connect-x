@@ -332,6 +332,10 @@ export default function Profile() {
                         </div>
                       </>
                     )}
+                    <LocationSelector
+                      value={editData.base_location || {}}
+                      onChange={(location) => setEditData({...editData, base_location: location})}
+                    />
                     <div>
                       <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Bio</label>
                       <textarea
@@ -345,10 +349,6 @@ export default function Profile() {
                       profile={profile}
                       details={details}
                       onSelectBio={(bio) => setEditData({...editData, bio})}
-                    />
-                    <LocationSelector
-                      value={editData.base_location || {}}
-                      onChange={(location) => setEditData({...editData, base_location: location})}
                     />
                   </>
                 ) : (
