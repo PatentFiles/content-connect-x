@@ -16,6 +16,7 @@ import Verification from './pages/Verification';
 import CreateCollaboration from './pages/CreateCollaboration';
 import Collaborations from './pages/Collaborations';
 import ViewProfile from './pages/ViewProfile';
+import Dashboard from './pages/Dashboard';
 import __Layout from './Layout.jsx';
 
 
@@ -38,6 +39,7 @@ export const PAGES = {
     "CreateCollaboration": CreateCollaboration,
     "Collaborations": Collaborations,
     "ViewProfile": ViewProfile,
+    "Dashboard": Dashboard,
 }
 
 export const pagesConfig = {
