@@ -33,12 +33,16 @@ import CCModal from '@/components/ui-custom/CCModal';
 
 const statusConfig = {
   draft: { label: 'Draft', variant: 'default', icon: FileText },
+  pending_approval: { label: 'Pending Approval', variant: 'warning', icon: Clock },
+  active: { label: 'Active', variant: 'primary', icon: CheckCircle },
   negotiating: { label: 'Negotiating', variant: 'warning', icon: Clock },
   agreed: { label: 'Agreed', variant: 'primary', icon: CheckCircle },
+  contract_pending: { label: 'Contract Pending', variant: 'warning', icon: FileText },
   contract_sent: { label: 'Contract Sent', variant: 'primary', icon: FileText },
   signed: { label: 'Signed', variant: 'success', icon: CheckCircle },
   completed: { label: 'Completed', variant: 'success', icon: CheckCircle },
   cancelled: { label: 'Cancelled', variant: 'danger', icon: null },
+  disputed: { label: 'Disputed', variant: 'danger', icon: null },
 };
 
 export default function Collaborations() {
@@ -145,15 +149,30 @@ export default function Collaborations() {
     filteredRooms = filteredRooms.filter(r => r.status === filter);
   }
 
-  // Keyword search
+  // Keyword search - enhanced with tags, participant names, and notes
   if (searchKeyword) {
     const keyword = searchKeyword.toLowerCase();
-    filteredRooms = filteredRooms.filter(r => 
-      r.collaboration_name?.toLowerCase().includes(keyword) ||
-      r.scene_type?.toLowerCase().includes(keyword) ||
-      r.acts_selected?.some(act => act.toLowerCase().includes(keyword)) ||
-      r.scene_selected?.some(scene => scene.toLowerCase().includes(keyword))
-    );
+    filteredRooms = filteredRooms.filter(r => {
+      // Search in basic fields
+      const basicMatch = 
+        r.collaboration_name?.toLowerCase().includes(keyword) ||
+        r.scene_type?.toLowerCase().includes(keyword) ||
+        r.acts_selected?.some(act => act.toLowerCase().includes(keyword)) ||
+        r.scene_selected?.some(scene => scene.toLowerCase().includes(keyword)) ||
+        r.tags?.some(tag => tag.toLowerCase().includes(keyword)) ||
+        r.internal_notes?.toLowerCase().includes(keyword);
+      
+      // Search in participant names
+      const participantProfiles = r.participant_ids?.map(id => 
+        profiles.find(p => p.user_id === id)
+      ).filter(Boolean);
+      const participantMatch = participantProfiles?.some(p => 
+        p.display_name?.toLowerCase().includes(keyword) ||
+        p.real_name?.toLowerCase().includes(keyword)
+      );
+      
+      return basicMatch || participantMatch;
+    });
   }
 
   // Date range filter
@@ -225,7 +244,7 @@ export default function Collaborations() {
 
           {/* Quick Status Filters */}
           <div className="flex gap-2 justify-center items-center overflow-x-auto pb-2 scrollbar-hide">
-            {['all', 'draft', 'negotiating', 'agreed', 'signed', 'completed'].map((status) => (
+            {['all', 'draft', 'pending_approval', 'active', 'contract_pending', 'signed', 'completed', 'disputed'].map((status) => (
               <CCButton
                 key={status}
                 variant={filter === status ? 'primary' : 'outline'}
@@ -278,9 +297,9 @@ export default function Collaborations() {
                 exit={{ opacity: 0, height: 0 }}
                 className="bg-[#121824] border border-[#263248] rounded-lg p-4 space-y-3"
               >
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs text-[#6B7A94] mb-1">Role</label>
+                    <label className="block text-xs text-[#6B7A94] mb-1">Created By Role</label>
                     <select
                       value={roleFilter}
                       onChange={(e) => setRoleFilter(e.target.value)}
@@ -295,7 +314,7 @@ export default function Collaborations() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs text-[#6B7A94] mb-1">From Date</label>
+                    <label className="block text-xs text-[#6B7A94] mb-1">Created From</label>
                     <input
                       type="date"
                       value={dateRange.start}
@@ -304,7 +323,7 @@ export default function Collaborations() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-[#6B7A94] mb-1">To Date</label>
+                    <label className="block text-xs text-[#6B7A94] mb-1">Created To</label>
                     <input
                       type="date"
                       value={dateRange.end}
@@ -375,9 +394,14 @@ export default function Collaborations() {
                         <div className="flex items-center gap-3 flex-1">
                           <CCAvatarGroup avatars={getParticipantAvatars(room)} max={3} />
                           <div className="flex-1">
-                            <p className="text-[#E8EEF9] font-medium">
-                              {room.collaboration_name || `${room.participant_ids?.length || 0} Participants`}
-                            </p>
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-[#E8EEF9] font-medium">
+                                {room.collaboration_name || `${room.participant_ids?.length || 0} Participants`}
+                              </p>
+                              {room.created_by_role === 'agent' && (
+                                <CCBadge variant="accent" size="sm">Created by Agent</CCBadge>
+                              )}
+                            </div>
                             <p className="text-sm text-[#6B7A94] capitalize">
                               {room.scene_type || 'Scene'} • {room.compensation_type?.replace('_', ' ') || 'TBD'}
                             </p>

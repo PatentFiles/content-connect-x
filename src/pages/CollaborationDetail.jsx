@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Users, Calendar, FileText, CheckSquare, Activity } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, FileText, CheckSquare, Activity, MessageSquare, AlertTriangle, Shield, Download } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
@@ -13,6 +13,11 @@ import TaskManager from '@/components/collaboration/TaskManager';
 import DocumentRepository from '@/components/collaboration/DocumentRepository';
 import CollaborationCalendar from '@/components/collaboration/CollaborationCalendar';
 import ActivityFeed from '@/components/collaboration/ActivityFeed';
+import CollaborationMessaging from '@/components/collaboration/CollaborationMessaging';
+import DisputeManager from '@/components/collaboration/DisputeManager';
+import ConfirmationManager from '@/components/collaboration/ConfirmationManager';
+import RolePermissions from '@/components/collaboration/RolePermissions';
+import ExportManager from '@/components/collaboration/ExportManager';
 
 export default function CollaborationDetail() {
   const [searchParams] = useSearchParams();
@@ -45,6 +50,16 @@ export default function CollaborationDetail() {
     enabled: !!dealRoom?.participant_ids,
   });
 
+  const { data: participantRoles = [] } = useQuery({
+    queryKey: ['participantRoles', dealRoomId],
+    queryFn: () => base44.entities.CollaborationParticipantRole.filter({
+      collaboration_id: dealRoomId
+    }),
+    enabled: !!dealRoomId,
+  });
+
+  const userRole = participantRoles.find(r => r.user_id === user?.email)?.role || 'Viewer';
+
   if (userLoading || dealRoomLoading) {
     return <CCLoadingScreen message="Loading collaboration..." />;
   }
@@ -66,12 +81,16 @@ export default function CollaborationDetail() {
 
   const statusConfig = {
     draft: { label: 'Draft', variant: 'default' },
+    pending_approval: { label: 'Pending Approval', variant: 'warning' },
+    active: { label: 'Active', variant: 'primary' },
     negotiating: { label: 'Negotiating', variant: 'warning' },
     agreed: { label: 'Agreed', variant: 'success' },
+    contract_pending: { label: 'Contract Pending', variant: 'warning' },
     contract_sent: { label: 'Contract Sent', variant: 'accent' },
     signed: { label: 'Signed', variant: 'success' },
     completed: { label: 'Completed', variant: 'primary' },
     cancelled: { label: 'Cancelled', variant: 'danger' },
+    disputed: { label: 'Disputed', variant: 'danger' },
   };
 
   const status = statusConfig[dealRoom.status] || statusConfig.draft;
@@ -89,11 +108,17 @@ export default function CollaborationDetail() {
           
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl font-bold text-[#E8EEF9] mb-2">
-                {dealRoom.collaboration_name || 'Collaboration'}
-              </h1>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 mb-2">
+                <h1 className="text-2xl font-bold text-[#E8EEF9]">
+                  {dealRoom.collaboration_name || 'Collaboration'}
+                </h1>
+                <CCBadge variant="outline" icon={Shield}>{userRole}</CCBadge>
+              </div>
+              <div className="flex items-center gap-3 flex-wrap">
                 <CCBadge variant={status.variant}>{status.label}</CCBadge>
+                {dealRoom.created_by_role === 'agent' && (
+                  <CCBadge variant="accent">Created by Agent</CCBadge>
+                )}
                 <div className="flex items-center gap-1 text-sm text-[#9AA6BC]">
                   <Users className="w-4 h-4" />
                   <span>{dealRoom.participant_ids?.length || 0} participants</span>
@@ -164,6 +189,28 @@ export default function CollaborationDetail() {
                       <Calendar className="w-4 h-4" />
                       Calendar
                     </button>
+                    <button
+                      onClick={() => setActiveTab('messages')}
+                      className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                        activeTab === 'messages'
+                          ? 'border-[#4F8CFF] text-[#E8EEF9]'
+                          : 'border-transparent text-[#9AA6BC] hover:text-[#E8EEF9]'
+                      }`}
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      Messages
+                    </button>
+                    <button
+                      onClick={() => setActiveTab('roles')}
+                      className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                        activeTab === 'roles'
+                          ? 'border-[#4F8CFF] text-[#E8EEF9]'
+                          : 'border-transparent text-[#9AA6BC] hover:text-[#E8EEF9]'
+                      }`}
+                    >
+                      <Shield className="w-4 h-4" />
+                      Roles
+                    </button>
                   </div>
                 </div>
 
@@ -177,6 +224,20 @@ export default function CollaborationDetail() {
                   {activeTab === 'calendar' && (
                     <CollaborationCalendar dealRoomId={dealRoom.id} participants={dealRoom.participant_ids} />
                   )}
+                  {activeTab === 'messages' && (
+                    <CollaborationMessaging 
+                      collaborationId={dealRoom.id} 
+                      currentUser={user}
+                      userRole={userRole}
+                    />
+                  )}
+                  {activeTab === 'roles' && (
+                    <RolePermissions 
+                      collaborationId={dealRoom.id}
+                      currentUser={user}
+                      currentUserRole={userRole}
+                    />
+                  )}
                 </div>
               </CCTabs>
             </CCCard>
@@ -187,6 +248,36 @@ export default function CollaborationDetail() {
             <CCCard padding="lg">
               <ActivityFeed dealRoomId={dealRoom.id} />
             </CCCard>
+
+            {(userRole === 'Admin' || userRole === 'Member') && (
+              <>
+                <CCCard padding="lg">
+                  <ConfirmationManager 
+                    collaborationId={dealRoom.id}
+                    currentUser={user}
+                    userRole={userRole}
+                    collaborationStatus={dealRoom.status}
+                  />
+                </CCCard>
+
+                <CCCard padding="lg">
+                  <DisputeManager 
+                    collaborationId={dealRoom.id}
+                    currentUser={user}
+                    userRole={userRole}
+                  />
+                </CCCard>
+              </>
+            )}
+
+            {userRole === 'Admin' && (
+              <CCCard padding="lg">
+                <ExportManager 
+                  collaborationId={dealRoom.id}
+                  collaborationName={dealRoom.collaboration_name}
+                />
+              </CCCard>
+            )}
           </div>
         </div>
       </div>
