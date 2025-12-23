@@ -476,6 +476,162 @@ export default function Profile() {
               </div>
             </CCCard>
 
+            {/* Creator Sections - VIEW MODE */}
+            {profile?.role_type === 'creator' && !isEditing && (
+              <>
+                {/* Scene Pairings */}
+                {details?.scene_pairings && details.scene_pairings.length > 0 && (
+                  <CCCard padding="lg">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Heart className="w-5 h-5 text-[#FF2DAA]" />
+                      <h3 className="text-lg font-semibold text-[#E8EEF9]">Scene Pairings</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {details.scene_pairings.map(sp => (
+                        <CCBadge key={sp} variant="accent">{sp.replace(/_/g, ' ')}</CCBadge>
+                      ))}
+                    </div>
+                  </CCCard>
+                )}
+
+                {/* Compensation Preferences */}
+                {details?.compensation_preferences && details.compensation_preferences.length > 0 && (
+                  <CCCard padding="lg">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Briefcase className="w-5 h-5 text-[#4F8CFF]" />
+                      <h3 className="text-lg font-semibold text-[#E8EEF9]">Compensation Preferences</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {details.compensation_preferences.map(cp => (
+                        <CCBadge key={cp} variant={cp === 'paid' ? 'success' : cp === 'trade' ? 'warning' : 'default'}>
+                          {cp}
+                        </CCBadge>
+                      ))}
+                    </div>
+                  </CCCard>
+                )}
+
+                {/* Standard Acts */}
+                {details?.standard_acts && details.standard_acts.length > 0 && (
+                  <CCCard padding="lg">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Activity className="w-5 h-5 text-[#4F8CFF]" />
+                      <h3 className="text-lg font-semibold text-[#E8EEF9]">Standard Acts</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {details.standard_acts.map(sa => (
+                        <CCBadge key={sa} variant="primary">{sa.replace(/_/g, ' ')}</CCBadge>
+                      ))}
+                    </div>
+                  </CCCard>
+                )}
+
+                {/* Fetish Acts */}
+                {details?.fetish_acts && details.fetish_acts.length > 0 && (
+                  <CCCard padding="lg">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Activity className="w-5 h-5 text-[#FF2DAA]" />
+                      <h3 className="text-lg font-semibold text-[#E8EEF9]">Fetish Acts</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {details.fetish_acts.map(fa => (
+                        <CCBadge key={fa} variant="accent">{fa.replace(/_/g, ' ')}</CCBadge>
+                      ))}
+                    </div>
+                  </CCCard>
+                )}
+
+                {/* Kink / Edge Acts */}
+                {details?.kink_edge_acts && details.kink_edge_acts.length > 0 && (
+                  <CCCard padding="lg">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Activity className="w-5 h-5 text-[#9333EA]" />
+                      <h3 className="text-lg font-semibold text-[#E8EEF9]">Kink / Edge Acts</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {details.kink_edge_acts.map(ke => (
+                        <CCBadge key={ke} variant="default">{ke.replace(/_/g, ' ')}</CCBadge>
+                      ))}
+                    </div>
+                  </CCCard>
+                )}
+
+                {/* Performance Positioning */}
+                {details?.performance_positioning && details.performance_positioning.length > 0 && (
+                  <CCCard padding="lg">
+                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Performance Positioning</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {details.performance_positioning.map(pp => (
+                        <CCBadge key={pp} variant="primary">{pp}</CCBadge>
+                      ))}
+                    </div>
+                  </CCCard>
+                )}
+
+                {/* Physical Details */}
+                {details?.physical_details && Object.keys(details.physical_details).length > 0 && (
+                  <CCCard padding="lg">
+                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Physical Details</h3>
+                    <div className="space-y-2">
+                      {details.physical_details.breast_size && (
+                        <p className="text-[#E8EEF9]">Breast Size: {details.physical_details.breast_size}</p>
+                      )}
+                      {details.physical_details.measurements && (
+                        <p className="text-[#E8EEF9]">Measurements: {details.physical_details.measurements}</p>
+                      )}
+                      {details.physical_details.endowment_size && (
+                        <p className="text-[#E8EEF9]">Endowment: {details.physical_details.endowment_size}"</p>
+                      )}
+                    </div>
+                  </CCCard>
+                )}
+
+                {/* Availability & Travel */}
+                {details?.availability_type && (
+                  <CCCard padding="lg">
+                    <div className="flex items-center gap-2 mb-4">
+                      <MapPinned className="w-5 h-5 text-[#4F8CFF]" />
+                      <h3 className="text-lg font-semibold text-[#E8EEF9]">Availability & Travel</h3>
+                    </div>
+                    <p className="text-[#E8EEF9] mb-2">
+                      {details.availability_type.replace('_', ' ')}
+                    </p>
+                    {details.travel_regions && details.travel_regions.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {details.travel_regions.map(tr => (
+                          <CCBadge key={tr}>{tr}</CCBadge>
+                        ))}
+                      </div>
+                    )}
+                  </CCCard>
+                )}
+
+                {/* Health & Testing */}
+                {details?.health_testing?.testing_status && (
+                  <CCCard padding="lg">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Shield className="w-5 h-5 text-[#22C55E]" />
+                      <h3 className="text-lg font-semibold text-[#E8EEF9]">Health & Testing</h3>
+                      <CCBadge variant="warning" size="sm">Private by Default</CCBadge>
+                    </div>
+                    <div className="space-y-2">
+                      <p className="text-[#E8EEF9]">Status: {details.health_testing.testing_status}</p>
+                      {details.health_testing.last_test_date && (
+                        <p className="text-[#E8EEF9]">Last Test: {new Date(details.health_testing.last_test_date).toLocaleDateString()}</p>
+                      )}
+                      <p className="text-[#6B7A94] text-sm">Visibility: {details.health_testing.testing_visibility?.replace('_', ' ') || 'private'}</p>
+                    </div>
+                  </CCCard>
+                )}
+              </>
+            )}
+
+            {/* Creator Sections - EDIT MODE */}
+            {profile?.role_type === 'creator' && isEditing && (
+              <>
+              </div>
+            </CCCard>
+
             {/* Creator Sections */}
             {profile?.role_type === 'creator' && (
               <>
