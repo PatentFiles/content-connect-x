@@ -47,17 +47,25 @@ export default function ProfileCard({
     >
       <Link to={createPageUrl(`ViewProfile?id=${profile.user_id}`)}>
         <CCCard hover clickable padding="none" className="overflow-hidden">
-          {/* Cover Image */}
-          <div className="relative h-32 bg-gradient-to-br from-[#4F8CFF]/30 to-[#FF2DAA]/30">
-            {profile.cover_url && (
+          {/* Large Profile Image */}
+          <div className="relative h-64 bg-gradient-to-br from-[#4F8CFF]/30 to-[#FF2DAA]/30">
+            {profile.avatar_url ? (
               <img
-                src={profile.cover_url}
-                alt=""
+                src={profile.avatar_url}
+                alt={profile.display_name}
                 className="w-full h-full object-cover"
               />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="w-24 h-24 rounded-full bg-[#263248] flex items-center justify-center">
+                  <span className="text-4xl text-[#6B7A94]">
+                    {profile.display_name?.charAt(0) || '?'}
+                  </span>
+                </div>
+              </div>
             )}
             {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#151D2B] to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F14] via-[#0B0F14]/60 to-transparent" />
             
             {/* Distance badge */}
             {distance && (
@@ -67,68 +75,52 @@ export default function ProfileCard({
                 </CCBadge>
               </div>
             )}
-          </div>
 
-          {/* Profile Info */}
-          <div className="relative px-4 pb-4">
-            {/* Avatar */}
-            <div className="absolute -top-8 left-4">
-              <CCAvatar
-                src={profile.avatar_url}
-                alt={profile.display_name}
-                size="xl"
-                verified={isVerified}
-                online={isOnline}
-              />
-            </div>
-
-            {/* Content */}
-            <div className="pt-12">
-              {/* Name & Role */}
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex-1">
-                  <h3 className="text-lg font-semibold text-[#E8EEF9] flex items-center gap-2">
-                    {profile.display_name || 'Anonymous'}
-                    {isVerified && (
-                      <ShieldCheck className="w-4 h-4 text-[#4F8CFF]" />
-                    )}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    <CCBadge variant={roleColors[profile.role_type]} size="sm">
-                      {roleLabels[profile.role_type]}
-                    </CCBadge>
-                    {creatorDetails?.orientation_category && (
-                      <CCBadge variant="outline" size="sm">
-                        {creatorDetails.orientation_category.replace('_', ' ')}
-                      </CCBadge>
-                    )}
-                    {profile.age && (
-                      <span className="text-xs text-[#9AA6BC]">
-                        {profile.age}
-                      </span>
-                    )}
-                    {creatorDetails?.gender_identity && (
-                      <span className="text-xs text-[#9AA6BC] capitalize">
-                        {creatorDetails.gender_identity.replace('_', ' ')}
-                      </span>
-                    )}
-                    {profile.response_time_hours && (
-                      <span className="text-xs text-[#6B7A94] flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        ~{profile.response_time_hours}h reply
-                      </span>
-                    )}
-                  </div>
-                </div>
+            {/* Profile Info Overlay */}
+            <div className="absolute bottom-0 left-0 right-0 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                  {profile.display_name || 'Anonymous'}
+                  {isVerified && (
+                    <ShieldCheck className="w-5 h-5 text-[#4F8CFF]" />
+                  )}
+                </h3>
+              </div>
+              
+              <div className="flex items-center gap-2 text-sm text-white/90 mb-2">
+                {profile.age && <span>{profile.age}</span>}
+                {profile.age && creatorDetails?.gender_identity && <span>•</span>}
+                {creatorDetails?.gender_identity && (
+                  <span className="capitalize">
+                    {creatorDetails.gender_identity.replace('_', ' ')}
+                  </span>
+                )}
+                {creatorDetails?.orientation_category && (
+                  <>
+                    <span>•</span>
+                    <span className="capitalize">
+                      {Array.isArray(creatorDetails.orientation_category) 
+                        ? creatorDetails.orientation_category[0]?.replace('_', ' ')
+                        : creatorDetails.orientation_category?.replace('_', ' ')}
+                    </span>
+                  </>
+                )}
               </div>
 
               {/* Location */}
               {profile.base_location && (
-                <p className="text-sm text-[#9AA6BC] flex items-center gap-1 mb-3">
+                <p className="text-sm text-white/80 flex items-center gap-1">
                   <MapPin className="w-3 h-3" />
-                  {profile.base_location.city}, {profile.base_location.country}
+                  {profile.base_location.city && profile.base_location.state 
+                    ? `${profile.base_location.city}, ${profile.base_location.state}`
+                    : profile.base_location.city}
                 </p>
               )}
+            </div>
+          </div>
+
+          {/* Profile Info */}
+          <div className="px-4 pb-4 pt-3">
 
               {/* Actions */}
               {showActions && (
