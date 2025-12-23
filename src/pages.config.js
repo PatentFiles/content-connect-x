@@ -17,6 +17,9 @@ import CreateCollaboration from './pages/CreateCollaboration';
 import Collaborations from './pages/Collaborations';
 import ViewProfile from './pages/ViewProfile';
 import Dashboard from './pages/Dashboard';
+import Representations from './pages/Representations';
+import RosterPortfolio from './pages/RosterPortfolio';
+import Portfolio from './pages/Portfolio';
 import __Layout from './Layout.jsx';
 
 
@@ -40,6 +43,9 @@ export const PAGES = {
     "Collaborations": Collaborations,
     "ViewProfile": ViewProfile,
     "Dashboard": Dashboard,
+    "Representations": Representations,
+    "RosterPortfolio": RosterPortfolio,
+    "Portfolio": Portfolio,
 }
 
 export const pagesConfig = {
