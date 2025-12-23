@@ -26,10 +26,10 @@ export default function CreatorDashboard({ user, profile }) {
   const [newTask, setNewTask] = useState('');
   const queryClient = useQueryClient();
 
-  // Fetch active deal rooms
-  const { data: dealRooms = [] } = useQuery({
-    queryKey: ['myDealRooms', user?.email],
-    queryFn: () => base44.entities.DealRoom.filter({ 
+  // Fetch active collaborations
+  const { data: collaborations = [] } = useQuery({
+    queryKey: ['myCollaborations', user?.email],
+    queryFn: () => base44.entities.Collaboration.filter({ 
       participant_ids: { $in: [user.email] },
       status: { $in: ['draft', 'negotiating', 'agreed'] }
     }),
@@ -89,7 +89,7 @@ export default function CreatorDashboard({ user, profile }) {
   const pendingContracts = contracts.filter(c => 
     c.signatories?.some(s => s.user_id === user?.email && !s.signed)
   );
-  const completedCollabs = dealRooms.filter(d => d.status === 'completed').length;
+  const completedCollabs = collaborations.filter(d => d.status === 'completed').length;
   const profileComplete = profile?.profile_complete && profile?.bio && profile?.avatar_url;
 
   return (
@@ -122,8 +122,8 @@ export default function CreatorDashboard({ user, profile }) {
                 <Briefcase className="w-5 h-5 text-[#FF2DAA]" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#E8EEF9]">{dealRooms.length}</p>
-                <p className="text-xs text-[#6B7A94]">Active Deal Rooms</p>
+                <p className="text-2xl font-bold text-[#E8EEF9]">{collaborations.length}</p>
+                <p className="text-xs text-[#6B7A94]">Active Collaborations</p>
               </div>
             </div>
           </CCCard>
@@ -160,7 +160,7 @@ export default function CreatorDashboard({ user, profile }) {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 <Link to={createPageUrl('CreateCollaboration')}>
                   <CCButton variant="primary" size="sm" fullWidth icon={Plus}>
-                    New Deal Room
+                    New Collaboration
                   </CCButton>
                 </Link>
                 <Link to={createPageUrl('Profile')}>
@@ -184,17 +184,17 @@ export default function CreatorDashboard({ user, profile }) {
                   <CCButton variant="ghost" size="sm">View All</CCButton>
                 </Link>
               </div>
-              {dealRooms.length === 0 ? (
+              {collaborations.length === 0 ? (
                 <CCEmpty
                   icon={Briefcase}
                   title="No active collaborations"
-                  description="Start by creating a new deal room"
+                  description="Start by creating a new collaboration"
                   action={() => window.location.href = createPageUrl('CreateCollaboration')}
-                  actionLabel="Create Deal Room"
+                  actionLabel="Create Collaboration"
                 />
               ) : (
                 <div className="space-y-3">
-                  {dealRooms.slice(0, 5).map(room => (
+                  {collaborations.slice(0, 5).map(room => (
                     <Link key={room.id} to={createPageUrl(`ViewCollaboration?id=${room.id}`)}>
                       <div className="flex items-center justify-between p-3 bg-[#151D2B] rounded-lg hover:bg-[#1A2438] transition-colors">
                         <div>

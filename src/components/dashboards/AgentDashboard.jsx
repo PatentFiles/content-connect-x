@@ -25,9 +25,9 @@ export default function AgentDashboard({ user, profile }) {
     enabled: !!user?.email,
   });
 
-  const { data: dealRooms = [] } = useQuery({
-    queryKey: ['agentDealRooms', user?.email],
-    queryFn: () => base44.entities.DealRoom.filter({ 
+  const { data: collaborations = [] } = useQuery({
+    queryKey: ['agentCollaborations', user?.email],
+    queryFn: () => base44.entities.Collaboration.filter({ 
       participant_ids: { $in: [user.email] }
     }),
     enabled: !!user?.email,
@@ -41,7 +41,7 @@ export default function AgentDashboard({ user, profile }) {
 
   const activeReps = representations.filter(r => r.status === 'ACTIVE');
   const pendingInvites = representations.filter(r => r.status === 'INVITED');
-  const activeDealRooms = dealRooms.filter(d => ['negotiating', 'agreed', 'contract_sent'].includes(d.status));
+  const activeCollaborations = collaborations.filter(d => ['negotiating', 'agreed', 'contract_sent'].includes(d.status));
   const pendingSignatures = contracts.filter(c => c.status === 'sent').length;
 
   return (
@@ -84,8 +84,8 @@ export default function AgentDashboard({ user, profile }) {
                 <Briefcase className="w-5 h-5 text-[#FF2DAA]" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#E8EEF9]">{activeDealRooms.length}</p>
-                <p className="text-xs text-[#6B7A94]">Active Deals</p>
+                <p className="text-2xl font-bold text-[#E8EEF9]">{activeCollaborations.length}</p>
+                <p className="text-xs text-[#6B7A94]">Active Collaborations</p>
               </div>
             </div>
           </CCCard>
@@ -144,7 +144,7 @@ export default function AgentDashboard({ user, profile }) {
                   <p className="text-xs text-[#6B7A94]">Active discussions</p>
                 </div>
                 <p className="text-xl font-bold text-[#4F8CFF]">
-                  {dealRooms.filter(d => d.status === 'negotiating').length}
+                  {collaborations.filter(d => d.status === 'negotiating').length}
                 </p>
               </div>
               <div className="flex items-center justify-between p-3 bg-[#151D2B] rounded-lg">
@@ -153,7 +153,7 @@ export default function AgentDashboard({ user, profile }) {
                   <p className="text-xs text-[#6B7A94]">Awaiting signature</p>
                 </div>
                 <p className="text-xl font-bold text-[#22C55E]">
-                  {dealRooms.filter(d => d.status === 'contract_sent').length}
+                  {collaborations.filter(d => d.status === 'contract_sent').length}
                 </p>
               </div>
             </div>

@@ -24,9 +24,9 @@ export default function StudioDashboard({ user, profile }) {
     enabled: !!user?.email,
   });
 
-  const { data: dealRooms = [] } = useQuery({
-    queryKey: ['studioDealRooms', user?.email],
-    queryFn: () => base44.entities.DealRoom.filter({ 
+  const { data: collaborations = [] } = useQuery({
+    queryKey: ['studioCollaborations', user?.email],
+    queryFn: () => base44.entities.Collaboration.filter({ 
       participant_ids: { $in: [user.email] }
     }),
     enabled: !!user?.email,
@@ -41,7 +41,7 @@ export default function StudioDashboard({ user, profile }) {
   const activeRoster = roster.filter(r => r.status === 'ACTIVE' && r.relationship_type === 'ROSTER');
   const workedWith = roster.filter(r => r.status === 'ACTIVE' && r.relationship_type === 'WORKED_WITH');
   const pendingApprovals = roster.filter(r => r.status === 'PENDING');
-  const activeDealRooms = dealRooms.filter(d => ['negotiating', 'agreed', 'contract_sent'].includes(d.status));
+  const activeCollaborations = collaborations.filter(d => ['negotiating', 'agreed', 'contract_sent'].includes(d.status));
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
@@ -83,8 +83,8 @@ export default function StudioDashboard({ user, profile }) {
                 <Briefcase className="w-5 h-5 text-[#FF2DAA]" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#E8EEF9]">{activeDealRooms.length}</p>
-                <p className="text-xs text-[#6B7A94]">Active Deals</p>
+                <p className="text-2xl font-bold text-[#E8EEF9]">{activeCollaborations.length}</p>
+                <p className="text-xs text-[#6B7A94]">Active Collaborations</p>
               </div>
             </div>
           </CCCard>
@@ -143,7 +143,7 @@ export default function StudioDashboard({ user, profile }) {
                   <p className="text-xs text-[#6B7A94]">Scheduled collaborations</p>
                 </div>
                 <p className="text-xl font-bold text-[#4F8CFF]">
-                  {dealRooms.filter(d => d.status === 'agreed').length}
+                  {collaborations.filter(d => d.status === 'agreed').length}
                 </p>
               </div>
               <div className="flex items-center justify-between p-3 bg-[#151D2B] rounded-lg">
@@ -152,13 +152,13 @@ export default function StudioDashboard({ user, profile }) {
                   <p className="text-xs text-[#6B7A94]">Active discussions</p>
                 </div>
                 <p className="text-xl font-bold text-[#F59E0B]">
-                  {dealRooms.filter(d => d.status === 'negotiating').length}
+                  {collaborations.filter(d => d.status === 'negotiating').length}
                 </p>
               </div>
             </div>
             <Link to={createPageUrl('Collaborations')} className="block mt-4">
               <CCButton variant="outline" size="sm" fullWidth>
-                View All Deal Rooms
+                View All Collaborations
               </CCButton>
             </Link>
           </CCCard>
@@ -175,7 +175,7 @@ export default function StudioDashboard({ user, profile }) {
             </Link>
             <Link to={createPageUrl('CreateCollaboration')}>
               <CCButton variant="outline" size="sm" fullWidth icon={Briefcase}>
-                Create Deal Room
+                Create Collaboration
               </CCButton>
             </Link>
             <Link to={createPageUrl('Messages')}>

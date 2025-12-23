@@ -26,9 +26,9 @@ export default function VideographerDashboard({ user, profile }) {
     enabled: !!user?.email,
   });
 
-  const { data: dealRooms = [] } = useQuery({
+  const { data: collaborations = [] } = useQuery({
     queryKey: ['videographerBookings', user?.email],
-    queryFn: () => base44.entities.DealRoom.filter({ 
+    queryFn: () => base44.entities.Collaboration.filter({ 
       participant_ids: { $in: [user.email] }
     }),
     enabled: !!user?.email,
@@ -41,8 +41,8 @@ export default function VideographerDashboard({ user, profile }) {
   });
 
   const service = serviceDetails[0];
-  const activeBookings = dealRooms.filter(d => ['agreed', 'contract_sent'].includes(d.status));
-  const editingQueue = dealRooms.filter(d => d.deliverables?.editing_included && d.status === 'signed');
+  const activeBookings = collaborations.filter(d => ['agreed', 'contract_sent'].includes(d.status));
+  const editingQueue = collaborations.filter(d => d.deliverables?.editing_included && d.status === 'signed');
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">

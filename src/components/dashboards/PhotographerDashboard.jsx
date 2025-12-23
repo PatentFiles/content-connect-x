@@ -23,9 +23,9 @@ export default function PhotographerDashboard({ user, profile }) {
     enabled: !!user?.email,
   });
 
-  const { data: dealRooms = [] } = useQuery({
+  const { data: collaborations = [] } = useQuery({
     queryKey: ['photographerBookings', user?.email],
-    queryFn: () => base44.entities.DealRoom.filter({ 
+    queryFn: () => base44.entities.Collaboration.filter({ 
       participant_ids: { $in: [user.email] }
     }),
     enabled: !!user?.email,
@@ -38,7 +38,7 @@ export default function PhotographerDashboard({ user, profile }) {
   });
 
   const service = serviceDetails[0];
-  const activeBookings = dealRooms.filter(d => ['agreed', 'contract_sent'].includes(d.status));
+  const activeBookings = collaborations.filter(d => ['agreed', 'contract_sent'].includes(d.status));
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
@@ -91,7 +91,7 @@ export default function PhotographerDashboard({ user, profile }) {
                 <Camera className="w-5 h-5 text-[#F59E0B]" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#E8EEF9]">{dealRooms.filter(d => d.status === 'negotiating').length}</p>
+                <p className="text-2xl font-bold text-[#E8EEF9]">{collaborations.filter(d => d.status === 'negotiating').length}</p>
                 <p className="text-xs text-[#6B7A94]">Requests</p>
               </div>
             </div>
