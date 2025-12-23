@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
 import { 
   ShieldCheck, 
@@ -78,11 +79,14 @@ export default function Landing() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to={createPageUrl('Signup')}>
-                <CCButton variant="primary" size="xl" iconRight={ArrowRight}>
-                  Get Started Free
-                </CCButton>
-              </Link>
+              <CCButton 
+                variant="primary" 
+                size="xl" 
+                iconRight={ArrowRight}
+                onClick={() => base44.auth.redirectToLogin(createPageUrl('Discovery'))}
+              >
+                Get Started Free
+              </CCButton>
               <Link to={createPageUrl('HowItWorks')}>
                 <CCButton variant="outline" size="xl">
                   See How It Works
@@ -217,11 +221,14 @@ export default function Landing() {
               Start your journey today. Connect with verified professionals and take your collaborations to the next level.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to={createPageUrl('Signup')}>
-                <CCButton variant="primary" size="xl" iconRight={ArrowRight}>
-                  Create Free Account
-                </CCButton>
-              </Link>
+              <CCButton 
+                variant="primary" 
+                size="xl" 
+                iconRight={ArrowRight}
+                onClick={() => base44.auth.redirectToLogin(createPageUrl('Discovery'))}
+              >
+                Create Free Account
+              </CCButton>
               <Link to={createPageUrl('Pricing')}>
                 <CCButton variant="outline" size="xl">
                   View Pricing
