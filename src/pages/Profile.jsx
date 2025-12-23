@@ -468,7 +468,7 @@ export default function Profile() {
                     {details?.gender_identity && (
                       <div>
                         <p className="text-sm text-[#6B7A94]">Gender Identity</p>
-                        <p className="text-[#E8EEF9] mt-1 capitalize">{details.gender_identity.replace('_', ' ')}</p>
+                        <p className="text-[#E8EEF9] mt-1 capitalize">{details.gender_identity.replace(/_/g, ' ')}</p>
                       </div>
                     )}
                     {details?.orientation_category && Array.isArray(details.orientation_category) && details.orientation_category.length > 0 && (
@@ -481,19 +481,23 @@ export default function Profile() {
                         </div>
                       </div>
                     )}
-                    <div>
-                      <p className="text-sm text-[#6B7A94]">Bio</p>
-                      <p className="text-[#E8EEF9] mt-1">{profile?.bio || 'No bio yet'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-[#6B7A94]">Location</p>
-                      <p className="text-[#E8EEF9] mt-1 flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
-                        {profile?.base_location?.city && profile?.base_location?.state && profile?.base_location?.country 
-                          ? `${profile.base_location.city}, ${profile.base_location.state}, ${profile.base_location.country}`
-                          : profile?.base_location?.city || 'Not set'}
-                      </p>
-                    </div>
+                    {profile?.bio && (
+                      <div>
+                        <p className="text-sm text-[#6B7A94]">Bio</p>
+                        <p className="text-[#E8EEF9] mt-1">{profile.bio}</p>
+                      </div>
+                    )}
+                    {profile?.base_location?.city && (
+                      <div>
+                        <p className="text-sm text-[#6B7A94]">Location</p>
+                        <p className="text-[#E8EEF9] mt-1 flex items-center gap-1">
+                          <MapPin className="w-4 h-4" />
+                          {profile.base_location.city && profile.base_location.state && profile.base_location.country 
+                            ? `${profile.base_location.city}, ${profile.base_location.state}, ${profile.base_location.country}`
+                            : profile.base_location.city}
+                        </p>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -983,7 +987,7 @@ export default function Profile() {
                       {details.health_testing.last_test_date && (
                         <p className="text-[#E8EEF9]">Last Test: {new Date(details.health_testing.last_test_date).toLocaleDateString()}</p>
                       )}
-                      <p className="text-[#6B7A94] text-sm">Visibility: {details.health_testing.testing_visibility?.replace('_', ' ') || 'private'}</p>
+                      <p className="text-[#6B7A94] text-sm">Visibility: {details.health_testing.testing_visibility?.replace(/_/g, ' ') || 'private'}</p>
                     </div>
                   </CCCard>
                 )}
@@ -992,151 +996,6 @@ export default function Profile() {
 
             {/* AI Bio Generator - At the very bottom */}
             {isEditing && (
-              <CCCard padding="lg">
-                <BioGenerator 
-                  profile={profile}
-                  details={details}
-                  onSelectBio={(bio) => setEditData({...editData, bio})}
-                />
-              </CCCard>
-            )}
-          </div>
-        </CCTabsContent>
-
-        <CCTabsContent value="galleries" activeTab={activeTab}>
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Public Gallery */}
-            <CCCard padding="lg">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#E8EEF9]">Public Gallery</h3>
-                <CCButton 
-                  variant="outline" 
-                  size="sm" 
-                  icon={Plus}
-                  onClick={() => document.getElementById('public-gallery-upload').click()}
-                >
-                  Add
-                </CCButton>
-                <input
-                  id="public-gallery-upload"
-                  type="file"
-                  accept="image/*,video/*"
-                  multiple
-                  className="hidden"
-                  onChange={async (e) => {
-                    const files = Array.from(e.target.files || []);
-                    const publicGallery = galleries.find(g => g.type === 'public');
-                    const items = publicGallery?.items || [];
-                    
-                    for (const file of files) {
-                      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                      items.push({
-                        id: Date.now().toString(),
-                        url: file_url,
-                        type: file.type.startsWith('video') ? 'video' : 'image',
-                        order: items.length
-                      });
-                    }
-                    
-                    if (publicGallery) {
-                      await base44.entities.Gallery.update(publicGallery.id, { items });
-                    } else {
-                      await base44.entities.Gallery.create({
-                        user_id: user.email,
-                        type: 'public',
-                        name: 'Public Gallery',
-                        items
-                      });
-                    }
-                    queryClient.invalidateQueries(['myGalleries']);
-                  }}
-                />
-              </div>
-              <p className="text-sm text-[#6B7A94] mb-4">G-rated images visible to all verified members.</p>
-              <div className="grid grid-cols-3 gap-2">
-                {galleries.find(g => g.type === 'public')?.items?.map((item, i) => (
-                  <div key={i} className="aspect-square bg-[#121824] rounded-lg overflow-hidden">
-                    <img src={item.url} alt="" className="w-full h-full object-cover" />
-                  </div>
-                )) || (
-                  <div className="col-span-3 py-8 text-center text-[#6B7A94]">
-                    <Image className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    No images yet
-                  </div>
-                )}
-              </div>
-            </CCCard>
-
-            {/* Private Gallery */}
-            <CCCard padding="lg">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#E8EEF9] flex items-center gap-2">
-                  <Lock className="w-4 h-4" /> Private Gallery
-                </h3>
-                <CCButton 
-                  variant="outline" 
-                  size="sm" 
-                  icon={Plus}
-                  onClick={() => document.getElementById('private-gallery-upload').click()}
-                >
-                  Add
-                </CCButton>
-                <input
-                  id="private-gallery-upload"
-                  type="file"
-                  accept="image/*,video/*"
-                  multiple
-                  className="hidden"
-                  onChange={async (e) => {
-                    const files = Array.from(e.target.files || []);
-                    const privateGallery = galleries.find(g => g.type === 'private');
-                    const items = privateGallery?.items || [];
-                    
-                    for (const file of files) {
-                      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                      items.push({
-                        id: Date.now().toString(),
-                        url: file_url,
-                        type: file.type.startsWith('video') ? 'video' : 'image',
-                        order: items.length
-                      });
-                    }
-                    
-                    if (privateGallery) {
-                      await base44.entities.Gallery.update(privateGallery.id, { items });
-                    } else {
-                      await base44.entities.Gallery.create({
-                        user_id: user.email,
-                        type: 'private',
-                        name: 'Private Gallery',
-                        items
-                      });
-                    }
-                    queryClient.invalidateQueries(['myGalleries']);
-                  }}
-                />
-              </div>
-              <p className="text-sm text-[#6B7A94] mb-4">Only visible to users you grant permission.</p>
-              <div className="grid grid-cols-3 gap-2">
-                {galleries.find(g => g.type === 'private')?.items?.map((item, i) => (
-                  <div key={i} className="aspect-square bg-[#121824] rounded-lg overflow-hidden">
-                    <img src={item.url} alt="" className="w-full h-full object-cover" />
-                  </div>
-                )) || (
-                  <div className="col-span-3 py-8 text-center text-[#6B7A94]">
-                    <Image className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    No images yet
-                  </div>
-                )}
-              </div>
-            </CCCard>
-          </div>
-        </CCTabsContent>
-      </div>
-    </div>
-  );
-}
-
               <CCCard padding="lg">
                 <BioGenerator 
                   profile={profile}
