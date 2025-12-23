@@ -61,10 +61,18 @@ export default function Settings() {
 
   const updateNameMutation = useMutation({
     mutationFn: async (name) => {
-      return base44.auth.updateMe({ full_name: name });
+      if (currentProfile) {
+        return base44.entities.UserProfile.update(currentProfile.id, { display_name: name });
+      } else {
+        return base44.entities.UserProfile.create({ 
+          user_id: user.email, 
+          display_name: name,
+          role_type: 'creator' 
+        });
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['currentUser']);
+      queryClient.invalidateQueries(['myProfile']);
       setShowNameModal(false);
     },
   });
@@ -150,14 +158,14 @@ export default function Settings() {
                 </div>
                 <div className="flex items-center justify-between py-3 border-b border-[#263248]">
                   <div>
-                    <p className="text-sm text-[#6B7A94]">Full Name</p>
-                    <p className="text-[#E8EEF9]">{user?.full_name || 'Not set'}</p>
+                    <p className="text-sm text-[#6B7A94]">Display Name</p>
+                    <p className="text-[#E8EEF9]">{currentProfile?.display_name || 'Not set'}</p>
                   </div>
                   <CCButton 
                     variant="outline" 
                     size="sm"
                     onClick={() => {
-                      setEditingName(user?.full_name || '');
+                      setEditingName(currentProfile?.display_name || '');
                       setShowNameModal(true);
                     }}
                   >
@@ -392,17 +400,17 @@ export default function Settings() {
       <CCModal
         isOpen={showNameModal}
         onClose={() => setShowNameModal(false)}
-        title="Edit Full Name"
+        title="Edit Display Name"
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Full Name</label>
+            <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Display Name</label>
             <input
               type="text"
               value={editingName}
               onChange={(e) => setEditingName(e.target.value)}
               className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-              placeholder="Enter your full name"
+              placeholder="Enter your display name"
             />
           </div>
           <div className="flex gap-3 justify-end">
