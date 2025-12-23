@@ -133,6 +133,40 @@ export default function ViewProfile() {
     enabled: !!profileUserId && !!profile,
   });
 
+  // Fetch representation info (for creators only)
+  const { data: agentRepresentations = [] } = useQuery({
+    queryKey: ['agentRepresentation', profileUserId],
+    queryFn: () => base44.entities.AgentRepresentation.filter({ 
+      creator_user_id: profileUserId,
+      status: 'ACTIVE'
+    }),
+    enabled: !!profileUserId && profile?.role_type === 'creator',
+  });
+
+  const { data: studioRosters = [] } = useQuery({
+    queryKey: ['studioRoster', profileUserId],
+    queryFn: () => base44.entities.StudioRoster.filter({ 
+      creator_user_id: profileUserId,
+      status: 'ACTIVE'
+    }),
+    enabled: !!profileUserId && profile?.role_type === 'creator',
+  });
+
+  // Fetch agent/studio profiles for representation
+  const agentIds = agentRepresentations.map(r => r.agent_user_id);
+  const studioIds = studioRosters.map(r => r.studio_user_id);
+  
+  const { data: representativeProfiles = [] } = useQuery({
+    queryKey: ['representativeProfiles', [...agentIds, ...studioIds]],
+    queryFn: async () => {
+      const allIds = [...agentIds, ...studioIds];
+      if (allIds.length === 0) return [];
+      const allProfiles = await base44.entities.UserProfile.list();
+      return allProfiles.filter(p => allIds.includes(p.user_id));
+    },
+    enabled: (agentIds.length + studioIds.length) > 0,
+  });
+
   if (userLoading || profileLoading) {
     return <CCLoadingScreen message="Loading profile..." />;
   }
@@ -265,6 +299,54 @@ export default function ViewProfile() {
             </div>
           </div>
         </div>
+
+        {/* Representation Section (for creators with active representation) */}
+        {profile.role_type === 'creator' && (agentRepresentations.length > 0 || studioRosters.length > 0) && (
+          <CCCard padding="lg" className="mb-6">
+            <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 flex items-center gap-2">
+              <Briefcase className="w-5 h-5" />
+              Representation
+            </h2>
+            <div className="space-y-3">
+              {agentRepresentations.map(rep => {
+                const agent = representativeProfiles.find(p => p.user_id === rep.agent_user_id);
+                return agent ? (
+                  <div key={rep.id} className="flex items-center gap-3 p-3 bg-[#0B0F14] rounded-lg border border-[#263248]">
+                    <div className="w-10 h-10 rounded-full bg-[#FF2DAA]/20 flex items-center justify-center flex-shrink-0">
+                      <Briefcase className="w-5 h-5 text-[#FF2DAA]" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-[#6B7A94]">Represented by Agent</p>
+                      <Link to={createPageUrl(`ViewProfile?id=${agent.user_id}`)} className="text-[#E8EEF9] font-medium hover:text-[#4F8CFF]">
+                        {agent.display_name}
+                      </Link>
+                    </div>
+                  </div>
+                ) : null;
+              })}
+              {studioRosters.map(roster => {
+                const studio = representativeProfiles.find(p => p.user_id === roster.studio_user_id);
+                return studio ? (
+                  <div key={roster.id} className="flex items-center gap-3 p-3 bg-[#0B0F14] rounded-lg border border-[#263248]">
+                    <div className="w-10 h-10 rounded-full bg-[#22C55E]/20 flex items-center justify-center flex-shrink-0">
+                      <Building className="w-5 h-5 text-[#22C55E]" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm text-[#6B7A94]">
+                        {roster.relationship_type === 'EXCLUSIVE' ? 'Exclusive with Studio' : 
+                         roster.relationship_type === 'ROSTER' ? 'On Roster at Studio' : 
+                         'Worked with Studio'}
+                      </p>
+                      <Link to={createPageUrl(`ViewProfile?id=${studio.user_id}`)} className="text-[#E8EEF9] font-medium hover:text-[#4F8CFF]">
+                        {studio.display_name}
+                      </Link>
+                    </div>
+                  </div>
+                ) : null;
+              })}
+            </div>
+          </CCCard>
+        )}
 
         {/* Bio */}
         {profile.bio && (

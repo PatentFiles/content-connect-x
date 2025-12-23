@@ -33,6 +33,7 @@ export default function ProfileCard({
   onMessage,
   showActions = true,
   compact = false,
+  isRepresented = false,
 }) {
   const isVerified = profile?.verified;
   const isOnline = profile?.last_active_at && 
@@ -67,9 +68,9 @@ export default function ProfileCard({
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F14] via-[#0B0F14]/50 to-transparent" />
             
-            {/* Role Badge */}
-            {profile.role_type && (
-              <div className="absolute top-3 left-3">
+            {/* Role Badge & Represented Badge */}
+            <div className="absolute top-3 left-3 flex flex-col gap-2">
+              {profile.role_type && (
                 <div className="bg-black/70 backdrop-blur-sm rounded-full px-3 py-1">
                   <span className={`text-xs font-semibold ${
                     profile.role_type === 'creator' ? 'text-[#4F8CFF]' :
@@ -82,8 +83,15 @@ export default function ProfileCard({
                     {roleLabels[profile.role_type] || profile.role_type}
                   </span>
                 </div>
-              </div>
-            )}
+              )}
+              {isRepresented && profile.role_type === 'creator' && (
+                <div className="bg-[#FF2DAA]/90 backdrop-blur-sm rounded-full px-3 py-1">
+                  <span className="text-xs font-semibold text-white">
+                    Represented
+                  </span>
+                </div>
+              )}
+            </div>
 
             {/* Profile Info Overlay */}
             <div className="absolute bottom-0 left-0 right-0 p-4">
