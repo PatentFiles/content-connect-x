@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { base44 } from '@/api/base44Client';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { Menu, X, Bell, Settings } from 'lucide-react';
@@ -58,12 +59,20 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
             </>
           ) : (
             <>
-              <Link to={createPageUrl('Login')}>
-                <CCButton variant="ghost" size="sm">Log In</CCButton>
-              </Link>
-              <Link to={createPageUrl('Signup')}>
-                <CCButton variant="primary" size="sm">Get Started</CCButton>
-              </Link>
+              <CCButton 
+                variant="ghost" 
+                size="sm"
+                onClick={() => base44.auth.redirectToLogin()}
+              >
+                Log In
+              </CCButton>
+              <CCButton 
+                variant="primary" 
+                size="sm"
+                onClick={() => base44.auth.redirectToLogin(createPageUrl('Discovery'))}
+              >
+                Get Started
+              </CCButton>
             </>
           )}
 
