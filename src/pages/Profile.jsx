@@ -162,78 +162,82 @@ export default function Profile() {
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Cover & Avatar */}
       <div className="relative">
-        <div className="h-32 md:h-48 bg-gradient-to-br from-[#4F8CFF]/30 to-[#FF2DAA]/30">
+        <div className="h-48 md:h-64 bg-gradient-to-br from-[#1A2438] via-[#151D2B] to-[#0B0F14] relative overflow-hidden">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(79,140,255,0.15),transparent_50%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(255,45,170,0.1),transparent_50%)]" />
           {profile?.cover_url && (
-            <img src={profile.cover_url} alt="" className="w-full h-full object-cover" />
+            <img src={profile.cover_url} alt="" className="w-full h-full object-cover opacity-40" />
           )}
         </div>
         <div className="max-w-4xl mx-auto px-4">
-          <div className="relative -mt-12 md:-mt-16 flex items-end gap-4">
-            <div className="relative">
-              <CCAvatar
-                src={profile?.avatar_url}
-                size="2xl"
-                verified={isVerified}
-                className="ring-4 ring-[#0B0F14]"
-              />
-              <button 
-                onClick={() => document.getElementById('avatar-upload').click()}
-                className="absolute bottom-0 right-0 p-2 bg-[#4F8CFF] rounded-full text-white hover:bg-[#3A7AEE] transition-colors"
-              >
-                <Camera className="w-4 h-4" />
-              </button>
-              <input
-                id="avatar-upload"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                    updateProfileMutation.mutate({ avatar_url: file_url });
-                  }
-                }}
-              />
-            </div>
-            <div className="flex-1 pb-2">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h1 className="text-2xl font-bold text-[#E8EEF9]">
-                    {profile?.display_name || 'Set up your profile'}
-                  </h1>
-                  <div className="flex items-center gap-2 mt-1">
-                    {profile?.role_type && (
-                      <CCBadge variant="accent">{profile.role_type}</CCBadge>
-                    )}
-                    {isVerified && (
-                      <CCBadge variant="success" icon={ShieldCheck}>Verified</CCBadge>
-                    )}
-                  </div>
-                </div>
-                <CCButton
-                  variant="primary"
-                  icon={isEditing ? Save : Edit2}
-                  onClick={isEditing ? handleSave : () => {
-                    setEditData({
-                      display_name: profile?.display_name,
-                      age: profile?.age,
-                      ethnicity: profile?.ethnicity,
-                      bio: profile?.bio,
-                      base_location: profile?.base_location,
-                      travel_enabled: profile?.travel_enabled,
-                      gender_identity: details?.gender_identity,
-                      orientation_category: details?.orientation_category,
-                      looking_for_genders: details?.looking_for_genders || [],
-                      collab_types: details?.collab_types || [],
-                      socials: details?.socials || {},
-                    });
-                    setIsEditing(true);
-                  }}
-                  loading={updateProfileMutation.isPending}
+          <div className="relative -mt-16 md:-mt-20">
+            <div className="flex flex-col md:flex-row md:items-end gap-4">
+              <div className="relative">
+                <CCAvatar
+                  src={profile?.avatar_url}
+                  size="2xl"
+                  className="ring-4 ring-[#0B0F14]"
+                />
+                <button 
+                  onClick={() => document.getElementById('avatar-upload').click()}
+                  className="absolute bottom-0 right-0 p-2 bg-[#4F8CFF] rounded-full text-white hover:bg-[#3A7AEE] transition-colors"
                 >
-                  {isEditing ? 'Save' : 'Edit'}
-                </CCButton>
+                  <Camera className="w-4 h-4" />
+                </button>
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                      updateProfileMutation.mutate({ avatar_url: file_url });
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex-1 pb-2 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div className="min-w-0">
+                    <h1 className="text-2xl font-bold text-[#E8EEF9] truncate">
+                      {profile?.display_name || 'Set up your profile'}
+                    </h1>
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
+                      {profile?.role_type && (
+                        <CCBadge variant="accent">{profile.role_type}</CCBadge>
+                      )}
+                      {isVerified && (
+                        <CCBadge variant="success" icon={ShieldCheck}>Verified</CCBadge>
+                      )}
+                    </div>
+                  </div>
+                  <CCButton
+                    variant="primary"
+                    icon={isEditing ? Save : Edit2}
+                    onClick={isEditing ? handleSave : () => {
+                      setEditData({
+                        display_name: profile?.display_name,
+                        age: profile?.age,
+                        ethnicity: profile?.ethnicity,
+                        bio: profile?.bio,
+                        base_location: profile?.base_location,
+                        travel_enabled: profile?.travel_enabled,
+                        gender_identity: details?.gender_identity,
+                        orientation_category: details?.orientation_category,
+                        looking_for_genders: details?.looking_for_genders || [],
+                        collab_types: details?.collab_types || [],
+                        socials: details?.socials || {},
+                      });
+                      setIsEditing(true);
+                    }}
+                    loading={updateProfileMutation.isPending}
+                    className="shrink-0"
+                  >
+                    {isEditing ? 'Save' : 'Edit'}
+                  </CCButton>
+                </div>
               </div>
             </div>
           </div>
@@ -245,7 +249,7 @@ export default function Profile() {
         <CCTabsList tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-6" />
 
         <CCTabsContent value="profile" activeTab={activeTab}>
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-6">
             {/* Basic Info */}
             <CCCard padding="lg">
               <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Basic Information</h3>
@@ -369,7 +373,7 @@ export default function Profile() {
 
             {/* Creator Details */}
             {profile?.role_type === 'creator' && (
-              <CCCard padding="lg">
+              <CCCard padding="lg" className="md:col-span-2">
                 <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Creator Details</h3>
                 <div className="space-y-4">
                   {isEditing ? (
