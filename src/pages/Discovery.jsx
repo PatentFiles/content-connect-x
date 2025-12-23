@@ -292,34 +292,36 @@ export default function Discovery() {
         )}
       </div>
 
-      {/* Traveling Soon Section */}
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">✈️</span>
-            <h2 className="text-lg font-medium text-[#E8EEF9]">Traveling Soon</h2>
+      {/* Traveling Soon Section - Only show if there are profiles with travel plans */}
+      {profiles.filter(p => p.travel_enabled && p.travel_dates?.length > 0).length > 0 && (
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">✈️</span>
+              <h2 className="text-lg font-medium text-[#E8EEF9]">Traveling Soon</h2>
+            </div>
+          </div>
+
+          <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
+            {profiles.filter(p => p.travel_enabled && p.travel_dates?.length > 0).slice(0, 5).map((profile) => {
+              const details = creatorDetails.find(d => d.user_id === profile.user_id);
+              const verification = allVerifications.find(v => v.user_id === profile.user_id);
+              const isVerified = verification?.status === 'approved';
+              return (
+                <div key={profile.id} className="w-72 flex-shrink-0">
+                  <ProfileCard
+                    key={profile.id}
+                    profile={{...profile, verified: isVerified}}
+                    creatorDetails={details}
+                    showActions={false}
+                    compact
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
-
-        <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
-          {profiles.filter(p => p.travel_enabled && p.travel_dates?.length > 0).slice(0, 5).map((profile) => {
-            const details = creatorDetails.find(d => d.user_id === profile.user_id);
-            const verification = allVerifications.find(v => v.user_id === profile.user_id);
-            const isVerified = verification?.status === 'approved';
-            return (
-              <div key={profile.id} className="w-72 flex-shrink-0">
-                <ProfileCard
-                  key={profile.id}
-                  profile={{...profile, verified: isVerified}}
-                  creatorDetails={details}
-                  showActions={false}
-                  compact
-                />
-              </div>
-            );
-          })}
-        </div>
-      </div>
+      )}
     </div>
   );
 }
