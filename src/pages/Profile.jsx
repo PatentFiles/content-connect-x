@@ -156,7 +156,6 @@ export default function Profile() {
   const tabs = [
     { value: 'profile', label: 'Profile', icon: User },
     { value: 'galleries', label: 'Galleries', icon: Image },
-    { value: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (
@@ -167,9 +166,6 @@ export default function Profile() {
           {profile?.cover_url && (
             <img src={profile.cover_url} alt="" className="w-full h-full object-cover" />
           )}
-          <button className="absolute top-4 right-4 p-2 bg-black/50 rounded-lg text-white">
-            <Camera className="w-5 h-5" />
-          </button>
         </div>
         <div className="max-w-4xl mx-auto px-4">
           <div className="relative -mt-12 md:-mt-16 flex items-end gap-4">
@@ -179,6 +175,25 @@ export default function Profile() {
                 size="2xl"
                 verified={isVerified}
                 className="ring-4 ring-[#0B0F14]"
+              />
+              <button 
+                onClick={() => document.getElementById('avatar-upload').click()}
+                className="absolute bottom-0 right-0 p-2 bg-[#4F8CFF] rounded-full text-white hover:bg-[#3A7AEE] transition-colors"
+              >
+                <Camera className="w-4 h-4" />
+              </button>
+              <input
+                id="avatar-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                    updateProfileMutation.mutate({ avatar_url: file_url });
+                  }
+                }}
               />
             </div>
             <div className="flex-1 pb-2">
@@ -428,7 +443,48 @@ export default function Profile() {
             <CCCard padding="lg">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-[#E8EEF9]">Public Gallery</h3>
-                <CCButton variant="outline" size="sm" icon={Plus}>Add</CCButton>
+                <CCButton 
+                  variant="outline" 
+                  size="sm" 
+                  icon={Plus}
+                  onClick={() => document.getElementById('public-gallery-upload').click()}
+                >
+                  Add
+                </CCButton>
+                <input
+                  id="public-gallery-upload"
+                  type="file"
+                  accept="image/*,video/*"
+                  multiple
+                  className="hidden"
+                  onChange={async (e) => {
+                    const files = Array.from(e.target.files || []);
+                    const publicGallery = galleries.find(g => g.type === 'public');
+                    const items = publicGallery?.items || [];
+                    
+                    for (const file of files) {
+                      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                      items.push({
+                        id: Date.now().toString(),
+                        url: file_url,
+                        type: file.type.startsWith('video') ? 'video' : 'image',
+                        order: items.length
+                      });
+                    }
+                    
+                    if (publicGallery) {
+                      await base44.entities.Gallery.update(publicGallery.id, { items });
+                    } else {
+                      await base44.entities.Gallery.create({
+                        user_id: user.email,
+                        type: 'public',
+                        name: 'Public Gallery',
+                        items
+                      });
+                    }
+                    queryClient.invalidateQueries(['myGalleries']);
+                  }}
+                />
               </div>
               <p className="text-sm text-[#6B7A94] mb-4">G-rated images visible to all verified members.</p>
               <div className="grid grid-cols-3 gap-2">
@@ -451,7 +507,48 @@ export default function Profile() {
                 <h3 className="text-lg font-semibold text-[#E8EEF9] flex items-center gap-2">
                   <Lock className="w-4 h-4" /> Private Gallery
                 </h3>
-                <CCButton variant="outline" size="sm" icon={Plus}>Add</CCButton>
+                <CCButton 
+                  variant="outline" 
+                  size="sm" 
+                  icon={Plus}
+                  onClick={() => document.getElementById('private-gallery-upload').click()}
+                >
+                  Add
+                </CCButton>
+                <input
+                  id="private-gallery-upload"
+                  type="file"
+                  accept="image/*,video/*"
+                  multiple
+                  className="hidden"
+                  onChange={async (e) => {
+                    const files = Array.from(e.target.files || []);
+                    const privateGallery = galleries.find(g => g.type === 'private');
+                    const items = privateGallery?.items || [];
+                    
+                    for (const file of files) {
+                      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                      items.push({
+                        id: Date.now().toString(),
+                        url: file_url,
+                        type: file.type.startsWith('video') ? 'video' : 'image',
+                        order: items.length
+                      });
+                    }
+                    
+                    if (privateGallery) {
+                      await base44.entities.Gallery.update(privateGallery.id, { items });
+                    } else {
+                      await base44.entities.Gallery.create({
+                        user_id: user.email,
+                        type: 'private',
+                        name: 'Private Gallery',
+                        items
+                      });
+                    }
+                    queryClient.invalidateQueries(['myGalleries']);
+                  }}
+                />
               </div>
               <p className="text-sm text-[#6B7A94] mb-4">Only visible to users you grant permission.</p>
               <div className="grid grid-cols-3 gap-2">
@@ -468,35 +565,6 @@ export default function Profile() {
               </div>
             </CCCard>
           </div>
-        </CCTabsContent>
-
-        <CCTabsContent value="settings" activeTab={activeTab}>
-          <CCCard padding="lg">
-            <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Account Settings</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between py-3 border-b border-[#263248]">
-                <div>
-                  <p className="font-medium text-[#E8EEF9]">Email</p>
-                  <p className="text-sm text-[#6B7A94]">{user?.email}</p>
-                </div>
-              </div>
-              <div className="flex items-center justify-between py-3 border-b border-[#263248]">
-                <div>
-                  <p className="font-medium text-[#E8EEF9]">Verification Status</p>
-                  <p className="text-sm text-[#6B7A94]">{isVerified ? 'Verified' : 'Not verified'}</p>
-                </div>
-                {!isVerified && (
-                  <CCButton variant="primary" size="sm">Verify Now</CCButton>
-                )}
-              </div>
-              <div className="flex items-center justify-between py-3">
-                <div>
-                  <p className="font-medium text-[#E8EEF9]">Account Type</p>
-                  <p className="text-sm text-[#6B7A94] capitalize">{profile?.role_type || 'Not set'}</p>
-                </div>
-              </div>
-            </div>
-          </CCCard>
         </CCTabsContent>
       </div>
     </div>
