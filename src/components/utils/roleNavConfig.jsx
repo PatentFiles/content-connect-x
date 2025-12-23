@@ -20,7 +20,7 @@ export const roleNavigation = {
     { path: 'Discovery', label: 'Discover', icon: Compass },
     { path: 'Search', label: 'Search', icon: Search },
     { path: 'Messages', label: 'Messages', icon: MessageCircle },
-    { path: 'Collaborations', label: 'Deal Rooms', icon: Briefcase },
+    { path: 'Collaborations', label: 'Collaborations', icon: Briefcase },
     { path: 'Contracts', label: 'Contracts', icon: FileText },
     { path: 'Shortlists', label: 'Shortlists', icon: Heart },
     { path: 'Verification', label: 'Verification', icon: Shield },
@@ -37,7 +37,7 @@ export const roleNavigation = {
     { path: 'Discovery', label: 'Discover', icon: Compass },
     { path: 'Messages', label: 'Messages', icon: MessageCircle },
     { path: 'RosterPortfolio', label: 'Roster & Portfolio', icon: Users },
-    { path: 'Collaborations', label: 'Deal Rooms', icon: Briefcase },
+    { path: 'Collaborations', label: 'Collaborations', icon: Briefcase },
     { path: 'Contracts', label: 'Contracts', icon: FileText },
   ],
   photographer: [

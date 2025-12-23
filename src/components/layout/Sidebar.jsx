@@ -84,7 +84,7 @@ export default function Sidebar({ currentPage, profile, onLogout }) {
             <div className="pb-2 mb-2 border-b border-[#263248]" />
           </>
         )}
-        {navItems.map((item) => {
+        {navItems.filter(item => item.path !== 'Dashboard' || !profile?.is_admin).map((item) => {
           const isActive = currentPage === item.path;
           return (
             <Link
