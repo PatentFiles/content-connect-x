@@ -17,7 +17,12 @@ import {
   Lock,
   Share2,
   Flag,
-  Ban
+  Ban,
+  Briefcase,
+  Activity,
+  Shield,
+  MapPinned,
+  Globe
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
@@ -89,19 +94,37 @@ export default function ViewProfile() {
   const { data: creatorDetails = [] } = useQuery({
     queryKey: ['viewCreatorDetails', profileUserId],
     queryFn: () => base44.entities.CreatorDetails.filter({ user_id: profileUserId }),
-    enabled: !!profileUserId && profile?.role_type === 'creator',
+    enabled: !!profileUserId,
   });
 
   const details = creatorDetails[0];
 
-  // Fetch service details
+  // Fetch service details (photographer/videographer)
   const { data: serviceDetails = [] } = useQuery({
     queryKey: ['viewServiceDetails', profileUserId],
     queryFn: () => base44.entities.ServiceDetails.filter({ user_id: profileUserId }),
-    enabled: !!profileUserId && (profile?.role_type === 'photographer' || profile?.role_type === 'videographer'),
+    enabled: !!profileUserId,
   });
 
   const service = serviceDetails[0];
+
+  // Fetch agent details
+  const { data: agentDetails = [] } = useQuery({
+    queryKey: ['viewAgentDetails', profileUserId],
+    queryFn: () => base44.entities.AgentDetails.filter({ user_id: profileUserId }),
+    enabled: !!profileUserId,
+  });
+
+  const agent = agentDetails[0];
+
+  // Fetch studio details
+  const { data: studioDetails = [] } = useQuery({
+    queryKey: ['viewStudioDetails', profileUserId],
+    queryFn: () => base44.entities.StudioDetails.filter({ user_id: profileUserId }),
+    enabled: !!profileUserId,
+  });
+
+  const studio = studioDetails[0];
 
   // Fetch galleries
   const { data: galleries = [] } = useQuery({
@@ -109,15 +132,6 @@ export default function ViewProfile() {
     queryFn: () => base44.entities.Gallery.filter({ user_id: profileUserId }),
     enabled: !!profileUserId,
   });
-
-  // Fetch testing credential
-  const { data: testingCredential = [] } = useQuery({
-    queryKey: ['viewTesting', profileUserId],
-    queryFn: () => base44.entities.TestingCredential.filter({ user_id: profileUserId }),
-    enabled: !!profileUserId,
-  });
-
-  const testing = testingCredential[0];
 
   if (userLoading || profileLoading) {
     return <CCLoadingScreen message="Loading profile..." />;
@@ -150,7 +164,6 @@ export default function ViewProfile() {
   const tabs = [
     { value: 'about', label: 'About' },
     { value: 'gallery', label: 'Gallery' },
-    ...(profile.role_type === 'photographer' || profile.role_type === 'videographer' ? [{ value: 'services', label: 'Services' }] : []),
   ];
 
   const publicGallery = galleries.find(g => g.type === 'public');
@@ -183,23 +196,27 @@ export default function ViewProfile() {
                     <CCBadge variant={roleColors[profile.role_type]} className="capitalize">
                       {profile.role_type}
                     </CCBadge>
+                    {profile.age && (
+                      <span className="text-sm text-[#9AA6BC]">{profile.age} years old</span>
+                    )}
                     {profile.base_location?.city && (
                       <span className="text-sm text-[#9AA6BC] flex items-center gap-1">
                         <MapPin className="w-3 h-3" />
-                        {profile.base_location.city}, {profile.base_location.country}
-                      </span>
-                    )}
-                    {profile.response_time_hours && (
-                      <span className="text-sm text-[#6B7A94] flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        ~{profile.response_time_hours}h reply
+                        {profile.base_location.city}, {profile.base_location.state || profile.base_location.country}
                       </span>
                     )}
                   </div>
-                  {testing?.status_badge === 'valid' && testing?.share_settings?.show_badge_publicly && (
-                    <CCBadge variant="success" className="mt-2" icon={ShieldCheck}>
-                      Testing Valid until {new Date(testing.expires_at).toLocaleDateString()}
-                    </CCBadge>
+                  {/* Website links for studio/agent */}
+                  {(studio?.website || agent?.website) && (
+                    <a 
+                      href={studio?.website || agent?.website} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="flex items-center gap-2 text-[#4F8CFF] hover:underline mt-2 text-sm"
+                    >
+                      <Globe className="w-4 h-4" />
+                      Visit Website
+                    </a>
                   )}
                 </div>
                 <div className="flex gap-2">
@@ -220,107 +237,274 @@ export default function ViewProfile() {
 
         {/* About Tab */}
         <CCTabsContent value="about" activeTab={activeTab}>
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="space-y-6">
             {/* Bio */}
             <CCCard padding="lg">
               <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">About</h3>
               <p className="text-[#9AA6BC]">{profile.bio || 'No bio provided.'}</p>
             </CCCard>
 
-            {/* Details for Creator */}
+            {/* Creator Details */}
             {profile.role_type === 'creator' && details && (
-              <CCCard padding="lg">
-                <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Details</h3>
-                <div className="space-y-3">
-                  {details.gender_identity && (
-                    <div>
-                      <p className="text-sm text-[#6B7A94]">Identity</p>
-                      <p className="text-[#E8EEF9] capitalize">{details.gender_identity.replace('_', ' ')}</p>
+              <>
+                {details.orientation_category && Array.isArray(details.orientation_category) && details.orientation_category.length > 0 && (
+                  <CCCard padding="lg">
+                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Sexual Orientation</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {details.orientation_category.map(o => (
+                        <CCBadge key={o} variant="outline">{o}</CCBadge>
+                      ))}
                     </div>
-                  )}
-                  {details.orientation_category && (
-                    <div>
-                      <p className="text-sm text-[#6B7A94]">Category</p>
-                      <p className="text-[#E8EEF9] capitalize">{details.orientation_category.replace('_', ' ')}</p>
+                  </CCCard>
+                )}
+
+                {details.scene_pairings && details.scene_pairings.length > 0 && (
+                  <CCCard padding="lg">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Heart className="w-5 h-5 text-[#FF2DAA]" />
+                      <h3 className="text-lg font-semibold text-[#E8EEF9]">Scene Pairings</h3>
                     </div>
-                  )}
-                  {details.collab_types?.length > 0 && (
-                    <div>
-                      <p className="text-sm text-[#6B7A94] mb-2">Open to</p>
-                      <div className="flex gap-2">
-                        {details.collab_types.map(type => (
-                          <CCBadge 
-                            key={type} 
-                            variant={type === 'paid' ? 'success' : type === 'trade' ? 'warning' : 'default'}
-                          >
-                            {type}
-                          </CCBadge>
+                    <div className="flex flex-wrap gap-2">
+                      {details.scene_pairings.map(sp => (
+                        <CCBadge key={sp} variant="accent">{sp.replace(/_/g, ' ')}</CCBadge>
+                      ))}
+                    </div>
+                  </CCCard>
+                )}
+
+                {details.compensation_preferences && details.compensation_preferences.length > 0 && (
+                  <CCCard padding="lg">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Briefcase className="w-5 h-5 text-[#4F8CFF]" />
+                      <h3 className="text-lg font-semibold text-[#E8EEF9]">Compensation Preferences</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {details.compensation_preferences.map(cp => (
+                        <CCBadge key={cp} variant={cp === 'paid' ? 'success' : cp === 'trade' ? 'warning' : 'default'}>
+                          {cp}
+                        </CCBadge>
+                      ))}
+                    </div>
+                  </CCCard>
+                )}
+
+                {details.standard_acts && details.standard_acts.length > 0 && (
+                  <CCCard padding="lg">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Activity className="w-5 h-5 text-[#4F8CFF]" />
+                      <h3 className="text-lg font-semibold text-[#E8EEF9]">Standard Acts</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {details.standard_acts.map(sa => (
+                        <CCBadge key={sa} variant="primary">{sa.replace(/_/g, ' ')}</CCBadge>
+                      ))}
+                    </div>
+                  </CCCard>
+                )}
+
+                {details.fetish_acts && details.fetish_acts.length > 0 && (
+                  <CCCard padding="lg">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Activity className="w-5 h-5 text-[#FF2DAA]" />
+                      <h3 className="text-lg font-semibold text-[#E8EEF9]">Fetish Acts</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {details.fetish_acts.map(fa => (
+                        <CCBadge key={fa} variant="accent">{fa.replace(/_/g, ' ')}</CCBadge>
+                      ))}
+                    </div>
+                  </CCCard>
+                )}
+
+                {details.kink_edge_acts && details.kink_edge_acts.length > 0 && (
+                  <CCCard padding="lg">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Activity className="w-5 h-5 text-[#9333EA]" />
+                      <h3 className="text-lg font-semibold text-[#E8EEF9]">Kink / Edge Acts</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {details.kink_edge_acts.map(ke => (
+                        <CCBadge key={ke} variant="default">{ke.replace(/_/g, ' ')}</CCBadge>
+                      ))}
+                    </div>
+                  </CCCard>
+                )}
+
+                {details.performance_positioning && details.performance_positioning.length > 0 && (
+                  <CCCard padding="lg">
+                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Performance Positioning</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {details.performance_positioning.map(pp => (
+                        <CCBadge key={pp} variant="primary">{pp}</CCBadge>
+                      ))}
+                    </div>
+                  </CCCard>
+                )}
+
+                {details.physical_details && Object.keys(details.physical_details).length > 0 && (
+                  <CCCard padding="lg">
+                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Physical Details</h3>
+                    <div className="space-y-2">
+                      {details.physical_details.breast_size && (
+                        <p className="text-[#E8EEF9]">Breast Size: {details.physical_details.breast_size}</p>
+                      )}
+                      {details.physical_details.measurements && (
+                        <p className="text-[#E8EEF9]">Measurements: {details.physical_details.measurements}</p>
+                      )}
+                      {details.physical_details.endowment_size && (
+                        <p className="text-[#E8EEF9]">Endowment: {details.physical_details.endowment_size}"</p>
+                      )}
+                    </div>
+                  </CCCard>
+                )}
+
+                {details.availability_type && (
+                  <CCCard padding="lg">
+                    <div className="flex items-center gap-2 mb-4">
+                      <MapPinned className="w-5 h-5 text-[#4F8CFF]" />
+                      <h3 className="text-lg font-semibold text-[#E8EEF9]">Availability & Travel</h3>
+                    </div>
+                    <p className="text-[#E8EEF9] mb-2">
+                      {details.availability_type.replace('_', ' ')}
+                    </p>
+                    {details.travel_regions && details.travel_regions.length > 0 && (
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {details.travel_regions.map(tr => (
+                          <CCBadge key={tr}>{tr}</CCBadge>
                         ))}
                       </div>
+                    )}
+                  </CCCard>
+                )}
+              </>
+            )}
+
+            {/* Agent Details */}
+            {profile.role_type === 'agent' && agent && (
+              <>
+                {agent.content_types && agent.content_types.length > 0 && (
+                  <CCCard padding="lg">
+                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Content Types</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {agent.content_types.map(ct => (
+                        <CCBadge key={ct} variant="accent">{ct}</CCBadge>
+                      ))}
                     </div>
-                  )}
-                </div>
-              </CCCard>
+                  </CCCard>
+                )}
+                {agent.agency_name && (
+                  <CCCard padding="lg">
+                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Agency</h3>
+                    <p className="text-[#E8EEF9]">{agent.agency_name}</p>
+                  </CCCard>
+                )}
+              </>
             )}
 
-            {/* Tags */}
-            {details?.tags?.length > 0 && (
-              <CCCard padding="lg">
-                <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Categories & Tags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {details.tags.map(tag => (
-                    <CCBadge key={tag} variant="outline">{tag}</CCBadge>
-                  ))}
-                </div>
-              </CCCard>
-            )}
-
-            {/* Travel */}
-            {profile.travel_enabled && profile.travel_dates?.length > 0 && (
-              <CCCard padding="lg">
-                <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3 flex items-center gap-2">
-                  <Calendar className="w-5 h-5" /> Travel Plans
-                </h3>
-                <div className="space-y-2">
-                  {profile.travel_dates.map((travel, i) => (
-                    <div key={i} className="p-3 bg-[#121824] rounded-lg">
-                      <p className="font-medium text-[#E8EEF9]">{travel.location}</p>
-                      <p className="text-sm text-[#6B7A94]">
-                        {new Date(travel.start_date).toLocaleDateString()} - {new Date(travel.end_date).toLocaleDateString()}
-                      </p>
+            {/* Studio Details */}
+            {profile.role_type === 'studio' && studio && (
+              <>
+                {studio.content_types && studio.content_types.length > 0 && (
+                  <CCCard padding="lg">
+                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Content Types</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {studio.content_types.map(ct => (
+                        <CCBadge key={ct} variant="success">{ct}</CCBadge>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </CCCard>
+                  </CCCard>
+                )}
+                {studio.locations && studio.locations.length > 0 && (
+                  <CCCard padding="lg">
+                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Studio Locations</h3>
+                    <div className="space-y-3">
+                      {studio.locations.map((loc, i) => (
+                        <div key={i} className="p-3 bg-[#121824] rounded-lg">
+                          <p className="font-medium text-[#E8EEF9]">{loc.name || loc.city}</p>
+                          <p className="text-sm text-[#6B7A94]">{loc.address}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </CCCard>
+                )}
+              </>
             )}
 
-            {/* Social Links */}
-            {details?.socials && Object.values(details.socials).some(v => v) && (
-              <CCCard padding="lg">
-                <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Links</h3>
-                <div className="space-y-2">
-                  {details.socials.onlyfans && (
-                    <a href={details.socials.onlyfans} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#4F8CFF] hover:underline">
-                      <LinkIcon className="w-4 h-4" /> OnlyFans
-                    </a>
-                  )}
-                  {details.socials.fansly && (
-                    <a href={details.socials.fansly} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#4F8CFF] hover:underline">
-                      <LinkIcon className="w-4 h-4" /> Fansly
-                    </a>
-                  )}
-                  {details.socials.twitter && (
-                    <a href={details.socials.twitter} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#4F8CFF] hover:underline">
-                      <LinkIcon className="w-4 h-4" /> Twitter/X
-                    </a>
-                  )}
-                  {details.socials.instagram && (
-                    <a href={details.socials.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[#4F8CFF] hover:underline">
-                      <LinkIcon className="w-4 h-4" /> Instagram
-                    </a>
-                  )}
-                </div>
-              </CCCard>
+            {/* Photographer/Videographer Details */}
+            {(profile.role_type === 'photographer' || profile.role_type === 'videographer') && service && (
+              <>
+                {service.content_types && service.content_types.length > 0 && (
+                  <CCCard padding="lg">
+                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Content Types</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {service.content_types.map(ct => (
+                        <CCBadge key={ct} variant="primary">{ct}</CCBadge>
+                      ))}
+                    </div>
+                  </CCCard>
+                )}
+
+                {service.acts_filmed && service.acts_filmed.length > 0 && (
+                  <CCCard padding="lg">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Activity className="w-5 h-5 text-[#4F8CFF]" />
+                      <h3 className="text-lg font-semibold text-[#E8EEF9]">Acts Filmed</h3>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {service.acts_filmed.map(act => (
+                        <CCBadge key={act} variant="primary">{act.replace(/_/g, ' ')}</CCBadge>
+                      ))}
+                    </div>
+                  </CCCard>
+                )}
+
+                {service.availability_type && (
+                  <CCCard padding="lg">
+                    <div className="flex items-center gap-2 mb-3">
+                      <MapPinned className="w-5 h-5 text-[#4F8CFF]" />
+                      <h3 className="text-lg font-semibold text-[#E8EEF9]">Availability</h3>
+                    </div>
+                    <p className="text-[#E8EEF9]">{service.availability_type.replace('_', ' ')}</p>
+                  </CCCard>
+                )}
+
+                {service.rates && (
+                  <CCCard padding="lg">
+                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Rates</h3>
+                    <div className="grid grid-cols-3 gap-4">
+                      {service.rates.hourly && (
+                        <div className="text-center p-4 bg-[#121824] rounded-xl">
+                          <p className="text-2xl font-bold text-[#E8EEF9]">${service.rates.hourly}</p>
+                          <p className="text-sm text-[#6B7A94]">per hour</p>
+                        </div>
+                      )}
+                      {service.rates.half_day && (
+                        <div className="text-center p-4 bg-[#121824] rounded-xl">
+                          <p className="text-2xl font-bold text-[#E8EEF9]">${service.rates.half_day}</p>
+                          <p className="text-sm text-[#6B7A94]">half day</p>
+                        </div>
+                      )}
+                      {service.rates.full_day && (
+                        <div className="text-center p-4 bg-[#121824] rounded-xl">
+                          <p className="text-2xl font-bold text-[#E8EEF9]">${service.rates.full_day}</p>
+                          <p className="text-sm text-[#6B7A94]">full day</p>
+                        </div>
+                      )}
+                    </div>
+                  </CCCard>
+                )}
+
+                {service.gear_list && service.gear_list.length > 0 && (
+                  <CCCard padding="lg">
+                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Equipment</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {service.gear_list.map((gear, i) => (
+                        <CCBadge key={i} variant="outline">{gear}</CCBadge>
+                      ))}
+                    </div>
+                  </CCCard>
+                )}
+              </>
             )}
           </div>
         </CCTabsContent>
@@ -355,78 +539,6 @@ export default function ViewProfile() {
               />
             )}
           </CCCard>
-        </CCTabsContent>
-
-        {/* Services Tab */}
-        <CCTabsContent value="services" activeTab={activeTab}>
-          {service ? (
-            <div className="space-y-6">
-              {/* Rates */}
-              {service.rates && (
-                <CCCard padding="lg">
-                  <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Rates</h3>
-                  <div className="grid grid-cols-3 gap-4">
-                    {service.rates.hourly && (
-                      <div className="text-center p-4 bg-[#121824] rounded-xl">
-                        <p className="text-2xl font-bold text-[#E8EEF9]">${service.rates.hourly}</p>
-                        <p className="text-sm text-[#6B7A94]">per hour</p>
-                      </div>
-                    )}
-                    {service.rates.half_day && (
-                      <div className="text-center p-4 bg-[#121824] rounded-xl">
-                        <p className="text-2xl font-bold text-[#E8EEF9]">${service.rates.half_day}</p>
-                        <p className="text-sm text-[#6B7A94]">half day</p>
-                      </div>
-                    )}
-                    {service.rates.full_day && (
-                      <div className="text-center p-4 bg-[#121824] rounded-xl">
-                        <p className="text-2xl font-bold text-[#E8EEF9]">${service.rates.full_day}</p>
-                        <p className="text-sm text-[#6B7A94]">full day</p>
-                      </div>
-                    )}
-                  </div>
-                </CCCard>
-              )}
-
-              {/* Packages */}
-              {service.packages?.length > 0 && (
-                <CCCard padding="lg">
-                  <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Packages</h3>
-                  <div className="space-y-4">
-                    {service.packages.map((pkg, i) => (
-                      <div key={i} className="p-4 bg-[#121824] rounded-xl">
-                        <div className="flex justify-between items-start mb-2">
-                          <h4 className="font-medium text-[#E8EEF9]">{pkg.name}</h4>
-                          <span className="text-lg font-bold text-[#4F8CFF]">${pkg.price}</span>
-                        </div>
-                        <p className="text-sm text-[#9AA6BC] mb-2">{pkg.description}</p>
-                        <p className="text-xs text-[#6B7A94]">
-                          Duration: {pkg.duration} • Deliverables: {pkg.deliverables}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </CCCard>
-              )}
-
-              {/* Gear */}
-              {service.gear_list?.length > 0 && (
-                <CCCard padding="lg">
-                  <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Equipment</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {service.gear_list.map((gear, i) => (
-                      <CCBadge key={i} variant="outline">{gear}</CCBadge>
-                    ))}
-                  </div>
-                </CCCard>
-              )}
-            </div>
-          ) : (
-            <CCEmpty
-              title="No service details"
-              description="This user hasn't set up their service offerings yet."
-            />
-          )}
         </CCTabsContent>
 
         {/* Actions */}
