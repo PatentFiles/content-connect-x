@@ -26,6 +26,7 @@ import { CCTabs, CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import LocationSelector from '@/components/location/LocationSelector';
 import BioGenerator from '@/components/profile/BioGenerator';
+import { filterScenePairings } from '@/components/profiles/ScenePairingFilter';
 
 const genderOptions = [
   { value: 'woman', label: 'Female' },
@@ -250,6 +251,9 @@ export default function Profile() {
     const orientations = editData.orientation_category || [];
     return pos.showFor.some(o => orientations.includes(o));
   };
+
+  // Filter scene pairings based on gender identity
+  const filteredScenePairings = filterScenePairings(editData.gender_identity, scenePairings);
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
@@ -544,7 +548,7 @@ export default function Profile() {
                   </div>
                   <div className="space-y-3">
                     <div className="flex flex-wrap gap-2">
-                      {scenePairings.map(sp => (
+                      {filteredScenePairings.map(sp => (
                         <CCButton
                           key={sp.value}
                           variant={editData.scene_pairings?.includes(sp.value) ? 'primary' : 'outline'}
