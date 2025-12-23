@@ -50,14 +50,6 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
                   <Settings className="w-5 h-5" />
                 </CCButton>
               </Link>
-              <Link to={createPageUrl('Profile')}>
-                <CCAvatar
-                  src={profile?.avatar_url}
-                  alt={profile?.display_name}
-                  size="sm"
-                  verified={profile?.verified}
-                />
-              </Link>
             </>
           ) : (
             <>

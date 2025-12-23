@@ -172,10 +172,12 @@ export default function ViewProfile() {
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Cover & Avatar */}
       <div className="relative">
-        <div className="h-48 md:h-64 bg-gradient-to-br from-[#4F8CFF]/30 to-[#FF2DAA]/30">
-          {profile.cover_url && (
-            <img src={profile.cover_url} alt="" className="w-full h-full object-cover" />
-          )}
+        <div className="h-48 md:h-64">
+          <img 
+            src={profile.cover_url || "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69495df631e52046b1356040/730e18d7f_image.png"}
+            alt="Cover" 
+            className="w-full h-full object-cover" 
+          />
         </div>
         <div className="max-w-4xl mx-auto px-4">
           <div className="relative -mt-16 md:-mt-20 flex flex-col md:flex-row md:items-end gap-4">

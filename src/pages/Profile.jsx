@@ -254,11 +254,34 @@ export default function Profile() {
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Cover & Avatar */}
       <div className="relative">
-        <div className="h-48 md:h-64 relative overflow-hidden bg-gradient-to-r from-[#1E5BA8] via-[#6B4C9A] to-[#E91E63] flex items-center justify-center">
+        <div className="h-48 md:h-64 relative overflow-hidden group">
           <img 
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69495df631e52046b1356040/cb721c5ac_image.png"
-            alt="CC Logo"
-            className="w-24 h-24 md:w-32 md:h-32 object-contain"
+            src={profile?.cover_url || "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69495df631e52046b1356040/730e18d7f_image.png"}
+            alt="Cover"
+            className="w-full h-full object-cover"
+          />
+          <button 
+            onClick={() => document.getElementById('cover-upload').click()}
+            className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+          >
+            <div className="text-center text-white">
+              <Camera className="w-8 h-8 mx-auto mb-2" />
+              <p className="text-sm font-medium">Change Cover</p>
+              <p className="text-xs text-gray-300 mt-1">Recommended: 1500x400px (Web) / 800x300px (Mobile)</p>
+            </div>
+          </button>
+          <input
+            id="cover-upload"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                updateProfileMutation.mutate({ cover_url: file_url });
+              }
+            }}
           />
         </div>
         <div className="max-w-4xl mx-auto px-4">
