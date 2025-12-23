@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
 import { 
   ShieldCheck, 
@@ -48,6 +50,25 @@ const stats = [
 ];
 
 export default function Landing() {
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: async () => {
+      const isAuth = await base44.auth.isAuthenticated();
+      if (!isAuth) return null;
+      return base44.auth.me();
+    },
+  });
+
+  // Redirect authenticated users to Discovery
+  React.useEffect(() => {
+    if (user) {
+      window.location.href = createPageUrl('Discovery');
+    }
+  }, [user]);
+
+  // Don't render landing page if user is authenticated
+  if (user) return null;
+
   return (
     <div className="min-h-screen bg-[#0B0F14]">
       {/* Hero Section */}
