@@ -445,10 +445,10 @@ export default function Collaborations() {
                             Delete
                           </CCButton>
                         </div>
-                        <Link to={createPageUrl(`ViewCollaboration?id=${room.id}`)}>
-                          <span className="text-sm text-[#4F8CFF] flex items-center gap-1">
-                            View Details <ChevronRight className="w-4 h-4" />
-                          </span>
+                        <Link to={createPageUrl(`CollaborationDetail?id=${room.id}`)}>
+                          <CCButton variant="primary" size="sm">
+                            View Details
+                          </CCButton>
                         </Link>
                       </div>
                     </CCCard>
