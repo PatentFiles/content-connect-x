@@ -142,7 +142,6 @@ export default function Profile() {
         looking_for_genders: editData.looking_for_genders || details?.looking_for_genders,
         collab_types: editData.collab_types || details?.collab_types,
         tags: editData.tags || details?.tags,
-        socials: editData.socials || details?.socials,
       };
       updateDetailsMutation.mutate(creatorData);
     }
@@ -223,6 +222,7 @@ export default function Profile() {
                       orientation_category: details?.orientation_category,
                       looking_for_genders: details?.looking_for_genders || [],
                       collab_types: details?.collab_types || [],
+                      tags: details?.tags || [],
                       socials: details?.socials || {},
                     });
                     setIsEditing(true);
@@ -283,20 +283,53 @@ export default function Profile() {
                     </div>
                     {profile?.role_type === 'creator' && (
                       <>
-                        <CCSelect
-                          label="Gender"
-                          options={genderOptions}
-                          value={editData.gender_identity || ''}
-                          onChange={(e) => setEditData({...editData, gender_identity: e.target.value})}
-                          placeholder="Select gender"
-                        />
-                        <CCSelect
-                          label="Sexuality"
-                          options={orientationOptions}
-                          value={editData.orientation_category || ''}
-                          onChange={(e) => setEditData({...editData, orientation_category: e.target.value})}
-                          placeholder="Select sexuality"
-                        />
+                        <div className="grid grid-cols-2 gap-3">
+                          <CCSelect
+                            label="Gender"
+                            options={genderOptions}
+                            value={editData.gender_identity || ''}
+                            onChange={(e) => setEditData({...editData, gender_identity: e.target.value})}
+                            placeholder="Select gender"
+                          />
+                          <CCSelect
+                            label="Sexuality"
+                            options={orientationOptions}
+                            value={editData.orientation_category || ''}
+                            onChange={(e) => setEditData({...editData, orientation_category: e.target.value})}
+                            placeholder="Select sexuality"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Collaboration Types</label>
+                          <div className="flex flex-wrap gap-2">
+                            {collabTypes.map(type => (
+                              <CCButton
+                                key={type.value}
+                                variant={editData.collab_types?.includes(type.value) ? 'primary' : 'outline'}
+                                size="sm"
+                                onClick={() => {
+                                  const current = editData.collab_types || [];
+                                  const updated = current.includes(type.value)
+                                    ? current.filter(v => v !== type.value)
+                                    : [...current, type.value];
+                                  setEditData({...editData, collab_types: updated});
+                                }}
+                              >
+                                {type.label}
+                              </CCButton>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Personality & Specialties</label>
+                          <input
+                            type="text"
+                            value={editData.tags?.join(', ') || ''}
+                            onChange={(e) => setEditData({...editData, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean)})}
+                            className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                            placeholder="e.g., Kinky, Fetish-friendly, BDSM (comma separated)"
+                          />
+                        </div>
                       </>
                     )}
                     <div>
@@ -309,7 +342,8 @@ export default function Profile() {
                       />
                     </div>
                     <BioGenerator 
-                      currentBio={editData.bio}
+                      profile={profile}
+                      details={details}
                       onSelectBio={(bio) => setEditData({...editData, bio})}
                     />
                     <LocationSelector
@@ -329,6 +363,12 @@ export default function Profile() {
                         <p className="text-[#E8EEF9] mt-1">{profile.age}</p>
                       </div>
                     )}
+                    {profile?.ethnicity && (
+                      <div>
+                        <p className="text-sm text-[#6B7A94]">Ethnicity</p>
+                        <p className="text-[#E8EEF9] mt-1">{profile.ethnicity}</p>
+                      </div>
+                    )}
                     {profile?.role_type === 'creator' && details?.gender_identity && (
                       <div>
                         <p className="text-sm text-[#6B7A94]">Gender</p>
@@ -341,16 +381,6 @@ export default function Profile() {
                         <p className="text-[#E8EEF9] mt-1 capitalize">{details.orientation_category.replace('_', ' ')}</p>
                       </div>
                     )}
-                    {profile?.ethnicity && (
-                      <div>
-                        <p className="text-sm text-[#6B7A94]">Ethnicity</p>
-                        <p className="text-[#E8EEF9] mt-1">{profile.ethnicity}</p>
-                      </div>
-                    )}
-                    <div>
-                      <p className="text-sm text-[#6B7A94]">Bio</p>
-                      <p className="text-[#E8EEF9] mt-1">{profile?.bio || 'No bio yet'}</p>
-                    </div>
                     {profile?.role_type === 'creator' && details?.collab_types && details.collab_types.length > 0 && (
                       <div>
                         <p className="text-sm text-[#6B7A94]">Collaboration Types</p>
@@ -374,6 +404,10 @@ export default function Profile() {
                       </div>
                     )}
                     <div>
+                      <p className="text-sm text-[#6B7A94]">Bio</p>
+                      <p className="text-[#E8EEF9] mt-1">{profile?.bio || 'No bio yet'}</p>
+                    </div>
+                    <div>
                       <p className="text-sm text-[#6B7A94]">Location</p>
                       <p className="text-[#E8EEF9] mt-1 flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
@@ -387,72 +421,7 @@ export default function Profile() {
               </div>
             </CCCard>
 
-            {/* Creator Details */}
-            {profile?.role_type === 'creator' && (
-              <CCCard padding="lg" className="md:col-span-2">
-                <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Creator Details</h3>
-                <div className="space-y-4">
-                  {isEditing ? (
-                    <>
-                      <CCSelect
-                        label="Gender Identity"
-                        options={genderOptions}
-                        value={editData.gender_identity || ''}
-                        onChange={(e) => setEditData({...editData, gender_identity: e.target.value})}
-                      />
-                      <CCSelect
-                        label="Sexuality"
-                        options={orientationOptions}
-                        value={editData.orientation_category || ''}
-                        onChange={(e) => setEditData({...editData, orientation_category: e.target.value})}
-                      />
-                      <div>
-                        <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Collaboration Types</label>
-                        <div className="flex flex-wrap gap-2">
-                          {collabTypes.map(type => (
-                            <CCButton
-                              key={type.value}
-                              variant={editData.collab_types?.includes(type.value) ? 'primary' : 'outline'}
-                              size="sm"
-                              onClick={() => {
-                                const current = editData.collab_types || [];
-                                const updated = current.includes(type.value)
-                                  ? current.filter(v => v !== type.value)
-                                  : [...current, type.value];
-                                setEditData({...editData, collab_types: updated});
-                              }}
-                            >
-                              {type.label}
-                            </CCButton>
-                          ))}
-                        </div>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div>
-                        <p className="text-sm text-[#6B7A94]">Gender Identity</p>
-                        <p className="text-[#E8EEF9] mt-1 capitalize">{details?.gender_identity?.replace('_', ' ') || 'Not set'}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-[#6B7A94]">Sexuality</p>
-                        <p className="text-[#E8EEF9] mt-1 capitalize">{details?.orientation_category?.replace('_', ' ') || 'Not set'}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-[#6B7A94]">Collaboration Types</p>
-                        <div className="flex gap-2 mt-2">
-                          {details?.collab_types?.map(type => (
-                            <CCBadge key={type} variant={type === 'paid' ? 'success' : type === 'trade' ? 'warning' : 'default'}>
-                              {type}
-                            </CCBadge>
-                          )) || <span className="text-[#6B7A94]">Not set</span>}
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </CCCard>
-            )}
+
 
           </div>
         </CCTabsContent>
