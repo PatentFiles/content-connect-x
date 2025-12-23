@@ -16,7 +16,10 @@ import {
   Calendar,
   DollarSign,
   Edit,
-  Trash2
+  Trash2,
+  Search,
+  SlidersHorizontal,
+  ArrowUpDown
 } from 'lucide-react';
 import { toast } from 'sonner';
 import CCButton from '@/components/ui-custom/CCButton';
@@ -40,6 +43,11 @@ const statusConfig = {
 
 export default function Collaborations() {
   const [filter, setFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('created_date');
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [dateRange, setDateRange] = useState({ start: '', end: '' });
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [collaborationToDelete, setCollaborationToDelete] = useState(null);
   const queryClient = useQueryClient();
@@ -129,9 +137,62 @@ export default function Collaborations() {
     return <AccessGate type="subscription" />;
   }
 
-  const filteredRooms = filter === 'all' 
-    ? collaborations 
-    : collaborations.filter(r => r.status === filter);
+  // Filter and sort collaborations
+  let filteredRooms = collaborations;
+
+  // Status filter
+  if (filter !== 'all') {
+    filteredRooms = filteredRooms.filter(r => r.status === filter);
+  }
+
+  // Keyword search
+  if (searchKeyword) {
+    const keyword = searchKeyword.toLowerCase();
+    filteredRooms = filteredRooms.filter(r => 
+      r.collaboration_name?.toLowerCase().includes(keyword) ||
+      r.scene_type?.toLowerCase().includes(keyword) ||
+      r.acts_selected?.some(act => act.toLowerCase().includes(keyword)) ||
+      r.scene_selected?.some(scene => scene.toLowerCase().includes(keyword))
+    );
+  }
+
+  // Date range filter
+  if (dateRange.start) {
+    filteredRooms = filteredRooms.filter(r => 
+      new Date(r.created_date) >= new Date(dateRange.start)
+    );
+  }
+  if (dateRange.end) {
+    filteredRooms = filteredRooms.filter(r => 
+      new Date(r.created_date) <= new Date(dateRange.end)
+    );
+  }
+
+  // Role filter
+  if (roleFilter !== 'all') {
+    filteredRooms = filteredRooms.filter(r => {
+      const participantProfiles = r.participant_ids?.map(id => 
+        profiles.find(p => p.user_id === id)
+      ).filter(Boolean);
+      return participantProfiles?.some(p => p.role_type === roleFilter);
+    });
+  }
+
+  // Sort
+  filteredRooms = [...filteredRooms].sort((a, b) => {
+    switch (sortBy) {
+      case 'created_date':
+        return new Date(b.created_date) - new Date(a.created_date);
+      case 'updated_date':
+        return new Date(b.updated_date || b.created_date) - new Date(a.updated_date || a.created_date);
+      case 'status':
+        return (a.status || '').localeCompare(b.status || '');
+      case 'name':
+        return (a.collaboration_name || '').localeCompare(b.collaboration_name || '');
+      default:
+        return 0;
+    }
+  });
 
   const getParticipantAvatars = (room) => {
     return room.participant_ids?.map(id => {
@@ -162,7 +223,7 @@ export default function Collaborations() {
             </Link>
           </div>
 
-          {/* Filters */}
+          {/* Quick Status Filters */}
           <div className="flex gap-2 justify-center items-center overflow-x-auto pb-2 scrollbar-hide">
             {['all', 'draft', 'negotiating', 'agreed', 'signed', 'completed'].map((status) => (
               <CCButton
@@ -174,6 +235,99 @@ export default function Collaborations() {
                 {status === 'all' ? 'All' : statusConfig[status]?.label}
               </CCButton>
             ))}
+          </div>
+
+          {/* Search and Advanced Filters */}
+          <div className="mt-3 space-y-3">
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7A94]" />
+                <input
+                  type="text"
+                  placeholder="Search collaborations..."
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                  className="w-full bg-[#121824] border border-[#263248] rounded-lg pl-10 pr-4 py-2 text-sm text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                />
+              </div>
+              <CCButton
+                variant={showAdvancedFilters ? 'primary' : 'outline'}
+                size="sm"
+                icon={SlidersHorizontal}
+                onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+              >
+                Filters
+              </CCButton>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="bg-[#121824] border border-[#263248] rounded-lg px-3 py-2 text-sm text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+              >
+                <option value="created_date">Latest</option>
+                <option value="updated_date">Last Activity</option>
+                <option value="status">Status</option>
+                <option value="name">Name</option>
+              </select>
+            </div>
+
+            {/* Advanced Filters Panel */}
+            {showAdvancedFilters && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="bg-[#121824] border border-[#263248] rounded-lg p-4 space-y-3"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs text-[#6B7A94] mb-1">Role</label>
+                    <select
+                      value={roleFilter}
+                      onChange={(e) => setRoleFilter(e.target.value)}
+                      className="w-full bg-[#0B0F14] border border-[#263248] rounded-lg px-3 py-2 text-sm text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                    >
+                      <option value="all">All Roles</option>
+                      <option value="creator">Creator</option>
+                      <option value="agent">Agent</option>
+                      <option value="studio">Studio</option>
+                      <option value="photographer">Photographer</option>
+                      <option value="videographer">Videographer</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-[#6B7A94] mb-1">From Date</label>
+                    <input
+                      type="date"
+                      value={dateRange.start}
+                      onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
+                      className="w-full bg-[#0B0F14] border border-[#263248] rounded-lg px-3 py-2 text-sm text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-[#6B7A94] mb-1">To Date</label>
+                    <input
+                      type="date"
+                      value={dateRange.end}
+                      onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
+                      className="w-full bg-[#0B0F14] border border-[#263248] rounded-lg px-3 py-2 text-sm text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end">
+                  <CCButton
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setSearchKeyword('');
+                      setDateRange({ start: '', end: '' });
+                      setRoleFilter('all');
+                    }}
+                  >
+                    Clear Filters
+                  </CCButton>
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
