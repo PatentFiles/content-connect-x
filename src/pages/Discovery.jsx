@@ -11,6 +11,19 @@ import ProfileCard from '@/components/profiles/ProfileCard';
 import ProfileFilters from '@/components/profiles/ProfileFilters';
 import AccessGate from '@/components/auth/AccessGate';
 
+// Calculate distance between two coordinates in miles
+function calculateDistance(lat1, lon1, lat2, lon2) {
+  const R = 3959; // Radius of Earth in miles
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
 export default function Discovery() {
   const [filters, setFilters] = useState({
     roleTypes: [],
@@ -66,7 +79,7 @@ export default function Discovery() {
     queryKey: ['allProfiles'],
     queryFn: async () => {
       let profiles = await base44.entities.UserProfile.filter({ profile_complete: true });
-      return profiles.filter(p => p.user_id !== user?.email);
+      return profiles.filter(p => p.user_id !== user?.email && p.role_type !== 'admin');
     },
     enabled: !!user && isVerified && isSubscribed,
   });
@@ -93,7 +106,11 @@ export default function Discovery() {
       filtered = filtered.filter(p => {
         if (p.role_type !== 'creator') return true;
         const details = allCreatorDetails.find(d => d.user_id === p.user_id);
-        return details && filters.orientations.includes(details.orientation_category);
+        if (!details || !details.orientation_category) return false;
+        // orientation_category is an array, check if any match
+        return Array.isArray(details.orientation_category) 
+          ? details.orientation_category.some(o => filters.orientations.includes(o))
+          : filters.orientations.includes(details.orientation_category);
       });
     }
     
@@ -150,7 +167,20 @@ export default function Discovery() {
       );
     }
     
-    // Location filters
+    // Location filters - only if nearMe or explicit location is set
+    const myLocation = myProfile?.[0]?.base_location;
+    if (filters.nearMe && myLocation?.lat && myLocation?.lng) {
+      // Filter by distance
+      filtered = filtered.filter(p => {
+        if (!p.base_location?.lat || !p.base_location?.lng) return false;
+        const distance = calculateDistance(
+          myLocation.lat, myLocation.lng,
+          p.base_location.lat, p.base_location.lng
+        );
+        return distance <= 100; // 100 miles
+      });
+    }
+    
     if (filters.city) {
       filtered = filtered.filter(p => 
         p.base_location?.city?.toLowerCase().includes(filters.city.toLowerCase())
@@ -163,7 +193,17 @@ export default function Discovery() {
     }
     
     // Sort
-    if (filters.sortBy === 'recently_active') {
+    if (filters.sortBy === 'distance' && myLocation?.lat && myLocation?.lng) {
+      filtered.sort((a, b) => {
+        const distA = a.base_location?.lat && a.base_location?.lng
+          ? calculateDistance(myLocation.lat, myLocation.lng, a.base_location.lat, a.base_location.lng)
+          : 999999;
+        const distB = b.base_location?.lat && b.base_location?.lng
+          ? calculateDistance(myLocation.lat, myLocation.lng, b.base_location.lat, b.base_location.lng)
+          : 999999;
+        return distA - distB;
+      });
+    } else if (filters.sortBy === 'recently_active') {
       filtered.sort((a, b) => 
         new Date(b.last_active_at || 0) - new Date(a.last_active_at || 0)
       );
@@ -277,12 +317,16 @@ export default function Discovery() {
               const details = creatorDetails.find(d => d.user_id === profile.user_id);
               const verification = allVerifications.find(v => v.user_id === profile.user_id);
               const isVerified = verification?.status === 'approved';
+              const myLocation = myProfile?.[0]?.base_location;
+              const distance = myLocation?.lat && myLocation?.lng && profile.base_location?.lat && profile.base_location?.lng
+                ? calculateDistance(myLocation.lat, myLocation.lng, profile.base_location.lat, profile.base_location.lng)
+                : undefined;
               return (
                 <ProfileCard
                   key={profile.id}
                   profile={{...profile, verified: isVerified}}
                   creatorDetails={details}
-                  distance={Math.random() * 50}
+                  distance={distance}
                   onFavorite={(p) => console.log('Favorite:', p)}
                   onMessage={(p) => console.log('Message:', p)}
                 />
