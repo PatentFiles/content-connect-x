@@ -194,6 +194,7 @@ export default function Profile() {
 
   const handleSave = () => {
     const profileData = {
+      real_name: editData.real_name || profile?.real_name,
       display_name: editData.display_name || profile?.display_name,
       age: editData.age || profile?.age,
       ethnicity: editData.ethnicity || profile?.ethnicity,
@@ -349,6 +350,7 @@ export default function Profile() {
                   icon={isEditing ? Save : Edit2}
                   onClick={isEditing ? handleSave : () => {
                     setEditData({
+                      real_name: profile?.real_name,
                       display_name: profile?.display_name,
                       age: profile?.age,
                       ethnicity: profile?.ethnicity,
@@ -399,6 +401,17 @@ export default function Profile() {
               <div className="space-y-4">
                 {isEditing ? (
                   <>
+                    <div>
+                      <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Real Name</label>
+                      <input
+                        type="text"
+                        value={editData.real_name || ''}
+                        onChange={(e) => setEditData({...editData, real_name: e.target.value})}
+                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                        placeholder="Your legal name (only visible to admins)"
+                      />
+                      <p className="text-xs text-[#6B7A94] mt-1">This will only be visible to platform administrators</p>
+                    </div>
                     <div>
                       <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Display Name</label>
                       <input

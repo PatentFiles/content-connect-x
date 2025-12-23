@@ -162,6 +162,12 @@ function UserManagement({ currentUser }) {
                   >
                     {/* User Info Grid */}
                     <div className="grid grid-cols-2 gap-3 text-sm">
+                      {profile?.real_name && (
+                        <div>
+                          <p className="text-[#6B7A94]">Real Name</p>
+                          <p className="text-[#E8EEF9]">{profile.real_name}</p>
+                        </div>
+                      )}
                       {profile?.age && (
                         <div>
                           <p className="text-[#6B7A94]">Age</p>
