@@ -70,9 +70,18 @@ export default function ProfileCard({
             {/* Role Badge */}
             {profile.role_type && (
               <div className="absolute top-3 left-3">
-                <CCBadge variant={roleColors[profile.role_type] || 'default'} size="sm">
-                  {roleLabels[profile.role_type] || profile.role_type}
-                </CCBadge>
+                <div className="bg-black/70 backdrop-blur-sm rounded-full px-3 py-1">
+                  <span className={`text-xs font-semibold ${
+                    profile.role_type === 'creator' ? 'text-[#4F8CFF]' :
+                    profile.role_type === 'agent' ? 'text-[#FF2DAA]' :
+                    profile.role_type === 'studio' ? 'text-[#22C55E]' :
+                    profile.role_type === 'photographer' ? 'text-[#F59E0B]' :
+                    profile.role_type === 'videographer' ? 'text-[#EF4444]' :
+                    'text-white'
+                  }`}>
+                    {roleLabels[profile.role_type] || profile.role_type}
+                  </span>
+                </div>
               </div>
             )}
 
