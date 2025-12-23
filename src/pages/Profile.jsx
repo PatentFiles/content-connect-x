@@ -318,7 +318,18 @@ export default function Profile() {
                 </h1>
                 <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
                   {profile?.role_type && (
-                    <CCBadge variant="accent">{profile.role_type}</CCBadge>
+                    <CCBadge 
+                      variant={
+                        profile.role_type === 'creator' ? 'primary' :
+                        profile.role_type === 'agent' ? 'accent' :
+                        profile.role_type === 'studio' ? 'success' :
+                        profile.role_type === 'photographer' ? 'warning' :
+                        profile.role_type === 'videographer' ? 'danger' :
+                        'default'
+                      }
+                    >
+                      {profile.role_type}
+                    </CCBadge>
                   )}
                   {isVerified && (
                     <CCBadge variant="success" icon={Shield}>Verified</CCBadge>
