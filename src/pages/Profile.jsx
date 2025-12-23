@@ -180,9 +180,6 @@ export default function Profile() {
                 verified={isVerified}
                 className="ring-4 ring-[#0B0F14]"
               />
-              <button className="absolute bottom-0 right-0 p-2 bg-[#4F8CFF] rounded-full text-white">
-                <Camera className="w-4 h-4" />
-              </button>
             </div>
             <div className="flex-1 pb-2">
               <div className="flex items-start justify-between">
@@ -200,7 +197,7 @@ export default function Profile() {
                   </div>
                 </div>
                 <CCButton
-                  variant={isEditing ? 'primary' : 'outline'}
+                  variant="primary"
                   icon={isEditing ? Save : Edit2}
                   onClick={isEditing ? handleSave : () => {
                     setEditData({
