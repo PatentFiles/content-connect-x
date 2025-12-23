@@ -1,36 +1,37 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { 
-  Compass, 
-  Search, 
-  MessageCircle, 
-  FileText, 
-  User,
-  Briefcase,
-  Heart
-} from 'lucide-react';
-
-const navItems = [
-  { name: 'Discover', page: 'Discovery', icon: Compass },
-  { name: 'Search', page: 'Search', icon: Search },
-  { name: 'Messages', page: 'Messages', icon: MessageCircle },
-  { name: 'Collaborations', page: 'DealRooms', icon: Briefcase },
-  { name: 'Profile', page: 'Profile', icon: User },
-];
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { getNavigationForRole } from '../utils/roleNavConfig';
 
 export default function BottomNav({ currentPage }) {
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['myProfile', user?.email],
+    queryFn: () => base44.entities.UserProfile.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+
+  const profile = profiles[0];
+  const roleType = profile?.role_type || 'creator';
+  const allNavItems = getNavigationForRole(roleType);
+  const navItems = allNavItems.slice(0, 5);
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#0B0F14]/95 backdrop-blur-xl border-t border-[#263248] md:hidden">
       <div className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
-          const isActive = currentPage === item.page;
+          const isActive = currentPage === item.path;
           return (
             <Link
-              key={item.page}
-              to={createPageUrl(item.page)}
+              key={item.path}
+              to={createPageUrl(item.path)}
               className={cn(
                 'relative flex flex-col items-center justify-center w-full h-full gap-1',
                 'transition-colors duration-200',
@@ -45,7 +46,7 @@ export default function BottomNav({ currentPage }) {
                 />
               )}
               <item.icon className={cn('w-5 h-5', isActive && 'text-[#4F8CFF]')} />
-              <span className="text-[10px] font-medium">{item.name}</span>
+              <span className="text-[10px] font-medium">{item.label}</span>
             </Link>
           );
         })}

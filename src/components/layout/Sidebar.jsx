@@ -4,44 +4,22 @@ import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { 
-  Compass, 
-  Search, 
-  MessageCircle, 
-  FileText, 
-  User,
-  Briefcase,
-  Heart,
-  Settings,
-  Shield,
   LogOut,
   ChevronRight,
-  Users,
-  Building,
-  Camera
+  Shield,
+  ExternalLink
 } from 'lucide-react';
 import CCAvatar from '../ui-custom/CCAvatars';
 import CCBadge from '../ui-custom/CCBadge';
-
-const mainNavItems = [
-  { name: 'Discover', page: 'Discovery', icon: Compass },
-  { name: 'Search', page: 'Search', icon: Search },
-  { name: 'Messages', page: 'Messages', icon: MessageCircle },
-  { name: 'Collaborations', page: 'DealRooms', icon: Briefcase },
-  { name: 'Contracts', page: 'Contracts', icon: FileText },
-  { name: 'Favorites', page: 'Shortlists', icon: Heart },
-];
+import { getNavigationForRole } from '../utils/roleNavConfig';
 
 const adminNavItems = [
   { name: 'Admin Dashboard', page: 'AdminDashboard', icon: Shield },
 ];
 
-const settingsItems = [
-  { name: 'My Profile', page: 'Profile', icon: User },
-  { name: 'Settings', page: 'Settings', icon: Settings },
-  { name: 'Verification', page: 'Verification', icon: Shield },
-];
-
 export default function Sidebar({ currentPage, profile, onLogout }) {
+  const roleType = profile?.role_type || 'creator';
+  const navItems = getNavigationForRole(roleType);
   return (
     <aside className="hidden md:flex fixed left-0 top-16 bottom-0 w-64 bg-[#121824] border-r border-[#263248] flex-col">
       {/* Profile Section */}
@@ -56,9 +34,18 @@ export default function Sidebar({ currentPage, profile, onLogout }) {
             />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-[#E8EEF9] truncate">{profile.display_name || 'Set up profile'}</p>
-              <p className="text-xs text-[#6B7A94] capitalize">{profile.role_type}</p>
+              <CCBadge variant="outline" size="sm" className="mt-1 capitalize">
+                {profile.role_type}
+              </CCBadge>
             </div>
             <ChevronRight className="w-4 h-4 text-[#6B7A94]" />
+          </Link>
+          <Link 
+            to={createPageUrl(`ViewProfile?id=${profile.user_id}`)} 
+            className="mt-2 flex items-center gap-2 text-xs text-[#4F8CFF] hover:text-[#3A7AEE] px-2"
+          >
+            <ExternalLink className="w-3 h-3" />
+            View Public Profile
           </Link>
         </div>
       )}
@@ -97,13 +84,12 @@ export default function Sidebar({ currentPage, profile, onLogout }) {
             <div className="pb-2 mb-2 border-b border-[#263248]" />
           </>
         )}
-        <p className="text-xs font-medium text-[#6B7A94] uppercase tracking-wider px-3 mb-2">Main</p>
-        {mainNavItems.map((item) => {
-          const isActive = currentPage === item.page;
+        {navItems.map((item) => {
+          const isActive = currentPage === item.path;
           return (
             <Link
-              key={item.page}
-              to={createPageUrl(item.page)}
+              key={item.path}
+              to={createPageUrl(item.path)}
               className={cn(
                 'relative flex items-center gap-3 px-3 py-2.5 rounded-lg',
                 'transition-colors duration-200',
@@ -120,38 +106,10 @@ export default function Sidebar({ currentPage, profile, onLogout }) {
                 />
               )}
               <item.icon className="w-5 h-5" />
-              <span className="text-sm font-medium">{item.name}</span>
-              {item.badge && (
-                <CCBadge variant="accent" size="sm" className="ml-auto">
-                  {item.badge}
-                </CCBadge>
-              )}
+              <span className="text-sm font-medium">{item.label}</span>
             </Link>
           );
         })}
-
-        <div className="pt-4 mt-4 border-t border-[#263248]">
-          <p className="text-xs font-medium text-[#6B7A94] uppercase tracking-wider px-3 mb-2">Account</p>
-          {settingsItems.map((item) => {
-            const isActive = currentPage === item.page;
-            return (
-              <Link
-                key={item.page}
-                to={createPageUrl(item.page)}
-                className={cn(
-                  'relative flex items-center gap-3 px-3 py-2.5 rounded-lg',
-                  'transition-colors duration-200',
-                  isActive 
-                    ? 'bg-[#4F8CFF]/10 text-[#4F8CFF]' 
-                    : 'text-[#9AA6BC] hover:bg-[#151D2B] hover:text-[#E8EEF9]'
-                )}
-              >
-                <item.icon className="w-5 h-5" />
-                <span className="text-sm font-medium">{item.name}</span>
-              </Link>
-            );
-          })}
-        </div>
       </nav>
 
       {/* Logout */}
