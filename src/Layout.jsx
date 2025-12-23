@@ -70,7 +70,7 @@ export default function Layout({ children, currentPageName }) {
   const isAuthenticated = !!user;
 
   const handleLogout = () => {
-    base44.auth.logout();
+    base44.auth.logout(createPageUrl('Landing'));
   };
 
   // For public pages, show minimal layout
