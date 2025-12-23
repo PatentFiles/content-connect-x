@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { Menu, X, Bell, Settings } from 'lucide-react';
 import CCButton from '../ui-custom/CCButton';
 import CCAvatar from '../ui-custom/CCAvatars';
+import NotificationBell from '../notifications/NotificationBell';
 import NotificationsDropdown from './NotificationsDropdown';
 
 export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, menuOpen }) {

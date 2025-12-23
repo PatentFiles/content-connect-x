@@ -40,7 +40,10 @@ export default function Portfolio() {
     location_city: '',
     location_state: '',
     custom_tags: [],
+    media_type: 'image',
   });
+  const [videoFile, setVideoFile] = useState(null);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
   const queryClient = useQueryClient();
 
   const { data: user, isLoading: userLoading } = useQuery({
@@ -301,12 +304,25 @@ export default function Portfolio() {
                                   <Star className="w-5 h-5 text-[#F59E0B] fill-[#F59E0B]" />
                                 </div>
                               )}
-                              <div className="aspect-video bg-[#151D2B]">
-                                <img 
-                                  src={item.thumbnail_url || item.media_url} 
-                                  alt={item.title}
-                                  className="w-full h-full object-cover"
-                                />
+                              <div className="aspect-video bg-[#151D2B] relative group">
+                                {item.media_type === 'video' ? (
+                                  <>
+                                    <img 
+                                      src={item.thumbnail_url || item.media_url} 
+                                      alt={item.title}
+                                      className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <Video className="w-12 h-12 text-white" />
+                                    </div>
+                                  </>
+                                ) : (
+                                  <img 
+                                    src={item.thumbnail_url || item.media_url} 
+                                    alt={item.title}
+                                    className="w-full h-full object-cover"
+                                  />
+                                )}
                               </div>
                             </div>
                             <div className="p-4">

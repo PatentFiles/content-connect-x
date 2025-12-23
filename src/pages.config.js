@@ -20,6 +20,7 @@ import ViewProfile from './pages/ViewProfile';
 import Representations from './pages/Representations';
 import RosterPortfolio from './pages/RosterPortfolio';
 import Portfolio from './pages/Portfolio';
+import Notifications from './pages/Notifications';
 import __Layout from './Layout.jsx';
 
 
@@ -46,6 +47,7 @@ export const PAGES = {
     "Representations": Representations,
     "RosterPortfolio": RosterPortfolio,
     "Portfolio": Portfolio,
+    "Notifications": Notifications,
 }
 
 export const pagesConfig = {
