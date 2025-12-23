@@ -37,7 +37,14 @@ export default function UserManager({ currentUser }) {
   });
 
   const toggleAdminMutation = useMutation({
-    mutationFn: ({ id, isAdmin }) => base44.entities.UserProfile.update(id, { is_admin: !isAdmin }),
+    mutationFn: ({ id, isAdmin, currentRoleType }) => {
+      const updates = { is_admin: !isAdmin };
+      // If removing admin and role_type is "admin", change it to "creator"
+      if (isAdmin && currentRoleType === 'admin') {
+        updates.role_type = 'creator';
+      }
+      return base44.entities.UserProfile.update(id, updates);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries(['allProfiles']);
       toast.success('Admin status updated');
@@ -140,7 +147,11 @@ export default function UserManager({ currentUser }) {
                           variant={profile.is_admin ? 'warning' : 'primary'}
                           size="sm"
                           icon={Crown}
-                          onClick={() => toggleAdminMutation.mutate({ id: profile.id, isAdmin: profile.is_admin })}
+                          onClick={() => toggleAdminMutation.mutate({ 
+                            id: profile.id, 
+                            isAdmin: profile.is_admin,
+                            currentRoleType: profile.role_type
+                          })}
                           loading={toggleAdminMutation.isPending}
                         >
                           {profile.is_admin ? 'Remove Admin' : 'Make Admin'}
