@@ -21,7 +21,7 @@ import ExportManager from '@/components/collaboration/ExportManager';
 
 export default function CollaborationDetail() {
   const [searchParams] = useSearchParams();
-  const dealRoomId = searchParams.get('id');
+  const collaborationId = searchParams.get('id');
   const [activeTab, setActiveTab] = useState('tasks');
 
   const { data: user, isLoading: userLoading } = useQuery({
@@ -29,42 +29,42 @@ export default function CollaborationDetail() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: dealRooms = [], isLoading: dealRoomLoading } = useQuery({
-    queryKey: ['dealRoom', dealRoomId],
-    queryFn: () => base44.entities.DealRoom.filter({ id: dealRoomId }),
-    enabled: !!dealRoomId,
+  const { data: collaborations = [], isLoading: collaborationLoading } = useQuery({
+    queryKey: ['collaboration', collaborationId],
+    queryFn: () => base44.entities.Collaboration.filter({ id: collaborationId }),
+    enabled: !!collaborationId,
   });
 
-  const dealRoom = dealRooms[0];
+  const collaboration = collaborations[0];
 
   const { data: profiles = [] } = useQuery({
-    queryKey: ['participantProfiles', dealRoom?.participant_ids],
+    queryKey: ['participantProfiles', collaboration?.participant_ids],
     queryFn: async () => {
-      if (!dealRoom?.participant_ids?.length) return [];
+      if (!collaboration?.participant_ids?.length) return [];
       return await Promise.all(
-        dealRoom.participant_ids.map(id => 
+        collaboration.participant_ids.map(id => 
           base44.entities.UserProfile.filter({ user_id: id }).then(p => p[0])
         )
       );
     },
-    enabled: !!dealRoom?.participant_ids,
+    enabled: !!collaboration?.participant_ids,
   });
 
   const { data: participantRoles = [] } = useQuery({
-    queryKey: ['participantRoles', dealRoomId],
+    queryKey: ['participantRoles', collaborationId],
     queryFn: () => base44.entities.CollaborationParticipantRole.filter({
-      collaboration_id: dealRoomId
+      collaboration_id: collaborationId
     }),
-    enabled: !!dealRoomId,
+    enabled: !!collaborationId,
   });
 
   const userRole = participantRoles.find(r => r.user_id === user?.email)?.role || 'Viewer';
 
-  if (userLoading || dealRoomLoading) {
+  if (userLoading || collaborationLoading) {
     return <CCLoadingScreen message="Loading collaboration..." />;
   }
 
-  if (!dealRoom) {
+  if (!collaboration) {
     return (
       <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center">
         <CCCard padding="xl" className="text-center">
@@ -93,7 +93,7 @@ export default function CollaborationDetail() {
     disputed: { label: 'Disputed', variant: 'danger' },
   };
 
-  const status = statusConfig[dealRoom.status] || statusConfig.draft;
+  const status = statusConfig[collaboration.status] || statusConfig.draft;
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
@@ -110,23 +110,23 @@ export default function CollaborationDetail() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <h1 className="text-2xl font-bold text-[#E8EEF9]">
-                  {dealRoom.collaboration_name || 'Collaboration'}
+                  {collaboration.collaboration_name || 'Collaboration'}
                 </h1>
                 <CCBadge variant="outline" icon={Shield}>{userRole}</CCBadge>
               </div>
               <div className="flex items-center gap-3 flex-wrap">
                 <CCBadge variant={status.variant}>{status.label}</CCBadge>
-                {dealRoom.created_by_role === 'agent' && (
+                {collaboration.created_by_role === 'agent' && (
                   <CCBadge variant="accent">Created by Agent</CCBadge>
                 )}
                 <div className="flex items-center gap-1 text-sm text-[#9AA6BC]">
                   <Users className="w-4 h-4" />
-                  <span>{dealRoom.participant_ids?.length || 0} participants</span>
+                  <span>{collaboration.participant_ids?.length || 0} participants</span>
                 </div>
               </div>
             </div>
             
-            <Link to={`${createPageUrl('CreateCollaboration')}?edit=${dealRoom.id}`}>
+            <Link to={`${createPageUrl('CreateCollaboration')}?edit=${collaboration.id}`}>
               <CCButton variant="outline">Edit Details</CCButton>
             </Link>
           </div>
@@ -216,24 +216,24 @@ export default function CollaborationDetail() {
 
                 <div className="p-6">
                   {activeTab === 'tasks' && (
-                    <TaskManager dealRoomId={dealRoom.id} participants={dealRoom.participant_ids} />
+                    <TaskManager collaborationId={collaboration.id} participants={collaboration.participant_ids} />
                   )}
                   {activeTab === 'documents' && (
-                    <DocumentRepository dealRoomId={dealRoom.id} />
+                    <DocumentRepository collaborationId={collaboration.id} />
                   )}
                   {activeTab === 'calendar' && (
-                    <CollaborationCalendar dealRoomId={dealRoom.id} participants={dealRoom.participant_ids} />
+                    <CollaborationCalendar collaborationId={collaboration.id} participants={collaboration.participant_ids} />
                   )}
                   {activeTab === 'messages' && (
                     <CollaborationMessaging 
-                      collaborationId={dealRoom.id} 
+                      collaborationId={collaboration.id} 
                       currentUser={user}
                       userRole={userRole}
                     />
                   )}
                   {activeTab === 'roles' && (
                     <RolePermissions 
-                      collaborationId={dealRoom.id}
+                      collaborationId={collaboration.id}
                       currentUser={user}
                       currentUserRole={userRole}
                     />
@@ -246,23 +246,23 @@ export default function CollaborationDetail() {
           {/* Sidebar */}
           <div className="space-y-6">
             <CCCard padding="lg">
-              <ActivityFeed dealRoomId={dealRoom.id} />
+              <ActivityFeed collaborationId={collaboration.id} />
             </CCCard>
 
             {(userRole === 'Admin' || userRole === 'Member') && (
               <>
                 <CCCard padding="lg">
                   <ConfirmationManager 
-                    collaborationId={dealRoom.id}
+                    collaborationId={collaboration.id}
                     currentUser={user}
                     userRole={userRole}
-                    collaborationStatus={dealRoom.status}
+                    collaborationStatus={collaboration.status}
                   />
                 </CCCard>
 
                 <CCCard padding="lg">
                   <DisputeManager 
-                    collaborationId={dealRoom.id}
+                    collaborationId={collaboration.id}
                     currentUser={user}
                     userRole={userRole}
                   />
@@ -273,8 +273,8 @@ export default function CollaborationDetail() {
             {userRole === 'Admin' && (
               <CCCard padding="lg">
                 <ExportManager 
-                  collaborationId={dealRoom.id}
-                  collaborationName={dealRoom.collaboration_name}
+                  collaborationId={collaboration.id}
+                  collaborationName={collaboration.collaboration_name}
                 />
               </CCCard>
             )}

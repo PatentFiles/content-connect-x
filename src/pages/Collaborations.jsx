@@ -81,8 +81,8 @@ export default function Collaborations() {
   const { data: collaborations = [], isLoading: collaborationsLoading } = useQuery({
     queryKey: ['collaborations', user?.email],
     queryFn: async () => {
-      const allRooms = await base44.entities.DealRoom.list('-created_date');
-      return allRooms.filter(r => r.participant_ids?.includes(user?.email));
+      const allCollaborations = await base44.entities.Collaboration.list('-created_date');
+      return allCollaborations.filter(r => r.participant_ids?.includes(user?.email));
     },
     enabled: !!user && isVerified && isSubscribed,
   });
@@ -100,7 +100,7 @@ export default function Collaborations() {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.DealRoom.delete(id),
+    mutationFn: (id) => base44.entities.Collaboration.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['collaborations'] });
       toast.success('Collaboration deleted successfully');
