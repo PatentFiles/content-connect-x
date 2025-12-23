@@ -15,6 +15,7 @@ import Terms from './pages/Terms';
 import Verification from './pages/Verification';
 import CreateCollaboration from './pages/CreateCollaboration';
 import Collaborations from './pages/Collaborations';
+import ViewProfile from './pages/ViewProfile';
 import __Layout from './Layout.jsx';
 
 
@@ -36,6 +37,7 @@ export const PAGES = {
     "Verification": Verification,
     "CreateCollaboration": CreateCollaboration,
     "Collaborations": Collaborations,
+    "ViewProfile": ViewProfile,
 }
 
 export const pagesConfig = {
