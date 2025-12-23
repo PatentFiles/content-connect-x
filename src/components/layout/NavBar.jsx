@@ -45,7 +45,7 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
           {isAuthenticated && profile ? (
             <>
               <NotificationsDropdown user={user} />
-              <Link to={createPageUrl('Settings')}>
+              <Link to={createPageUrl('Settings')} className="md:hidden">
                 <CCButton variant="ghost" size="icon">
                   <Settings className="w-5 h-5" />
                 </CCButton>
@@ -64,27 +64,27 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
               <CCButton 
                 variant="ghost" 
                 size="sm"
-                onClick={() => base44.auth.redirectToLogin()}
+                onClick={() => {
+                  sessionStorage.setItem('redirectAfterLogin', createPageUrl('Discovery'));
+                  base44.auth.redirectToLogin();
+                }}
               >
                 Log In
               </CCButton>
               <CCButton 
                 variant="primary" 
                 size="sm"
-                onClick={() => base44.auth.redirectToLogin(createPageUrl('Discovery'))}
+                onClick={() => {
+                  sessionStorage.setItem('redirectAfterLogin', createPageUrl('Discovery'));
+                  base44.auth.redirectToLogin();
+                }}
               >
                 Get Started
               </CCButton>
             </>
           )}
 
-          {/* Mobile menu toggle */}
-          <button
-            onClick={onMenuToggle}
-            className="md:hidden p-2 text-[#9AA6BC] hover:text-[#E8EEF9]"
-          >
-            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+
         </div>
       </div>
 

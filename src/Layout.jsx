@@ -69,8 +69,9 @@ export default function Layout({ children, currentPageName }) {
   const isVerified = verifications[0]?.status === 'approved';
   const isAuthenticated = !!user;
 
-  const handleLogout = () => {
-    base44.auth.logout(createPageUrl('Landing'));
+  const handleLogout = async () => {
+    await base44.auth.logout();
+    window.location.href = createPageUrl('Landing');
   };
 
   // For public pages, show minimal layout
