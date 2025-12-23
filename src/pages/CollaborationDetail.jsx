@@ -20,6 +20,8 @@ import RolePermissions from '@/components/collaboration/RolePermissions';
 import ExportManager from '@/components/collaboration/ExportManager';
 import RiskScoringDisplay from '@/components/admin/RiskScoringEngine';
 import InsuranceManager from '@/components/admin/InsuranceManager';
+import ConsentRevocationManager from '@/components/collaboration/ConsentRevocationManager';
+import AIRiskPrediction from '@/components/admin/AIRiskPrediction';
 
 export default function CollaborationDetail() {
   const [searchParams] = useSearchParams();
@@ -270,6 +272,12 @@ export default function CollaborationDetail() {
                   />
                 </CCCard>
 
+                <ConsentRevocationManager 
+                  collaborationId={collaboration.id}
+                  currentUser={user}
+                  userRole={userRole}
+                />
+
                 <CCCard padding="lg">
                   <DisputeManager 
                     collaborationId={collaboration.id}
@@ -291,6 +299,7 @@ export default function CollaborationDetail() {
                 {isAdmin && (
                   <>
                     <RiskScoringDisplay collaborationId={collaboration.id} />
+                    <AIRiskPrediction collaborationId={collaboration.id} currentUser={user} />
                     <InsuranceManager collaborationId={collaboration.id} currentUser={user} />
                   </>
                 )}

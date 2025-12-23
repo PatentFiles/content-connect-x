@@ -34,7 +34,8 @@ const appPages = [
   'Settings',
   'Verification',
   'Shortlists',
-  'AdminDashboard'
+  'AdminDashboard',
+  'CompliancePortal'
 ];
 
 export default function Layout({ children, currentPageName }) {

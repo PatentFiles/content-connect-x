@@ -16,6 +16,7 @@ import CCCard from '../ui-custom/CCCard';
 import CCButton from '../ui-custom/CCButton';
 import CCBadge from '../ui-custom/CCBadge';
 import CCEmpty from '../ui-custom/CCEmpty';
+import StudioEarningsDashboard from '../studio/StudioEarningsDashboard';
 
 export default function StudioDashboard({ user, profile }) {
   const { data: roster = [] } = useQuery({
@@ -101,7 +102,10 @@ export default function StudioDashboard({ user, profile }) {
           </CCCard>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        {/* Studio Earnings Dashboard */}
+        <StudioEarningsDashboard studioUserId={user?.email} />
+
+        <div className="grid md:grid-cols-2 gap-6 mt-6">
           {/* Roster & Portfolio */}
           <CCCard padding="lg">
             <div className="flex items-center justify-between mb-4">
