@@ -46,9 +46,9 @@ export default function ProfileCard({
       transition={{ duration: 0.2 }}
     >
       <Link to={createPageUrl(`ViewProfile?id=${profile.user_id}`)}>
-        <CCCard hover clickable padding="none" className="overflow-hidden">
-          {/* Large Profile Image */}
-          <div className="relative h-64 bg-gradient-to-br from-[#4F8CFF]/30 to-[#FF2DAA]/30">
+        <CCCard hover clickable padding="none" className="overflow-hidden max-w-[280px]">
+          {/* Portrait Profile Image */}
+          <div className="relative h-80 bg-gradient-to-br from-[#4F8CFF]/30 to-[#FF2DAA]/30">
             {profile.avatar_url ? (
               <img
                 src={profile.avatar_url}
@@ -65,13 +65,13 @@ export default function ProfileCard({
               </div>
             )}
             {/* Gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F14] via-[#0B0F14]/60 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F14] via-[#0B0F14]/50 to-transparent" />
             
-            {/* Distance badge */}
-            {distance && (
-              <div className="absolute top-3 right-3">
-                <CCBadge variant="default" size="sm" icon={MapPin}>
-                  {distance < 1 ? '<1' : Math.round(distance)} mi
+            {/* Role Badge */}
+            {profile.role_type && (
+              <div className="absolute top-3 left-3">
+                <CCBadge variant={roleColors[profile.role_type] || 'default'} size="sm">
+                  {roleLabels[profile.role_type] || profile.role_type}
                 </CCBadge>
               </div>
             )}
@@ -79,54 +79,43 @@ export default function ProfileCard({
             {/* Profile Info Overlay */}
             <div className="absolute bottom-0 left-0 right-0 p-4">
               <div className="flex items-center gap-2 mb-2">
-                <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                  {profile.display_name || 'Anonymous'}
-                  {isVerified && (
-                    <ShieldCheck className="w-5 h-5 text-[#4F8CFF]" />
-                  )}
-                </h3>
-                {profile.role_type && (
-                  <CCBadge variant={roleColors[profile.role_type] || 'default'} size="sm">
-                    {roleLabels[profile.role_type] || profile.role_type}
-                  </CCBadge>
+                {isVerified && (
+                  <div className="w-6 h-6 rounded-full bg-[#4F8CFF] flex items-center justify-center flex-shrink-0">
+                    <ShieldCheck className="w-4 h-4 text-white" />
+                  </div>
                 )}
+                <h3 className="text-lg font-bold text-white">
+                  {profile.display_name || 'Anonymous'}
+                </h3>
               </div>
               
-              <div className="flex items-center gap-2 text-sm text-white/90 mb-2">
+              <div className="text-sm text-white/90 leading-relaxed">
                 {profile.age && <span>{profile.age}</span>}
-                {profile.age && creatorDetails?.gender_identity && <span>•</span>}
+                {profile.age && profile.base_location?.city && <span> • </span>}
+                {profile.base_location?.city && (
+                  <span>{profile.base_location.city}</span>
+                )}
+                {profile.base_location?.city && creatorDetails?.gender_identity && <span> • </span>}
                 {creatorDetails?.gender_identity && (
                   <span className="capitalize">
                     {creatorDetails.gender_identity.replace('_', ' ')}
                   </span>
                 )}
+                {creatorDetails?.gender_identity && creatorDetails?.orientation_category && <span> • </span>}
                 {creatorDetails?.orientation_category && (
-                  <>
-                    <span>•</span>
-                    <span className="capitalize">
-                      {Array.isArray(creatorDetails.orientation_category) 
-                        ? creatorDetails.orientation_category[0]?.replace('_', ' ')
-                        : creatorDetails.orientation_category?.replace('_', ' ')}
-                    </span>
-                  </>
+                  <span className="capitalize">
+                    {Array.isArray(creatorDetails.orientation_category) 
+                      ? creatorDetails.orientation_category.join(', ').replace(/_/g, ' ')
+                      : creatorDetails.orientation_category?.replace('_', ' ')}
+                  </span>
                 )}
               </div>
-
-              {/* Location */}
-              {profile.base_location && (
-                <p className="text-sm text-white/80 flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />
-                  {profile.base_location.city && profile.base_location.state 
-                    ? `${profile.base_location.city}, ${profile.base_location.state}`
-                    : profile.base_location.city}
-                </p>
-              )}
             </div>
           </div>
 
           {/* Actions */}
           {showActions && (
-            <div className="px-4 pb-4 pt-3">
+            <div className="px-3 py-3">
               <div className="flex gap-2">
                 <CCButton
                   variant="outline"
