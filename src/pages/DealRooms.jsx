@@ -65,9 +65,9 @@ export default function DealRooms() {
   const isVerified = verification?.[0]?.status === 'approved';
   const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
-  // Fetch deal rooms
-  const { data: dealRooms = [], isLoading: dealRoomsLoading } = useQuery({
-    queryKey: ['dealRooms', user?.email],
+  // Fetch collaborations
+  const { data: collaborations = [], isLoading: collaborationsLoading } = useQuery({
+    queryKey: ['collaborations', user?.email],
     queryFn: async () => {
       const allRooms = await base44.entities.DealRoom.list('-created_date');
       return allRooms.filter(r => r.participant_ids?.includes(user?.email));
@@ -77,20 +77,20 @@ export default function DealRooms() {
 
   // Fetch participant profiles
   const { data: profiles = [] } = useQuery({
-    queryKey: ['dealRoomProfiles', dealRooms],
+    queryKey: ['collaborationProfiles', collaborations],
     queryFn: async () => {
-      const allIds = [...new Set(dealRooms.flatMap(r => r.participant_ids || []))];
+      const allIds = [...new Set(collaborations.flatMap(r => r.participant_ids || []))];
       const allProfiles = await base44.entities.UserProfile.list();
       return allProfiles.filter(p => allIds.includes(p.user_id));
     },
-    enabled: dealRooms.length > 0,
+    enabled: collaborations.length > 0,
   });
 
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.DealRoom.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['dealRooms'] });
+      queryClient.invalidateQueries({ queryKey: ['collaborations'] });
       toast.success('Collaboration deleted successfully');
       setDeleteModalOpen(false);
       setCollaborationToDelete(null);
@@ -130,8 +130,8 @@ export default function DealRooms() {
   }
 
   const filteredRooms = filter === 'all' 
-    ? dealRooms 
-    : dealRooms.filter(r => r.status === filter);
+    ? collaborations 
+    : collaborations.filter(r => r.status === filter);
 
   const getParticipantAvatars = (room) => {
     return room.participant_ids?.map(id => {
@@ -180,7 +180,7 @@ export default function DealRooms() {
 
       {/* Content */}
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {dealRoomsLoading ? (
+        {collaborationsLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map(i => (
               <CCCard key={i} padding="lg">
