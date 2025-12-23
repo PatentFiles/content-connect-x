@@ -9,10 +9,10 @@ import CCBadge from '../ui-custom/CCBadge';
 import CCButton from '../ui-custom/CCButton';
 
 const roleColors = {
-  creator: 'accent',
-  photographer: 'primary',
-  videographer: 'primary',
-  agent: 'warning',
+  creator: 'primary',
+  photographer: 'warning',
+  videographer: 'danger',
+  agent: 'accent',
   studio: 'success',
 };
 
@@ -85,6 +85,11 @@ export default function ProfileCard({
                     <ShieldCheck className="w-5 h-5 text-[#4F8CFF]" />
                   )}
                 </h3>
+                {profile.role_type && (
+                  <CCBadge variant={roleColors[profile.role_type] || 'default'} size="sm">
+                    {roleLabels[profile.role_type] || profile.role_type}
+                  </CCBadge>
+                )}
               </div>
               
               <div className="flex items-center gap-2 text-sm text-white/90 mb-2">
