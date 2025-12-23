@@ -78,7 +78,7 @@ export default function Search() {
     queryKey: ['searchProfiles', searchQuery, selectedRole, filters],
     queryFn: async () => {
       let allProfiles = await base44.entities.UserProfile.filter({ profile_complete: true });
-      allProfiles = allProfiles.filter(p => p.user_id !== user?.email);
+      allProfiles = allProfiles.filter(p => p.user_id !== user?.email && !p.is_admin);
 
       // Search filter
       if (searchQuery) {
