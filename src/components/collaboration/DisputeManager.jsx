@@ -40,16 +40,15 @@ export default function DisputeManager({ collaborationId, currentUser, userRole 
       const dispute = await base44.entities.CollaborationDispute.create(data);
       
       // Update collaboration status
-      await base44.entities.DealRoom.update(collaborationId, { status: 'disputed' });
+      await base44.entities.Collaboration.update(collaborationId, { status: 'disputed' });
       
       // Log activity
-      await base44.entities.CollaborationActivityLog.create({
+      await base44.entities.CollaborationActivity.create({
         collaboration_id: collaborationId,
-        actor_user_id: currentUser.email,
-        actor_role: userRole,
-        action_type: 'dispute_opened',
+        user_id: currentUser.email,
+        activity_type: 'dispute_opened',
         description: `${currentUser.full_name} opened a dispute`,
-        metadata_json: { dispute_id: dispute.id, reason: data.reason }
+        metadata: { dispute_id: dispute.id, reason: data.reason }
       });
       
       return dispute;
@@ -76,13 +75,12 @@ export default function DisputeManager({ collaborationId, currentUser, userRole 
       });
       
       // Log activity
-      await base44.entities.CollaborationActivityLog.create({
+      await base44.entities.CollaborationActivity.create({
         collaboration_id: collaborationId,
-        actor_user_id: currentUser.email,
-        actor_role: userRole,
-        action_type: 'dispute_updated',
+        user_id: currentUser.email,
+        activity_type: 'dispute_updated',
         description: `${currentUser.full_name} updated dispute status to ${status}`,
-        metadata_json: { dispute_id: disputeId, new_status: status }
+        metadata: { dispute_id: disputeId, new_status: status }
       });
     },
     onSuccess: () => {

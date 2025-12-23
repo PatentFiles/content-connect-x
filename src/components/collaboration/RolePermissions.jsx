@@ -56,13 +56,12 @@ export default function RolePermissions({ collaborationId, currentUser, currentU
       
       // Log activity
       const userProfile = profiles.find(p => p.user_id === selectedUser.user_id);
-      await base44.entities.CollaborationActivityLog.create({
+      await base44.entities.CollaborationActivity.create({
         collaboration_id: collaborationId,
-        actor_user_id: currentUser.email,
-        actor_role: currentUserRole,
-        action_type: 'role_changed',
+        user_id: currentUser.email,
+        activity_type: 'role_changed',
         description: `${currentUser.full_name} changed ${userProfile?.display_name}'s role to ${role}`,
-        metadata_json: { user_id: selectedUser.user_id, old_role: selectedUser.role, new_role: role }
+        metadata: { user_id: selectedUser.user_id, old_role: selectedUser.role, new_role: role }
       });
     },
     onSuccess: () => {

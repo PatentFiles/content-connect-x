@@ -46,13 +46,12 @@ export default function ConfirmationManager({ collaborationId, currentUser, user
       const confirmation = await base44.entities.CollaborationConfirmation.create(data);
       
       // Log activity
-      await base44.entities.CollaborationActivityLog.create({
+      await base44.entities.CollaborationActivity.create({
         collaboration_id: collaborationId,
-        actor_user_id: currentUser.email,
-        actor_role: userRole,
-        action_type: 'confirmation_submitted',
+        user_id: currentUser.email,
+        activity_type: 'confirmation_submitted',
         description: `${currentUser.full_name} submitted post-collaboration confirmation`,
-        metadata_json: { 
+        metadata: { 
           scene_completed: data.scene_completed_as_agreed,
           has_issues: !!data.issues_encountered
         }

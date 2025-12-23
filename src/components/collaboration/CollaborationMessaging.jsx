@@ -43,13 +43,12 @@ export default function CollaborationMessaging({ collaborationId, currentUser, u
   const sendMessageMutation = useMutation({
     mutationFn: async (data) => {
       // Log activity
-      await base44.entities.CollaborationActivityLog.create({
+      await base44.entities.CollaborationActivity.create({
         collaboration_id: collaborationId,
-        actor_user_id: currentUser.email,
-        actor_role: userRole,
-        action_type: 'message_sent',
+        user_id: currentUser.email,
+        activity_type: 'message_sent',
         description: `${currentUser.full_name} sent a message`,
-        metadata_json: { message_preview: data.message_body.substring(0, 50) }
+        metadata: { message_preview: data.message_body.substring(0, 50) }
       });
       
       return base44.entities.CollaborationMessage.create(data);

@@ -12,7 +12,7 @@ import CCBadge from '../ui-custom/CCBadge';
 import CCModal from '../ui-custom/CCModal';
 import { toast } from 'sonner';
 
-export default function TaskManager({ dealRoomId, participants }) {
+export default function TaskManager({ collaborationId, participants }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newTask, setNewTask] = useState({
     title: '',
@@ -29,9 +29,9 @@ export default function TaskManager({ dealRoomId, participants }) {
   });
 
   const { data: tasks = [] } = useQuery({
-    queryKey: ['collaborationTasks', dealRoomId],
-    queryFn: () => base44.entities.CollaborationTask.filter({ deal_room_id: dealRoomId }),
-    enabled: !!dealRoomId,
+    queryKey: ['collaborationTasks', collaborationId],
+    queryFn: () => base44.entities.CollaborationTask.filter({ collaboration_id: collaborationId }),
+    enabled: !!collaborationId,
   });
 
   const { data: profiles = [] } = useQuery({
@@ -48,7 +48,7 @@ export default function TaskManager({ dealRoomId, participants }) {
   const createTaskMutation = useMutation({
     mutationFn: (data) => base44.entities.CollaborationTask.create({
       ...data,
-      deal_room_id: dealRoomId,
+      collaboration_id: collaborationId,
       created_by: user?.email,
     }),
     onSuccess: () => {

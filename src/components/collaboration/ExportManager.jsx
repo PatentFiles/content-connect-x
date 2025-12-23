@@ -10,9 +10,9 @@ import { format } from 'date-fns';
 export default function ExportManager({ collaborationId, collaborationName }) {
   const [exporting, setExporting] = useState(false);
 
-  const { data: dealRooms = [] } = useQuery({
-    queryKey: ['dealRoom', collaborationId],
-    queryFn: () => base44.entities.DealRoom.filter({ id: collaborationId }),
+  const { data: collaborations = [] } = useQuery({
+    queryKey: ['collaboration', collaborationId],
+    queryFn: () => base44.entities.Collaboration.filter({ id: collaborationId }),
   });
 
   const { data: activities = [] } = useQuery({
@@ -107,7 +107,7 @@ export default function ExportManager({ collaborationId, collaborationName }) {
     setExporting(true);
     try {
       const data = {
-        collaboration: dealRooms[0],
+        collaboration: collaborations[0],
         participants: participantRoles,
         activities: activities,
         messages: messages,

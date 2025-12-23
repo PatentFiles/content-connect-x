@@ -20,7 +20,7 @@ const eventIcons = {
   other: Calendar,
 };
 
-export default function CollaborationCalendar({ dealRoomId, participants }) {
+export default function CollaborationCalendar({ collaborationId, participants }) {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'calendar'
@@ -41,9 +41,9 @@ export default function CollaborationCalendar({ dealRoomId, participants }) {
   });
 
   const { data: events = [] } = useQuery({
-    queryKey: ['collaborationEvents', dealRoomId],
-    queryFn: () => base44.entities.CollaborationEvent.filter({ deal_room_id: dealRoomId }, 'start_date'),
-    enabled: !!dealRoomId,
+    queryKey: ['collaborationEvents', collaborationId],
+    queryFn: () => base44.entities.CollaborationEvent.filter({ collaboration_id: collaborationId }, 'start_date'),
+    enabled: !!collaborationId,
   });
 
   const { data: profiles = [] } = useQuery({
@@ -60,7 +60,7 @@ export default function CollaborationCalendar({ dealRoomId, participants }) {
   const createEventMutation = useMutation({
     mutationFn: (data) => base44.entities.CollaborationEvent.create({
       ...data,
-      deal_room_id: dealRoomId,
+      collaboration_id: collaborationId,
       created_by: user?.email,
     }),
     onSuccess: () => {

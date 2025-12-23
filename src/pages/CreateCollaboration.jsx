@@ -122,8 +122,8 @@ export default function CreateCollaboration() {
   const { data: existingCollaboration, isLoading: loadingCollab } = useQuery({
     queryKey: ['collaboration', collaborationId],
     queryFn: async () => {
-      const rooms = await base44.entities.DealRoom.filter({ id: collaborationId });
-      return rooms[0];
+      const collabs = await base44.entities.Collaboration.filter({ id: collaborationId });
+      return collabs[0];
     },
     enabled: isEditing,
   });
@@ -208,9 +208,9 @@ export default function CreateCollaboration() {
       };
 
       if (isEditing) {
-        return base44.entities.DealRoom.update(collaborationId, payload);
+        return base44.entities.Collaboration.update(collaborationId, payload);
       }
-      return base44.entities.DealRoom.create(payload);
+      return base44.entities.Collaboration.create(payload);
     },
     onSuccess: (result) => {
       navigate(createPageUrl(isEditing ? 'Collaborations' : `ViewCollaboration?id=${result.id}`));

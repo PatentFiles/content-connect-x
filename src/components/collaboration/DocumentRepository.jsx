@@ -12,7 +12,7 @@ import CCBadge from '../ui-custom/CCBadge';
 import CCModal from '../ui-custom/CCModal';
 import { toast } from 'sonner';
 
-export default function DocumentRepository({ dealRoomId }) {
+export default function DocumentRepository({ collaborationId }) {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [newDoc, setNewDoc] = useState({
@@ -29,15 +29,15 @@ export default function DocumentRepository({ dealRoomId }) {
   });
 
   const { data: documents = [] } = useQuery({
-    queryKey: ['collaborationDocuments', dealRoomId],
-    queryFn: () => base44.entities.CollaborationDocument.filter({ deal_room_id: dealRoomId }, '-created_date'),
-    enabled: !!dealRoomId,
+    queryKey: ['collaborationDocuments', collaborationId],
+    queryFn: () => base44.entities.CollaborationDocument.filter({ collaboration_id: collaborationId }, '-created_date'),
+    enabled: !!collaborationId,
   });
 
   const uploadMutation = useMutation({
     mutationFn: (data) => base44.entities.CollaborationDocument.create({
       ...data,
-      deal_room_id: dealRoomId,
+      collaboration_id: collaborationId,
       uploaded_by: user?.email,
     }),
     onSuccess: () => {

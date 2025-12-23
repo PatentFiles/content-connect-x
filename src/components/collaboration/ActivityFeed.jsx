@@ -40,11 +40,11 @@ const activityColors = {
   contract_sent: 'accent',
 };
 
-export default function ActivityFeed({ dealRoomId }) {
+export default function ActivityFeed({ collaborationId }) {
   const { data: activities = [] } = useQuery({
-    queryKey: ['collaborationActivities', dealRoomId],
-    queryFn: () => base44.entities.CollaborationActivity.filter({ deal_room_id: dealRoomId }, '-created_date', 50),
-    enabled: !!dealRoomId,
+    queryKey: ['collaborationActivities', collaborationId],
+    queryFn: () => base44.entities.CollaborationActivity.filter({ collaboration_id: collaborationId }, '-created_date', 50),
+    enabled: !!collaborationId,
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
