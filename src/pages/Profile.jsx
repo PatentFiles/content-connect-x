@@ -164,7 +164,7 @@ export default function Profile() {
       <div className="relative">
         <div className="h-48 md:h-64 relative overflow-hidden bg-gradient-to-r from-[#1E5BA8] via-[#6B4C9A] to-[#E91E63] flex items-center justify-center">
           <img 
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69495df631e52046b1356040/51f211167_image.png"
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69495df631e52046b1356040/cb721c5ac_image.png"
             alt="CC Logo"
             className="w-24 h-24 md:w-32 md:h-32 object-contain"
           />
