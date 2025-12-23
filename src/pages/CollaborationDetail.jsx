@@ -18,6 +18,7 @@ import DisputeManager from '@/components/collaboration/DisputeManager';
 import ConfirmationManager from '@/components/collaboration/ConfirmationManager';
 import RolePermissions from '@/components/collaboration/RolePermissions';
 import ExportManager from '@/components/collaboration/ExportManager';
+import RiskScoringDisplay from '@/components/admin/RiskScoringEngine';
 
 export default function CollaborationDetail() {
   const [searchParams] = useSearchParams();
@@ -59,6 +60,14 @@ export default function CollaborationDetail() {
   });
 
   const userRole = participantRoles.find(r => r.user_id === user?.email)?.role || 'Viewer';
+
+  const { data: profile = [] } = useQuery({
+    queryKey: ['myProfile', user?.email],
+    queryFn: () => base44.entities.UserProfile.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+
+  const isAdmin = profile[0]?.is_admin || profile[0]?.role_type === 'admin' || user?.role === 'admin';
 
   if (userLoading || collaborationLoading) {
     return <CCLoadingScreen message="Loading collaboration..." />;
@@ -271,12 +280,17 @@ export default function CollaborationDetail() {
             )}
 
             {userRole === 'Admin' && (
-              <CCCard padding="lg">
-                <ExportManager 
-                  collaborationId={collaboration.id}
-                  collaborationName={collaboration.collaboration_name}
-                />
-              </CCCard>
+              <>
+                <CCCard padding="lg">
+                  <ExportManager 
+                    collaborationId={collaboration.id}
+                    collaborationName={collaboration.collaboration_name}
+                  />
+                </CCCard>
+                {isAdmin && (
+                  <RiskScoringDisplay collaborationId={collaboration.id} />
+                )}
+              </>
             )}
           </div>
         </div>

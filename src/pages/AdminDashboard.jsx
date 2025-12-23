@@ -25,6 +25,11 @@ import { CCTabs, CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs
 import CCModal from '@/components/ui-custom/CCModal';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
+import ModerationOverview from '@/components/admin/ModerationOverview';
+import UserModerationPanel from '@/components/admin/UserModerationPanel';
+import CollaborationModerationPanel from '@/components/admin/CollaborationModerationPanel';
+import ArbitrationCaseManager from '@/components/admin/ArbitrationCaseManager';
+import ComplianceDashboard from '@/components/admin/ComplianceDashboard';
 
 // User Management Component
 function UserManagement({ currentUser }) {
@@ -255,7 +260,7 @@ function UserManagement({ currentUser }) {
 }
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('verifications');
+  const [activeTab, setActiveTab] = useState('overview');
   const [selectedVerification, setSelectedVerification] = useState(null);
   const [selectedTag, setSelectedTag] = useState(null);
   const queryClient = useQueryClient();
@@ -372,10 +377,14 @@ export default function AdminDashboard() {
   }
 
   const tabs = [
+    { value: 'overview', label: 'Overview', icon: Shield },
     { value: 'verifications', label: 'Verifications', icon: Shield },
+    { value: 'users', label: 'User Moderation', icon: Users },
+    { value: 'collaborations', label: 'Collaborations', icon: AlertTriangle },
+    { value: 'arbitration', label: 'Arbitration', icon: Shield },
+    { value: 'compliance', label: 'Compliance', icon: CheckCircle },
     { value: 'tags', label: 'Tags', icon: Tag },
     { value: 'reports', label: 'Reports', icon: AlertTriangle },
-    { value: 'users', label: 'Users', icon: Users },
   ];
 
   const getProfileForVerification = (v) => userProfiles.find(p => p.user_id === v.user_id);
@@ -447,6 +456,11 @@ export default function AdminDashboard() {
         </div>
 
         <CCTabsList tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-6" />
+
+        {/* Overview Tab */}
+        <CCTabsContent value="overview" activeTab={activeTab}>
+          <ModerationOverview />
+        </CCTabsContent>
 
         {/* Verifications Tab */}
         <CCTabsContent value="verifications" activeTab={activeTab}>
@@ -594,7 +608,22 @@ export default function AdminDashboard() {
 
         {/* Users Tab */}
         <CCTabsContent value="users" activeTab={activeTab}>
-          <UserManagement currentUser={user} />
+          <UserModerationPanel currentAdmin={user} />
+        </CCTabsContent>
+
+        {/* Collaborations Tab */}
+        <CCTabsContent value="collaborations" activeTab={activeTab}>
+          <CollaborationModerationPanel currentAdmin={user} />
+        </CCTabsContent>
+
+        {/* Arbitration Tab */}
+        <CCTabsContent value="arbitration" activeTab={activeTab}>
+          <ArbitrationCaseManager currentUser={user} />
+        </CCTabsContent>
+
+        {/* Compliance Tab */}
+        <CCTabsContent value="compliance" activeTab={activeTab}>
+          <ComplianceDashboard />
         </CCTabsContent>
       </div>
 
