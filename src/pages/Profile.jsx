@@ -162,59 +162,52 @@ export default function Profile() {
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Cover & Avatar */}
       <div className="relative">
-        <div className="h-48 md:h-64 relative overflow-hidden">
-          <svg width="100%" height="100%" viewBox="0 0 1200 300" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style={{stopColor: '#1A2438', stopOpacity: 1}} />
-                <stop offset="50%" style={{stopColor: '#151D2B', stopOpacity: 1}} />
-                <stop offset="100%" style={{stopColor: '#0B0F14', stopOpacity: 1}} />
-              </linearGradient>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#bgGradient)" />
-            <text 
-              x="50%" 
-              y="50%" 
-              dominantBaseline="middle" 
-              textAnchor="middle" 
-              fill="white" 
-              fontSize="120"
-              fontWeight="bold"
-              fontFamily="Inter, sans-serif"
-              letterSpacing="8"
-            >
-              CONNECT
-            </text>
-          </svg>
+        <div className="h-48 md:h-64 relative overflow-hidden bg-gradient-to-br from-[#4F8CFF] to-[#FF2DAA] flex items-center justify-center">
+          <img 
+            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69495df631e52046b1356040/51f211167_image.png"
+            alt="CC Logo"
+            className="w-24 h-24 md:w-32 md:h-32 object-contain"
+          />
         </div>
         <div className="max-w-4xl mx-auto px-4">
           <div className="relative -mt-16 md:-mt-20">
-            <div className="flex flex-col gap-4">
-              <div className="flex items-end gap-3">
-                <div className="relative">
-                  <CCAvatar
-                    src={profile?.avatar_url}
-                    size="2xl"
-                  />
-                  <button 
-                    onClick={() => document.getElementById('avatar-upload').click()}
-                    className="absolute bottom-0 right-0 p-2 bg-[#4F8CFF] rounded-full text-white hover:bg-[#3A7AEE] transition-colors"
-                  >
-                    <Camera className="w-4 h-4" />
-                  </button>
-                  <input
-                    id="avatar-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={async (e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-                        updateProfileMutation.mutate({ avatar_url: file_url });
-                      }
-                    }}
-                  />
+            <div className="flex flex-col items-center gap-4">
+              <div className="relative">
+                <CCAvatar
+                  src={profile?.avatar_url}
+                  size="2xl"
+                />
+                <button 
+                  onClick={() => document.getElementById('avatar-upload').click()}
+                  className="absolute bottom-0 right-0 p-2 bg-[#4F8CFF] rounded-full text-white hover:bg-[#3A7AEE] transition-colors"
+                >
+                  <Camera className="w-4 h-4" />
+                </button>
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                      updateProfileMutation.mutate({ avatar_url: file_url });
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex flex-col items-center text-center">
+                <h1 className="text-2xl font-bold text-[#E8EEF9]">
+                  {profile?.display_name || 'Set up your profile'}
+                </h1>
+                <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
+                  {profile?.role_type && (
+                    <CCBadge variant="accent">{profile.role_type}</CCBadge>
+                  )}
+                  {isVerified && (
+                    <CCBadge variant="success" icon={ShieldCheck}>Verified</CCBadge>
+                  )}
                 </div>
                 <CCButton
                   variant="primary"
@@ -236,23 +229,10 @@ export default function Profile() {
                     setIsEditing(true);
                   }}
                   loading={updateProfileMutation.isPending}
-                  className="shrink-0 mb-2"
+                  className="mt-3"
                 >
                   {isEditing ? 'Save' : 'Edit'}
                 </CCButton>
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-2xl font-bold text-[#E8EEF9] truncate">
-                  {profile?.display_name || 'Set up your profile'}
-                </h1>
-                <div className="flex items-center gap-2 mt-1 flex-wrap">
-                  {profile?.role_type && (
-                    <CCBadge variant="accent">{profile.role_type}</CCBadge>
-                  )}
-                  {isVerified && (
-                    <CCBadge variant="success" icon={ShieldCheck}>Verified</CCBadge>
-                  )}
-                </div>
               </div>
             </div>
           </div>
