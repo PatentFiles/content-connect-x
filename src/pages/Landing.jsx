@@ -197,7 +197,7 @@ export default function Landing() {
               { step: 1, title: 'Verify', desc: 'Complete identity verification' },
               { step: 2, title: 'Subscribe', desc: 'Choose your plan' },
               { step: 3, title: 'Discover', desc: 'Find collaborators' },
-              { step: 4, title: 'Negotiate', desc: 'Use Deal Rooms' },
+              { step: 4, title: 'Negotiate', desc: 'Negotiate Collaborations' },
               { step: 5, title: 'Sign', desc: 'E-sign contracts' },
             ].map((item, i) => (
               <motion.div
