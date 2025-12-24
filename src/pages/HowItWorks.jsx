@@ -60,8 +60,8 @@ const steps = [
   {
     step: 4,
     icon: Briefcase,
-    title: 'Use Deal Rooms',
-    description: 'Create structured deals in our Deal Room. Define scene types, boundaries, compensation, deliverables, and usage rights all in one organized space.',
+    title: 'Negotiate Collaborations',
+    description: 'Create structured collaborations. Define scene types, boundaries, compensation, deliverables, and usage rights all in one organized space.',
     details: [
       'Scene builder with act checklist',
       'Clear boundary definitions',
@@ -74,7 +74,7 @@ const steps = [
     step: 5,
     icon: FileText,
     title: 'Sign Contracts',
-    description: 'Generate professional contracts from your Deal Room details. All parties can e-sign, and contracts are versioned and archived for your records.',
+    description: 'Generate professional contracts from your collaboration details. All parties can e-sign, and contracts are versioned and archived for your records.',
     details: [
       'Multiple contract templates',
       'E-signature capture',
@@ -198,7 +198,7 @@ export default function HowItWorks() {
               <FileText className="w-10 h-10 text-[#22C55E] mx-auto mb-4" />
               <h3 className="font-semibold text-[#E8EEF9] mb-2">Contract First</h3>
               <p className="text-sm text-[#9AA6BC]">
-                All deals can generate contracts. Terms are recorded but payments happen externally.
+                All collaborations can generate contracts. Terms are recorded but payments happen externally.
               </p>
             </CCCard>
           </div>

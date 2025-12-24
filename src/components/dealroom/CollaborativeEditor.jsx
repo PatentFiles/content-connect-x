@@ -10,7 +10,7 @@ import CCInput from '@/components/ui-custom/CCInput';
 import { Lock, Unlock, Save, FileText, Plus, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function CollaborativeEditor({ dealRoomId, user }) {
+export default function CollaborativeEditor({ collaborationId, user }) {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [content, setContent] = useState('');
   const [title, setTitle] = useState('');
@@ -19,9 +19,9 @@ export default function CollaborativeEditor({ dealRoomId, user }) {
 
   // Fetch documents
   const { data: documents = [] } = useQuery({
-    queryKey: ['dealRoomDocuments', dealRoomId],
-    queryFn: () => base44.entities.DealRoomDocument.filter({ deal_room_id: dealRoomId }),
-    enabled: !!dealRoomId,
+    queryKey: ['collaborationDocuments', collaborationId],
+    queryFn: () => base44.entities.DealRoomDocument.filter({ deal_room_id: collaborationId }),
+    enabled: !!collaborationId,
     refetchInterval: 5000,
   });
 
@@ -29,12 +29,12 @@ export default function CollaborativeEditor({ dealRoomId, user }) {
   const createDocMutation = useMutation({
     mutationFn: (data) => base44.entities.DealRoomDocument.create({
       ...data,
-      deal_room_id: dealRoomId,
+      deal_room_id: collaborationId,
       created_by: user.email,
       content: '',
     }),
     onSuccess: (doc) => {
-      queryClient.invalidateQueries(['dealRoomDocuments']);
+      queryClient.invalidateQueries(['collaborationDocuments']);
       setSelectedDoc(doc);
       setShowNewDoc(false);
       setTitle('');

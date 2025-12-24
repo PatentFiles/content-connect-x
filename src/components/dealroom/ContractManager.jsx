@@ -10,21 +10,21 @@ import { FileText, Plus, Send, CheckCircle2, Clock, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
-export default function ContractManager({ dealRoomId, profiles, user }) {
+export default function ContractManager({ collaborationId, profiles, user }) {
   const [showNewContract, setShowNewContract] = useState(false);
   const [newContract, setNewContract] = useState({ title: '', template_type: 'custom' });
   const queryClient = useQueryClient();
 
   const { data: contracts = [] } = useQuery({
-    queryKey: ['dealRoomContracts', dealRoomId],
-    queryFn: () => base44.entities.Contract.filter({ deal_room_id: dealRoomId }),
-    enabled: !!dealRoomId,
+    queryKey: ['collaborationContracts', collaborationId],
+    queryFn: () => base44.entities.Contract.filter({ deal_room_id: collaborationId }),
+    enabled: !!collaborationId,
   });
 
   const createContractMutation = useMutation({
     mutationFn: (data) => base44.entities.Contract.create({
       ...data,
-      deal_room_id: dealRoomId,
+      deal_room_id: collaborationId,
       created_by: user.email,
       signatories: profiles.map(p => ({
         user_id: p.user_id,
@@ -33,7 +33,7 @@ export default function ContractManager({ dealRoomId, profiles, user }) {
       })),
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries(['dealRoomContracts']);
+      queryClient.invalidateQueries(['collaborationContracts']);
       setShowNewContract(false);
       setNewContract({ title: '', template_type: 'custom' });
       toast.success('Contract created');
@@ -43,7 +43,7 @@ export default function ContractManager({ dealRoomId, profiles, user }) {
   const updateContractMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Contract.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['dealRoomContracts']);
+      queryClient.invalidateQueries(['collaborationContracts']);
     },
   });
 

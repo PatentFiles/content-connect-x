@@ -12,7 +12,7 @@ import {
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
-export default function TaskManager({ dealRoomId, tasks, profiles, user }) {
+export default function TaskManager({ collaborationId, tasks, profiles, user }) {
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
   const [newTask, setNewTask] = useState({
@@ -28,11 +28,11 @@ export default function TaskManager({ dealRoomId, tasks, profiles, user }) {
   const createTaskMutation = useMutation({
     mutationFn: (data) => base44.entities.DealRoomTask.create({
       ...data,
-      deal_room_id: dealRoomId,
+      deal_room_id: collaborationId,
       created_by: user.email,
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries(['dealRoomTasks']);
+      queryClient.invalidateQueries(['collaborationTasks']);
       setNewTask({ title: '', description: '', assigned_to: '', due_date: '', priority: 'medium', parent_task_id: null });
       setShowTaskForm(false);
       toast.success('Task created');
@@ -42,7 +42,7 @@ export default function TaskManager({ dealRoomId, tasks, profiles, user }) {
   const updateTaskMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.DealRoomTask.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['dealRoomTasks']);
+      queryClient.invalidateQueries(['collaborationTasks']);
     },
   });
 
