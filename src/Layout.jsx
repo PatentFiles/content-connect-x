@@ -133,6 +133,15 @@ export default function Layout({ children, currentPageName }) {
           isAuthenticated={isAuthenticated}
           onMenuToggle={() => setMenuOpen(!menuOpen)}
           menuOpen={menuOpen}
+          onHamburgerToggle={() => setMobileNavOpen(!mobileNavOpen)}
+        />
+        <MobileNavMenu
+          isOpen={mobileNavOpen}
+          onClose={() => setMobileNavOpen(false)}
+          profile={profile}
+          currentPage={currentPageName}
+          onLogout={handleLogout}
+          adminRoleView={adminRoleView}
         />
         {isAdmin && (
           <AdminContextBanner 
