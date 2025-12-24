@@ -403,25 +403,19 @@ export default function ViewProfile() {
                 {creator.scene_pairings?.length > 0 && (
                   <div className="mb-4">
                     <p className="text-sm text-[#6B7A94] mb-2">Scene Pairings</p>
-                    <div className="flex flex-wrap gap-2">
-                     {creator.scene_pairings.map(scene => (
-                       <span key={scene} className="text-sm text-[#E8EEF9]">
-                         {scene.replace(/_/g, ' ')}
-                       </span>
-                     ))}
-                    </div>
+                    <p className="text-sm text-[#E8EEF9]">
+                     {creator.scene_pairings.map(scene => scene.replace(/_/g, ' ')).join(', ')}
+                    </p>
                   </div>
                 )}
                 {creator.compensation_preferences?.length > 0 && (
                   <div>
                     <p className="text-sm text-[#6B7A94] mb-2">Compensation Types</p>
-                    <div className="flex flex-wrap gap-2">
-                     {creator.compensation_preferences.map(comp => (
-                       <span key={comp} className="text-sm text-[#E8EEF9]">
-                         {comp.charAt(0).toUpperCase() + comp.slice(1)}
-                       </span>
-                     ))}
-                    </div>
+                    <p className="text-sm text-[#E8EEF9]">
+                     {creator.compensation_preferences.map(comp => 
+                       comp.charAt(0).toUpperCase() + comp.slice(1)
+                     ).join(', ')}
+                    </p>
                   </div>
                 )}
               </CCCard>
@@ -434,37 +428,29 @@ export default function ViewProfile() {
                 {creator.standard_acts?.length > 0 && (
                   <div className="mb-4">
                     <p className="text-sm text-[#6B7A94] mb-2">Standard Acts</p>
-                    <div className="flex flex-wrap gap-2">
-                     {creator.standard_acts.map(act => (
-                       <span key={act} className="text-sm text-[#E8EEF9]">
-                         {act.replace('prints_stills', 'prints/stills')}
-                       </span>
-                     ))}
-                    </div>
+                    <p className="text-sm text-[#E8EEF9]">
+                     {creator.standard_acts.map(act => 
+                       act.replace('prints_stills', 'prints/stills').replace('solo_with_toys', 'solo with toys').replace(/_/g, ' ')
+                     ).join(', ')}
+                    </p>
                   </div>
                 )}
                 {creator.fetish_acts?.length > 0 && (
                   <div className="mb-4">
                     <p className="text-sm text-[#6B7A94] mb-2">Fetish Acts</p>
-                    <div className="flex flex-wrap gap-2">
-                     {creator.fetish_acts.map(act => (
-                       <span key={act} className="text-sm text-[#E8EEF9]">
-                         {act}
-                       </span>
-                     ))}
-                    </div>
+                    <p className="text-sm text-[#E8EEF9]">
+                     {creator.fetish_acts.map(act => act.replace(/_/g, ' ')).join(', ')}
+                    </p>
                   </div>
                 )}
                 {creator.kink_edge_acts?.length > 0 && (
                   <div>
                     <p className="text-sm text-[#6B7A94] mb-2">Kink/Edge Acts</p>
-                    <div className="flex flex-wrap gap-2">
-                     {creator.kink_edge_acts.map(act => (
-                       <span key={act} className="text-sm text-[#E8EEF9]">
-                         {act.replace('dominant_submissive', 'dominant/submissive')}
-                       </span>
-                     ))}
-                    </div>
+                    <p className="text-sm text-[#E8EEF9]">
+                     {creator.kink_edge_acts.map(act => 
+                       act.replace('dominant_submissive', 'dominant/submissive').replace(/_/g, ' ')
+                     ).join(', ')}
+                    </p>
                   </div>
                 )}
               </CCCard>
