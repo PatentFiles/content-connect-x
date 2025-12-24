@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { Heart, Plus, Check } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCInput from '@/components/ui-custom/CCInput';
-import { CCModal } from '@/components/ui-custom/CCModal';
+import CCModal from '@/components/ui-custom/CCModal';
 
 export default function SaveToShortlistModal({ 
   isOpen, 
