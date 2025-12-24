@@ -22,8 +22,8 @@ import Settings from './pages/Settings';
 import Shortlists from './pages/Shortlists';
 import Terms from './pages/Terms';
 import Verification from './pages/Verification';
-import ViewProfile from './pages/ViewProfile';
 import ViewContract from './pages/ViewContract';
+import ViewProfile from './pages/ViewProfile';
 import __Layout from './Layout.jsx';
 
 
@@ -52,8 +52,8 @@ export const PAGES = {
     "Shortlists": Shortlists,
     "Terms": Terms,
     "Verification": Verification,
-    "ViewProfile": ViewProfile,
     "ViewContract": ViewContract,
+    "ViewProfile": ViewProfile,
 }
 
 export const pagesConfig = {

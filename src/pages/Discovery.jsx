@@ -325,7 +325,7 @@ export default function Discovery() {
             description="Try adjusting your filters or expanding your search radius."
           />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center">
             {profiles.map((profile) => {
               const details = creatorDetails.find(d => d.user_id === profile.user_id);
               const verification = allVerifications.find(v => v.user_id === profile.user_id);

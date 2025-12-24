@@ -258,6 +258,7 @@ export default function Search() {
               variant={!selectedRole ? 'primary' : 'outline'}
               size="sm"
               onClick={() => setSelectedRole('')}
+              className="flex-shrink-0"
             >
               All
             </CCButton>
@@ -268,6 +269,7 @@ export default function Search() {
                 size="sm"
                 icon={role.icon}
                 onClick={() => setSelectedRole(role.value)}
+                className="flex-shrink-0"
               >
                 {role.label}
               </CCButton>
@@ -324,7 +326,7 @@ export default function Search() {
             actionLabel="Clear search"
           />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center">
             {profiles.map((profile) => {
               const details = creatorDetails.find(d => d.user_id === profile.user_id);
               return (
