@@ -116,20 +116,45 @@ export default function Discovery() {
     enabled: !!user?.email,
   });
 
+  // Unsave from favorites mutation
+  const unsaveFromFavoritesMutation = useMutation({
+    mutationFn: async (userId) => {
+      const listsWithProfile = favorites.filter(f => f.items?.some(item => item.user_id === userId));
+      await Promise.all(
+        listsWithProfile.map(list => {
+          const updatedItems = list.items.filter(item => item.user_id !== userId);
+          return base44.entities.Favorite.update(list.id, { items: updatedItems });
+        })
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myFavorites'] });
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      toast.success('Removed from favorites');
+    },
+  });
+
   const handleFavorite = (profile) => {
-    setSelectedProfile(profile);
-    if (favorites.length === 0) {
-      // No lists, create default
-      base44.entities.Favorite.create({
-        owner_id: user.email,
-        name: 'My Favorites',
-        items: [{ user_id: profile.user_id, added_at: new Date().toISOString() }],
-      }).then(() => {
-        queryClient.invalidateQueries({ queryKey: ['myFavorites'] });
-        toast.success('Saved to favorites');
-      });
+    const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
+    
+    if (isSaved) {
+      // Unsave directly
+      unsaveFromFavoritesMutation.mutate(profile.user_id);
     } else {
-      setShowSaveModal(true);
+      setSelectedProfile(profile);
+      if (favorites.length === 0) {
+        // No lists, create default
+        base44.entities.Favorite.create({
+          owner_id: user.email,
+          name: 'My Favorites',
+          items: [{ user_id: profile.user_id, added_at: new Date().toISOString() }],
+        }).then(() => {
+          queryClient.invalidateQueries({ queryKey: ['myFavorites'] });
+          toast.success('Saved to favorites');
+        });
+      } else {
+        setShowSaveModal(true);
+      }
     }
   };
 
