@@ -365,7 +365,7 @@ export default function ViewProfile() {
             {(creator.gender_identity || creator.orientation_category || creator.ethnicity) && (
               <CCCard padding="lg" className="mb-6">
                 <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 text-center">Basic Information</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+                <div className="space-y-4 text-center">
                   {creator.gender_identity && (
                     <div>
                       <p className="text-sm text-[#6B7A94] mb-1">Gender Identity</p>
@@ -377,13 +377,9 @@ export default function ViewProfile() {
                   {creator.orientation_category && creator.orientation_category.length > 0 && (
                     <div>
                       <p className="text-sm text-[#6B7A94] mb-1">Orientation</p>
-                      <div className="flex flex-wrap gap-2">
-                       {creator.orientation_category.map(o => (
-                         <span key={o} className="text-sm text-[#E8EEF9]">
-                           {o.replace('_', ' ')}
-                         </span>
-                       ))}
-                      </div>
+                      <p className="text-sm text-[#E8EEF9]">
+                        {creator.orientation_category.map(o => o.replace('_', ' ')).join(', ')}
+                      </p>
                     </div>
                   )}
                   {profile.ethnicity && (
