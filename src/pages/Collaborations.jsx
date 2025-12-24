@@ -225,25 +225,20 @@ export default function Collaborations() {
       {/* Header */}
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center justify-center gap-3 flex-1">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4F8CFF]/20 to-[#FF2DAA]/20 flex items-center justify-center">
-                <Briefcase className="w-5 h-5 text-[#4F8CFF]" />
-              </div>
-              <div className="text-center">
-                <h1 className="text-xl font-semibold text-[#E8EEF9]">Collaborations</h1>
-                <p className="text-xs text-[#6B7A94]">Manage your collaborations</p>
-              </div>
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+            <div className="text-center md:text-left flex-1">
+              <h1 className="text-xl font-semibold text-[#E8EEF9]">Collaborations</h1>
+              <p className="text-xs text-[#6B7A94]">Manage your collaborations</p>
             </div>
-            <Link to={createPageUrl('CreateCollaboration')}>
-              <CCButton variant="primary" icon={Plus}>
+            <Link to={createPageUrl('CreateCollaboration')} className="md:ml-auto">
+              <CCButton variant="primary" fullWidth className="md:w-auto">
                 New Collaboration
               </CCButton>
             </Link>
           </div>
 
           {/* Quick Status Filters */}
-          <div className="flex gap-2 justify-center items-center overflow-x-auto pb-2 scrollbar-hide">
+          <div className="flex flex-wrap gap-2 justify-center">
             {['all', 'draft', 'pending_approval', 'active', 'contract_pending', 'signed', 'completed', 'disputed'].map((status) => (
               <CCButton
                 key={status}
