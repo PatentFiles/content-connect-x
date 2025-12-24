@@ -41,13 +41,6 @@ const features = [
   }
 ];
 
-const stats = [
-  { value: '10K+', label: 'Verified Members' },
-  { value: '50K+', label: 'Successful Collabs' },
-  { value: '99%', label: 'Satisfaction Rate' },
-  { value: '24/7', label: 'Support' },
-];
-
 export default function Landing() {
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -57,6 +50,23 @@ export default function Landing() {
       return base44.auth.me();
     },
   });
+
+  const { data: verifiedMembers = [] } = useQuery({
+    queryKey: ['verifiedMembersCount'],
+    queryFn: () => base44.entities.VerificationRecord.filter({ status: 'approved' }),
+  });
+
+  const { data: completedCollabs = [] } = useQuery({
+    queryKey: ['completedCollabsCount'],
+    queryFn: () => base44.entities.Collaboration.filter({ status: 'completed' }),
+  });
+
+  const stats = [
+    { value: verifiedMembers.length > 0 ? `${verifiedMembers.length}` : '0', label: 'Verified Members' },
+    { value: completedCollabs.length > 0 ? `${completedCollabs.length}` : '0', label: 'Successful Collabs' },
+    { value: '99%', label: 'Satisfaction Rate' },
+    { value: '24/7', label: 'Support' },
+  ];
 
   // Redirect authenticated users to Discovery
   React.useEffect(() => {
