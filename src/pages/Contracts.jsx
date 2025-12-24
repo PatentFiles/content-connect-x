@@ -30,9 +30,12 @@ import CCSelect from '@/components/ui-custom/CCSelect';
 
 const statusConfig = {
   draft: { label: 'Draft', variant: 'default', icon: FileText },
+  generated: { label: 'Generated', variant: 'primary', icon: FileText },
   sent: { label: 'Sent', variant: 'warning', icon: Clock },
   partially_signed: { label: 'Awaiting Signatures', variant: 'warning', icon: AlertCircle },
   signed: { label: 'Signed', variant: 'success', icon: CheckCircle },
+  completed: { label: 'Completed', variant: 'success', icon: CheckCircle },
+  disputed: { label: 'Disputed', variant: 'danger', icon: AlertCircle },
   expired: { label: 'Expired', variant: 'danger', icon: AlertCircle },
   voided: { label: 'Voided', variant: 'danger', icon: AlertCircle },
 };
@@ -98,8 +101,8 @@ export default function Contracts() {
   const { data: collaborations = [] } = useQuery({
     queryKey: ['collaborations', user?.email],
     queryFn: async () => {
-      const allRooms = await base44.entities.DealRoom.list('-created_date');
-      return allRooms.filter(r => r.participant_ids?.includes(user?.email));
+      const allCollab = await base44.entities.Collaboration.list('-created_date');
+      return allCollab.filter(r => r.participant_ids?.includes(user?.email));
     },
     enabled: !!user && isVerified && isSubscribed,
   });
@@ -131,24 +134,34 @@ export default function Contracts() {
       const template = templates.find(t => t.id === data.template_id);
       
       return base44.entities.Contract.create({
-        deal_room_id: data.collaboration_id,
+        collaboration_id: data.collaboration_id,
+        template_id: data.template_id,
         title: data.title,
         template_type: template?.category || 'custom',
-        content: {
-          template_content: template?.content || '',
-          collaboration_details: {
-            name: collaboration?.collaboration_name,
-            scene_type: collaboration?.scene_type,
-            scenes: collaboration?.scene_selected,
-            acts: collaboration?.acts_selected,
-            compensation: collaboration?.compensation_details,
-            schedule: collaboration?.schedule,
-            location: collaboration?.location,
-            deliverables: collaboration?.deliverables,
-            usage_rights: collaboration?.usage_rights,
-          }
+        status: 'generated',
+        version: 1,
+        effective_date: new Date().toISOString().split('T')[0],
+        parties: collaboration?.participant_ids?.map(email => ({
+          role_type: 'creator',
+          email: email,
+          legal_name: '',
+          stage_name: email,
+        })) || [],
+        scenes: collaboration?.scene_selected?.map(scene => ({
+          title: scene,
+          description: '',
+          performers: collaboration?.creator_ids || [],
+          acts: collaboration?.acts_selected || [],
+          boundaries: collaboration?.boundaries || {},
+          notes: '',
+        })) || [],
+        post_scene_rules: {
+          editing_rules: '',
+          posting_rules: '',
+          ownership_model: collaboration?.usage_rights?.platforms?.length > 0 ? 'shared' : 'exclusive',
+          platforms: collaboration?.usage_rights?.platforms || [],
+          crediting_rules: collaboration?.usage_rights?.credit_required ? 'Required' : 'Optional',
         },
-        status: 'draft',
         created_by: user.email,
         signatories: collaboration?.participant_ids?.map(email => ({
           user_id: email,
@@ -305,7 +318,7 @@ export default function Contracts() {
 
           {/* Filters */}
           <div className="flex gap-2 justify-center overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-            {['all', 'draft', 'sent', 'signed', 'expired'].map((status) => (
+            {['all', 'draft', 'generated', 'sent', 'partially_signed', 'signed', 'completed', 'disputed', 'expired', 'voided'].map((status) => (
               <CCButton
                 key={status}
                 variant={filter === status ? 'primary' : 'outline'}

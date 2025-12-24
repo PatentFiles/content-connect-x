@@ -23,6 +23,7 @@ import Shortlists from './pages/Shortlists';
 import Terms from './pages/Terms';
 import Verification from './pages/Verification';
 import ViewProfile from './pages/ViewProfile';
+import ViewContract from './pages/ViewContract';
 import __Layout from './Layout.jsx';
 
 
@@ -52,6 +53,7 @@ export const PAGES = {
     "Terms": Terms,
     "Verification": Verification,
     "ViewProfile": ViewProfile,
+    "ViewContract": ViewContract,
 }
 
 export const pagesConfig = {
