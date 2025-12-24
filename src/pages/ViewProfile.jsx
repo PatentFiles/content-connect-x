@@ -302,8 +302,8 @@ export default function ViewProfile() {
 
         {/* Representation Section (for creators with active representation) */}
         {profile.role_type === 'creator' && (agentRepresentations.length > 0 || studioRosters.length > 0) && (
-          <CCCard padding="lg" className="mb-6">
-            <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 flex items-center gap-2">
+          <CCCard padding="lg" className="mb-6 text-center">
+            <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 flex items-center gap-2 justify-center">
               <Briefcase className="w-5 h-5" />
               Representation
             </h2>
@@ -350,9 +350,9 @@ export default function ViewProfile() {
 
         {/* Bio */}
         {profile.bio && (
-          <CCCard padding="lg" className="mb-6">
-            <h2 className="text-xl font-semibold text-[#E8EEF9] mb-3">About</h2>
-            <p className="text-[#9AA6BC] leading-relaxed whitespace-pre-wrap">
+          <CCCard padding="lg" className="mb-6 text-center">
+            <h2 className="text-xl font-semibold text-[#E8EEF9] mb-3 text-center">About</h2>
+            <p className="text-[#9AA6BC] leading-relaxed whitespace-pre-wrap text-center">
               {profile.bio}
             </p>
           </CCCard>
@@ -364,8 +364,8 @@ export default function ViewProfile() {
             {/* Basic Info */}
             {(creator.gender_identity || creator.orientation_category || creator.ethnicity) && (
               <CCCard padding="lg" className="mb-6">
-                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4">Basic Information</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 text-center">Basic Information</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
                   {creator.gender_identity && (
                     <div>
                       <p className="text-sm text-[#6B7A94] mb-1">Gender Identity</p>
@@ -398,8 +398,8 @@ export default function ViewProfile() {
 
             {/* Scene Pairings & Content */}
             {(creator.scene_pairings?.length > 0 || creator.compensation_preferences?.length > 0) && (
-              <CCCard padding="lg" className="mb-6">
-                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4">Content Preferences</h2>
+              <CCCard padding="lg" className="mb-6 text-center">
+                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 text-center">Content Preferences</h2>
                 {creator.scene_pairings?.length > 0 && (
                   <div className="mb-4">
                     <p className="text-sm text-[#6B7A94] mb-2">Scene Pairings</p>
@@ -423,8 +423,8 @@ export default function ViewProfile() {
 
             {/* Acts */}
             {(creator.standard_acts?.length > 0 || creator.fetish_acts?.length > 0 || creator.kink_edge_acts?.length > 0) && (
-              <CCCard padding="lg" className="mb-6">
-                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4">Performance Acts</h2>
+              <CCCard padding="lg" className="mb-6 text-center">
+                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 text-center">Performance Acts</h2>
                 {creator.standard_acts?.length > 0 && (
                   <div className="mb-4">
                     <p className="text-sm text-[#6B7A94] mb-2">Standard Acts</p>
@@ -459,8 +459,8 @@ export default function ViewProfile() {
             {/* Physical Details */}
             {creator.physical_details && Object.keys(creator.physical_details).length > 0 && (
               <CCCard padding="lg" className="mb-6">
-                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4">Physical Details</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 text-center">Physical Details</h2>
+                <div className="grid grid-cols-1 gap-4 text-center">
                   {creator.physical_details.breast_size && (
                     <div>
                       <p className="text-sm text-[#6B7A94] mb-1">Breast Size</p>
@@ -491,12 +491,12 @@ export default function ViewProfile() {
 
             {/* Rates */}
             {creator.rates_text && (
-              <CCCard padding="lg" className="mb-6">
-                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-3 flex items-center gap-2">
+              <CCCard padding="lg" className="mb-6 text-center">
+                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-3 flex items-center gap-2 justify-center">
                   <DollarSign className="w-5 h-5" />
                   Rates
                 </h2>
-                <p className="text-[#9AA6BC] whitespace-pre-wrap">{creator.rates_text}</p>
+                <p className="text-[#9AA6BC] whitespace-pre-wrap text-center">{creator.rates_text}</p>
               </CCCard>
             )}
           </>
@@ -506,8 +506,8 @@ export default function ViewProfile() {
         {profile.role_type === 'agent' && agent && (
           <>
             {agent.agency_name && (
-              <CCCard padding="lg" className="mb-6">
-                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-3">Agency Information</h2>
+              <CCCard padding="lg" className="mb-6 text-center">
+                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-3 text-center">Agency Information</h2>
                 <div className="space-y-3">
                   <div>
                     <p className="text-sm text-[#6B7A94] mb-1">Agency Name</p>
@@ -543,8 +543,8 @@ export default function ViewProfile() {
         {(profile.role_type === 'photographer' || profile.role_type === 'videographer') && service && (
           <>
             {(service.service_type || service.content_types?.length > 0) && (
-              <CCCard padding="lg" className="mb-6">
-                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4">Services</h2>
+              <CCCard padding="lg" className="mb-6 text-center">
+                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 text-center">Services</h2>
                 <div className="space-y-3">
                   {service.service_type && (
                     <div>
@@ -569,8 +569,8 @@ export default function ViewProfile() {
             )}
 
             {service.rates && (
-              <CCCard padding="lg" className="mb-6">
-                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4">Rates</h2>
+              <CCCard padding="lg" className="mb-6 text-center">
+                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 text-center">Rates</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {service.rates.hourly && (
                     <div>
@@ -595,8 +595,8 @@ export default function ViewProfile() {
             )}
 
             {service.packages?.length > 0 && (
-              <CCCard padding="lg" className="mb-6">
-                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4">Packages</h2>
+              <CCCard padding="lg" className="mb-6 text-center">
+                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 text-center">Packages</h2>
                 <div className="space-y-4">
                   {service.packages.map((pkg, idx) => (
                     <div key={idx} className="p-4 bg-[#0B0F14] rounded-lg border border-[#263248]">
@@ -615,8 +615,8 @@ export default function ViewProfile() {
         {profile.role_type === 'studio' && studio && (
           <>
             {studio.studio_name && (
-              <CCCard padding="lg" className="mb-6">
-                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4">Studio Information</h2>
+              <CCCard padding="lg" className="mb-6 text-center">
+                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 text-center">Studio Information</h2>
                 <div className="space-y-3">
                   <div>
                     <p className="text-sm text-[#6B7A94] mb-1">Studio Name</p>
@@ -647,8 +647,8 @@ export default function ViewProfile() {
             )}
 
             {studio.locations?.length > 0 && (
-              <CCCard padding="lg" className="mb-6">
-                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4">Locations</h2>
+              <CCCard padding="lg" className="mb-6 text-center">
+                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 text-center">Locations</h2>
                 <div className="space-y-4">
                   {studio.locations.map((loc, idx) => (
                     <div key={idx} className="p-4 bg-[#0B0F14] rounded-lg border border-[#263248]">
@@ -666,8 +666,8 @@ export default function ViewProfile() {
 
         {/* Travel Info */}
         {profile.travel_enabled && profile.travel_regions?.length > 0 && (
-          <CCCard padding="lg" className="mb-6">
-            <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 flex items-center gap-2">
+          <CCCard padding="lg" className="mb-6 text-center">
+            <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 flex items-center gap-2 justify-center">
               <Plane className="w-5 h-5" />
               Travel Availability
             </h2>
@@ -683,8 +683,8 @@ export default function ViewProfile() {
 
         {/* Public Gallery */}
         {galleries[0]?.items?.length > 0 && (
-          <CCCard padding="lg" className="mb-6">
-            <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4">Gallery</h2>
+          <CCCard padding="lg" className="mb-6 text-center">
+            <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 text-center">Gallery</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {galleries[0].items.map((item, idx) => (
                 <div key={idx} className="aspect-square rounded-lg overflow-hidden bg-[#151D2B]">
@@ -709,8 +709,8 @@ export default function ViewProfile() {
 
         {/* Social Links */}
         {socialLinks.length > 0 && (
-          <CCCard padding="lg" className="mb-6">
-            <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4">Connect</h2>
+          <CCCard padding="lg" className="mb-6 text-center">
+            <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 text-center">Connect</h2>
             <SocialLinksDisplay links={socialLinks} />
           </CCCard>
         )}
