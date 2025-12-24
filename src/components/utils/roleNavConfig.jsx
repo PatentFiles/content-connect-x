@@ -29,6 +29,7 @@ export const roleNavigation = {
     { path: 'Dashboard', label: 'Dashboard', icon: Home },
     { path: 'Discovery', label: 'Discover', icon: Compass },
     { path: 'Messages', label: 'Messages', icon: MessageCircle },
+    { path: 'Collaborations', label: 'Collaborations', icon: Briefcase },
     { path: 'Representations', label: 'Representations', icon: Users },
     { path: 'Contracts', label: 'Contracts', icon: FileText },
   ],
