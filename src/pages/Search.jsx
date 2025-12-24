@@ -253,7 +253,7 @@ export default function Search() {
           </div>
 
           {/* Role Quick Filters */}
-          <div className="flex gap-2 justify-center overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
+          <div className="flex flex-wrap gap-2 justify-center pb-2">
             <CCButton
               variant={!selectedRole ? 'primary' : 'outline'}
               size="sm"
@@ -267,10 +267,10 @@ export default function Search() {
                 key={role.value}
                 variant={selectedRole === role.value ? 'primary' : 'outline'}
                 size="sm"
-                icon={role.icon}
                 onClick={() => setSelectedRole(role.value)}
                 className="flex-shrink-0"
               >
+                <span className="hidden sm:inline mr-1.5"><role.icon className="w-4 h-4" /></span>
                 {role.label}
               </CCButton>
             ))}
