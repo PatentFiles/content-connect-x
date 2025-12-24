@@ -147,35 +147,28 @@ export default function ViewProfile() {
   const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profileUserId));
   const queryClient = useQueryClient();
 
-  // Save/unsave mutation
-  const saveMutation = useMutation({
-    mutationFn: async () => {
-      if (isSaved) {
-        // Remove from all favorites
-        for (const favorite of favorites) {
-          const itemExists = favorite.items?.some(item => item.user_id === profileUserId);
-          if (itemExists) {
-            const updatedItems = favorite.items.filter(item => item.user_id !== profileUserId);
-            await base44.entities.Favorite.update(favorite.id, { items: updatedItems });
-          }
-        }
-      } else {
-        // Show modal to choose list or create new
-        setShowSaveModal(true);
-        return; // Don't continue with mutation
-      }
+  // Unsave from favorites mutation
+  const unsaveFromFavoritesMutation = useMutation({
+    mutationFn: async (userId) => {
+      const listsWithProfile = favorites.filter(f => f.items?.some(item => item.user_id === userId));
+      await Promise.all(
+        listsWithProfile.map(list => {
+          const updatedItems = list.items.filter(item => item.user_id !== userId);
+          return base44.entities.Favorite.update(list.id, { items: updatedItems });
+        })
+      );
     },
     onSuccess: () => {
-      if (isSaved) {
-        queryClient.invalidateQueries({ queryKey: ['myFavorites'] });
-        toast.success('Removed from favorites');
-      }
+      queryClient.invalidateQueries({ queryKey: ['myFavorites'] });
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      toast.success('Removed from favorites');
     },
   });
 
   const handleSaveClick = () => {
     if (isSaved) {
-      saveMutation.mutate();
+      // Unsave directly
+      unsaveFromFavoritesMutation.mutate(profileUserId);
     } else {
       if (favorites.length === 0) {
         // No lists exist, create default
@@ -345,7 +338,7 @@ export default function ViewProfile() {
           <div className="flex gap-3 w-full max-w-md">
             <button
               onClick={handleSaveClick}
-              disabled={saveMutation.isPending || unsaveFromFavoritesMutation.isPending}
+              disabled={unsaveFromFavoritesMutation.isPending}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-[#263248] bg-transparent hover:bg-[#151D2B] transition-all duration-200 disabled:opacity-50"
             >
               <Heart 
