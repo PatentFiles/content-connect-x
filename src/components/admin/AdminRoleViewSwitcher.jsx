@@ -29,16 +29,13 @@ export default function AdminRoleViewSwitcher({ currentView, onViewChange }) {
               key={role.value}
               onClick={() => onViewChange(role.value)}
               className={cn(
-                'flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200',
-                'border text-left',
+                'flex items-center justify-center px-3 py-2 rounded-lg transition-all duration-200',
+                'border text-center',
                 isActive
                   ? 'bg-[#4F8CFF]/10 border-[#4F8CFF] text-[#4F8CFF]'
                   : 'bg-[#151D2B] border-[#263248] text-[#9AA6BC] hover:bg-[#1A2438] hover:border-[#3A4A6B]'
               )}
             >
-              <div className={cn('w-6 h-6 rounded flex items-center justify-center', role.color)}>
-                <Icon className="w-3.5 h-3.5" />
-              </div>
               <span className="text-xs font-medium">{role.label}</span>
             </button>
           );
