@@ -76,11 +76,6 @@ export default function ModerationOverview() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Moderation Overview</h2>
-        <p className="text-sm text-[#6B7A94]">Platform-wide moderation metrics and recent actions</p>
-      </div>
-
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {stats.map((stat) => {
