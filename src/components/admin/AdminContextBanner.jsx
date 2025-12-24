@@ -21,9 +21,9 @@ export default function AdminContextBanner({ currentView, onReturnToAdmin }) {
     <motion.div
       initial={{ y: -50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      className="fixed top-16 left-0 right-0 z-30 bg-[#4F8CFF]/10 backdrop-blur-xl border-b border-[#4F8CFF]/30"
+      className="fixed top-16 left-0 right-0 z-30 bg-[#4F8CFF]/10 backdrop-blur-xl border-b border-[#4F8CFF]/30 md:pl-64"
     >
-      <div className="max-w-7xl mx-auto px-4 py-3">
+      <div className="px-4 py-2.5">
         {/* Title */}
         <div className="flex items-center gap-2 justify-center mb-2">
           <Eye className="w-4 h-4 text-[#4F8CFF]" />
@@ -33,8 +33,8 @@ export default function AdminContextBanner({ currentView, onReturnToAdmin }) {
         </div>
         
         {/* Actions */}
-        <div className="flex items-center gap-2 justify-center">
-          <CCBadge variant="primary" size="md" className="flex-1 max-w-[140px] justify-center py-2">
+        <div className="flex items-center gap-2 justify-center max-w-sm mx-auto">
+          <CCBadge variant="primary" size="md" className="flex-1 justify-center py-1.5">
             View Mode
           </CCBadge>
           <CCButton
@@ -42,7 +42,7 @@ export default function AdminContextBanner({ currentView, onReturnToAdmin }) {
             size="sm"
             icon={ArrowLeft}
             onClick={onReturnToAdmin}
-            className="flex-1 max-w-[140px]"
+            className="flex-1"
           >
             Return to Admin
           </CCButton>
