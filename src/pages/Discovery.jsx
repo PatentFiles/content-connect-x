@@ -419,6 +419,19 @@ export default function Discovery() {
           </div>
         </div>
       )}
+
+      {/* Save to Shortlist Modal */}
+      {selectedProfile && (
+        <SaveToShortlistModal
+          isOpen={showSaveModal}
+          onClose={() => {
+            setShowSaveModal(false);
+            setSelectedProfile(null);
+          }}
+          profileUserId={selectedProfile.user_id}
+          userEmail={user?.email}
+        />
+      )}
     </div>
   );
 }
