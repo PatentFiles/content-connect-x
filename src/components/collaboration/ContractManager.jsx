@@ -17,14 +17,14 @@ export default function ContractManager({ collaborationId, profiles, user }) {
 
   const { data: contracts = [] } = useQuery({
     queryKey: ['collaborationContracts', collaborationId],
-    queryFn: () => base44.entities.Contract.filter({ deal_room_id: collaborationId }),
+    queryFn: () => base44.entities.Contract.filter({ collaboration_id: collaborationId }),
     enabled: !!collaborationId,
   });
 
   const createContractMutation = useMutation({
     mutationFn: (data) => base44.entities.Contract.create({
       ...data,
-      deal_room_id: collaborationId,
+      collaboration_id: collaborationId,
       created_by: user.email,
       signatories: profiles.map(p => ({
         user_id: p.user_id,

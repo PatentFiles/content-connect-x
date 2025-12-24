@@ -20,16 +20,16 @@ export default function CollaborativeEditor({ collaborationId, user }) {
   // Fetch documents
   const { data: documents = [] } = useQuery({
     queryKey: ['collaborationDocuments', collaborationId],
-    queryFn: () => base44.entities.DealRoomDocument.filter({ deal_room_id: collaborationId }),
+    queryFn: () => base44.entities.CollaborationDocument.filter({ collaboration_id: collaborationId }),
     enabled: !!collaborationId,
     refetchInterval: 5000,
   });
 
   // Create document mutation
   const createDocMutation = useMutation({
-    mutationFn: (data) => base44.entities.DealRoomDocument.create({
+    mutationFn: (data) => base44.entities.CollaborationDocument.create({
       ...data,
-      deal_room_id: collaborationId,
+      collaboration_id: collaborationId,
       created_by: user.email,
       content: '',
     }),
@@ -44,9 +44,9 @@ export default function CollaborativeEditor({ collaborationId, user }) {
 
   // Update document mutation
   const updateDocMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.DealRoomDocument.update(id, data),
+    mutationFn: ({ id, data }) => base44.entities.CollaborationDocument.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['dealRoomDocuments']);
+      queryClient.invalidateQueries(['collaborationDocuments']);
       toast.success('Document saved');
     },
   });
