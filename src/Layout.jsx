@@ -3,9 +3,11 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { createPageUrl } from '@/utils';
+import { cn } from '@/lib/utils';
 import NavBar from '@/components/layout/NavBar';
 import BottomNav from '@/components/layout/BottomNav';
 import Sidebar from '@/components/layout/Sidebar';
+import AdminContextBanner from '@/components/admin/AdminContextBanner';
 
 // Public pages that don't need auth
 const publicPages = [
@@ -41,6 +43,7 @@ const appPages = [
 
 export default function Layout({ children, currentPageName }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [adminRoleView, setAdminRoleView] = useState('admin');
   const isPublicPage = publicPages.includes(currentPageName);
   const isAppPage = appPages.includes(currentPageName);
 
@@ -71,6 +74,7 @@ export default function Layout({ children, currentPageName }) {
   const profile = profiles[0];
   const isVerified = verifications[0]?.status === 'approved';
   const isAuthenticated = !!user;
+  const isAdmin = profile?.is_admin;
 
   // Handle redirect after login
   useEffect(() => {
@@ -119,12 +123,23 @@ export default function Layout({ children, currentPageName }) {
           onMenuToggle={() => setMenuOpen(!menuOpen)}
           menuOpen={menuOpen}
         />
+        {isAdmin && (
+          <AdminContextBanner 
+            currentView={adminRoleView}
+            onReturnToAdmin={() => setAdminRoleView('admin')}
+          />
+        )}
         <Sidebar 
           currentPage={currentPageName}
           profile={{...profile, verified: isVerified}}
           onLogout={handleLogout}
+          adminRoleView={adminRoleView}
+          onAdminRoleViewChange={setAdminRoleView}
         />
-        <main className="pt-16 md:pl-64 min-h-screen">
+        <main className={cn(
+          "pt-16 md:pl-64 min-h-screen",
+          isAdmin && adminRoleView !== 'admin' && "pt-28"
+        )}>
           {children}
         </main>
         <BottomNav currentPage={currentPageName} />

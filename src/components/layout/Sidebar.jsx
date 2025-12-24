@@ -12,13 +12,18 @@ import {
 import CCAvatar from '../ui-custom/CCAvatars';
 import CCBadge from '../ui-custom/CCBadge';
 import { getNavigationForRole } from '../utils/roleNavConfig';
+import AdminRoleViewSwitcher from '../admin/AdminRoleViewSwitcher';
 
 const adminNavItems = [
   { name: 'Admin Dashboard', page: 'AdminDashboard', icon: Shield },
 ];
 
-export default function Sidebar({ currentPage, profile, onLogout }) {
-  const roleType = profile?.role_type || 'creator';
+export default function Sidebar({ currentPage, profile, onLogout, adminRoleView, onAdminRoleViewChange }) {
+  // Determine which role's navigation to show
+  const isAdmin = profile?.is_admin;
+  const effectiveRoleView = isAdmin && adminRoleView ? adminRoleView : (profile?.role_type || 'creator');
+  const showAdminNav = isAdmin && effectiveRoleView === 'admin';
+  const roleType = showAdminNav ? 'creator' : effectiveRoleView;
   const navItems = getNavigationForRole(roleType);
   return (
     <aside className="hidden md:flex fixed left-0 top-16 bottom-0 w-64 bg-[#121824] border-r border-[#263248] flex-col">
@@ -50,9 +55,17 @@ export default function Sidebar({ currentPage, profile, onLogout }) {
         </div>
       )}
 
+      {/* Admin Role View Switcher */}
+      {isAdmin && (
+        <AdminRoleViewSwitcher 
+          currentView={effectiveRoleView}
+          onViewChange={onAdminRoleViewChange}
+        />
+      )}
+
       {/* Main Navigation */}
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {profile?.is_admin && (
+        {showAdminNav && (
           <>
             <p className="text-xs font-medium text-[#6B7A94] uppercase tracking-wider px-3 mb-2">Admin</p>
             {adminNavItems.map((item) => {
@@ -84,7 +97,12 @@ export default function Sidebar({ currentPage, profile, onLogout }) {
             <div className="pb-2 mb-2 border-b border-[#263248]" />
           </>
         )}
-        {navItems.filter(item => item.path !== 'Dashboard' || !profile?.is_admin).map((item) => {
+        {!showAdminNav && isAdmin && (
+          <p className="text-xs font-medium text-[#6B7A94] uppercase tracking-wider px-3 mb-2">
+            {effectiveRoleView.charAt(0).toUpperCase() + effectiveRoleView.slice(1)} View
+          </p>
+        )}
+        {navItems.filter(item => item.path !== 'Dashboard' || !showAdminNav).map((item) => {
           const isActive = currentPage === item.path;
           return (
             <Link
