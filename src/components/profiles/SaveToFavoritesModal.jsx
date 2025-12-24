@@ -7,7 +7,7 @@ import CCButton from '@/components/ui-custom/CCButton';
 import CCInput from '@/components/ui-custom/CCInput';
 import CCModal from '@/components/ui-custom/CCModal';
 
-export default function SaveToShortlistModal({ 
+export default function SaveToFavoritesModal({ 
   isOpen, 
   onClose, 
   profileUserId, 
@@ -17,42 +17,43 @@ export default function SaveToShortlistModal({
   const [newListName, setNewListName] = useState('');
   const queryClient = useQueryClient();
 
-  // Fetch user's shortlists
-  const { data: shortlists = [], isLoading } = useQuery({
-    queryKey: ['shortlists', userEmail],
-    queryFn: () => base44.entities.Shortlist.filter({ user_id: userEmail }),
+  // Fetch user's favorites
+  const { data: favorites = [], isLoading } = useQuery({
+    queryKey: ['favorites', userEmail],
+    queryFn: () => base44.entities.Favorite.filter({ owner_id: userEmail }),
     enabled: !!userEmail && isOpen,
   });
 
-  // Add to shortlist mutation
-  const addToShortlistMutation = useMutation({
-    mutationFn: async (shortlistId) => {
-      const shortlist = shortlists.find(s => s.id === shortlistId);
-      const updatedProfiles = [...(shortlist.saved_profiles || []), profileUserId];
-      await base44.entities.Shortlist.update(shortlistId, { 
-        saved_profiles: updatedProfiles 
+  // Add to favorites mutation
+  const addToFavoritesMutation = useMutation({
+    mutationFn: async (favoriteId) => {
+      const favorite = favorites.find(f => f.id === favoriteId);
+      const currentItems = favorite.items || [];
+      const updatedItems = [...currentItems, { user_id: profileUserId, added_at: new Date().toISOString() }];
+      await base44.entities.Favorite.update(favoriteId, { 
+        items: updatedItems 
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shortlists'] });
-      queryClient.invalidateQueries({ queryKey: ['myShortlists'] });
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      queryClient.invalidateQueries({ queryKey: ['myFavorites'] });
       toast.success('Saved to favorites');
       onClose();
     },
   });
 
-  // Create new shortlist mutation
-  const createShortlistMutation = useMutation({
+  // Create new favorites list mutation
+  const createFavoritesMutation = useMutation({
     mutationFn: async () => {
-      await base44.entities.Shortlist.create({
-        user_id: userEmail,
+      await base44.entities.Favorite.create({
+        owner_id: userEmail,
         name: newListName,
-        saved_profiles: [profileUserId],
+        items: [{ user_id: profileUserId, added_at: new Date().toISOString() }],
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['shortlists'] });
-      queryClient.invalidateQueries({ queryKey: ['myShortlists'] });
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+      queryClient.invalidateQueries({ queryKey: ['myFavorites'] });
       toast.success('Saved to new list');
       setNewListName('');
       setIsCreatingNew(false);
@@ -60,8 +61,8 @@ export default function SaveToShortlistModal({
     },
   });
 
-  const handleSaveToList = (shortlistId) => {
-    addToShortlistMutation.mutate(shortlistId);
+  const handleSaveToList = (favoriteId) => {
+    addToFavoritesMutation.mutate(favoriteId);
   };
 
   const handleCreateNew = () => {
@@ -69,11 +70,11 @@ export default function SaveToShortlistModal({
       toast.error('Please enter a list name');
       return;
     }
-    createShortlistMutation.mutate();
+    createFavoritesMutation.mutate();
   };
 
-  const isSavedInList = (shortlist) => {
-    return shortlist.saved_profiles?.includes(profileUserId);
+  const isSavedInList = (favorite) => {
+    return favorite.items?.some(item => item.user_id === profileUserId);
   };
 
   return (
@@ -91,13 +92,13 @@ export default function SaveToShortlistModal({
         ) : (
           <>
             {/* Existing lists */}
-            {shortlists.length > 0 && (
+            {favorites.length > 0 && (
               <div className="space-y-2">
-                {shortlists.map((list) => (
+                {favorites.map((list) => (
                   <button
                     key={list.id}
                     onClick={() => !isSavedInList(list) && handleSaveToList(list.id)}
-                    disabled={isSavedInList(list) || addToShortlistMutation.isPending}
+                    disabled={isSavedInList(list) || addToFavoritesMutation.isPending}
                     className="w-full flex items-center justify-between p-3 bg-[#151D2B] hover:bg-[#1A2438] rounded-lg border border-[#263248] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <div className="flex items-center gap-3">
@@ -105,7 +106,7 @@ export default function SaveToShortlistModal({
                       <div className="text-left">
                         <p className="text-sm font-medium text-[#E8EEF9]">{list.name}</p>
                         <p className="text-xs text-[#6B7A94]">
-                          {list.saved_profiles?.length || 0} profiles
+                          {list.items?.length || 0} profiles
                         </p>
                       </div>
                     </div>
@@ -149,7 +150,7 @@ export default function SaveToShortlistModal({
                   <CCButton
                     variant="primary"
                     onClick={handleCreateNew}
-                    loading={createShortlistMutation.isPending}
+                    loading={createFavoritesMutation.isPending}
                     fullWidth
                   >
                     Create & Save

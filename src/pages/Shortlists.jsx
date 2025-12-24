@@ -48,44 +48,44 @@ export default function Shortlists() {
   const isVerified = verification?.[0]?.status === 'approved';
   const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
-  // Fetch shortlists
-  const { data: shortlists = [], isLoading: shortlistsLoading } = useQuery({
-    queryKey: ['shortlists', user?.email],
-    queryFn: () => base44.entities.Shortlist.filter({ owner_id: user?.email }),
+  // Fetch favorites
+  const { data: favorites = [], isLoading: favoritesLoading } = useQuery({
+    queryKey: ['favorites', user?.email],
+    queryFn: () => base44.entities.Favorite.filter({ owner_id: user?.email }),
     enabled: !!user && isVerified && isSubscribed,
   });
 
-  // Fetch profiles for shortlist items
+  // Fetch profiles for favorites items
   const { data: profiles = [] } = useQuery({
-    queryKey: ['shortlistProfiles', shortlists],
+    queryKey: ['favoritesProfiles', favorites],
     queryFn: async () => {
-      const allUserIds = [...new Set(shortlists.flatMap(s => s.items?.map(i => i.user_id) || []))];
+      const allUserIds = [...new Set(favorites.flatMap(f => f.items?.map(i => i.user_id) || []))];
       if (allUserIds.length === 0) return [];
       const allProfiles = await base44.entities.UserProfile.list();
       return allProfiles.filter(p => allUserIds.includes(p.user_id));
     },
-    enabled: shortlists.length > 0,
+    enabled: favorites.length > 0,
   });
 
-  // Create shortlist mutation
+  // Create favorites list mutation
   const createMutation = useMutation({
-    mutationFn: (name) => base44.entities.Shortlist.create({
+    mutationFn: (name) => base44.entities.Favorite.create({
       owner_id: user.email,
       name,
       items: [],
     }),
     onSuccess: () => {
-      queryClient.invalidateQueries(['shortlists']);
+      queryClient.invalidateQueries(['favorites']);
       setIsCreating(false);
       setNewListName('');
     },
   });
 
-  // Delete shortlist mutation
+  // Delete favorites list mutation
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Shortlist.delete(id),
+    mutationFn: (id) => base44.entities.Favorite.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(['shortlists']);
+      queryClient.invalidateQueries(['favorites']);
       setSelectedList(null);
     },
   });
@@ -134,7 +134,7 @@ export default function Shortlists() {
 
       {/* Content */}
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {shortlistsLoading ? (
+        {favoritesLoading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map(i => (
               <CCCard key={i} padding="lg">
@@ -150,7 +150,7 @@ export default function Shortlists() {
               </CCCard>
             ))}
           </div>
-        ) : shortlists.length === 0 ? (
+        ) : favorites.length === 0 ? (
           <CCEmpty
             icon={FolderHeart}
             title="No favorites yet"
@@ -160,7 +160,7 @@ export default function Shortlists() {
           />
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {shortlists.map((list) => {
+            {favorites.map((list) => {
               const listProfiles = getProfilesForList(list);
               return (
                 <motion.div

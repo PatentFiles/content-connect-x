@@ -11,7 +11,7 @@ import CCEmpty from '@/components/ui-custom/CCEmpty';
 import ProfileCard from '@/components/profiles/ProfileCard';
 import ProfileFilters from '@/components/profiles/ProfileFilters';
 import AccessGate from '@/components/auth/AccessGate';
-import SaveToShortlistModal from '@/components/profiles/SaveToShortlistModal';
+import SaveToFavoritesModal from '@/components/profiles/SaveToFavoritesModal';
 
 // Calculate distance between two coordinates in miles
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -109,23 +109,23 @@ export default function Discovery() {
     enabled: !!user && isVerified && isSubscribed,
   });
 
-  // Fetch shortlists
-  const { data: shortlists = [] } = useQuery({
-    queryKey: ['myShortlists', user?.email],
-    queryFn: () => base44.entities.Shortlist.filter({ user_id: user?.email }),
+  // Fetch favorites
+  const { data: favorites = [] } = useQuery({
+    queryKey: ['myFavorites', user?.email],
+    queryFn: () => base44.entities.Favorite.filter({ owner_id: user?.email }),
     enabled: !!user?.email,
   });
 
   const handleFavorite = (profile) => {
     setSelectedProfile(profile);
-    if (shortlists.length === 0) {
+    if (favorites.length === 0) {
       // No lists, create default
-      base44.entities.Shortlist.create({
-        user_id: user.email,
+      base44.entities.Favorite.create({
+        owner_id: user.email,
         name: 'My Favorites',
-        saved_profiles: [profile.user_id],
+        items: [{ user_id: profile.user_id, added_at: new Date().toISOString() }],
       }).then(() => {
-        queryClient.invalidateQueries({ queryKey: ['myShortlists'] });
+        queryClient.invalidateQueries({ queryKey: ['myFavorites'] });
         toast.success('Saved to favorites');
       });
     } else {
@@ -420,9 +420,9 @@ export default function Discovery() {
         </div>
       )}
 
-      {/* Save to Shortlist Modal */}
+      {/* Save to Favorites Modal */}
       {selectedProfile && (
-        <SaveToShortlistModal
+        <SaveToFavoritesModal
           isOpen={showSaveModal}
           onClose={() => {
             setShowSaveModal(false);
