@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { Compass, MapPin, Filter, ChevronRight } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
@@ -10,6 +11,7 @@ import CCEmpty from '@/components/ui-custom/CCEmpty';
 import ProfileCard from '@/components/profiles/ProfileCard';
 import ProfileFilters from '@/components/profiles/ProfileFilters';
 import AccessGate from '@/components/auth/AccessGate';
+import SaveToShortlistModal from '@/components/profiles/SaveToShortlistModal';
 
 // Calculate distance between two coordinates in miles
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -25,6 +27,10 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 }
 
 export default function Discovery() {
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState(null);
+  const queryClient = useQueryClient();
+  
   const [filters, setFilters] = useState({
     roleTypes: [],
     orientations: [],
@@ -102,6 +108,30 @@ export default function Discovery() {
     queryFn: () => base44.entities.StudioRoster.filter({ status: 'ACTIVE' }),
     enabled: !!user && isVerified && isSubscribed,
   });
+
+  // Fetch shortlists
+  const { data: shortlists = [] } = useQuery({
+    queryKey: ['myShortlists', user?.email],
+    queryFn: () => base44.entities.Shortlist.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+
+  const handleFavorite = (profile) => {
+    setSelectedProfile(profile);
+    if (shortlists.length === 0) {
+      // No lists, create default
+      base44.entities.Shortlist.create({
+        user_id: user.email,
+        name: 'My Favorites',
+        saved_profiles: [profile.user_id],
+      }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['myShortlists'] });
+        toast.success('Saved to favorites');
+      });
+    } else {
+      setShowSaveModal(true);
+    }
+  };
 
   // Apply filters client-side
   const profiles = React.useMemo(() => {
@@ -345,7 +375,7 @@ export default function Discovery() {
                   creatorDetails={details}
                   distance={distance}
                   isRepresented={isRepresented}
-                  onFavorite={(p) => console.log('Favorite:', p)}
+                  onFavorite={handleFavorite}
                   onMessage={(p) => console.log('Message:', p)}
                 />
               );

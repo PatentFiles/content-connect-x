@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { Search as SearchIcon, X, Filter, Users, Camera, Video, Briefcase, Building } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
-
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCLoadingScreen, CCProfileCardSkeleton } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import ProfileCard from '@/components/profiles/ProfileCard';
 import ProfileFilters from '@/components/profiles/ProfileFilters';
 import AccessGate from '@/components/auth/AccessGate';
+import SaveToShortlistModal from '@/components/profiles/SaveToShortlistModal';
 
 const roleOptions = [
   { value: 'creator', label: 'Creators', icon: Users },
@@ -21,6 +22,10 @@ const roleOptions = [
 ];
 
 export default function Search() {
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [selectedProfile, setSelectedProfile] = useState(null);
+  const queryClient = useQueryClient();
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
   const [filters, setFilters] = useState({
@@ -187,6 +192,30 @@ export default function Search() {
     enabled: profiles.length > 0,
   });
 
+  // Fetch shortlists
+  const { data: shortlists = [] } = useQuery({
+    queryKey: ['myShortlists', user?.email],
+    queryFn: () => base44.entities.Shortlist.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+
+  const handleFavorite = (profile) => {
+    setSelectedProfile(profile);
+    if (shortlists.length === 0) {
+      // No lists, create default
+      base44.entities.Shortlist.create({
+        user_id: user.email,
+        name: 'My Favorites',
+        saved_profiles: [profile.user_id],
+      }).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['myShortlists'] });
+        toast.success('Saved to favorites');
+      });
+    } else {
+      setShowSaveModal(true);
+    }
+  };
+
   if (userLoading) {
     return <CCLoadingScreen message="Loading..." />;
   }
@@ -334,7 +363,7 @@ export default function Search() {
                   key={profile.id}
                   profile={profile}
                   creatorDetails={details}
-                  onFavorite={(p) => console.log('Favorite:', p)}
+                  onFavorite={handleFavorite}
                   onMessage={(p) => console.log('Message:', p)}
                 />
               );
@@ -342,6 +371,19 @@ export default function Search() {
           </div>
         )}
       </div>
+
+      {/* Save to Shortlist Modal */}
+      {selectedProfile && (
+        <SaveToShortlistModal
+          isOpen={showSaveModal}
+          onClose={() => {
+            setShowSaveModal(false);
+            setSelectedProfile(null);
+          }}
+          profileUserId={selectedProfile.user_id}
+          userEmail={user?.email}
+        />
+      )}
     </div>
   );
 }

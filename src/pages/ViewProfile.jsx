@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import SaveToShortlistModal from '@/components/profiles/SaveToShortlistModal';
 import { motion } from 'framer-motion';
 import { 
   MapPin, 
@@ -134,6 +135,8 @@ export default function ViewProfile() {
     enabled: !!profileUserId && !!profile,
   });
 
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  
   // Fetch shortlists to check if profile is saved
   const { data: shortlists = [] } = useQuery({
     queryKey: ['myShortlists', user?.email],
@@ -148,32 +151,46 @@ export default function ViewProfile() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (isSaved) {
-        // Remove from shortlist
-        const shortlist = shortlists.find(s => s.saved_profiles?.includes(profileUserId));
-        if (shortlist) {
-          const updated = shortlist.saved_profiles.filter(id => id !== profileUserId);
-          await base44.entities.Shortlist.update(shortlist.id, { saved_profiles: updated });
+        // Remove from all shortlists
+        for (const shortlist of shortlists) {
+          if (shortlist.saved_profiles?.includes(profileUserId)) {
+            const updated = shortlist.saved_profiles.filter(id => id !== profileUserId);
+            await base44.entities.Shortlist.update(shortlist.id, { saved_profiles: updated });
+          }
         }
       } else {
-        // Add to shortlist (create or update default shortlist)
-        const defaultShortlist = shortlists.find(s => s.name === 'Saved Profiles');
-        if (defaultShortlist) {
-          const updated = [...(defaultShortlist.saved_profiles || []), profileUserId];
-          await base44.entities.Shortlist.update(defaultShortlist.id, { saved_profiles: updated });
-        } else {
-          await base44.entities.Shortlist.create({
-            user_id: user.email,
-            name: 'Saved Profiles',
-            saved_profiles: [profileUserId],
-          });
-        }
+        // Show modal to choose list or create new
+        setShowSaveModal(true);
+        return; // Don't continue with mutation
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myShortlists'] });
-      toast.success(isSaved ? 'Removed from saved' : 'Saved to shortlist');
+      if (isSaved) {
+        queryClient.invalidateQueries({ queryKey: ['myShortlists'] });
+        toast.success('Removed from favorites');
+      }
     },
   });
+
+  const handleSaveClick = () => {
+    if (isSaved) {
+      saveMutation.mutate();
+    } else {
+      if (shortlists.length === 0) {
+        // No lists exist, create default
+        base44.entities.Shortlist.create({
+          user_id: user.email,
+          name: 'My Favorites',
+          saved_profiles: [profileUserId],
+        }).then(() => {
+          queryClient.invalidateQueries({ queryKey: ['myShortlists'] });
+          toast.success('Saved to favorites');
+        });
+      } else {
+        setShowSaveModal(true);
+      }
+    }
+  };
 
   // Fetch representation info (for creators only)
   const { data: agentRepresentations = [] } = useQuery({
@@ -328,7 +345,7 @@ export default function ViewProfile() {
             <CCButton 
               variant="outline" 
               icon={Heart}
-              onClick={() => saveMutation.mutate()}
+              onClick={handleSaveClick}
               loading={saveMutation.isPending}
               className="flex-1"
             >
@@ -343,6 +360,14 @@ export default function ViewProfile() {
             </CCButton>
           </div>
         </div>
+
+        {/* Save to Shortlist Modal */}
+        <SaveToShortlistModal
+          isOpen={showSaveModal}
+          onClose={() => setShowSaveModal(false)}
+          profileUserId={profileUserId}
+          userEmail={user?.email}
+        />
 
         {/* Representation Section (for creators with active representation) */}
         {profile.role_type === 'creator' && (agentRepresentations.length > 0 || studioRosters.length > 0) && (
