@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import SaveToShortlistModal from '@/components/profiles/SaveToShortlistModal';
+import SaveToFavoritesModal from '@/components/profiles/SaveToFavoritesModal';
 import { motion } from 'framer-motion';
 import { 
   MapPin, 
@@ -137,25 +137,26 @@ export default function ViewProfile() {
 
   const [showSaveModal, setShowSaveModal] = useState(false);
   
-  // Fetch shortlists to check if profile is saved
-  const { data: shortlists = [] } = useQuery({
-    queryKey: ['myShortlists', user?.email],
-    queryFn: () => base44.entities.Shortlist.filter({ user_id: user?.email }),
+  // Fetch favorites to check if profile is saved
+  const { data: favorites = [] } = useQuery({
+    queryKey: ['myFavorites', user?.email],
+    queryFn: () => base44.entities.Favorite.filter({ owner_id: user?.email }),
     enabled: !!user?.email,
   });
 
-  const isSaved = shortlists.some(s => s.saved_profiles?.includes(profileUserId));
+  const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profileUserId));
   const queryClient = useQueryClient();
 
   // Save/unsave mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (isSaved) {
-        // Remove from all shortlists
-        for (const shortlist of shortlists) {
-          if (shortlist.saved_profiles?.includes(profileUserId)) {
-            const updated = shortlist.saved_profiles.filter(id => id !== profileUserId);
-            await base44.entities.Shortlist.update(shortlist.id, { saved_profiles: updated });
+        // Remove from all favorites
+        for (const favorite of favorites) {
+          const itemExists = favorite.items?.some(item => item.user_id === profileUserId);
+          if (itemExists) {
+            const updatedItems = favorite.items.filter(item => item.user_id !== profileUserId);
+            await base44.entities.Favorite.update(favorite.id, { items: updatedItems });
           }
         }
       } else {
@@ -166,7 +167,7 @@ export default function ViewProfile() {
     },
     onSuccess: () => {
       if (isSaved) {
-        queryClient.invalidateQueries({ queryKey: ['myShortlists'] });
+        queryClient.invalidateQueries({ queryKey: ['myFavorites'] });
         toast.success('Removed from favorites');
       }
     },
@@ -176,14 +177,14 @@ export default function ViewProfile() {
     if (isSaved) {
       saveMutation.mutate();
     } else {
-      if (shortlists.length === 0) {
+      if (favorites.length === 0) {
         // No lists exist, create default
-        base44.entities.Shortlist.create({
-          user_id: user.email,
+        base44.entities.Favorite.create({
+          owner_id: user.email,
           name: 'My Favorites',
-          saved_profiles: [profileUserId],
+          items: [{ user_id: profileUserId, added_at: new Date().toISOString() }],
         }).then(() => {
-          queryClient.invalidateQueries({ queryKey: ['myShortlists'] });
+          queryClient.invalidateQueries({ queryKey: ['myFavorites'] });
           toast.success('Saved to favorites');
         });
       } else {
@@ -361,8 +362,8 @@ export default function ViewProfile() {
           </div>
         </div>
 
-        {/* Save to Shortlist Modal */}
-        <SaveToShortlistModal
+        {/* Save to Favorites Modal */}
+        <SaveToFavoritesModal
           isOpen={showSaveModal}
           onClose={() => setShowSaveModal(false)}
           profileUserId={profileUserId}
