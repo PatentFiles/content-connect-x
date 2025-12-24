@@ -378,11 +378,11 @@ export default function ViewProfile() {
                     <div>
                       <p className="text-sm text-[#6B7A94] mb-1">Orientation</p>
                       <div className="flex flex-wrap gap-2">
-                        {creator.orientation_category.map(o => (
-                          <CCBadge key={o} variant="primary" size="sm">
-                            {o.replace('_', ' ')}
-                          </CCBadge>
-                        ))}
+                       {creator.orientation_category.map(o => (
+                         <span key={o} className="text-sm text-[#E8EEF9]">
+                           {o.replace('_', ' ')}
+                         </span>
+                       ))}
                       </div>
                     </div>
                   )}
@@ -404,11 +404,11 @@ export default function ViewProfile() {
                   <div className="mb-4">
                     <p className="text-sm text-[#6B7A94] mb-2">Scene Pairings</p>
                     <div className="flex flex-wrap gap-2">
-                      {creator.scene_pairings.map(scene => (
-                        <CCBadge key={scene} variant="primary" size="sm">
-                          {scene.replace(/_/g, ' ')}
-                        </CCBadge>
-                      ))}
+                     {creator.scene_pairings.map(scene => (
+                       <span key={scene} className="text-sm text-[#E8EEF9]">
+                         {scene.replace(/_/g, ' ')}
+                       </span>
+                     ))}
                     </div>
                   </div>
                 )}
@@ -416,11 +416,11 @@ export default function ViewProfile() {
                   <div>
                     <p className="text-sm text-[#6B7A94] mb-2">Compensation Types</p>
                     <div className="flex flex-wrap gap-2">
-                      {creator.compensation_preferences.map(comp => (
-                        <CCBadge key={comp} variant="accent" size="sm" icon={DollarSign}>
-                          {comp.charAt(0).toUpperCase() + comp.slice(1)}
-                        </CCBadge>
-                      ))}
+                     {creator.compensation_preferences.map(comp => (
+                       <span key={comp} className="text-sm text-[#E8EEF9]">
+                         {comp.charAt(0).toUpperCase() + comp.slice(1)}
+                       </span>
+                     ))}
                     </div>
                   </div>
                 )}
@@ -435,11 +435,11 @@ export default function ViewProfile() {
                   <div className="mb-4">
                     <p className="text-sm text-[#6B7A94] mb-2">Standard Acts</p>
                     <div className="flex flex-wrap gap-2">
-                      {creator.standard_acts.map(act => (
-                        <CCBadge key={act} variant="primary" size="sm">
-                          {act}
-                        </CCBadge>
-                      ))}
+                     {creator.standard_acts.map(act => (
+                       <span key={act} className="text-sm text-[#E8EEF9]">
+                         {act.replace('prints_stills', 'prints/stills')}
+                       </span>
+                     ))}
                     </div>
                   </div>
                 )}
@@ -447,11 +447,11 @@ export default function ViewProfile() {
                   <div className="mb-4">
                     <p className="text-sm text-[#6B7A94] mb-2">Fetish Acts</p>
                     <div className="flex flex-wrap gap-2">
-                      {creator.fetish_acts.map(act => (
-                        <CCBadge key={act} variant="warning" size="sm">
-                          {act}
-                        </CCBadge>
-                      ))}
+                     {creator.fetish_acts.map(act => (
+                       <span key={act} className="text-sm text-[#E8EEF9]">
+                         {act}
+                       </span>
+                     ))}
                     </div>
                   </div>
                 )}
@@ -459,11 +459,11 @@ export default function ViewProfile() {
                   <div>
                     <p className="text-sm text-[#6B7A94] mb-2">Kink/Edge Acts</p>
                     <div className="flex flex-wrap gap-2">
-                      {creator.kink_edge_acts.map(act => (
-                        <CCBadge key={act} variant="danger" size="sm">
-                          {act}
-                        </CCBadge>
-                      ))}
+                     {creator.kink_edge_acts.map(act => (
+                       <span key={act} className="text-sm text-[#E8EEF9]">
+                         {act.replace('dominant_submissive', 'dominant/submissive')}
+                       </span>
+                     ))}
                     </div>
                   </div>
                 )}
@@ -539,11 +539,11 @@ export default function ViewProfile() {
                     <div>
                       <p className="text-sm text-[#6B7A94] mb-2">Content Types</p>
                       <div className="flex flex-wrap gap-2">
-                        {agent.content_types.map(type => (
-                          <CCBadge key={type} variant="primary" size="sm">
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                          </CCBadge>
-                        ))}
+                       {agent.content_types.map(type => (
+                         <span key={type} className="text-sm text-[#E8EEF9]">
+                           {type.charAt(0).toUpperCase() + type.slice(1)}
+                         </span>
+                       ))}
                       </div>
                     </div>
                   )}
@@ -570,11 +570,11 @@ export default function ViewProfile() {
                     <div>
                       <p className="text-sm text-[#6B7A94] mb-2">Content Types</p>
                       <div className="flex flex-wrap gap-2">
-                        {service.content_types.map(type => (
-                          <CCBadge key={type} variant="primary" size="sm">
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                          </CCBadge>
-                        ))}
+                       {service.content_types.map(type => (
+                         <span key={type} className="text-sm text-[#E8EEF9]">
+                           {type.charAt(0).toUpperCase() + type.slice(1)}
+                         </span>
+                       ))}
                       </div>
                     </div>
                   )}
@@ -648,11 +648,11 @@ export default function ViewProfile() {
                     <div>
                       <p className="text-sm text-[#6B7A94] mb-2">Content Types</p>
                       <div className="flex flex-wrap gap-2">
-                        {studio.content_types.map(type => (
-                          <CCBadge key={type} variant="primary" size="sm">
-                            {type.charAt(0).toUpperCase() + type.slice(1)}
-                          </CCBadge>
-                        ))}
+                       {studio.content_types.map(type => (
+                         <span key={type} className="text-sm text-[#E8EEF9]">
+                           {type.charAt(0).toUpperCase() + type.slice(1)}
+                         </span>
+                       ))}
                       </div>
                     </div>
                   )}
@@ -686,11 +686,11 @@ export default function ViewProfile() {
               Travel Availability
             </h2>
             <div className="flex flex-wrap gap-2">
-              {profile.travel_regions.map(region => (
-                <CCBadge key={region} variant="primary" size="sm">
-                  {region}
-                </CCBadge>
-              ))}
+             {profile.travel_regions.map(region => (
+               <span key={region} className="text-sm text-[#E8EEF9]">
+                 {region}
+               </span>
+             ))}
             </div>
           </CCCard>
         )}
