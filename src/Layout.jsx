@@ -21,6 +21,7 @@ const publicPages = [
 
 // Pages that show the full app layout (sidebar, bottom nav)
 const appPages = [
+  'Dashboard',
   'Discovery',
   'Search',
   'Messages',
