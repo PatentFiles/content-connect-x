@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { 
   MapPin, 
@@ -133,6 +134,47 @@ export default function ViewProfile() {
     enabled: !!profileUserId && !!profile,
   });
 
+  // Fetch shortlists to check if profile is saved
+  const { data: shortlists = [] } = useQuery({
+    queryKey: ['myShortlists', user?.email],
+    queryFn: () => base44.entities.Shortlist.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+
+  const isSaved = shortlists.some(s => s.saved_profiles?.includes(profileUserId));
+  const queryClient = useQueryClient();
+
+  // Save/unsave mutation
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      if (isSaved) {
+        // Remove from shortlist
+        const shortlist = shortlists.find(s => s.saved_profiles?.includes(profileUserId));
+        if (shortlist) {
+          const updated = shortlist.saved_profiles.filter(id => id !== profileUserId);
+          await base44.entities.Shortlist.update(shortlist.id, { saved_profiles: updated });
+        }
+      } else {
+        // Add to shortlist (create or update default shortlist)
+        const defaultShortlist = shortlists.find(s => s.name === 'Saved Profiles');
+        if (defaultShortlist) {
+          const updated = [...(defaultShortlist.saved_profiles || []), profileUserId];
+          await base44.entities.Shortlist.update(defaultShortlist.id, { saved_profiles: updated });
+        } else {
+          await base44.entities.Shortlist.create({
+            user_id: user.email,
+            name: 'Saved Profiles',
+            saved_profiles: [profileUserId],
+          });
+        }
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['myShortlists'] });
+      toast.success(isSaved ? 'Removed from saved' : 'Saved to shortlist');
+    },
+  });
+
   // Fetch representation info (for creators only)
   const { data: agentRepresentations = [] } = useQuery({
     queryKey: ['agentRepresentation', profileUserId],
@@ -232,71 +274,73 @@ export default function ViewProfile() {
       {/* Profile Content */}
       <div className="max-w-5xl mx-auto px-4 -mt-24 relative z-10">
         {/* Avatar & Header */}
-        <div className="flex flex-col md:flex-row gap-6 mb-6">
-          <div className="flex-shrink-0">
-            <div className="w-40 h-40 rounded-2xl overflow-hidden border-4 border-[#0B0F14] bg-[#151D2B]">
-              {profile.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.display_name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <span className="text-5xl text-[#6B7A94]">
-                    {profile.display_name?.charAt(0) || '?'}
-                  </span>
-                </div>
-              )}
-            </div>
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="w-40 h-40 rounded-2xl overflow-hidden border-4 border-[#0B0F14] bg-[#151D2B] mb-4">
+            {profile.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={profile.display_name}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="text-5xl text-[#6B7A94]">
+                  {profile.display_name?.charAt(0) || '?'}
+                </span>
+              </div>
+            )}
           </div>
 
-          <div className="flex-1">
-            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-3xl font-bold text-[#E8EEF9]">
-                    {profile.display_name}
-                  </h1>
-                  {isProfileVerified && (
-                    <div className="w-8 h-8 rounded-full bg-[#4F8CFF] flex items-center justify-center">
-                      <ShieldCheck className="w-5 h-5 text-white" />
-                    </div>
-                  )}
-                </div>
-                
-                <div className="flex items-center gap-2 mb-3">
-                  <CCBadge variant={roleColors[profile.role_type]} icon={RoleIcon}>
-                    {roleLabels[profile.role_type]}
-                  </CCBadge>
-                  {profile.travel_enabled && (
-                    <CCBadge variant="outline" icon={Plane} size="sm">
-                      Available for Travel
-                    </CCBadge>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap gap-3 text-sm text-[#9AA6BC]">
-                  {profile.age && <span>{profile.age} years old</span>}
-                  {profile.base_location?.city && (
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-4 h-4" />
-                      {profile.base_location.city}
-                      {profile.base_location.state && `, ${profile.base_location.state}`}
-                    </span>
-                  )}
-                </div>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-bold text-[#E8EEF9]">
+              {profile.display_name}
+            </h1>
+            {isProfileVerified && (
+              <div className="w-8 h-8 rounded-full bg-[#4F8CFF] flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-white" />
               </div>
+            )}
+          </div>
+          
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <CCBadge variant={roleColors[profile.role_type]} icon={RoleIcon}>
+              {roleLabels[profile.role_type]}
+            </CCBadge>
+            {profile.travel_enabled && (
+              <CCBadge variant="outline" icon={Plane} size="sm">
+                Available for Travel
+              </CCBadge>
+            )}
+          </div>
 
-              <div className="flex gap-2">
-                <CCButton variant="outline" icon={Heart}>
-                  Save
-                </CCButton>
-                <CCButton variant="primary" icon={MessageCircle}>
-                  Message
-                </CCButton>
-              </div>
-            </div>
+          <div className="flex flex-wrap justify-center gap-3 text-sm text-[#9AA6BC] mb-4">
+            {profile.age && <span>{profile.age} years old</span>}
+            {profile.base_location?.city && (
+              <span className="flex items-center gap-1">
+                <MapPin className="w-4 h-4" />
+                {profile.base_location.city}
+                {profile.base_location.state && `, ${profile.base_location.state}`}
+              </span>
+            )}
+          </div>
+
+          <div className="flex gap-3 w-full max-w-md">
+            <CCButton 
+              variant="outline" 
+              icon={Heart}
+              onClick={() => saveMutation.mutate()}
+              loading={saveMutation.isPending}
+              className="flex-1"
+            >
+              {isSaved ? 'Saved' : 'Save'}
+            </CCButton>
+            <CCButton 
+              variant="primary" 
+              icon={MessageCircle}
+              className="flex-1"
+            >
+              Message
+            </CCButton>
           </div>
         </div>
 
