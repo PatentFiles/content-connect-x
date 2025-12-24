@@ -10,7 +10,7 @@ import CCAvatar from '../ui-custom/CCAvatars';
 import NotificationBell from '../notifications/NotificationBell';
 import NotificationsDropdown from './NotificationsDropdown';
 
-export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, menuOpen }) {
+export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, menuOpen, onHamburgerToggle }) {
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -45,8 +45,16 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
         <div className="flex items-center gap-3">
           {isAuthenticated && user ? (
             <>
+              {/* Hamburger Menu for Mobile (authenticated users only) */}
+              <button
+                onClick={onHamburgerToggle}
+                className="md:hidden p-2 hover:bg-[#151D2B] rounded-lg transition-colors"
+              >
+                <Menu className="w-6 h-6 text-[#E8EEF9]" />
+              </button>
+              
               <NotificationBell user={user} />
-              <Link to={createPageUrl('Settings')} className="md:hidden">
+              <Link to={createPageUrl('Settings')} className="hidden md:block">
                 <CCButton variant="ghost" size="icon">
                   <Settings className="w-5 h-5" />
                 </CCButton>

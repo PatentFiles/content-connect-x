@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 import NavBar from '@/components/layout/NavBar';
 import BottomNav from '@/components/layout/BottomNav';
 import Sidebar from '@/components/layout/Sidebar';
+import MobileNavMenu from '@/components/layout/MobileNavMenu';
 import AdminContextBanner from '@/components/admin/AdminContextBanner';
 
 // Public pages that don't need auth
@@ -43,6 +44,7 @@ const appPages = [
 
 export default function Layout({ children, currentPageName }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [adminRoleView, setAdminRoleView] = useState('admin');
   const isPublicPage = publicPages.includes(currentPageName);
   const isAppPage = appPages.includes(currentPageName);
@@ -103,6 +105,15 @@ export default function Layout({ children, currentPageName }) {
           isAuthenticated={isAuthenticated}
           onMenuToggle={() => setMenuOpen(!menuOpen)}
           menuOpen={menuOpen}
+          onHamburgerToggle={() => setMobileNavOpen(!mobileNavOpen)}
+        />
+        <MobileNavMenu
+          isOpen={mobileNavOpen}
+          onClose={() => setMobileNavOpen(false)}
+          profile={profile}
+          currentPage={currentPageName}
+          onLogout={handleLogout}
+          adminRoleView={adminRoleView}
         />
         <main>
           {children}
@@ -157,6 +168,15 @@ export default function Layout({ children, currentPageName }) {
         isAuthenticated={isAuthenticated}
         onMenuToggle={() => setMenuOpen(!menuOpen)}
         menuOpen={menuOpen}
+        onHamburgerToggle={() => setMobileNavOpen(!mobileNavOpen)}
+      />
+      <MobileNavMenu
+        isOpen={mobileNavOpen}
+        onClose={() => setMobileNavOpen(false)}
+        profile={profile}
+        currentPage={currentPageName}
+        onLogout={handleLogout}
+        adminRoleView={adminRoleView}
       />
       <main className="pt-16">
         {children}
