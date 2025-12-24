@@ -345,7 +345,7 @@ export default function ViewProfile() {
           <div className="flex gap-3 w-full max-w-md">
             <button
               onClick={handleSaveClick}
-              disabled={saveMutation.isPending}
+              disabled={saveMutation.isPending || unsaveFromFavoritesMutation.isPending}
               className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-[#263248] bg-transparent hover:bg-[#151D2B] transition-all duration-200 disabled:opacity-50"
             >
               <Heart 
