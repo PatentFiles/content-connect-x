@@ -1,6 +1,7 @@
 import AdminDashboard from './pages/AdminDashboard';
 import CollaborationDetail from './pages/CollaborationDetail';
 import Collaborations from './pages/Collaborations';
+import CompliancePortal from './pages/CompliancePortal';
 import Contracts from './pages/Contracts';
 import CreateCollaboration from './pages/CreateCollaboration';
 import Dashboard from './pages/Dashboard';
@@ -22,7 +23,6 @@ import Shortlists from './pages/Shortlists';
 import Terms from './pages/Terms';
 import Verification from './pages/Verification';
 import ViewProfile from './pages/ViewProfile';
-import CompliancePortal from './pages/CompliancePortal';
 import __Layout from './Layout.jsx';
 
 
@@ -30,6 +30,7 @@ export const PAGES = {
     "AdminDashboard": AdminDashboard,
     "CollaborationDetail": CollaborationDetail,
     "Collaborations": Collaborations,
+    "CompliancePortal": CompliancePortal,
     "Contracts": Contracts,
     "CreateCollaboration": CreateCollaboration,
     "Dashboard": Dashboard,
@@ -51,7 +52,6 @@ export const PAGES = {
     "Terms": Terms,
     "Verification": Verification,
     "ViewProfile": ViewProfile,
-    "CompliancePortal": CompliancePortal,
 }
 
 export const pagesConfig = {

@@ -399,14 +399,9 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#EF4444]/20 to-[#F59E0B]/20 flex items-center justify-center">
-              <Shield className="w-5 h-5 text-[#EF4444]" />
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold text-[#E8EEF9]">Admin Dashboard</h1>
-              <p className="text-xs text-[#6B7A94]">Platform management</p>
-            </div>
+          <div className="text-center">
+            <h1 className="text-xl font-semibold text-[#E8EEF9]">Moderation Overview</h1>
+            <p className="text-xs text-[#6B7A94]">Platform-wide moderation metrics and recent actions</p>
           </div>
         </div>
       </div>
@@ -460,7 +455,18 @@ export default function AdminDashboard() {
           </CCCard>
         </div>
 
-        <CCTabsList tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-6" />
+        <div className="space-y-2 mb-6">
+          <CCTabsList 
+            tabs={tabs.slice(0, 5)} 
+            activeTab={activeTab} 
+            onChange={setActiveTab} 
+          />
+          <CCTabsList 
+            tabs={tabs.slice(5)} 
+            activeTab={activeTab} 
+            onChange={setActiveTab} 
+          />
+        </div>
 
         {/* Overview Tab */}
         <CCTabsContent value="overview" activeTab={activeTab}>
