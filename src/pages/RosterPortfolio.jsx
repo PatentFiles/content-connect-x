@@ -80,7 +80,8 @@ export default function RosterPortfolio() {
     return <CCLoadingScreen message="Loading roster..." />;
   }
 
-  if (profile?.role_type !== 'studio') {
+  // Allow admins to view this page regardless of role
+  if (!profile?.is_admin && profile?.role_type !== 'studio') {
     return <AccessGate type="both" />;
   }
 

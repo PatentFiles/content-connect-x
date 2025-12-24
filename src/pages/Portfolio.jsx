@@ -227,7 +227,8 @@ export default function Portfolio() {
     return <CCLoadingScreen message="Loading portfolio..." />;
   }
 
-  if (!['photographer', 'videographer'].includes(profile?.role_type)) {
+  // Allow admins to view this page regardless of role
+  if (!profile?.is_admin && !['photographer', 'videographer'].includes(profile?.role_type)) {
     return <AccessGate type="both" />;
   }
 

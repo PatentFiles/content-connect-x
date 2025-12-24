@@ -80,7 +80,8 @@ export default function Representations() {
     return <CCLoadingScreen message="Loading representations..." />;
   }
 
-  if (profile?.role_type !== 'agent') {
+  // Allow admins to view this page regardless of role
+  if (!profile?.is_admin && profile?.role_type !== 'agent') {
     return <AccessGate type="both" />;
   }
 
