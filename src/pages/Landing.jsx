@@ -263,8 +263,8 @@ export default function Landing() {
       <footer className="py-12 px-4 border-t border-[#263248]">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8">
-            <div>
-              <div className="flex items-center gap-2 mb-4">
+            <div className="text-center md:text-left">
+              <div className="flex items-center gap-2 mb-4 justify-center md:justify-start">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4F8CFF] to-[#FF2DAA] flex items-center justify-center">
                   <span className="text-white font-bold text-sm">CC</span>
                 </div>
@@ -274,7 +274,7 @@ export default function Landing() {
                 The verified collaboration network for professional content creators.
               </p>
             </div>
-            <div>
+            <div className="text-center md:text-left">
               <h4 className="font-semibold text-[#E8EEF9] mb-4">Platform</h4>
               <ul className="space-y-2 text-sm">
                 <li><Link to={createPageUrl('HowItWorks')} className="text-[#9AA6BC] hover:text-[#E8EEF9]">How it Works</Link></li>
@@ -282,14 +282,14 @@ export default function Landing() {
                 <li><Link to={createPageUrl('FAQ')} className="text-[#9AA6BC] hover:text-[#E8EEF9]">FAQ</Link></li>
               </ul>
             </div>
-            <div>
+            <div className="text-center md:text-left">
               <h4 className="font-semibold text-[#E8EEF9] mb-4">Legal</h4>
               <ul className="space-y-2 text-sm">
                 <li><Link to={createPageUrl('Terms')} className="text-[#9AA6BC] hover:text-[#E8EEF9]">Terms of Service</Link></li>
                 <li><Link to={createPageUrl('Privacy')} className="text-[#9AA6BC] hover:text-[#E8EEF9]">Privacy Policy</Link></li>
               </ul>
             </div>
-            <div>
+            <div className="text-center md:text-left">
               <h4 className="font-semibold text-[#E8EEF9] mb-4">Support</h4>
               <ul className="space-y-2 text-sm">
                 <li><a href="mailto:support@contentconnect.com" className="text-[#9AA6BC] hover:text-[#E8EEF9]">Contact Us</a></li>
