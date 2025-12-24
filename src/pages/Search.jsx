@@ -358,11 +358,13 @@ export default function Search() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center">
             {profiles.map((profile) => {
               const details = creatorDetails.find(d => d.user_id === profile.user_id);
+              const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
               return (
                 <ProfileCard
                   key={profile.id}
                   profile={profile}
                   creatorDetails={details}
+                  isSaved={isSaved}
                   onFavorite={handleFavorite}
                   onMessage={(p) => console.log('Message:', p)}
                 />

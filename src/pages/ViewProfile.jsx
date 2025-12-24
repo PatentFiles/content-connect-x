@@ -343,15 +343,18 @@ export default function ViewProfile() {
           </div>
 
           <div className="flex gap-3 w-full max-w-md">
-            <CCButton 
-              variant="outline" 
-              icon={Heart}
+            <button
               onClick={handleSaveClick}
-              loading={saveMutation.isPending}
-              className="flex-1"
+              disabled={saveMutation.isPending}
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-[#263248] bg-transparent hover:bg-[#151D2B] transition-all duration-200 disabled:opacity-50"
             >
-              {isSaved ? 'Saved' : 'Save'}
-            </CCButton>
+              <Heart 
+                className={`w-4 h-4 ${isSaved ? 'fill-[#EF4444] text-[#EF4444]' : 'text-[#E8EEF9]'}`}
+              />
+              <span className="text-[#E8EEF9]">
+                {isSaved ? 'Saved' : 'Save'}
+              </span>
+            </button>
             <CCButton 
               variant="primary" 
               icon={MessageCircle}

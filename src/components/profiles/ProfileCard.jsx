@@ -34,6 +34,7 @@ export default function ProfileCard({
   showActions = true,
   compact = false,
   isRepresented = false,
+  isSaved = false,
 }) {
   const isVerified = profile?.verified;
   const isOnline = profile?.last_active_at && 
@@ -134,19 +135,21 @@ export default function ProfileCard({
           {showActions && (
             <div className="px-3 py-3">
               <div className="flex gap-2">
-                <CCButton
-                  variant="outline"
-                  size="sm"
-                  fullWidth
-                  icon={Heart}
+                <button
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     onFavorite?.(profile);
                   }}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-[#263248] bg-transparent hover:bg-[#151D2B] transition-all duration-200"
                 >
-                  Save
-                </CCButton>
+                  <Heart 
+                    className={`w-4 h-4 ${isSaved ? 'fill-[#EF4444] text-[#EF4444]' : 'text-[#E8EEF9]'}`}
+                  />
+                  <span className="text-[#E8EEF9]">
+                    {isSaved ? 'Saved' : 'Save'}
+                  </span>
+                </button>
                 <CCButton
                   variant="primary"
                   size="sm"

@@ -90,6 +90,19 @@ export default function Shortlists() {
     },
   });
 
+  // Remove profile from favorites list mutation
+  const removeFromListMutation = useMutation({
+    mutationFn: async ({ listId, userId }) => {
+      const list = favorites.find(f => f.id === listId);
+      const updatedItems = list.items.filter(item => item.user_id !== userId);
+      await base44.entities.Favorite.update(listId, { items: updatedItems });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['favorites']);
+      queryClient.invalidateQueries(['myFavorites']);
+    },
+  });
+
   if (userLoading) {
     return <CCLoadingScreen message="Loading..." />;
   }
@@ -281,7 +294,18 @@ export default function Shortlists() {
                       <p className="font-medium text-[#E8EEF9]">{profile.display_name}</p>
                       <p className="text-sm text-[#6B7A94] capitalize">{profile.role_type}</p>
                     </div>
-                    <CCButton variant="ghost" size="sm">View</CCButton>
+                    <CCButton 
+                      variant="ghost" 
+                      size="sm"
+                      icon={Trash2}
+                      onClick={() => removeFromListMutation.mutate({ 
+                        listId: selectedList.id, 
+                        userId: profile.user_id 
+                      })}
+                      loading={removeFromListMutation.isPending}
+                    >
+                      Remove
+                    </CCButton>
                   </div>
                 ))}
               </div>

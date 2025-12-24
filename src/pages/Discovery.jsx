@@ -368,6 +368,7 @@ export default function Discovery() {
               const distance = myLocation?.lat && myLocation?.lng && profile.base_location?.lat && profile.base_location?.lng
                 ? calculateDistance(myLocation.lat, myLocation.lng, profile.base_location.lat, profile.base_location.lng)
                 : undefined;
+              const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
               return (
                 <ProfileCard
                   key={profile.id}
@@ -375,6 +376,7 @@ export default function Discovery() {
                   creatorDetails={details}
                   distance={distance}
                   isRepresented={isRepresented}
+                  isSaved={isSaved}
                   onFavorite={handleFavorite}
                   onMessage={(p) => console.log('Message:', p)}
                 />
