@@ -7,7 +7,8 @@ import {
   LogOut,
   ChevronRight,
   Shield,
-  ExternalLink
+  ExternalLink,
+  Bot
 } from 'lucide-react';
 import CCAvatar from '../ui-custom/CCAvatars';
 import CCBadge from '../ui-custom/CCBadge';
@@ -16,6 +17,7 @@ import AdminRoleViewSwitcher from '../admin/AdminRoleViewSwitcher';
 
 const adminNavItems = [
   { name: 'Admin Dashboard', page: 'AdminDashboard', icon: Shield },
+  { name: 'Agent Management', page: 'AgentManagement', icon: Bot },
 ];
 
 export default function Sidebar({ currentPage, profile, onLogout, adminRoleView, onAdminRoleViewChange }) {
