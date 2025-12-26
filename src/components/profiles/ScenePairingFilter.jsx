@@ -1,44 +1,41 @@
-// Filter scene pairings based on user's gender identity
-export function filterScenePairings(genderIdentity, allPairings) {
-  if (!genderIdentity) return allPairings;
+import React from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import CCButton from '@/components/ui-custom/CCButton';
 
-  const relevantPairings = [];
-
-  allPairings.forEach(pairing => {
-    const value = pairing.value;
-    
-    // Always show these to everyone
-    if (['group', 'gangbang', 'interracial', 'other'].includes(value)) {
-      relevantPairings.push(pairing);
-      return;
-    }
-
-    // Filter based on gender identity
-    if (genderIdentity === 'woman') {
-      // Show only pairings with women/girls
-      if (value.includes('girl') && !value.includes('trans')) {
-        relevantPairings.push(pairing);
-      }
-    } else if (genderIdentity === 'man') {
-      // Show only pairings with men/boys
-      if (value.includes('boy') && !value.includes('trans') && !value.includes('girl_girl')) {
-        relevantPairings.push(pairing);
-      }
-    } else if (genderIdentity === 'trans_woman') {
-      // Show trans female pairings
-      if (value.includes('trans_female')) {
-        relevantPairings.push(pairing);
-      }
-    } else if (genderIdentity === 'trans_man') {
-      // Show trans male pairings
-      if (value.includes('trans_male')) {
-        relevantPairings.push(pairing);
-      }
-    } else if (genderIdentity === 'non_binary') {
-      // Show all pairings for non-binary
-      relevantPairings.push(pairing);
-    }
+export default function ScenePairingFilter({ selected = [], onChange }) {
+  const { data: catalogItems = [] } = useQuery({
+    queryKey: ['catalogItems'],
+    queryFn: () => base44.entities.ContentCatalogItem.filter({ status: 'active' }),
   });
 
-  return relevantPairings;
+  const scenePairings = catalogItems
+    .filter(item => item.category === 'scene_pairing')
+    .map(item => item.value);
+
+  const togglePairing = (pairing) => {
+    if (selected.includes(pairing)) {
+      onChange(selected.filter(p => p !== pairing));
+    } else {
+      onChange([...selected, pairing]);
+    }
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm font-medium text-[#E8EEF9]">Scene Pairings</p>
+      <div className="flex flex-wrap gap-2">
+        {scenePairings.map(pairing => (
+          <CCButton
+            key={pairing}
+            variant={selected.includes(pairing) ? 'primary' : 'outline'}
+            size="sm"
+            onClick={() => togglePairing(pairing)}
+          >
+            {pairing}
+          </CCButton>
+        ))}
+      </div>
+    </div>
+  );
 }

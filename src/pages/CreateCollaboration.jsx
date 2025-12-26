@@ -41,52 +41,6 @@ const compensationTypes = [
   { value: 'rev_share_external', label: 'Revenue Share', description: 'Split revenue externally' },
 ];
 
-const scenePairings = [
-  'Boy / Girl', 'Girl / Girl', 'Boy / Boy',
-  'Trans Male / Trans Male', 'Trans Female / Trans Female', 'Trans Male / Trans Female',
-  'Trans Female / Boy', 'Trans Female / Girl', 'Trans Male / Boy', 'Trans Male / Girl',
-  'Trans Female / Trans Male', 'Non-Binary / Boy', 'Non-Binary / Girl',
-  'Non-Binary / Trans Male', 'Non-Binary / Trans Female', 'Non-Binary / Non-Binary',
-  'Boy / Boy / Girl', 'Boy / Girl / Girl', 'Boy / Boy / Boy', 'Girl / Girl / Girl',
-  'Trans Male / Trans Male / Trans Male', 'Trans Female / Trans Female / Trans Female',
-  'Trans Male / Trans Male / Girl', 'Trans Female / Trans Female / Boy',
-  'Trans Male / Boy / Girl', 'Trans Female / Boy / Girl',
-  'Trans Male / Girl / Girl', 'Trans Female / Boy / Boy',
-  'Trans Male / Trans Female / Boy', 'Trans Male / Trans Female / Girl',
-  'Trans Female / Trans Male / Girl', 'Trans Female / Trans Male / Boy',
-  'Non-Binary / Boy / Girl', 'Non-Binary / Trans Male / Trans Female',
-  'Non-Binary / Girl / Girl', 'Non-Binary / Boy / Boy',
-  'Non-Binary / Non-Binary / Boy', 'Non-Binary / Non-Binary / Girl',
-  'Boy / Girl / Boy / Girl', 'Boy / Boy / Girl / Girl',
-  'Boy / Boy / Boy / Girl', 'Girl / Girl / Girl / Boy',
-  'Trans Mixed Group', 'Trans Male Group', 'Trans Female Group', 'Non-Binary Mixed Group',
-  'Boy / Boy / Boy / Boy', 'Girl / Girl / Girl / Girl',
-  'Trans Male / Trans Male / Trans Male / Trans Male',
-  'Trans Female / Trans Female / Trans Female / Trans Female',
-  'Trans Male / Trans Female / Boy / Girl',
-  'Group', 'Orgy', 'Trans Male Orgy', 'Trans Female Orgy', 'Non-Binary Group', 'Non-Binary Orgy',
-  'Interracial', 'Other'
-];
-
-const standardActs = [
-  'Solo', 'Group', 'Oral', 'Anal', 'Facial', 'Creampie', 'Swallowing',
-  'Prints / Stills', 'Interracial', 'Orgy', 'Handjob', 'Footjob', 'Blowjob',
-  'Cunnilingus', 'Anilingus', 'Outdoor Sex', 'Car Sex', 'Kissing', 'Edging',
-  'Masturbation', 'Threesome', 'Foursome', 'Double Penetration', 'Triple Penetration',
-  'Squirting', 'Prostate Massage', 'Pegging', 'StrapOn', 'Toy Play', 'Bukkake', 'Gloryhole', 'Other'
-];
-
-const fetishActs = [
-  'Roleplay', 'Power Dynamics', 'Sensory Focus', 'Toy Use', 'Latex / Rubber',
-  'Leather', 'Chastity', 'Cuckolding', 'Hotwifing', 'Voyeurism', 'Exhibitionism',
-  'CFNM (Clothed Female Naked Male)', 'CMNF (Clothed Male Naked Female)', 'Age Gap', 'Other'
-];
-
-const kinkEdgeActs = [
-  'Bondage', 'Dominant', 'Submissive', 'Power Exchange', 'Strap-On', 'Pegging',
-  'Swinger', 'Hotwife', 'Cuckold', 'Impact Play', 'Sensory Deprivation', 'Breath Play', 'Other'
-];
-
 export default function CreateCollaboration() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
@@ -288,11 +242,27 @@ export default function CreateCollaboration() {
   const isVerified = verification?.[0]?.status === 'approved';
   const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
-  // Fetch tags for acts
-  const { data: tags = [] } = useQuery({
-    queryKey: ['tags'],
-    queryFn: () => base44.entities.Tag.filter({ status: 'approved' }),
+  // Fetch catalog items
+  const { data: catalogItems = [] } = useQuery({
+    queryKey: ['catalogItems'],
+    queryFn: () => base44.entities.ContentCatalogItem.filter({ status: 'active' }),
   });
+
+  const scenePairings = catalogItems
+    .filter(item => item.category === 'scene_pairing')
+    .map(item => item.value);
+
+  const standardActs = catalogItems
+    .filter(item => item.category === 'standard_act')
+    .map(item => item.value);
+
+  const fetishActs = catalogItems
+    .filter(item => item.category === 'fetish_act')
+    .map(item => item.value);
+
+  const kinkEdgeActs = catalogItems
+    .filter(item => item.category === 'kink_edge_act')
+    .map(item => item.value);
 
   // Fetch creator details for filtering
   const { data: creatorDetails = [] } = useQuery({
@@ -1436,28 +1406,30 @@ export default function CreateCollaboration() {
                 <label className="text-sm text-[#9AA6BC] mb-2 block text-center">Platforms</label>
                 <p className="text-xs text-[#6B7A94] mb-3 text-center">Where content can be published</p>
                 <div className="grid grid-cols-2 gap-2 mb-3">
-                  {['OnlyFans', 'Fansly', 'Pornhub', 'ManyVids', 'Clips4Sale', 'Personal Website', 'Twitter/X', 'Instagram'].map(platform => {
-                    const platformList = formData.usage_rights.platforms || [];
-                    return (
-                      <label key={platform} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={platformList.includes(platform)}
-                          onChange={(e) => {
-                            const updated = e.target.checked
-                              ? [...platformList, platform]
-                              : platformList.filter(p => p !== platform);
-                            updateForm('usage_rights', {
-                              ...formData.usage_rights,
-                              platforms: updated
-                            });
-                          }}
-                          className="w-4 h-4 rounded border-[#263248] bg-[#121824] text-[#4F8CFF] focus:ring-[#4F8CFF]/50"
-                        />
-                        <span className="text-sm text-[#E8EEF9]">{platform}</span>
-                      </label>
-                    );
-                  })}
+                  {catalogItems
+                    .filter(item => item.category === 'platform')
+                    .map(item => {
+                      const platformList = formData.usage_rights.platforms || [];
+                      return (
+                        <label key={item.value} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={platformList.includes(item.value)}
+                            onChange={(e) => {
+                              const updated = e.target.checked
+                                ? [...platformList, item.value]
+                                : platformList.filter(p => p !== item.value);
+                              updateForm('usage_rights', {
+                                ...formData.usage_rights,
+                                platforms: updated
+                              });
+                            }}
+                            className="w-4 h-4 rounded border-[#263248] bg-[#121824] text-[#4F8CFF] focus:ring-[#4F8CFF]/50"
+                          />
+                          <span className="text-sm text-[#E8EEF9]">{item.value}</span>
+                        </label>
+                      );
+                    })}
                 </div>
                 <div className="flex gap-2">
                   <input
