@@ -39,7 +39,11 @@ const appPages = [
   'Verification',
   'Shortlists',
   'AdminDashboard',
-  'CompliancePortal'
+  'CompliancePortal',
+  'RosterPortfolio',
+  'Representations',
+  'Portfolio',
+  'AgentManagement'
 ];
 
 export default function Layout({ children, currentPageName }) {
