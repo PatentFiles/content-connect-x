@@ -82,11 +82,13 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
   });
   const dropdownRef = useRef(null);
 
-  // Fetch approved tags for niche filtering
-  const { data: tags = [] } = useQuery({
-    queryKey: ['approvedTags'],
-    queryFn: () => base44.entities.Tag.filter({ status: 'approved' }),
+  // Fetch catalog items for niche filtering
+  const { data: catalogItems = [] } = useQuery({
+    queryKey: ['catalogItems'],
+    queryFn: () => base44.entities.ContentCatalogItem.filter({ status: 'active' }),
   });
+
+  const nicheTags = catalogItems.filter(item => item.category === 'niche_tag');
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -122,11 +124,11 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
-  // Filter tags by selected scene types
+  // Show all niche tags if scene types are selected
   const filteredTags = React.useMemo(() => {
     if (!filters.sceneTypes || filters.sceneTypes.length === 0) return [];
-    return tags.filter(tag => filters.sceneTypes.includes(tag.category));
-  }, [tags, filters.sceneTypes]);
+    return nicheTags;
+  }, [nicheTags, filters.sceneTypes]);
 
   const updateFilter = (key, value) => {
     onChange({ ...filters, [key]: value });
@@ -255,12 +257,12 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
                         <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                           {filteredTags.map(tag => (
                             <CCButton
-                              key={tag.id}
-                              variant={filters.tags?.includes(tag.id) ? 'accent' : 'outline'}
+                              key={tag.value}
+                              variant={filters.tags?.includes(tag.value) ? 'accent' : 'outline'}
                               size="sm"
-                              onClick={() => toggleArrayFilter('tags', tag.id)}
+                              onClick={() => toggleArrayFilter('tags', tag.value)}
                             >
-                              {tag.tag_text}
+                              {tag.value}
                             </CCButton>
                           ))}
                         </div>
