@@ -24,6 +24,8 @@ import CCEmpty from '../ui-custom/CCEmpty';
 
 export default function CreatorDashboard({ user, profile }) {
   const [newTask, setNewTask] = useState('');
+  const [showAvailability, setShowAvailability] = useState(false);
+  const [showTravelDate, setShowTravelDate] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch active collaborations

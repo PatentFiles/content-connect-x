@@ -45,6 +45,7 @@ export default function Discovery() {
     sortBy: 'distance',
     city: '',
     state: '',
+    availableDates: [],
   });
 
   // Check auth and access
@@ -258,6 +259,16 @@ export default function Discovery() {
       filtered = filtered.filter(p => 
         p.base_location?.state?.toLowerCase().includes(filters.state.toLowerCase())
       );
+    }
+    
+    // Filter by availability dates
+    if (filters.availableDates?.length > 0) {
+      filtered = filtered.filter(p => {
+        if (!p.availability_dates || p.availability_dates.length === 0) return false;
+        return filters.availableDates.some(filterDate => 
+          p.availability_dates.includes(filterDate)
+        );
+      });
     }
     
     // Sort
