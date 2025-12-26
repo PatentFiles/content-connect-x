@@ -46,23 +46,30 @@ const orientationOptions = [
 ];
 
 const scenePairings = [
-  { value: 'boy_girl', label: 'Boy / Girl' },
-  { value: 'girl_girl', label: 'Girl / Girl' },
-  { value: 'boy_boy', label: 'Boy / Boy' },
-  { value: 'boy_boy_girl', label: 'Boy / Boy / Girl' },
-  { value: 'boy_girl_girl', label: 'Boy / Girl / Girl' },
-  { value: 'boy_boy_boy', label: 'Boy / Boy / Boy' },
-  { value: 'girl_girl_girl', label: 'Girl / Girl / Girl' },
-  { value: 'boy_girl_boy_girl', label: 'Boy / Girl / Boy / Girl' },
-  { value: 'group', label: 'Group' },
-  { value: 'gangbang', label: 'Gangbang' },
-  { value: 'interracial', label: 'Interracial' },
-  { value: 'trans_male_trans_female', label: 'Trans Male / Trans Female' },
-  { value: 'trans_male_trans_male', label: 'Trans Male / Trans Male' },
-  { value: 'trans_female_trans_female', label: 'Trans Female / Trans Female' },
-  { value: 'trans_female_boy', label: 'Trans Female / Boy' },
-  { value: 'trans_female_girl', label: 'Trans Female / Girl' },
-  { value: 'other', label: 'Other' },
+  'Boy / Girl', 'Girl / Girl', 'Boy / Boy',
+  'Trans Male / Trans Male', 'Trans Female / Trans Female', 'Trans Male / Trans Female',
+  'Trans Female / Boy', 'Trans Female / Girl', 'Trans Male / Boy', 'Trans Male / Girl',
+  'Trans Female / Trans Male', 'Non-Binary / Boy', 'Non-Binary / Girl',
+  'Non-Binary / Trans Male', 'Non-Binary / Trans Female', 'Non-Binary / Non-Binary',
+  'Boy / Boy / Girl', 'Boy / Girl / Girl', 'Boy / Boy / Boy', 'Girl / Girl / Girl',
+  'Trans Male / Trans Male / Trans Male', 'Trans Female / Trans Female / Trans Female',
+  'Trans Male / Trans Male / Girl', 'Trans Female / Trans Female / Boy',
+  'Trans Male / Boy / Girl', 'Trans Female / Boy / Girl',
+  'Trans Male / Girl / Girl', 'Trans Female / Boy / Boy',
+  'Trans Male / Trans Female / Boy', 'Trans Male / Trans Female / Girl',
+  'Trans Female / Trans Male / Girl', 'Trans Female / Trans Male / Boy',
+  'Non-Binary / Boy / Girl', 'Non-Binary / Trans Male / Trans Female',
+  'Non-Binary / Girl / Girl', 'Non-Binary / Boy / Boy',
+  'Non-Binary / Non-Binary / Boy', 'Non-Binary / Non-Binary / Girl',
+  'Boy / Girl / Boy / Girl', 'Boy / Boy / Girl / Girl',
+  'Boy / Boy / Boy / Girl', 'Girl / Girl / Girl / Boy',
+  'Trans Mixed Group', 'Trans Male Group', 'Trans Female Group', 'Non-Binary Mixed Group',
+  'Boy / Boy / Boy / Boy', 'Girl / Girl / Girl / Girl',
+  'Trans Male / Trans Male / Trans Male / Trans Male',
+  'Trans Female / Trans Female / Trans Female / Trans Female',
+  'Trans Male / Trans Female / Boy / Girl',
+  'Group', 'Orgy', 'Trans Male Orgy', 'Trans Female Orgy', 'Non-Binary Group', 'Non-Binary Orgy',
+  'Interracial'
 ];
 
 const compensationPreferences = [
@@ -72,52 +79,31 @@ const compensationPreferences = [
 ];
 
 const standardActs = [
-  { value: 'solo', label: 'Solo' },
-  { value: 'solo_with_toys', label: 'Solo with Toys' },
-  { value: 'boy_girl', label: 'Boy / Girl' },
-  { value: 'girl_girl', label: 'Girl / Girl' },
-  { value: 'boy_boy', label: 'Boy / Boy' },
-  { value: 'facials', label: 'Facials' },
-  { value: 'creampies', label: 'Creampies' },
-  { value: 'swallowing', label: 'Swallowing' },
-  { value: 'anal', label: 'Anal' },
-  { value: 'interracial', label: 'Interracial' },
-  { value: 'group', label: 'Group' },
-  { value: 'orgy', label: 'Orgy' },
-  { value: 'prints_stills', label: 'Prints / Stills' },
-  { value: 'feature_dancing', label: 'Feature Dancing' },
-  { value: 'softcore', label: 'Softcore' },
-  { value: 'other', label: 'Other' },
+  'Solo', 'Group', 'Oral', 'Anal', 'Facial', 'Creampie', 'Swallowing',
+  'Prints / Stills', 'Interracial', 'Orgy', 'Handjob', 'Footjob', 'Blowjob',
+  'Cunnilingus', 'Anilingus', 'Outdoor Sex', 'Car Sex', 'Kissing', 'Edging',
+  'Masturbation', 'Threesome', 'Foursome', 'Double Penetration', 'Triple Penetration',
+  'Squirting', 'Prostate Massage', 'Pegging', 'StrapOn', 'Toy Play', 'Bukkake', 'Gloryhole'
 ];
 
 const fetishActs = [
-  { value: 'foot_jobs', label: 'Foot Jobs' },
-  { value: 'rimming', label: 'Rimming' },
-  { value: 'squirting', label: 'Squirting' },
-  { value: 'other', label: 'Other' },
+  'Roleplay', 'Power Dynamics', 'Sensory Focus', 'Toy Use', 'Latex / Rubber',
+  'Leather', 'Chastity', 'Cuckolding', 'Hotwifing', 'Voyeurism', 'Exhibitionism',
+  'CFNM (Clothed Female Naked Male)', 'CMNF (Clothed Male Naked Female)', 'Age Gap'
 ];
 
 const kinkEdgeActs = [
-  { value: 'bondage', label: 'Bondage' },
-  { value: 'dominant_submissive', label: 'Dominant / Submissive' },
-  { value: 'power_exchange', label: 'Power Exchange' },
-  { value: 'roleplay', label: 'Roleplay' },
-  { value: 'strap_on', label: 'Strap-On' },
-  { value: 'pegging', label: 'Pegging' },
-  { value: 'cuckold', label: 'Cuckold' },
-  { value: 'hotwife', label: 'Hotwife' },
-  { value: 'swingers', label: 'Swingers' },
-  { value: 'toy_play', label: 'Toy Play' },
-  { value: 'other', label: 'Other' },
+  'Bondage', 'Dominant', 'Submissive', 'Power Exchange', 'Strap-On', 'Pegging',
+  'Swinger', 'Hotwife', 'Cuckold', 'Impact Play', 'Sensory Deprivation', 'Breath Play'
 ];
 
 const performancePositioning = [
-  { value: 'top', label: 'Top', showFor: ['gay', 'bi'] },
-  { value: 'bottom', label: 'Bottom', showFor: ['gay', 'bi'] },
-  { value: 'versatile', label: 'Versatile', showFor: ['gay', 'bi'] },
-  { value: 'switch', label: 'Switch', showFor: 'all' },
-  { value: 'dominant', label: 'Dominant', showFor: 'all' },
-  { value: 'submissive', label: 'Submissive', showFor: 'all' },
+  { value: 'Top', showFor: ['gay', 'bi'] },
+  { value: 'Bottom', showFor: ['gay', 'bi'] },
+  { value: 'Versatile', showFor: ['gay', 'bi'] },
+  { value: 'Switch', showFor: 'all' },
+  { value: 'Dominant', showFor: 'all' },
+  { value: 'Submissive', showFor: 'all' },
 ];
 
 export default function Profile() {
@@ -253,8 +239,8 @@ export default function Profile() {
     return pos.showFor.some(o => orientations.includes(o));
   };
 
-  // Filter scene pairings based on gender identity
-  const filteredScenePairings = filterScenePairings(editData.gender_identity, scenePairings);
+  // No longer need filtering since scene pairings are strings
+  const filteredScenePairings = scenePairings;
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
@@ -559,28 +545,17 @@ export default function Profile() {
                     <Heart className="w-5 h-5 text-[#FF2DAA]" />
                     <h3 className="text-lg font-semibold text-[#E8EEF9]">Scene Pairings</h3>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap gap-2">
-                      {filteredScenePairings.map(sp => (
-                        <CCButton
-                          key={sp.value}
-                          variant={editData.scene_pairings?.includes(sp.value) ? 'primary' : 'outline'}
-                          size="sm"
-                          onClick={() => toggleArrayValue('scene_pairings', sp.value)}
-                        >
-                          {sp.label}
-                        </CCButton>
-                      ))}
-                    </div>
-                    {editData.scene_pairings?.includes('other') && (
-                      <input
-                        type="text"
-                        value={editData.scene_pairings_other || ''}
-                        onChange={(e) => setEditData({...editData, scene_pairings_other: e.target.value})}
-                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                        placeholder="Specify other scene pairings..."
-                      />
-                    )}
+                  <div className="flex flex-wrap gap-2">
+                    {filteredScenePairings.map(sp => (
+                      <CCButton
+                        key={sp}
+                        variant={editData.scene_pairings?.includes(sp) ? 'primary' : 'outline'}
+                        size="sm"
+                        onClick={() => toggleArrayValue('scene_pairings', sp)}
+                      >
+                        {sp}
+                      </CCButton>
+                    ))}
                   </div>
                 </CCCard>
 
@@ -610,28 +585,17 @@ export default function Profile() {
                     <Activity className="w-5 h-5 text-[#4F8CFF]" />
                     <h3 className="text-lg font-semibold text-[#E8EEF9]">Standard Acts</h3>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap gap-2">
-                      {standardActs.map(sa => (
-                        <CCButton
-                          key={sa.value}
-                          variant={editData.standard_acts?.includes(sa.value) ? 'primary' : 'outline'}
-                          size="sm"
-                          onClick={() => toggleArrayValue('standard_acts', sa.value)}
-                        >
-                          {sa.label}
-                        </CCButton>
-                      ))}
-                    </div>
-                    {editData.standard_acts?.includes('other') && (
-                      <input
-                        type="text"
-                        value={editData.standard_acts_other || ''}
-                        onChange={(e) => setEditData({...editData, standard_acts_other: e.target.value})}
-                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                        placeholder="Specify other acts..."
-                      />
-                    )}
+                  <div className="flex flex-wrap gap-2">
+                    {standardActs.map(sa => (
+                      <CCButton
+                        key={sa}
+                        variant={editData.standard_acts?.includes(sa) ? 'primary' : 'outline'}
+                        size="sm"
+                        onClick={() => toggleArrayValue('standard_acts', sa)}
+                      >
+                        {sa}
+                      </CCButton>
+                    ))}
                   </div>
                 </CCCard>
 
@@ -641,28 +605,17 @@ export default function Profile() {
                     <Activity className="w-5 h-5 text-[#FF2DAA]" />
                     <h3 className="text-lg font-semibold text-[#E8EEF9]">Fetish Acts</h3>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap gap-2">
-                      {fetishActs.map(fa => (
-                        <CCButton
-                          key={fa.value}
-                          variant={editData.fetish_acts?.includes(fa.value) ? 'accent' : 'outline'}
-                          size="sm"
-                          onClick={() => toggleArrayValue('fetish_acts', fa.value)}
-                        >
-                          {fa.label}
-                        </CCButton>
-                      ))}
-                    </div>
-                    {editData.fetish_acts?.includes('other') && (
-                      <input
-                        type="text"
-                        value={editData.fetish_acts_other || ''}
-                        onChange={(e) => setEditData({...editData, fetish_acts_other: e.target.value})}
-                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                        placeholder="Specify other fetish acts..."
-                      />
-                    )}
+                  <div className="flex flex-wrap gap-2">
+                    {fetishActs.map(fa => (
+                      <CCButton
+                        key={fa}
+                        variant={editData.fetish_acts?.includes(fa) ? 'accent' : 'outline'}
+                        size="sm"
+                        onClick={() => toggleArrayValue('fetish_acts', fa)}
+                      >
+                        {fa}
+                      </CCButton>
+                    ))}
                   </div>
                 </CCCard>
 
@@ -672,28 +625,17 @@ export default function Profile() {
                     <Activity className="w-5 h-5 text-[#9333EA]" />
                     <h3 className="text-lg font-semibold text-[#E8EEF9]">Kink / Edge Acts</h3>
                   </div>
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap gap-2">
-                      {kinkEdgeActs.map(ke => (
-                        <CCButton
-                          key={ke.value}
-                          variant={editData.kink_edge_acts?.includes(ke.value) ? 'primary' : 'outline'}
-                          size="sm"
-                          onClick={() => toggleArrayValue('kink_edge_acts', ke.value)}
-                        >
-                          {ke.label}
-                        </CCButton>
-                      ))}
-                    </div>
-                    {editData.kink_edge_acts?.includes('other') && (
-                      <input
-                        type="text"
-                        value={editData.kink_edge_acts_other || ''}
-                        onChange={(e) => setEditData({...editData, kink_edge_acts_other: e.target.value})}
-                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                        placeholder="Specify other kink/edge acts..."
-                      />
-                    )}
+                  <div className="flex flex-wrap gap-2">
+                    {kinkEdgeActs.map(ke => (
+                      <CCButton
+                        key={ke}
+                        variant={editData.kink_edge_acts?.includes(ke) ? 'primary' : 'outline'}
+                        size="sm"
+                        onClick={() => toggleArrayValue('kink_edge_acts', ke)}
+                      >
+                        {ke}
+                      </CCButton>
+                    ))}
                   </div>
                 </CCCard>
 
@@ -708,7 +650,7 @@ export default function Profile() {
                         size="sm"
                         onClick={() => toggleArrayValue('performance_positioning', pp.value)}
                       >
-                        {pp.label}
+                        {pp.value}
                       </CCButton>
                     ))}
                   </div>
