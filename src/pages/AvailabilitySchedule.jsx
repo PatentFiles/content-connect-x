@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths } from 'date-fns';
-import { Calendar, ChevronLeft, ChevronRight, Download, Trash2, Plus } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths, subMonths, isWithinInterval } from 'date-fns';
+import { Calendar, ChevronLeft, ChevronRight, Download, Trash2, Plus, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
@@ -13,6 +13,7 @@ import AvailabilityManager from '@/components/profile/AvailabilityManager';
 export default function AvailabilitySchedule() {
   const [showManager, setShowManager] = useState(false);
   const [viewMonth, setViewMonth] = useState(new Date());
+  const [showMonthPicker, setShowMonthPicker] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -83,13 +84,33 @@ END:VCALENDAR`;
   const monthEnd = endOfMonth(viewMonth);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
 
+  // Filter to show 3 months (prev, current, next)
+  const prevMonth = subMonths(viewMonth, 1);
+  const nextMonth = addMonths(viewMonth, 1);
+  const visibleRangeStart = startOfMonth(prevMonth);
+  const visibleRangeEnd = endOfMonth(nextMonth);
+
+  const visibleDates = availabilityDates.filter(dateStr => {
+    const date = new Date(dateStr);
+    return isWithinInterval(date, { start: visibleRangeStart, end: visibleRangeEnd });
+  });
+
   // Group dates by month
-  const datesByMonth = availabilityDates.reduce((acc, dateStr) => {
+  const datesByMonth = visibleDates.reduce((acc, dateStr) => {
     const monthKey = format(new Date(dateStr), 'MMMM yyyy');
     if (!acc[monthKey]) acc[monthKey] = [];
     acc[monthKey].push(dateStr);
     return acc;
   }, {});
+
+  const jumpToMonth = (monthsOffset) => {
+    setViewMonth(addMonths(new Date(), monthsOffset));
+  };
+
+  const selectMonth = (year, month) => {
+    setViewMonth(new Date(year, month));
+    setShowMonthPicker(false);
+  };
 
   return (
     <div className="min-h-screen bg-[#0B0F14] p-6 pb-24 md:pb-6">
@@ -282,7 +303,14 @@ END:VCALENDAR`;
         {/* Dates by Month */}
         {Object.keys(datesByMonth).length > 0 ? (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-[#E8EEF9]">All Available Dates</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-[#E8EEF9]">
+                Available Dates ({format(prevMonth, 'MMM')} - {format(nextMonth, 'MMM yyyy')})
+              </h2>
+              <p className="text-xs text-[#6B7A94]">
+                Showing {visibleDates.length} of {availabilityDates.length} dates
+              </p>
+            </div>
             {Object.entries(datesByMonth).map(([month, dates]) => (
               <CCCard key={month} padding="lg">
                 <h3 className="text-md font-semibold text-[#E8EEF9] mb-3">{month}</h3>
