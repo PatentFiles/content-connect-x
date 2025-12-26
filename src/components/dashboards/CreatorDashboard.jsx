@@ -220,7 +220,7 @@ export default function CreatorDashboard({ user, profile }) {
           </div>
 
           {/* Right Column */}
-          <div className="space-y-6">
+          <div className="space-y-6 flex flex-col">
             {/* Tasks */}
             <CCCard padding="lg">
               <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4">My Tasks</h2>
@@ -289,7 +289,7 @@ export default function CreatorDashboard({ user, profile }) {
             </CCCard>
 
             {/* Saved Shortlists */}
-            <CCCard padding="lg">
+            <CCCard padding="lg" className="flex-1">
               <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4">Shortlists</h2>
               <div className="flex items-center gap-2 mb-3">
                 <Heart className="w-4 h-4 text-[#FF2DAA]" />
