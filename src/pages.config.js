@@ -25,6 +25,8 @@ import Terms from './pages/Terms';
 import Verification from './pages/Verification';
 import ViewContract from './pages/ViewContract';
 import ViewProfile from './pages/ViewProfile';
+import AvailabilitySchedule from './pages/AvailabilitySchedule';
+import TravelSchedule from './pages/TravelSchedule';
 import __Layout from './Layout.jsx';
 
 
@@ -56,6 +58,8 @@ export const PAGES = {
     "Verification": Verification,
     "ViewContract": ViewContract,
     "ViewProfile": ViewProfile,
+    "AvailabilitySchedule": AvailabilitySchedule,
+    "TravelSchedule": TravelSchedule,
 }
 
 export const pagesConfig = {

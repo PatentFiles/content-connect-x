@@ -1127,13 +1127,13 @@ export default function Profile() {
             )}
 
             {/* Availability and Travel */}
-            {(profile?.availability_dates?.length > 0 || profile?.travel_dates?.length > 0) && (
-              <div className="grid md:grid-cols-2 gap-6">
-                {/* Availability Dates */}
-                {profile?.availability_dates?.length > 0 && (
-                  <CCCard padding="lg">
-                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Availability</h3>
-                    <div className="flex flex-wrap gap-2 justify-center">
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Availability Dates */}
+              <CCCard padding="lg">
+                <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Availability</h3>
+                {profile?.availability_dates?.length > 0 ? (
+                  <>
+                    <div className="flex flex-wrap gap-2 justify-center mb-3">
                       {profile.availability_dates.sort().slice(0, 8).map(dateStr => (
                         <CCBadge key={dateStr} variant="outline">
                           {format(new Date(dateStr), 'MMM d')}
@@ -1145,15 +1145,25 @@ export default function Profile() {
                         </CCBadge>
                       )}
                     </div>
-                  </CCCard>
+                    <Link 
+                      to={createPageUrl('AvailabilitySchedule')}
+                      className="text-sm text-[#4F8CFF] hover:text-[#3A7AEE] text-center block"
+                    >
+                      See more →
+                    </Link>
+                  </>
+                ) : (
+                  <p className="text-sm text-[#6B7A94] text-center">No availability dates set</p>
                 )}
+              </CCCard>
 
-                {/* Travel Dates */}
-                {profile?.travel_dates?.length > 0 && (
-                  <CCCard padding="lg">
-                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Travel Schedule</h3>
-                    <div className="space-y-2">
-                      {profile.travel_dates.map((travel, idx) => (
+              {/* Travel Dates */}
+              <CCCard padding="lg">
+                <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Travel Schedule</h3>
+                {profile?.travel_dates?.length > 0 ? (
+                  <>
+                    <div className="space-y-2 mb-3">
+                      {profile.travel_dates.slice(0, 3).map((travel, idx) => (
                         <div key={idx} className="p-2 rounded bg-[#0B0F14] text-center">
                           <div className="text-sm font-medium text-[#E8EEF9]">{travel.location}</div>
                           <div className="text-xs text-[#9AA6BC]">
@@ -1164,11 +1174,24 @@ export default function Profile() {
                           )}
                         </div>
                       ))}
+                      {profile.travel_dates.length > 3 && (
+                        <p className="text-xs text-[#6B7A94] text-center">
+                          +{profile.travel_dates.length - 3} more destinations
+                        </p>
+                      )}
                     </div>
-                  </CCCard>
+                    <Link 
+                      to={createPageUrl('TravelSchedule')}
+                      className="text-sm text-[#4F8CFF] hover:text-[#3A7AEE] text-center block"
+                    >
+                      See more →
+                    </Link>
+                  </>
+                ) : (
+                  <p className="text-sm text-[#6B7A94] text-center">No travel dates posted</p>
                 )}
-              </div>
-            )}
+              </CCCard>
+            </div>
 
             {/* AI Bio Generator - At the very bottom */}
             {isEditing && (
