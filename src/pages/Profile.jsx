@@ -48,56 +48,10 @@ const orientationOptions = [
   { value: 'fluid', label: 'Fluid' },
 ];
 
-const scenePairings = [
-  'Boy / Girl', 'Girl / Girl', 'Boy / Boy',
-  'Trans Male / Trans Male', 'Trans Female / Trans Female', 'Trans Male / Trans Female',
-  'Trans Female / Boy', 'Trans Female / Girl', 'Trans Male / Boy', 'Trans Male / Girl',
-  'Trans Female / Trans Male', 'Non-Binary / Boy', 'Non-Binary / Girl',
-  'Non-Binary / Trans Male', 'Non-Binary / Trans Female', 'Non-Binary / Non-Binary',
-  'Boy / Boy / Girl', 'Boy / Girl / Girl', 'Boy / Boy / Boy', 'Girl / Girl / Girl',
-  'Trans Male / Trans Male / Trans Male', 'Trans Female / Trans Female / Trans Female',
-  'Trans Male / Trans Male / Girl', 'Trans Female / Trans Female / Boy',
-  'Trans Male / Boy / Girl', 'Trans Female / Boy / Girl',
-  'Trans Male / Girl / Girl', 'Trans Female / Boy / Boy',
-  'Trans Male / Trans Female / Boy', 'Trans Male / Trans Female / Girl',
-  'Trans Female / Trans Male / Girl', 'Trans Female / Trans Male / Boy',
-  'Non-Binary / Boy / Girl', 'Non-Binary / Trans Male / Trans Female',
-  'Non-Binary / Girl / Girl', 'Non-Binary / Boy / Boy',
-  'Non-Binary / Non-Binary / Boy', 'Non-Binary / Non-Binary / Girl',
-  'Boy / Girl / Boy / Girl', 'Boy / Boy / Girl / Girl',
-  'Boy / Boy / Boy / Girl', 'Girl / Girl / Girl / Boy',
-  'Trans Mixed Group', 'Trans Male Group', 'Trans Female Group', 'Non-Binary Mixed Group',
-  'Boy / Boy / Boy / Boy', 'Girl / Girl / Girl / Girl',
-  'Trans Male / Trans Male / Trans Male / Trans Male',
-  'Trans Female / Trans Female / Trans Female / Trans Female',
-  'Trans Male / Trans Female / Boy / Girl',
-  'Group', 'Orgy', 'Trans Male Orgy', 'Trans Female Orgy', 'Non-Binary Group', 'Non-Binary Orgy',
-  'Interracial', 'Other'
-];
-
 const compensationPreferences = [
   { value: 'paid', label: 'Paid' },
   { value: 'trade', label: 'Trade' },
   { value: 'free', label: 'Free' },
-];
-
-const standardActs = [
-  'Solo', 'Group', 'Oral', 'Anal', 'Facial', 'Creampie', 'Swallowing',
-  'Prints / Stills', 'Interracial', 'Orgy', 'Handjob', 'Footjob', 'Blowjob',
-  'Cunnilingus', 'Anilingus', 'Outdoor Sex', 'Car Sex', 'Kissing', 'Edging',
-  'Masturbation', 'Threesome', 'Foursome', 'Double Penetration', 'Triple Penetration',
-  'Squirting', 'Prostate Massage', 'Pegging', 'StrapOn', 'Toy Play', 'Bukkake', 'Gloryhole', 'Other'
-];
-
-const fetishActs = [
-  'Roleplay', 'Power Dynamics', 'Sensory Focus', 'Toy Use', 'Latex / Rubber',
-  'Leather', 'Chastity', 'Cuckolding', 'Hotwifing', 'Voyeurism', 'Exhibitionism',
-  'CFNM (Clothed Female Naked Male)', 'CMNF (Clothed Male Naked Female)', 'Age Gap', 'Other'
-];
-
-const kinkEdgeActs = [
-  'Bondage', 'Dominant', 'Submissive', 'Power Exchange', 'Strap-On', 'Pegging',
-  'Swinger', 'Hotwife', 'Cuckold', 'Impact Play', 'Sensory Deprivation', 'Breath Play', 'Other'
 ];
 
 const performancePositioning = [
@@ -144,6 +98,28 @@ export default function Profile() {
     enabled: !!user?.email,
   });
   const details = creatorDetails[0];
+
+  // Fetch catalog items
+  const { data: catalogItems = [] } = useQuery({
+    queryKey: ['catalogItems'],
+    queryFn: () => base44.entities.ContentCatalogItem.filter({ status: 'active' }),
+  });
+
+  const scenePairings = catalogItems
+    .filter(item => item.category === 'scene_pairing')
+    .map(item => item.value);
+
+  const standardActs = catalogItems
+    .filter(item => item.category === 'standard_act')
+    .map(item => item.value);
+
+  const fetishActs = catalogItems
+    .filter(item => item.category === 'fetish_act')
+    .map(item => item.value);
+
+  const kinkEdgeActs = catalogItems
+    .filter(item => item.category === 'kink_edge_act')
+    .map(item => item.value);
 
   // Fetch verification
   const { data: verification = [] } = useQuery({
@@ -276,25 +252,13 @@ export default function Profile() {
     return pos.showFor.some(o => orientations.includes(o));
   };
 
-  // Filter scene pairings based on orientation
+  // Filter scene pairings based on orientation and gender
   const orientations = editData.orientation_category || [];
-  const filteredScenePairings = scenePairings.filter(sp => {
-    // Boy/Boy only for gay, bisexual, pansexual
-    if (sp.includes('Boy / Boy') && !sp.includes('Girl')) {
-      return orientations.some(o => ['gay', 'bi', 'pan'].includes(o));
-    }
-    // Girl/Girl only for lesbian, bisexual
-    if (sp.includes('Girl / Girl') && !sp.includes('Boy')) {
-      return orientations.some(o => ['lesbian', 'bi'].includes(o));
-    }
-    // Trans pairings only for pan, trans_man, trans_woman, non_binary
-    if (sp.includes('Trans') || sp.includes('Non-Binary')) {
-      return orientations.some(o => ['pan'].includes(o)) || 
-             ['trans_man', 'trans_woman', 'non_binary'].includes(editData.gender_identity);
-    }
-    // All other pairings available to everyone
-    return true;
-  });
+  const genderIdentity = editData.gender_identity || details?.gender_identity;
+  const filteredScenePairings = filterScenePairings(
+    genderIdentity,
+    scenePairings.map(sp => ({ value: sp }))
+  ).map(pairing => pairing.value || pairing);
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
