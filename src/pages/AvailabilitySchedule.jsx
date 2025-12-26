@@ -17,6 +17,7 @@ export default function AvailabilitySchedule() {
   const [selectedEntries, setSelectedEntries] = useState([]);
   const [editingEntry, setEditingEntry] = useState(null);
   const [showEditor, setShowEditor] = useState(false);
+  const [monthCache, setMonthCache] = useState({});
   const queryClient = useQueryClient();
 
   const handleYearChange = (year) => {
@@ -33,6 +34,7 @@ export default function AvailabilitySchedule() {
   const monthEnd = endOfMonth(viewMonth);
   const monthStartStr = format(monthStart, 'yyyy-MM-dd');
   const monthEndStr = format(monthEnd, 'yyyy-MM-dd');
+  const cacheKey = `${user?.email}-${monthStartStr}`;
 
   const { data: entries = [], isLoading } = useQuery({
     queryKey: ['scheduleEntries', user?.email, monthStartStr],
@@ -40,15 +42,29 @@ export default function AvailabilitySchedule() {
       const allEntries = await base44.entities.ScheduleEntry.filter({ 
         user_id: user?.email,
       });
-      return allEntries.filter(entry => {
+      const filtered = allEntries.filter(entry => {
         const entryStart = entry.start_date;
         const entryEnd = entry.end_date;
         return (entryStart >= monthStartStr && entryStart <= monthEndStr) ||
                (entryEnd >= monthStartStr && entryEnd <= monthEndStr) ||
                (entryStart <= monthStartStr && entryEnd >= monthEndStr);
       });
+      
+      setMonthCache(prev => {
+        const newCache = { ...prev, [cacheKey]: filtered };
+        const keys = Object.keys(newCache);
+        if (keys.length > 2) {
+          const oldestKey = keys[0];
+          delete newCache[oldestKey];
+        }
+        return newCache;
+      });
+      
+      return filtered;
     },
     enabled: !!user?.email,
+    initialData: () => monthCache[cacheKey],
+    staleTime: 0,
   });
 
   const createMutation = useMutation({
