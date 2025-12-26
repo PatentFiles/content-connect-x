@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
-import { MapPin, Trash2, Plus, Download, Calendar } from 'lucide-react';
+import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
+import { MapPin, Trash2, Plus, Download, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
@@ -11,6 +11,8 @@ import TravelDateManager from '@/components/profile/TravelDateManager';
 
 export default function TravelSchedule() {
   const [showManager, setShowManager] = useState(false);
+  const [viewMonth, setViewMonth] = useState(new Date());
+  const [monthCache, setMonthCache] = useState({});
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -18,7 +20,45 @@ export default function TravelSchedule() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: profiles = [], isLoading } = useQuery({
+  const monthStart = startOfMonth(viewMonth);
+  const monthEnd = endOfMonth(viewMonth);
+  const monthStartStr = format(monthStart, 'yyyy-MM-dd');
+  const monthEndStr = format(monthEnd, 'yyyy-MM-dd');
+  const cacheKey = `${user?.email}-${monthStartStr}`;
+
+  const { data: travelEntries = [], isLoading } = useQuery({
+    queryKey: ['travelEntries', user?.email, monthStartStr],
+    queryFn: async () => {
+      const allEntries = await base44.entities.ScheduleEntry.filter({ 
+        user_id: user?.email,
+        entry_type: 'TRAVEL',
+      });
+      const filtered = allEntries.filter(entry => {
+        const entryStart = entry.start_date;
+        const entryEnd = entry.end_date;
+        return (entryStart >= monthStartStr && entryStart <= monthEndStr) ||
+               (entryEnd >= monthStartStr && entryEnd <= monthEndStr) ||
+               (entryStart <= monthStartStr && entryEnd >= monthEndStr);
+      });
+      
+      setMonthCache(prev => {
+        const newCache = { ...prev, [cacheKey]: filtered };
+        const keys = Object.keys(newCache);
+        if (keys.length > 2) {
+          const oldestKey = keys[0];
+          delete newCache[oldestKey];
+        }
+        return newCache;
+      });
+      
+      return filtered;
+    },
+    enabled: !!user?.email,
+    initialData: () => monthCache[cacheKey],
+    staleTime: 0,
+  });
+
+  const { data: profiles = [] } = useQuery({
     queryKey: ['myProfile', user?.email],
     queryFn: () => base44.entities.UserProfile.filter({ user_id: user?.email }),
     enabled: !!user?.email,
@@ -39,43 +79,38 @@ export default function TravelSchedule() {
   if (isLoading) return <CCLoadingScreen message="Loading travel schedule..." />;
 
   const profile = profiles[0];
-  const travelDates = profile?.travel_dates || [];
 
-  const deleteTravelDate = (index) => {
-    if (confirm('Are you sure you want to delete this travel date?')) {
-      const newTravelDates = travelDates.filter((_, i) => i !== index);
-      updateTravelMutation.mutate(newTravelDates);
+  const deleteTravelEntry = (id) => {
+    if (confirm('Are you sure you want to delete this travel entry?')) {
+      base44.entities.ScheduleEntry.delete(id).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['travelEntries'] });
+        toast.success('Travel entry deleted');
+      });
     }
   };
 
-  const clearAll = () => {
-    if (confirm('Are you sure you want to clear all travel dates?')) {
-      updateTravelMutation.mutate([]);
-    }
-  };
-
-  const exportToCalendar = (travel, type) => {
+  const exportToCalendar = (entry, type) => {
+    const location = entry.location_city || entry.title || 'Destination';
     if (type === 'google') {
-      const startDate = travel.start_date.replace(/-/g, '');
-      const endDate = travel.end_date.replace(/-/g, '');
-      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Travel+to+${encodeURIComponent(travel.location)}&dates=${startDate}/${endDate}&details=Arriving+at+${travel.arrival_time}`;
+      const startDate = entry.start_date.replace(/-/g, '');
+      const endDate = entry.end_date.replace(/-/g, '');
+      const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Travel+to+${encodeURIComponent(location)}&dates=${startDate}/${endDate}`;
       window.open(url, '_blank');
     } else if (type === 'apple') {
       const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
 PRODID:-//Content Connect//Travel//EN
 BEGIN:VEVENT
-DTSTART:${travel.start_date.replace(/-/g, '')}
-DTEND:${travel.end_date.replace(/-/g, '')}
-SUMMARY:Travel to ${travel.location}
-DESCRIPTION:Arriving at ${travel.arrival_time}
+DTSTART:${entry.start_date.replace(/-/g, '')}
+DTEND:${entry.end_date.replace(/-/g, '')}
+SUMMARY:Travel to ${location}
 END:VEVENT
 END:VCALENDAR`;
       
       const blob = new Blob([icsContent], { type: 'text/calendar' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `travel-${travel.location.replace(/[^a-z0-9]/gi, '-')}.ics`;
+      link.download = `travel-${location.replace(/[^a-z0-9]/gi, '-')}.ics`;
       link.click();
     }
   };
@@ -100,43 +135,48 @@ END:VCALENDAR`;
           </CCButton>
         </div>
 
+        {/* Month Navigation */}
+        <CCCard padding="lg">
+          <div className="flex items-center justify-between">
+            <CCButton variant="ghost" size="icon" onClick={() => setViewMonth(addMonths(viewMonth, -1))}>
+              <ChevronLeft className="w-5 h-5" />
+            </CCButton>
+            <h2 className="text-xl font-semibold text-[#E8EEF9]">
+              {format(viewMonth, 'MMMM yyyy')}
+            </h2>
+            <CCButton variant="ghost" size="icon" onClick={() => setViewMonth(addMonths(viewMonth, 1))}>
+              <ChevronRight className="w-5 h-5" />
+            </CCButton>
+          </div>
+        </CCCard>
+
         {/* Stats */}
         <div className="grid grid-cols-2 gap-4">
           <CCCard padding="lg" className="text-center">
-            <p className="text-3xl font-bold text-[#4F8CFF]">{travelDates.length}</p>
-            <p className="text-sm text-[#9AA6BC] mt-1">Destinations</p>
+            <p className="text-3xl font-bold text-[#4F8CFF]">{travelEntries.length}</p>
+            <p className="text-sm text-[#9AA6BC] mt-1">This Month</p>
           </CCCard>
           <CCCard padding="lg" className="text-center">
             <p className="text-3xl font-bold text-[#FF2DAA]">
-              {travelDates.filter(t => new Date(t.start_date) > new Date()).length}
+              {travelEntries.filter(t => new Date(t.start_date) > new Date()).length}
             </p>
             <p className="text-sm text-[#9AA6BC] mt-1">Upcoming</p>
           </CCCard>
         </div>
 
-        {/* Quick Actions */}
-        {travelDates.length > 0 && (
-          <CCCard padding="lg">
-            <CCButton
-              variant="danger"
-              size="sm"
-              onClick={clearAll}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              Clear All Travel Dates
-            </CCButton>
-          </CCCard>
-        )}
-
         {/* Travel List */}
-        {travelDates.length > 0 ? (
+        {travelEntries.length > 0 ? (
           <div className="space-y-4">
-            {travelDates
+            <h2 className="text-lg font-semibold text-[#E8EEF9]">
+              {format(viewMonth, 'MMMM yyyy')} Travel
+            </h2>
+            {travelEntries
               .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
-              .map((travel, idx) => {
-                const isPast = new Date(travel.end_date) < new Date();
+              .map((entry) => {
+                const isPast = new Date(entry.end_date) < new Date();
+                const location = entry.location_city || entry.title || 'Destination';
                 return (
-                  <CCCard key={idx} padding="lg">
+                  <CCCard key={entry.id} padding="lg">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-4">
                         <div className={`p-3 rounded-lg ${isPast ? 'bg-[#3A4A6B]/20' : 'bg-[#4F8CFF]/20'}`}>
@@ -144,14 +184,14 @@ END:VCALENDAR`;
                         </div>
                         <div>
                           <h3 className={`text-lg font-semibold ${isPast ? 'text-[#6B7A94]' : 'text-[#E8EEF9]'}`}>
-                            {travel.location}
+                            {location}
                           </h3>
                           <p className="text-sm text-[#9AA6BC] mt-1">
-                            {format(new Date(travel.start_date), 'EEE, MMM d')} - {format(new Date(travel.end_date), 'EEE, MMM d, yyyy')}
+                            {format(new Date(entry.start_date), 'EEE, MMM d')} - {format(new Date(entry.end_date), 'EEE, MMM d, yyyy')}
                           </p>
-                          {travel.arrival_time && (
+                          {entry.start_time && (
                             <p className="text-xs text-[#6B7A94] mt-1">
-                              Arrives: {travel.arrival_time}
+                              Arrives: {entry.start_time}
                             </p>
                           )}
                           {isPast && (
@@ -163,14 +203,14 @@ END:VCALENDAR`;
                         <CCButton
                           variant="outline"
                           size="sm"
-                          onClick={() => exportToCalendar(travel, 'google')}
+                          onClick={() => exportToCalendar(entry, 'google')}
                         >
                           <Calendar className="w-4 h-4" />
                         </CCButton>
                         <CCButton
                           variant="ghost"
                           size="sm"
-                          onClick={() => deleteTravelDate(idx)}
+                          onClick={() => deleteTravelEntry(entry.id)}
                         >
                           <Trash2 className="w-4 h-4 text-[#EF4444]" />
                         </CCButton>
