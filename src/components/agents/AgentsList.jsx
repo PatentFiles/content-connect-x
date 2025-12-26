@@ -90,7 +90,7 @@ export default function AgentsList({ currentAdmin }) {
         </CCCard>
       )}
 
-      {agents.map((agent) => {
+      {agents?.map((agent) => {
         const { lastRun, openFlagsCount } = getAgentStats(agent.id);
         
         return (

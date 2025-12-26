@@ -42,7 +42,7 @@ export default function AgentRiskScores() {
 
       {/* Scores List */}
       <div className="space-y-3">
-        {filteredScores.map((score) => {
+        {filteredScores?.map((score) => {
           const config = getBandConfig(score.score);
           
           return (

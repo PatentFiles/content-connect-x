@@ -58,7 +58,7 @@ export default function AgentRunsList() {
 
       {/* Runs List */}
       <div className="space-y-3">
-        {filteredRuns.map((run) => {
+        {filteredRuns?.map((run) => {
           const config = statusConfig[run.run_status];
           const Icon = config.icon;
           
