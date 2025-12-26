@@ -30,7 +30,7 @@ export default function AgentManagement() {
     enabled: !!user?.email,
   });
 
-  const profile = profiles[0];
+  const profile = profiles?.[0];
 
   if (userLoading || profileLoading) {
     return <CCLoadingScreen />;
