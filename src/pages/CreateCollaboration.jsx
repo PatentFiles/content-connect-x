@@ -27,6 +27,7 @@ import CCBadge from '@/components/ui-custom/CCBadge';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import AccessGate from '@/components/auth/AccessGate';
+import AvailabilityCalendar from '@/components/collaboration/AvailabilityCalendar';
 
 
 
@@ -247,6 +248,33 @@ export default function CreateCollaboration() {
     enabled: !!user?.email,
   });
   const details = creatorDetails[0];
+
+  // Fetch current user's profile for location
+  const { data: myProfiles = [] } = useQuery({
+    queryKey: ['myProfile', user?.email],
+    queryFn: () => base44.entities.UserProfile.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+  const myProfile = myProfiles[0];
+
+  // Fetch participant profiles based on emails
+  const participantEmails = formData.participant_emails
+    ? formData.participant_emails.split(',').map(e => e.trim()).filter(e => e)
+    : [];
+
+  const { data: participantProfiles = [] } = useQuery({
+    queryKey: ['participantProfiles', participantEmails],
+    queryFn: async () => {
+      if (participantEmails.length === 0) return [];
+      const profiles = await Promise.all(
+        participantEmails.map(email =>
+          base44.entities.UserProfile.filter({ user_id: email })
+        )
+      );
+      return profiles.flat();
+    },
+    enabled: participantEmails.length > 0,
+  });
 
   // Create/Update mutation
   const createMutation = useMutation({
@@ -699,31 +727,47 @@ export default function CreateCollaboration() {
               <h3 className="font-semibold text-[#E8EEF9] mb-4 flex items-center gap-2">
                 <Calendar className="w-5 h-5" /> Schedule
               </h3>
-              <CCInput
-                label="Proposed Date"
-                type="date"
-                className="mb-4"
-              />
-              <div className="grid grid-cols-2 gap-4">
-                <CCInput
-                  label="Start Time"
-                  type="time"
-                  value={formData.schedule.start_time}
-                  onChange={(e) => updateForm('schedule', {
-                    ...formData.schedule,
-                    start_time: e.target.value
-                  })}
-                />
-                <CCInput
-                  label="End Time"
-                  type="time"
-                  value={formData.schedule.end_time}
-                  onChange={(e) => updateForm('schedule', {
-                    ...formData.schedule,
-                    end_time: e.target.value
-                  })}
-                />
-              </div>
+              
+              {participantProfiles.length > 0 ? (
+                <>
+                  <AvailabilityCalendar
+                    participantProfiles={participantProfiles}
+                    myLocation={myProfile?.base_location}
+                    selectedDates={formData.schedule.proposed_dates || []}
+                    onDatesChange={(dates) => updateForm('schedule', {
+                      ...formData.schedule,
+                      proposed_dates: dates
+                    })}
+                  />
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <CCInput
+                      label="Start Time"
+                      type="time"
+                      value={formData.schedule.start_time}
+                      onChange={(e) => updateForm('schedule', {
+                        ...formData.schedule,
+                        start_time: e.target.value
+                      })}
+                    />
+                    <CCInput
+                      label="End Time"
+                      type="time"
+                      value={formData.schedule.end_time}
+                      onChange={(e) => updateForm('schedule', {
+                        ...formData.schedule,
+                        end_time: e.target.value
+                      })}
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <Calendar className="w-12 h-12 text-[#6B7A94] mx-auto mb-3" />
+                  <p className="text-[#9AA6BC]">
+                    Add participant emails in Step 1 to see their availability
+                  </p>
+                </div>
+              )}
             </CCCard>
 
             <CCCard padding="lg">
