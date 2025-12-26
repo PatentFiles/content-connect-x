@@ -8,7 +8,8 @@ import {
   ChevronRight,
   Shield,
   ExternalLink,
-  Bot
+  Bot,
+  Home
 } from 'lucide-react';
 import CCAvatar from '../ui-custom/CCAvatars';
 import CCBadge from '../ui-custom/CCBadge';
@@ -16,6 +17,7 @@ import { getNavigationForRole } from '../utils/roleNavConfig';
 import AdminRoleViewSwitcher from '../admin/AdminRoleViewSwitcher';
 
 const adminNavItems = [
+  { name: 'Dashboard', page: 'Dashboard', icon: Home },
   { name: 'Admin Dashboard', page: 'AdminDashboard', icon: Shield },
   { name: 'Agent Management', page: 'AgentManagement', icon: Bot },
 ];

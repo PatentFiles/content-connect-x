@@ -60,7 +60,7 @@ export default function CreatorDashboard({ user, profile }) {
   // Fetch favorites
   const { data: favorites = [] } = useQuery({
     queryKey: ['myFavorites', user?.email],
-    queryFn: () => base44.entities.Favorite.filter({ user_id: user?.email }),
+    queryFn: () => base44.entities.Favorite.filter({ owner_id: user?.email }),
     enabled: !!user?.email,
   });
 
