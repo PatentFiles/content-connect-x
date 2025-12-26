@@ -69,7 +69,7 @@ const scenePairings = [
   'Trans Female / Trans Female / Trans Female / Trans Female',
   'Trans Male / Trans Female / Boy / Girl',
   'Group', 'Orgy', 'Trans Male Orgy', 'Trans Female Orgy', 'Non-Binary Group', 'Non-Binary Orgy',
-  'Interracial'
+  'Interracial', 'Other'
 ];
 
 const compensationPreferences = [
@@ -83,18 +83,18 @@ const standardActs = [
   'Prints / Stills', 'Interracial', 'Orgy', 'Handjob', 'Footjob', 'Blowjob',
   'Cunnilingus', 'Anilingus', 'Outdoor Sex', 'Car Sex', 'Kissing', 'Edging',
   'Masturbation', 'Threesome', 'Foursome', 'Double Penetration', 'Triple Penetration',
-  'Squirting', 'Prostate Massage', 'Pegging', 'StrapOn', 'Toy Play', 'Bukkake', 'Gloryhole'
+  'Squirting', 'Prostate Massage', 'Pegging', 'StrapOn', 'Toy Play', 'Bukkake', 'Gloryhole', 'Other'
 ];
 
 const fetishActs = [
   'Roleplay', 'Power Dynamics', 'Sensory Focus', 'Toy Use', 'Latex / Rubber',
   'Leather', 'Chastity', 'Cuckolding', 'Hotwifing', 'Voyeurism', 'Exhibitionism',
-  'CFNM (Clothed Female Naked Male)', 'CMNF (Clothed Male Naked Female)', 'Age Gap'
+  'CFNM (Clothed Female Naked Male)', 'CMNF (Clothed Male Naked Female)', 'Age Gap', 'Other'
 ];
 
 const kinkEdgeActs = [
   'Bondage', 'Dominant', 'Submissive', 'Power Exchange', 'Strap-On', 'Pegging',
-  'Swinger', 'Hotwife', 'Cuckold', 'Impact Play', 'Sensory Deprivation', 'Breath Play'
+  'Swinger', 'Hotwife', 'Cuckold', 'Impact Play', 'Sensory Deprivation', 'Breath Play', 'Other'
 ];
 
 const performancePositioning = [
@@ -104,6 +104,7 @@ const performancePositioning = [
   { value: 'Switch', showFor: 'all' },
   { value: 'Dominant', showFor: 'all' },
   { value: 'Submissive', showFor: 'all' },
+  { value: 'Other', showFor: 'all' },
 ];
 
 export default function Profile() {
@@ -239,8 +240,25 @@ export default function Profile() {
     return pos.showFor.some(o => orientations.includes(o));
   };
 
-  // No longer need filtering since scene pairings are strings
-  const filteredScenePairings = scenePairings;
+  // Filter scene pairings based on orientation
+  const orientations = editData.orientation_category || [];
+  const filteredScenePairings = scenePairings.filter(sp => {
+    // Boy/Boy only for gay, bisexual, pansexual
+    if (sp.includes('Boy / Boy') && !sp.includes('Girl')) {
+      return orientations.some(o => ['gay', 'bi', 'pan'].includes(o));
+    }
+    // Girl/Girl only for lesbian, bisexual
+    if (sp.includes('Girl / Girl') && !sp.includes('Boy')) {
+      return orientations.some(o => ['lesbian', 'bi'].includes(o));
+    }
+    // Trans pairings only for pan, trans_man, trans_woman, non_binary
+    if (sp.includes('Trans') || sp.includes('Non-Binary')) {
+      return orientations.some(o => ['pan'].includes(o)) || 
+             ['trans_man', 'trans_woman', 'non_binary'].includes(editData.gender_identity);
+    }
+    // All other pairings available to everyone
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
@@ -545,17 +563,28 @@ export default function Profile() {
                     <Heart className="w-5 h-5 text-[#FF2DAA]" />
                     <h3 className="text-lg font-semibold text-[#E8EEF9]">Scene Pairings</h3>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {filteredScenePairings.map(sp => (
-                      <CCButton
-                        key={sp}
-                        variant={editData.scene_pairings?.includes(sp) ? 'primary' : 'outline'}
-                        size="sm"
-                        onClick={() => toggleArrayValue('scene_pairings', sp)}
-                      >
-                        {sp}
-                      </CCButton>
-                    ))}
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {filteredScenePairings.map(sp => (
+                        <CCButton
+                          key={sp}
+                          variant={editData.scene_pairings?.includes(sp) ? 'primary' : 'outline'}
+                          size="sm"
+                          onClick={() => toggleArrayValue('scene_pairings', sp)}
+                        >
+                          {sp}
+                        </CCButton>
+                      ))}
+                    </div>
+                    {editData.scene_pairings?.includes('Other') && (
+                      <input
+                        type="text"
+                        value={editData.scene_pairings_other || ''}
+                        onChange={(e) => setEditData({...editData, scene_pairings_other: e.target.value})}
+                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                        placeholder="Specify other scene pairings..."
+                      />
+                    )}
                   </div>
                 </CCCard>
 
@@ -585,17 +614,28 @@ export default function Profile() {
                     <Activity className="w-5 h-5 text-[#4F8CFF]" />
                     <h3 className="text-lg font-semibold text-[#E8EEF9]">Standard Acts</h3>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {standardActs.map(sa => (
-                      <CCButton
-                        key={sa}
-                        variant={editData.standard_acts?.includes(sa) ? 'primary' : 'outline'}
-                        size="sm"
-                        onClick={() => toggleArrayValue('standard_acts', sa)}
-                      >
-                        {sa}
-                      </CCButton>
-                    ))}
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {standardActs.map(sa => (
+                        <CCButton
+                          key={sa}
+                          variant={editData.standard_acts?.includes(sa) ? 'primary' : 'outline'}
+                          size="sm"
+                          onClick={() => toggleArrayValue('standard_acts', sa)}
+                        >
+                          {sa}
+                        </CCButton>
+                      ))}
+                    </div>
+                    {editData.standard_acts?.includes('Other') && (
+                      <input
+                        type="text"
+                        value={editData.standard_acts_other || ''}
+                        onChange={(e) => setEditData({...editData, standard_acts_other: e.target.value})}
+                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                        placeholder="Specify other acts..."
+                      />
+                    )}
                   </div>
                 </CCCard>
 
@@ -605,17 +645,28 @@ export default function Profile() {
                     <Activity className="w-5 h-5 text-[#FF2DAA]" />
                     <h3 className="text-lg font-semibold text-[#E8EEF9]">Fetish Acts</h3>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {fetishActs.map(fa => (
-                      <CCButton
-                        key={fa}
-                        variant={editData.fetish_acts?.includes(fa) ? 'accent' : 'outline'}
-                        size="sm"
-                        onClick={() => toggleArrayValue('fetish_acts', fa)}
-                      >
-                        {fa}
-                      </CCButton>
-                    ))}
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {fetishActs.map(fa => (
+                        <CCButton
+                          key={fa}
+                          variant={editData.fetish_acts?.includes(fa) ? 'accent' : 'outline'}
+                          size="sm"
+                          onClick={() => toggleArrayValue('fetish_acts', fa)}
+                        >
+                          {fa}
+                        </CCButton>
+                      ))}
+                    </div>
+                    {editData.fetish_acts?.includes('Other') && (
+                      <input
+                        type="text"
+                        value={editData.fetish_acts_other || ''}
+                        onChange={(e) => setEditData({...editData, fetish_acts_other: e.target.value})}
+                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                        placeholder="Specify other fetish acts..."
+                      />
+                    )}
                   </div>
                 </CCCard>
 
@@ -625,34 +676,56 @@ export default function Profile() {
                     <Activity className="w-5 h-5 text-[#9333EA]" />
                     <h3 className="text-lg font-semibold text-[#E8EEF9]">Kink / Edge Acts</h3>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {kinkEdgeActs.map(ke => (
-                      <CCButton
-                        key={ke}
-                        variant={editData.kink_edge_acts?.includes(ke) ? 'primary' : 'outline'}
-                        size="sm"
-                        onClick={() => toggleArrayValue('kink_edge_acts', ke)}
-                      >
-                        {ke}
-                      </CCButton>
-                    ))}
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {kinkEdgeActs.map(ke => (
+                        <CCButton
+                          key={ke}
+                          variant={editData.kink_edge_acts?.includes(ke) ? 'primary' : 'outline'}
+                          size="sm"
+                          onClick={() => toggleArrayValue('kink_edge_acts', ke)}
+                        >
+                          {ke}
+                        </CCButton>
+                      ))}
+                    </div>
+                    {editData.kink_edge_acts?.includes('Other') && (
+                      <input
+                        type="text"
+                        value={editData.kink_edge_acts_other || ''}
+                        onChange={(e) => setEditData({...editData, kink_edge_acts_other: e.target.value})}
+                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                        placeholder="Specify other kink/edge acts..."
+                      />
+                    )}
                   </div>
                 </CCCard>
 
                 {/* Performance Positioning */}
                 <CCCard padding="lg">
                   <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Performance Positioning</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {performancePositioning.filter(showPositioning).map(pp => (
-                      <CCButton
-                        key={pp.value}
-                        variant={editData.performance_positioning?.includes(pp.value) ? 'primary' : 'outline'}
-                        size="sm"
-                        onClick={() => toggleArrayValue('performance_positioning', pp.value)}
-                      >
-                        {pp.value}
-                      </CCButton>
-                    ))}
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {performancePositioning.filter(showPositioning).map(pp => (
+                        <CCButton
+                          key={pp.value}
+                          variant={editData.performance_positioning?.includes(pp.value) ? 'primary' : 'outline'}
+                          size="sm"
+                          onClick={() => toggleArrayValue('performance_positioning', pp.value)}
+                        >
+                          {pp.value}
+                        </CCButton>
+                      ))}
+                    </div>
+                    {editData.performance_positioning?.includes('Other') && (
+                      <input
+                        type="text"
+                        value={editData.performance_positioning_other || ''}
+                        onChange={(e) => setEditData({...editData, performance_positioning_other: e.target.value})}
+                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                        placeholder="Specify other positioning..."
+                      />
+                    )}
                   </div>
                 </CCCard>
 
