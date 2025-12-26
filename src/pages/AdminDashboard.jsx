@@ -37,6 +37,8 @@ import DisputeSimulator from '@/components/admin/DisputeSimulator';
 import CollaborationAnalytics from '@/components/admin/CollaborationAnalytics';
 import ComplianceAgent from '@/components/admin/ComplianceAgent';
 import AgentAlertsCard from '@/components/admin/AgentAlertsCard';
+import CatalogModeration from '@/components/admin/CatalogModeration';
+import VerificationReviewQueue from '@/components/admin/VerificationReviewQueue';
 
 // User Management Component
 function UserManagement({ currentUser }) {
@@ -388,6 +390,7 @@ export default function AdminDashboard() {
     { value: 'analytics', label: 'Analytics', icon: TrendingUp },
     { value: 'compliance_agent', label: 'Compliance Agent', icon: Shield },
     { value: 'verifications', label: 'Verifications', icon: Shield },
+    { value: 'catalog', label: 'Catalog Moderation', icon: Tag },
     { value: 'users', label: 'User Moderation', icon: Users },
     { value: 'collaborations', label: 'Collaborations', icon: AlertTriangle },
     { value: 'arbitration', label: 'Arbitration', icon: Shield },
@@ -494,64 +497,12 @@ export default function AdminDashboard() {
 
         {/* Verifications Tab */}
         <CCTabsContent value="verifications" activeTab={activeTab}>
-          {verificationsLoading ? (
-            <div className="text-center py-8 text-[#9AA6BC]">Loading...</div>
-          ) : pendingVerifications.length === 0 ? (
-            <CCEmpty
-              icon={CheckCircle}
-              title="All caught up!"
-              description="No pending verifications to review."
-            />
-          ) : (
-            <div className="space-y-4">
-              {pendingVerifications.map((v) => {
-                const profile = getProfileForVerification(v);
-                return (
-                  <CCCard key={v.id} padding="lg">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <CCAvatar src={profile?.avatar_url} size="lg" />
-                        <div>
-                          <p className="font-medium text-[#E8EEF9]">{profile?.display_name || v.user_id}</p>
-                          <p className="text-sm text-[#6B7A94]">{v.user_id}</p>
-                          <p className="text-xs text-[#6B7A94]">
-                            Submitted: {new Date(v.created_date).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <CCButton
-                          variant="outline"
-                          size="sm"
-                          icon={Eye}
-                          onClick={() => setSelectedVerification(v)}
-                        >
-                          Review
-                        </CCButton>
-                        <CCButton
-                          variant="success"
-                          size="sm"
-                          icon={CheckCircle}
-                          onClick={() => approveVerificationMutation.mutate(v.id)}
-                          loading={approveVerificationMutation.isPending}
-                        >
-                          Approve
-                        </CCButton>
-                        <CCButton
-                          variant="danger"
-                          size="sm"
-                          icon={XCircle}
-                          onClick={() => rejectVerificationMutation.mutate({ id: v.id, reason: 'Documents unclear' })}
-                        >
-                          Reject
-                        </CCButton>
-                      </div>
-                    </div>
-                  </CCCard>
-                );
-              })}
-            </div>
-          )}
+          <VerificationReviewQueue />
+        </CCTabsContent>
+
+        {/* Catalog Moderation Tab */}
+        <CCTabsContent value="catalog" activeTab={activeTab}>
+          <CatalogModeration />
         </CCTabsContent>
 
         {/* Tags Tab */}
