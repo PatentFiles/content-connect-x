@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight, MapPin, Info, AlertCircle } from 'lucide-rea
 import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { computeDailyUnavailableReasons } from './availabilityHelpers';
+import SuggestedDates from './SuggestedDates';
 
 export default function AvailabilityCalendar({ 
   participantProfiles,
@@ -339,6 +340,20 @@ export default function AvailabilityCalendar({
           </div>
         </div>
       )}
+
+      {/* Suggested Dates */}
+      <SuggestedDates
+        viewMonth={viewMonth}
+        participantProfiles={participantProfiles}
+        unavailableReasons={unavailableReasons}
+        collaborationLocation={collaborationLocation || myLocation}
+        selectedDates={selectedDates}
+        onSelectDate={(dateStr) => {
+          if (!selectedDates.includes(dateStr)) {
+            onDatesChange([...selectedDates, dateStr]);
+          }
+        }}
+      />
     </div>
   );
 }
