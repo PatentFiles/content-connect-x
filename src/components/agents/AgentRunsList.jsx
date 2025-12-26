@@ -28,7 +28,7 @@ export default function AgentRunsList() {
   ) || [];
 
   const getAgentName = (agentId) => {
-    const agent = agents.find(a => a.id === agentId);
+    const agent = agents?.find(a => a.id === agentId);
     return agent?.name || agentId;
   };
 

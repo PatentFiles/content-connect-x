@@ -62,7 +62,7 @@ export default function AgentFlagsList({ currentAdmin }) {
   }) || [];
 
   const getAgentName = (agentId) => {
-    const agent = agents.find(a => a.id === agentId);
+    const agent = agents?.find(a => a.id === agentId);
     return agent?.name || agentId;
   };
 
