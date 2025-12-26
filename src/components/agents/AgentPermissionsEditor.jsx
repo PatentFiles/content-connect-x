@@ -106,7 +106,7 @@ export default function AgentPermissionsEditor({ currentAdmin }) {
 
           {/* Permissions List */}
           <div className="space-y-4">
-            {permissions?.map((perm) => (
+            {(permissions || []).map((perm) => (
               <CCCard key={perm.id} padding="lg">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -123,18 +123,18 @@ export default function AgentPermissionsEditor({ currentAdmin }) {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <CCSelect
-                      label="Access Level"
-                      value={perm.access_level}
-                      onChange={(e) => handleUpdate(perm.id, 'access_level', e.target.value)}
-                      options={ACCESS_LEVELS.map(l => ({ value: l, label: l }))}
-                    />
-                    <CCSelect
-                      label="PII Redaction"
-                      value={perm.pii_redaction_level}
-                      onChange={(e) => handleUpdate(perm.id, 'pii_redaction_level', e.target.value)}
-                      options={PII_LEVELS.map(l => ({ value: l, label: l }))}
-                    />
+                   <CCSelect
+                     label="Access Level"
+                     value={perm.access_level}
+                     onChange={(e) => handleUpdate(perm.id, 'access_level', e.target.value)}
+                     options={(ACCESS_LEVELS || []).map(l => ({ value: l, label: l }))}
+                   />
+                   <CCSelect
+                     label="PII Redaction"
+                     value={perm.pii_redaction_level}
+                     onChange={(e) => handleUpdate(perm.id, 'pii_redaction_level', e.target.value)}
+                     options={(PII_LEVELS || []).map(l => ({ value: l, label: l }))}
+                   />
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
