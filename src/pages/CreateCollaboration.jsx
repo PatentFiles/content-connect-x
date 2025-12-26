@@ -350,10 +350,11 @@ export default function CreateCollaboration() {
     enabled: participantEmails.length > 0,
   });
 
-  // Filter search results
+  // Filter search results (exclude admin accounts)
   const filteredProfiles = allProfiles.filter(p => 
-    p.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.user_id?.toLowerCase().includes(searchQuery.toLowerCase())
+    !p.is_admin &&
+    (p.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.user_id?.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   const filteredAgents = allAgents.filter(a => 
@@ -626,10 +627,11 @@ export default function CreateCollaboration() {
             )}
 
             {/* Add Options */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
+            <div className="space-y-3 mb-4">
               <CCButton
                 variant="outline"
                 icon={Users}
+                fullWidth
                 onClick={() => {
                   setShowUserSearch(!showUserSearch);
                   setShowAgentSearch(false);
@@ -638,28 +640,30 @@ export default function CreateCollaboration() {
               >
                 Search Users
               </CCButton>
-              <CCButton
-                variant="outline"
-                icon={Users}
-                onClick={() => {
-                  setShowAgentSearch(!showAgentSearch);
-                  setShowUserSearch(false);
-                  setShowStudioSearch(false);
-                }}
-              >
-                Add Agent
-              </CCButton>
-              <CCButton
-                variant="outline"
-                icon={Briefcase}
-                onClick={() => {
-                  setShowStudioSearch(!showStudioSearch);
-                  setShowUserSearch(false);
-                  setShowAgentSearch(false);
-                }}
-              >
-                Add Studio
-              </CCButton>
+              <div className="grid grid-cols-2 gap-3">
+                <CCButton
+                  variant="outline"
+                  icon={Briefcase}
+                  onClick={() => {
+                    setShowStudioSearch(!showStudioSearch);
+                    setShowUserSearch(false);
+                    setShowAgentSearch(false);
+                  }}
+                >
+                  Add Studio
+                </CCButton>
+                <CCButton
+                  variant="outline"
+                  icon={Users}
+                  onClick={() => {
+                    setShowAgentSearch(!showAgentSearch);
+                    setShowUserSearch(false);
+                    setShowStudioSearch(false);
+                  }}
+                >
+                  Add Agent
+                </CCButton>
+              </div>
             </div>
 
             {/* User Search */}
