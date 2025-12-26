@@ -13,10 +13,16 @@ import ScheduleEntryEditor from '@/components/schedule/ScheduleEntryEditor';
 
 export default function AvailabilitySchedule() {
   const [viewMonth, setViewMonth] = useState(new Date());
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedEntries, setSelectedEntries] = useState([]);
   const [editingEntry, setEditingEntry] = useState(null);
   const [showEditor, setShowEditor] = useState(false);
   const queryClient = useQueryClient();
+
+  const handleYearChange = (year) => {
+    setSelectedYear(year);
+    setViewMonth(new Date(year, viewMonth.getMonth(), 1));
+  };
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -331,13 +337,32 @@ END:VCALENDAR`;
         {/* Calendar View */}
         <CCCard padding="lg">
           <div className="flex items-center justify-between mb-6">
-            <CCButton variant="ghost" size="icon" onClick={() => setViewMonth(addMonths(viewMonth, -1))}>
+            <CCButton variant="ghost" size="icon" onClick={() => {
+              const newMonth = addMonths(viewMonth, -1);
+              setViewMonth(newMonth);
+              setSelectedYear(newMonth.getFullYear());
+            }}>
               <ChevronLeft className="w-5 h-5" />
             </CCButton>
-            <h2 className="text-xl font-semibold text-[#E8EEF9]">
-              {format(viewMonth, 'MMMM yyyy')}
-            </h2>
-            <CCButton variant="ghost" size="icon" onClick={() => setViewMonth(addMonths(viewMonth, 1))}>
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-semibold text-[#E8EEF9]">
+                {format(viewMonth, 'MMMM')}
+              </h2>
+              <select
+                value={selectedYear}
+                onChange={(e) => handleYearChange(Number(e.target.value))}
+                className="bg-[#151D2B] border border-[#263248] text-[#E8EEF9] rounded-lg px-3 py-1.5 text-lg font-semibold focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+              >
+                {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - 1 + i).map(year => (
+                  <option key={year} value={year}>{year}</option>
+                ))}
+              </select>
+            </div>
+            <CCButton variant="ghost" size="icon" onClick={() => {
+              const newMonth = addMonths(viewMonth, 1);
+              setViewMonth(newMonth);
+              setSelectedYear(newMonth.getFullYear());
+            }}>
               <ChevronRight className="w-5 h-5" />
             </CCButton>
           </div>
