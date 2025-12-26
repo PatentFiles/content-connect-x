@@ -33,6 +33,7 @@ export const roleNavigation = {
     { path: 'Collaborations', label: 'Collaborations', icon: Briefcase },
     { path: 'Representations', label: 'Representations', icon: Users },
     { path: 'Contracts', label: 'Contracts', icon: FileText },
+    { path: 'Favorites', label: 'Favorites', icon: Heart },
   ],
   studio: [
     { path: 'Dashboard', label: 'Dashboard', icon: Home },
@@ -41,18 +42,21 @@ export const roleNavigation = {
     { path: 'RosterPortfolio', label: 'Roster & Portfolio', icon: Users },
     { path: 'Collaborations', label: 'Collaborations', icon: Briefcase },
     { path: 'Contracts', label: 'Contracts', icon: FileText },
+    { path: 'Favorites', label: 'Favorites', icon: Heart },
   ],
   photographer: [
     { path: 'Dashboard', label: 'Dashboard', icon: Home },
     { path: 'Discovery', label: 'Discover', icon: Compass },
     { path: 'Messages', label: 'Messages', icon: MessageCircle },
     { path: 'Portfolio', label: 'Portfolio', icon: Camera },
+    { path: 'Favorites', label: 'Favorites', icon: Heart },
   ],
   videographer: [
     { path: 'Dashboard', label: 'Dashboard', icon: Home },
     { path: 'Discovery', label: 'Discover', icon: Compass },
     { path: 'Messages', label: 'Messages', icon: MessageCircle },
     { path: 'Portfolio', label: 'Reels/Portfolio', icon: Video },
+    { path: 'Favorites', label: 'Favorites', icon: Heart },
   ],
 };
 
