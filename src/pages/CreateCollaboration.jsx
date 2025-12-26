@@ -318,7 +318,7 @@ export default function CreateCollaboration() {
   // Filter scene pairings based on orientation
   const orientations = details?.orientation_category || [];
   const genderIdentity = details?.gender_identity;
-  const filteredScenePairings = scenePairings.filter(sp => {
+  const filteredScenePairings = details ? scenePairings.filter(sp => {
     // Boy/Boy only for gay, bisexual, pansexual
     if (sp.includes('Boy / Boy') && !sp.includes('Girl')) {
       return orientations.some(o => ['gay', 'bi', 'pan'].includes(o));
@@ -334,7 +334,7 @@ export default function CreateCollaboration() {
     }
     // All other pairings available to everyone
     return true;
-  });
+  }) : scenePairings;
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
