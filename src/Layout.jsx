@@ -37,7 +37,7 @@ const appPages = [
   'ViewProfile',
   'Settings',
   'Verification',
-  'Shortlists',
+  'Favorites',
   'AdminDashboard',
   'CompliancePortal',
   'RosterPortfolio',
