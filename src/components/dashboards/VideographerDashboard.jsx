@@ -102,9 +102,9 @@ export default function VideographerDashboard({ user, profile }) {
           </CCCard>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 h-full">
+        <div className="grid md:grid-cols-2 gap-6">
           {/* Portfolio */}
-          <CCCard padding="lg" className="h-full">
+          <CCCard padding="lg">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-[#E8EEF9]">Reels/Portfolio</h2>
               <Link to={createPageUrl('Portfolio')}>
@@ -131,7 +131,7 @@ export default function VideographerDashboard({ user, profile }) {
           </CCCard>
 
           {/* Editing Queue */}
-          <CCCard padding="lg" className="h-full">
+          <CCCard padding="lg">
             <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4 flex items-center gap-2">
               <Edit className="w-5 h-5" />
               Editing Queue

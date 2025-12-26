@@ -218,20 +218,14 @@ export default function CreatorDashboard({ user, profile }) {
             </CCCard>
 
             {/* Contracts Status */}
-            <CCCard padding="lg">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-[#E8EEF9]">Contract Status</h2>
-                <Link to={createPageUrl('Contracts')}>
-                  <CCButton variant="ghost" size="sm">View All</CCButton>
-                </Link>
-              </div>
-              {contracts.length === 0 || pendingContracts.length === 0 ? (
-                <CCEmpty
-                  icon={FileText}
-                  title="No pending contracts"
-                  description="All contracts are signed"
-                />
-              ) : (
+            {contracts.length > 0 && (
+              <CCCard padding="lg">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-[#E8EEF9]">Contract Status</h2>
+                  <Link to={createPageUrl('Contracts')}>
+                    <CCButton variant="ghost" size="sm">View All</CCButton>
+                  </Link>
+                </div>
                 <div className="space-y-3">
                   {pendingContracts.slice(0, 3).map(contract => (
                     <div key={contract.id} className="flex items-center justify-between p-3 bg-[#151D2B] rounded-lg">
@@ -245,8 +239,8 @@ export default function CreatorDashboard({ user, profile }) {
                     </div>
                   ))}
                 </div>
-              )}
-            </CCCard>
+              </CCCard>
+            )}
           </div>
 
           {/* Right Column */}

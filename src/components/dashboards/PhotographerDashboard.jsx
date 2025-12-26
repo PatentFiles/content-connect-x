@@ -98,9 +98,9 @@ export default function PhotographerDashboard({ user, profile }) {
           </CCCard>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6 h-full">
+        <div className="grid md:grid-cols-2 gap-6">
           {/* Portfolio Status */}
-          <CCCard padding="lg" className="h-full">
+          <CCCard padding="lg">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-[#E8EEF9]">Portfolio</h2>
               <Link to={createPageUrl('Portfolio')}>
@@ -127,7 +127,7 @@ export default function PhotographerDashboard({ user, profile }) {
           </CCCard>
 
           {/* Work Preferences */}
-          <CCCard padding="lg" className="h-full">
+          <CCCard padding="lg">
             <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4">Work Preferences</h2>
             <div className="space-y-3">
               {service?.content_types && service.content_types.length > 0 && (
