@@ -608,12 +608,17 @@ export default function CreateCollaboration() {
       <div className="max-w-3xl mx-auto px-4 py-6">
         {/* Collaboration Name */}
         <CCCard padding="lg" className="mb-6">
-          <CCInput
-            label="Collaboration Name (Optional)"
-            placeholder="e.g., Miami Beach Shoot, Studio Session..."
-            value={formData.collaboration_name}
-            onChange={(e) => updateForm('collaboration_name', e.target.value)}
-          />
+          <div className="text-center">
+            <label className="block text-sm font-medium text-[#E8EEF9] mb-2">
+              Collaboration Name (Optional)
+            </label>
+            <input
+              placeholder="e.g., Miami Beach Shoot, Studio Session..."
+              value={formData.collaboration_name}
+              onChange={(e) => updateForm('collaboration_name', e.target.value)}
+              className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+            />
+          </div>
         </CCCard>
 
         {/* Step 1: Participants */}
@@ -896,7 +901,7 @@ export default function CreateCollaboration() {
 
             {/* Manual Email Entry */}
             <CCCard padding="lg">
-              <h3 className="font-semibold text-[#E8EEF9] mb-3">Or add by email</h3>
+              <h3 className="font-semibold text-[#E8EEF9] mb-3 text-center">Or add by email</h3>
               <div className="flex gap-2">
                 <CCInput
                   placeholder="email@example.com"
@@ -990,26 +995,26 @@ export default function CreateCollaboration() {
                   padding="lg"
                   onClick={() => setActCategory('standard')}
                 >
-                  <h3 className="font-semibold text-[#E8EEF9] mb-1">Standard</h3>
-                  <p className="text-sm text-[#9AA6BC]">Solo, group, oral, anal, and other standard acts</p>
+                 <h3 className="font-semibold text-[#E8EEF9] mb-1 text-center">Standard</h3>
+                 <p className="text-sm text-[#9AA6BC] text-center">Solo, group, oral, anal, and other standard acts</p>
                 </CCCard>
                 <CCCard
-                  hover
-                  clickable
-                  padding="lg"
-                  onClick={() => setActCategory('fetish')}
+                 hover
+                 clickable
+                 padding="lg"
+                 onClick={() => setActCategory('fetish')}
                 >
-                  <h3 className="font-semibold text-[#E8EEF9] mb-1">Fetish</h3>
-                  <p className="text-sm text-[#9AA6BC]">Roleplay, power dynamics, sensory focus, and more</p>
+                 <h3 className="font-semibold text-[#E8EEF9] mb-1 text-center">Fetish</h3>
+                 <p className="text-sm text-[#9AA6BC] text-center">Roleplay, power dynamics, sensory focus, and more</p>
                 </CCCard>
                 <CCCard
-                  hover
-                  clickable
-                  padding="lg"
-                  onClick={() => setActCategory('kink')}
+                 hover
+                 clickable
+                 padding="lg"
+                 onClick={() => setActCategory('kink')}
                 >
-                  <h3 className="font-semibold text-[#E8EEF9] mb-1">Kink</h3>
-                  <p className="text-sm text-[#9AA6BC]">Bondage, BDSM, impact play, and edge acts</p>
+                 <h3 className="font-semibold text-[#E8EEF9] mb-1 text-center">Kink</h3>
+                 <p className="text-sm text-[#9AA6BC] text-center">Bondage, BDSM, impact play, and edge acts</p>
                 </CCCard>
               </div>
             ) : (
@@ -1147,23 +1152,27 @@ export default function CreateCollaboration() {
             <p className="text-[#9AA6BC] mb-6 text-center">Define your boundaries and limits.</p>
 
             <CCCard padding="lg">
-              <h3 className="font-semibold text-[#E8EEF9] mb-4 flex items-center gap-2">
+              <h3 className="font-semibold text-[#E8EEF9] mb-4 flex items-center justify-center gap-2">
                 <AlertTriangle className="w-5 h-5 text-[#F59E0B]" />
                 Boundaries
               </h3>
-              <CCInput
-                label="Hard No's"
-                placeholder="Acts that are absolutely off limits..."
-                hint="Comma-separated list"
-                className="mb-4"
-              />
-              <CCInput
-                label="Soft Limits"
-                placeholder="Acts that may be negotiable..."
-                hint="Comma-separated list"
-                className="mb-4"
-              />
-              <label className="flex items-center gap-3 cursor-pointer">
+              <div className="text-center mb-4">
+                <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Hard No's</label>
+                <input
+                  placeholder="Acts that are absolutely off limits..."
+                  className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                />
+                <p className="text-xs text-[#6B7A94] mt-1">Comma-separated list</p>
+              </div>
+              <div className="text-center mb-4">
+                <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Soft Limits</label>
+                <input
+                  placeholder="Acts that may be negotiable..."
+                  className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                />
+                <p className="text-xs text-[#6B7A94] mt-1">Comma-separated list</p>
+              </div>
+              <label className="flex items-center justify-center gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={formData.boundaries.aftercare_required}
@@ -1199,7 +1208,7 @@ export default function CreateCollaboration() {
                   onClick={() => updateForm('compensation_type', type.value)}
                 >
                   <div className="flex items-center justify-between">
-                    <div>
+                    <div className="flex-1 text-center">
                       <h3 className="font-semibold text-[#E8EEF9]">{type.label}</h3>
                       <p className="text-sm text-[#9AA6BC]">{type.description}</p>
                     </div>
@@ -1307,11 +1316,38 @@ export default function CreateCollaboration() {
             </CCCard>
 
             <CCCard padding="lg">
-              <h3 className="font-semibold text-[#E8EEF9] mb-4 flex items-center gap-2">
+              <h3 className="font-semibold text-[#E8EEF9] mb-4 flex items-center justify-center gap-2">
                 <MapPin className="w-5 h-5" /> Location
               </h3>
-              <CCSelect
-                label="Location Type"
+              <div className="text-center mb-4">
+                <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Location Type</label>
+                <select
+                  value={formData.location.type}
+                  onChange={(e) => updateForm('location', {
+                    ...formData.location,
+                    type: e.target.value
+                  })}
+                  className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                >
+                  <option value="">Select location type</option>
+                  <option value="studio">Studio</option>
+                  <option value="private">Private Location</option>
+                  <option value="outdoor">Outdoor</option>
+                  <option value="travel">Travel Required</option>
+                </select>
+              </div>
+              <div className="text-center">
+                <label className="block text-sm font-medium text-[#E8EEF9] mb-2">City</label>
+                <input
+                  placeholder="e.g., Los Angeles, CA"
+                  value={formData.location.city}
+                  onChange={(e) => updateForm('location', {
+                    ...formData.location,
+                    city: e.target.value
+                  })}
+                  className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                />
+              </div>
                 options={[
                   { value: 'studio', label: 'Studio' },
                   { value: 'private', label: 'Private Location' },
@@ -1348,7 +1384,7 @@ export default function CreateCollaboration() {
             <p className="text-[#9AA6BC] mb-6 text-center">Define what will be delivered and usage rights.</p>
 
             <CCCard padding="lg" className="mb-6">
-              <h3 className="font-semibold text-[#E8EEF9] mb-4">Deliverables</h3>
+              <h3 className="font-semibold text-[#E8EEF9] mb-4 text-center">Deliverables</h3>
               <div className="space-y-3">
                 {[
                   { key: 'photo', label: 'Photos', icon: Camera },
@@ -1356,7 +1392,7 @@ export default function CreateCollaboration() {
                   { key: 'raw_files', label: 'Raw Files Included', icon: null },
                   { key: 'editing_included', label: 'Editing Included', icon: null },
                 ].map(item => (
-                  <label key={item.key} className="flex items-center gap-3 cursor-pointer">
+                  <label key={item.key} className="flex items-center justify-center gap-3 cursor-pointer">
                     <input
                       type="checkbox"
                       checked={formData.deliverables[item.key]}
@@ -1373,24 +1409,26 @@ export default function CreateCollaboration() {
                   </label>
                 ))}
               </div>
-              <CCInput
-                label="Delivery Timeline"
-                type="number"
-                value={formData.deliverables.delivery_timeline_days}
-                onChange={(e) => updateForm('deliverables', {
-                  ...formData.deliverables,
-                  delivery_timeline_days: parseInt(e.target.value)
-                })}
-                hint="Days after shoot"
-                className="mt-4"
-              />
+              <div className="mt-4 text-center">
+                <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Delivery Timeline</label>
+                <input
+                  type="number"
+                  value={formData.deliverables.delivery_timeline_days}
+                  onChange={(e) => updateForm('deliverables', {
+                    ...formData.deliverables,
+                    delivery_timeline_days: parseInt(e.target.value)
+                  })}
+                  className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                />
+                <p className="text-xs text-[#6B7A94] mt-1">Days after shoot</p>
+              </div>
             </CCCard>
 
             <CCCard padding="lg" className="mb-6">
-              <h3 className="font-semibold text-[#E8EEF9] mb-4">Usage Rights</h3>
+              <h3 className="font-semibold text-[#E8EEF9] mb-4 text-center">Usage Rights</h3>
               <div className="mb-4">
-                <label className="text-sm text-[#9AA6BC] mb-2 block">Platforms</label>
-                <p className="text-xs text-[#6B7A94] mb-3">Where content can be published</p>
+                <label className="text-sm text-[#9AA6BC] mb-2 block text-center">Platforms</label>
+                <p className="text-xs text-[#6B7A94] mb-3 text-center">Where content can be published</p>
                 <div className="grid grid-cols-2 gap-2 mb-3">
                   {['OnlyFans', 'Fansly', 'Pornhub', 'ManyVids', 'Clips4Sale', 'Personal Website', 'Twitter/X', 'Instagram'].map(platform => {
                     const platformList = formData.usage_rights.platforms || [];
@@ -1425,7 +1463,7 @@ export default function CreateCollaboration() {
                 />
               </div>
               <div className="space-y-3">
-                <label className="flex items-center gap-3 cursor-pointer">
+                <label className="flex items-center justify-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.usage_rights.exclusivity}
@@ -1437,7 +1475,7 @@ export default function CreateCollaboration() {
                   />
                   <span className="text-[#E8EEF9]">Exclusive rights</span>
                 </label>
-                <label className="flex items-center gap-3 cursor-pointer">
+                <label className="flex items-center justify-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.usage_rights.credit_required}
@@ -1453,11 +1491,11 @@ export default function CreateCollaboration() {
             </CCCard>
 
             <CCCard padding="lg">
-              <h3 className="font-semibold text-[#E8EEF9] mb-4 flex items-center gap-2">
+              <h3 className="font-semibold text-[#E8EEF9] mb-4 flex items-center justify-center gap-2">
                 <Shield className="w-5 h-5" /> Testing Requirements
               </h3>
               
-              <label className="flex items-center gap-3 cursor-pointer mb-4">
+              <label className="flex items-center justify-center gap-3 cursor-pointer mb-4">
                 <input
                   type="checkbox"
                   checked={formData.testing_requirements.is_required}
