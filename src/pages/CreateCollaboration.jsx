@@ -88,6 +88,7 @@ const kinkEdgeActs = [
 export default function CreateCollaboration() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+  const [actCategory, setActCategory] = useState(null); // 'standard', 'fetish', or 'kink'
   
   // Get collaboration ID from URL for editing
   const urlParams = new URLSearchParams(window.location.search);
@@ -544,121 +545,160 @@ export default function CreateCollaboration() {
             animate={{ opacity: 1, x: 0 }}
           >
             <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Acts</h2>
-            <p className="text-[#9AA6BC] mb-6">Select the acts for this collaboration.</p>
+            <p className="text-[#9AA6BC] mb-6">Choose a category to select acts.</p>
 
-            {/* Standard Acts */}
-            <CCCard padding="lg" className="mb-6">
-              <h3 className="font-semibold text-[#E8EEF9] mb-4">Standard</h3>
-              <div className="space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  {standardActs.map((act) => (
-                    <CCButton
-                      key={act}
-                      variant={formData.standard_acts?.includes(act) ? 'primary' : 'outline'}
-                      size="sm"
-                      onClick={() => toggleArrayValue('standard_acts', act)}
-                    >
-                      {act}
-                    </CCButton>
-                  ))}
+            {!actCategory ? (
+              <div className="grid gap-4">
+                <CCCard
+                  hover
+                  clickable
+                  padding="lg"
+                  onClick={() => setActCategory('standard')}
+                >
+                  <h3 className="font-semibold text-[#E8EEF9] mb-1">Standard</h3>
+                  <p className="text-sm text-[#9AA6BC]">Solo, group, oral, anal, and other standard acts</p>
+                </CCCard>
+                <CCCard
+                  hover
+                  clickable
+                  padding="lg"
+                  onClick={() => setActCategory('fetish')}
+                >
+                  <h3 className="font-semibold text-[#E8EEF9] mb-1">Fetish</h3>
+                  <p className="text-sm text-[#9AA6BC]">Roleplay, power dynamics, sensory focus, and more</p>
+                </CCCard>
+                <CCCard
+                  hover
+                  clickable
+                  padding="lg"
+                  onClick={() => setActCategory('kink')}
+                >
+                  <h3 className="font-semibold text-[#E8EEF9] mb-1">Kink</h3>
+                  <p className="text-sm text-[#9AA6BC]">Bondage, BDSM, impact play, and edge acts</p>
+                </CCCard>
+              </div>
+            ) : (
+              <CCCard padding="lg">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-[#E8EEF9] capitalize">{actCategory}</h3>
+                  <CCButton
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setActCategory(null)}
+                  >
+                    Change Category
+                  </CCButton>
                 </div>
-                {formData.standard_acts?.includes('Other') && (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={customValues.standard_acts || ''}
-                      onChange={(e) => setCustomValues({...customValues, standard_acts: e.target.value})}
-                      className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                      placeholder="Type custom standard act..."
-                    />
-                    <CCButton
-                      variant="primary"
-                      size="sm"
-                      icon={Plus}
-                      onClick={() => handleAddCustomValue('standard_act', 'standard_acts')}
-                    >
-                      Add
-                    </CCButton>
+                
+                {actCategory === 'standard' && (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {standardActs.map((act) => (
+                        <CCButton
+                          key={act}
+                          variant={formData.standard_acts?.includes(act) ? 'primary' : 'outline'}
+                          size="sm"
+                          onClick={() => toggleArrayValue('standard_acts', act)}
+                        >
+                          {act}
+                        </CCButton>
+                      ))}
+                    </div>
+                    {formData.standard_acts?.includes('Other') && (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={customValues.standard_acts || ''}
+                          onChange={(e) => setCustomValues({...customValues, standard_acts: e.target.value})}
+                          className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                          placeholder="Type custom standard act..."
+                        />
+                        <CCButton
+                          variant="primary"
+                          size="sm"
+                          icon={Plus}
+                          onClick={() => handleAddCustomValue('standard_act', 'standard_acts')}
+                        >
+                          Add
+                        </CCButton>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            </CCCard>
 
-            {/* Fetish Acts */}
-            <CCCard padding="lg" className="mb-6">
-              <h3 className="font-semibold text-[#E8EEF9] mb-4">Fetish</h3>
-              <div className="space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  {fetishActs.map((act) => (
-                    <CCButton
-                      key={act}
-                      variant={formData.fetish_acts?.includes(act) ? 'accent' : 'outline'}
-                      size="sm"
-                      onClick={() => toggleArrayValue('fetish_acts', act)}
-                    >
-                      {act}
-                    </CCButton>
-                  ))}
-                </div>
-                {formData.fetish_acts?.includes('Other') && (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={customValues.fetish_acts || ''}
-                      onChange={(e) => setCustomValues({...customValues, fetish_acts: e.target.value})}
-                      className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                      placeholder="Type custom fetish act..."
-                    />
-                    <CCButton
-                      variant="primary"
-                      size="sm"
-                      icon={Plus}
-                      onClick={() => handleAddCustomValue('fetish_act', 'fetish_acts')}
-                    >
-                      Add
-                    </CCButton>
+                {actCategory === 'fetish' && (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {fetishActs.map((act) => (
+                        <CCButton
+                          key={act}
+                          variant={formData.fetish_acts?.includes(act) ? 'accent' : 'outline'}
+                          size="sm"
+                          onClick={() => toggleArrayValue('fetish_acts', act)}
+                        >
+                          {act}
+                        </CCButton>
+                      ))}
+                    </div>
+                    {formData.fetish_acts?.includes('Other') && (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={customValues.fetish_acts || ''}
+                          onChange={(e) => setCustomValues({...customValues, fetish_acts: e.target.value})}
+                          className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                          placeholder="Type custom fetish act..."
+                        />
+                        <CCButton
+                          variant="primary"
+                          size="sm"
+                          icon={Plus}
+                          onClick={() => handleAddCustomValue('fetish_act', 'fetish_acts')}
+                        >
+                          Add
+                        </CCButton>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            </CCCard>
 
-            {/* Kink/Edge Acts */}
-            <CCCard padding="lg">
-              <h3 className="font-semibold text-[#E8EEF9] mb-4">Kink</h3>
-              <div className="space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  {kinkEdgeActs.map((act) => (
-                    <CCButton
-                      key={act}
-                      variant={formData.kink_edge_acts?.includes(act) ? 'primary' : 'outline'}
-                      size="sm"
-                      onClick={() => toggleArrayValue('kink_edge_acts', act)}
-                    >
-                      {act}
-                    </CCButton>
-                  ))}
-                </div>
-                {formData.kink_edge_acts?.includes('Other') && (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={customValues.kink_edge_acts || ''}
-                      onChange={(e) => setCustomValues({...customValues, kink_edge_acts: e.target.value})}
-                      className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                      placeholder="Type custom kink/edge act..."
-                    />
-                    <CCButton
-                      variant="primary"
-                      size="sm"
-                      icon={Plus}
-                      onClick={() => handleAddCustomValue('kink_edge_act', 'kink_edge_acts')}
-                    >
-                      Add
-                    </CCButton>
+                {actCategory === 'kink' && (
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {kinkEdgeActs.map((act) => (
+                        <CCButton
+                          key={act}
+                          variant={formData.kink_edge_acts?.includes(act) ? 'primary' : 'outline'}
+                          size="sm"
+                          onClick={() => toggleArrayValue('kink_edge_acts', act)}
+                        >
+                          {act}
+                        </CCButton>
+                      ))}
+                    </div>
+                    {formData.kink_edge_acts?.includes('Other') && (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={customValues.kink_edge_acts || ''}
+                          onChange={(e) => setCustomValues({...customValues, kink_edge_acts: e.target.value})}
+                          className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                          placeholder="Type custom kink/edge act..."
+                        />
+                        <CCButton
+                          variant="primary"
+                          size="sm"
+                          icon={Plus}
+                          onClick={() => handleAddCustomValue('kink_edge_act', 'kink_edge_acts')}
+                        >
+                          Add
+                        </CCButton>
+                      </div>
+                    )}
                   </div>
                 )}
-              </div>
-            </CCCard>
+              </CCCard>
+            )}
           </motion.div>
         )}
 
