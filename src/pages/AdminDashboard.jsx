@@ -35,6 +35,7 @@ import JurisdictionManager from '@/components/admin/JurisdictionManager';
 import InsuranceManager from '@/components/admin/InsuranceManager';
 import DisputeSimulator from '@/components/admin/DisputeSimulator';
 import CollaborationAnalytics from '@/components/admin/CollaborationAnalytics';
+import ComplianceAgent from '@/components/admin/ComplianceAgent';
 
 // User Management Component
 function UserManagement({ currentUser }) {
@@ -384,6 +385,7 @@ export default function AdminDashboard() {
   const tabs = [
     { value: 'overview', label: 'Overview', icon: Shield },
     { value: 'analytics', label: 'Analytics', icon: TrendingUp },
+    { value: 'compliance_agent', label: 'Compliance Agent', icon: Shield },
     { value: 'verifications', label: 'Verifications', icon: Shield },
     { value: 'users', label: 'User Moderation', icon: Users },
     { value: 'collaborations', label: 'Collaborations', icon: AlertTriangle },
@@ -479,6 +481,11 @@ export default function AdminDashboard() {
         {/* Analytics Tab */}
         <CCTabsContent value="analytics" activeTab={activeTab}>
           <CollaborationAnalytics />
+        </CCTabsContent>
+
+        {/* Compliance Agent Tab */}
+        <CCTabsContent value="compliance_agent" activeTab={activeTab}>
+          <ComplianceAgent />
         </CCTabsContent>
 
         {/* Verifications Tab */}
