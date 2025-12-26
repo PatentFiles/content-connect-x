@@ -85,7 +85,7 @@ export default function AgentPermissionsEditor({ currentAdmin }) {
           onChange={(e) => setSelectedAgentId(e.target.value)}
           options={[
             { value: '', label: 'Choose an agent...' },
-            ...agents.map(a => ({ value: a.id, label: a.name }))
+            ...(agents?.map(a => ({ value: a.id, label: a.name })) || [])
           ]}
         />
       </CCCard>
@@ -106,7 +106,7 @@ export default function AgentPermissionsEditor({ currentAdmin }) {
 
           {/* Permissions List */}
           <div className="space-y-4">
-            {permissions.map((perm) => (
+            {permissions?.map((perm) => (
               <CCCard key={perm.id} padding="lg">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
