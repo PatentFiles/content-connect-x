@@ -622,8 +622,8 @@ export default function CreateCollaboration() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Who's involved?</h2>
-            <p className="text-[#9AA6BC] mb-6">Add participants, agents, or studios to this collaboration.</p>
+            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2 text-center">Who's involved?</h2>
+            <p className="text-[#9AA6BC] mb-6 text-center">Add participants, agents, or studios to this collaboration.</p>
 
             {/* Selected Participants */}
             {participantEmails.length > 0 && (
@@ -932,8 +932,8 @@ export default function CreateCollaboration() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Scene Pairings</h2>
-            <p className="text-[#9AA6BC] mb-6">Select the scene pairings for this collaboration.</p>
+            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2 text-center">Scene Pairings</h2>
+            <p className="text-[#9AA6BC] mb-6 text-center">Select the scene pairings for this collaboration.</p>
 
             <CCCard padding="lg">
               <div className="space-y-3">
@@ -979,8 +979,8 @@ export default function CreateCollaboration() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Acts</h2>
-            <p className="text-[#9AA6BC] mb-6">Choose a category to select acts.</p>
+            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2 text-center">Acts</h2>
+            <p className="text-[#9AA6BC] mb-6 text-center">Choose a category to select acts.</p>
 
             {!actCategory ? (
               <div className="grid gap-4">
@@ -1143,8 +1143,8 @@ export default function CreateCollaboration() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Boundaries</h2>
-            <p className="text-[#9AA6BC] mb-6">Define your boundaries and limits.</p>
+            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2 text-center">Boundaries</h2>
+            <p className="text-[#9AA6BC] mb-6 text-center">Define your boundaries and limits.</p>
 
             <CCCard padding="lg">
               <h3 className="font-semibold text-[#E8EEF9] mb-4 flex items-center gap-2">
@@ -1185,8 +1185,8 @@ export default function CreateCollaboration() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Compensation</h2>
-            <p className="text-[#9AA6BC] mb-6">Define how participants will be compensated.</p>
+            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2 text-center">Compensation</h2>
+            <p className="text-[#9AA6BC] mb-6 text-center">Define how participants will be compensated.</p>
 
             <div className="space-y-4 mb-6">
               {compensationTypes.map((type) => (
@@ -1256,8 +1256,8 @@ export default function CreateCollaboration() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">When & Where</h2>
-            <p className="text-[#9AA6BC] mb-6">Set the schedule and location details.</p>
+            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2 text-center">When & Where</h2>
+            <p className="text-[#9AA6BC] mb-6 text-center">Set the schedule and location details.</p>
 
             <CCCard padding="lg" className="mb-6">
               <h3 className="font-semibold text-[#E8EEF9] mb-4 flex items-center gap-2">
@@ -1344,8 +1344,8 @@ export default function CreateCollaboration() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Deliverables & Rights</h2>
-            <p className="text-[#9AA6BC] mb-6">Define what will be delivered and usage rights.</p>
+            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2 text-center">Deliverables & Rights</h2>
+            <p className="text-[#9AA6BC] mb-6 text-center">Define what will be delivered and usage rights.</p>
 
             <CCCard padding="lg" className="mb-6">
               <h3 className="font-semibold text-[#E8EEF9] mb-4">Deliverables</h3>
