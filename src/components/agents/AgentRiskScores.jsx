@@ -99,7 +99,7 @@ export default function AgentRiskScores() {
               <div>
                 <label className="text-xs font-medium text-[#6B7A94]">Score Breakdown</label>
                 <div className="mt-2 space-y-2">
-                  {Object.entries(selectedScore.score_breakdown_json || {}).map?.(([key, value]) => (
+                  {(Object.entries(selectedScore.score_breakdown_json || {}) || []).map(([key, value]) => (
                     <div key={key} className="flex items-center justify-between py-2 border-b border-[#263248]">
                       <span className="text-sm text-[#E8EEF9]">{key.replace(/_/g, ' ')}</span>
                       <span className="text-sm font-medium text-[#4F8CFF]">{value}</span>

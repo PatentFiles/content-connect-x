@@ -127,13 +127,13 @@ export default function AgentPermissionsEditor({ currentAdmin }) {
                      label="Access Level"
                      value={perm.access_level}
                      onChange={(e) => handleUpdate(perm.id, 'access_level', e.target.value)}
-                     options={(ACCESS_LEVELS || []).map(l => ({ value: l, label: l }))}
+                     options={ACCESS_LEVELS.map(l => ({ value: l, label: l }))}
                    />
                    <CCSelect
                      label="PII Redaction"
                      value={perm.pii_redaction_level}
                      onChange={(e) => handleUpdate(perm.id, 'pii_redaction_level', e.target.value)}
-                     options={(PII_LEVELS || []).map(l => ({ value: l, label: l }))}
+                     options={PII_LEVELS.map(l => ({ value: l, label: l }))}
                    />
                   </div>
 
