@@ -111,6 +111,13 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
+  const [customValues, setCustomValues] = useState({
+    scene_pairings: '',
+    standard_acts: '',
+    fetish_acts: '',
+    kink_edge_acts: '',
+    performance_positioning: ''
+  });
   const queryClient = useQueryClient();
 
   // Fetch user
@@ -221,6 +228,32 @@ export default function Profile() {
       ? current.filter(v => v !== value)
       : [...current, value];
     setEditData({...editData, [field]: updated});
+  };
+
+  const handleAddCustomValue = async (category, field) => {
+    const value = customValues[field]?.trim();
+    if (!value) return;
+
+    // Add to user's current selections
+    const current = editData[field] || [];
+    if (!current.includes(value)) {
+      setEditData({...editData, [field]: [...current, value]});
+    }
+
+    // Submit for admin approval
+    try {
+      await base44.entities.CustomValueSubmission.create({
+        submitted_by: user.email,
+        category,
+        custom_value: value,
+        status: 'pending'
+      });
+    } catch (error) {
+      console.error('Failed to submit custom value:', error);
+    }
+
+    // Clear input
+    setCustomValues({...customValues, [field]: ''});
   };
 
   if (userLoading || profileLoading) {
@@ -577,13 +610,22 @@ export default function Profile() {
                       ))}
                     </div>
                     {editData.scene_pairings?.includes('Other') && (
-                      <input
-                        type="text"
-                        value={editData.scene_pairings_other || ''}
-                        onChange={(e) => setEditData({...editData, scene_pairings_other: e.target.value})}
-                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                        placeholder="Specify other scene pairings..."
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={customValues.scene_pairings || ''}
+                          onChange={(e) => setCustomValues({...customValues, scene_pairings: e.target.value})}
+                          className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                          placeholder="Type custom scene pairing..."
+                        />
+                        <CCButton
+                          variant="primary"
+                          size="sm"
+                          onClick={() => handleAddCustomValue('scene_pairing', 'scene_pairings')}
+                        >
+                          Add
+                        </CCButton>
+                      </div>
                     )}
                   </div>
                 </CCCard>
@@ -628,13 +670,22 @@ export default function Profile() {
                       ))}
                     </div>
                     {editData.standard_acts?.includes('Other') && (
-                      <input
-                        type="text"
-                        value={editData.standard_acts_other || ''}
-                        onChange={(e) => setEditData({...editData, standard_acts_other: e.target.value})}
-                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                        placeholder="Specify other acts..."
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={customValues.standard_acts || ''}
+                          onChange={(e) => setCustomValues({...customValues, standard_acts: e.target.value})}
+                          className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                          placeholder="Type custom act..."
+                        />
+                        <CCButton
+                          variant="primary"
+                          size="sm"
+                          onClick={() => handleAddCustomValue('standard_act', 'standard_acts')}
+                        >
+                          Add
+                        </CCButton>
+                      </div>
                     )}
                   </div>
                 </CCCard>
@@ -659,13 +710,22 @@ export default function Profile() {
                       ))}
                     </div>
                     {editData.fetish_acts?.includes('Other') && (
-                      <input
-                        type="text"
-                        value={editData.fetish_acts_other || ''}
-                        onChange={(e) => setEditData({...editData, fetish_acts_other: e.target.value})}
-                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                        placeholder="Specify other fetish acts..."
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={customValues.fetish_acts || ''}
+                          onChange={(e) => setCustomValues({...customValues, fetish_acts: e.target.value})}
+                          className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                          placeholder="Type custom fetish act..."
+                        />
+                        <CCButton
+                          variant="primary"
+                          size="sm"
+                          onClick={() => handleAddCustomValue('fetish_act', 'fetish_acts')}
+                        >
+                          Add
+                        </CCButton>
+                      </div>
                     )}
                   </div>
                 </CCCard>
@@ -690,13 +750,22 @@ export default function Profile() {
                       ))}
                     </div>
                     {editData.kink_edge_acts?.includes('Other') && (
-                      <input
-                        type="text"
-                        value={editData.kink_edge_acts_other || ''}
-                        onChange={(e) => setEditData({...editData, kink_edge_acts_other: e.target.value})}
-                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                        placeholder="Specify other kink/edge acts..."
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={customValues.kink_edge_acts || ''}
+                          onChange={(e) => setCustomValues({...customValues, kink_edge_acts: e.target.value})}
+                          className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                          placeholder="Type custom kink/edge act..."
+                        />
+                        <CCButton
+                          variant="primary"
+                          size="sm"
+                          onClick={() => handleAddCustomValue('kink_edge_act', 'kink_edge_acts')}
+                        >
+                          Add
+                        </CCButton>
+                      </div>
                     )}
                   </div>
                 </CCCard>
@@ -718,13 +787,22 @@ export default function Profile() {
                       ))}
                     </div>
                     {editData.performance_positioning?.includes('Other') && (
-                      <input
-                        type="text"
-                        value={editData.performance_positioning_other || ''}
-                        onChange={(e) => setEditData({...editData, performance_positioning_other: e.target.value})}
-                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                        placeholder="Specify other positioning..."
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={customValues.performance_positioning || ''}
+                          onChange={(e) => setCustomValues({...customValues, performance_positioning: e.target.value})}
+                          className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                          placeholder="Type custom positioning..."
+                        />
+                        <CCButton
+                          variant="primary"
+                          size="sm"
+                          onClick={() => handleAddCustomValue('performance_positioning', 'performance_positioning')}
+                        >
+                          Add
+                        </CCButton>
+                      </div>
                     )}
                   </div>
                 </CCCard>
