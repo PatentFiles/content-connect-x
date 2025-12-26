@@ -32,35 +32,73 @@ export default function TemplateContractGenerator({ collaborationId, onContractC
   // Generate contract mutation
   const generateMutation = useMutation({
     mutationFn: async (data) => {
-      // Replace tokens in template content
+      // Step 1: Validate contract initiation
+      const validation = await base44.functions.invoke('validateContractInitiation', {
+        collaboration_id: collaborationId
+      });
+
+      if (!validation.data.can_initiate) {
+        throw new Error(
+          `Cannot initiate contract: ${validation.data.validation_errors.map(e => e.message).join(', ')}`
+        );
+      }
+
+      // Step 2: Create immutable snapshot
+      const snapshotResult = await base44.functions.invoke('createContractSnapshot', {
+        collaboration_id: collaborationId
+      });
+
+      const snapshot = snapshotResult.data.snapshot;
+
+      // Step 3: Replace tokens in template content
       let generatedContent = selectedTemplate.content;
       Object.keys(tokenValues).forEach(token => {
         const regex = new RegExp(`{{${token}}}`, 'g');
         generatedContent = generatedContent.replace(regex, tokenValues[token] || '');
       });
 
-      // Create contract
+      // Step 4: Create contract with snapshot reference
       const contract = await base44.entities.Contract.create({
         collaboration_id: collaborationId,
         template_id: selectedTemplate.id,
         template_type: selectedTemplate.category,
         title: tokenValues.contract_title || `${selectedTemplate.name} - Contract`,
-        status: 'draft',
-        content: { generated_content: generatedContent },
+        status: 'generated',
+        content: { 
+          generated_content: generatedContent,
+          snapshot_id: `snapshot_${Date.now()}`,
+          immutable_snapshot: snapshot
+        },
         created_by: data.userEmail,
       });
 
-      // Create initial version
-      await base44.entities.ContractVersion.create({
+      // Step 5: Create initial version with full snapshot
+      const initialVersion = await base44.entities.ContractVersion.create({
         contract_id: contract.id,
         version_number: 1,
         body_html: generatedContent,
         body_markdown: generatedContent,
         created_by: data.userEmail,
-        structured_snapshot: {
-          parties: tokenValues.parties || [],
-          collaboration_meta: collaboration || {},
-        },
+        structured_snapshot: snapshot,
+      });
+
+      // Step 6: Update contract with version reference
+      await base44.entities.Contract.update(contract.id, {
+        current_version_id: initialVersion.id,
+        version: 1
+      });
+
+      // Step 7: Log audit entry
+      await base44.entities.ContractAuditLog.create({
+        contract_id: contract.id,
+        version_id: initialVersion.id,
+        action: 'CONTRACT_CREATED',
+        user_id: data.userEmail,
+        details: {
+          template_id: selectedTemplate.id,
+          snapshot_created: true,
+          validation_passed: true
+        }
       });
 
       // Save to Google Drive as backup

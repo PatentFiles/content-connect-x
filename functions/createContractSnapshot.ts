@@ -37,43 +37,80 @@ Deno.serve(async (req) => {
       collaboration_id
     });
 
-    // Build snapshot
+    // Build immutable snapshot - captures all critical contract terms
     const snapshot = {
+      snapshot_id: `snapshot_${collaboration_id}_${Date.now()}`,
       snapshot_created_at: new Date().toISOString(),
       collaboration_id,
       collaboration_name: collaboration.collaboration_name,
+      collaboration_status: collaboration.status,
       
-      // Participants
+      // Participants with full details
       participants: participantProfiles.map(p => ({
         user_id: p.user_id,
         display_name: p.display_name,
         real_name: p.real_name,
         role_type: p.role_type,
-        collaboration_role: roles.find(r => r.user_id === p.user_id)?.role || 'member'
+        collaboration_role: roles.find(r => r.user_id === p.user_id)?.role || 'member',
+        email: p.user_id,
+        location: p.base_location
       })),
 
-      // Scene details
+      // Scene details - what is being performed
       scene_pairings: collaboration.scene_selected || [],
       standard_acts: collaboration.standard_acts || [],
       fetish_acts: collaboration.fetish_acts || [],
       kink_edge_acts: collaboration.kink_edge_acts || [],
 
-      // Boundaries
+      // Boundaries - what is NOT allowed
       boundaries: collaboration.boundaries || {},
+      hard_limits: collaboration.hard_limits || [],
 
-      // Schedule & Location
-      schedule: collaboration.schedule || {},
-      location: collaboration.location || {},
+      // Schedule & Location - when and where
+      schedule: {
+        shoot_date: collaboration.shoot_date,
+        start_time: collaboration.start_time,
+        end_time: collaboration.end_time,
+        timezone: collaboration.timezone,
+        duration_hours: collaboration.duration_hours
+      },
+      location: {
+        address: collaboration.location?.address,
+        city: collaboration.location?.city,
+        state: collaboration.location?.state,
+        country: collaboration.location?.country,
+        venue_type: collaboration.location?.venue_type
+      },
 
-      // Compensation
+      // Compensation - payment terms
       compensation_type: collaboration.compensation_type,
-      compensation_details: collaboration.compensation_details || {},
+      compensation_details: {
+        amount: collaboration.compensation_details?.amount,
+        currency: collaboration.compensation_details?.currency || 'USD',
+        payment_terms: collaboration.compensation_details?.payment_terms,
+        payment_method: collaboration.compensation_details?.payment_method
+      },
 
-      // Deliverables
-      deliverables: collaboration.deliverables || {},
+      // Deliverables - what will be produced
+      deliverables: {
+        platforms: collaboration.platforms || [],
+        content_types: collaboration.content_types || [],
+        delivery_format: collaboration.deliverables?.delivery_format,
+        delivery_timeline: collaboration.deliverables?.delivery_timeline
+      },
 
-      // Usage Rights
-      usage_rights: collaboration.usage_rights || {},
+      // Usage Rights - how content can be used
+      usage_rights: {
+        ownership_model: collaboration.usage_rights?.ownership_model,
+        ownership_split: collaboration.usage_rights?.ownership_split || {},
+        revenue_split: collaboration.usage_rights?.revenue_split || {},
+        exclusive_period: collaboration.usage_rights?.exclusive_period,
+        platforms_allowed: collaboration.usage_rights?.platforms_allowed || [],
+        embargo_until: collaboration.usage_rights?.embargo_until,
+        takedown_policy: collaboration.usage_rights?.takedown_policy,
+        crediting_rules: collaboration.usage_rights?.crediting_rules,
+        ai_use_policy: collaboration.usage_rights?.ai_use_policy
+      },
 
       // Testing requirements
       testing_requirements: collaboration.testing_requirements || {},
@@ -110,9 +147,23 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Log snapshot creation
+    await base44.asServiceRole.entities.CollaborationActivityLog.create({
+      collaboration_id,
+      activity_type: 'CONTRACT_SNAPSHOT_CREATED',
+      user_id: user.email,
+      details: {
+        snapshot_id: snapshot.snapshot_id,
+        participant_count: snapshot.participants.length,
+        created_at: snapshot.snapshot_created_at
+      }
+    });
+
     return Response.json({
       success: true,
-      snapshot
+      snapshot,
+      snapshot_id: snapshot.snapshot_id,
+      immutable: true
     });
 
   } catch (error) {
