@@ -21,6 +21,8 @@ import CCCard from '../ui-custom/CCCard';
 import CCButton from '../ui-custom/CCButton';
 import CCBadge from '../ui-custom/CCBadge';
 import CCEmpty from '../ui-custom/CCEmpty';
+import AvailabilityManager from '../profile/AvailabilityManager';
+import TravelDateManager from '../profile/TravelDateManager';
 
 export default function CreatorDashboard({ user, profile }) {
   const [newTask, setNewTask] = useState('');
@@ -165,16 +167,24 @@ export default function CreatorDashboard({ user, profile }) {
                     New Collaboration
                   </CCButton>
                 </Link>
-                <Link to={createPageUrl('Profile')}>
-                  <CCButton variant="outline" size="sm" fullWidth icon={MapPin}>
-                    Update Availability
-                  </CCButton>
-                </Link>
-                <Link to={createPageUrl('Profile')}>
-                  <CCButton variant="outline" size="sm" fullWidth icon={Calendar}>
-                    Post Travel Dates
-                  </CCButton>
-                </Link>
+                <CCButton 
+                  variant="outline" 
+                  size="sm" 
+                  fullWidth 
+                  icon={MapPin}
+                  onClick={() => setShowAvailability(true)}
+                >
+                  Update Availability
+                </CCButton>
+                <CCButton 
+                  variant="outline" 
+                  size="sm" 
+                  fullWidth 
+                  icon={Calendar}
+                  onClick={() => setShowTravelDate(true)}
+                >
+                  Post Travel Dates
+                </CCButton>
               </div>
             </CCCard>
 
@@ -332,6 +342,20 @@ export default function CreatorDashboard({ user, profile }) {
           </CCCard>
         )}
       </div>
+
+      {/* Modals */}
+      {showAvailability && (
+        <AvailabilityManager
+          profile={profile}
+          onClose={() => setShowAvailability(false)}
+        />
+      )}
+      {showTravelDate && (
+        <TravelDateManager
+          profile={profile}
+          onClose={() => setShowTravelDate(false)}
+        />
+      )}
     </div>
   );
 }
