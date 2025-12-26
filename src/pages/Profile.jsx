@@ -366,16 +366,7 @@ export default function Profile() {
                 </h1>
                 <div className="flex items-center justify-center gap-2 mt-2 flex-wrap">
                   {profile?.role_type && (
-                    <CCBadge 
-                      variant={
-                        profile.role_type === 'creator' ? 'primary' :
-                        profile.role_type === 'agent' ? 'accent' :
-                        profile.role_type === 'studio' ? 'success' :
-                        profile.role_type === 'photographer' ? 'warning' :
-                        profile.role_type === 'videographer' ? 'danger' :
-                        'default'
-                      }
-                    >
+                    <CCBadge variant="outline">
                       {profile.role_type}
                     </CCBadge>
                   )}
@@ -989,12 +980,12 @@ export default function Profile() {
                 {details?.scene_pairings && details.scene_pairings.length > 0 && (
                   <CCCard padding="lg">
                     <div className="flex items-center gap-2 mb-4">
-                      <Heart className="w-5 h-5 text-[#FF2DAA]" />
+                      <Heart className="w-5 h-5 text-[#9AA6BC]" />
                       <h3 className="text-lg font-semibold text-[#E8EEF9]">Scene Pairings</h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {details.scene_pairings.map(sp => (
-                        <CCBadge key={sp} variant="accent">{sp.replace(/_/g, ' ')}</CCBadge>
+                        <CCBadge key={sp} variant="outline">{sp.replace(/_/g, ' ')}</CCBadge>
                       ))}
                     </div>
                   </CCCard>
@@ -1004,12 +995,12 @@ export default function Profile() {
                 {details?.compensation_preferences && details.compensation_preferences.length > 0 && (
                   <CCCard padding="lg">
                     <div className="flex items-center gap-2 mb-4">
-                      <Briefcase className="w-5 h-5 text-[#4F8CFF]" />
+                      <Briefcase className="w-5 h-5 text-[#9AA6BC]" />
                       <h3 className="text-lg font-semibold text-[#E8EEF9]">Compensation Preferences</h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {details.compensation_preferences.map(cp => (
-                        <CCBadge key={cp} variant={cp === 'paid' ? 'success' : cp === 'trade' ? 'warning' : 'default'}>
+                        <CCBadge key={cp} variant="outline">
                           {cp}
                         </CCBadge>
                       ))}
@@ -1021,12 +1012,12 @@ export default function Profile() {
                 {details?.standard_acts && details.standard_acts.length > 0 && (
                   <CCCard padding="lg">
                     <div className="flex items-center gap-2 mb-4">
-                      <Activity className="w-5 h-5 text-[#4F8CFF]" />
+                      <Activity className="w-5 h-5 text-[#9AA6BC]" />
                       <h3 className="text-lg font-semibold text-[#E8EEF9]">Standard Acts</h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {details.standard_acts.map(sa => (
-                        <CCBadge key={sa} variant="primary">{sa.replace(/_/g, ' ')}</CCBadge>
+                        <CCBadge key={sa} variant="outline">{sa.replace(/_/g, ' ')}</CCBadge>
                       ))}
                     </div>
                   </CCCard>
@@ -1036,12 +1027,12 @@ export default function Profile() {
                 {details?.fetish_acts && details.fetish_acts.length > 0 && (
                   <CCCard padding="lg">
                     <div className="flex items-center gap-2 mb-4">
-                      <Activity className="w-5 h-5 text-[#FF2DAA]" />
+                      <Activity className="w-5 h-5 text-[#9AA6BC]" />
                       <h3 className="text-lg font-semibold text-[#E8EEF9]">Fetish Acts</h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {details.fetish_acts.map(fa => (
-                        <CCBadge key={fa} variant="accent">{fa.replace(/_/g, ' ')}</CCBadge>
+                        <CCBadge key={fa} variant="outline">{fa.replace(/_/g, ' ')}</CCBadge>
                       ))}
                     </div>
                   </CCCard>
@@ -1051,12 +1042,12 @@ export default function Profile() {
                 {details?.kink_edge_acts && details.kink_edge_acts.length > 0 && (
                   <CCCard padding="lg">
                     <div className="flex items-center gap-2 mb-4">
-                      <Activity className="w-5 h-5 text-[#9333EA]" />
+                      <Activity className="w-5 h-5 text-[#9AA6BC]" />
                       <h3 className="text-lg font-semibold text-[#E8EEF9]">Kink / Edge Acts</h3>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       {details.kink_edge_acts.map(ke => (
-                        <CCBadge key={ke} variant="default">{ke.replace(/_/g, ' ')}</CCBadge>
+                        <CCBadge key={ke} variant="outline">{ke.replace(/_/g, ' ')}</CCBadge>
                       ))}
                     </div>
                   </CCCard>
@@ -1068,7 +1059,7 @@ export default function Profile() {
                     <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Performance Positioning</h3>
                     <div className="flex flex-wrap gap-2">
                       {details.performance_positioning.map(pp => (
-                        <CCBadge key={pp} variant="primary">{pp}</CCBadge>
+                        <CCBadge key={pp} variant="outline">{pp}</CCBadge>
                       ))}
                     </div>
                   </CCCard>
@@ -1150,50 +1141,48 @@ export default function Profile() {
 
         <CCTabsContent value="galleries" activeTab={activeTab}>
           {/* Availability and Travel */}
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
-            {/* Availability Dates */}
-            <CCCard padding="lg">
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Availability</h3>
-              {profile?.availability_dates?.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {profile.availability_dates.sort().slice(0, 8).map(dateStr => (
-                    <CCBadge key={dateStr} variant="primary">
-                      {format(new Date(dateStr), 'MMM d')}
-                    </CCBadge>
-                  ))}
-                  {profile.availability_dates.length > 8 && (
-                    <CCBadge variant="outline">
-                      +{profile.availability_dates.length - 8} more
-                    </CCBadge>
-                  )}
-                </div>
-              ) : (
-                <p className="text-sm text-[#6B7A94]">No availability dates set</p>
+          {(profile?.availability_dates?.length > 0 || profile?.travel_dates?.length > 0) && (
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              {/* Availability Dates */}
+              {profile?.availability_dates?.length > 0 && (
+                <CCCard padding="lg">
+                  <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Availability</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {profile.availability_dates.sort().slice(0, 8).map(dateStr => (
+                      <CCBadge key={dateStr} variant="outline">
+                        {format(new Date(dateStr), 'MMM d')}
+                      </CCBadge>
+                    ))}
+                    {profile.availability_dates.length > 8 && (
+                      <CCBadge variant="outline">
+                        +{profile.availability_dates.length - 8} more
+                      </CCBadge>
+                    )}
+                  </div>
+                </CCCard>
               )}
-            </CCCard>
 
-            {/* Travel Dates */}
-            <CCCard padding="lg">
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Travel Schedule</h3>
-              {profile?.travel_dates?.length > 0 ? (
-                <div className="space-y-2">
-                  {profile.travel_dates.map((travel, idx) => (
-                    <div key={idx} className="p-2 rounded bg-[#0B0F14]">
-                      <div className="text-sm font-medium text-[#E8EEF9]">{travel.location}</div>
-                      <div className="text-xs text-[#9AA6BC]">
-                        {format(new Date(travel.start_date), 'MMM d')} - {format(new Date(travel.end_date), 'MMM d')}
+              {/* Travel Dates */}
+              {profile?.travel_dates?.length > 0 && (
+                <CCCard padding="lg">
+                  <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Travel Schedule</h3>
+                  <div className="space-y-2">
+                    {profile.travel_dates.map((travel, idx) => (
+                      <div key={idx} className="p-2 rounded bg-[#0B0F14]">
+                        <div className="text-sm font-medium text-[#E8EEF9]">{travel.location}</div>
+                        <div className="text-xs text-[#9AA6BC]">
+                          {format(new Date(travel.start_date), 'MMM d')} - {format(new Date(travel.end_date), 'MMM d')}
+                        </div>
+                        {travel.arrival_time && (
+                          <div className="text-xs text-[#6B7A94]">Arrives: {travel.arrival_time}</div>
+                        )}
                       </div>
-                      {travel.arrival_time && (
-                        <div className="text-xs text-[#6B7A94]">Arrives: {travel.arrival_time}</div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-[#6B7A94]">No travel dates posted</p>
+                    ))}
+                  </div>
+                </CCCard>
               )}
-            </CCCard>
-          </div>
+            </div>
+          )}
 
           <div className="grid md:grid-cols-2 gap-6">
             {/* Public Gallery */}

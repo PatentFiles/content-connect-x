@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
-import { Calendar, ChevronLeft, ChevronRight, MapPin, Clock } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, MapPin, Clock, Plus, X } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCModal from '@/components/ui-custom/CCModal';
 import CCSelect from '@/components/ui-custom/CCSelect';
@@ -14,22 +14,23 @@ export default function TravelDateManager({ profile, onClose }) {
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [location, setLocation] = useState(null);
+  const [destinations, setDestinations] = useState([]);
+  const [currentLocation, setCurrentLocation] = useState(null);
   const [time, setTime] = useState('12');
   const [amPm, setAmPm] = useState('PM');
   const queryClient = useQueryClient();
 
   const addTravelDateMutation = useMutation({
-    mutationFn: async (travelDate) => {
+    mutationFn: async (travelDates) => {
       const currentTravelDates = profile?.travel_dates || [];
       return base44.entities.UserProfile.update(profile.id, {
-        travel_dates: [...currentTravelDates, travelDate],
+        travel_dates: [...currentTravelDates, ...travelDates],
         travel_enabled: true,
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myProfile'] });
-      toast.success('Travel date added');
+      toast.success('Travel dates added');
       onClose();
     },
   });
@@ -53,20 +54,47 @@ export default function TravelDateManager({ profile, onClose }) {
     }
   };
 
-  const handleSubmit = () => {
-    if (!startDate || !endDate || !location) {
-      toast.error('Please fill in all fields');
+  const handleAddDestination = () => {
+    if (!currentLocation) {
+      toast.error('Please select a location');
       return;
     }
 
-    const travelDate = {
+    setDestinations([
+      ...destinations,
+      {
+        location: `${currentLocation.city}, ${currentLocation.state}`,
+        arrival_time: `${time}:00 ${amPm}`,
+      }
+    ]);
+    setCurrentLocation(null);
+    setTime('12');
+    setAmPm('PM');
+  };
+
+  const handleRemoveDestination = (index) => {
+    setDestinations(destinations.filter((_, i) => i !== index));
+  };
+
+  const handleSubmit = () => {
+    if (!startDate || !endDate) {
+      toast.error('Please select travel dates');
+      return;
+    }
+
+    if (destinations.length === 0) {
+      toast.error('Please add at least one destination');
+      return;
+    }
+
+    const travelDates = destinations.map(dest => ({
       start_date: startDate,
       end_date: endDate,
-      location: `${location.city}, ${location.state}`,
-      arrival_time: `${time}:00 ${amPm}`,
-    };
+      location: dest.location,
+      arrival_time: dest.arrival_time,
+    }));
 
-    addTravelDateMutation.mutate(travelDate);
+    addTravelDateMutation.mutate(travelDates);
   };
 
   const previousMonth = () => {
@@ -151,40 +179,80 @@ export default function TravelDateManager({ profile, onClose }) {
         </div>
       ) : (
         <div className="space-y-4">
-          {/* Location */}
-          <div>
-            <label className="text-sm font-medium text-[#E8EEF9] mb-2 block">
-              Travel Location
-            </label>
-            <LocationSelector
-              value={location}
-              onChange={setLocation}
-            />
+          {/* Selected Date Range */}
+          <div className="p-3 rounded-lg bg-[#0B0F14] border border-[#263248]">
+            <p className="text-sm text-[#9AA6BC]">Travel Dates</p>
+            <p className="text-[#E8EEF9] font-medium">
+              {format(new Date(startDate), 'MMM d')} - {format(new Date(endDate), 'MMM d, yyyy')}
+            </p>
           </div>
 
-          {/* Arrival Time */}
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-[#E8EEF9]">
-              Arrival Time
-            </label>
-            <div className="grid grid-cols-2 gap-4">
-              <CCSelect
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                options={Array.from({ length: 12 }, (_, i) => ({
-                  value: String(i + 1),
-                  label: String(i + 1),
-                }))}
-              />
-              <CCSelect
-                value={amPm}
-                onChange={(e) => setAmPm(e.target.value)}
-                options={[
-                  { value: 'AM', label: 'AM' },
-                  { value: 'PM', label: 'PM' },
-                ]}
-              />
+          {/* Added Destinations */}
+          {destinations.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-[#E8EEF9]">
+                Destinations ({destinations.length})
+              </label>
+              {destinations.map((dest, idx) => (
+                <div key={idx} className="flex items-center justify-between p-3 rounded-lg bg-[#0B0F14] border border-[#263248]">
+                  <div>
+                    <p className="text-sm font-medium text-[#E8EEF9]">{dest.location}</p>
+                    <p className="text-xs text-[#9AA6BC]">Arrives: {dest.arrival_time}</p>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveDestination(idx)}
+                    className="text-[#6B7A94] hover:text-[#FF2DAA] transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
             </div>
+          )}
+
+          {/* Add Destination Form */}
+          <div className="p-4 rounded-lg bg-[#0B0F14] border border-[#263248] space-y-3">
+            <label className="text-sm font-medium text-[#E8EEF9] block">
+              Add Destination
+            </label>
+            
+            <LocationSelector
+              value={currentLocation}
+              onChange={setCurrentLocation}
+            />
+
+            <div>
+              <label className="text-sm font-medium text-[#E8EEF9] block mb-2">
+                Arrival Time
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <CCSelect
+                  value={time}
+                  onChange={(e) => setTime(e.target.value)}
+                  options={Array.from({ length: 12 }, (_, i) => ({
+                    value: String(i + 1),
+                    label: String(i + 1),
+                  }))}
+                />
+                <CCSelect
+                  value={amPm}
+                  onChange={(e) => setAmPm(e.target.value)}
+                  options={[
+                    { value: 'AM', label: 'AM' },
+                    { value: 'PM', label: 'PM' },
+                  ]}
+                />
+              </div>
+            </div>
+
+            <CCButton
+              variant="outline"
+              fullWidth
+              onClick={handleAddDestination}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add This Destination
+            </CCButton>
           </div>
 
           {/* Action Buttons */}
@@ -201,8 +269,9 @@ export default function TravelDateManager({ profile, onClose }) {
               fullWidth
               onClick={handleSubmit}
               loading={addTravelDateMutation.isPending}
+              disabled={destinations.length === 0}
             >
-              Add Travel Date
+              Save Travel Plan
             </CCButton>
           </div>
         </div>

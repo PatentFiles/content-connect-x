@@ -8,6 +8,7 @@ import CreateCollaboration from './pages/CreateCollaboration';
 import Dashboard from './pages/Dashboard';
 import Discovery from './pages/Discovery';
 import FAQ from './pages/FAQ';
+import Favorites from './pages/Favorites';
 import HowItWorks from './pages/HowItWorks';
 import Landing from './pages/Landing';
 import Messages from './pages/Messages';
@@ -24,7 +25,6 @@ import Terms from './pages/Terms';
 import Verification from './pages/Verification';
 import ViewContract from './pages/ViewContract';
 import ViewProfile from './pages/ViewProfile';
-import Favorites from './pages/Favorites';
 import __Layout from './Layout.jsx';
 
 
@@ -39,6 +39,7 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "Discovery": Discovery,
     "FAQ": FAQ,
+    "Favorites": Favorites,
     "HowItWorks": HowItWorks,
     "Landing": Landing,
     "Messages": Messages,
@@ -55,7 +56,6 @@ export const PAGES = {
     "Verification": Verification,
     "ViewContract": ViewContract,
     "ViewProfile": ViewProfile,
-    "Favorites": Favorites,
 }
 
 export const pagesConfig = {
