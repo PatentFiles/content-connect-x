@@ -1,5 +1,5 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
+import React, { useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { AlertTriangle, CheckCircle2, Clock, XCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -8,6 +8,8 @@ import CCButton from '@/components/ui-custom/CCButton';
 import { format } from 'date-fns';
 
 export default function TestingStatusBanner({ collaboration, currentUserId }) {
+  const queryClient = useQueryClient();
+
   // Fetch testing requirement
   const { data: testingReqs = [] } = useQuery({
     queryKey: ['testingRequirement', collaboration.id],
@@ -57,6 +59,32 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
   const allSatisfied = satisfactionResults.every(r => r.satisfied);
   const currentUserSatisfied = satisfactionResults.find(r => r.participantId === currentUserId)?.satisfied;
 
+  // Mark as satisfied when all complete
+  const markSatisfiedMutation = useMutation({
+    mutationFn: async () => {
+      await base44.functions.invoke('markTestingRequirementSatisfied', {
+        collaboration_id: collaboration.id,
+        testing_requirement_id: testingReq.id,
+        satisfied_by: currentUserId
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['testingRequirement']);
+      queryClient.invalidateQueries(['collaborationActivity']);
+    }
+  });
+
+  // Auto-mark when satisfied
+  useEffect(() => {
+    if (allSatisfied && !testingReq.satisfied_at && testingReq.status !== 'FAILED') {
+      markSatisfiedMutation.mutate();
+    }
+  }, [allSatisfied, testingReq.satisfied_at, testingReq.status]);
+
+  // Prefer stored satisfied state
+  const isMarkedSatisfied = !!testingReq.satisfied_at;
+  const effectivelySatisfied = isMarkedSatisfied || allSatisfied;
+
   // Determine banner state
   const now = new Date();
   const deadline = testingReq.deadline_at ? new Date(testingReq.deadline_at) : null;
@@ -80,14 +108,16 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
     title = 'Testing Deadline Missed';
     subtitle = 'Required testing was not completed. Collaboration has been cancelled.';
     showUploadAction = false;
-  } else if (allSatisfied) {
+  } else if (effectivelySatisfied) {
     bannerState = 'complete';
     icon = CheckCircle2;
     bgColor = 'bg-green-500/10';
     borderColor = 'border-green-500/30';
     iconColor = 'text-green-500';
     title = 'Testing Complete';
-    subtitle = 'All required testing has been submitted and verified.';
+    subtitle = isMarkedSatisfied 
+      ? `Satisfied on ${format(new Date(testingReq.satisfied_at), 'PPp')}`
+      : 'All required testing has been submitted and verified.';
     showUploadAction = false;
   } else if (hoursUntilDeadline !== null && hoursUntilDeadline < 24) {
     bannerState = 'at_risk';
