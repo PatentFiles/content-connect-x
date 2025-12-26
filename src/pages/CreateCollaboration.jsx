@@ -305,7 +305,7 @@ export default function CreateCollaboration() {
     setCustomValues({...customValues, [field]: ''});
   };
 
-  if (userLoading || (isEditing && loadingCollab && !existingCollaboration)) {
+  if (userLoading || (isEditing && loadingCollab && !existingCollaboration) || !details) {
     return <CCLoadingScreen message="Loading..." />;
   }
 
