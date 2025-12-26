@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, Users, Calendar, FileText, CheckSquare, Activity, MessageSquare, AlertTriangle, Shield, Download } from 'lucide-react';
+import { toast } from 'sonner';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
@@ -22,6 +23,7 @@ import RiskScoringDisplay from '@/components/admin/RiskScoringEngine';
 import InsuranceManager from '@/components/admin/InsuranceManager';
 import ConsentRevocationManager from '@/components/collaboration/ConsentRevocationManager';
 import AIRiskPrediction from '@/components/admin/AIRiskPrediction';
+import TemplateContractGenerator from '@/components/contracts/TemplateContractGenerator';
 
 export default function CollaborationDetail() {
   const [searchParams] = useSearchParams();
@@ -223,6 +225,17 @@ export default function CollaborationDetail() {
                       <Shield className="w-4 h-4" />
                       Roles
                     </button>
+                    <button
+                      onClick={() => setActiveTab('contracts')}
+                      className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                        activeTab === 'contracts'
+                          ? 'border-[#4F8CFF] text-[#E8EEF9]'
+                          : 'border-transparent text-[#9AA6BC] hover:text-[#E8EEF9]'
+                      }`}
+                    >
+                      <FileText className="w-4 h-4" />
+                      Contracts
+                    </button>
                   </div>
                 </div>
 
@@ -249,6 +262,16 @@ export default function CollaborationDetail() {
                       currentUser={user}
                       currentUserRole={userRole}
                     />
+                  )}
+                  {activeTab === 'contracts' && (
+                    <div className="space-y-4">
+                      <TemplateContractGenerator 
+                        collaborationId={collaboration.id}
+                        onContractCreated={(contract) => {
+                          toast.success('Contract created and backed up to Google Drive');
+                        }}
+                      />
+                    </div>
                   )}
                 </div>
               </CCTabs>

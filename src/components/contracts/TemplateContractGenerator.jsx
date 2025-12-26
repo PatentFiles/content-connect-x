@@ -63,6 +63,19 @@ export default function TemplateContractGenerator({ collaborationId, onContractC
         },
       });
 
+      // Save to Google Drive as backup
+      try {
+        await base44.functions.invoke('saveContractToGoogleDrive', {
+          contractId: contract.id,
+          title: contract.title,
+          content: generatedContent,
+          userEmail: data.userEmail,
+        });
+      } catch (error) {
+        console.error('Failed to backup to Google Drive:', error);
+        // Don't fail the contract creation if backup fails
+      }
+
       return contract;
     },
     onSuccess: (contract) => {
