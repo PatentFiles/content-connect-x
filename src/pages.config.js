@@ -1,4 +1,5 @@
 import AdminDashboard from './pages/AdminDashboard';
+import AgentManagement from './pages/AgentManagement';
 import CollaborationDetail from './pages/CollaborationDetail';
 import Collaborations from './pages/Collaborations';
 import CompliancePortal from './pages/CompliancePortal';
@@ -19,17 +20,17 @@ import Representations from './pages/Representations';
 import RosterPortfolio from './pages/RosterPortfolio';
 import Search from './pages/Search';
 import Settings from './pages/Settings';
-import Shortlists from './pages/Shortlists';
 import Terms from './pages/Terms';
 import Verification from './pages/Verification';
 import ViewContract from './pages/ViewContract';
 import ViewProfile from './pages/ViewProfile';
-import AgentManagement from './pages/AgentManagement';
+import Favorites from './pages/Favorites';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AdminDashboard": AdminDashboard,
+    "AgentManagement": AgentManagement,
     "CollaborationDetail": CollaborationDetail,
     "Collaborations": Collaborations,
     "CompliancePortal": CompliancePortal,
@@ -50,12 +51,11 @@ export const PAGES = {
     "RosterPortfolio": RosterPortfolio,
     "Search": Search,
     "Settings": Settings,
-    "Shortlists": Shortlists,
     "Terms": Terms,
     "Verification": Verification,
     "ViewContract": ViewContract,
     "ViewProfile": ViewProfile,
-    "AgentManagement": AgentManagement,
+    "Favorites": Favorites,
 }
 
 export const pagesConfig = {

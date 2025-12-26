@@ -23,7 +23,7 @@ export const roleNavigation = {
     { path: 'Messages', label: 'Messages', icon: MessageCircle },
     { path: 'Collaborations', label: 'Collaborations', icon: Briefcase },
     { path: 'Contracts', label: 'Contracts', icon: FileText },
-    { path: 'Shortlists', label: 'Favorites', icon: Heart },
+    { path: 'Favorites', label: 'Favorites', icon: Heart },
     { path: 'Verification', label: 'Verification', icon: Shield },
   ],
   agent: [

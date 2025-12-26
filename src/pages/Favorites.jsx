@@ -23,7 +23,7 @@ import { CCLoadingScreen, CCSkeletonLoader } from '@/components/ui-custom/CCLoad
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import AccessGate from '@/components/auth/AccessGate';
 
-export default function Shortlists() {
+export default function Favorites() {
   const [isCreating, setIsCreating] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [selectedList, setSelectedList] = useState(null);
@@ -292,7 +292,7 @@ export default function Shortlists() {
                     className="flex items-center gap-3 p-3 bg-[#121824] rounded-lg"
                   >
                     <Link 
-                      to={createPageUrl('ViewProfile') + '?userId=' + profile.user_id}
+                      to={createPageUrl('ViewProfile') + '?id=' + profile.user_id}
                       className="flex items-center gap-3 flex-1 hover:opacity-80 transition-opacity"
                     >
                       <CCAvatar src={profile.avatar_url} size="md" />

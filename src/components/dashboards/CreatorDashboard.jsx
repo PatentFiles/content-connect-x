@@ -296,7 +296,7 @@ export default function CreatorDashboard({ user, profile }) {
                 <p className="text-2xl font-bold text-[#E8EEF9]">{favorites.length}</p>
                 <p className="text-sm text-[#6B7A94]">saved</p>
               </div>
-              <Link to={createPageUrl('Shortlists')}>
+              <Link to={createPageUrl('Favorites')}>
                 <CCButton variant="outline" size="sm" fullWidth>
                   View All
                 </CCButton>
