@@ -17,7 +17,8 @@ import {
   ArrowLeft,
   Plus,
   X,
-  AlertTriangle
+  AlertTriangle,
+  Shield
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
@@ -143,6 +144,16 @@ export default function CreateCollaboration() {
       exclusivity: false,
       credit_required: true,
     },
+    testing_requirements: {
+      is_required: false,
+      visibility_level: 'COLLABORATION_ROOM_ONLY',
+      deadline_preset: '48h',
+      deadline_custom_date: '',
+      deadline_custom_time: '12:00',
+      deadline_custom_ampm: 'PM',
+      require_valid_credential: true,
+      require_new_upload: false,
+    },
     participant_emails: '',
   });
 
@@ -172,6 +183,16 @@ export default function CreateCollaboration() {
       return collabs[0];
     },
     enabled: isEditing,
+  });
+
+  // Load existing testing requirements if editing
+  const { data: existingTestingReq } = useQuery({
+    queryKey: ['testingRequirement', collaborationId],
+    queryFn: async () => {
+      const reqs = await base44.entities.TestingRequirement.filter({ collaboration_id: collaborationId });
+      return reqs[0];
+    },
+    enabled: isEditing && !!collaborationId,
   });
 
   // Populate form with existing data
@@ -227,10 +248,29 @@ export default function CreateCollaboration() {
           resale_allowed: false,
           credit_required: false,
           notes: ''
+        },
+        testing_requirements: existingTestingReq ? {
+          is_required: existingTestingReq.is_required,
+          visibility_level: existingTestingReq.visibility_level,
+          deadline_preset: '',
+          deadline_custom_date: existingTestingReq.deadline_at ? existingTestingReq.deadline_at.split('T')[0] : '',
+          deadline_custom_time: existingTestingReq.deadline_at ? new Date(existingTestingReq.deadline_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) : '12:00',
+          deadline_custom_ampm: existingTestingReq.deadline_at ? (new Date(existingTestingReq.deadline_at).getHours() >= 12 ? 'PM' : 'AM') : 'PM',
+          require_valid_credential: existingTestingReq.require_valid_credential,
+          require_new_upload: existingTestingReq.require_new_upload,
+        } : {
+          is_required: false,
+          visibility_level: 'COLLABORATION_ROOM_ONLY',
+          deadline_preset: '48h',
+          deadline_custom_date: '',
+          deadline_custom_time: '12:00',
+          deadline_custom_ampm: 'PM',
+          require_valid_credential: true,
+          require_new_upload: false,
         }
       });
     }
-  }, [existingCollaboration, isEditing]);
+  }, [existingCollaboration, existingTestingReq, isEditing]);
 
   const isVerified = verification?.[0]?.status === 'approved';
   const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
@@ -278,7 +318,7 @@ export default function CreateCollaboration() {
 
   // Create/Update mutation
   const createMutation = useMutation({
-    mutationFn: (data) => {
+    mutationFn: async (data) => {
       const participantEmails = data.participant_emails 
         ? data.participant_emails.split(',').map(e => e.trim()).filter(e => e)
         : [];
@@ -289,10 +329,63 @@ export default function CreateCollaboration() {
         status: 'draft',
       };
 
+      let collaboration;
       if (isEditing) {
-        return base44.entities.Collaboration.update(collaborationId, payload);
+        collaboration = await base44.entities.Collaboration.update(collaborationId, payload);
+      } else {
+        collaboration = await base44.entities.Collaboration.create(payload);
       }
-      return base44.entities.Collaboration.create(payload);
+
+      // Handle testing requirements
+      if (data.testing_requirements.is_required) {
+        let deadlineAt;
+        if (data.testing_requirements.deadline_preset) {
+          const now = new Date();
+          const hours = parseInt(data.testing_requirements.deadline_preset.replace('h', ''));
+          deadlineAt = new Date(now.getTime() + hours * 60 * 60 * 1000).toISOString();
+        } else if (data.testing_requirements.deadline_custom_date) {
+          const dateStr = data.testing_requirements.deadline_custom_date;
+          const timeStr = data.testing_requirements.deadline_custom_time;
+          const ampm = data.testing_requirements.deadline_custom_ampm;
+          let [hours, minutes] = timeStr.split(':').map(Number);
+          if (ampm === 'PM' && hours !== 12) hours += 12;
+          if (ampm === 'AM' && hours === 12) hours = 0;
+          const date = new Date(dateStr);
+          date.setHours(hours, minutes, 0, 0);
+          deadlineAt = date.toISOString();
+        }
+
+        const testingReqPayload = {
+          collaboration_id: collaboration.id,
+          is_required: true,
+          visibility_level: data.testing_requirements.visibility_level,
+          deadline_at: deadlineAt,
+          require_valid_credential: data.testing_requirements.require_valid_credential,
+          require_new_upload: data.testing_requirements.require_new_upload,
+          status: 'ACTIVE'
+        };
+
+        // Check if testing requirement exists
+        const existingReqs = await base44.entities.TestingRequirement.filter({ 
+          collaboration_id: collaboration.id 
+        });
+        
+        if (existingReqs.length > 0) {
+          await base44.entities.TestingRequirement.update(existingReqs[0].id, testingReqPayload);
+        } else {
+          await base44.entities.TestingRequirement.create(testingReqPayload);
+        }
+      } else if (isEditing) {
+        // Delete testing requirement if disabled
+        const existingReqs = await base44.entities.TestingRequirement.filter({ 
+          collaboration_id: collaboration.id 
+        });
+        if (existingReqs.length > 0) {
+          await base44.entities.TestingRequirement.delete(existingReqs[0].id);
+        }
+      }
+
+      return collaboration;
     },
     onSuccess: (result) => {
       navigate(createPageUrl(isEditing ? 'Collaborations' : `ViewCollaboration?id=${result.id}`));
@@ -916,6 +1009,117 @@ export default function CreateCollaboration() {
               </div>
             </CCCard>
 
+            <CCCard padding="lg">
+              <h3 className="font-semibold text-[#E8EEF9] mb-4 flex items-center gap-2">
+                <Shield className="w-5 h-5" /> Testing Requirements
+              </h3>
+              
+              <label className="flex items-center gap-3 cursor-pointer mb-4">
+                <input
+                  type="checkbox"
+                  checked={formData.testing_requirements.is_required}
+                  onChange={(e) => updateForm('testing_requirements', {
+                    ...formData.testing_requirements,
+                    is_required: e.target.checked
+                  })}
+                  className="w-5 h-5 rounded border-[#263248] bg-[#121824] text-[#4F8CFF] focus:ring-[#4F8CFF]/50"
+                />
+                <span className="text-[#E8EEF9] font-medium">Testing Required</span>
+              </label>
+
+              {formData.testing_requirements.is_required && (
+                <div className="space-y-4 pl-8 border-l-2 border-[#263248]">
+                  <CCSelect
+                    label="Testing Visibility"
+                    options={[
+                      { value: 'PRIVATE', label: 'Private (only you)' },
+                      { value: 'COLLABORATION_ROOM_ONLY', label: 'Collaboration Room Only' },
+                      { value: 'VERIFIED_COLLABORATORS', label: 'All Verified Collaborators' },
+                    ]}
+                    value={formData.testing_requirements.visibility_level}
+                    onChange={(e) => updateForm('testing_requirements', {
+                      ...formData.testing_requirements,
+                      visibility_level: e.target.value
+                    })}
+                  />
+
+                  <div>
+                    <label className="text-sm text-[#9AA6BC] mb-2 block">Deadline</label>
+                    <div className="flex gap-2 mb-3">
+                      {['24h', '48h', '72h'].map(preset => (
+                        <CCButton
+                          key={preset}
+                          variant={formData.testing_requirements.deadline_preset === preset ? 'primary' : 'outline'}
+                          size="sm"
+                          onClick={() => updateForm('testing_requirements', {
+                            ...formData.testing_requirements,
+                            deadline_preset: preset,
+                            deadline_custom_date: ''
+                          })}
+                        >
+                          {preset.replace('h', ' hours')}
+                        </CCButton>
+                      ))}
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <p className="text-xs text-[#6B7A94]">Or set custom deadline:</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        <input
+                          type="date"
+                          value={formData.testing_requirements.deadline_custom_date}
+                          onChange={(e) => updateForm('testing_requirements', {
+                            ...formData.testing_requirements,
+                            deadline_custom_date: e.target.value,
+                            deadline_preset: ''
+                          })}
+                          className="col-span-2 bg-[#121824] border border-[#263248] rounded-lg px-3 py-2 text-[#E8EEF9] text-sm focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                        />
+                        <div className="flex gap-1">
+                          <input
+                            type="time"
+                            value={formData.testing_requirements.deadline_custom_time}
+                            onChange={(e) => updateForm('testing_requirements', {
+                              ...formData.testing_requirements,
+                              deadline_custom_time: e.target.value
+                            })}
+                            className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-2 py-2 text-[#E8EEF9] text-xs focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.testing_requirements.require_valid_credential}
+                        onChange={(e) => updateForm('testing_requirements', {
+                          ...formData.testing_requirements,
+                          require_valid_credential: e.target.checked
+                        })}
+                        className="w-5 h-5 rounded border-[#263248] bg-[#121824] text-[#4F8CFF] focus:ring-[#4F8CFF]/50"
+                      />
+                      <span className="text-sm text-[#E8EEF9]">Require valid TestingCredential on file</span>
+                    </label>
+                    
+                    <label className="flex items-center gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.testing_requirements.require_new_upload}
+                        onChange={(e) => updateForm('testing_requirements', {
+                          ...formData.testing_requirements,
+                          require_new_upload: e.target.checked
+                        })}
+                        className="w-5 h-5 rounded border-[#263248] bg-[#121824] text-[#4F8CFF] focus:ring-[#4F8CFF]/50"
+                      />
+                      <span className="text-sm text-[#E8EEF9]">Require new upload for this collaboration</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+            </CCCard>
 
           </motion.div>
         )}
