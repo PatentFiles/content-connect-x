@@ -92,6 +92,8 @@ export default function CreateCollaboration() {
   const [showUserSearch, setShowUserSearch] = useState(false);
   const [showAgentSearch, setShowAgentSearch] = useState(false);
   const [showStudioSearch, setShowStudioSearch] = useState(false);
+  const [showPhotographerSearch, setShowPhotographerSearch] = useState(false);
+  const [showVideographerSearch, setShowVideographerSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [emailError, setEmailError] = useState('');
   
@@ -331,6 +333,20 @@ export default function CreateCollaboration() {
     enabled: showStudioSearch,
   });
 
+  // Fetch all photographers for search
+  const { data: allPhotographers = [] } = useQuery({
+    queryKey: ['allPhotographers'],
+    queryFn: () => base44.entities.ServiceDetails.filter({ service_type: 'photography' }),
+    enabled: showPhotographerSearch,
+  });
+
+  // Fetch all videographers for search
+  const { data: allVideographers = [] } = useQuery({
+    queryKey: ['allVideographers'],
+    queryFn: () => base44.entities.ServiceDetails.filter({ service_type: 'videography' }),
+    enabled: showVideographerSearch,
+  });
+
   // Fetch participant profiles based on emails
   const participantEmails = formData.participant_emails
     ? formData.participant_emails.split(',').map(e => e.trim()).filter(e => e)
@@ -363,6 +379,14 @@ export default function CreateCollaboration() {
 
   const filteredStudios = allStudios.filter(s => 
     s.studio_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredPhotographers = allPhotographers.filter(p => 
+    p.user_id?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredVideographers = allVideographers.filter(v => 
+    v.user_id?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Get favorite profiles
@@ -636,6 +660,8 @@ export default function CreateCollaboration() {
                   setShowUserSearch(!showUserSearch);
                   setShowAgentSearch(false);
                   setShowStudioSearch(false);
+                  setShowPhotographerSearch(false);
+                  setShowVideographerSearch(false);
                 }}
               >
                 Search Users
@@ -648,6 +674,8 @@ export default function CreateCollaboration() {
                     setShowStudioSearch(!showStudioSearch);
                     setShowUserSearch(false);
                     setShowAgentSearch(false);
+                    setShowPhotographerSearch(false);
+                    setShowVideographerSearch(false);
                   }}
                 >
                   Add Studio
@@ -659,9 +687,39 @@ export default function CreateCollaboration() {
                     setShowAgentSearch(!showAgentSearch);
                     setShowUserSearch(false);
                     setShowStudioSearch(false);
+                    setShowPhotographerSearch(false);
+                    setShowVideographerSearch(false);
                   }}
                 >
                   Add Agent
+                </CCButton>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <CCButton
+                  variant="outline"
+                  icon={Camera}
+                  onClick={() => {
+                    setShowPhotographerSearch(!showPhotographerSearch);
+                    setShowUserSearch(false);
+                    setShowAgentSearch(false);
+                    setShowStudioSearch(false);
+                    setShowVideographerSearch(false);
+                  }}
+                >
+                  Add Photographer
+                </CCButton>
+                <CCButton
+                  variant="outline"
+                  icon={Video}
+                  onClick={() => {
+                    setShowVideographerSearch(!showVideographerSearch);
+                    setShowUserSearch(false);
+                    setShowAgentSearch(false);
+                    setShowStudioSearch(false);
+                    setShowPhotographerSearch(false);
+                  }}
+                >
+                  Add Videographer
                 </CCButton>
               </div>
             </div>
@@ -769,6 +827,66 @@ export default function CreateCollaboration() {
                       <div className="flex-1">
                         <p className="text-sm text-[#E8EEF9]">{studio.studio_name}</p>
                         <p className="text-xs text-[#6B7A94]">Studio</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CCCard>
+            )}
+
+            {/* Photographer Search */}
+            {showPhotographerSearch && (
+              <CCCard padding="lg" className="mb-4">
+                <h3 className="font-semibold text-[#E8EEF9] mb-3">Search Photographers</h3>
+                <CCInput
+                  placeholder="Search photographers..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="mb-3"
+                />
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {filteredPhotographers.slice(0, 10).map(photographer => (
+                    <div
+                      key={photographer.user_id}
+                      onClick={() => handleAddParticipant(photographer.user_id)}
+                      className="flex items-center gap-3 p-2 bg-[#121824] rounded-lg cursor-pointer hover:bg-[#1A2438]"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-[#4F8CFF]/20 flex items-center justify-center">
+                        <Camera className="w-5 h-5 text-[#4F8CFF]" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-[#E8EEF9]">{photographer.user_id}</p>
+                        <p className="text-xs text-[#6B7A94]">Photographer</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CCCard>
+            )}
+
+            {/* Videographer Search */}
+            {showVideographerSearch && (
+              <CCCard padding="lg" className="mb-4">
+                <h3 className="font-semibold text-[#E8EEF9] mb-3">Search Videographers</h3>
+                <CCInput
+                  placeholder="Search videographers..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="mb-3"
+                />
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {filteredVideographers.slice(0, 10).map(videographer => (
+                    <div
+                      key={videographer.user_id}
+                      onClick={() => handleAddParticipant(videographer.user_id)}
+                      className="flex items-center gap-3 p-2 bg-[#121824] rounded-lg cursor-pointer hover:bg-[#1A2438]"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-[#FF2DAA]/20 flex items-center justify-center">
+                        <Video className="w-5 h-5 text-[#FF2DAA]" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-[#E8EEF9]">{videographer.user_id}</p>
+                        <p className="text-xs text-[#6B7A94]">Videographer</p>
                       </div>
                     </div>
                   ))}
