@@ -36,6 +36,7 @@ import InsuranceManager from '@/components/admin/InsuranceManager';
 import DisputeSimulator from '@/components/admin/DisputeSimulator';
 import CollaborationAnalytics from '@/components/admin/CollaborationAnalytics';
 import ComplianceAgent from '@/components/admin/ComplianceAgent';
+import AgentAlertsCard from '@/components/admin/AgentAlertsCard';
 
 // User Management Component
 function UserManagement({ currentUser }) {
@@ -475,7 +476,10 @@ export default function AdminDashboard() {
 
         {/* Overview Tab */}
         <CCTabsContent value="overview" activeTab={activeTab}>
-          <ModerationOverview />
+          <div className="space-y-6">
+            <ModerationOverview />
+            <AgentAlertsCard />
+          </div>
         </CCTabsContent>
 
         {/* Analytics Tab */}

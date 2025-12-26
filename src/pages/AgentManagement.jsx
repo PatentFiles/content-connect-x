@@ -1,0 +1,123 @@
+import React, { useState } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Shield, Settings, Play, Eye, Clock, Flag, TrendingUp, AlertTriangle } from 'lucide-react';
+import CCButton from '@/components/ui-custom/CCButton';
+import CCCard, { CCCardHeader, CCCardTitle, CCCardContent } from '@/components/ui-custom/CCCard';
+import CCBadge from '@/components/ui-custom/CCBadge';
+import { CCTabs, CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs';
+import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
+import CCModal from '@/components/ui-custom/CCModal';
+import { toast } from 'sonner';
+import AgentsList from '@/components/agents/AgentsList';
+import AgentPermissionsEditor from '@/components/agents/AgentPermissionsEditor';
+import AgentRunsList from '@/components/agents/AgentRunsList';
+import AgentFlagsList from '@/components/agents/AgentFlagsList';
+import AgentRiskScores from '@/components/agents/AgentRiskScores';
+
+export default function AgentManagement() {
+  const [activeTab, setActiveTab] = useState('agents');
+  const queryClient = useQueryClient();
+
+  const { data: user } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me(),
+  });
+
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['myProfile', user?.email],
+    queryFn: () => base44.entities.UserProfile.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+
+  const profile = profiles[0];
+
+  if (!profile?.is_admin) {
+    return (
+      <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center p-6">
+        <CCCard padding="xl" className="max-w-md text-center">
+          <Shield className="w-16 h-16 text-[#EF4444] mx-auto mb-4" />
+          <h2 className="text-xl font-bold text-[#E8EEF9] mb-2">Admin Access Required</h2>
+          <p className="text-sm text-[#9AA6BC]">
+            You need administrator privileges to access agent management.
+          </p>
+        </CCCard>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0B0F14] pb-24">
+      <div className="max-w-7xl mx-auto p-6 space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-[#E8EEF9] mb-2">Agent Management</h1>
+          <p className="text-[#9AA6BC]">
+            Manage AI agents, permissions, runs, flags, and risk scores
+          </p>
+        </div>
+
+        {/* Tabs */}
+        <CCTabs value={activeTab} onValueChange={setActiveTab}>
+          <CCTabsList>
+            <button
+              onClick={() => setActiveTab('agents')}
+              className={activeTab === 'agents' ? 'active' : ''}
+            >
+              <Shield className="w-4 h-4" />
+              Agents
+            </button>
+            <button
+              onClick={() => setActiveTab('permissions')}
+              className={activeTab === 'permissions' ? 'active' : ''}
+            >
+              <Settings className="w-4 h-4" />
+              Permissions
+            </button>
+            <button
+              onClick={() => setActiveTab('runs')}
+              className={activeTab === 'runs' ? 'active' : ''}
+            >
+              <Clock className="w-4 h-4" />
+              Runs
+            </button>
+            <button
+              onClick={() => setActiveTab('flags')}
+              className={activeTab === 'flags' ? 'active' : ''}
+            >
+              <Flag className="w-4 h-4" />
+              Flags
+            </button>
+            <button
+              onClick={() => setActiveTab('risk_scores')}
+              className={activeTab === 'risk_scores' ? 'active' : ''}
+            >
+              <TrendingUp className="w-4 h-4" />
+              Risk Scores
+            </button>
+          </CCTabsList>
+
+          <CCTabsContent value="agents" activeTab={activeTab}>
+            <AgentsList currentAdmin={user} />
+          </CCTabsContent>
+
+          <CCTabsContent value="permissions" activeTab={activeTab}>
+            <AgentPermissionsEditor currentAdmin={user} />
+          </CCTabsContent>
+
+          <CCTabsContent value="runs" activeTab={activeTab}>
+            <AgentRunsList />
+          </CCTabsContent>
+
+          <CCTabsContent value="flags" activeTab={activeTab}>
+            <AgentFlagsList currentAdmin={user} />
+          </CCTabsContent>
+
+          <CCTabsContent value="risk_scores" activeTab={activeTab}>
+            <AgentRiskScores />
+          </CCTabsContent>
+        </CCTabs>
+      </div>
+    </div>
+  );
+}

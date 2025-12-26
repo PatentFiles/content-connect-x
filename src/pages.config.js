@@ -24,6 +24,7 @@ import Terms from './pages/Terms';
 import Verification from './pages/Verification';
 import ViewContract from './pages/ViewContract';
 import ViewProfile from './pages/ViewProfile';
+import AgentManagement from './pages/AgentManagement';
 import __Layout from './Layout.jsx';
 
 
@@ -54,6 +55,7 @@ export const PAGES = {
     "Verification": Verification,
     "ViewContract": ViewContract,
     "ViewProfile": ViewProfile,
+    "AgentManagement": AgentManagement,
 }
 
 export const pagesConfig = {
