@@ -85,7 +85,7 @@ export default function AgentPermissionsEditor({ currentAdmin }) {
           onChange={(e) => setSelectedAgentId(e.target.value)}
           options={[
             { value: '', label: 'Choose an agent...' },
-            ...(agents?.map(a => ({ value: a.id, label: a.name })) || [])
+            ...((agents || []).map(a => ({ value: a.id, label: a.name })))
           ]}
         />
       </CCCard>
