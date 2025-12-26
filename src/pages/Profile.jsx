@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { format } from 'date-fns';
 import { 
   User, 
   MapPin, 
@@ -1148,6 +1149,52 @@ export default function Profile() {
         </CCTabsContent>
 
         <CCTabsContent value="galleries" activeTab={activeTab}>
+          {/* Availability and Travel */}
+          <div className="grid md:grid-cols-2 gap-6 mb-6">
+            {/* Availability Dates */}
+            <CCCard padding="lg">
+              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Availability</h3>
+              {profile?.availability_dates?.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {profile.availability_dates.sort().slice(0, 8).map(dateStr => (
+                    <CCBadge key={dateStr} variant="primary">
+                      {format(new Date(dateStr), 'MMM d')}
+                    </CCBadge>
+                  ))}
+                  {profile.availability_dates.length > 8 && (
+                    <CCBadge variant="outline">
+                      +{profile.availability_dates.length - 8} more
+                    </CCBadge>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-[#6B7A94]">No availability dates set</p>
+              )}
+            </CCCard>
+
+            {/* Travel Dates */}
+            <CCCard padding="lg">
+              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Travel Schedule</h3>
+              {profile?.travel_dates?.length > 0 ? (
+                <div className="space-y-2">
+                  {profile.travel_dates.map((travel, idx) => (
+                    <div key={idx} className="p-2 rounded bg-[#0B0F14]">
+                      <div className="text-sm font-medium text-[#E8EEF9]">{travel.location}</div>
+                      <div className="text-xs text-[#9AA6BC]">
+                        {format(new Date(travel.start_date), 'MMM d')} - {format(new Date(travel.end_date), 'MMM d')}
+                      </div>
+                      {travel.arrival_time && (
+                        <div className="text-xs text-[#6B7A94]">Arrives: {travel.arrival_time}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-[#6B7A94]">No travel dates posted</p>
+              )}
+            </CCCard>
+          </div>
+
           <div className="grid md:grid-cols-2 gap-6">
             {/* Public Gallery */}
             <CCCard padding="lg">
