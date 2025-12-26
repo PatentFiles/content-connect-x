@@ -89,6 +89,11 @@ export default function CreateCollaboration() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [actCategory, setActCategory] = useState(null); // 'standard', 'fetish', or 'kink'
+  const [showUserSearch, setShowUserSearch] = useState(false);
+  const [showAgentSearch, setShowAgentSearch] = useState(false);
+  const [showStudioSearch, setShowStudioSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [emailError, setEmailError] = useState('');
   
   // Get collaboration ID from URL for editing
   const urlParams = new URLSearchParams(window.location.search);
@@ -298,6 +303,34 @@ export default function CreateCollaboration() {
   });
   const myProfile = myProfiles[0];
 
+  // Fetch my favorites
+  const { data: myFavorites = [] } = useQuery({
+    queryKey: ['myFavorites', user?.email],
+    queryFn: () => base44.entities.Favorite.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+
+  // Fetch all profiles for search
+  const { data: allProfiles = [] } = useQuery({
+    queryKey: ['allProfiles'],
+    queryFn: () => base44.entities.UserProfile.list(),
+    enabled: showUserSearch,
+  });
+
+  // Fetch all agents for search
+  const { data: allAgents = [] } = useQuery({
+    queryKey: ['allAgents'],
+    queryFn: () => base44.entities.AgentDetails.list(),
+    enabled: showAgentSearch,
+  });
+
+  // Fetch all studios for search
+  const { data: allStudios = [] } = useQuery({
+    queryKey: ['allStudios'],
+    queryFn: () => base44.entities.StudioDetails.list(),
+    enabled: showStudioSearch,
+  });
+
   // Fetch participant profiles based on emails
   const participantEmails = formData.participant_emails
     ? formData.participant_emails.split(',').map(e => e.trim()).filter(e => e)
@@ -316,6 +349,25 @@ export default function CreateCollaboration() {
     },
     enabled: participantEmails.length > 0,
   });
+
+  // Filter search results
+  const filteredProfiles = allProfiles.filter(p => 
+    p.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.user_id?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredAgents = allAgents.filter(a => 
+    a.agency_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredStudios = allStudios.filter(s => 
+    s.studio_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Get favorite profiles
+  const favoriteProfiles = allProfiles.filter(p => 
+    myFavorites.some(f => f.target_user_id === p.user_id)
+  );
 
   // Create/Update mutation
   const createMutation = useMutation({
@@ -410,6 +462,28 @@ export default function CreateCollaboration() {
 
   const updateForm = (key, value) => {
     setFormData(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleAddParticipant = async (email) => {
+    // Check if email is registered
+    const profiles = await base44.entities.UserProfile.filter({ user_id: email });
+    if (profiles.length === 0) {
+      setEmailError(`${email} isn't registered with Content Connect. Please add a registered user.`);
+      return;
+    }
+
+    const current = formData.participant_emails;
+    const emails = current ? current.split(',').map(e => e.trim()) : [];
+    if (!emails.includes(email)) {
+      updateForm('participant_emails', [...emails, email].join(', '));
+    }
+    setEmailError('');
+  };
+
+  const handleRemoveParticipant = (email) => {
+    const current = formData.participant_emails;
+    const emails = current ? current.split(',').map(e => e.trim()) : [];
+    updateForm('participant_emails', emails.filter(e => e !== email).join(', '));
   };
 
   const toggleArrayValue = (field, value) => {
@@ -524,22 +598,261 @@ export default function CreateCollaboration() {
             animate={{ opacity: 1, x: 0 }}
           >
             <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Who's involved?</h2>
-            <p className="text-[#9AA6BC] mb-6">Add the email addresses of other participants.</p>
+            <p className="text-[#9AA6BC] mb-6">Add participants, agents, or studios to this collaboration.</p>
 
+            {/* Selected Participants */}
+            {participantEmails.length > 0 && (
+              <CCCard padding="lg" className="mb-4">
+                <h3 className="font-semibold text-[#E8EEF9] mb-3">Selected Participants</h3>
+                <div className="flex flex-wrap gap-2">
+                  {participantEmails.map(email => {
+                    const profile = participantProfiles.find(p => p.user_id === email);
+                    return (
+                      <div key={email} className="flex items-center gap-2 bg-[#121824] border border-[#263248] rounded-lg px-3 py-2">
+                        <span className="text-sm text-[#E8EEF9]">
+                          {profile?.display_name || email}
+                        </span>
+                        <button
+                          onClick={() => handleRemoveParticipant(email)}
+                          className="text-[#9AA6BC] hover:text-[#EF4444]"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CCCard>
+            )}
+
+            {/* Add Options */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <CCButton
+                variant="outline"
+                icon={Users}
+                onClick={() => {
+                  setShowUserSearch(!showUserSearch);
+                  setShowAgentSearch(false);
+                  setShowStudioSearch(false);
+                }}
+              >
+                Search Users
+              </CCButton>
+              <CCButton
+                variant="outline"
+                icon={Users}
+                onClick={() => {
+                  setShowAgentSearch(!showAgentSearch);
+                  setShowUserSearch(false);
+                  setShowStudioSearch(false);
+                }}
+              >
+                Add Agent
+              </CCButton>
+              <CCButton
+                variant="outline"
+                icon={Briefcase}
+                onClick={() => {
+                  setShowStudioSearch(!showStudioSearch);
+                  setShowUserSearch(false);
+                  setShowAgentSearch(false);
+                }}
+              >
+                Add Studio
+              </CCButton>
+            </div>
+
+            {/* User Search */}
+            {showUserSearch && (
+              <CCCard padding="lg" className="mb-4">
+                <h3 className="font-semibold text-[#E8EEF9] mb-3">Search Users</h3>
+                <CCInput
+                  placeholder="Search by name or email..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="mb-3"
+                />
+                
+                {favoriteProfiles.length > 0 && searchQuery === '' && (
+                  <div className="mb-4">
+                    <p className="text-sm text-[#9AA6BC] mb-2">Favorites</p>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {favoriteProfiles.map(profile => (
+                        <div
+                          key={profile.user_id}
+                          onClick={() => handleAddParticipant(profile.user_id)}
+                          className="flex items-center gap-3 p-2 bg-[#121824] rounded-lg cursor-pointer hover:bg-[#1A2438]"
+                        >
+                          <CCAvatar src={profile.avatar_url} size="sm" />
+                          <div className="flex-1">
+                            <p className="text-sm text-[#E8EEF9]">{profile.display_name}</p>
+                            <p className="text-xs text-[#6B7A94]">{profile.role_type}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {filteredProfiles.slice(0, 10).map(profile => (
+                    <div
+                      key={profile.user_id}
+                      onClick={() => handleAddParticipant(profile.user_id)}
+                      className="flex items-center gap-3 p-2 bg-[#121824] rounded-lg cursor-pointer hover:bg-[#1A2438]"
+                    >
+                      <CCAvatar src={profile.avatar_url} size="sm" />
+                      <div className="flex-1">
+                        <p className="text-sm text-[#E8EEF9]">{profile.display_name}</p>
+                        <p className="text-xs text-[#6B7A94]">{profile.role_type}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CCCard>
+            )}
+
+            {/* Agent Search */}
+            {showAgentSearch && (
+              <CCCard padding="lg" className="mb-4">
+                <h3 className="font-semibold text-[#E8EEF9] mb-3">Search Agents</h3>
+                <CCInput
+                  placeholder="Search by agency name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="mb-3"
+                />
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {filteredAgents.slice(0, 10).map(agent => (
+                    <div
+                      key={agent.user_id}
+                      onClick={() => handleAddParticipant(agent.user_id)}
+                      className="flex items-center gap-3 p-2 bg-[#121824] rounded-lg cursor-pointer hover:bg-[#1A2438]"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-[#4F8CFF]/20 flex items-center justify-center">
+                        <Users className="w-5 h-5 text-[#4F8CFF]" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-[#E8EEF9]">{agent.agency_name}</p>
+                        <p className="text-xs text-[#6B7A94]">Agent</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CCCard>
+            )}
+
+            {/* Studio Search */}
+            {showStudioSearch && (
+              <CCCard padding="lg" className="mb-4">
+                <h3 className="font-semibold text-[#E8EEF9] mb-3">Search Studios</h3>
+                <CCInput
+                  placeholder="Search by studio name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="mb-3"
+                />
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {filteredStudios.slice(0, 10).map(studio => (
+                    <div
+                      key={studio.user_id}
+                      onClick={() => handleAddParticipant(studio.user_id)}
+                      className="flex items-center gap-3 p-2 bg-[#121824] rounded-lg cursor-pointer hover:bg-[#1A2438]"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-[#FF2DAA]/20 flex items-center justify-center">
+                        <Briefcase className="w-5 h-5 text-[#FF2DAA]" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm text-[#E8EEF9]">{studio.studio_name}</p>
+                        <p className="text-xs text-[#6B7A94]">Studio</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CCCard>
+            )}
+
+            {/* Manual Email Entry */}
             <CCCard padding="lg">
-              <CCInput
-                label="Participant Emails"
-                placeholder="email1@example.com, email2@example.com"
-                hint="Comma-separated emails of other participants"
-                value={formData.participant_emails}
-                onChange={(e) => updateForm('participant_emails', e.target.value)}
-              />
+              <h3 className="font-semibold text-[#E8EEF9] mb-3">Or add by email</h3>
+              <div className="flex gap-2">
+                <CCInput
+                  placeholder="email@example.com"
+                  value={formData.participant_emails}
+                  onChange={(e) => {
+                    updateForm('participant_emails', e.target.value);
+                    setEmailError('');
+                  }}
+                  error={emailError}
+                  className="flex-1"
+                />
+                <CCButton
+                  variant="primary"
+                  onClick={() => {
+                    const emails = formData.participant_emails.split(',').map(e => e.trim()).filter(e => e);
+                    const lastEmail = emails[emails.length - 1];
+                    if (lastEmail) handleAddParticipant(lastEmail);
+                  }}
+                >
+                  Add
+                </CCButton>
+              </div>
+              {emailError && (
+                <p className="text-sm text-[#EF4444] mt-2">{emailError}</p>
+              )}
             </CCCard>
           </motion.div>
         )}
 
-        {/* Step 2: Acts */}
+        {/* Step 2: Scene Pairings */}
         {step === 2 && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Scene Pairings</h2>
+            <p className="text-[#9AA6BC] mb-6">Select the scene pairings for this collaboration.</p>
+
+            <CCCard padding="lg">
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {filteredScenePairings.map((sp) => (
+                    <CCButton
+                      key={sp}
+                      variant={formData.scene_selected?.includes(sp) ? 'primary' : 'outline'}
+                      size="sm"
+                      onClick={() => toggleArrayValue('scene_selected', sp)}
+                    >
+                      {sp}
+                    </CCButton>
+                  ))}
+                </div>
+                {formData.scene_selected?.includes('Other') && (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customValues.scene_pairings || ''}
+                      onChange={(e) => setCustomValues({...customValues, scene_pairings: e.target.value})}
+                      className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                      placeholder="Type custom scene pairing..."
+                    />
+                    <CCButton
+                      variant="primary"
+                      size="sm"
+                      icon={Plus}
+                      onClick={() => handleAddCustomValue('scene_pairing', 'scene_selected')}
+                    >
+                      Add
+                    </CCButton>
+                  </div>
+                )}
+              </div>
+            </CCCard>
+          </motion.div>
+        )}
+
+        {/* Step 3: Acts */}
+        {step === 3 && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -699,53 +1012,6 @@ export default function CreateCollaboration() {
                 )}
               </CCCard>
             )}
-          </motion.div>
-        )}
-
-        {/* Step 3: Scene Pairings */}
-        {step === 3 && (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Scene Pairings</h2>
-            <p className="text-[#9AA6BC] mb-6">Select the scene pairings for this collaboration.</p>
-
-            <CCCard padding="lg">
-              <div className="space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  {filteredScenePairings.map((sp) => (
-                    <CCButton
-                      key={sp}
-                      variant={formData.scene_selected?.includes(sp) ? 'primary' : 'outline'}
-                      size="sm"
-                      onClick={() => toggleArrayValue('scene_selected', sp)}
-                    >
-                      {sp}
-                    </CCButton>
-                  ))}
-                </div>
-                {formData.scene_selected?.includes('Other') && (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={customValues.scene_pairings || ''}
-                      onChange={(e) => setCustomValues({...customValues, scene_pairings: e.target.value})}
-                      className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                      placeholder="Type custom scene pairing..."
-                    />
-                    <CCButton
-                      variant="primary"
-                      size="sm"
-                      icon={Plus}
-                      onClick={() => handleAddCustomValue('scene_pairing', 'scene_selected')}
-                    >
-                      Add
-                    </CCButton>
-                  </div>
-                )}
-              </div>
-            </CCCard>
           </motion.div>
         )}
 
