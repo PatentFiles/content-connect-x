@@ -83,7 +83,7 @@ export default function AgentsList({ currentAdmin }) {
 
   return (
     <div className="space-y-4">
-      {agents.length === 0 && (
+      {(!agents || agents.length === 0) && (
         <CCCard padding="xl" className="text-center">
           <AlertCircle className="w-12 h-12 text-[#6B7A94] mx-auto mb-3" />
           <p className="text-[#9AA6BC]">No agents configured yet</p>
