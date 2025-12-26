@@ -105,9 +105,9 @@ export default function StudioDashboard({ user, profile }) {
         {/* Studio Earnings Dashboard */}
         <StudioEarningsDashboard studioUserId={user?.email} />
 
-        <div className="grid md:grid-cols-2 gap-6 mt-6">
+        <div className="grid md:grid-cols-2 gap-6 mt-6 h-full">
           {/* Roster & Portfolio */}
-          <CCCard padding="lg">
+          <CCCard padding="lg" className="h-full">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-[#E8EEF9]">Roster & Portfolio</h2>
               <Link to={createPageUrl('RosterPortfolio')}>
@@ -138,7 +138,7 @@ export default function StudioDashboard({ user, profile }) {
           </CCCard>
 
           {/* Production Pipeline */}
-          <CCCard padding="lg">
+          <CCCard padding="lg" className="h-full">
             <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4">Production Pipeline</h2>
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-[#151D2B] rounded-lg">

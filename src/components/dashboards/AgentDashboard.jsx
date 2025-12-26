@@ -102,9 +102,9 @@ export default function AgentDashboard({ user, profile }) {
           </CCCard>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 h-full">
           {/* Representations */}
-          <CCCard padding="lg">
+          <CCCard padding="lg" className="h-full">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-[#E8EEF9]">Representations</h2>
               <Link to={createPageUrl('Representations')}>
@@ -135,7 +135,7 @@ export default function AgentDashboard({ user, profile }) {
           </CCCard>
 
           {/* Pipeline */}
-          <CCCard padding="lg">
+          <CCCard padding="lg" className="h-full">
             <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4">Pipeline</h2>
             <div className="space-y-3">
               <div className="flex items-center justify-between p-3 bg-[#151D2B] rounded-lg">
