@@ -33,6 +33,21 @@ Deno.serve(async (req) => {
     const allRepresentations = await base44.asServiceRole.entities.AgentRepresentation.list();
     const allStudioReps = await base44.asServiceRole.entities.StudioRepresentation.list();
 
+    // Fetch verifications and subscriptions
+    const verifiedUsers = allVerifications
+      .filter(v => v.status === 'approved')
+      .map(v => v.user_id);
+    
+    const activeSubscriptions = await base44.asServiceRole.entities.Subscription.filter({ 
+      status: 'active' 
+    });
+    const subscribedUsers = activeSubscriptions.map(s => s.user_id);
+
+    // Fetch active disputes
+    const activeDisputes = allDisputes.filter(d => 
+      ['open', 'under_review', 'escalated'].includes(d.status)
+    );
+
     // Build match suggestions using AI
     const matchPrompt = `You are an AI matching assistant for Content Connect, an adult content collaboration platform.
 
@@ -43,41 +58,61 @@ ${source_type === 'collaboration' ? `Requirements: ${JSON.stringify(sourceRequir
 
 Available Profiles: ${JSON.stringify(allProfiles.slice(0, 50), null, 2)}
 Available Skills: ${JSON.stringify(allSkills.slice(0, 100), null, 2)}
+Verified Users: ${JSON.stringify(verifiedUsers)}
+Subscribed Users: ${JSON.stringify(subscribedUsers)}
+Agent Representations: ${JSON.stringify(allRepresentations.slice(0, 20))}
+Studio Representations: ${JSON.stringify(allStudioReps.slice(0, 20))}
+Active Disputes: ${JSON.stringify(activeDisputes.slice(0, 10))}
 
-TASK: Generate ${limit} top match suggestions.
+TASK: Generate ${limit} top match suggestions following Content Connect's EXACT rules.
 
-For each match:
-1. Calculate a match score (0-100)
-2. Identify key matching factors (skills, experience, location, availability, representation compatibility)
-3. Check for any risk flags (disputes, consent issues, jurisdiction conflicts, exclusivity violations)
-4. Provide a human-readable explanation
-5. Determine if admin/agent review is required
+HARD GATES (must pass or status = NOT_ELIGIBLE):
+1. Suggested users MUST be verified (in verifiedUsers list)
+2. Suggested users MUST be subscribed (in subscribedUsers list)
+3. If collaboration has REQUIRED_VERIFICATION requirement, all suggestions must be verified
+4. Never suggest users with active disputes
+5. Respect hard limits: check ProfileSkill boundaries and never suggest incompatible acts
+6. If collaboration requires specific SCENE_PAIRING, only suggest users with that pairing skill
+7. Respect REPRESENTATION_COMPATIBILITY (Independent/Agent-allowed/Studio-allowed)
+8. Respect STUDIO_EXCLUSIVITY_COMPATIBILITY (check StudioRepresentation active=true)
+
+COMPATIBILITY CHECKS:
+- Match SCENE_PAIRING requirements from CollaborationRequirement with user ProfileSkills
+- Match STANDARD_ACT, FETISH_ACT, KINK_EDGE_ACT requirements with user skills
+- Match PERFORMANCE_POSITIONING (only for gay/bi male creators)
+- Check jurisdiction compatibility if REQUIRED_JURISDICTION is set
+- Check insurance if REQUIRED_INSURANCE is set
+- For photographers/videographers: match CREATOR_TYPES_SERVED with collaboration participants
+
+MATCH STATUSES:
+- MATCHED: all requirements met
+- POTENTIAL_REQUIRES_REVIEW: most requirements met, 1-2 non-critical missing
+- NOT_ELIGIBLE: fails a hard gate
 
 OUTPUT FORMAT:
-Return a JSON array of matches:
-[
-  {
-    "target_type": "user" or "collaboration",
-    "target_id": "string",
-    "match_score": 85,
-    "match_factors": [
-      {"factor": "Scene Pairing Experience", "score": 90, "weight": 2.0},
-      {"factor": "Location Proximity", "score": 80, "weight": 1.5}
-    ],
-    "explanation": "Strong match based on shared Girl/Girl experience and same location",
-    "risk_flags": [],
-    "requires_review": false,
-    "review_reason": null
-  }
-]
+Return a JSON object with matches array:
+{
+  "matches": [
+    {
+      "target_type": "user" or "collaboration",
+      "target_id": "string",
+      "match_score": 85,
+      "status": "MATCHED" | "POTENTIAL_REQUIRES_REVIEW" | "NOT_ELIGIBLE",
+      "match_factors": [
+        {"factor": "Scene Pairing: Girl/Girl", "score": 95, "weight": 2.0},
+        {"factor": "Standard Acts: Oral, Toys", "score": 90, "weight": 1.5},
+        {"factor": "Location: Same City", "score": 100, "weight": 1.0}
+      ],
+      "explanation": "Strong match: verified creator with Girl/Girl and fetish experience, shares location, available dates align",
+      "missing_requirements": [],
+      "risk_flags": [],
+      "requires_review": false,
+      "review_reason": null
+    }
+  ]
+}
 
-RULES:
-- Only suggest verified profiles
-- Respect representation exclusivity
-- Check dispute history
-- Consider jurisdiction eligibility
-- Match experience levels appropriately
-- Prioritize safety and consent compatibility`;
+BE STRICT: Do not suggest anyone who fails verification, subscription, or has active disputes.`;
 
     const aiResponse = await base44.integrations.Core.InvokeLLM({
       prompt: matchPrompt,
@@ -92,6 +127,7 @@ RULES:
                 target_type: { type: "string" },
                 target_id: { type: "string" },
                 match_score: { type: "number" },
+                status: { type: "string" },
                 match_factors: { 
                   type: "array",
                   items: {
@@ -104,6 +140,10 @@ RULES:
                   }
                 },
                 explanation: { type: "string" },
+                missing_requirements: {
+                  type: "array",
+                  items: { type: "string" }
+                },
                 risk_flags: { 
                   type: "array",
                   items: { type: "string" }
@@ -123,6 +163,9 @@ RULES:
     expiresAt.setDate(expiresAt.getDate() + 7); // Suggestions expire in 7 days
 
     for (const match of aiResponse.matches || []) {
+      // Skip NOT_ELIGIBLE matches
+      if (match.status === 'NOT_ELIGIBLE') continue;
+
       const suggestion = await base44.asServiceRole.entities.AIMatchSuggestion.create({
         source_type,
         source_id,
@@ -132,12 +175,12 @@ RULES:
         match_factors: match.match_factors,
         explanation: match.explanation,
         risk_flags: match.risk_flags || [],
-        requires_review: match.requires_review || false,
-        review_reason: match.review_reason,
+        requires_review: match.requires_review || match.status === 'POTENTIAL_REQUIRES_REVIEW',
+        review_reason: match.review_reason || (match.missing_requirements?.length > 0 ? `Missing: ${match.missing_requirements.join(', ')}` : null),
         status: 'pending',
         viewed: false,
         expires_at: expiresAt.toISOString(),
-        model_version: 'v1.0'
+        model_version: 'cc-v1.0'
       });
       suggestions.push(suggestion);
     }
