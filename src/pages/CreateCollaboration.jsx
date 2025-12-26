@@ -1429,11 +1429,11 @@ export default function CreateCollaboration() {
               <div className="mb-4">
                 <label className="text-sm text-[#9AA6BC] mb-2 block text-center">Platforms</label>
                 <p className="text-xs text-[#6B7A94] mb-3 text-center">Where content can be published</p>
-                <div className="grid grid-cols-2 gap-2 mb-3">
+                <div className="grid grid-cols-2 gap-2 mb-3 max-w-md mx-auto">
                   {['OnlyFans', 'Fansly', 'Pornhub', 'ManyVids', 'Clips4Sale', 'Personal Website', 'Twitter/X', 'Instagram'].map(platform => {
                     const platformList = formData.usage_rights.platforms || [];
                     return (
-                      <label key={platform} className="flex items-center gap-2 cursor-pointer">
+                      <label key={platform} className="flex items-center justify-center gap-2 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={platformList.includes(platform)}
