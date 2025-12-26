@@ -11,7 +11,8 @@ import {
   Trash2, 
   MoreVertical,
   FolderHeart,
-  Users
+  Users,
+  List
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
@@ -19,14 +20,19 @@ import CCInput from '@/components/ui-custom/CCInput';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
 import CCModal from '@/components/ui-custom/CCModal';
+import CCSelect from '@/components/ui-custom/CCSelect';
 import { CCLoadingScreen, CCSkeletonLoader } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import AccessGate from '@/components/auth/AccessGate';
+import ProfileCard from '@/components/profiles/ProfileCard';
 
 export default function Favorites() {
   const [isCreating, setIsCreating] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [selectedList, setSelectedList] = useState(null);
+  const [showListView, setShowListView] = useState(false);
+  const [addingToList, setAddingToList] = useState(null);
+  const [selectedListForAdd, setSelectedListForAdd] = useState('');
   const queryClient = useQueryClient();
 
   // Check auth and access
@@ -57,16 +63,28 @@ export default function Favorites() {
     enabled: !!user && isVerified && isSubscribed,
   });
 
-  // Fetch profiles for favorites items
+  // Fetch all profiles for favorites items
+  const allFavoriteUserIds = [...new Set(favorites.flatMap(f => f.items?.map(i => i.user_id) || []))];
+  
   const { data: profiles = [] } = useQuery({
-    queryKey: ['favoritesProfiles', favorites],
+    queryKey: ['favoritesProfiles', allFavoriteUserIds],
     queryFn: async () => {
-      const allUserIds = [...new Set(favorites.flatMap(f => f.items?.map(i => i.user_id) || []))];
-      if (allUserIds.length === 0) return [];
+      if (allFavoriteUserIds.length === 0) return [];
       const allProfiles = await base44.entities.UserProfile.list();
-      return allProfiles.filter(p => allUserIds.includes(p.user_id));
+      return allProfiles.filter(p => allFavoriteUserIds.includes(p.user_id));
     },
-    enabled: favorites.length > 0,
+    enabled: allFavoriteUserIds.length > 0,
+  });
+
+  // Fetch creator details for profiles
+  const { data: creatorDetails = [] } = useQuery({
+    queryKey: ['favoritesCreatorDetails', allFavoriteUserIds],
+    queryFn: async () => {
+      if (allFavoriteUserIds.length === 0) return [];
+      const allDetails = await base44.entities.CreatorDetails.list();
+      return allDetails.filter(d => allFavoriteUserIds.includes(d.user_id));
+    },
+    enabled: allFavoriteUserIds.length > 0 && profiles.length > 0,
   });
 
   // Create favorites list mutation
@@ -105,6 +123,21 @@ export default function Favorites() {
     },
   });
 
+  // Add profile to list mutation
+  const addToListMutation = useMutation({
+    mutationFn: async ({ listId, userId }) => {
+      const list = favorites.find(f => f.id === listId);
+      const updatedItems = [...(list.items || []), { user_id: userId, added_at: new Date().toISOString() }];
+      await base44.entities.Favorite.update(listId, { items: updatedItems });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['favorites']);
+      queryClient.invalidateQueries(['myFavorites']);
+      setAddingToList(null);
+      setSelectedListForAdd('');
+    },
+  });
+
   if (userLoading) {
     return <CCLoadingScreen message="Loading..." />;
   }
@@ -125,6 +158,12 @@ export default function Favorites() {
     return list.items?.map(item => profiles.find(p => p.user_id === item.user_id)).filter(Boolean) || [];
   };
 
+  // Get profiles not in any list
+  const profilesInLists = new Set(favorites.flatMap(f => f.items?.map(i => i.user_id) || []));
+  const unlistedProfiles = profiles;
+
+  const hasLists = favorites.length > 0;
+
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Header */}
@@ -137,12 +176,23 @@ export default function Favorites() {
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-[#E8EEF9]">Favorites</h1>
-                <p className="text-xs text-[#6B7A94]">Your saved profiles</p>
+                <p className="text-xs text-[#6B7A94]">{profiles.length} saved profiles</p>
               </div>
             </div>
-            <CCButton variant="primary" icon={Plus} onClick={() => setIsCreating(true)}>
-              New List
-            </CCButton>
+            <div className="flex gap-2">
+              {hasLists && (
+                <CCButton 
+                  variant="outline" 
+                  icon={showListView ? Heart : List}
+                  onClick={() => setShowListView(!showListView)}
+                >
+                  {showListView ? 'Profiles' : 'Lists'}
+                </CCButton>
+              )}
+              <CCButton variant="primary" icon={Plus} onClick={() => setIsCreating(true)}>
+                New List
+              </CCButton>
+            </div>
           </div>
         </div>
       </div>
@@ -150,30 +200,24 @@ export default function Favorites() {
       {/* Content */}
       <div className="max-w-6xl mx-auto px-4 py-6">
         {favoritesLoading ? (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {[1, 2, 3].map(i => (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
               <CCCard key={i} padding="lg">
                 <div className="animate-pulse space-y-3">
-                  <CCSkeletonLoader className="h-6 w-32" />
+                  <CCSkeletonLoader className="h-80 w-full" />
                   <CCSkeletonLoader className="h-4 w-24" />
-                  <div className="flex -space-x-2">
-                    {[1, 2, 3].map(j => (
-                      <CCSkeletonLoader key={j} className="w-8 h-8 rounded-full" />
-                    ))}
-                  </div>
                 </div>
               </CCCard>
             ))}
           </div>
-        ) : favorites.length === 0 ? (
+        ) : profiles.length === 0 ? (
           <CCEmpty
             icon={FolderHeart}
             title="No favorites yet"
-            description="Create a list to start saving profiles you're interested in collaborating with."
-            action={() => setIsCreating(true)}
-            actionLabel="Create First List"
+            description="Start saving profiles you're interested in collaborating with."
           />
-        ) : (
+        ) : showListView && hasLists ? (
+          // Lists View
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {favorites.map((list) => {
               const listProfiles = getProfilesForList(list);
@@ -225,6 +269,50 @@ export default function Favorites() {
                     )}
                   </CCCard>
                 </motion.div>
+              );
+            })}
+          </div>
+        ) : (
+          // Profile Cards View
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {unlistedProfiles.map((profile) => {
+              const details = creatorDetails.find(d => d.user_id === profile.user_id);
+              return (
+                <div key={profile.user_id} className="relative">
+                  <ProfileCard
+                    profile={profile}
+                    creatorDetails={details}
+                    showActions={false}
+                  />
+                  <div className="mt-2 flex gap-2">
+                    {hasLists && (
+                      <CCButton
+                        variant="outline"
+                        size="sm"
+                        fullWidth
+                        icon={Plus}
+                        onClick={() => setAddingToList(profile)}
+                      >
+                        Add to List
+                      </CCButton>
+                    )}
+                    <CCButton
+                      variant="ghost"
+                      size="sm"
+                      icon={Trash2}
+                      onClick={() => {
+                        // Remove from all lists
+                        favorites.forEach(list => {
+                          if (list.items?.some(i => i.user_id === profile.user_id)) {
+                            removeFromListMutation.mutate({ listId: list.id, userId: profile.user_id });
+                          }
+                        });
+                      }}
+                    >
+                      Remove
+                    </CCButton>
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -323,6 +411,62 @@ export default function Favorites() {
                 description="Save profiles to this list from their profile pages."
               />
             )}
+          </div>
+        )}
+      </CCModal>
+
+      {/* Add to List Modal */}
+      <CCModal
+        isOpen={!!addingToList}
+        onClose={() => {
+          setAddingToList(null);
+          setSelectedListForAdd('');
+        }}
+        title="Add to List"
+      >
+        {addingToList && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-3 p-3 bg-[#121824] rounded-lg">
+              <CCAvatar src={addingToList.avatar_url} size="md" />
+              <div>
+                <p className="font-medium text-[#E8EEF9]">{addingToList.display_name}</p>
+                <p className="text-sm text-[#6B7A94] capitalize">{addingToList.role_type}</p>
+              </div>
+            </div>
+            
+            <CCSelect
+              label="Select List"
+              value={selectedListForAdd}
+              onChange={(e) => setSelectedListForAdd(e.target.value)}
+              options={favorites.map(list => ({
+                value: list.id,
+                label: list.name
+              }))}
+              placeholder="Choose a list..."
+            />
+
+            <div className="flex gap-3 justify-end">
+              <CCButton 
+                variant="outline" 
+                onClick={() => {
+                  setAddingToList(null);
+                  setSelectedListForAdd('');
+                }}
+              >
+                Cancel
+              </CCButton>
+              <CCButton
+                variant="primary"
+                onClick={() => addToListMutation.mutate({ 
+                  listId: selectedListForAdd, 
+                  userId: addingToList.user_id 
+                })}
+                loading={addToListMutation.isPending}
+                disabled={!selectedListForAdd}
+              >
+                Add to List
+              </CCButton>
+            </div>
           </div>
         )}
       </CCModal>
