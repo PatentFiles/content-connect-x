@@ -537,55 +537,8 @@ export default function CreateCollaboration() {
           </motion.div>
         )}
 
-        {/* Step 2: Scene Pairings */}
+        {/* Step 2: Acts */}
         {step === 2 && (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Scene Pairings</h2>
-            <p className="text-[#9AA6BC] mb-6">Select the scene pairings for this collaboration.</p>
-
-            <CCCard padding="lg">
-              <div className="space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  {filteredScenePairings.map((sp) => (
-                    <CCButton
-                      key={sp}
-                      variant={formData.scene_selected?.includes(sp) ? 'primary' : 'outline'}
-                      size="sm"
-                      onClick={() => toggleArrayValue('scene_selected', sp)}
-                    >
-                      {sp}
-                    </CCButton>
-                  ))}
-                </div>
-                {formData.scene_selected?.includes('Other') && (
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={customValues.scene_pairings || ''}
-                      onChange={(e) => setCustomValues({...customValues, scene_pairings: e.target.value})}
-                      className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                      placeholder="Type custom scene pairing..."
-                    />
-                    <CCButton
-                      variant="primary"
-                      size="sm"
-                      icon={Plus}
-                      onClick={() => handleAddCustomValue('scene_pairing', 'scene_selected')}
-                    >
-                      Add
-                    </CCButton>
-                  </div>
-                )}
-              </div>
-            </CCCard>
-          </motion.div>
-        )}
-
-        {/* Step 3: Acts */}
-        {step === 3 && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -595,7 +548,7 @@ export default function CreateCollaboration() {
 
             {/* Standard Acts */}
             <CCCard padding="lg" className="mb-6">
-              <h3 className="font-semibold text-[#E8EEF9] mb-4">Standard Acts</h3>
+              <h3 className="font-semibold text-[#E8EEF9] mb-4">Standard</h3>
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
                   {standardActs.map((act) => (
@@ -633,7 +586,7 @@ export default function CreateCollaboration() {
 
             {/* Fetish Acts */}
             <CCCard padding="lg" className="mb-6">
-              <h3 className="font-semibold text-[#E8EEF9] mb-4">Fetish Acts</h3>
+              <h3 className="font-semibold text-[#E8EEF9] mb-4">Fetish</h3>
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
                   {fetishActs.map((act) => (
@@ -671,7 +624,7 @@ export default function CreateCollaboration() {
 
             {/* Kink/Edge Acts */}
             <CCCard padding="lg">
-              <h3 className="font-semibold text-[#E8EEF9] mb-4">Kink / Edge Acts</h3>
+              <h3 className="font-semibold text-[#E8EEF9] mb-4">Kink</h3>
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
                   {kinkEdgeActs.map((act) => (
@@ -699,6 +652,53 @@ export default function CreateCollaboration() {
                       size="sm"
                       icon={Plus}
                       onClick={() => handleAddCustomValue('kink_edge_act', 'kink_edge_acts')}
+                    >
+                      Add
+                    </CCButton>
+                  </div>
+                )}
+              </div>
+            </CCCard>
+          </motion.div>
+        )}
+
+        {/* Step 3: Scene Pairings */}
+        {step === 3 && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Scene Pairings</h2>
+            <p className="text-[#9AA6BC] mb-6">Select the scene pairings for this collaboration.</p>
+
+            <CCCard padding="lg">
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {filteredScenePairings.map((sp) => (
+                    <CCButton
+                      key={sp}
+                      variant={formData.scene_selected?.includes(sp) ? 'primary' : 'outline'}
+                      size="sm"
+                      onClick={() => toggleArrayValue('scene_selected', sp)}
+                    >
+                      {sp}
+                    </CCButton>
+                  ))}
+                </div>
+                {formData.scene_selected?.includes('Other') && (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customValues.scene_pairings || ''}
+                      onChange={(e) => setCustomValues({...customValues, scene_pairings: e.target.value})}
+                      className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                      placeholder="Type custom scene pairing..."
+                    />
+                    <CCButton
+                      variant="primary"
+                      size="sm"
+                      icon={Plus}
+                      onClick={() => handleAddCustomValue('scene_pairing', 'scene_selected')}
                     >
                       Add
                     </CCButton>
