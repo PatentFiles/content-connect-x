@@ -19,6 +19,7 @@ import { useVerificationCheck } from '@/components/auth/useVerificationCheck';
 import VerificationRequired from '@/components/auth/VerificationRequired';
 import ContractVersionHistory from './ContractVersionHistory';
 import ContractAuditLog from './ContractAuditLog';
+import ConsentRevocationBanner from '@/components/collaboration/ConsentRevocationBanner';
 
 export default function ContractViewer({ contractId }) {
   const [searchParams] = useSearchParams();
@@ -153,8 +154,21 @@ export default function ContractViewer({ contractId }) {
     );
   }
 
+  // Check for active consent revocation
+  const { data: revocations = [] } = useQuery({
+    queryKey: ['consentRevocations', contract.collaboration_id],
+    queryFn: () => base44.entities.ConsentRevocation.filter({ 
+      collaboration_id: contract.collaboration_id,
+      status: 'active'
+    }),
+    enabled: !!contract.collaboration_id,
+  });
+
+  const hasActiveRevocation = revocations.length > 0;
+  const isContractLocked = hasActiveRevocation || contract.status === 'disputed';
+
   const userHasSigned = signatures.some(s => s.user_id === user?.email);
-  const canSign = contract.status === 'sent' && contract.signatories?.some(s => s.user_id === user?.email && !s.signed);
+  const canSign = !isContractLocked && contract.status === 'sent' && contract.signatories?.some(s => s.user_id === user?.email && !s.signed);
   
   const statusConfig = {
     draft: { variant: 'default', icon: FileText },
@@ -228,6 +242,7 @@ export default function ContractViewer({ contractId }) {
 
       {/* Content */}
       <div className="max-w-6xl mx-auto px-4 py-6">
+        <ConsentRevocationBanner collaborationId={contract.collaboration_id} />
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2">

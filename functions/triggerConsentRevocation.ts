@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       }
     });
 
-    // Get all participants to notify
+    // Get all participants to notify (respecting preferences)
     const collaboration = await base44.asServiceRole.entities.Collaboration.filter({
       id: collaboration_id
     });
@@ -77,17 +77,47 @@ Deno.serve(async (req) => {
     if (collaboration.length > 0) {
       const participantIds = collaboration[0].participant_ids || [];
       
+      // Get notification preferences
+      const notificationPrefs = await base44.asServiceRole.entities.NotificationPreference.list();
+      
       for (const participantId of participantIds) {
-        if (participantId !== user.email) {
-          await base44.asServiceRole.entities.Notification.create({
-            user_id: participantId,
-            type: 'consent_revocation',
-            title: 'Consent Revoked',
-            message: `${user.email} has revoked consent for collaboration. The collaboration has been paused.`,
-            related_entity_type: 'collaboration',
-            related_entity_id: collaboration_id,
-            read: false
-          });
+        if (participantId === user.email) continue;
+
+        // Check if user wants this notification type
+        const pref = notificationPrefs.find(p => 
+          p.user_id === participantId && 
+          p.notification_type === 'dispute_updates'
+        );
+
+        const shouldNotify = !pref || pref.enabled;
+        
+        if (shouldNotify) {
+          // In-app notification
+          if (!pref || pref.channels?.in_app !== false) {
+            await base44.asServiceRole.entities.Notification.create({
+              user_id: participantId,
+              type: 'consent_revocation',
+              title: 'Consent Revoked - Action Required',
+              message: `A participant has revoked consent for this collaboration. The collaboration has been paused and is under admin review.`,
+              related_entity_type: 'collaboration',
+              related_entity_id: collaboration_id,
+              read: false
+            });
+          }
+
+          // Email notification
+          if (pref?.channels?.email !== false) {
+            try {
+              await base44.asServiceRole.integrations.Core.SendEmail({
+                to: participantId,
+                subject: 'Consent Revoked - Collaboration Paused',
+                body: `A participant has revoked consent for collaboration "${collaboration[0].collaboration_name}". The collaboration has been paused pending admin review. Please check the platform for details.`,
+                from_name: 'Content Connect'
+              });
+            } catch (error) {
+              console.error('Failed to send email notification:', error);
+            }
+          }
         }
       }
     }

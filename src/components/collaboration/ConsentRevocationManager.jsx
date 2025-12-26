@@ -38,41 +38,15 @@ export default function ConsentRevocationManager({ collaborationId, currentUser,
 
   const revokeConsentMutation = useMutation({
     mutationFn: async (data) => {
-      const revocation = await base44.entities.ConsentRevocation.create({
-        ...data,
+      // Use backend function to trigger full consent revocation flow
+      const result = await base44.functions.invoke('triggerConsentRevocation', {
         collaboration_id: collaborationId,
-        user_id: currentUser.email,
-        immutable: true
+        reason: data.reason,
+        scope: 'all_content',
+        specific_content: []
       });
 
-      // Update collaboration status
-      await base44.entities.Collaboration.update(collaborationId, { 
-        status: 'disputed' 
-      });
-
-      // Log activity
-      await base44.entities.CollaborationActivity.create({
-        collaboration_id: collaborationId,
-        user_id: currentUser.email,
-        activity_type: 'consent_revoked',
-        description: `${currentUser.full_name} revoked ${data.consent_type} consent`,
-        metadata: { 
-          consent_type: data.consent_type, 
-          reason: data.reason 
-        }
-      });
-
-      // Log admin action
-      await base44.entities.AdminActionLog.create({
-        admin_user_id: 'system',
-        target_type: 'Collaboration',
-        target_id: collaborationId,
-        action: 'consent_revocation_triggered',
-        reason: `Consent revocation by ${currentUser.email}`,
-        notes: `Type: ${data.consent_type}, Reason: ${data.reason}`
-      });
-
-      return revocation;
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
