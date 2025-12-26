@@ -123,7 +123,7 @@ export default function AgentFlagsList({ currentAdmin }) {
 
       {/* Flags List */}
       <div className="space-y-3">
-        {filteredFlags.map((flag) => {
+        {(filteredFlags || []).map((flag) => {
           const config = severityConfig[flag.severity];
           
           return (
