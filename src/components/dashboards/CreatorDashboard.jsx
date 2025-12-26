@@ -57,10 +57,10 @@ export default function CreatorDashboard({ user, profile }) {
     enabled: !!user?.email,
   });
 
-  // Fetch shortlists
-  const { data: shortlists = [] } = useQuery({
-    queryKey: ['myShortlists', user?.email],
-    queryFn: () => base44.entities.Shortlist.filter({ user_id: user?.email }),
+  // Fetch favorites
+  const { data: favorites = [] } = useQuery({
+    queryKey: ['myFavorites', user?.email],
+    queryFn: () => base44.entities.Favorite.filter({ user_id: user?.email }),
     enabled: !!user?.email,
   });
 
@@ -288,12 +288,12 @@ export default function CreatorDashboard({ user, profile }) {
               </div>
             </CCCard>
 
-            {/* Saved Shortlists */}
+            {/* Favorites */}
             <CCCard padding="lg" className="flex-1">
-              <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4">Shortlists</h2>
+              <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4">Favorites</h2>
               <div className="flex items-center gap-2 mb-3">
                 <Heart className="w-4 h-4 text-[#FF2DAA]" />
-                <p className="text-2xl font-bold text-[#E8EEF9]">{shortlists.length}</p>
+                <p className="text-2xl font-bold text-[#E8EEF9]">{favorites.length}</p>
                 <p className="text-sm text-[#6B7A94]">saved</p>
               </div>
               <Link to={createPageUrl('Shortlists')}>
