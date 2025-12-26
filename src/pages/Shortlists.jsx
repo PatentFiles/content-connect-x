@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { createPageUrl } from './utils';
 import { 
   Heart, 
   Plus, 
@@ -289,11 +291,16 @@ export default function Shortlists() {
                     key={profile.user_id}
                     className="flex items-center gap-3 p-3 bg-[#121824] rounded-lg"
                   >
-                    <CCAvatar src={profile.avatar_url} size="md" />
-                    <div className="flex-1">
-                      <p className="font-medium text-[#E8EEF9]">{profile.display_name}</p>
-                      <p className="text-sm text-[#6B7A94] capitalize">{profile.role_type}</p>
-                    </div>
+                    <Link 
+                      to={createPageUrl('ViewProfile') + '?userId=' + profile.user_id}
+                      className="flex items-center gap-3 flex-1 hover:opacity-80 transition-opacity"
+                    >
+                      <CCAvatar src={profile.avatar_url} size="md" />
+                      <div className="flex-1">
+                        <p className="font-medium text-[#E8EEF9]">{profile.display_name}</p>
+                        <p className="text-sm text-[#6B7A94] capitalize">{profile.role_type}</p>
+                      </div>
+                    </Link>
                     <CCButton 
                       variant="ghost" 
                       size="sm"
