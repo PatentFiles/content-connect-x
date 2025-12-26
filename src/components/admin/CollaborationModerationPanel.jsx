@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, Pause, Play, AlertTriangle, Shield, FileText } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
@@ -212,11 +211,14 @@ export default function CollaborationModerationPanel({ currentAdmin }) {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <Link to={createPageUrl(`CollaborationDetail?id=${collab.id}`)}>
-                    <CCButton variant="ghost" size="sm" icon={FileText}>
-                      View
-                    </CCButton>
-                  </Link>
+                  <CCButton 
+                    variant="ghost" 
+                    size="sm" 
+                    icon={FileText}
+                    onClick={() => window.location.href = createPageUrl(`CollaborationDetail?id=${collab.id}`)}
+                  >
+                    View
+                  </CCButton>
                   <CCButton
                     variant="ghost"
                     size="sm"
