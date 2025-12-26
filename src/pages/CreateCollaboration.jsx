@@ -106,7 +106,8 @@ export default function CreateCollaboration() {
     scene_pairings: '',
     standard_acts: '',
     fetish_acts: '',
-    kink_edge_acts: ''
+    kink_edge_acts: '',
+    custom_platform: ''
   });
 
   const [formData, setFormData] = useState({
@@ -1453,17 +1454,50 @@ export default function CreateCollaboration() {
                     );
                   })}
                 </div>
-                <CCInput
-                  placeholder="Other platforms (comma-separated)"
-                  value={formData.usage_rights.other_platforms}
-                  onChange={(e) => updateForm('usage_rights', {
-                    ...formData.usage_rights,
-                    other_platforms: e.target.value
-                  })}
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={customValues.custom_platform || ''}
+                    onChange={(e) => setCustomValues({...customValues, custom_platform: e.target.value})}
+                    className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                    placeholder="Add another platform..."
+                  />
+                  <CCButton
+                    variant="primary"
+                    size="sm"
+                    icon={Plus}
+                    onClick={async () => {
+                      const value = customValues.custom_platform?.trim();
+                      if (!value) return;
+
+                      const currentPlatforms = formData.usage_rights.platforms || [];
+                      if (!currentPlatforms.includes(value)) {
+                        updateForm('usage_rights', {
+                          ...formData.usage_rights,
+                          platforms: [...currentPlatforms, value]
+                        });
+                      }
+
+                      try {
+                        await base44.entities.CustomValueSubmission.create({
+                          submitted_by: user.email,
+                          category: 'platform',
+                          custom_value: value,
+                          status: 'pending'
+                        });
+                      } catch (error) {
+                        console.error('Failed to submit custom platform:', error);
+                      }
+
+                      setCustomValues({...customValues, custom_platform: ''});
+                    }}
+                  >
+                    Add
+                  </CCButton>
+                </div>
               </div>
               <div className="space-y-3">
-                <label className="flex items-center justify-center gap-3 cursor-pointer">
+                <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.usage_rights.exclusivity}
@@ -1475,7 +1509,7 @@ export default function CreateCollaboration() {
                   />
                   <span className="text-[#E8EEF9]">Exclusive rights</span>
                 </label>
-                <label className="flex items-center justify-center gap-3 cursor-pointer">
+                <label className="flex items-center gap-3 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={formData.usage_rights.credit_required}
