@@ -15,6 +15,8 @@ import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCModal from '@/components/ui-custom/CCModal';
+import { useVerificationCheck } from '@/components/auth/useVerificationCheck';
+import VerificationRequired from '@/components/auth/VerificationRequired';
 import ContractVersionHistory from './ContractVersionHistory';
 import ContractAuditLog from './ContractAuditLog';
 
@@ -25,6 +27,8 @@ export default function ContractViewer({ contractId }) {
   const [showAuditLog, setShowAuditLog] = useState(false);
   const [showSignModal, setShowSignModal] = useState(false);
   const queryClient = useQueryClient();
+  
+  const { checking: verificationChecking, blocked: verificationBlocked } = useVerificationCheck('sign_contract');
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -126,8 +130,12 @@ export default function ContractViewer({ contractId }) {
     },
   });
 
-  if (isLoading) {
+  if (isLoading || verificationChecking) {
     return <CCLoadingScreen message="Loading contract..." />;
+  }
+
+  if (verificationBlocked) {
+    return <VerificationRequired action="sign contracts" />;
   }
 
   if (!contract) {

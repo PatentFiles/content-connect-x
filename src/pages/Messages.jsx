@@ -24,6 +24,8 @@ import CCCard from '@/components/ui-custom/CCCard';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import AccessGate from '@/components/auth/AccessGate';
+import { useVerificationCheck } from '@/components/auth/useVerificationCheck';
+import VerificationRequired from '@/components/auth/VerificationRequired';
 
 export default function Messages() {
   const [selectedConversation, setSelectedConversation] = useState(null);
@@ -31,6 +33,8 @@ export default function Messages() {
   const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef(null);
   const queryClient = useQueryClient();
+  
+  const { checking: verificationChecking, blocked: verificationBlocked } = useVerificationCheck('send_message');
 
   // Check auth and access
   const { data: user, isLoading: userLoading } = useQuery({
@@ -125,12 +129,16 @@ export default function Messages() {
     return other?.display_name?.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  if (userLoading) {
+  if (userLoading || verificationChecking) {
     return <CCLoadingScreen message="Loading..." />;
   }
 
   if (!user) {
     return <AccessGate type="both" />;
+  }
+
+  if (verificationBlocked) {
+    return <VerificationRequired action="send messages" />;
   }
 
   if (!isVerified) {

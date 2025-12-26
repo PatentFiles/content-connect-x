@@ -28,6 +28,8 @@ import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import SocialLinksDisplay from '@/components/socials/SocialLinksDisplay';
 import AccessGate from '@/components/auth/AccessGate';
+import { useVerificationCheck } from '@/components/auth/useVerificationCheck';
+import VerificationRequired from '@/components/auth/VerificationRequired';
 
 const roleColors = {
   creator: 'primary',
@@ -56,6 +58,8 @@ const roleIcons = {
 export default function ViewProfile() {
   const urlParams = new URLSearchParams(window.location.search);
   const profileUserId = urlParams.get('id');
+  
+  const { checking: verificationChecking, blocked: verificationBlocked } = useVerificationCheck('view_profile');
 
   // Check auth
   const { data: user, isLoading: userLoading } = useQuery({
@@ -220,12 +224,16 @@ export default function ViewProfile() {
     enabled: (agentIds.length + studioIds.length) > 0,
   });
 
-  if (userLoading || profileLoading) {
+  if (userLoading || profileLoading || verificationChecking) {
     return <CCLoadingScreen message="Loading profile..." />;
   }
 
   if (!user) {
     return <AccessGate type="both" />;
+  }
+
+  if (verificationBlocked) {
+    return <VerificationRequired action="view profiles" />;
   }
 
   if (!isVerified) {

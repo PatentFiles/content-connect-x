@@ -28,6 +28,8 @@ import CCBadge from '@/components/ui-custom/CCBadge';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import AccessGate from '@/components/auth/AccessGate';
+import { useVerificationCheck } from '@/components/auth/useVerificationCheck';
+import VerificationRequired from '@/components/auth/VerificationRequired';
 import AvailabilityCalendar from '@/components/collaboration/AvailabilityCalendar';
 
 
@@ -96,6 +98,8 @@ export default function CreateCollaboration() {
   const [showVideographerSearch, setShowVideographerSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [emailError, setEmailError] = useState('');
+  
+  const { checking: verificationChecking, blocked: verificationBlocked } = useVerificationCheck('create_collaboration');
   
   // Get collaboration ID from URL for editing
   const urlParams = new URLSearchParams(window.location.search);
@@ -543,11 +547,12 @@ export default function CreateCollaboration() {
     setCustomValues({...customValues, [field]: ''});
   };
 
-  if (userLoading || (isEditing && loadingCollab && !existingCollaboration) || !details) {
+  if (userLoading || verificationChecking || (isEditing && loadingCollab && !existingCollaboration) || !details) {
     return <CCLoadingScreen message="Loading..." />;
   }
 
   if (!user) return <AccessGate type="both" />;
+  if (verificationBlocked) return <VerificationRequired action="create collaborations" />;
   if (!isVerified) return <AccessGate type="verification" />;
   if (!isSubscribed) return <AccessGate type="subscription" />;
 
