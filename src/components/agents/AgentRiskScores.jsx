@@ -19,9 +19,9 @@ export default function AgentRiskScores() {
     queryFn: () => base44.entities.CollaborationRiskScore.list('-calculated_at', 100),
   });
 
-  const filteredScores = riskScores.filter(score =>
-    !searchId || score.collaboration_id.includes(searchId)
-  );
+  const filteredScores = riskScores?.filter(score =>
+    !searchId || score.collaboration_id?.includes(searchId)
+  ) || [];
 
   const getBandConfig = (score) => {
     if (score >= 70) return { variant: 'danger', label: 'HIGH RISK', color: 'text-[#EF4444]' };

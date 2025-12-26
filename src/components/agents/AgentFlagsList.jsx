@@ -55,11 +55,11 @@ export default function AgentFlagsList({ currentAdmin }) {
     },
   });
 
-  const filteredFlags = flags.filter(flag => {
+  const filteredFlags = flags?.filter(flag => {
     const matchesSeverity = severityFilter === 'all' || flag.severity === severityFilter;
     const matchesStatus = statusFilter === 'all' || flag.status === statusFilter;
     return matchesSeverity && matchesStatus;
-  });
+  }) || [];
 
   const getAgentName = (agentId) => {
     const agent = agents.find(a => a.id === agentId);

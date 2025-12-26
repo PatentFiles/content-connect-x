@@ -23,9 +23,9 @@ export default function AgentRunsList() {
     queryFn: () => base44.entities.AgentProfile.list(),
   });
 
-  const filteredRuns = runs.filter(run => 
+  const filteredRuns = runs?.filter(run => 
     statusFilter === 'all' || run.run_status === statusFilter
-  );
+  ) || [];
 
   const getAgentName = (agentId) => {
     const agent = agents.find(a => a.id === agentId);

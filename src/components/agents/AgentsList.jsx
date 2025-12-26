@@ -75,9 +75,9 @@ export default function AgentsList({ currentAdmin }) {
   });
 
   const getAgentStats = (agentId) => {
-    const agentRuns = runs.filter(r => r.agent_id === agentId);
+    const agentRuns = runs?.filter(r => r.agent_id === agentId) || [];
     const lastRun = agentRuns[0];
-    const openFlags = flags.filter(f => f.agent_id === agentId && f.status === 'OPEN');
+    const openFlags = flags?.filter(f => f.agent_id === agentId && f.status === 'OPEN') || [];
     return { lastRun, openFlagsCount: openFlags.length };
   };
 
