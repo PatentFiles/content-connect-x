@@ -19,18 +19,22 @@ export default function AgentManagement() {
   const [activeTab, setActiveTab] = useState('agents');
   const queryClient = useQueryClient();
 
-  const { data: user } = useQuery({
+  const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: profiles = [] } = useQuery({
+  const { data: profiles = [], isLoading: profileLoading } = useQuery({
     queryKey: ['myProfile', user?.email],
     queryFn: () => base44.entities.UserProfile.filter({ user_id: user?.email }),
     enabled: !!user?.email,
   });
 
   const profile = profiles[0];
+
+  if (userLoading || profileLoading) {
+    return <CCLoadingScreen />;
+  }
 
   if (!profile?.is_admin) {
     return (
