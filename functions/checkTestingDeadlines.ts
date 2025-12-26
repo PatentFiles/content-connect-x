@@ -128,6 +128,41 @@ Deno.serve(async (req) => {
           }
         });
 
+        // Create compliance score events for failed participants (with idempotency check)
+        const existingScoreEvents = await base44.asServiceRole.entities.ComplianceScoreEvent.filter({
+          collaboration_id: collaboration.id,
+          event_type: 'MISSED_TESTING_DEADLINE'
+        });
+        const existingParticipantIds = new Set(existingScoreEvents.map(e => e.user_id));
+
+        for (const participantId of failedParticipants) {
+          if (!existingParticipantIds.has(participantId)) {
+            await base44.asServiceRole.entities.ComplianceScoreEvent.create({
+              user_id: participantId,
+              score_type: 'TESTING_COMPLIANCE',
+              event_type: 'MISSED_TESTING_DEADLINE',
+              collaboration_id: collaboration.id,
+              points: -10,
+              note: 'Missed testing deadline for collaboration'
+            });
+          }
+        }
+
+        // Send notifications to all participants
+        for (const participantId of participantIds) {
+          await base44.asServiceRole.entities.Notification.create({
+            user_id: participantId,
+            type: 'collaboration_cancelled_testing',
+            title: 'Collaboration Cancelled',
+            body: 'A collaboration was cancelled because a required testing deadline was missed.',
+            metadata: {
+              collaboration_id: collaboration.id,
+              collaboration_name: collaboration.collaboration_name
+            },
+            read_at: null
+          });
+        }
+
         results.push({
           collaboration_id: collaboration.id,
           action: 'auto_cancelled',

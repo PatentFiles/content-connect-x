@@ -337,7 +337,10 @@ export default function CreateCollaboration() {
       }
 
       // Handle testing requirements
-      if (data.testing_requirements.is_required) {
+      const wasRequiredBefore = existingTestingReq?.is_required;
+      const isRequiredNow = data.testing_requirements.is_required;
+
+      if (isRequiredNow) {
         let deadlineAt;
         if (data.testing_requirements.deadline_preset) {
           const now = new Date();
@@ -374,6 +377,18 @@ export default function CreateCollaboration() {
           await base44.entities.TestingRequirement.update(existingReqs[0].id, testingReqPayload);
         } else {
           await base44.entities.TestingRequirement.create(testingReqPayload);
+        }
+
+        // Send notification if newly enabled
+        if (!wasRequiredBefore) {
+          try {
+            await base44.functions.invoke('sendTestingNotification', {
+              collaboration_id: collaboration.id,
+              notification_type: 'testing_enabled'
+            });
+          } catch (error) {
+            console.error('Failed to send testing notification:', error);
+          }
         }
       } else if (isEditing) {
         // Delete testing requirement if disabled
