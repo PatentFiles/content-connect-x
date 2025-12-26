@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { collaboration_id } = await req.json();
+    const { collaboration_id, testing_requirement_id, satisfied_by } = await req.json();
 
     if (!collaboration_id) {
       return Response.json({ error: 'collaboration_id required' }, { status: 400 });
@@ -83,37 +83,64 @@ Deno.serve(async (req) => {
     }
 
     // Update requirement if all satisfied
-    if (allSatisfied && requirement.status !== 'SATISFIED') {
+    if (allSatisfied && !requirement.satisfied_at) {
+      const satisfiedAt = new Date().toISOString();
+      
       await base44.asServiceRole.entities.TestingRequirement.update(requirement.id, {
         status: 'SATISFIED',
-        satisfied_at: new Date().toISOString()
+        satisfied_at: satisfiedAt,
+        satisfied_by: satisfied_by || 'SYSTEM'
       });
 
-      // Log satisfaction
+      // Log satisfaction in activity feed
       await base44.asServiceRole.entities.CollaborationActivityLog.create({
         collaboration_id,
         activity_type: 'TESTING_SATISFIED',
-        user_id: 'SYSTEM',
+        user_id: satisfied_by || 'SYSTEM',
         details: {
           requirement_id: requirement.id,
-          satisfied_at: new Date().toISOString(),
+          satisfied_at: satisfiedAt,
+          all_participants_verified: true,
+          participant_count: participantIds.length,
           participants: participantStatus
         }
       });
 
-      // Create compliance score event
+      // Update collaboration state if currently in testing_required status
+      if (collaboration.status === 'testing_required') {
+        await base44.asServiceRole.entities.Collaboration.update(collaboration_id, {
+          status: 'active'
+        });
+
+        await base44.asServiceRole.entities.CollaborationActivityLog.create({
+          collaboration_id,
+          activity_type: 'STATUS_CHANGE',
+          user_id: 'SYSTEM',
+          details: {
+            from_status: 'testing_required',
+            to_status: 'active',
+            reason: 'All testing requirements satisfied'
+          }
+        });
+      }
+
+      // Create compliance score event for each participant
       for (const participantId of participantIds) {
         await base44.asServiceRole.entities.ComplianceScoreEvent.create({
           user_id: participantId,
           event_type: 'testing_satisfied',
           score_change: 5,
-          details: { collaboration_id }
+          details: { 
+            collaboration_id,
+            satisfied_at: satisfiedAt
+          }
         });
       }
 
       return Response.json({
         status: 'satisfied',
-        satisfied_at: new Date().toISOString(),
+        satisfied_at: satisfiedAt,
+        collaboration_status_updated: collaboration.status === 'testing_required',
         participants: participantStatus
       });
     }
