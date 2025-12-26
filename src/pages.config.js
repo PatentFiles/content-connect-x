@@ -1,5 +1,6 @@
 import AdminDashboard from './pages/AdminDashboard';
 import AgentManagement from './pages/AgentManagement';
+import AvailabilitySchedule from './pages/AvailabilitySchedule';
 import CollaborationDetail from './pages/CollaborationDetail';
 import Collaborations from './pages/Collaborations';
 import CompliancePortal from './pages/CompliancePortal';
@@ -22,17 +23,17 @@ import RosterPortfolio from './pages/RosterPortfolio';
 import Search from './pages/Search';
 import Settings from './pages/Settings';
 import Terms from './pages/Terms';
+import TravelSchedule from './pages/TravelSchedule';
 import Verification from './pages/Verification';
 import ViewContract from './pages/ViewContract';
 import ViewProfile from './pages/ViewProfile';
-import AvailabilitySchedule from './pages/AvailabilitySchedule';
-import TravelSchedule from './pages/TravelSchedule';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "AdminDashboard": AdminDashboard,
     "AgentManagement": AgentManagement,
+    "AvailabilitySchedule": AvailabilitySchedule,
     "CollaborationDetail": CollaborationDetail,
     "Collaborations": Collaborations,
     "CompliancePortal": CompliancePortal,
@@ -55,11 +56,10 @@ export const PAGES = {
     "Search": Search,
     "Settings": Settings,
     "Terms": Terms,
+    "TravelSchedule": TravelSchedule,
     "Verification": Verification,
     "ViewContract": ViewContract,
     "ViewProfile": ViewProfile,
-    "AvailabilitySchedule": AvailabilitySchedule,
-    "TravelSchedule": TravelSchedule,
 }
 
 export const pagesConfig = {
