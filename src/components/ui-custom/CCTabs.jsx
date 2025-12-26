@@ -10,13 +10,26 @@ export function CCTabs({ children, className }) {
   );
 }
 
-export function CCTabsList({ tabs, activeTab, onChange, className }) {
+export function CCTabsList({ tabs, activeTab, onChange, className, children }) {
+  // If children are provided, render them directly (old API)
+  if (children) {
+    return (
+      <div className={cn(
+        'flex gap-1 p-1 bg-[#121824] rounded-lg border border-[#263248]',
+        className
+      )}>
+        {children}
+      </div>
+    );
+  }
+
+  // Otherwise use tabs array (new API)
   return (
     <div className={cn(
       'flex gap-1 p-1 bg-[#121824] rounded-lg border border-[#263248]',
       className
     )}>
-      {tabs.map((tab) => (
+      {(tabs || []).map((tab) => (
         <button
           key={tab.value}
           onClick={() => onChange(tab.value)}
