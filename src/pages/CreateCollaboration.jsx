@@ -239,6 +239,14 @@ export default function CreateCollaboration() {
     queryFn: () => base44.entities.Tag.filter({ status: 'approved' }),
   });
 
+  // Fetch creator details for filtering
+  const { data: creatorDetails = [] } = useQuery({
+    queryKey: ['myCreatorDetails', user?.email],
+    queryFn: () => base44.entities.CreatorDetails.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+  const details = creatorDetails[0];
+
   // Create/Update mutation
   const createMutation = useMutation({
     mutationFn: (data) => {
@@ -306,6 +314,27 @@ export default function CreateCollaboration() {
   if (!isSubscribed) return <AccessGate type="subscription" />;
 
   const totalSteps = 7;
+
+  // Filter scene pairings based on orientation
+  const orientations = details?.orientation_category || [];
+  const genderIdentity = details?.gender_identity;
+  const filteredScenePairings = scenePairings.filter(sp => {
+    // Boy/Boy only for gay, bisexual, pansexual
+    if (sp.includes('Boy / Boy') && !sp.includes('Girl')) {
+      return orientations.some(o => ['gay', 'bi', 'pan'].includes(o));
+    }
+    // Girl/Girl only for lesbian, bisexual, pansexual
+    if (sp.includes('Girl / Girl') && !sp.includes('Boy')) {
+      return orientations.some(o => ['lesbian', 'bi', 'pan'].includes(o));
+    }
+    // Trans pairings only for pan or trans/non-binary gender identities
+    if (sp.includes('Trans') || sp.includes('Non-Binary')) {
+      return orientations.some(o => ['pan'].includes(o)) || 
+             ['trans_man', 'trans_woman', 'non_binary'].includes(genderIdentity);
+    }
+    // All other pairings available to everyone
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
@@ -383,7 +412,7 @@ export default function CreateCollaboration() {
             <CCCard padding="lg">
               <div className="space-y-3">
                 <div className="flex flex-wrap gap-2">
-                  {scenePairings.map((sp) => (
+                  {filteredScenePairings.map((sp) => (
                     <CCButton
                       key={sp}
                       variant={formData.scene_selected?.includes(sp) ? 'primary' : 'outline'}
