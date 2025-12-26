@@ -181,8 +181,9 @@ export default function CreateCollaboration() {
         participant_ids: existingCollaboration.participant_ids || [],
 
         scene_selected: existingCollaboration.scene_selected || [],
-        acts_selected: existingCollaboration.acts_selected || [],
-        acts_other_text: existingCollaboration.acts_other_text || '',
+        standard_acts: existingCollaboration.standard_acts || [],
+        fetish_acts: existingCollaboration.fetish_acts || [],
+        kink_edge_acts: existingCollaboration.kink_edge_acts || [],
         boundaries: existingCollaboration.boundaries || {
           hard_no: [],
           soft_limits: [],
