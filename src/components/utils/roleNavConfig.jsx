@@ -11,7 +11,8 @@ import {
   Camera,
   Video,
   User,
-  Settings
+  Settings,
+  Bot
 } from 'lucide-react';
 
 export const roleNavigation = {
