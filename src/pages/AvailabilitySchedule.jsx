@@ -23,11 +23,25 @@ export default function AvailabilitySchedule() {
     queryFn: () => base44.auth.me(),
   });
 
+  const monthStart = startOfMonth(viewMonth);
+  const monthEnd = endOfMonth(viewMonth);
+  const monthStartStr = format(monthStart, 'yyyy-MM-dd');
+  const monthEndStr = format(monthEnd, 'yyyy-MM-dd');
+
   const { data: entries = [], isLoading } = useQuery({
-    queryKey: ['scheduleEntries', user?.email],
-    queryFn: () => base44.entities.ScheduleEntry.filter({ 
-      user_id: user?.email,
-    }),
+    queryKey: ['scheduleEntries', user?.email, monthStartStr],
+    queryFn: async () => {
+      const allEntries = await base44.entities.ScheduleEntry.filter({ 
+        user_id: user?.email,
+      });
+      return allEntries.filter(entry => {
+        const entryStart = entry.start_date;
+        const entryEnd = entry.end_date;
+        return (entryStart >= monthStartStr && entryStart <= monthEndStr) ||
+               (entryEnd >= monthStartStr && entryEnd <= monthEndStr) ||
+               (entryStart <= monthStartStr && entryEnd >= monthEndStr);
+      });
+    },
     enabled: !!user?.email,
   });
 
@@ -189,16 +203,7 @@ END:VCALENDAR`;
     }
   };
 
-  const monthStart = startOfMonth(viewMonth);
-  const monthEnd = endOfMonth(viewMonth);
   const daysInMonth = eachDayOfInterval({ start: monthStart, end: monthEnd });
-
-  const entriesByMonth = availabilityEntries.reduce((acc, entry) => {
-    const monthKey = format(new Date(entry.start_date), 'MMMM yyyy');
-    if (!acc[monthKey]) acc[monthKey] = [];
-    acc[monthKey].push(entry);
-    return acc;
-  }, {});
 
   const getDayEntries = (dateStr) => {
     return availabilityEntries.filter(entry => {
@@ -317,9 +322,9 @@ END:VCALENDAR`;
           </CCCard>
           <CCCard padding="lg" className="text-center">
             <p className="text-3xl font-bold text-[#9AA6BC]">
-              {Object.keys(entriesByMonth).length}
+              {availabilityEntries.filter(e => e.source === 'MANUAL').length}
             </p>
-            <p className="text-sm text-[#9AA6BC] mt-1">Months</p>
+            <p className="text-sm text-[#9AA6BC] mt-1">Manual</p>
           </CCCard>
         </div>
 
@@ -376,31 +381,26 @@ END:VCALENDAR`;
           </div>
         </CCCard>
 
-        {/* Entries by Month */}
-        {Object.keys(entriesByMonth).length > 0 ? (
+        {/* Entries List */}
+        {availabilityEntries.length > 0 ? (
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-[#E8EEF9]">All Entries</h2>
-            {Object.entries(entriesByMonth)
-              .sort((a, b) => new Date(a[1][0].start_date) - new Date(b[1][0].start_date))
-              .map(([month, monthEntries]) => (
-              <div key={month} className="space-y-3">
-                <h3 className="text-md font-semibold text-[#9AA6BC]">{month}</h3>
-                <div className="space-y-3">
-                  {monthEntries
-                    .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
-                    .map(entry => (
-                    <ScheduleEntryCard
-                      key={entry.id}
-                      entry={entry}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                      isSelected={selectedEntries.includes(entry.id)}
-                      onSelect={handleSelect}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
+            <h2 className="text-lg font-semibold text-[#E8EEF9]">
+              {format(viewMonth, 'MMMM yyyy')} Entries
+            </h2>
+            <div className="space-y-3">
+              {availabilityEntries
+                .sort((a, b) => new Date(a.start_date) - new Date(b.start_date))
+                .map(entry => (
+                <ScheduleEntryCard
+                  key={entry.id}
+                  entry={entry}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  isSelected={selectedEntries.includes(entry.id)}
+                  onSelect={handleSelect}
+                />
+              ))}
+            </div>
           </div>
         ) : (
           <CCCard padding="lg" className="text-center">
