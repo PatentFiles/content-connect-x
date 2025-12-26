@@ -217,30 +217,6 @@ export default function CreatorDashboard({ user, profile }) {
               )}
             </CCCard>
 
-            {/* Contracts Status */}
-            {contracts.length > 0 && (
-              <CCCard padding="lg">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-[#E8EEF9]">Contract Status</h2>
-                  <Link to={createPageUrl('Contracts')}>
-                    <CCButton variant="ghost" size="sm">View All</CCButton>
-                  </Link>
-                </div>
-                <div className="space-y-3">
-                  {pendingContracts.slice(0, 3).map(contract => (
-                    <div key={contract.id} className="flex items-center justify-between p-3 bg-[#151D2B] rounded-lg">
-                      <div>
-                        <p className="text-sm font-medium text-[#E8EEF9]">{contract.title}</p>
-                        <p className="text-xs text-[#6B7A94]">Waiting for signature</p>
-                      </div>
-                      <CCBadge variant="warning" size="sm" icon={Clock}>
-                        Pending
-                      </CCBadge>
-                    </div>
-                  ))}
-                </div>
-              </CCCard>
-            )}
           </div>
 
           {/* Right Column */}
@@ -328,6 +304,31 @@ export default function CreatorDashboard({ user, profile }) {
             </CCCard>
           </div>
         </div>
+
+        {/* Contracts Status */}
+        {contracts.length > 0 && (
+          <CCCard padding="lg" className="mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-[#E8EEF9]">Contract Status</h2>
+              <Link to={createPageUrl('Contracts')}>
+                <CCButton variant="ghost" size="sm">View All</CCButton>
+              </Link>
+            </div>
+            <div className="grid md:grid-cols-4 gap-3">
+              {pendingContracts.slice(0, 4).map(contract => (
+                <div key={contract.id} className="flex flex-col justify-between p-3 bg-[#151D2B] rounded-lg">
+                  <div>
+                    <p className="text-sm font-medium text-[#E8EEF9] mb-1">{contract.title}</p>
+                    <p className="text-xs text-[#6B7A94]">Waiting for signature</p>
+                  </div>
+                  <CCBadge variant="warning" size="sm" icon={Clock} className="mt-2 self-start">
+                    Pending
+                  </CCBadge>
+                </div>
+              ))}
+            </div>
+          </CCCard>
+        )}
       </div>
     </div>
   );
