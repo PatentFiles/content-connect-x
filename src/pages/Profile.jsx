@@ -426,7 +426,7 @@ export default function Profile() {
           <div className="space-y-6">
             {/* Basic Info */}
             <CCCard padding="lg">
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Basic Information</h3>
+              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Basic Information</h3>
               <div className="space-y-4">
                 {isEditing ? (
                   <>
@@ -525,32 +525,32 @@ export default function Profile() {
                   </>
                 ) : (
                   <>
-                    <div>
+                    <div className="text-center">
                       <p className="text-sm text-[#6B7A94]">Display Name</p>
                       <p className="text-[#E8EEF9] mt-1">{profile?.display_name || 'Not set'}</p>
                     </div>
                     {profile?.age && (
-                      <div>
+                      <div className="text-center">
                         <p className="text-sm text-[#6B7A94]">Age</p>
                         <p className="text-[#E8EEF9] mt-1">{profile.age}</p>
                       </div>
                     )}
                     {profile?.ethnicity && (
-                      <div>
+                      <div className="text-center">
                         <p className="text-sm text-[#6B7A94]">Ethnicity</p>
                         <p className="text-[#E8EEF9] mt-1">{profile.ethnicity}</p>
                       </div>
                     )}
                     {details?.gender_identity && (
-                      <div>
+                      <div className="text-center">
                         <p className="text-sm text-[#6B7A94]">Gender Identity</p>
                         <p className="text-[#E8EEF9] mt-1 capitalize">{details.gender_identity.replace(/_/g, ' ')}</p>
                       </div>
                     )}
                     {details?.orientation_category && Array.isArray(details.orientation_category) && details.orientation_category.length > 0 && (
-                      <div>
+                      <div className="text-center">
                         <p className="text-sm text-[#6B7A94]">Sexual Orientation</p>
-                        <div className="flex flex-wrap gap-2 mt-2">
+                        <div className="flex flex-wrap gap-2 mt-2 justify-center">
                           {details.orientation_category.map(o => (
                             <CCBadge key={o} variant="outline">{o}</CCBadge>
                           ))}
@@ -558,15 +558,15 @@ export default function Profile() {
                       </div>
                     )}
                     {profile?.bio && (
-                      <div>
+                      <div className="text-center">
                         <p className="text-sm text-[#6B7A94]">Bio</p>
                         <p className="text-[#E8EEF9] mt-1">{profile.bio}</p>
                       </div>
                     )}
                     {profile?.base_location?.city && (
-                      <div>
+                      <div className="text-center">
                         <p className="text-sm text-[#6B7A94]">Location</p>
-                        <p className="text-[#E8EEF9] mt-1 flex items-center gap-1">
+                        <p className="text-[#E8EEF9] mt-1 flex items-center gap-1 justify-center">
                           <MapPin className="w-4 h-4" />
                           {profile.base_location.city && profile.base_location.state && profile.base_location.country 
                             ? `${profile.base_location.city}, ${profile.base_location.state}, ${profile.base_location.country}`
@@ -979,11 +979,11 @@ export default function Profile() {
                 {/* Scene Pairings */}
                 {details?.scene_pairings && details.scene_pairings.length > 0 && (
                   <CCCard padding="lg">
-                    <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center gap-2 mb-4 justify-center">
                       <Heart className="w-5 h-5 text-[#9AA6BC]" />
                       <h3 className="text-lg font-semibold text-[#E8EEF9]">Scene Pairings</h3>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 justify-center">
                       {details.scene_pairings.map(sp => (
                         <CCBadge key={sp} variant="outline">{sp.replace(/_/g, ' ')}</CCBadge>
                       ))}
@@ -994,11 +994,11 @@ export default function Profile() {
                 {/* Compensation Preferences */}
                 {details?.compensation_preferences && details.compensation_preferences.length > 0 && (
                   <CCCard padding="lg">
-                    <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center gap-2 mb-4 justify-center">
                       <Briefcase className="w-5 h-5 text-[#9AA6BC]" />
                       <h3 className="text-lg font-semibold text-[#E8EEF9]">Compensation Preferences</h3>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 justify-center">
                       {details.compensation_preferences.map(cp => (
                         <CCBadge key={cp} variant="outline">
                           {cp}
@@ -1011,11 +1011,11 @@ export default function Profile() {
                 {/* Standard Acts */}
                 {details?.standard_acts && details.standard_acts.length > 0 && (
                   <CCCard padding="lg">
-                    <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center gap-2 mb-4 justify-center">
                       <Activity className="w-5 h-5 text-[#9AA6BC]" />
                       <h3 className="text-lg font-semibold text-[#E8EEF9]">Standard Acts</h3>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 justify-center">
                       {details.standard_acts.map(sa => (
                         <CCBadge key={sa} variant="outline">{sa.replace(/_/g, ' ')}</CCBadge>
                       ))}
@@ -1026,11 +1026,11 @@ export default function Profile() {
                 {/* Fetish Acts */}
                 {details?.fetish_acts && details.fetish_acts.length > 0 && (
                   <CCCard padding="lg">
-                    <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center gap-2 mb-4 justify-center">
                       <Activity className="w-5 h-5 text-[#9AA6BC]" />
                       <h3 className="text-lg font-semibold text-[#E8EEF9]">Fetish Acts</h3>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 justify-center">
                       {details.fetish_acts.map(fa => (
                         <CCBadge key={fa} variant="outline">{fa.replace(/_/g, ' ')}</CCBadge>
                       ))}
@@ -1041,11 +1041,11 @@ export default function Profile() {
                 {/* Kink / Edge Acts */}
                 {details?.kink_edge_acts && details.kink_edge_acts.length > 0 && (
                   <CCCard padding="lg">
-                    <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center gap-2 mb-4 justify-center">
                       <Activity className="w-5 h-5 text-[#9AA6BC]" />
                       <h3 className="text-lg font-semibold text-[#E8EEF9]">Kink / Edge Acts</h3>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 justify-center">
                       {details.kink_edge_acts.map(ke => (
                         <CCBadge key={ke} variant="outline">{ke.replace(/_/g, ' ')}</CCBadge>
                       ))}
@@ -1056,8 +1056,8 @@ export default function Profile() {
                 {/* Performance Positioning */}
                 {details?.performance_positioning && details.performance_positioning.length > 0 && (
                   <CCCard padding="lg">
-                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Performance Positioning</h3>
-                    <div className="flex flex-wrap gap-2">
+                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Performance Positioning</h3>
+                    <div className="flex flex-wrap gap-2 justify-center">
                       {details.performance_positioning.map(pp => (
                         <CCBadge key={pp} variant="outline">{pp}</CCBadge>
                       ))}
@@ -1068,8 +1068,8 @@ export default function Profile() {
                 {/* Physical Details */}
                 {details?.physical_details && Object.keys(details.physical_details).length > 0 && (
                   <CCCard padding="lg">
-                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Physical Details</h3>
-                    <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Physical Details</h3>
+                    <div className="space-y-2 text-center">
                       {details.physical_details.breast_size && (
                         <p className="text-[#E8EEF9]">Breast Size: {details.physical_details.breast_size}</p>
                       )}
@@ -1089,17 +1089,17 @@ export default function Profile() {
                 {/* Availability & Travel */}
                 {details?.availability_type && (
                   <CCCard padding="lg">
-                    <div className="flex items-center gap-2 mb-4">
-                      <MapPinned className="w-5 h-5 text-[#4F8CFF]" />
+                    <div className="flex items-center gap-2 mb-4 justify-center">
+                      <MapPinned className="w-5 h-5 text-[#9AA6BC]" />
                       <h3 className="text-lg font-semibold text-[#E8EEF9]">Availability & Travel</h3>
                     </div>
-                    <p className="text-[#E8EEF9] mb-2 capitalize">
+                    <p className="text-[#E8EEF9] mb-2 capitalize text-center">
                       {details.availability_type.replace(/_/g, ' ')}
                     </p>
                     {details.travel_regions && details.travel_regions.length > 0 && (
-                      <div className="flex flex-wrap gap-2 mt-2">
+                      <div className="flex flex-wrap gap-2 mt-2 justify-center">
                         {details.travel_regions.map(tr => (
-                          <CCBadge key={tr}>{tr}</CCBadge>
+                          <CCBadge key={tr} variant="outline">{tr}</CCBadge>
                         ))}
                       </div>
                     )}
@@ -1109,12 +1109,12 @@ export default function Profile() {
                 {/* Health & Testing */}
                 {details?.health_testing?.testing_status && (
                   <CCCard padding="lg">
-                    <div className="flex items-center gap-2 mb-4">
-                      <Shield className="w-5 h-5 text-[#22C55E]" />
+                    <div className="flex items-center gap-2 mb-4 justify-center">
+                      <Shield className="w-5 h-5 text-[#9AA6BC]" />
                       <h3 className="text-lg font-semibold text-[#E8EEF9]">Health & Testing</h3>
-                      <CCBadge variant="warning" size="sm">Private by Default</CCBadge>
+                      <CCBadge variant="outline" size="sm">Private by Default</CCBadge>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-2 text-center">
                       <p className="text-[#E8EEF9]">Status: {details.health_testing.testing_status}</p>
                       {details.health_testing.last_test_date && (
                         <p className="text-[#E8EEF9]">Last Test: {new Date(details.health_testing.last_test_date).toLocaleDateString()}</p>
@@ -1124,6 +1124,50 @@ export default function Profile() {
                   </CCCard>
                 )}
               </>
+            )}
+
+            {/* Availability and Travel */}
+            {(profile?.availability_dates?.length > 0 || profile?.travel_dates?.length > 0) && (
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Availability Dates */}
+                {profile?.availability_dates?.length > 0 && (
+                  <CCCard padding="lg">
+                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Availability</h3>
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {profile.availability_dates.sort().slice(0, 8).map(dateStr => (
+                        <CCBadge key={dateStr} variant="outline">
+                          {format(new Date(dateStr), 'MMM d')}
+                        </CCBadge>
+                      ))}
+                      {profile.availability_dates.length > 8 && (
+                        <CCBadge variant="outline">
+                          +{profile.availability_dates.length - 8} more
+                        </CCBadge>
+                      )}
+                    </div>
+                  </CCCard>
+                )}
+
+                {/* Travel Dates */}
+                {profile?.travel_dates?.length > 0 && (
+                  <CCCard padding="lg">
+                    <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Travel Schedule</h3>
+                    <div className="space-y-2">
+                      {profile.travel_dates.map((travel, idx) => (
+                        <div key={idx} className="p-2 rounded bg-[#0B0F14] text-center">
+                          <div className="text-sm font-medium text-[#E8EEF9]">{travel.location}</div>
+                          <div className="text-xs text-[#9AA6BC]">
+                            {format(new Date(travel.start_date), 'MMM d')} - {format(new Date(travel.end_date), 'MMM d')}
+                          </div>
+                          {travel.arrival_time && (
+                            <div className="text-xs text-[#6B7A94]">Arrives: {travel.arrival_time}</div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </CCCard>
+                )}
+              </div>
             )}
 
             {/* AI Bio Generator - At the very bottom */}
@@ -1140,55 +1184,12 @@ export default function Profile() {
         </CCTabsContent>
 
         <CCTabsContent value="galleries" activeTab={activeTab}>
-          {/* Availability and Travel */}
-          {(profile?.availability_dates?.length > 0 || profile?.travel_dates?.length > 0) && (
-            <div className="grid md:grid-cols-2 gap-6 mb-6">
-              {/* Availability Dates */}
-              {profile?.availability_dates?.length > 0 && (
-                <CCCard padding="lg">
-                  <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Availability</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {profile.availability_dates.sort().slice(0, 8).map(dateStr => (
-                      <CCBadge key={dateStr} variant="outline">
-                        {format(new Date(dateStr), 'MMM d')}
-                      </CCBadge>
-                    ))}
-                    {profile.availability_dates.length > 8 && (
-                      <CCBadge variant="outline">
-                        +{profile.availability_dates.length - 8} more
-                      </CCBadge>
-                    )}
-                  </div>
-                </CCCard>
-              )}
-
-              {/* Travel Dates */}
-              {profile?.travel_dates?.length > 0 && (
-                <CCCard padding="lg">
-                  <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Travel Schedule</h3>
-                  <div className="space-y-2">
-                    {profile.travel_dates.map((travel, idx) => (
-                      <div key={idx} className="p-2 rounded bg-[#0B0F14]">
-                        <div className="text-sm font-medium text-[#E8EEF9]">{travel.location}</div>
-                        <div className="text-xs text-[#9AA6BC]">
-                          {format(new Date(travel.start_date), 'MMM d')} - {format(new Date(travel.end_date), 'MMM d')}
-                        </div>
-                        {travel.arrival_time && (
-                          <div className="text-xs text-[#6B7A94]">Arrives: {travel.arrival_time}</div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </CCCard>
-              )}
-            </div>
-          )}
 
           <div className="grid md:grid-cols-2 gap-6">
             {/* Public Gallery */}
             <CCCard padding="lg">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#E8EEF9]">Public Gallery</h3>
+                <h3 className="text-lg font-semibold text-[#E8EEF9] flex-1 text-center">Public Gallery</h3>
                 <CCButton 
                   variant="outline" 
                   size="sm" 
@@ -1232,7 +1233,7 @@ export default function Profile() {
                   }}
                 />
               </div>
-              <p className="text-sm text-[#6B7A94] mb-4">G-rated images visible to all verified members.</p>
+              <p className="text-sm text-[#6B7A94] mb-4 text-center">G-rated images visible to all verified members.</p>
               <div className="grid grid-cols-3 gap-2">
                 {galleries.find(g => g.type === 'public')?.items?.map((item, i) => (
                   <div key={i} className="aspect-square bg-[#121824] rounded-lg overflow-hidden">
@@ -1250,7 +1251,7 @@ export default function Profile() {
             {/* Private Gallery */}
             <CCCard padding="lg">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-[#E8EEF9] flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-[#E8EEF9] flex items-center gap-2 flex-1 justify-center">
                   <Lock className="w-4 h-4" /> Private Gallery
                 </h3>
                 <CCButton 
@@ -1296,7 +1297,7 @@ export default function Profile() {
                   }}
                 />
               </div>
-              <p className="text-sm text-[#6B7A94] mb-4">Only visible to users you grant permission.</p>
+              <p className="text-sm text-[#6B7A94] mb-4 text-center">Only visible to users you grant permission.</p>
               <div className="grid grid-cols-3 gap-2">
                 {galleries.find(g => g.type === 'private')?.items?.map((item, i) => (
                   <div key={i} className="aspect-square bg-[#121824] rounded-lg overflow-hidden">
