@@ -28,11 +28,7 @@ import CCAvatar from '@/components/ui-custom/CCAvatars';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import AccessGate from '@/components/auth/AccessGate';
 
-const sceneTypes = [
-  { value: 'standard', label: 'Standard', description: 'Standard content types' },
-  { value: 'fetish', label: 'Fetish', description: 'Fetish and kink content' },
-  { value: 'kink_edge', label: 'Kink-Edge', description: 'Advanced/edge play content' },
-];
+
 
 const compensationTypes = [
   { value: 'paid', label: 'Paid', description: 'Direct payment for services' },
@@ -41,10 +37,51 @@ const compensationTypes = [
   { value: 'rev_share_external', label: 'Revenue Share', description: 'Split revenue externally' },
 ];
 
-const standardScenes = ['Solo', 'B/G', 'G/G', 'B/B', 'Gangbang', 'B/G/B', 'B/B/G', 'B/G/G', 'G/G/B', 'G/G/G', 'B/B/B', 'G/B/G/B', 'IR', 'Group', 'Oral', 'Toys'];
-const fetishScenes = ['BDSM', 'Bondage', 'Domination', 'Submission', 'Cuckold', 'Hotwife', 'Pegging', 'Roleplay', 'Latex', 'Leather', 'Feet', 'Cosplay'];
-const kinkEdgeScenes = ['Impact Play', 'Wax Play', 'Sensory Deprivation', 'Restraints', 'Power Exchange'];
-const acts = ['Creampie', 'Facial', 'CIM (cum in mouth)', 'Swallowing', 'Anal', 'DP (double penetration)', 'DVP (double vaginal penetration)', 'DAP (double anal penetration)'];
+const scenePairings = [
+  'Boy / Girl', 'Girl / Girl', 'Boy / Boy',
+  'Trans Male / Trans Male', 'Trans Female / Trans Female', 'Trans Male / Trans Female',
+  'Trans Female / Boy', 'Trans Female / Girl', 'Trans Male / Boy', 'Trans Male / Girl',
+  'Trans Female / Trans Male', 'Non-Binary / Boy', 'Non-Binary / Girl',
+  'Non-Binary / Trans Male', 'Non-Binary / Trans Female', 'Non-Binary / Non-Binary',
+  'Boy / Boy / Girl', 'Boy / Girl / Girl', 'Boy / Boy / Boy', 'Girl / Girl / Girl',
+  'Trans Male / Trans Male / Trans Male', 'Trans Female / Trans Female / Trans Female',
+  'Trans Male / Trans Male / Girl', 'Trans Female / Trans Female / Boy',
+  'Trans Male / Boy / Girl', 'Trans Female / Boy / Girl',
+  'Trans Male / Girl / Girl', 'Trans Female / Boy / Boy',
+  'Trans Male / Trans Female / Boy', 'Trans Male / Trans Female / Girl',
+  'Trans Female / Trans Male / Girl', 'Trans Female / Trans Male / Boy',
+  'Non-Binary / Boy / Girl', 'Non-Binary / Trans Male / Trans Female',
+  'Non-Binary / Girl / Girl', 'Non-Binary / Boy / Boy',
+  'Non-Binary / Non-Binary / Boy', 'Non-Binary / Non-Binary / Girl',
+  'Boy / Girl / Boy / Girl', 'Boy / Boy / Girl / Girl',
+  'Boy / Boy / Boy / Girl', 'Girl / Girl / Girl / Boy',
+  'Trans Mixed Group', 'Trans Male Group', 'Trans Female Group', 'Non-Binary Mixed Group',
+  'Boy / Boy / Boy / Boy', 'Girl / Girl / Girl / Girl',
+  'Trans Male / Trans Male / Trans Male / Trans Male',
+  'Trans Female / Trans Female / Trans Female / Trans Female',
+  'Trans Male / Trans Female / Boy / Girl',
+  'Group', 'Orgy', 'Trans Male Orgy', 'Trans Female Orgy', 'Non-Binary Group', 'Non-Binary Orgy',
+  'Interracial', 'Other'
+];
+
+const standardActs = [
+  'Solo', 'Group', 'Oral', 'Anal', 'Facial', 'Creampie', 'Swallowing',
+  'Prints / Stills', 'Interracial', 'Orgy', 'Handjob', 'Footjob', 'Blowjob',
+  'Cunnilingus', 'Anilingus', 'Outdoor Sex', 'Car Sex', 'Kissing', 'Edging',
+  'Masturbation', 'Threesome', 'Foursome', 'Double Penetration', 'Triple Penetration',
+  'Squirting', 'Prostate Massage', 'Pegging', 'StrapOn', 'Toy Play', 'Bukkake', 'Gloryhole', 'Other'
+];
+
+const fetishActs = [
+  'Roleplay', 'Power Dynamics', 'Sensory Focus', 'Toy Use', 'Latex / Rubber',
+  'Leather', 'Chastity', 'Cuckolding', 'Hotwifing', 'Voyeurism', 'Exhibitionism',
+  'CFNM (Clothed Female Naked Male)', 'CMNF (Clothed Male Naked Female)', 'Age Gap', 'Other'
+];
+
+const kinkEdgeActs = [
+  'Bondage', 'Dominant', 'Submissive', 'Power Exchange', 'Strap-On', 'Pegging',
+  'Swinger', 'Hotwife', 'Cuckold', 'Impact Play', 'Sensory Deprivation', 'Breath Play', 'Other'
+];
 
 export default function CreateCollaboration() {
   const navigate = useNavigate();
@@ -55,13 +92,21 @@ export default function CreateCollaboration() {
   const collaborationId = urlParams.get('id');
   const isEditing = !!collaborationId;
 
+  const [customValues, setCustomValues] = useState({
+    scene_pairings: '',
+    standard_acts: '',
+    fetish_acts: '',
+    kink_edge_acts: ''
+  });
+
   const [formData, setFormData] = useState({
     collaboration_name: '',
     participant_ids: [],
-    scene_type: '',
+
     scene_selected: [],
-    acts_selected: [],
-    acts_other_text: '',
+    standard_acts: [],
+    fetish_acts: [],
+    kink_edge_acts: [],
     boundaries: {
       hard_no: [],
       soft_limits: [],
@@ -134,7 +179,7 @@ export default function CreateCollaboration() {
       setFormData({
         collaboration_name: existingCollaboration.collaboration_name || '',
         participant_ids: existingCollaboration.participant_ids || [],
-        scene_type: existingCollaboration.scene_type || '',
+
         scene_selected: existingCollaboration.scene_selected || [],
         acts_selected: existingCollaboration.acts_selected || [],
         acts_other_text: existingCollaboration.acts_other_text || '',
@@ -221,29 +266,35 @@ export default function CreateCollaboration() {
     setFormData(prev => ({ ...prev, [key]: value }));
   };
 
-  const getSceneOptions = () => {
-    switch (formData.scene_type) {
-      case 'standard': return standardScenes;
-      case 'fetish': return fetishScenes;
-      case 'kink_edge': return kinkEdgeScenes;
-      default: return [];
+  const toggleArrayValue = (field, value) => {
+    const current = formData[field] || [];
+    const updated = current.includes(value)
+      ? current.filter(v => v !== value)
+      : [...current, value];
+    updateForm(field, updated);
+  };
+
+  const handleAddCustomValue = async (category, field) => {
+    const value = customValues[field]?.trim();
+    if (!value) return;
+
+    const current = formData[field] || [];
+    if (!current.includes(value)) {
+      updateForm(field, [...current, value]);
     }
-  };
 
-  const toggleScene = (scene) => {
-    const current = formData.scene_selected;
-    const updated = current.includes(scene)
-      ? current.filter(s => s !== scene)
-      : [...current, scene];
-    updateForm('scene_selected', updated);
-  };
+    try {
+      await base44.entities.CustomValueSubmission.create({
+        submitted_by: user.email,
+        category,
+        custom_value: value,
+        status: 'pending'
+      });
+    } catch (error) {
+      console.error('Failed to submit custom value:', error);
+    }
 
-  const toggleAct = (act) => {
-    const current = formData.acts_selected;
-    const updated = current.includes(act)
-      ? current.filter(a => a !== act)
-      : [...current, act];
-    updateForm('acts_selected', updated);
+    setCustomValues({...customValues, [field]: ''});
   };
 
   if (userLoading || (isEditing && loadingCollab && !existingCollaboration)) {
@@ -254,7 +305,7 @@ export default function CreateCollaboration() {
   if (!isVerified) return <AccessGate type="verification" />;
   if (!isSubscribed) return <AccessGate type="subscription" />;
 
-  const totalSteps = 6;
+  const totalSteps = 7;
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
@@ -299,93 +350,201 @@ export default function CreateCollaboration() {
           />
         </CCCard>
 
-        {/* Step 1: Scene Type */}
+        {/* Step 1: Participants */}
         {step === 1 && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
           >
-            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">What type of content?</h2>
-            <p className="text-[#9AA6BC] mb-6">Select the scene category that best fits your collaboration.</p>
-
-            <div className="space-y-4">
-              {sceneTypes.map((type) => (
-                <CCCard
-                  key={type.value}
-                  hover
-                  clickable
-                  padding="lg"
-                  className={formData.scene_type === type.value ? 'ring-2 ring-[#4F8CFF]' : ''}
-                  onClick={() => updateForm('scene_type', type.value)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold text-[#E8EEF9]">{type.label}</h3>
-                      <p className="text-sm text-[#9AA6BC]">{type.description}</p>
-                    </div>
-                    {formData.scene_type === type.value && (
-                      <div className="w-6 h-6 rounded-full bg-[#4F8CFF] flex items-center justify-center">
-                        <Check className="w-4 h-4 text-white" />
-                      </div>
-                    )}
-                  </div>
-                </CCCard>
-              ))}
-            </div>
-          </motion.div>
-        )}
-
-        {/* Step 2: Scene & Acts */}
-        {step === 2 && (
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-          >
-            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Scene & Acts</h2>
-            <p className="text-[#9AA6BC] mb-6">Select the scene and specific acts.</p>
-
-            <CCCard padding="lg" className="mb-6">
-              <h3 className="font-semibold text-[#E8EEF9] mb-4">Select Scene</h3>
-              <div className="flex flex-wrap gap-2">
-                {getSceneOptions().map((scene) => (
-                  <CCButton
-                    key={scene}
-                    variant={formData.scene_selected.includes(scene) ? 'primary' : 'outline'}
-                    size="sm"
-                    onClick={() => toggleScene(scene)}
-                  >
-                    {scene}
-                  </CCButton>
-                ))}
-              </div>
-            </CCCard>
+            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Who's involved?</h2>
+            <p className="text-[#9AA6BC] mb-6">Add the email addresses of other participants.</p>
 
             <CCCard padding="lg">
-              <h3 className="font-semibold text-[#E8EEF9] mb-4">Select Acts</h3>
-              <div className="flex flex-wrap gap-2 mb-4">
-                {acts.map((act) => (
-                  <CCButton
-                    key={act}
-                    variant={formData.acts_selected.includes(act) ? 'primary' : 'outline'}
-                    size="sm"
-                    onClick={() => toggleAct(act)}
-                  >
-                    {act}
-                  </CCButton>
-                ))}
-              </div>
               <CCInput
-                label="Other (specify)"
-                placeholder="Any additional acts not listed..."
-                value={formData.acts_other_text}
-                onChange={(e) => updateForm('acts_other_text', e.target.value)}
+                label="Participant Emails"
+                placeholder="email1@example.com, email2@example.com"
+                hint="Comma-separated emails of other participants"
+                value={formData.participant_emails}
+                onChange={(e) => updateForm('participant_emails', e.target.value)}
               />
             </CCCard>
           </motion.div>
         )}
 
-        {/* Step 3: Boundaries */}
+        {/* Step 2: Scene Pairings */}
+        {step === 2 && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Scene Pairings</h2>
+            <p className="text-[#9AA6BC] mb-6">Select the scene pairings for this collaboration.</p>
+
+            <CCCard padding="lg">
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {scenePairings.map((sp) => (
+                    <CCButton
+                      key={sp}
+                      variant={formData.scene_selected?.includes(sp) ? 'primary' : 'outline'}
+                      size="sm"
+                      onClick={() => toggleArrayValue('scene_selected', sp)}
+                    >
+                      {sp}
+                    </CCButton>
+                  ))}
+                </div>
+                {formData.scene_selected?.includes('Other') && (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customValues.scene_pairings || ''}
+                      onChange={(e) => setCustomValues({...customValues, scene_pairings: e.target.value})}
+                      className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                      placeholder="Type custom scene pairing..."
+                    />
+                    <CCButton
+                      variant="primary"
+                      size="sm"
+                      icon={Plus}
+                      onClick={() => handleAddCustomValue('scene_pairing', 'scene_selected')}
+                    >
+                      Add
+                    </CCButton>
+                  </div>
+                )}
+              </div>
+            </CCCard>
+          </motion.div>
+        )}
+
+        {/* Step 3: Acts */}
         {step === 3 && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+          >
+            <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Acts</h2>
+            <p className="text-[#9AA6BC] mb-6">Select the acts for this collaboration.</p>
+
+            {/* Standard Acts */}
+            <CCCard padding="lg" className="mb-6">
+              <h3 className="font-semibold text-[#E8EEF9] mb-4">Standard Acts</h3>
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {standardActs.map((act) => (
+                    <CCButton
+                      key={act}
+                      variant={formData.standard_acts?.includes(act) ? 'primary' : 'outline'}
+                      size="sm"
+                      onClick={() => toggleArrayValue('standard_acts', act)}
+                    >
+                      {act}
+                    </CCButton>
+                  ))}
+                </div>
+                {formData.standard_acts?.includes('Other') && (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customValues.standard_acts || ''}
+                      onChange={(e) => setCustomValues({...customValues, standard_acts: e.target.value})}
+                      className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                      placeholder="Type custom standard act..."
+                    />
+                    <CCButton
+                      variant="primary"
+                      size="sm"
+                      icon={Plus}
+                      onClick={() => handleAddCustomValue('standard_act', 'standard_acts')}
+                    >
+                      Add
+                    </CCButton>
+                  </div>
+                )}
+              </div>
+            </CCCard>
+
+            {/* Fetish Acts */}
+            <CCCard padding="lg" className="mb-6">
+              <h3 className="font-semibold text-[#E8EEF9] mb-4">Fetish Acts</h3>
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {fetishActs.map((act) => (
+                    <CCButton
+                      key={act}
+                      variant={formData.fetish_acts?.includes(act) ? 'accent' : 'outline'}
+                      size="sm"
+                      onClick={() => toggleArrayValue('fetish_acts', act)}
+                    >
+                      {act}
+                    </CCButton>
+                  ))}
+                </div>
+                {formData.fetish_acts?.includes('Other') && (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customValues.fetish_acts || ''}
+                      onChange={(e) => setCustomValues({...customValues, fetish_acts: e.target.value})}
+                      className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                      placeholder="Type custom fetish act..."
+                    />
+                    <CCButton
+                      variant="primary"
+                      size="sm"
+                      icon={Plus}
+                      onClick={() => handleAddCustomValue('fetish_act', 'fetish_acts')}
+                    >
+                      Add
+                    </CCButton>
+                  </div>
+                )}
+              </div>
+            </CCCard>
+
+            {/* Kink/Edge Acts */}
+            <CCCard padding="lg">
+              <h3 className="font-semibold text-[#E8EEF9] mb-4">Kink / Edge Acts</h3>
+              <div className="space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  {kinkEdgeActs.map((act) => (
+                    <CCButton
+                      key={act}
+                      variant={formData.kink_edge_acts?.includes(act) ? 'primary' : 'outline'}
+                      size="sm"
+                      onClick={() => toggleArrayValue('kink_edge_acts', act)}
+                    >
+                      {act}
+                    </CCButton>
+                  ))}
+                </div>
+                {formData.kink_edge_acts?.includes('Other') && (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={customValues.kink_edge_acts || ''}
+                      onChange={(e) => setCustomValues({...customValues, kink_edge_acts: e.target.value})}
+                      className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                      placeholder="Type custom kink/edge act..."
+                    />
+                    <CCButton
+                      variant="primary"
+                      size="sm"
+                      icon={Plus}
+                      onClick={() => handleAddCustomValue('kink_edge_act', 'kink_edge_acts')}
+                    >
+                      Add
+                    </CCButton>
+                  </div>
+                )}
+              </div>
+            </CCCard>
+          </motion.div>
+        )}
+
+        {/* Step 4: Boundaries */}
+        {step === 4 && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -426,8 +585,8 @@ export default function CreateCollaboration() {
           </motion.div>
         )}
 
-        {/* Step 4: Compensation */}
-        {step === 4 && (
+        {/* Step 5: Compensation */}
+        {step === 5 && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -497,8 +656,8 @@ export default function CreateCollaboration() {
           </motion.div>
         )}
 
-        {/* Step 5: Schedule & Location */}
-        {step === 5 && (
+        {/* Step 6: Schedule & Location */}
+        {step === 6 && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -569,8 +728,8 @@ export default function CreateCollaboration() {
           </motion.div>
         )}
 
-        {/* Step 6: Deliverables & Rights */}
-        {step === 6 && (
+        {/* Step 7: Deliverables & Rights */}
+        {step === 7 && (
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -683,16 +842,7 @@ export default function CreateCollaboration() {
               </div>
             </CCCard>
 
-            <CCCard padding="lg">
-              <h3 className="font-semibold text-[#E8EEF9] mb-4">Participants</h3>
-              <CCInput
-                label="Participant Emails"
-                placeholder="email1@example.com, email2@example.com"
-                hint="Comma-separated emails of other participants"
-                value={formData.participant_emails}
-                onChange={(e) => updateForm('participant_emails', e.target.value)}
-              />
-            </CCCard>
+
           </motion.div>
         )}
 
@@ -712,7 +862,6 @@ export default function CreateCollaboration() {
               variant="primary"
               iconRight={ArrowRight}
               onClick={() => setStep(Math.min(totalSteps, step + 1))}
-              disabled={step === 1 && !formData.scene_type}
             >
               Continue
             </CCButton>
