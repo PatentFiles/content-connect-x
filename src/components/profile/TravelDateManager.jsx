@@ -6,16 +6,15 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { Calendar, ChevronLeft, ChevronRight, MapPin, Clock } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCModal from '@/components/ui-custom/CCModal';
-import CCInput from '@/components/ui-custom/CCInput';
 import CCSelect from '@/components/ui-custom/CCSelect';
+import LocationSelector from '@/components/location/LocationSelector';
 
 export default function TravelDateManager({ profile, onClose }) {
   const [step, setStep] = useState('dates');
   const [selectedMonth, setSelectedMonth] = useState(new Date());
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
+  const [location, setLocation] = useState(null);
   const [time, setTime] = useState('12');
   const [amPm, setAmPm] = useState('PM');
   const queryClient = useQueryClient();
@@ -55,7 +54,7 @@ export default function TravelDateManager({ profile, onClose }) {
   };
 
   const handleSubmit = () => {
-    if (!startDate || !endDate || !city || !state) {
+    if (!startDate || !endDate || !location) {
       toast.error('Please fill in all fields');
       return;
     }
@@ -63,7 +62,7 @@ export default function TravelDateManager({ profile, onClose }) {
     const travelDate = {
       start_date: startDate,
       end_date: endDate,
-      location: `${city}, ${state}`,
+      location: `${location.city}, ${location.state}`,
       arrival_time: `${time}:00 ${amPm}`,
     };
 
@@ -153,19 +152,13 @@ export default function TravelDateManager({ profile, onClose }) {
       ) : (
         <div className="space-y-4">
           {/* Location */}
-          <div className="grid grid-cols-2 gap-4">
-            <CCInput
-              label="City"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              placeholder="Los Angeles"
-              icon={MapPin}
-            />
-            <CCInput
-              label="State"
-              value={state}
-              onChange={(e) => setState(e.target.value)}
-              placeholder="CA"
+          <div>
+            <label className="text-sm font-medium text-[#E8EEF9] mb-2 block">
+              Travel Location
+            </label>
+            <LocationSelector
+              value={location}
+              onChange={setLocation}
             />
           </div>
 
