@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 import { 
   MessageCircle, 
   Search, 
@@ -15,7 +16,8 @@ import {
   Image,
   File,
   X,
-  Trash2
+  Trash2,
+  Archive
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCInput from '@/components/ui-custom/CCInput';
@@ -32,7 +34,12 @@ export default function Messages() {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [showConversationMenu, setShowConversationMenu] = useState(false);
+  const [longPressMessage, setLongPressMessage] = useState(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const longPressTimer = useRef(null);
   const queryClient = useQueryClient();
   
   const { checking: verificationChecking, blocked: verificationBlocked } = useVerificationCheck('send_message');
@@ -157,10 +164,67 @@ export default function Messages() {
   // Delete message mutation
   const deleteMessageMutation = useMutation({
     mutationFn: async (messageId) => {
-      await base44.entities.Message.delete(messageId);
+      const message = messages.find(m => m.id === messageId);
+      if (!message) return;
+
+      const wasRead = message.read_by?.some(id => id !== user.email);
+      
+      if (!wasRead) {
+        // Unsend - delete completely and notify
+        await base44.entities.Message.delete(messageId);
+        
+        // Send unsend notification
+        const recipients = selectedConversation.participant_ids.filter(id => id !== user.email);
+        for (const recipientId of recipients) {
+          await base44.entities.Message.create({
+            conversation_id: selectedConversation.id,
+            sender_id: user.email,
+            body: `${profile?.display_name || 'User'} unsent a message`,
+            system_message: true,
+            read_by: []
+          });
+        }
+      } else {
+        // Just delete for current user
+        await base44.entities.Message.delete(messageId);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['messages', selectedConversation?.id]);
+      setLongPressMessage(null);
+      toast.success('Message deleted');
+    },
+  });
+
+  // Archive conversation
+  const archiveConversationMutation = useMutation({
+    mutationFn: async (conversationId) => {
+      await base44.entities.Conversation.update(conversationId, {
+        status: 'archived'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['conversations']);
+      setSelectedConversation(null);
+      setShowConversationMenu(false);
+      toast.success('Conversation archived');
+    },
+  });
+
+  // Delete conversation
+  const deleteConversationMutation = useMutation({
+    mutationFn: async (conversationId) => {
+      // Delete all messages first
+      const convMessages = await base44.entities.Message.filter({ conversation_id: conversationId });
+      await Promise.all(convMessages.map(m => base44.entities.Message.delete(m.id)));
+      // Delete conversation
+      await base44.entities.Conversation.delete(conversationId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['conversations']);
+      setSelectedConversation(null);
+      setShowConversationMenu(false);
+      toast.success('Conversation deleted');
     },
   });
 
@@ -178,6 +242,53 @@ export default function Messages() {
       body: newMessage.trim(),
       attachments: [],
     });
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check file type
+    const isImage = file.type.startsWith('image/');
+    const isVideo = file.type.startsWith('video/');
+    
+    if (!isImage && !isVideo) {
+      toast.error('Only images and videos are allowed');
+      return;
+    }
+
+    setUploadingFile(true);
+    try {
+      const { data } = await base44.integrations.Core.UploadFile({ file });
+      
+      sendMessageMutation.mutate({
+        conversation_id: selectedConversation.id,
+        sender_id: user.email,
+        body: isImage ? '📷 Image' : '🎥 Video',
+        attachments: [{
+          type: isImage ? 'image' : 'video',
+          url: data.file_url,
+          name: file.name,
+          size: file.size
+        }],
+      });
+    } catch (error) {
+      toast.error('Failed to upload file');
+    } finally {
+      setUploadingFile(false);
+    }
+  };
+
+  const handleLongPressStart = (messageId) => {
+    longPressTimer.current = setTimeout(() => {
+      setLongPressMessage(messageId);
+    }, 500);
+  };
+
+  const handleLongPressEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+    }
   };
 
   const getOtherParticipant = (conv) => {
@@ -289,9 +400,23 @@ export default function Messages() {
                             <CCBadge variant="accent" size="sm">{unreadCount}</CCBadge>
                           )}
                         </div>
-                        <CCBadge variant="outline" size="sm" className="mt-1">
-                          {conv.type}
-                        </CCBadge>
+                        <div className="flex items-center justify-between mt-1">
+                          <CCBadge variant="outline" size="sm">
+                            {conv.type}
+                          </CCBadge>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (confirm('Delete this conversation?')) {
+                                deleteConversationMutation.mutate(conv.id);
+                              }
+                            }}
+                            className="text-[#6B7A94] hover:text-[#EF4444] transition-colors"
+                            title="Delete conversation"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     </button>
                   );
@@ -325,9 +450,39 @@ export default function Messages() {
                   </p>
                   <p className="text-xs text-[#6B7A94] capitalize">{selectedConversation.type} chat</p>
                 </div>
-                <CCButton variant="ghost" size="icon">
-                  <MoreVertical className="w-5 h-5" />
-                </CCButton>
+                <div className="relative">
+                  <CCButton 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => setShowConversationMenu(!showConversationMenu)}
+                  >
+                    <MoreVertical className="w-5 h-5" />
+                  </CCButton>
+                  {showConversationMenu && (
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-[#151D2B] border border-[#263248] rounded-lg shadow-xl z-50">
+                      <button
+                        onClick={() => {
+                          archiveConversationMutation.mutate(selectedConversation.id);
+                        }}
+                        className="w-full px-4 py-3 text-left text-sm text-[#E8EEF9] hover:bg-[#1A2438] flex items-center gap-3 transition-colors"
+                      >
+                        <Archive className="w-4 h-4" />
+                        Archive conversation
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm('Delete this conversation? This cannot be undone.')) {
+                            deleteConversationMutation.mutate(selectedConversation.id);
+                          }
+                        }}
+                        className="w-full px-4 py-3 text-left text-sm text-[#EF4444] hover:bg-[#EF4444]/10 flex items-center gap-3 transition-colors rounded-b-lg"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete conversation
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Messages */}
@@ -342,12 +497,25 @@ export default function Messages() {
                 ) : (
                   messages.map((msg) => {
                     const isMine = msg.sender_id === user.email;
+                    const isSystemMessage = msg.system_message;
+                    
+                    if (isSystemMessage) {
+                      return (
+                        <div key={msg.id} className="flex justify-center my-2">
+                          <p className="text-xs text-[#6B7A94] italic">{msg.body}</p>
+                        </div>
+                      );
+                    }
+
                     return (
                       <motion.div
                         key={msg.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className={`flex gap-2 group ${isMine ? 'justify-end' : 'justify-start'}`}
+                        onTouchStart={() => handleLongPressStart(msg.id)}
+                        onTouchEnd={handleLongPressEnd}
+                        onTouchCancel={handleLongPressEnd}
                       >
                         <div className={`max-w-[75%] ${isMine ? 'order-1' : 'order-2'}`}>
                           <div
@@ -357,7 +525,26 @@ export default function Messages() {
                                 : 'bg-[#151D2B] text-[#E8EEF9] rounded-bl-md'
                             }`}
                           >
-                            <p className="text-sm">{msg.body}</p>
+                            {msg.attachments?.[0] ? (
+                              <div>
+                                {msg.attachments[0].type === 'image' ? (
+                                  <img 
+                                    src={msg.attachments[0].url} 
+                                    alt="Shared" 
+                                    className="max-w-xs rounded-lg mb-2"
+                                  />
+                                ) : (
+                                  <video 
+                                    src={msg.attachments[0].url} 
+                                    controls 
+                                    className="max-w-xs rounded-lg mb-2"
+                                  />
+                                )}
+                                <p className="text-sm">{msg.body}</p>
+                              </div>
+                            ) : (
+                              <p className="text-sm">{msg.body}</p>
+                            )}
                           </div>
                           <p className={`text-xs text-[#6B7A94] mt-1 ${isMine ? 'text-right' : ''}`}>
                             {new Date(msg.created_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -365,7 +552,7 @@ export default function Messages() {
                         </div>
                         <button
                           onClick={() => deleteMessageMutation.mutate(msg.id)}
-                          className={`opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-[#263248] rounded self-start ${
+                          className={`hidden md:block opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-[#263248] rounded self-start ${
                             isMine ? 'order-2' : 'order-1'
                           }`}
                           title="Delete message"
@@ -382,7 +569,20 @@ export default function Messages() {
               {/* Message Input */}
               <div className="p-4 border-t border-[#263248]">
                 <div className="flex gap-2">
-                  <CCButton variant="ghost" size="icon">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*,video/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+                  <CCButton 
+                    variant="ghost" 
+                    size="icon"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingFile}
+                    loading={uploadingFile}
+                  >
                     <Paperclip className="w-5 h-5" />
                   </CCButton>
                   <input
@@ -416,6 +616,31 @@ export default function Messages() {
           )}
         </div>
       </div>
+
+      {/* Mobile Long Press Menu */}
+      {longPressMessage && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-50 flex items-end md:hidden"
+          onClick={() => setLongPressMessage(null)}
+        >
+          <div className="w-full bg-[#151D2B] rounded-t-2xl p-4">
+            <button
+              onClick={() => {
+                deleteMessageMutation.mutate(longPressMessage);
+              }}
+              className="w-full py-4 text-[#EF4444] font-medium text-center"
+            >
+              Delete Message
+            </button>
+            <button
+              onClick={() => setLongPressMessage(null)}
+              className="w-full py-4 text-[#9AA6BC] font-medium text-center"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
