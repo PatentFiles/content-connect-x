@@ -23,6 +23,11 @@ const roleConfig = {
     icon: Eye,
     variant: 'outline',
     description: 'Read-only access to collaboration'
+  },
+  RepObserver: {
+    icon: Eye,
+    variant: 'warning',
+    description: 'Studio/Agent observer - read-only, no messaging unless granted'
   }
 };
 
@@ -105,6 +110,8 @@ export default function RolePermissions({ collaborationId, currentUser, currentU
           const Icon = config.icon;
           const isCurrentUser = roleEntry.user_id === currentUser.email;
 
+          const isAutoAdded = roleEntry.auto_added;
+
           return (
             <CCCard key={roleEntry.id} padding="md">
               <div className="flex items-center justify-between">
@@ -124,6 +131,9 @@ export default function RolePermissions({ collaborationId, currentUser, currentU
                       {isCurrentUser && (
                         <CCBadge size="sm" variant="outline">You</CCBadge>
                       )}
+                      {isAutoAdded && (
+                        <CCBadge size="sm" variant="outline">Auto-Added</CCBadge>
+                      )}
                     </div>
                     <p className="text-xs text-[#6B7A94] capitalize">
                       {profile?.role_type}
@@ -140,7 +150,7 @@ export default function RolePermissions({ collaborationId, currentUser, currentU
                     )}
                   </div>
                 </div>
-                {canManageRoles && !isCurrentUser && (
+                {canManageRoles && !isCurrentUser && roleEntry.role !== 'RepObserver' && (
                   <CCButton
                     variant="ghost"
                     size="sm"

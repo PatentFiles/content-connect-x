@@ -26,6 +26,7 @@ import AIRiskPrediction from '@/components/admin/AIRiskPrediction';
 import TemplateContractGenerator from '@/components/contracts/TemplateContractGenerator';
 import TestingStatusBanner from '@/components/collaboration/TestingStatusBanner';
 import ConsentRevocationBanner from '@/components/collaboration/ConsentRevocationBanner';
+import { useRepObserverCheck, logRepObserverAccess } from '@/components/collaboration/RepObserverAccessControl';
 
 export default function CollaborationDetail() {
   const [searchParams] = useSearchParams();

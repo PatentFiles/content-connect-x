@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams, Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import React from 'react';
 import { 
   ArrowLeft, Download, Send, CheckCircle, Clock, Eye, 
   History, FileText, AlertTriangle, Edit, Users, Calendar,
@@ -20,6 +21,7 @@ import VerificationRequired from '@/components/auth/VerificationRequired';
 import ContractVersionHistory from './ContractVersionHistory';
 import ContractAuditLog from './ContractAuditLog';
 import ConsentRevocationBanner from '@/components/collaboration/ConsentRevocationBanner';
+import { logRepObserverAccess } from '@/components/collaboration/RepObserverAccessControl';
 
 export default function ContractViewer({ contractId }) {
   const [searchParams] = useSearchParams();
@@ -167,8 +169,33 @@ export default function ContractViewer({ contractId }) {
   const hasActiveRevocation = revocations.length > 0;
   const isContractLocked = hasActiveRevocation || contract.status === 'disputed';
 
+  // Check if user is RepObserver
+  const { data: participantRoles = [] } = useQuery({
+    queryKey: ['participantRoles', contract.collaboration_id],
+    queryFn: () => base44.entities.CollaborationParticipantRole.filter({
+      collaboration_id: contract.collaboration_id,
+      user_id: user?.email
+    }),
+    enabled: !!contract?.collaboration_id && !!user?.email,
+  });
+
+  const userRole = participantRoles[0];
+  const isRepObserver = userRole?.role === 'RepObserver';
+
+  // Log RepObserver access
+  React.useEffect(() => {
+    if (isRepObserver && contract?.id) {
+      logRepObserverAccess(
+        contract.collaboration_id,
+        user?.email,
+        'VIEW_CONTRACT',
+        { contract_id: contract.id }
+      );
+    }
+  }, [isRepObserver, contract?.id, user?.email]);
+
   const userHasSigned = signatures.some(s => s.user_id === user?.email);
-  const canSign = !isContractLocked && contract.status === 'sent' && contract.signatories?.some(s => s.user_id === user?.email && !s.signed);
+  const canSign = !isContractLocked && !isRepObserver && contract.status === 'sent' && contract.signatories?.some(s => s.user_id === user?.email && !s.signed);
   
   const statusConfig = {
     draft: { variant: 'default', icon: FileText },
