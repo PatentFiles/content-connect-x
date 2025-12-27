@@ -12,6 +12,7 @@ import ProfileCard from '@/components/profiles/ProfileCard';
 import ProfileFilters from '@/components/profiles/ProfileFilters';
 import AccessGate from '@/components/auth/AccessGate';
 import SaveToFavoritesModal from '@/components/profiles/SaveToFavoritesModal';
+import ReportModal from '@/components/moderation/ReportModal';
 
 // Calculate distance between two coordinates in miles
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -29,6 +30,8 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
 export default function Discovery() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportTargetUserId, setReportTargetUserId] = useState(null);
   const queryClient = useQueryClient();
   
   const [filters, setFilters] = useState({
@@ -157,6 +160,30 @@ export default function Discovery() {
         setShowSaveModal(true);
       }
     }
+  };
+
+  const blockUserMutation = useMutation({
+    mutationFn: async (userId) => {
+      await base44.entities.BlockedUser.create({
+        blocker_id: user.email,
+        blocked_id: userId,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['allProfiles']);
+      toast.success('User blocked');
+    },
+  });
+
+  const handleBlock = (profile) => {
+    if (confirm('Block this user? They will not be able to contact you.')) {
+      blockUserMutation.mutate(profile.user_id);
+    }
+  };
+
+  const handleReport = (profile) => {
+    setReportTargetUserId(profile.user_id);
+    setShowReportModal(true);
   };
 
   // Apply filters client-side
@@ -414,6 +441,8 @@ export default function Discovery() {
                   isRepresented={isRepresented}
                   isSaved={isSaved}
                   onFavorite={handleFavorite}
+                  onBlock={handleBlock}
+                  onReport={handleReport}
                 />
               );
             })}
@@ -469,6 +498,17 @@ export default function Discovery() {
           userEmail={user?.email}
         />
       )}
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => {
+          setShowReportModal(false);
+          setReportTargetUserId(null);
+        }}
+        targetUserId={reportTargetUserId}
+        targetContentType="profile"
+      />
     </div>
   );
 }
