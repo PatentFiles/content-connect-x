@@ -7,10 +7,19 @@ import { motion } from 'framer-motion';
 import { Menu, X, Bell, Settings } from 'lucide-react';
 import CCButton from '../ui-custom/CCButton';
 import CCAvatar from '../ui-custom/CCAvatars';
-import NotificationBell from '../notifications/NotificationBell';
-import NotificationsDropdown from './NotificationsDropdown';
+import { useQuery } from '@tanstack/react-query';
+import CCBadge from '../ui-custom/CCBadge';
 
 export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, menuOpen, onHamburgerToggle }) {
+  // Fetch unread notifications count
+  const { data: notifications = [] } = useQuery({
+    queryKey: ['notifications', user?.email],
+    queryFn: () => base44.entities.Notification.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+
+  const unreadCount = notifications.filter(n => !n.read_at).length;
+
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -53,7 +62,17 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
                 <Menu className="w-6 h-6 text-[#E8EEF9]" />
               </button>
               
-              <NotificationBell user={user} />
+              <Link to={createPageUrl('Notifications')} className="relative">
+                <CCButton variant="ghost" size="icon">
+                  <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#EF4444] rounded-full flex items-center justify-center text-[10px] font-bold text-white">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </CCButton>
+              </Link>
+
               <Link to={createPageUrl('Settings')} className="hidden md:block">
                 <CCButton variant="ghost" size="icon">
                   <Settings className="w-5 h-5" />
@@ -62,7 +81,16 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
             </>
           ) : profile ? (
             <>
-              <NotificationBell user={user} />
+              <Link to={createPageUrl('Notifications')} className="relative">
+                <CCButton variant="ghost" size="icon">
+                  <Bell className="w-5 h-5" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#EF4444] rounded-full flex items-center justify-center text-[10px] font-bold text-white">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </CCButton>
+              </Link>
             </>
           ) : (
             <>

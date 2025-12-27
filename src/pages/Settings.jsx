@@ -22,6 +22,7 @@ import PricingManager from '@/components/admin/PricingManager';
 import CouponManager from '@/components/admin/CouponManager';
 import UserManager from '@/components/admin/UserManager';
 import SocialLinksManager from '@/components/socials/SocialLinksManager';
+import NotificationPreferences from '@/components/settings/NotificationPreferences';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
@@ -301,34 +302,7 @@ export default function Settings() {
 
         {/* Notifications Tab */}
         <CCTabsContent value="notifications" activeTab={activeTab}>
-          <CCCard padding="lg">
-            <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Notification Preferences</h3>
-            <div className="space-y-4">
-              {[
-                { key: 'new_messages', title: 'New Messages', desc: 'Get notified when you receive messages' },
-                { key: 'deal_room_updates', title: 'Collaboration Updates', desc: 'Updates on your collaborations' },
-                { key: 'contract_signatures', title: 'Contract Signatures', desc: 'When contracts are signed' },
-                { key: 'profile_views', title: 'Profile Views', desc: 'When someone views your profile' },
-                { key: 'marketing', title: 'Marketing', desc: 'News and updates from Content Connect' },
-              ].map((item) => (
-                <div key={item.key} className="flex items-center justify-between py-3 border-b border-[#263248] last:border-0">
-                  <div>
-                    <p className="text-[#E8EEF9]">{item.title}</p>
-                    <p className="text-sm text-[#6B7A94]">{item.desc}</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      checked={settings?.notifications?.[item.key] ?? (item.key !== 'marketing')}
-                      onChange={(e) => updateSetting('notifications', item.key, e.target.checked)}
-                      className="sr-only peer" 
-                    />
-                    <div className="w-11 h-6 bg-[#263248] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#4F8CFF]/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4F8CFF]"></div>
-                  </label>
-                </div>
-              ))}
-            </div>
-          </CCCard>
+          <NotificationPreferences user={user} />
         </CCTabsContent>
 
         {/* Subscription Tab */}
