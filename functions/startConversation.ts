@@ -39,21 +39,30 @@ Deno.serve(async (req) => {
     });
 
     // Get sender profile for notification
-    const senderProfiles = await base44.entities.UserProfile.filter({ user_id: user.email });
+    const senderProfiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: user.email });
     const senderProfile = senderProfiles[0];
 
-    // Create notification for recipient
-    const { createNotification } = await import('../../components/notifications/notificationHelpers.js');
-    await createNotification({
-      userId: recipient_id,
-      type: 'messages',
-      actorUserId: user.email,
-      title: 'New Message',
-      body: `${senderProfile?.display_name || 'Someone'} started a conversation with you`,
-      relatedEntityType: 'Conversation',
-      relatedEntityId: conversation.id,
-      actionUrl: `/Messages?conversation=${conversation.id}`
+    // Check if recipient has this notification type enabled
+    const prefs = await base44.asServiceRole.entities.NotificationPreference.filter({
+      user_id: recipient_id,
+      notification_type: 'messages'
     });
+    
+    const shouldNotify = !prefs.length || prefs[0].enabled !== false;
+
+    // Create notification for recipient
+    if (shouldNotify) {
+      await base44.asServiceRole.entities.Notification.create({
+        user_id: recipient_id,
+        type: 'messages',
+        actor_user_id: user.email,
+        title: 'New Message',
+        body: `${senderProfile?.display_name || 'Someone'} started a conversation with you`,
+        related_entity_type: 'Conversation',
+        related_entity_id: conversation.id,
+        action_url: `/Messages?conversation=${conversation.id}`
+      });
+    }
 
     return Response.json({ 
       conversation,
