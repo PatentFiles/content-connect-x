@@ -115,6 +115,7 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
     filters.skills?.length > 0,
     filters.nearMe,
     filters.travelAvailable,
+    filters.testingRequired,
     filters.recentlyActive,
     filters.city,
     filters.state,
@@ -417,21 +418,39 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
                   <ChevronDown className={`w-4 h-4 transition-transform ${expandedSections.trust ? 'rotate-180' : ''}`} />
                 </button>
                 {expandedSections.trust && (
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    <CCButton
-                      variant={filters.verifiedOnly ? 'success' : 'outline'}
-                      size="sm"
-                      onClick={() => updateFilter('verifiedOnly', !filters.verifiedOnly)}
-                    >
-                      Verified Only
-                    </CCButton>
-                    <CCButton
-                      variant={filters.recentlyActive ? 'success' : 'outline'}
-                      size="sm"
-                      onClick={() => updateFilter('recentlyActive', !filters.recentlyActive)}
-                    >
-                      Recently Active
-                    </CCButton>
+                  <div className="space-y-3 mt-2">
+                    <div className="flex flex-wrap gap-2">
+                      <CCButton
+                        variant={filters.verifiedOnly ? 'success' : 'outline'}
+                        size="sm"
+                        onClick={() => updateFilter('verifiedOnly', !filters.verifiedOnly)}
+                      >
+                        Verified Only
+                      </CCButton>
+                      <CCButton
+                        variant={filters.recentlyActive ? 'success' : 'outline'}
+                        size="sm"
+                        onClick={() => updateFilter('recentlyActive', !filters.recentlyActive)}
+                      >
+                        Recently Active
+                      </CCButton>
+                    </div>
+                    <div>
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={filters.testingRequired || false}
+                          onChange={(e) => updateFilter('testingRequired', e.target.checked)}
+                          className="mt-0.5"
+                        />
+                        <div>
+                          <span className="text-sm font-medium text-[#E8EEF9]">Testing Required</span>
+                          <p className="text-xs text-[#6B7A94] mt-0.5">
+                            Only show creators with verified, non-expired testing
+                          </p>
+                        </div>
+                      </label>
+                    </div>
                   </div>
                 )}
               </div>
