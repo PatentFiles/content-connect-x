@@ -389,6 +389,16 @@ export default function CreateCollaboration() {
         collaboration = await base44.entities.Collaboration.create(payload);
       }
 
+      // Auto-add exclusive studios as observers
+      try {
+        await base44.functions.invoke('autoAddStudioObserver', {
+          collaboration_id: collaboration.id,
+          participant_ids: payload.participant_ids
+        });
+      } catch (error) {
+        console.error('Failed to auto-add studio observers:', error);
+      }
+
       // Handle testing requirements
       const wasRequiredBefore = existingTestingReq?.is_required;
       const isRequiredNow = data.testing_requirements.is_required;

@@ -38,6 +38,7 @@ import CollaborationAnalytics from '@/components/admin/CollaborationAnalytics';
 import ComplianceAgent from '@/components/admin/ComplianceAgent';
 import AgentAlertsCard from '@/components/admin/AgentAlertsCard';
 import CatalogModeration from '@/components/admin/CatalogModeration';
+import RepresentationManager from '@/components/admin/RepresentationManager';
 import VerificationReviewQueue from '@/components/admin/VerificationReviewQueue';
 
 // User Management Component
