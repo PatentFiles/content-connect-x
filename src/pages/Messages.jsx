@@ -36,18 +36,6 @@ export default function Messages() {
   
   const { checking: verificationChecking, blocked: verificationBlocked } = useVerificationCheck('send_message');
 
-  // Check URL params for conversation ID
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const conversationId = urlParams.get('conversation');
-    if (conversationId && conversations.length > 0) {
-      const conv = conversations.find(c => c.id === conversationId);
-      if (conv) {
-        setSelectedConversation(conv);
-      }
-    }
-  }, [conversations]);
-
   // Check auth and access
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -88,6 +76,18 @@ export default function Messages() {
     },
     enabled: !!user && (isVerified || isAdmin) && (isSubscribed || isAdmin),
   });
+
+  // Check URL params for conversation ID
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const conversationId = urlParams.get('conversation');
+    if (conversationId && conversations.length > 0) {
+      const conv = conversations.find(c => c.id === conversationId);
+      if (conv) {
+        setSelectedConversation(conv);
+      }
+    }
+  }, [conversations]);
 
   // Fetch profiles for conversations
   const { data: participantProfiles = [] } = useQuery({
