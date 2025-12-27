@@ -44,6 +44,7 @@ export default function Discovery() {
     nearMe: false,
     travelAvailable: false,
     verifiedOnly: true,
+    testingRequired: false,
     recentlyActive: false,
     sortBy: 'distance',
     city: '',
@@ -61,6 +62,12 @@ export default function Discovery() {
     queryKey: ['allVerifications'],
     queryFn: () => base44.entities.VerificationRecord.list(),
     enabled: !!user,
+  });
+
+  const { data: allTestingCredentials = [] } = useQuery({
+    queryKey: ['allTestingCredentials'],
+    queryFn: () => base44.entities.TestingCredential.list(),
+    enabled: !!user && filters.testingRequired,
   });
 
   const { data: verification } = useQuery({
@@ -253,6 +260,22 @@ export default function Discovery() {
         .map(v => v.user_id);
       filtered = filtered.filter(p => verifiedUserIds.includes(p.user_id));
     }
+
+    // Testing required filter
+    if (filters.testingRequired) {
+      const now = new Date();
+      const verifiedTestingUserIds = allTestingCredentials
+        .filter(tc => {
+          // Must be valid status
+          if (tc.status_badge !== 'valid') return false;
+          // Must not be expired
+          if (tc.expires_at && new Date(tc.expires_at) < now) return false;
+          return true;
+        })
+        .map(tc => tc.user_id);
+      
+      filtered = filtered.filter(p => verifiedTestingUserIds.includes(p.user_id));
+    }
     
     // Recently active filter
     if (filters.recentlyActive) {
@@ -383,6 +406,7 @@ export default function Discovery() {
                 nearMe: false,
                 travelAvailable: false,
                 verifiedOnly: true,
+                testingRequired: false,
                 recentlyActive: false,
                 sortBy: 'distance',
                 city: '',

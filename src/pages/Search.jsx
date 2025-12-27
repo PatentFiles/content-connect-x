@@ -41,6 +41,7 @@ export default function Search() {
     nearMe: false,
     travelAvailable: false,
     verifiedOnly: true,
+    testingRequired: false,
     recentlyActive: false,
     sortBy: 'recently_active',
     city: '',
@@ -73,6 +74,12 @@ export default function Search() {
     queryKey: ['allVerifications'],
     queryFn: () => base44.entities.VerificationRecord.list(),
     enabled: !!user && isVerified && isSubscribed,
+  });
+
+  const { data: allTestingCredentials = [] } = useQuery({
+    queryKey: ['allTestingCredentials'],
+    queryFn: () => base44.entities.TestingCredential.list(),
+    enabled: !!user && isVerified && isSubscribed && filters.testingRequired,
   });
 
   const { data: allCreatorDetails = [] } = useQuery({
@@ -161,6 +168,22 @@ export default function Search() {
           .filter(v => v.status === 'approved')
           .map(v => v.user_id);
         allProfiles = allProfiles.filter(p => verifiedUserIds.includes(p.user_id));
+      }
+
+      // Testing required
+      if (filters.testingRequired) {
+        const now = new Date();
+        const verifiedTestingUserIds = allTestingCredentials
+          .filter(tc => {
+            // Must be valid status
+            if (tc.status_badge !== 'valid') return false;
+            // Must not be expired
+            if (tc.expires_at && new Date(tc.expires_at) < now) return false;
+            return true;
+          })
+          .map(tc => tc.user_id);
+        
+        allProfiles = allProfiles.filter(p => verifiedTestingUserIds.includes(p.user_id));
       }
 
       // Recently active
@@ -323,6 +346,7 @@ export default function Search() {
                   nearMe: false,
                   travelAvailable: false,
                   verifiedOnly: true,
+                  testingRequired: false,
                   recentlyActive: false,
                   sortBy: 'recently_active',
                   city: '',
