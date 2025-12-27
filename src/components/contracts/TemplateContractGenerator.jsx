@@ -50,6 +50,18 @@ export default function TemplateContractGenerator({ collaborationId, onContractC
 
       const snapshot = snapshotResult.data.snapshot;
 
+      // Step 2.5: Validate studio revenue splits for exclusive creators
+      const splitValidation = await base44.functions.invoke('validateContractStudioSplit', {
+        collaboration_id: collaborationId,
+        contract_snapshot: snapshot
+      });
+
+      if (!splitValidation.data.can_finalize) {
+        throw new Error(
+          `Studio revenue split required: ${splitValidation.data.validation_errors.map(e => e.message).join(', ')}`
+        );
+      }
+
       // Step 3: Replace tokens in template content
       let generatedContent = selectedTemplate.content;
       Object.keys(tokenValues).forEach(token => {
