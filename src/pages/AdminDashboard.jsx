@@ -392,6 +392,7 @@ export default function AdminDashboard() {
     { value: 'compliance_agent', label: 'Compliance Agent', icon: Shield },
     { value: 'verifications', label: 'Verifications', icon: Shield },
     { value: 'catalog', label: 'Catalog Moderation', icon: Tag },
+    { value: 'representation', label: 'Representations', icon: Users },
     { value: 'users', label: 'User Moderation', icon: Users },
     { value: 'collaborations', label: 'Collaborations', icon: AlertTriangle },
     { value: 'arbitration', label: 'Arbitration', icon: Shield },
@@ -504,6 +505,11 @@ export default function AdminDashboard() {
         {/* Catalog Moderation Tab */}
         <CCTabsContent value="catalog" activeTab={activeTab}>
           <CatalogModeration />
+        </CCTabsContent>
+
+        {/* Representation Tab */}
+        <CCTabsContent value="representation" activeTab={activeTab}>
+          <RepresentationManager />
         </CCTabsContent>
 
         {/* Tags Tab */}
