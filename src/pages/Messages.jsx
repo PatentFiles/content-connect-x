@@ -36,6 +36,18 @@ export default function Messages() {
   
   const { checking: verificationChecking, blocked: verificationBlocked } = useVerificationCheck('send_message');
 
+  // Check URL params for conversation ID
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const conversationId = urlParams.get('conversation');
+    if (conversationId && conversations.length > 0) {
+      const conv = conversations.find(c => c.id === conversationId);
+      if (conv) {
+        setSelectedConversation(conv);
+      }
+    }
+  }, [conversations]);
+
   // Check auth and access
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -93,6 +105,26 @@ export default function Messages() {
         last_message_at: new Date().toISOString(),
         last_message_preview: messageData.body.substring(0, 50),
       });
+
+      // Send notification to recipient(s)
+      const recipients = selectedConversation.participant_ids.filter(id => id !== user.email);
+      const senderProfile = participantProfiles.find(p => p.user_id === user.email);
+      
+      for (const recipientId of recipients) {
+        try {
+          const { notifyNewMessage } = await import('../components/notifications/notificationHelpers');
+          await notifyNewMessage(
+            recipientId, 
+            user.email, 
+            senderProfile, 
+            selectedConversation.type, 
+            selectedConversation.id
+          );
+        } catch (error) {
+          console.error('Failed to send notification:', error);
+        }
+      }
+
       return message;
     },
     onSuccess: () => {

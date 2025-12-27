@@ -1,8 +1,10 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
 import { MapPin, Calendar, Heart, MessageCircle, ShieldCheck, Clock } from 'lucide-react';
+import { toast } from 'sonner';
 import CCCard from '../ui-custom/CCCard';
 import CCAvatar from '../ui-custom/CCAvatars';
 import CCBadge from '../ui-custom/CCBadge';
@@ -36,9 +38,39 @@ export default function ProfileCard({
   isRepresented = false,
   isSaved = false,
 }) {
+  const navigate = useNavigate();
+  const [isMessaging, setIsMessaging] = useState(false);
+
   const isVerified = profile?.verified;
   const isOnline = profile?.last_active_at && 
     new Date(profile.last_active_at) > new Date(Date.now() - 15 * 60 * 1000);
+
+  const handleMessage = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (onMessage) {
+      onMessage(profile);
+      return;
+    }
+
+    // Create/find conversation and navigate
+    setIsMessaging(true);
+    try {
+      const { data } = await base44.functions.invoke('startConversation', {
+        recipient_id: profile.user_id
+      });
+
+      if (data.conversation) {
+        navigate(createPageUrl(`Messages?conversation=${data.conversation.id}`));
+      }
+    } catch (error) {
+      console.error('Error starting conversation:', error);
+      toast.error('Failed to start conversation');
+    } finally {
+      setIsMessaging(false);
+    }
+  };
 
   return (
     <motion.div
@@ -155,11 +187,9 @@ export default function ProfileCard({
                   size="sm"
                   fullWidth
                   icon={MessageCircle}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    onMessage?.(profile);
-                  }}
+                  onClick={handleMessage}
+                  loading={isMessaging}
+                  disabled={isMessaging}
                 >
                   Message
                 </CCButton>
