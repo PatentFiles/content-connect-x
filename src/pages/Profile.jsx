@@ -985,11 +985,11 @@ export default function Profile() {
                   <div className="flex items-center gap-2 mb-4">
                     <Shield className="w-5 h-5 text-[#22C55E]" />
                     <h3 className="text-lg font-semibold text-[#E8EEF9]">Health & Testing</h3>
-                    <CCBadge variant="warning" size="sm">Private by Default</CCBadge>
+                    {isVerified && <CCBadge variant="success" size="sm">Verified</CCBadge>}
                   </div>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Testing Status</label>
+                      <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Testing Status (Legacy)</label>
                       <input
                         type="text"
                         value={editData.health_testing?.testing_status || ''}
@@ -1013,9 +1013,100 @@ export default function Profile() {
                         className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9]"
                       />
                     </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <CCSelect
+                        label="HIV Status"
+                        options={[
+                          { value: '', label: 'Select status' },
+                          { value: 'hiv_negative', label: 'HIV Negative' },
+                          { value: 'hiv_positive_undetectable', label: 'HIV Positive – Undetectable (U=U)' },
+                          { value: 'hiv_positive_detectable', label: 'HIV Positive – Detectable' },
+                          { value: 'unknown', label: 'Unknown / Not Disclosed' },
+                          { value: 'declined', label: 'Declined to State' },
+                        ]}
+                        value={editData.health_testing?.hiv_status || ''}
+                        onChange={(e) => setEditData({
+                          ...editData,
+                          health_testing: {...editData.health_testing, hiv_status: e.target.value}
+                        })}
+                      />
+
+                      <CCSelect
+                        label="STI Panel Status"
+                        options={[
+                          { value: '', label: 'Select status' },
+                          { value: 'full_panel_negative', label: 'Full Panel Negative' },
+                          { value: 'positive_managed', label: 'Positive – Managed / Treated' },
+                          { value: 'pending_results', label: 'Pending Results' },
+                          { value: 'expired', label: 'Expired' },
+                          { value: 'not_tested', label: 'Not Tested' },
+                          { value: 'declined', label: 'Declined to State' },
+                        ]}
+                        value={editData.health_testing?.sti_panel_status || ''}
+                        onChange={(e) => setEditData({
+                          ...editData,
+                          health_testing: {...editData.health_testing, sti_panel_status: e.target.value}
+                        })}
+                      />
+
+                      <CCSelect
+                        label="Testing Recency"
+                        options={[
+                          { value: '', label: 'Select recency' },
+                          { value: 'within_14_days', label: 'Tested within 14 days' },
+                          { value: 'within_30_days', label: 'Tested within 30 days' },
+                          { value: 'within_60_days', label: 'Tested within 60 days' },
+                          { value: 'older_than_60_days', label: 'Older than 60 days' },
+                          { value: 'unknown', label: 'Unknown' },
+                        ]}
+                        value={editData.health_testing?.testing_recency || ''}
+                        onChange={(e) => setEditData({
+                          ...editData,
+                          health_testing: {...editData.health_testing, testing_recency: e.target.value}
+                        })}
+                      />
+
+                      <CCSelect
+                        label="Testing Provider"
+                        options={[
+                          { value: '', label: 'Select provider' },
+                          { value: 'talent_testing_service', label: 'Talent Testing Service' },
+                          { value: 'private_lab', label: 'Private Lab' },
+                          { value: 'clinic_doctor', label: 'Clinic / Doctor' },
+                          { value: 'self_reported', label: 'Self-Reported' },
+                          { value: 'other', label: 'Other (Specify)' },
+                        ]}
+                        value={editData.health_testing?.testing_provider_type || ''}
+                        onChange={(e) => setEditData({
+                          ...editData,
+                          health_testing: {...editData.health_testing, testing_provider_type: e.target.value}
+                        })}
+                      />
+                    </div>
+
+                    {editData.health_testing?.testing_provider_type === 'other' && (
+                      <div>
+                        <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">
+                          Specify Other Provider
+                        </label>
+                        <input
+                          type="text"
+                          value={editData.health_testing?.testing_provider_other || ''}
+                          onChange={(e) => setEditData({
+                            ...editData,
+                            health_testing: {...editData.health_testing, testing_provider_other: e.target.value}
+                          })}
+                          placeholder="Enter provider name"
+                          className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94]"
+                        />
+                      </div>
+                    )}
+
                     <CCSelect
                       label="Testing Visibility"
                       options={[
+                        { value: 'public', label: 'Public' },
                         { value: 'private', label: 'Private' },
                         { value: 'collaboration_room_only', label: 'Collaboration Room Only' },
                         { value: 'verified_collaborators', label: 'Verified Collaborators' },
@@ -1026,6 +1117,16 @@ export default function Profile() {
                         health_testing: {...editData.health_testing, testing_visibility: e.target.value}
                       })}
                     />
+                    <p className="text-xs text-[#6B7A94]">
+                      Control who can see your testing information
+                    </p>
+
+                    <div className="bg-[#4F8CFF]/10 border border-[#4F8CFF]/30 rounded-lg p-3">
+                      <p className="text-xs text-[#9AA6BC]">
+                        <strong className="text-[#4F8CFF]">Note:</strong> These status fields are for your records only. 
+                        Verification requires admin-reviewed TestingCredentials. Upload testing documents in Settings.
+                      </p>
+                    </div>
                   </div>
                 </CCCard>
               </>
