@@ -414,7 +414,6 @@ export default function Discovery() {
                   isRepresented={isRepresented}
                   isSaved={isSaved}
                   onFavorite={handleFavorite}
-                  onMessage={(p) => console.log('Message:', p)}
                 />
               );
             })}
