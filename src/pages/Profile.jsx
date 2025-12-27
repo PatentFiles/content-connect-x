@@ -31,6 +31,98 @@ import LocationSelector from '@/components/location/LocationSelector';
 import BioGenerator from '@/components/profile/BioGenerator';
 import { filterScenePairings } from '@/components/profiles/ScenePairingFilter';
 
+// Component to show availability and travel from ScheduleEntry
+function AvailabilityTravelSection({ user, profile }) {
+  const { data: availabilityEntries = [] } = useQuery({
+    queryKey: ['availabilityEntries', user?.email],
+    queryFn: async () => {
+      const entries = await base44.entities.ScheduleEntry.filter({ 
+        user_id: user?.email,
+        entry_type: 'AVAILABILITY'
+      });
+      return entries.filter(e => e.status === 'AVAILABLE');
+    },
+    enabled: !!user?.email,
+  });
+
+  const { data: travelEntries = [] } = useQuery({
+    queryKey: ['travelEntries', user?.email],
+    queryFn: () => base44.entities.ScheduleEntry.filter({ 
+      user_id: user?.email,
+      entry_type: 'TRAVEL'
+    }),
+    enabled: !!user?.email,
+  });
+
+  return (
+    <div className="grid md:grid-cols-2 gap-6">
+      {/* Availability Dates */}
+      <CCCard padding="lg">
+        <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Availability</h3>
+        {availabilityEntries.length > 0 ? (
+          <>
+            <div className="flex flex-wrap gap-2 justify-center mb-3">
+              {availabilityEntries.slice(0, 8).map(entry => (
+                <CCBadge key={entry.id} variant="outline">
+                  {format(new Date(entry.start_date), 'MMM d')}
+                </CCBadge>
+              ))}
+              {availabilityEntries.length > 8 && (
+                <CCBadge variant="outline">
+                  +{availabilityEntries.length - 8} more
+                </CCBadge>
+              )}
+            </div>
+            <Link 
+              to={createPageUrl('AvailabilitySchedule')}
+              className="text-sm text-[#4F8CFF] hover:text-[#3A7AEE] text-center block"
+            >
+              See more →
+            </Link>
+          </>
+        ) : (
+          <p className="text-sm text-[#6B7A94] text-center">No availability dates set</p>
+        )}
+      </CCCard>
+
+      {/* Travel Dates */}
+      <CCCard padding="lg">
+        <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Travel Schedule</h3>
+        {travelEntries.length > 0 ? (
+          <>
+            <div className="space-y-2 mb-3">
+              {travelEntries.slice(0, 3).map((entry) => (
+                <div key={entry.id} className="p-2 rounded bg-[#0B0F14] text-center">
+                  <div className="text-sm font-medium text-[#E8EEF9]">{entry.location_city || entry.title}</div>
+                  <div className="text-xs text-[#9AA6BC]">
+                    {format(new Date(entry.start_date), 'MMM d')} - {format(new Date(entry.end_date), 'MMM d')}
+                  </div>
+                  {entry.start_time && (
+                    <div className="text-xs text-[#6B7A94]">Arrives: {entry.start_time}</div>
+                  )}
+                </div>
+              ))}
+              {travelEntries.length > 3 && (
+                <p className="text-xs text-[#6B7A94] text-center">
+                  +{travelEntries.length - 3} more destinations
+                </p>
+              )}
+            </div>
+            <Link 
+              to={createPageUrl('TravelSchedule')}
+              className="text-sm text-[#4F8CFF] hover:text-[#3A7AEE] text-center block"
+            >
+              See more →
+            </Link>
+          </>
+        ) : (
+          <p className="text-sm text-[#6B7A94] text-center">No travel dates posted</p>
+        )}
+      </CCCard>
+    </div>
+  );
+}
+
 const genderOptions = [
   { value: 'woman', label: 'Female' },
   { value: 'man', label: 'Male' },
@@ -1093,71 +1185,7 @@ export default function Profile() {
             )}
 
             {/* Availability and Travel */}
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Availability Dates */}
-              <CCCard padding="lg">
-                <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Availability</h3>
-                {profile?.availability_dates?.length > 0 ? (
-                  <>
-                    <div className="flex flex-wrap gap-2 justify-center mb-3">
-                      {profile.availability_dates.sort().slice(0, 8).map(dateStr => (
-                        <CCBadge key={dateStr} variant="outline">
-                          {format(new Date(dateStr), 'MMM d')}
-                        </CCBadge>
-                      ))}
-                      {profile.availability_dates.length > 8 && (
-                        <CCBadge variant="outline">
-                          +{profile.availability_dates.length - 8} more
-                        </CCBadge>
-                      )}
-                    </div>
-                    <Link 
-                      to={createPageUrl('AvailabilitySchedule')}
-                      className="text-sm text-[#4F8CFF] hover:text-[#3A7AEE] text-center block"
-                    >
-                      See more →
-                    </Link>
-                  </>
-                ) : (
-                  <p className="text-sm text-[#6B7A94] text-center">No availability dates set</p>
-                )}
-              </CCCard>
-
-              {/* Travel Dates */}
-              <CCCard padding="lg">
-                <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Travel Schedule</h3>
-                {profile?.travel_dates?.length > 0 ? (
-                  <>
-                    <div className="space-y-2 mb-3">
-                      {profile.travel_dates.slice(0, 3).map((travel, idx) => (
-                        <div key={idx} className="p-2 rounded bg-[#0B0F14] text-center">
-                          <div className="text-sm font-medium text-[#E8EEF9]">{travel.location}</div>
-                          <div className="text-xs text-[#9AA6BC]">
-                            {format(new Date(travel.start_date), 'MMM d')} - {format(new Date(travel.end_date), 'MMM d')}
-                          </div>
-                          {travel.arrival_time && (
-                            <div className="text-xs text-[#6B7A94]">Arrives: {travel.arrival_time}</div>
-                          )}
-                        </div>
-                      ))}
-                      {profile.travel_dates.length > 3 && (
-                        <p className="text-xs text-[#6B7A94] text-center">
-                          +{profile.travel_dates.length - 3} more destinations
-                        </p>
-                      )}
-                    </div>
-                    <Link 
-                      to={createPageUrl('TravelSchedule')}
-                      className="text-sm text-[#4F8CFF] hover:text-[#3A7AEE] text-center block"
-                    >
-                      See more →
-                    </Link>
-                  </>
-                ) : (
-                  <p className="text-sm text-[#6B7A94] text-center">No travel dates posted</p>
-                )}
-              </CCCard>
-            </div>
+            <AvailabilityTravelSection user={user} profile={profile} />
 
             {/* AI Bio Generator - At the very bottom */}
             {isEditing && (

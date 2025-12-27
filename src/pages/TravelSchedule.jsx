@@ -116,16 +116,18 @@ END:VCALENDAR`;
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] p-6 pb-24 md:pb-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+      <div className="max-w-4xl mx-auto p-6 space-y-6">
         {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-[#E8EEF9]">Travel Schedule</h1>
+          <p className="text-sm text-[#9AA6BC] mt-2">
+            Manage your travel destinations and dates
+          </p>
+        </div>
+        
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-[#E8EEF9]">Travel Schedule</h1>
-            <p className="text-sm text-[#9AA6BC] mt-1">
-              Manage your travel destinations and dates
-            </p>
-          </div>
+          <div></div>
           <CCButton
             variant="primary"
             onClick={() => setShowManager(true)}
