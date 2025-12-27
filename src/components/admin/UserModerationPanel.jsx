@@ -7,7 +7,6 @@ import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import CCModal from '@/components/ui-custom/CCModal';
 import CCInput from '@/components/ui-custom/CCInput';
-import { CCSelect } from '@/components/ui-custom/CCSelect';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
