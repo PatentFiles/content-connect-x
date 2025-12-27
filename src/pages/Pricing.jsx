@@ -100,7 +100,11 @@ export default function Pricing() {
         />
 
         {/* Pricing cards */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className={`grid gap-6 ${
+          pricingData[activeRole]?.length === 2 
+            ? 'md:grid-cols-2 max-w-4xl mx-auto' 
+            : 'md:grid-cols-2 lg:grid-cols-3'
+        }`}>
           {pricingData[activeRole]?.map((plan, i) => {
             const isPro = plan.tier === 'pro';
             return (

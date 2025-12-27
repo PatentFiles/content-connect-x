@@ -97,11 +97,11 @@ const faqCategories = [
     ],
   },
   {
-    name: 'Deal Rooms & Contracts',
+    name: 'Collaborations & Contracts',
     faqs: [
       {
-        q: 'What is a Deal Room?',
-        a: 'A Deal Room is a structured workspace for negotiating collaborations. It includes a scene builder, boundary definitions, compensation terms, scheduling, deliverables, and usage rights all in one place.',
+        q: 'What is a Collaboration?',
+        a: 'A Collaboration is a structured workspace for negotiating and managing content partnerships. It includes a scene builder, boundary definitions, compensation terms, scheduling, deliverables, and usage rights all in one place.',
       },
       {
         q: 'What are scene types?',
@@ -109,7 +109,7 @@ const faqCategories = [
       },
       {
         q: 'How do contracts work?',
-        a: 'Once a Deal Room is complete, you can generate a contract from the agreed terms. All parties e-sign, and the contract is stored with version history. You can export contracts as PDFs.',
+        a: 'Once a Collaboration is complete, you can generate a contract from the agreed terms. All parties e-sign, and the contract is stored with version history. You can export contracts as PDFs.',
       },
       {
         q: 'Are contracts legally binding?',
@@ -138,7 +138,7 @@ const faqCategories = [
       },
       {
         q: 'What about testing/health credentials?',
-        a: 'Members can optionally upload testing credentials which display as a badge with expiration date. Sharing full documents is permission-controlled and only available in Deal Rooms.',
+        a: 'Members can optionally upload testing credentials which display as a badge with expiration date. Sharing full documents is permission-controlled and only available in Collaborations.',
       },
     ],
   },
