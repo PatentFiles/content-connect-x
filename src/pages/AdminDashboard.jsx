@@ -40,6 +40,8 @@ import AgentAlertsCard from '@/components/admin/AgentAlertsCard';
 import CatalogModeration from '@/components/admin/CatalogModeration';
 import RepresentationManager from '@/components/admin/RepresentationManager';
 import VerificationReviewQueue from '@/components/admin/VerificationReviewQueue';
+import ReportsQueue from '@/components/admin/ReportsQueue';
+import SessionHistoryViewer from '@/components/admin/SessionHistoryViewer';
 
 // User Management Component
 function UserManagement({ currentUser }) {
@@ -394,6 +396,8 @@ export default function AdminDashboard() {
     { value: 'catalog', label: 'Catalog Moderation', icon: Tag },
     { value: 'representation', label: 'Representations', icon: Users },
     { value: 'users', label: 'User Moderation', icon: Users },
+    { value: 'reports_queue', label: 'Reports Queue', icon: AlertTriangle },
+    { value: 'sessions', label: 'Session History', icon: Clock },
     { value: 'collaborations', label: 'Collaborations', icon: AlertTriangle },
     { value: 'arbitration', label: 'Arbitration', icon: Shield },
     { value: 'compliance', label: 'Compliance', icon: CheckCircle },
@@ -597,6 +601,16 @@ export default function AdminDashboard() {
         {/* Users Tab */}
         <CCTabsContent value="users" activeTab={activeTab}>
           <UserModerationPanel currentAdmin={user} />
+        </CCTabsContent>
+
+        {/* Reports Queue Tab */}
+        <CCTabsContent value="reports_queue" activeTab={activeTab}>
+          <ReportsQueue currentAdmin={user} />
+        </CCTabsContent>
+
+        {/* Session History Tab */}
+        <CCTabsContent value="sessions" activeTab={activeTab}>
+          <SessionHistoryViewer />
         </CCTabsContent>
 
         {/* Collaborations Tab */}
