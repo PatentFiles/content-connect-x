@@ -14,7 +14,8 @@ import {
   Info,
   Image,
   File,
-  X
+  X,
+  Trash2
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCInput from '@/components/ui-custom/CCInput';
@@ -118,18 +119,27 @@ export default function Messages() {
 
       // Send notification to recipient(s)
       const recipients = selectedConversation.participant_ids.filter(id => id !== user.email);
-      const senderProfile = participantProfiles.find(p => p.user_id === user.email);
       
       for (const recipientId of recipients) {
         try {
-          const { notifyNewMessage } = await import('../components/notifications/notificationHelpers');
-          await notifyNewMessage(
-            recipientId, 
-            user.email, 
-            senderProfile, 
-            selectedConversation.type, 
-            selectedConversation.id
-          );
+          const prefs = await base44.entities.NotificationPreference.filter({
+            user_id: recipientId,
+            notification_type: 'messages'
+          });
+          const shouldNotify = !prefs.length || prefs[0].enabled !== false;
+
+          if (shouldNotify) {
+            await base44.entities.Notification.create({
+              user_id: recipientId,
+              type: 'messages',
+              actor_user_id: user.email,
+              title: 'New Message',
+              body: `${profile?.display_name || 'Someone'} sent you a message`,
+              related_entity_type: 'Conversation',
+              related_entity_id: selectedConversation.id,
+              action_url: `Messages?conversation=${selectedConversation.id}`
+            });
+          }
         } catch (error) {
           console.error('Failed to send notification:', error);
         }
@@ -141,6 +151,16 @@ export default function Messages() {
       queryClient.invalidateQueries(['messages', selectedConversation?.id]);
       queryClient.invalidateQueries(['conversations']);
       setNewMessage('');
+    },
+  });
+
+  // Delete message mutation
+  const deleteMessageMutation = useMutation({
+    mutationFn: async (messageId) => {
+      await base44.entities.Message.delete(messageId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['messages', selectedConversation?.id]);
     },
   });
 
@@ -327,7 +347,7 @@ export default function Messages() {
                         key={msg.id}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
+                        className={`flex gap-2 group ${isMine ? 'justify-end' : 'justify-start'}`}
                       >
                         <div className={`max-w-[75%] ${isMine ? 'order-1' : 'order-2'}`}>
                           <div
@@ -343,6 +363,15 @@ export default function Messages() {
                             {new Date(msg.created_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
+                        <button
+                          onClick={() => deleteMessageMutation.mutate(msg.id)}
+                          className={`opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-[#263248] rounded self-start ${
+                            isMine ? 'order-2' : 'order-1'
+                          }`}
+                          title="Delete message"
+                        >
+                          <Trash2 className="w-4 h-4 text-[#6B7A94] hover:text-[#EF4444]" />
+                        </button>
                       </motion.div>
                     );
                   })
