@@ -26,6 +26,7 @@ import AIRiskPrediction from '@/components/admin/AIRiskPrediction';
 import TemplateContractGenerator from '@/components/contracts/TemplateContractGenerator';
 import TestingStatusBanner from '@/components/collaboration/TestingStatusBanner';
 import ConsentRevocationBanner from '@/components/collaboration/ConsentRevocationBanner';
+import TestingPolicyManager from '@/components/collaboration/TestingPolicyManager';
 import { useRepObserverCheck, logRepObserverAccess } from '@/components/collaboration/RepObserverAccessControl';
 
 export default function CollaborationDetail() {
@@ -324,6 +325,12 @@ export default function CollaborationDetail() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            <TestingPolicyManager 
+              collaborationId={collaboration.id} 
+              userRole={userRole}
+              readOnly={isRepObserver}
+            />
+            
             <CCCard padding="lg">
               <ActivityFeed collaborationId={collaboration.id} />
             </CCCard>

@@ -20,6 +20,16 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
 
   const testingReq = testingReqs[0];
 
+  // Fetch collaboration testing policy
+  const { data: policies = [] } = useQuery({
+    queryKey: ['testingPolicy', collaboration.id],
+    queryFn: () => base44.entities.CollaborationTestingPolicy.filter({ 
+      collaboration_id: collaboration.id 
+    }),
+  });
+
+  const policy = policies[0];
+
   // Don't show if testing not required
   if (!testingReq || !testingReq.is_required) {
     return null;
@@ -31,12 +41,21 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
     queryFn: () => base44.entities.TestingCredential.filter({}),
   });
 
+  // Fetch creator details for policy enforcement
+  const { data: allCreatorDetails = [] } = useQuery({
+    queryKey: ['allCreatorDetails'],
+    queryFn: () => base44.entities.CreatorDetails.list(),
+    enabled: !!policy,
+  });
+
   // Check satisfaction for each participant
   const participantIds = collaboration.participant_ids || [];
   const satisfactionResults = participantIds.map(participantId => {
     const participantCredentials = allCredentials.filter(c => c.user_id === participantId);
+    const creatorDetails = allCreatorDetails.find(d => d.user_id === participantId);
     
     let satisfied = false;
+    let policyViolations = [];
 
     if (testingReq.require_new_upload) {
       const collabSpecific = participantCredentials.find(c => 
@@ -53,7 +72,49 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
       if (validCredential) satisfied = true;
     }
 
-    return { participantId, satisfied };
+    // Apply policy enforcement
+    if (policy && satisfied && creatorDetails?.health_testing) {
+      const testing = creatorDetails.health_testing;
+
+      // Check verified testing requirement
+      if (policy.require_verified_testing && testing.testing_provider_type === 'self_reported' && !policy.allow_self_reported) {
+        satisfied = false;
+        policyViolations.push('Self-reported testing not allowed');
+      }
+
+      // Check recency requirement
+      if (policy.require_full_panel_within_days) {
+        const recencyMap = {
+          'within_14_days': 14,
+          'within_30_days': 30,
+          'within_60_days': 60,
+          'older_than_60_days': 999,
+          'unknown': 999,
+        };
+        const testDays = recencyMap[testing.testing_recency] || 999;
+        if (testDays > policy.require_full_panel_within_days) {
+          satisfied = false;
+          policyViolations.push(`Testing older than ${policy.require_full_panel_within_days} days`);
+        }
+      }
+
+      // Check HIV requirements
+      if (policy.require_hiv_negative_only && testing.hiv_status !== 'hiv_negative') {
+        satisfied = false;
+        policyViolations.push('HIV negative status required');
+      } else if (!policy.require_hiv_negative_only && !policy.allow_hiv_undetectable && testing.hiv_status === 'hiv_positive_undetectable') {
+        satisfied = false;
+        policyViolations.push('HIV undetectable (U=U) not allowed by policy');
+      }
+
+      // Check STI panel
+      if (testing.sti_panel_status === 'expired' || testing.sti_panel_status === 'not_tested') {
+        satisfied = false;
+        policyViolations.push('Valid STI panel required');
+      }
+    }
+
+    return { participantId, satisfied, policyViolations };
   });
 
   const allSatisfied = satisfactionResults.every(r => r.satisfied);
@@ -142,10 +203,15 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
   const Icon = icon;
 
   const visibilityLabels = {
+    'PUBLIC': 'Public',
     'PRIVATE': 'Private',
     'COLLABORATION_ROOM_ONLY': 'Collaboration Room Only',
     'VERIFIED_COLLABORATORS': 'Verified Collaborators'
   };
+
+  // Show policy violations if any
+  const hasViolations = satisfactionResults.some(r => r.policyViolations?.length > 0);
+  const violationDetails = satisfactionResults.filter(r => r.policyViolations?.length > 0);
 
   return (
     <motion.div
@@ -169,11 +235,23 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
               <p className="text-sm text-[#9AA6BC]">{subtitle}</p>
               
               {bannerState === 'pending' && (
-                <div className="mt-2 flex flex-wrap gap-3 text-xs text-[#9AA6BC]">
-                  {deadline && (
-                    <div>Deadline: <span className="text-[#E8EEF9]">{format(deadline, 'PPp')}</span></div>
+                <div className="mt-2 space-y-2">
+                  <div className="flex flex-wrap gap-3 text-xs text-[#9AA6BC]">
+                    {deadline && (
+                      <div>Deadline: <span className="text-[#E8EEF9]">{format(deadline, 'PPp')}</span></div>
+                    )}
+                    <div>Visibility: <span className="text-[#E8EEF9]">{visibilityLabels[testingReq.visibility_level]}</span></div>
+                  </div>
+                  {hasViolations && (
+                    <div className="bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-lg p-2 space-y-1">
+                      <p className="text-xs font-medium text-[#EF4444]">Policy Violations Detected:</p>
+                      {violationDetails.map((v, idx) => (
+                        <div key={idx} className="text-xs text-[#9AA6BC]">
+                          • {v.policyViolations.join(', ')}
+                        </div>
+                      ))}
+                    </div>
                   )}
-                  <div>Visibility: <span className="text-[#E8EEF9]">{visibilityLabels[testingReq.visibility_level]}</span></div>
                 </div>
               )}
             </div>
