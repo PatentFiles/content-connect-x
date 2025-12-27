@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, Link } from 'react-router-dom';
@@ -77,7 +77,7 @@ export default function CollaborationDetail() {
   );
 
   // Log RepObserver access
-  React.useEffect(() => {
+  useEffect(() => {
     if (isRepObserver && collaboration?.id) {
       logRepObserverAccess(
         collaboration.id,
