@@ -67,7 +67,26 @@ export default function CollaborationDetail() {
     enabled: !!collaborationId,
   });
 
-  const userRole = participantRoles.find(r => r.user_id === user?.email)?.role || 'Viewer';
+  const participantRole = participantRoles.find(r => r.user_id === user?.email);
+  const userRole = participantRole?.role || 'Viewer';
+
+  // RepObserver access control
+  const { isRepObserver, canMessage, canEdit } = useRepObserverCheck(
+    collaboration?.id,
+    user?.email
+  );
+
+  // Log RepObserver access
+  React.useEffect(() => {
+    if (isRepObserver && collaboration?.id) {
+      logRepObserverAccess(
+        collaboration.id,
+        user?.email,
+        'VIEW_COLLABORATION',
+        { page: 'CollaborationDetail' }
+      );
+    }
+  }, [isRepObserver, collaboration?.id, user?.email]);
 
   const { data: profile = [] } = useQuery({
     queryKey: ['myProfile', user?.email],
@@ -246,20 +265,40 @@ export default function CollaborationDetail() {
 
                 <div className="p-6">
                   {activeTab === 'tasks' && (
-                    <TaskManager collaborationId={collaboration.id} participants={collaboration.participant_ids} />
+                    canEdit ? (
+                      <TaskManager collaborationId={collaboration.id} participants={collaboration.participant_ids} />
+                    ) : (
+                      <CCCard padding="lg">
+                        <div className="text-center py-8">
+                          <AlertTriangle className="w-12 h-12 text-[#F59E0B] mx-auto mb-3" />
+                          <p className="text-[#9AA6BC]">RepObservers have read-only access</p>
+                        </div>
+                      </CCCard>
+                    )
                   )}
                   {activeTab === 'documents' && (
-                    <DocumentRepository collaborationId={collaboration.id} />
+                    <DocumentRepository collaborationId={collaboration.id} readOnly={isRepObserver} />
                   )}
                   {activeTab === 'calendar' && (
-                    <CollaborationCalendar collaborationId={collaboration.id} participants={collaboration.participant_ids} />
+                    <CollaborationCalendar collaborationId={collaboration.id} participants={collaboration.participant_ids} readOnly={isRepObserver} />
                   )}
                   {activeTab === 'messages' && (
-                    <CollaborationMessaging 
-                      collaborationId={collaboration.id} 
-                      currentUser={user}
-                      userRole={userRole}
-                    />
+                    canMessage ? (
+                      <CollaborationMessaging 
+                        collaborationId={collaboration.id} 
+                        currentUser={user}
+                        userRole={userRole}
+                      />
+                    ) : (
+                      <CCCard padding="lg">
+                        <div className="text-center py-8">
+                          <AlertTriangle className="w-12 h-12 text-[#F59E0B] mx-auto mb-3" />
+                          <p className="text-[#9AA6BC]">
+                            RepObservers cannot send messages unless granted permission by Admin
+                          </p>
+                        </div>
+                      </CCCard>
+                    )
                   )}
                   {activeTab === 'roles' && (
                     <RolePermissions 
