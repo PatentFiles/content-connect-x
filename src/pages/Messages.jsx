@@ -54,6 +54,15 @@ export default function Messages() {
     queryFn: () => base44.auth.me(),
   });
 
+  const { data: profile } = useQuery({
+    queryKey: ['profile', user?.email],
+    queryFn: async () => {
+      const profiles = await base44.entities.UserProfile.filter({ user_id: user?.email });
+      return profiles[0];
+    },
+    enabled: !!user?.email,
+  });
+
   const { data: verification } = useQuery({
     queryKey: ['verification', user?.email],
     queryFn: () => base44.entities.VerificationRecord.filter({ user_id: user?.email }),
@@ -66,8 +75,9 @@ export default function Messages() {
     enabled: !!user?.email,
   });
 
-  const isVerified = verification?.[0]?.status === 'approved';
-  const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
+  const isAdmin = profile?.is_admin;
+  const isVerified = verification?.[0]?.status === 'approved' || isAdmin;
+  const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial' || isAdmin;
 
   // Fetch conversations
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery({
@@ -76,7 +86,7 @@ export default function Messages() {
       const allConvs = await base44.entities.Conversation.list('-last_message_at');
       return allConvs.filter(c => c.participant_ids?.includes(user?.email));
     },
-    enabled: !!user && isVerified && isSubscribed,
+    enabled: !!user && (isVerified || isAdmin) && (isSubscribed || isAdmin),
   });
 
   // Fetch profiles for conversations
@@ -169,15 +179,15 @@ export default function Messages() {
     return <AccessGate type="both" />;
   }
 
-  if (verificationBlocked) {
+  if (!isAdmin && verificationBlocked) {
     return <VerificationRequired action="send messages" />;
   }
 
-  if (!isVerified) {
+  if (!isAdmin && !isVerified) {
     return <AccessGate type="verification" />;
   }
 
-  if (!isSubscribed) {
+  if (!isAdmin && !isSubscribed) {
     return <AccessGate type="subscription" />;
   }
 
