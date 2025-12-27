@@ -33,6 +33,8 @@ export default function ProfileCard({
   distance,
   onFavorite,
   onMessage,
+  onBlock,
+  onReport,
   showActions = true,
   compact = false,
   isRepresented = false,
@@ -69,6 +71,22 @@ export default function ProfileCard({
       toast.error('Failed to start conversation');
     } finally {
       setIsMessaging(false);
+    }
+  };
+
+  const handleBlock = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onBlock) {
+      onBlock(profile);
+    }
+  };
+
+  const handleReport = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onReport) {
+      onReport(profile);
     }
   };
 

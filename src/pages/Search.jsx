@@ -12,6 +12,7 @@ import ProfileCard from '@/components/profiles/ProfileCard';
 import ProfileFilters from '@/components/profiles/ProfileFilters';
 import AccessGate from '@/components/auth/AccessGate';
 import SaveToFavoritesModal from '@/components/profiles/SaveToFavoritesModal';
+import ReportModal from '@/components/moderation/ReportModal';
 
 const roleOptions = [
   { value: 'creator', label: 'Creators', icon: Users },
@@ -24,6 +25,8 @@ const roleOptions = [
 export default function Search() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportTargetUserId, setReportTargetUserId] = useState(null);
   const queryClient = useQueryClient();
   
   const [searchQuery, setSearchQuery] = useState('');
@@ -241,6 +244,30 @@ export default function Search() {
     }
   };
 
+  const blockUserMutation = useMutation({
+    mutationFn: async (userId) => {
+      await base44.entities.BlockedUser.create({
+        blocker_id: user.email,
+        blocked_id: userId,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['searchProfiles']);
+      toast.success('User blocked');
+    },
+  });
+
+  const handleBlock = (profile) => {
+    if (confirm('Block this user? They will not be able to contact you.')) {
+      blockUserMutation.mutate(profile.user_id);
+    }
+  };
+
+  const handleReport = (profile) => {
+    setReportTargetUserId(profile.user_id);
+    setShowReportModal(true);
+  };
+
   if (userLoading) {
     return <CCLoadingScreen message="Loading..." />;
   }
@@ -391,7 +418,8 @@ export default function Search() {
                   creatorDetails={details}
                   isSaved={isSaved}
                   onFavorite={handleFavorite}
-                  onMessage={(p) => console.log('Message:', p)}
+                  onBlock={handleBlock}
+                  onReport={handleReport}
                 />
               );
             })}
@@ -411,6 +439,17 @@ export default function Search() {
           userEmail={user?.email}
         />
       )}
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => {
+          setShowReportModal(false);
+          setReportTargetUserId(null);
+        }}
+        targetUserId={reportTargetUserId}
+        targetContentType="profile"
+      />
     </div>
   );
 }

@@ -17,8 +17,11 @@ import {
   File,
   X,
   Trash2,
-  Archive
+  Archive,
+  Ban,
+  Flag
 } from 'lucide-react';
+import ReportModal from '@/components/moderation/ReportModal';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCInput from '@/components/ui-custom/CCInput';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
@@ -37,6 +40,8 @@ export default function Messages() {
   const [showConversationMenu, setShowConversationMenu] = useState(false);
   const [longPressMessage, setLongPressMessage] = useState(null);
   const [uploadingFile, setUploadingFile] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportTargetUserId, setReportTargetUserId] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const longPressTimer = useRef(null);
@@ -225,6 +230,22 @@ export default function Messages() {
       setSelectedConversation(null);
       setShowConversationMenu(false);
       toast.success('Conversation deleted');
+    },
+  });
+
+  // Block user
+  const blockUserMutation = useMutation({
+    mutationFn: async (targetUserId) => {
+      await base44.entities.BlockedUser.create({
+        blocker_id: user.email,
+        blocked_id: targetUserId,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['conversations']);
+      setSelectedConversation(null);
+      setShowConversationMenu(false);
+      toast.success('User blocked');
     },
   });
 
@@ -459,7 +480,7 @@ export default function Messages() {
                     <MoreVertical className="w-5 h-5" />
                   </CCButton>
                   {showConversationMenu && (
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-[#151D2B] border border-[#263248] rounded-lg shadow-xl z-50">
+                    <div className="absolute right-0 top-full mt-2 w-52 bg-[#151D2B] border border-[#263248] rounded-lg shadow-xl z-50">
                       <button
                         onClick={() => {
                           archiveConversationMutation.mutate(selectedConversation.id);
@@ -468,6 +489,30 @@ export default function Messages() {
                       >
                         <Archive className="w-4 h-4" />
                         Archive conversation
+                      </button>
+                      <button
+                        onClick={() => {
+                          const otherUserId = selectedConversation.participant_ids.find(id => id !== user.email);
+                          if (confirm('Block this user? They will not be able to contact you.')) {
+                            blockUserMutation.mutate(otherUserId);
+                          }
+                        }}
+                        className="w-full px-4 py-3 text-left text-sm text-[#F59E0B] hover:bg-[#F59E0B]/10 flex items-center gap-3 transition-colors"
+                      >
+                        <Ban className="w-4 h-4" />
+                        Block user
+                      </button>
+                      <button
+                        onClick={() => {
+                          const otherUserId = selectedConversation.participant_ids.find(id => id !== user.email);
+                          setReportTargetUserId(otherUserId);
+                          setShowReportModal(true);
+                          setShowConversationMenu(false);
+                        }}
+                        className="w-full px-4 py-3 text-left text-sm text-[#F59E0B] hover:bg-[#F59E0B]/10 flex items-center gap-3 transition-colors"
+                      >
+                        <Flag className="w-4 h-4" />
+                        Report user
                       </button>
                       <button
                         onClick={() => {
@@ -641,6 +686,18 @@ export default function Messages() {
           </div>
         </div>
       )}
+
+      {/* Report Modal */}
+      <ReportModal
+        isOpen={showReportModal}
+        onClose={() => {
+          setShowReportModal(false);
+          setReportTargetUserId(null);
+        }}
+        targetUserId={reportTargetUserId}
+        targetContentType="message"
+        targetContentId={selectedConversation?.id}
+      />
     </div>
   );
 }
