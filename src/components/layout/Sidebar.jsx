@@ -22,6 +22,9 @@ const adminNavItems = [
   { name: 'Agent Management', page: 'AgentManagement', icon: Bot },
 ];
 
+import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
+
 export default function Sidebar({ currentPage, profile, onLogout, adminRoleView, onAdminRoleViewChange }) {
   // Determine which role's navigation to show
   const isAdmin = profile?.is_admin;
@@ -29,6 +32,32 @@ export default function Sidebar({ currentPage, profile, onLogout, adminRoleView,
   const showAdminNav = isAdmin && effectiveRoleView === 'admin';
   const roleType = showAdminNav ? 'creator' : effectiveRoleView;
   const navItems = getNavigationForRole(roleType);
+
+  // Fetch unread message count
+  const { data: conversations = [] } = useQuery({
+    queryKey: ['conversations', profile?.user_id],
+    queryFn: async () => {
+      const allConvs = await base44.entities.Conversation.list();
+      return allConvs.filter(c => c.participant_ids?.includes(profile?.user_id));
+    },
+    enabled: !!profile?.user_id,
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  const { data: allMessages = [] } = useQuery({
+    queryKey: ['allMessages'],
+    queryFn: () => base44.entities.Message.list(),
+    enabled: !!profile?.user_id,
+    refetchInterval: 30000,
+  });
+
+  const unreadCount = conversations.reduce((total, conv) => {
+    const convMessages = allMessages.filter(m => m.conversation_id === conv.id);
+    const unread = convMessages.filter(m => 
+      m.sender_id !== profile?.user_id && !m.read_by?.includes(profile?.user_id)
+    ).length;
+    return total + unread;
+  }, 0);
   return (
     <aside className="hidden md:flex fixed left-0 top-16 bottom-0 w-64 bg-[#121824] border-r border-[#263248] flex-col">
       {/* Profile Section */}
@@ -108,6 +137,7 @@ export default function Sidebar({ currentPage, profile, onLogout, adminRoleView,
         )}
         {navItems.filter(item => item.path !== 'Dashboard' || !showAdminNav).map((item) => {
           const isActive = currentPage === item.path;
+          const isMessagesPage = item.path === 'Messages';
           return (
             <Link
               key={item.path}
@@ -128,7 +158,12 @@ export default function Sidebar({ currentPage, profile, onLogout, adminRoleView,
                 />
               )}
               <item.icon className="w-5 h-5" />
-              <span className="text-sm font-medium">{item.label}</span>
+              <span className="text-sm font-medium">
+                {item.label}
+                {isMessagesPage && unreadCount > 0 && (
+                  <span className="ml-1.5 text-xs">({unreadCount})</span>
+                )}
+              </span>
             </Link>
           );
         })}
