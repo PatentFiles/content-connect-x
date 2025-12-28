@@ -87,6 +87,28 @@ export default function FriendSettingsCard({ userId }) {
             </p>
           </div>
 
+          {/* Require Message Before Friend Request Toggle */}
+          <div className="flex items-center justify-between p-3 bg-[#121824] rounded-lg">
+            <div>
+              <p className="text-sm font-medium text-[#E8EEF9]">
+                Require message reply before accepting friend requests
+              </p>
+              <p className="text-xs text-[#6B7A94] mt-1">
+                Users must send you a message and wait for your reply before they can send a friend request
+              </p>
+            </div>
+            <input
+              type="checkbox"
+              checked={localSettings.friend_request_policy === 'MESSAGE_FIRST'}
+              onChange={(e) => setLocalSettings({
+                ...localSettings,
+                friend_request_policy: e.target.checked ? 'MESSAGE_FIRST' : 'EVERYONE'
+              })}
+              disabled={localSettings.friend_request_policy === 'NO_ONE'}
+              className="w-5 h-5"
+            />
+          </div>
+
           {/* Collaboration Invites */}
           <div className="flex items-center justify-between p-3 bg-[#121824] rounded-lg">
             <div>

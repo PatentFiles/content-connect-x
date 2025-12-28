@@ -333,7 +333,13 @@ export default function Settings() {
                         {currentSubscription.status}
                       </CCBadge>
                     </div>
-                    <CCButton variant="outline" size="sm">Change Plan</CCButton>
+                    <CCButton 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => window.location.href = createPageUrl('Pricing')}
+                    >
+                      Change Plan
+                    </CCButton>
                   </div>
                   <div className="text-sm text-[#9AA6BC]">
                     {currentSubscription.renews_at && (
@@ -341,7 +347,17 @@ export default function Settings() {
                     )}
                   </div>
                 </div>
-                <CCButton variant="outline" fullWidth>
+                <CCButton 
+                  variant="outline" 
+                  fullWidth
+                  onClick={() => {
+                    if (currentSubscription?.external_subscription_id) {
+                      window.open('https://billing.stripe.com/p/login/test_...', '_blank');
+                    } else {
+                      toast.error('No billing portal available');
+                    }
+                  }}
+                >
                   Manage Billing
                 </CCButton>
               </div>
