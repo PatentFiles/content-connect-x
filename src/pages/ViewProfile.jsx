@@ -30,6 +30,7 @@ import SocialLinksDisplay from '@/components/socials/SocialLinksDisplay';
 import AccessGate from '@/components/auth/AccessGate';
 import { useVerificationCheck } from '@/components/auth/useVerificationCheck';
 import VerificationRequired from '@/components/auth/VerificationRequired';
+import FriendRequestButton from '@/components/friends/FriendRequestButton';
 
 const roleColors = {
   creator: 'primary',
@@ -150,6 +151,40 @@ export default function ViewProfile() {
 
   const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profileUserId));
   const queryClient = useQueryClient();
+
+  // Fetch friend count and friendship status
+  const { data: friendCount } = useQuery({
+    queryKey: ['friendCount', profileUserId],
+    queryFn: async () => {
+      const friendships = await base44.entities.Friendship.filter({
+        status: 'ACCEPTED',
+        $or: [
+          { requester_user_id: profileUserId },
+          { addressee_user_id: profileUserId }
+        ]
+      });
+      return friendships.length;
+    },
+    enabled: !!profileUserId,
+  });
+
+  // Check friend settings visibility
+  const { data: friendSettings } = useQuery({
+    queryKey: ['friendSettings', profileUserId],
+    queryFn: async () => {
+      const settings = await base44.entities.FriendSettings.filter({ user_id: profileUserId });
+      return settings[0] || { friend_count_visibility: 'PUBLIC' };
+    },
+    enabled: !!profileUserId,
+  });
+
+  const canSeeFriendCount = () => {
+    if (!friendSettings) return false;
+    if (friendSettings.friend_count_visibility === 'PUBLIC') return true;
+    if (friendSettings.friend_count_visibility === 'VERIFIED_ONLY' && isVerified) return true;
+    if (friendSettings.friend_count_visibility === 'PRIVATE' && user?.email === profileUserId) return true;
+    return false;
+  };
 
   // Unsave from favorites mutation
   const unsaveFromFavoritesMutation = useMutation({
@@ -343,6 +378,14 @@ export default function ViewProfile() {
             )}
           </div>
 
+          {/* Connection Stats */}
+          {canSeeFriendCount() && friendCount !== undefined && (
+            <div className="flex items-center justify-center gap-2 mb-4 text-[#9AA6BC]">
+              <Users className="w-4 h-4" />
+              <span className="text-sm font-medium">{friendCount} connections</span>
+            </div>
+          )}
+
           <div className="flex gap-3 w-full max-w-md">
             <button
               onClick={handleSaveClick}
@@ -364,6 +407,13 @@ export default function ViewProfile() {
               Message
             </CCButton>
           </div>
+
+          {/* Friend Request Button */}
+          {user?.email !== profileUserId && (
+            <div className="w-full max-w-md mt-3">
+              <FriendRequestButton targetUserId={profileUserId} size="md" variant="outline" />
+            </div>
+          )}
         </div>
 
         {/* Save to Favorites Modal */}
