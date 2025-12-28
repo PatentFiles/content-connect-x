@@ -44,14 +44,14 @@ export default function Connections() {
               <Users className="w-5 h-5 text-[#4F8CFF]" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-[#E8EEF9]">Connections</h1>
+              <h1 className="text-xl font-semibold text-[#E8EEF9]">Friends</h1>
               <p className="text-xs text-[#6B7A94]">Manage your friend connections</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <div className="max-w-4xl mx-auto px-4 py-6 md:pl-64">
         <CCTabsList tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-6" />
 
         <CCTabsContent value="friends" activeTab={activeTab}>
