@@ -100,7 +100,7 @@ export default function CreatorDashboard({ user, profile }) {
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Header */}
-        <div className="mb-6">
+        <div className="mb-6 text-center">
           <h1 className="text-2xl font-bold text-[#E8EEF9] mb-1">
             Welcome back, {profile?.display_name || 'Creator'}
           </h1>
@@ -160,13 +160,8 @@ export default function CreatorDashboard({ user, profile }) {
           <div className="md:col-span-2 space-y-6">
             {/* Quick Actions */}
             <CCCard padding="lg">
-              <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4">Quick Actions</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                <Link to={createPageUrl('CreateCollaboration')}>
-                  <CCButton variant="primary" size="sm" fullWidth icon={Plus}>
-                    New Collaboration
-                  </CCButton>
-                </Link>
+              <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Quick Actions</h2>
+              <div className="grid grid-cols-2 gap-3">
                 <CCButton 
                   variant="outline" 
                   size="sm" 
@@ -185,13 +180,18 @@ export default function CreatorDashboard({ user, profile }) {
                 >
                   Post Travel Dates
                 </CCButton>
+                <Link to={createPageUrl('CreateCollaboration')} className="col-span-2">
+                  <CCButton variant="primary" size="sm" fullWidth>
+                    New Collaboration
+                  </CCButton>
+                </Link>
               </div>
             </CCCard>
 
             {/* Active Collaborations */}
             <CCCard padding="lg">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-[#E8EEF9]">Active Collaborations</h2>
+              <div className="flex flex-col items-center mb-4">
+                <h2 className="text-lg font-semibold text-[#E8EEF9] mb-2">Active Collaborations</h2>
                 <Link to={createPageUrl('Collaborations')}>
                   <CCButton variant="ghost" size="sm">View All</CCButton>
                 </Link>
@@ -235,7 +235,7 @@ export default function CreatorDashboard({ user, profile }) {
           <div className="space-y-6 flex flex-col">
             {/* Tasks */}
             <CCCard padding="lg">
-              <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4">My Tasks</h2>
+              <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">My Tasks</h2>
               <div className="space-y-2 mb-4">
                 {tasks.map(task => (
                   <div key={task.id} className="flex items-start gap-2">
@@ -272,7 +272,7 @@ export default function CreatorDashboard({ user, profile }) {
 
             {/* Profile Health */}
             <CCCard padding="lg">
-              <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4">Profile Health</h2>
+              <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Profile Health</h2>
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-[#9AA6BC]">Profile Complete</span>
@@ -302,7 +302,7 @@ export default function CreatorDashboard({ user, profile }) {
 
             {/* Favorites */}
             <CCCard padding="lg" className="flex-1">
-              <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4">Favorites</h2>
+              <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Favorites</h2>
               <div className="flex items-center gap-2 mb-3">
                 <Heart className="w-4 h-4 text-[#FF2DAA]" />
                 <p className="text-2xl font-bold text-[#E8EEF9]">{favorites.length}</p>
@@ -320,8 +320,8 @@ export default function CreatorDashboard({ user, profile }) {
         {/* Contracts Status */}
         {contracts.length > 0 && (
           <CCCard padding="lg" className="mt-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-[#E8EEF9]">Contract Status</h2>
+            <div className="flex flex-col items-center mb-4">
+              <h2 className="text-lg font-semibold text-[#E8EEF9] mb-2">Contract Status</h2>
               <Link to={createPageUrl('Contracts')}>
                 <CCButton variant="ghost" size="sm">View All</CCButton>
               </Link>
