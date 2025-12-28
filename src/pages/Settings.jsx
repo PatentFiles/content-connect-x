@@ -23,6 +23,7 @@ import CouponManager from '@/components/admin/CouponManager';
 import UserManager from '@/components/admin/UserManager';
 import SocialLinksManager from '@/components/socials/SocialLinksManager';
 import NotificationPreferences from '@/components/settings/NotificationPreferences';
+import FriendSettingsCard from '@/components/settings/FriendSettingsCard';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
@@ -118,6 +119,7 @@ export default function Settings() {
   const tabs = [
     { value: 'account', label: 'Account', icon: User },
     { value: 'social', label: 'Social Links', icon: Globe },
+    { value: 'connections', label: 'Connections', icon: User },
     { value: 'privacy', label: 'Privacy', icon: Shield },
     { value: 'notifications', label: 'Notifications', icon: Bell },
     { value: 'subscription', label: 'Subscription', icon: CreditCard },
@@ -236,6 +238,13 @@ export default function Settings() {
               Manage your social media and platform links with granular visibility control.
             </p>
             <SocialLinksManager user={user} />
+          </div>
+        </CCTabsContent>
+
+        {/* Connections Tab */}
+        <CCTabsContent value="connections" activeTab={activeTab}>
+          <div>
+            <FriendSettingsCard userId={user?.email} />
           </div>
         </CCTabsContent>
 
