@@ -157,10 +157,10 @@ export default function Testing() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] p-6">
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Header */}
-        <div>
+        <div className="text-center">
           <h1 className="text-3xl font-bold text-[#E8EEF9] mb-2">Health Testing</h1>
           <p className="text-[#9AA6BC]">Upload and manage your lab results</p>
         </div>
