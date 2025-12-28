@@ -39,6 +39,7 @@ const appPages = [
   'Settings',
   'Verification',
   'Favorites',
+  'Connections',
   'AdminDashboard',
   'CompliancePortal',
   'RosterPortfolio',
