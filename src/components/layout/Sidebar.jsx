@@ -54,7 +54,8 @@ export default function Sidebar({ currentPage, profile, onLogout, adminRoleView,
   const unreadCount = conversations.reduce((total, conv) => {
     const convMessages = allMessages.filter(m => m.conversation_id === conv.id);
     const unread = convMessages.filter(m => 
-      m.sender_id !== profile?.user_id && !m.read_by?.includes(profile?.user_id)
+      m.sender_id !== profile?.user_id && 
+      (!m.read_by || !m.read_by.includes(profile?.user_id))
     ).length;
     return total + unread;
   }, 0);

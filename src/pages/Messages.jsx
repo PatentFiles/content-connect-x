@@ -120,6 +120,33 @@ export default function Messages() {
     enabled: !!selectedConversation,
   });
 
+  // Mark messages as read when conversation is opened
+  useEffect(() => {
+    if (!selectedConversation || !user?.email || !messages.length) return;
+    
+    const markAsRead = async () => {
+      const unreadMessages = messages.filter(m => 
+        m.sender_id !== user.email && 
+        (!m.read_by || !m.read_by.includes(user.email))
+      );
+      
+      for (const msg of unreadMessages) {
+        const updatedReadBy = msg.read_by ? [...msg.read_by, user.email] : [user.email];
+        await base44.entities.Message.update(msg.id, {
+          read_by: updatedReadBy
+        });
+      }
+      
+      if (unreadMessages.length > 0) {
+        queryClient.invalidateQueries(['messages', selectedConversation.id]);
+        queryClient.invalidateQueries(['allMessages']);
+        queryClient.invalidateQueries(['conversations']);
+      }
+    };
+    
+    markAsRead();
+  }, [selectedConversation?.id, messages.length]);
+
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData) => {

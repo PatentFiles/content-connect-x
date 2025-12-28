@@ -403,6 +403,17 @@ export default function ViewProfile() {
               variant="primary" 
               icon={MessageCircle}
               className="flex-1"
+              onClick={async () => {
+                try {
+                  const { data } = await base44.functions.invoke('startConversation', {
+                    other_user_id: profileUserId,
+                    conversation_type: 'discovery'
+                  });
+                  window.location.href = createPageUrl(`Messages?conversation=${data.conversation_id}`);
+                } catch (error) {
+                  toast.error('Failed to start conversation');
+                }
+              }}
             >
               Message
             </CCButton>

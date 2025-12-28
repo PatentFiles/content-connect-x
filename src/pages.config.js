@@ -4,6 +4,7 @@ import AvailabilitySchedule from './pages/AvailabilitySchedule';
 import CollaborationDetail from './pages/CollaborationDetail';
 import Collaborations from './pages/Collaborations';
 import CompliancePortal from './pages/CompliancePortal';
+import Connections from './pages/Connections';
 import Contracts from './pages/Contracts';
 import CreateCollaboration from './pages/CreateCollaboration';
 import Dashboard from './pages/Dashboard';
@@ -23,12 +24,11 @@ import RosterPortfolio from './pages/RosterPortfolio';
 import Search from './pages/Search';
 import Settings from './pages/Settings';
 import Terms from './pages/Terms';
+import Testing from './pages/Testing';
 import TravelSchedule from './pages/TravelSchedule';
 import Verification from './pages/Verification';
 import ViewContract from './pages/ViewContract';
 import ViewProfile from './pages/ViewProfile';
-import Testing from './pages/Testing';
-import Connections from './pages/Connections';
 import __Layout from './Layout.jsx';
 
 
@@ -39,6 +39,7 @@ export const PAGES = {
     "CollaborationDetail": CollaborationDetail,
     "Collaborations": Collaborations,
     "CompliancePortal": CompliancePortal,
+    "Connections": Connections,
     "Contracts": Contracts,
     "CreateCollaboration": CreateCollaboration,
     "Dashboard": Dashboard,
@@ -58,12 +59,11 @@ export const PAGES = {
     "Search": Search,
     "Settings": Settings,
     "Terms": Terms,
+    "Testing": Testing,
     "TravelSchedule": TravelSchedule,
     "Verification": Verification,
     "ViewContract": ViewContract,
     "ViewProfile": ViewProfile,
-    "Testing": Testing,
-    "Connections": Connections,
 }
 
 export const pagesConfig = {
