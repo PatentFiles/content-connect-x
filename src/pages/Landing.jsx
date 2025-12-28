@@ -125,20 +125,22 @@ export default function Landing() {
             </div>
           </motion.div>
 
-          {/* Stats */}
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3, duration: 0.6 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-20"
-          >
-            {stats.map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-[#E8EEF9]">{stat.value}</div>
-                <div className="text-sm text-[#6B7A94]">{stat.label}</div>
-              </div>
-            ))}
-          </motion.div>
+          {/* Stats - Hidden until 1000 verified members */}
+          {verifiedMembers.length >= 1000 && (
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6 }}
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-20"
+            >
+              {stats.map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <div className="text-3xl md:text-4xl font-bold text-[#E8EEF9]">{stat.value}</div>
+                  <div className="text-sm text-[#6B7A94]">{stat.label}</div>
+                </div>
+              ))}
+            </motion.div>
+          )}
         </div>
       </section>
 
