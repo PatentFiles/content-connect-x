@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import CCButton from '../ui-custom/CCButton';
+import CCModal from '../ui-custom/CCModal';
 import { UserPlus, Check, Clock, X } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function FriendRequestButton({ targetUserId, size = 'md', variant = 'outline' }) {
   const queryClient = useQueryClient();
   const [eligibility, setEligibility] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -49,7 +51,7 @@ export default function FriendRequestButton({ targetUserId, size = 'md', variant
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['friendshipStatus']);
-      toast.success('Friend request sent');
+      setShowSuccessModal(true);
     },
     onError: (error) => {
       const errorData = error.response?.data;
@@ -125,7 +127,7 @@ export default function FriendRequestButton({ targetUserId, size = 'md', variant
           onClick={() => cancelRequestMutation.mutate()}
           loading={cancelRequestMutation.isPending}
         >
-          Requested
+          Friend Request Sent
         </CCButton>
       );
     } else {
@@ -138,19 +140,39 @@ export default function FriendRequestButton({ targetUserId, size = 'md', variant
   }
 
   return (
-    <CCButton
-      variant={variant}
-      size={size}
-      icon={UserPlus}
-      onClick={async () => {
-        await checkEligibility();
-        if (!eligibility || eligibility.eligible) {
-          sendRequestMutation.mutate();
-        }
-      }}
-      loading={sendRequestMutation.isPending}
-    >
-      Add Friend
-    </CCButton>
+    <>
+      <CCButton
+        variant={variant}
+        size={size}
+        icon={UserPlus}
+        onClick={async () => {
+          await checkEligibility();
+          if (!eligibility || eligibility.eligible) {
+            sendRequestMutation.mutate();
+          }
+        }}
+        loading={sendRequestMutation.isPending}
+      >
+        Add Friend
+      </CCButton>
+
+      <CCModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Friend Request Sent"
+      >
+        <div className="text-center py-6">
+          <div className="w-16 h-16 rounded-full bg-[#4F8CFF]/20 flex items-center justify-center mx-auto mb-4">
+            <Check className="w-8 h-8 text-[#4F8CFF]" />
+          </div>
+          <p className="text-[#9AA6BC] mb-6">
+            Your friend request has been sent successfully. You'll be notified when they respond.
+          </p>
+          <CCButton onClick={() => setShowSuccessModal(false)} fullWidth>
+            Got it
+          </CCButton>
+        </div>
+      </CCModal>
+    </>
   );
 }
