@@ -20,6 +20,7 @@ export const roleNavigation = {
     { path: 'Dashboard', label: 'Dashboard', icon: Home },
     { path: 'Search', label: 'Search', icon: Search },
     { path: 'Favorites', label: 'Favorites', icon: Heart },
+    { path: 'Connections', label: 'Connections', icon: UserPlus },
     { path: 'Discovery', label: 'Discover', icon: Compass },
     { path: 'Messages', label: 'Messages', icon: MessageCircle },
     { path: 'Collaborations', label: 'Collaborations', icon: Briefcase },
