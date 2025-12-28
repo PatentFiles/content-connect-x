@@ -543,7 +543,7 @@ export default function Profile() {
                       onChange={(e) => setEditData({...editData, role_type: e.target.value})}
                       placeholder="Select your role"
                     />
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-4">
                       <CCSelect
                         label="Gender Identity"
                         options={genderOptions}
@@ -553,7 +553,7 @@ export default function Profile() {
                       />
                       <div>
                         <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Sexual Orientation</label>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-2 justify-center">
                           {orientationOptions.map(opt => (
                             <CCButton
                               key={opt.value}
@@ -686,7 +686,7 @@ export default function Profile() {
                     <Briefcase className="w-5 h-5 text-[#4F8CFF]" />
                     <h3 className="text-lg font-semibold text-[#E8EEF9]">Compensation Preferences</h3>
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 justify-center">
                     {compensationPreferences.map(cp => (
                       <CCButton
                         key={cp.value}
