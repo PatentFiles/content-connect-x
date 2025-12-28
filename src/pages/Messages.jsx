@@ -151,9 +151,17 @@ export default function Messages() {
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData) => {
       const message = await base44.entities.Message.create(messageData);
+      
+      // Track that this participant has replied
+      const currentRepliers = selectedConversation.participants_who_replied || [];
+      const newRepliers = currentRepliers.includes(user.email) 
+        ? currentRepliers 
+        : [...currentRepliers, user.email];
+      
       await base44.entities.Conversation.update(selectedConversation.id, {
         last_message_at: new Date().toISOString(),
         last_message_preview: messageData.body.substring(0, 50),
+        participants_who_replied: newRepliers
       });
 
       // Send notification to recipient(s)
