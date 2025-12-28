@@ -27,6 +27,7 @@ const appPages = [
   'Dashboard',
   'Discovery',
   'Search',
+  'Testing',
   'Messages',
   'Collaborations',
   'CreateCollaboration',

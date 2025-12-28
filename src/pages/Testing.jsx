@@ -189,7 +189,7 @@ export default function Testing() {
 
         {/* Upload Section */}
         <CCCard>
-          <CCCardHeader>
+          <CCCardHeader className="text-center">
             <CCCardTitle>Upload Lab Results</CCCardTitle>
             <CCCardDescription>
               Upload your latest testing documents. Accepted formats: PDF, PNG, JPG (max 10MB)
@@ -244,7 +244,7 @@ export default function Testing() {
 
         {/* Uploaded Documents */}
         <CCCard>
-          <CCCardHeader>
+          <CCCardHeader className="text-center">
             <CCCardTitle>Uploaded Documents</CCCardTitle>
             <CCCardDescription>
               Your testing documents are reviewed by administrators before verification
@@ -299,11 +299,11 @@ export default function Testing() {
         {/* Info Section */}
         <CCCard>
           <CCCardContent className="p-4">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-[#F59E0B] mt-0.5" />
+            <div className="flex flex-col items-center text-center gap-3">
+              <AlertCircle className="w-5 h-5 text-[#F59E0B]" />
               <div className="text-sm text-[#9AA6BC] space-y-2">
                 <p className="font-medium text-[#E8EEF9]">Important Information</p>
-                <ul className="list-disc list-inside space-y-1">
+                <ul className="list-none space-y-1">
                   <li>Documents are reviewed by platform administrators</li>
                   <li>Verification typically takes 1-2 business days</li>
                   <li>Keep your testing current to maintain verified status</li>
