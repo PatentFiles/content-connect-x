@@ -9,7 +9,8 @@ import {
   Shield,
   ExternalLink,
   Bot,
-  Home
+  Home,
+  FileText
 } from 'lucide-react';
 import CCAvatar from '../ui-custom/CCAvatars';
 import CCBadge from '../ui-custom/CCBadge';
@@ -20,6 +21,7 @@ const adminNavItems = [
   { name: 'Dashboard', page: 'Dashboard', icon: Home },
   { name: 'Admin Dashboard', page: 'AdminDashboard', icon: Shield },
   { name: 'Agent Management', page: 'AgentManagement', icon: Bot },
+  { name: 'Developer ReadMe', page: 'DeveloperReadMe', icon: FileText },
 ];
 
 import { useQuery } from '@tanstack/react-query';

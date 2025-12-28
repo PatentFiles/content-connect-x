@@ -45,7 +45,8 @@ const appPages = [
   'RosterPortfolio',
   'Representations',
   'Portfolio',
-  'AgentManagement'
+  'AgentManagement',
+  'DeveloperReadMe'
 ];
 
 export default function Layout({ children, currentPageName }) {

@@ -29,6 +29,7 @@ import TravelSchedule from './pages/TravelSchedule';
 import Verification from './pages/Verification';
 import ViewContract from './pages/ViewContract';
 import ViewProfile from './pages/ViewProfile';
+import DeveloperReadMe from './pages/DeveloperReadMe';
 import __Layout from './Layout.jsx';
 
 
@@ -64,6 +65,7 @@ export const PAGES = {
     "Verification": Verification,
     "ViewContract": ViewContract,
     "ViewProfile": ViewProfile,
+    "DeveloperReadMe": DeveloperReadMe,
 }
 
 export const pagesConfig = {
