@@ -142,13 +142,10 @@ Deno.serve(async (req) => {
 
     const conversation = conversations[0];
 
-    // Check if target has replied
-    const messages = await base44.asServiceRole.entities.Message.filter({
-      conversation_id: conversation.id,
-      sender_id: target_id
-    });
+    // Check if target has ever replied (even if messages were deleted)
+    const hasReplied = conversation.participants_who_replied?.includes(target_id);
 
-    if (messages.length === 0) {
+    if (!hasReplied) {
       return Response.json({
         eligible: false,
         reason_code: 'NOT_ALLOWED_NO_REPLY',
