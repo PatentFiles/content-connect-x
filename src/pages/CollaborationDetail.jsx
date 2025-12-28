@@ -28,6 +28,7 @@ import TestingStatusBanner from '@/components/collaboration/TestingStatusBanner'
 import ConsentRevocationBanner from '@/components/collaboration/ConsentRevocationBanner';
 import TestingPolicyManager from '@/components/collaboration/TestingPolicyManager';
 import { useRepObserverCheck, logRepObserverAccess } from '@/components/collaboration/RepObserverAccessControl';
+import CollaborationPacketExporter from '@/components/collaboration/CollaborationPacketExporter';
 
 export default function CollaborationDetail() {
   const [searchParams] = useSearchParams();
@@ -70,6 +71,14 @@ export default function CollaborationDetail() {
 
   const participantRole = participantRoles.find(r => r.user_id === user?.email);
   const userRole = participantRole?.role || 'Viewer';
+
+  const { data: packetItems = [] } = useQuery({
+    queryKey: ['collaborationPacketItems', collaborationId],
+    queryFn: () => base44.entities.CollaborationPacketItem.filter({
+      collaboration_id: collaborationId
+    }),
+    enabled: !!collaborationId,
+  });
 
   // RepObserver access control
   const { isRepObserver, canMessage, canEdit } = useRepObserverCheck(
@@ -364,6 +373,10 @@ export default function CollaborationDetail() {
 
             {userRole === 'Admin' && (
               <>
+                <CollaborationPacketExporter 
+                  collaboration={collaboration}
+                  packetItems={packetItems}
+                />
                 <CCCard padding="lg">
                   <ExportManager 
                     collaborationId={collaboration.id}
