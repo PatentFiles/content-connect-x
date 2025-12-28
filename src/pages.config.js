@@ -28,6 +28,7 @@ import Verification from './pages/Verification';
 import ViewContract from './pages/ViewContract';
 import ViewProfile from './pages/ViewProfile';
 import Testing from './pages/Testing';
+import Connections from './pages/Connections';
 import __Layout from './Layout.jsx';
 
 
@@ -62,6 +63,7 @@ export const PAGES = {
     "ViewContract": ViewContract,
     "ViewProfile": ViewProfile,
     "Testing": Testing,
+    "Connections": Connections,
 }
 
 export const pagesConfig = {
