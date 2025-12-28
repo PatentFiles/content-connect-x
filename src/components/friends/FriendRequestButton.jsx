@@ -50,7 +50,8 @@ export default function FriendRequestButton({ targetUserId, size = 'md', variant
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['friendshipStatus']);
+      queryClient.invalidateQueries({ queryKey: ['friendshipStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['pendingFriendRequests'] });
       setShowSuccessModal(true);
     },
     onError: (error) => {
@@ -76,7 +77,8 @@ export default function FriendRequestButton({ targetUserId, size = 'md', variant
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['friendshipStatus']);
+      queryClient.invalidateQueries({ queryKey: ['friendshipStatus'] });
+      queryClient.invalidateQueries({ queryKey: ['pendingFriendRequests'] });
       toast.success('Friend request cancelled');
     },
     onError: () => {
@@ -168,9 +170,25 @@ export default function FriendRequestButton({ targetUserId, size = 'md', variant
           <p className="text-[#9AA6BC] mb-6">
             Your friend request has been sent successfully. You'll be notified when they respond.
           </p>
-          <CCButton onClick={() => setShowSuccessModal(false)} fullWidth>
-            Got it
-          </CCButton>
+          <div className="flex gap-3">
+            <CCButton onClick={() => setShowSuccessModal(false)} variant="outline" fullWidth>
+              Close
+            </CCButton>
+            <CCButton
+              onClick={() => {
+                setShowSuccessModal(false);
+                setTimeout(() => {
+                  if (window.confirm('Cancel this friend request?')) {
+                    cancelRequestMutation.mutate();
+                  }
+                }, 300);
+              }}
+              variant="ghost"
+              fullWidth
+            >
+              Cancel Request
+            </CCButton>
+          </div>
         </div>
       </CCModal>
     </>
