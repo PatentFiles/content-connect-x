@@ -10,6 +10,8 @@ export default function FriendRequestButton({ targetUserId, size = 'md', variant
   const queryClient = useQueryClient();
   const [eligibility, setEligibility] = useState(null);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState({ title: '', message: '' });
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -194,6 +196,13 @@ export default function FriendRequestButton({ targetUserId, size = 'md', variant
           </div>
         </div>
       </CCModal>
+
+      <CCErrorModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        title={errorMessage.title}
+        message={errorMessage.message}
+      />
     </>
   );
 }

@@ -31,6 +31,7 @@ import AccessGate from '@/components/auth/AccessGate';
 import { useVerificationCheck } from '@/components/auth/useVerificationCheck';
 import VerificationRequired from '@/components/auth/VerificationRequired';
 import FriendRequestButton from '@/components/friends/FriendRequestButton';
+import CCErrorModal from '@/components/ui-custom/CCErrorModal';
 
 const roleColors = {
   creator: 'primary',
@@ -141,6 +142,8 @@ export default function ViewProfile() {
   });
 
   const [showSaveModal, setShowSaveModal] = useState(false);
+  const [showErrorModal, setShowErrorModal] = useState(false);
+  const [errorMessage, setErrorMessage] = useState({ title: '', message: '' });
   
   // Fetch favorites to check if profile is saved
   const { data: favorites = [] } = useQuery({
@@ -406,12 +409,15 @@ export default function ViewProfile() {
               onClick={async () => {
                 try {
                   const { data } = await base44.functions.invoke('startConversation', {
-                    other_user_id: profileUserId,
-                    conversation_type: 'discovery'
+                    recipient_id: profileUserId
                   });
-                  window.location.href = createPageUrl(`Messages?conversation=${data.conversation_id}`);
+                  window.location.href = createPageUrl(`Messages?conversation=${data.conversation.id}`);
                 } catch (error) {
-                  toast.error('Failed to start conversation');
+                  setErrorMessage({
+                    title: 'Failed to Start Conversation',
+                    message: 'Unable to start a conversation at this time. Please try again later.'
+                  });
+                  setShowErrorModal(true);
                 }
               }}
             >
@@ -433,6 +439,14 @@ export default function ViewProfile() {
           onClose={() => setShowSaveModal(false)}
           profileUserId={profileUserId}
           userEmail={user?.email}
+        />
+
+        {/* Error Modal */}
+        <CCErrorModal
+          isOpen={showErrorModal}
+          onClose={() => setShowErrorModal(false)}
+          title={errorMessage.title}
+          message={errorMessage.message}
         />
 
         {/* Representation Section */}
