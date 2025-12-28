@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import CCButton from '../ui-custom/CCButton';
 import CCModal from '../ui-custom/CCModal';
+import CCErrorModal from '../ui-custom/CCErrorModal';
 import { UserPlus, Check, Clock, X } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -62,13 +63,29 @@ export default function FriendRequestButton({ targetUserId, size = 'md', variant
     onError: (error) => {
       const errorData = error.response?.data;
       if (errorData?.error === 'NOT_ALLOWED_NO_DM') {
-        toast.error('Send a message first before requesting');
+        setErrorMessage({
+          title: 'Message First',
+          message: 'You need to send a message to this user before sending a friend request.'
+        });
+        setShowErrorModal(true);
       } else if (errorData?.error === 'NOT_ALLOWED_NO_REPLY') {
-        toast.error('Wait for a reply before sending friend request');
+        setErrorMessage({
+          title: 'Wait for a Reply',
+          message: 'You need to wait for a reply to your message before sending a friend request to this user.'
+        });
+        setShowErrorModal(true);
       } else if (errorData?.error === 'RATE_LIMITED') {
-        toast.error('Daily friend request limit reached');
+        setErrorMessage({
+          title: 'Daily Limit Reached',
+          message: 'You have reached your friend request limit for today. Please try again tomorrow.'
+        });
+        setShowErrorModal(true);
       } else {
-        toast.error(errorData?.details?.message || 'Failed to send friend request');
+        setErrorMessage({
+          title: 'Request Failed',
+          message: errorData?.details?.message || 'Failed to send friend request. Please try again.'
+        });
+        setShowErrorModal(true);
       }
     },
   });
@@ -100,13 +117,29 @@ export default function FriendRequestButton({ targetUserId, size = 'md', variant
     setEligibility(data);
     if (!data.eligible) {
       if (data.reason_code === 'NOT_ALLOWED_NO_DM') {
-        toast.error('Send a message first');
+        setErrorMessage({
+          title: 'Message First',
+          message: 'You need to send a message to this user before sending a friend request.'
+        });
+        setShowErrorModal(true);
       } else if (data.reason_code === 'NOT_ALLOWED_NO_REPLY') {
-        toast.error('Wait for a reply before requesting');
+        setErrorMessage({
+          title: 'Wait for a Reply',
+          message: 'You need to wait for a reply to your message before sending a friend request to this user.'
+        });
+        setShowErrorModal(true);
       } else if (data.reason_code === 'COOLDOWN_ACTIVE') {
-        toast.error('Must wait before sending another request');
+        setErrorMessage({
+          title: 'Please Wait',
+          message: 'You need to wait before sending another friend request to this user.'
+        });
+        setShowErrorModal(true);
       } else if (data.reason_code === 'RATE_LIMITED') {
-        toast.error('Daily request limit reached');
+        setErrorMessage({
+          title: 'Daily Limit Reached',
+          message: 'You have reached your friend request limit for today. Please try again tomorrow.'
+        });
+        setShowErrorModal(true);
       }
     }
   };
