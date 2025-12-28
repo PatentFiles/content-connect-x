@@ -642,7 +642,7 @@ export default function Profile() {
               <>
                 {/* Scene Pairings */}
                 <CCCard padding="lg">
-                  <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center gap-2 mb-4 justify-center">
                     <Heart className="w-5 h-5 text-[#FF2DAA]" />
                     <h3 className="text-lg font-semibold text-[#E8EEF9]">Scene Pairings</h3>
                   </div>
@@ -682,7 +682,7 @@ export default function Profile() {
 
                 {/* Compensation Preferences */}
                 <CCCard padding="lg">
-                  <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center gap-2 mb-4 justify-center">
                     <Briefcase className="w-5 h-5 text-[#4F8CFF]" />
                     <h3 className="text-lg font-semibold text-[#E8EEF9]">Compensation Preferences</h3>
                   </div>
@@ -702,7 +702,7 @@ export default function Profile() {
 
                 {/* Standard Acts */}
                 <CCCard padding="lg">
-                  <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center gap-2 mb-4 justify-center">
                     <Activity className="w-5 h-5 text-[#4F8CFF]" />
                     <h3 className="text-lg font-semibold text-[#E8EEF9]">Standard Acts</h3>
                   </div>
@@ -742,7 +742,7 @@ export default function Profile() {
 
                 {/* Fetish Acts */}
                 <CCCard padding="lg">
-                  <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center gap-2 mb-4 justify-center">
                     <Activity className="w-5 h-5 text-[#FF2DAA]" />
                     <h3 className="text-lg font-semibold text-[#E8EEF9]">Fetish Acts</h3>
                   </div>
@@ -782,7 +782,7 @@ export default function Profile() {
 
                 {/* Kink / Edge Acts */}
                 <CCCard padding="lg">
-                  <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center gap-2 mb-4 justify-center">
                     <Activity className="w-5 h-5 text-[#9333EA]" />
                     <h3 className="text-lg font-semibold text-[#E8EEF9]">Kink / Edge Acts</h3>
                   </div>
@@ -822,7 +822,7 @@ export default function Profile() {
 
                 {/* Performance Positioning */}
                 <CCCard padding="lg">
-                  <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Performance Positioning</h3>
+                  <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Performance Positioning</h3>
                   <div className="space-y-3">
                     <div className="flex flex-wrap gap-2">
                       {performancePositioning.filter(showPositioning).map(pp => (
@@ -859,7 +859,7 @@ export default function Profile() {
 
                 {/* Physical Details */}
                 <CCCard padding="lg">
-                  <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Physical Details</h3>
+                  <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Physical Details</h3>
                   <div className="space-y-4">
                     {showFemaleFields && (
                       <>
@@ -951,7 +951,7 @@ export default function Profile() {
 
                 {/* Availability & Travel */}
                 <CCCard padding="lg">
-                  <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center gap-2 mb-4 justify-center">
                     <MapPinned className="w-5 h-5 text-[#4F8CFF]" />
                     <h3 className="text-lg font-semibold text-[#E8EEF9]">Availability & Travel</h3>
                   </div>
@@ -977,12 +977,24 @@ export default function Profile() {
                         />
                       </div>
                     )}
+                    <div className="flex gap-3">
+                      <Link to={createPageUrl('AvailabilitySchedule')} className="flex-1">
+                        <CCButton variant="outline" fullWidth>
+                          Edit Availability Dates
+                        </CCButton>
+                      </Link>
+                      <Link to={createPageUrl('TravelSchedule')} className="flex-1">
+                        <CCButton variant="outline" fullWidth>
+                          Edit Travel Schedule
+                        </CCButton>
+                      </Link>
+                    </div>
                   </div>
                 </CCCard>
 
                 {/* Health & Testing */}
                 <CCCard padding="lg">
-                  <div className="flex items-center gap-2 mb-4">
+                  <div className="flex items-center gap-2 mb-4 justify-center">
                     <Shield className="w-5 h-5 text-[#22C55E]" />
                     <h3 className="text-lg font-semibold text-[#E8EEF9]">Health & Testing</h3>
                     {isVerified && <CCBadge variant="success" size="sm">Verified</CCBadge>}
@@ -1286,7 +1298,25 @@ export default function Profile() {
             )}
 
             {/* Availability and Travel */}
-            <AvailabilityTravelSection user={user} profile={profile} />
+            <CCCard padding="lg">
+              <div className="space-y-4">
+                <AvailabilityTravelSection user={user} profile={profile} />
+                {!isEditing && (
+                  <div className="flex gap-3 pt-4 border-t border-[#263248]">
+                    <Link to={createPageUrl('AvailabilitySchedule')} className="flex-1">
+                      <CCButton variant="outline" fullWidth>
+                        Edit Availability Dates
+                      </CCButton>
+                    </Link>
+                    <Link to={createPageUrl('TravelSchedule')} className="flex-1">
+                      <CCButton variant="outline" fullWidth>
+                        Edit Travel Schedule
+                      </CCButton>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            </CCCard>
 
             {/* AI Bio Generator - At the very bottom */}
             {isEditing && (
