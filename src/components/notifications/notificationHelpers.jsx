@@ -282,3 +282,35 @@ export async function notifyRepresentationAction(userId, action, representativeN
     actionUrl: '/Profile'
   });
 }
+
+/**
+ * Trigger notification: Friend request received
+ */
+export async function notifyFriendRequest(userId, senderProfile, friendshipId) {
+  return createNotification({
+    userId,
+    type: 'friend_request',
+    actorUserId: senderProfile.user_id,
+    title: 'New Friend Request',
+    body: `${senderProfile?.display_name || senderProfile?.full_name || 'Someone'} sent you a friend request`,
+    relatedEntityType: 'Friendship',
+    relatedEntityId: friendshipId,
+    actionUrl: '/Connections?tab=requests'
+  });
+}
+
+/**
+ * Trigger notification: Friend request accepted
+ */
+export async function notifyFriendRequestAccepted(userId, accepterProfile, friendshipId) {
+  return createNotification({
+    userId,
+    type: 'friend_request_accepted',
+    actorUserId: accepterProfile.user_id,
+    title: 'Friend Request Accepted',
+    body: `${accepterProfile?.display_name || accepterProfile?.full_name || 'Someone'} accepted your friend request`,
+    relatedEntityType: 'Friendship',
+    relatedEntityId: friendshipId,
+    actionUrl: '/Connections'
+  });
+}

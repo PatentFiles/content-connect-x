@@ -22,23 +22,26 @@ export default function FriendRequestButton({ targetUserId, size = 'md', variant
     queryFn: async () => {
       if (!user?.email) return null;
       
-      const friendships = await base44.entities.Friendship.filter({
-        $or: [
-          { requester_user_id: user.email, addressee_user_id: targetUserId },
-          { requester_user_id: targetUserId, addressee_user_id: user.email }
-        ]
+      const response = await base44.functions.invoke('isFriends', {
+        user_a: user.email,
+        user_b: targetUserId
       });
 
-      if (friendships.length === 0) return { status: 'none' };
+      const data = response.data;
       
-      const friendship = friendships[0];
+      if (!data.are_friends && !data.friendship) {
+        return { status: 'none' };
+      }
+      
       return {
-        status: friendship.status,
-        friendship,
-        isRequester: friendship.requester_user_id === user.email
+        status: data.friendship?.status || (data.are_friends ? 'ACCEPTED' : 'none'),
+        friendship: data.friendship,
+        isRequester: data.friendship?.requester_user_id === user.email
       };
     },
     enabled: !!user?.email && !!targetUserId && user.email !== targetUserId,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true
   });
 
   // Send friend request
