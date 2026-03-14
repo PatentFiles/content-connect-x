@@ -289,6 +289,7 @@ export default function Profile() {
       travel_regions: editData.travel_regions || details?.travel_regions,
       health_testing: editData.health_testing || details?.health_testing,
       looking_for_genders: editData.looking_for_genders || details?.looking_for_genders,
+      rates_text: editData.rates_text || details?.rates_text,
     };
     updateDetailsMutation.mutate(creatorData);
   };
