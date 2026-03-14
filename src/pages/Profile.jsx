@@ -857,6 +857,26 @@ export default function Profile() {
                   </div>
                 </CCCard>
 
+                {/* Collaboration Rate */}
+                <CCCard padding="lg">
+                  <div className="flex items-center gap-2 mb-4 justify-center">
+                    <Briefcase className="w-5 h-5 text-[#22C55E]" />
+                    <h3 className="text-lg font-semibold text-[#E8EEF9]">Collaboration Rate</h3>
+                  </div>
+                  <p className="text-xs text-[#6B7A94] text-center mb-3">This rate is used as the default when creating collaborations ("Use my rate").</p>
+                  <div className="flex items-center gap-3">
+                    <span className="text-[#9AA6BC] text-sm">$</span>
+                    <input
+                      type="number"
+                      value={editData.rates_text || ''}
+                      onChange={(e) => setEditData({...editData, rates_text: e.target.value})}
+                      className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                      placeholder="e.g., 1500"
+                    />
+                    <span className="text-[#9AA6BC] text-sm">USD</span>
+                  </div>
+                </CCCard>
+
                 {/* Physical Details */}
                 <CCCard padding="lg">
                   <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Physical Details</h3>
