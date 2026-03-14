@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { toast } from 'sonner';
 import { 
   User, 
   MapPin, 
@@ -18,7 +19,9 @@ import {
   Briefcase,
   Activity,
   Shield,
-  MapPinned
+  MapPinned,
+  Trash2,
+  CheckCircle
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCSelect from '@/components/ui-custom/CCSelect';
@@ -160,6 +163,7 @@ export default function Profile() {
   const [activeTab, setActiveTab] = useState('profile');
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
+  const [deleteSuccessModal, setDeleteSuccessModal] = useState(false);
   const [customValues, setCustomValues] = useState({
     scene_pairings: '',
     standard_acts: '',
