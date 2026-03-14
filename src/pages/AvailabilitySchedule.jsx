@@ -134,8 +134,13 @@ export default function AvailabilitySchedule() {
   );
 
   const handleDelete = (id) => {
-    if (confirm('Delete this availability entry?')) {
-      deleteMutation.mutate(id);
+    setDeleteConfirm(id);
+  };
+
+  const confirmDelete = () => {
+    if (deleteConfirm) {
+      deleteMutation.mutate(deleteConfirm);
+      setDeleteConfirm(null);
     }
   };
 
