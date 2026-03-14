@@ -31,6 +31,7 @@ import AccessGate from '@/components/auth/AccessGate';
 import { useVerificationCheck } from '@/components/auth/useVerificationCheck';
 import VerificationRequired from '@/components/auth/VerificationRequired';
 import AvailabilityCalendar from '@/components/collaboration/AvailabilityCalendar';
+import { logCollaborationActivity } from '@/components/collaboration/activityLogHelpers';
 
 
 
@@ -462,6 +463,17 @@ export default function CreateCollaboration() {
           await base44.entities.TestingRequirement.delete(existingReqs[0].id);
         }
       }
+
+      // Log creation/update to CollaborationActivityLog
+      await logCollaborationActivity({
+        collaborationId: collaboration.id,
+        actorUserId: user.email,
+        activityType: isEditing ? 'UPDATED' : 'CREATED',
+        description: isEditing
+          ? `Collaboration updated by ${user.email}`
+          : `Collaboration created by ${user.email}`,
+        metadata: { status: collaboration.status },
+      });
 
       return collaboration;
     },
