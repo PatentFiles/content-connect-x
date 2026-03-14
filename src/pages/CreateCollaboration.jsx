@@ -1346,28 +1346,6 @@ export default function CreateCollaboration() {
                   className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
                 />
               </div>
-                options={[
-                  { value: 'studio', label: 'Studio' },
-                  { value: 'private', label: 'Private Location' },
-                  { value: 'outdoor', label: 'Outdoor' },
-                  { value: 'travel', label: 'Travel Required' },
-                ]}
-                value={formData.location.type}
-                onChange={(e) => updateForm('location', {
-                  ...formData.location,
-                  type: e.target.value
-                })}
-                className="mb-4"
-              />
-              <CCInput
-                label="City"
-                placeholder="e.g., Los Angeles, CA"
-                value={formData.location.city}
-                onChange={(e) => updateForm('location', {
-                  ...formData.location,
-                  city: e.target.value
-                })}
-              />
             </CCCard>
           </motion.div>
         )}
