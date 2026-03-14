@@ -493,6 +493,15 @@ export default function ViewProfile() {
           message={errorMessage.message}
         />
 
+        {/* Booking Request Modal */}
+        <BookingRequestModal
+          isOpen={showBookingModal}
+          onClose={() => setShowBookingModal(false)}
+          recipientUserId={profileUserId}
+          recipientName={profile?.display_name}
+          requesterUserId={user?.email}
+        />
+
         {/* Tabs */}
         <CCTabsList tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-6" />
 
