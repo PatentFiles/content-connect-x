@@ -131,10 +131,10 @@ export async function createNotification({
 }
 
 /**
- * Trigger notification: New collaboration invite
+ * Trigger notification: New collaboration invite  (+ email)
  */
 export async function notifyCollaborationInvite(inviteeId, collaboration, inviterProfile) {
-  return createNotification({
+  const notification = await createNotification({
     userId: inviteeId,
     type: 'collaboration_invites',
     actorUserId: collaboration.created_by,
@@ -144,6 +144,26 @@ export async function notifyCollaborationInvite(inviteeId, collaboration, invite
     relatedEntityId: collaboration.id,
     actionUrl: `/CollaborationDetail?id=${collaboration.id}`
   });
+
+  // Send email if enabled
+  const emailOk = await isEmailEnabled(inviteeId, 'collaboration_invites');
+  if (emailOk) {
+    // Fetch invitee email from User entity
+    try {
+      const users = await base44.entities.User.filter({ id: inviteeId });
+      const email = users[0]?.email || inviteeId;
+      await sendBrandedEmail({
+        toEmail: email,
+        subject: `New Collaboration Invite – ${collaboration.collaboration_name}`,
+        headline: 'You've been invited to collaborate!',
+        bodyText: `${inviterProfile?.display_name || 'Someone'} has invited you to join <strong style="color:#E8EEF9;">${collaboration.collaboration_name}</strong>. Log in to review the details and accept or decline the invite.`,
+        ctaLabel: 'View Collaboration',
+        ctaUrl: `${window.location.origin}/CollaborationDetail?id=${collaboration.id}`,
+      });
+    } catch (err) { console.error('Email send failed:', err); }
+  }
+
+  return notification;
 }
 
 /**
