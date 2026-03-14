@@ -24,7 +24,7 @@ import CCEmpty from '../ui-custom/CCEmpty';
 import AvailabilityManager from '../profile/AvailabilityManager';
 import TravelDateManager from '../profile/TravelDateManager';
 
-export default function CreatorDashboard({ user, profile }) {
+export default function CreatorDashboard({ user, profile, onboardingChecklist, onOpenWizard }) {
   const [newTask, setNewTask] = useState('');
   const [showAvailability, setShowAvailability] = useState(false);
   const [showTravelDate, setShowTravelDate] = useState(false);
@@ -106,6 +106,9 @@ export default function CreatorDashboard({ user, profile }) {
           </h1>
           <p className="text-[#6B7A94]">Here's what's happening with your collaborations</p>
         </div>
+
+        {/* Onboarding Checklist */}
+        {onboardingChecklist}
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
