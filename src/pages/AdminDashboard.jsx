@@ -477,16 +477,9 @@ export default function AdminDashboard() {
         </div>
 
         <div className="space-y-2 mb-6">
-          <CCTabsList 
-            tabs={tabs.slice(0, 5)} 
-            activeTab={activeTab} 
-            onChange={setActiveTab} 
-          />
-          <CCTabsList 
-            tabs={tabs.slice(5)} 
-            activeTab={activeTab} 
-            onChange={setActiveTab} 
-          />
+          {tabRows.map((row, i) => (
+            <CCTabsList key={i} tabs={row} activeTab={activeTab} onChange={setActiveTab} />
+          ))}
         </div>
 
         {/* Overview Tab */}
