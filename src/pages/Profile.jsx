@@ -1529,6 +1529,25 @@ export default function Profile() {
           </div>
         </CCTabsContent>
       </div>
+
+      {/* Delete Success Modal */}
+      {deleteSuccessModal && (
+        <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4">
+          <div className="bg-[#151D2B] border border-[#263248] rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl">
+            <div className="w-14 h-14 rounded-full bg-[#22C55E]/20 flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="w-7 h-7 text-[#22C55E]" />
+            </div>
+            <h2 className="text-lg font-semibold text-[#E8EEF9] mb-2">Photo Deleted</h2>
+            <p className="text-[#9AA6BC] text-sm mb-5">The photo has been removed from your gallery.</p>
+            <button
+              onClick={() => setDeleteSuccessModal(false)}
+              className="w-full py-2 bg-[#4F8CFF] hover:bg-[#3A7AEE] text-white rounded-lg font-medium transition-colors"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
