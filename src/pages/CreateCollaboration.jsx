@@ -1280,6 +1280,24 @@ export default function CreateCollaboration() {
             {formData.compensation_type === 'paid' && (
               <CCCard padding="lg">
                 <h3 className="font-semibold text-[#E8EEF9] mb-4">Payment Details</h3>
+                {/* Show default rates from profile */}
+                {(details?.rates_text || serviceDetails[0]?.rates) && (
+                  <div className="mb-4 p-3 bg-[#0B0F14] border border-[#263248] rounded-lg">
+                    <p className="text-xs text-[#6B7A94] mb-1">Your listed rates (for reference):</p>
+                    {details?.rates_text && <p className="text-sm text-[#9AA6BC]">{details.rates_text}</p>}
+                    {serviceDetails[0]?.rates?.hourly && <p className="text-sm text-[#9AA6BC]">Hourly: ${serviceDetails[0].rates.hourly} · Half-day: ${serviceDetails[0].rates.half_day || '—'} · Full-day: ${serviceDetails[0].rates.full_day || '—'}</p>}
+                    <CCButton size="sm" variant="ghost" className="mt-1 text-[#4F8CFF] text-xs" onClick={() => {
+                      const rate = details?.rates_text?.match(/\$?([\d,]+)/)?.[1]?.replace(',','') || serviceDetails[0]?.rates?.full_day || serviceDetails[0]?.rates?.hourly || '';
+                      if (rate) updateForm('compensation_details', { ...formData.compensation_details, amount: rate });
+                    }}>Use my rate</CCButton>
+                  </div>
+                )}
+                <div className="flex items-center gap-2 mb-3">
+                  <input type="checkbox" id="negotiable" checked={formData.compensation_details.negotiable || false}
+                    onChange={(e) => updateForm('compensation_details', { ...formData.compensation_details, negotiable: e.target.checked })}
+                    className="w-4 h-4 rounded border-[#263248] bg-[#121824]" />
+                  <label htmlFor="negotiable" className="text-sm text-[#9AA6BC]">Rate is negotiable</label>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <CCInput
                     label="Amount"
