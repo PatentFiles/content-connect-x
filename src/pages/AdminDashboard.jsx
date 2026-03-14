@@ -388,23 +388,29 @@ export default function AdminDashboard() {
     );
   }
 
-  const tabs = [
-    { value: 'overview', label: 'Overview', icon: Shield },
-    { value: 'analytics', label: 'Analytics', icon: TrendingUp },
-    { value: 'compliance_agent', label: 'Compliance Agent', icon: Shield },
-    { value: 'verifications', label: 'Verifications', icon: Shield },
-    { value: 'catalog', label: 'Catalog Moderation', icon: Tag },
-    { value: 'representation', label: 'Representations', icon: Users },
-    { value: 'users', label: 'User Moderation', icon: Users },
-    { value: 'reports_queue', label: 'Reports Queue', icon: AlertTriangle },
-    { value: 'sessions', label: 'Session History', icon: Clock },
-    { value: 'collaborations', label: 'Collaborations', icon: AlertTriangle },
-    { value: 'arbitration', label: 'Arbitration', icon: Shield },
-    { value: 'compliance', label: 'Compliance', icon: CheckCircle },
-    { value: 'jurisdiction', label: 'Jurisdictions', icon: Shield },
-    { value: 'disputes', label: 'Dispute Testing', icon: AlertTriangle },
-    { value: 'tags', label: 'Tags', icon: Tag },
-    { value: 'reports', label: 'Reports', icon: AlertTriangle },
+  const tabRows = [
+    [
+      { value: 'overview', label: 'Overview', icon: Shield },
+      { value: 'analytics', label: 'Analytics', icon: TrendingUp },
+      { value: 'compliance_agent', label: 'Compliance Agent', icon: Shield },
+      { value: 'verifications', label: 'Verifications', icon: Shield },
+      { value: 'catalog', label: 'Catalog Moderation', icon: Tag },
+    ],
+    [
+      { value: 'representation', label: 'Representations', icon: Users },
+      { value: 'users', label: 'User Moderation', icon: Users },
+      { value: 'reports_queue', label: 'Reports Queue', icon: AlertTriangle },
+      { value: 'sessions', label: 'Session History', icon: Clock },
+      { value: 'collaborations', label: 'Collaborations', icon: AlertTriangle },
+    ],
+    [
+      { value: 'arbitration', label: 'Arbitration', icon: Shield },
+      { value: 'compliance', label: 'Compliance', icon: CheckCircle },
+      { value: 'jurisdiction', label: 'Jurisdictions', icon: Shield },
+      { value: 'disputes', label: 'Dispute Testing', icon: AlertTriangle },
+      { value: 'tags', label: 'Tags', icon: Tag },
+      { value: 'reports', label: 'Reports', icon: AlertTriangle },
+    ],
   ];
 
   const getProfileForVerification = (v) => userProfiles.find(p => p.user_id === v.user_id);
