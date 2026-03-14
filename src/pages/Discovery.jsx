@@ -424,9 +424,9 @@ export default function Discovery() {
             <MapPin className="w-4 h-4 text-[#FF2DAA]" />
             <h2 className="text-lg font-medium text-[#E8EEF9]">Near You</h2>
           </div>
-          <button className="text-sm text-[#4F8CFF] flex items-center gap-1">
+          <Link to={createPageUrl('Search')} className="text-sm text-[#4F8CFF] flex items-center gap-1">
             See all <ChevronRight className="w-4 h-4" />
-          </button>
+          </Link>
         </div>
 
         {profilesLoading ? (
