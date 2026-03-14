@@ -1,42 +1,29 @@
-import { useState, useEffect } from 'react';
-import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
+import { base44 } from '@/api/base44Client';
 
 export function useVerificationCheck(action) {
-  const [checking, setChecking] = useState(true);
-  const [blocked, setBlocked] = useState(false);
-  const [verificationStatus, setVerificationStatus] = useState(null);
-
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
 
-  useEffect(() => {
-    const checkVerification = async () => {
-      if (!user) {
-        setChecking(false);
-        return;
-      }
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['myProfile', user?.email],
+    queryFn: () => base44.entities.UserProfile.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
 
-      try {
-        const result = await base44.functions.invoke('validateVerificationStatus', {
-          action,
-          target_user_id: user.email
-        });
+  const { data: verifications = [], isLoading } = useQuery({
+    queryKey: ['myVerification', user?.email],
+    queryFn: () => base44.entities.VerificationRecord.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
 
-        setVerificationStatus(result.data);
-        setBlocked(result.data.blocked);
-      } catch (error) {
-        console.error('Verification check error:', error);
-        setBlocked(true);
-      } finally {
-        setChecking(false);
-      }
-    };
+  const profile = profiles[0];
+  const isAdmin = profile?.is_admin;
+  const isVerified = isAdmin || verifications.some(v => v.status === 'approved');
+  const checking = isLoading;
+  const blocked = !isVerified;
 
-    checkVerification();
-  }, [user, action]);
-
-  return { checking, blocked, verificationStatus };
+  return { checking, blocked, verificationStatus: { blocked, is_admin: isAdmin } };
 }
