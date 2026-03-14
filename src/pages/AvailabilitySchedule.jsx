@@ -19,6 +19,8 @@ export default function AvailabilitySchedule() {
   const [editingEntry, setEditingEntry] = useState(null);
   const [showEditor, setShowEditor] = useState(false);
   const [monthCache, setMonthCache] = useState({});
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // entry id to delete
+  const [hoveredDate, setHoveredDate] = useState(null);
   const queryClient = useQueryClient();
 
   const handleYearChange = (year) => {
