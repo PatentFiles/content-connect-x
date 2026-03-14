@@ -111,6 +111,9 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
         {/* Onboarding Checklist */}
         {onboardingChecklist}
 
+        {/* Booking Requests Inbox */}
+        <BookingRequestsInbox userId={user?.email} />
+
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <CCCard padding="md">
