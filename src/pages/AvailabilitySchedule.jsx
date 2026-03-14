@@ -496,6 +496,36 @@ END:VCALENDAR`;
         }}
         onSave={handleSave}
       />
+
+      {/* Custom Delete Confirmation Modal */}
+      <CCModal
+        isOpen={!!deleteConfirm}
+        onClose={() => setDeleteConfirm(null)}
+        title="Delete Availability"
+        size="sm"
+      >
+        <div className="flex flex-col items-center text-center gap-4">
+          <div className="w-14 h-14 rounded-full bg-[#EF4444]/10 flex items-center justify-center">
+            <AlertTriangle className="w-7 h-7 text-[#EF4444]" />
+          </div>
+          <p className="text-[#9AA6BC] text-sm">
+            Are you sure you want to delete this availability entry? This action cannot be undone.
+          </p>
+          <div className="flex gap-3 w-full pt-2">
+            <CCButton variant="outline" fullWidth onClick={() => setDeleteConfirm(null)}>
+              Cancel
+            </CCButton>
+            <CCButton
+              variant="danger"
+              fullWidth
+              onClick={confirmDelete}
+              loading={deleteMutation.isPending}
+            >
+              Delete
+            </CCButton>
+          </div>
+        </div>
+      </CCModal>
     </div>
   );
 }
