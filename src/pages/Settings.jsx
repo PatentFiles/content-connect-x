@@ -195,20 +195,20 @@ export default function Settings() {
                     <Lock className="w-5 h-5 text-[#6B7A94]" />
                     <div>
                       <p className="text-[#E8EEF9]">Password</p>
-                      <p className="text-sm text-[#6B7A94]">Last changed: Never</p>
+                      <p className="text-sm text-[#6B7A94]">Managed via your login provider</p>
                     </div>
                   </div>
-                  <CCButton variant="outline" size="sm">Change</CCButton>
+                  <CCButton variant="outline" size="sm" onClick={() => toast.info('Password management is handled by your login provider.')}>Change</CCButton>
                 </div>
                 <div className="flex items-center justify-between py-3">
                   <div className="flex items-center gap-3">
                     <Shield className="w-5 h-5 text-[#6B7A94]" />
                     <div>
                       <p className="text-[#E8EEF9]">Two-Factor Authentication</p>
-                      <p className="text-sm text-[#6B7A94]">Not enabled</p>
+                      <p className="text-sm text-[#6B7A94]">Managed via your login provider</p>
                     </div>
                   </div>
-                  <CCButton variant="outline" size="sm">Enable</CCButton>
+                  <CCButton variant="outline" size="sm" onClick={() => toast.info('2FA is managed by your login provider.')}>Enable</CCButton>
                 </div>
               </div>
             </CCCard>
