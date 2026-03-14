@@ -50,6 +50,8 @@ export default function PhotographerDashboard({ user, profile, onboardingCheckli
           <p className="text-[#6B7A94]">Manage your portfolio and bookings</p>
         </div>
 
+        {onboardingChecklist}
+
         {/* Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <CCCard padding="md">

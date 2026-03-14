@@ -54,6 +54,8 @@ export default function VideographerDashboard({ user, profile, onboardingCheckli
           <p className="text-[#6B7A94]">Manage your reels, bookings, and editing queue</p>
         </div>
 
+        {onboardingChecklist}
+
         {/* Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <CCCard padding="md">
