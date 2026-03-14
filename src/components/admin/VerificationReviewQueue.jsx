@@ -27,6 +27,7 @@ export default function VerificationReviewQueue() {
     mutationFn: async ({ verificationId, userId }) => {
       const expiryDate = new Date();
       expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+      const admin = await base44.auth.me();
 
       await base44.entities.VerificationRecord.update(verificationId, {
         status: 'approved',
@@ -35,10 +36,22 @@ export default function VerificationReviewQueue() {
       });
 
       await base44.entities.AdminActionLog.create({
-        admin_id: (await base44.auth.me()).email,
+        admin_user_id: admin.email,
         action_type: 'verification_approved',
-        target_user_id: userId,
-        details: { verification_id: verificationId }
+        target_entity_type: 'VerificationRecord',
+        target_entity_id: verificationId,
+        after_state: { status: 'approved' },
+        reason: 'Admin approved identity verification'
+      });
+
+      // Notify the user
+      await base44.entities.Notification.create({
+        user_id: userId,
+        type: 'verification_status',
+        actor_user_id: admin.email,
+        title: 'Verification Approved',
+        body: 'Your identity verification has been approved. You now have full access to the platform.',
+        action_url: 'Dashboard'
       });
     },
     onSuccess: () => {
@@ -49,17 +62,30 @@ export default function VerificationReviewQueue() {
 
   const rejectMutation = useMutation({
     mutationFn: async ({ verificationId, userId, reason }) => {
+      const admin = await base44.auth.me();
+
       await base44.entities.VerificationRecord.update(verificationId, {
         status: 'rejected',
         rejection_reason: reason
       });
 
       await base44.entities.AdminActionLog.create({
-        admin_id: (await base44.auth.me()).email,
+        admin_user_id: admin.email,
         action_type: 'verification_rejected',
-        target_user_id: userId,
-        details: { verification_id: verificationId },
+        target_entity_type: 'VerificationRecord',
+        target_entity_id: verificationId,
+        after_state: { status: 'rejected', rejection_reason: reason },
         reason
+      });
+
+      // Notify the user
+      await base44.entities.Notification.create({
+        user_id: userId,
+        type: 'verification_status',
+        actor_user_id: admin.email,
+        title: 'Verification Rejected',
+        body: `Your verification was not approved. Reason: ${reason}. Please re-submit with correct documents.`,
+        action_url: 'Verification'
       });
     },
     onSuccess: () => {
