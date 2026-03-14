@@ -253,19 +253,38 @@ export async function notifyTestingOverdue(userId, collaboration) {
 }
 
 /**
- * Trigger notification: Contract created
+ * Trigger notification: Contract pending review  (+ email)
  */
 export async function notifyContractCreated(userId, contract, collaboration, creatorProfile) {
-  return createNotification({
+  const notification = await createNotification({
     userId,
     type: 'contract_updates',
     actorUserId: creatorProfile.user_id,
-    title: 'New Contract',
-    body: `${creatorProfile?.display_name || 'Someone'} created a contract for "${collaboration.collaboration_name}"`,
+    title: 'Contract Pending Your Review',
+    body: `${creatorProfile?.display_name || 'Someone'} created a contract for "${collaboration.collaboration_name}" — your signature is required.`,
     relatedEntityType: 'Contract',
     relatedEntityId: contract.id,
     actionUrl: `/ViewContract?id=${contract.id}`
   });
+
+  // Send email if enabled
+  const emailOk = await isEmailEnabled(userId, 'contract_updates');
+  if (emailOk) {
+    try {
+      const users = await base44.entities.User.filter({ id: userId });
+      const email = users[0]?.email || userId;
+      await sendBrandedEmail({
+        toEmail: email,
+        subject: `Contract Pending Review – ${collaboration.collaboration_name}`,
+        headline: 'A contract is waiting for your review',
+        bodyText: `${creatorProfile?.display_name || 'Someone'} has created a contract for <strong style="color:#E8EEF9;">${collaboration.collaboration_name}</strong>. Please review and sign at your earliest convenience.`,
+        ctaLabel: 'Review Contract',
+        ctaUrl: `${window.location.origin}/ViewContract?id=${contract.id}`,
+      });
+    } catch (err) { console.error('Email send failed:', err); }
+  }
+
+  return notification;
 }
 
 /**
