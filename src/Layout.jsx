@@ -87,6 +87,19 @@ export default function Layout({ children, currentPageName }) {
   const isAuthenticated = !!user;
   const isAdmin = profile?.is_admin;
 
+  // Update last_active_at once per session per day
+  useEffect(() => {
+    if (!user || !profile) return;
+    const activeKey = `cc_active_${user.email}_${new Date().toDateString()}`;
+    if (sessionStorage.getItem(activeKey)) return;
+    sessionStorage.setItem(activeKey, '1');
+    if (profile?.id) {
+      base44.entities.UserProfile.update(profile.id, {
+        last_active_at: new Date().toISOString(),
+      }).catch(() => {});
+    }
+  }, [user, profile]);
+
   // Record session history once per calendar day per user
   const sessionRecorded = useRef(false);
   useEffect(() => {
