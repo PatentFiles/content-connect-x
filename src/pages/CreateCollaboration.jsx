@@ -539,7 +539,10 @@ export default function CreateCollaboration() {
     setCustomValues({...customValues, [field]: ''});
   };
 
-  if (userLoading || verificationChecking || (isEditing && loadingCollab && !existingCollaboration) || !details) {
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [createdCollabId, setCreatedCollabId] = useState(null);
+
+  if (userLoading || verificationChecking || (isEditing && loadingCollab && !existingCollaboration)) {
     return <CCLoadingScreen message="Loading..." />;
   }
 
