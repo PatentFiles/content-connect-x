@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
@@ -55,6 +55,24 @@ export default function Layout({ children, currentPageName }) {
   const [adminRoleView, setAdminRoleView] = useState('admin');
   const isPublicPage = publicPages.includes(currentPageName);
   const isAppPage = appPages.includes(currentPageName);
+
+  // Record session history on first login
+  const sessionRecorded = useRef(false);
+  useEffect(() => {
+    if (!user || sessionRecorded.current) return;
+    sessionRecorded.current = true;
+    const sessionKey = `cc_session_${user.email}_${new Date().toDateString()}`;
+    if (sessionStorage.getItem(sessionKey)) return;
+    sessionStorage.setItem(sessionKey, '1');
+    base44.entities.SessionHistory.create({
+      user_id: user.email,
+      session_id: `${user.email}_${Date.now()}`,
+      ip_address: 'client-side',
+      user_agent: navigator.userAgent,
+      login_at: new Date().toISOString(),
+      actions_count: 0,
+    }).catch(() => {}); // Silent fail
+  }, [user]);
 
   // Fetch user data
   const { data: user, isLoading: userLoading } = useQuery({
