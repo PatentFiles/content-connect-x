@@ -39,7 +39,7 @@ export default function PricingManager() {
   const createMutation = useMutation({
     mutationFn: (data) => base44.entities.PricingTier.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['pricingTiers']);
+      queryClient.invalidateQueries({ queryKey: ['pricingTiers'] });
       setIsCreating(false);
       setFormData({});
     },
@@ -48,7 +48,7 @@ export default function PricingManager() {
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.PricingTier.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries(['pricingTiers']);
+      queryClient.invalidateQueries({ queryKey: ['pricingTiers'] });
       setEditingPlan(null);
       setFormData({});
     },
@@ -57,14 +57,14 @@ export default function PricingManager() {
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.PricingTier.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries(['pricingTiers']);
+      queryClient.invalidateQueries({ queryKey: ['pricingTiers'] });
     },
   });
 
   const toggleActiveMutation = useMutation({
     mutationFn: ({ id, isActive }) => base44.entities.PricingTier.update(id, { is_active: !isActive }),
     onSuccess: () => {
-      queryClient.invalidateQueries(['pricingTiers']);
+      queryClient.invalidateQueries({ queryKey: ['pricingTiers'] });
     },
   });
 
