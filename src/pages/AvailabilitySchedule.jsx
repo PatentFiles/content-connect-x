@@ -3,13 +3,14 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths } from 'date-fns';
-import { Calendar, ChevronLeft, ChevronRight, Download, Trash2, Plus, CheckSquare, XSquare } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, Download, Trash2, Plus, CheckSquare, AlertTriangle } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import ScheduleEntryCard from '@/components/schedule/ScheduleEntryCard';
 import ScheduleEntryEditor from '@/components/schedule/ScheduleEntryEditor';
+import CCModal from '@/components/ui-custom/CCModal';
 
 export default function AvailabilitySchedule() {
   const [viewMonth, setViewMonth] = useState(new Date());
