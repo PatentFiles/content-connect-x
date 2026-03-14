@@ -147,12 +147,13 @@ export default function Pricing() {
   if (isLoading) return <CCLoadingScreen message="Loading pricing..." />;
 
   // Group tiers by role, sorted by sort_order
+  const sortByPrice = (a, b) => (a.price_monthly || 0) - (b.price_monthly || 0);
   const pricingData = {
-    creator:      allTiers.filter(t => t.role_type === 'creator').sort((a,b) => (a.sort_order||0) - (b.sort_order||0)),
-    photographer: allTiers.filter(t => t.role_type === 'photographer').sort((a,b) => (a.sort_order||0) - (b.sort_order||0)),
-    videographer: allTiers.filter(t => t.role_type === 'videographer').sort((a,b) => (a.sort_order||0) - (b.sort_order||0)),
-    agent:        allTiers.filter(t => t.role_type === 'agent').sort((a,b) => (a.sort_order||0) - (b.sort_order||0)),
-    studio:       allTiers.filter(t => t.role_type === 'studio').sort((a,b) => (a.sort_order||0) - (b.sort_order||0)),
+    creator:      allTiers.filter(t => t.role_type === 'creator').sort(sortByPrice),
+    photographer: allTiers.filter(t => t.role_type === 'photographer').sort(sortByPrice),
+    videographer: allTiers.filter(t => t.role_type === 'videographer').sort(sortByPrice),
+    agent:        allTiers.filter(t => t.role_type === 'agent').sort(sortByPrice),
+    studio:       allTiers.filter(t => t.role_type === 'studio').sort(sortByPrice),
   };
 
   // If user has a profile, default to their role tab
@@ -359,27 +360,27 @@ export default function Pricing() {
                         <div className="mt-4 pt-4 border-t border-[#263248]">
                           <p className="text-xs font-medium text-[#6B7A94] mb-2 uppercase tracking-wide">Limits</p>
                           <div className="grid grid-cols-2 gap-2">
-                            {plan.limits.messages_per_day && (
+                            {plan.limits.messages_per_day != null && (
                               <div className="bg-[#0B0F14] rounded-lg p-2 text-center">
-                                <p className="text-xs font-semibold text-[#4F8CFF]">{plan.limits.messages_per_day}</p>
+                                <p className="text-xs font-semibold text-[#4F8CFF]">{plan.limits.messages_per_day < 0 ? '∞' : plan.limits.messages_per_day}</p>
                                 <p className="text-xs text-[#6B7A94]">msgs/day</p>
                               </div>
                             )}
-                            {plan.limits.deal_rooms_per_month && (
+                            {plan.limits.deal_rooms_per_month != null && (
                               <div className="bg-[#0B0F14] rounded-lg p-2 text-center">
-                                <p className="text-xs font-semibold text-[#4F8CFF]">{plan.limits.deal_rooms_per_month}</p>
+                                <p className="text-xs font-semibold text-[#4F8CFF]">{plan.limits.deal_rooms_per_month < 0 ? '∞' : plan.limits.deal_rooms_per_month}</p>
                                 <p className="text-xs text-[#6B7A94]">collabs/mo</p>
                               </div>
                             )}
-                            {plan.limits.gallery_items && (
+                            {plan.limits.gallery_items != null && (
                               <div className="bg-[#0B0F14] rounded-lg p-2 text-center">
-                                <p className="text-xs font-semibold text-[#4F8CFF]">{plan.limits.gallery_items}</p>
+                                <p className="text-xs font-semibold text-[#4F8CFF]">{plan.limits.gallery_items < 0 ? '∞' : plan.limits.gallery_items}</p>
                                 <p className="text-xs text-[#6B7A94]">gallery items</p>
                               </div>
                             )}
-                            {plan.limits.shortlists && (
+                            {plan.limits.shortlists != null && (
                               <div className="bg-[#0B0F14] rounded-lg p-2 text-center">
-                                <p className="text-xs font-semibold text-[#4F8CFF]">{plan.limits.shortlists}</p>
+                                <p className="text-xs font-semibold text-[#4F8CFF]">{plan.limits.shortlists < 0 ? '∞' : plan.limits.shortlists}</p>
                                 <p className="text-xs text-[#6B7A94]">shortlists</p>
                               </div>
                             )}
