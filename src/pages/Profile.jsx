@@ -1420,11 +1420,26 @@ export default function Profile() {
               </div>
               <p className="text-sm text-[#6B7A94] mb-4 text-center">G-rated images visible to all verified members.</p>
               <div className="grid grid-cols-3 gap-2">
-                {galleries.find(g => g.type === 'public')?.items?.map((item, i) => (
-                  <div key={i} className="aspect-square bg-[#121824] rounded-lg overflow-hidden">
-                    <img src={item.url} alt="" className="w-full h-full object-cover" />
-                  </div>
-                )) || (
+                {galleries.find(g => g.type === 'public')?.items?.map((item, i) => {
+                  const gallery = galleries.find(g => g.type === 'public');
+                  return (
+                    <div key={i} className="aspect-square bg-[#121824] rounded-lg overflow-hidden relative group">
+                      <img src={item.url} alt="" className="w-full h-full object-cover" />
+                      <button
+                        onClick={async () => {
+                          if (!confirm('Delete this photo?')) return;
+                          const updated = gallery.items.filter((_, idx) => idx !== i);
+                          await base44.entities.Gallery.update(gallery.id, { items: updated });
+                          queryClient.invalidateQueries(['myGalleries']);
+                          setDeleteSuccessModal(true);
+                        }}
+                        className="absolute top-1 right-1 p-1 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-white" />
+                      </button>
+                    </div>
+                  );
+                }) || (
                   <div className="col-span-3 py-8 text-center text-[#6B7A94]">
                     <Image className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     No images yet
@@ -1484,11 +1499,26 @@ export default function Profile() {
               </div>
               <p className="text-sm text-[#6B7A94] mb-4 text-center">Only visible to users you grant permission.</p>
               <div className="grid grid-cols-3 gap-2">
-                {galleries.find(g => g.type === 'private')?.items?.map((item, i) => (
-                  <div key={i} className="aspect-square bg-[#121824] rounded-lg overflow-hidden">
-                    <img src={item.url} alt="" className="w-full h-full object-cover" />
-                  </div>
-                )) || (
+                {galleries.find(g => g.type === 'private')?.items?.map((item, i) => {
+                  const gallery = galleries.find(g => g.type === 'private');
+                  return (
+                    <div key={i} className="aspect-square bg-[#121824] rounded-lg overflow-hidden relative group">
+                      <img src={item.url} alt="" className="w-full h-full object-cover" />
+                      <button
+                        onClick={async () => {
+                          if (!confirm('Delete this photo?')) return;
+                          const updated = gallery.items.filter((_, idx) => idx !== i);
+                          await base44.entities.Gallery.update(gallery.id, { items: updated });
+                          queryClient.invalidateQueries(['myGalleries']);
+                          setDeleteSuccessModal(true);
+                        }}
+                        className="absolute top-1 right-1 p-1 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-white" />
+                      </button>
+                    </div>
+                  );
+                }) || (
                   <div className="col-span-3 py-8 text-center text-[#6B7A94]">
                     <Image className="w-8 h-8 mx-auto mb-2 opacity-50" />
                     No images yet
