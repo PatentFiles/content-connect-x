@@ -18,6 +18,7 @@ const adminNavItems = [
 export default function MobileNavMenu({ isOpen, onClose, profile, currentPage, onLogout, adminRoleView }) {
   const roleType = adminRoleView !== 'admin' ? adminRoleView : profile?.role_type;
   const navItems = getNavigationForRole(roleType);
+  const isAdmin = profile?.is_admin || profile?.role_type === 'admin';
 
   return (
     <AnimatePresence>
