@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 import { 
   Settings as SettingsIcon, 
   User, 
@@ -9,12 +10,8 @@ import {
   Shield, 
   CreditCard, 
   LogOut,
-  ChevronRight,
-  Moon,
   Globe,
   Lock,
-  Eye,
-  EyeOff,
   Trash2,
   Crown
 } from 'lucide-react';
