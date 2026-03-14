@@ -393,7 +393,7 @@ export default function Settings() {
             <CCButton variant="outline" onClick={() => setShowDeleteModal(false)}>
               Cancel
             </CCButton>
-            <CCButton variant="danger">
+            <CCButton variant="danger" onClick={() => { toast.error('Account deletion requires contacting support. Note for admin: backend function needed.'); setShowDeleteModal(false); }}>
               Delete My Account
             </CCButton>
           </div>
