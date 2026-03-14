@@ -942,7 +942,7 @@ export default function ViewProfile() {
         </div>
 
         </CCTabsContent>
-      </div>
+        </div>
     </div>
   );
 }
