@@ -46,6 +46,25 @@ export default function Messages() {
   const fileInputRef = useRef(null);
   const longPressTimer = useRef(null);
   const queryClient = useQueryClient();
+
+  // Real-time message subscription
+  useEffect(() => {
+    if (!selectedConversation) return;
+    const unsubscribe = base44.entities.Message.subscribe((event) => {
+      if (event.data?.conversation_id !== selectedConversation.id) return;
+      queryClient.invalidateQueries(['messages', selectedConversation.id]);
+    });
+    return unsubscribe;
+  }, [selectedConversation?.id]);
+
+  // Real-time conversation list subscription
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = base44.entities.Conversation.subscribe(() => {
+      queryClient.invalidateQueries(['conversations', user.email]);
+    });
+    return unsubscribe;
+  }, [user?.email]);
   
   const { checking: verificationChecking, blocked: verificationBlocked } = useVerificationCheck('send_message');
 
