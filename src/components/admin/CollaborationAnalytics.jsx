@@ -47,7 +47,12 @@ export default function CollaborationAnalytics() {
     queryFn: () => base44.entities.CollaborationDispute.list(),
   });
 
-  const isLoading = loadingCollabs || loadingTasks || loadingContracts || loadingActivities || loadingRisk || loadingDisputes;
+  const { data: allUsers = [], isLoading: loadingUsers } = useQuery({
+    queryKey: ['analytics-users'],
+    queryFn: () => base44.entities.User.list(),
+  });
+
+  const isLoading = loadingCollabs || loadingTasks || loadingContracts || loadingActivities || loadingRisk || loadingDisputes || loadingUsers;
 
   // Filter data by date range
   const filteredData = useMemo(() => {
