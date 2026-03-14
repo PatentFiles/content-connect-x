@@ -890,32 +890,6 @@ export default function ViewProfile() {
           </CCCard>
         )}
 
-        {/* Public Gallery */}
-        {galleries[0]?.items?.length > 0 && (
-          <CCCard padding="lg" className="mb-6 text-center">
-            <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 text-center">Gallery</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {galleries[0].items.map((item, idx) => (
-                <div key={idx} className="aspect-square rounded-lg overflow-hidden bg-[#151D2B]">
-                  {item.type === 'image' ? (
-                    <img
-                      src={item.url}
-                      alt={item.caption || 'Gallery item'}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <video
-                      src={item.url}
-                      className="w-full h-full object-cover"
-                      controls
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          </CCCard>
-        )}
-
         {/* Social Links */}
         {socialLinks.length > 0 && (
           <CCCard padding="lg" className="mb-6 text-center">
@@ -923,6 +897,51 @@ export default function ViewProfile() {
             <SocialLinksDisplay links={socialLinks} />
           </CCCard>
         )}
+
+        {/* Availability & Travel */}
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          <CCCard padding="lg">
+            <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Availability</h3>
+            {availabilityEntries.length > 0 ? (
+              <div className="flex flex-wrap gap-2 justify-center">
+                {availabilityEntries.slice(0, 8).map(entry => (
+                  <CCBadge key={entry.id} variant="outline">
+                    {format(new Date(entry.start_date), 'MMM d')}
+                  </CCBadge>
+                ))}
+                {availabilityEntries.length > 8 && (
+                  <CCBadge variant="outline">+{availabilityEntries.length - 8} more</CCBadge>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-[#6B7A94] text-center">No availability dates posted</p>
+            )}
+          </CCCard>
+
+          <CCCard padding="lg">
+            <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Travel Schedule</h3>
+            {travelEntries.length > 0 ? (
+              <div className="space-y-2">
+                {travelEntries.slice(0, 3).map(entry => (
+                  <div key={entry.id} className="p-2 rounded bg-[#0B0F14] text-center">
+                    <div className="text-sm font-medium text-[#E8EEF9]">{entry.location_city || entry.title}</div>
+                    <div className="text-xs text-[#9AA6BC]">
+                      {format(new Date(entry.start_date), 'MMM d')} - {format(new Date(entry.end_date), 'MMM d')}
+                    </div>
+                    {entry.start_time && <div className="text-xs text-[#6B7A94]">Arrives: {entry.start_time}</div>}
+                  </div>
+                ))}
+                {travelEntries.length > 3 && (
+                  <p className="text-xs text-[#6B7A94] text-center">+{travelEntries.length - 3} more destinations</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-[#6B7A94] text-center">No travel dates posted</p>
+            )}
+          </CCCard>
+        </div>
+
+        </CCTabsContent>
       </div>
     </div>
   );
