@@ -39,19 +39,17 @@ export default function FriendRequestsList({ userId }) {
     enabled: !!userId,
   });
 
-  // Respond to request
+  // Respond to request (direct — no backend function needed)
   const respondMutation = useMutation({
     mutationFn: async ({ friendship_id, response }) => {
-      const { data } = await base44.functions.invoke('respondToFriendRequest', {
-        friendship_id,
-        response
+      await base44.entities.Friendship.update(friendship_id, {
+        status: response === 'ACCEPT' ? 'ACCEPTED' : 'DECLINED',
+        responded_at: new Date().toISOString(),
       });
-      return data;
     },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries(['pendingFriendRequests']);
-      queryClient.invalidateQueries(['friendshipStatus']);
-      queryClient.invalidateQueries(['friendsList']);
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['pendingFriendRequests'] });
+      queryClient.invalidateQueries({ queryKey: ['friendsList'] });
       toast.success(variables.response === 'ACCEPT' ? 'Friend request accepted' : 'Friend request declined');
     },
     onError: () => {
