@@ -147,6 +147,7 @@ export default function ViewProfile() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState({ title: '', message: '' });
+  const [activeTab, setActiveTab] = useState('profile');
   
   // Fetch favorites to check if profile is saved
   const { data: favorites = [] } = useQuery({
