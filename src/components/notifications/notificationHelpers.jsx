@@ -1,5 +1,72 @@
 import { base44 } from '@/api/base44Client';
 
+const APP_NAME = 'Content Connect';
+const APP_COLOR_PRIMARY = '#4F8CFF';
+const APP_COLOR_ACCENT = '#FF2DAA';
+const APP_BG = '#0B0F14';
+
+/**
+ * Send a branded email alert for key events.
+ * Only sends if the user has email notifications enabled.
+ */
+async function sendBrandedEmail({ toEmail, subject, headline, bodyText, ctaLabel, ctaUrl }) {
+  const html = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /></head>
+<body style="margin:0;padding:0;background:${APP_BG};font-family:'Inter',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:${APP_BG};padding:40px 0;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#151D2B;border-radius:16px;border:1px solid #263248;overflow:hidden;max-width:600px;width:100%;">
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,${APP_COLOR_PRIMARY}22,${APP_COLOR_ACCENT}22);padding:32px 32px 24px;text-align:center;border-bottom:1px solid #263248;">
+            <span style="font-size:22px;font-weight:800;background:linear-gradient(135deg,${APP_COLOR_PRIMARY},${APP_COLOR_ACCENT});-webkit-background-clip:text;color:transparent;">${APP_NAME}</span>
+          </td>
+        </tr>
+        <!-- Body -->
+        <tr>
+          <td style="padding:32px;">
+            <h2 style="margin:0 0 12px;font-size:20px;font-weight:700;color:#E8EEF9;">${headline}</h2>
+            <p style="margin:0 0 24px;font-size:15px;color:#9AA6BC;line-height:1.6;">${bodyText}</p>
+            ${ctaLabel && ctaUrl ? `
+            <table cellpadding="0" cellspacing="0"><tr><td>
+              <a href="${ctaUrl}" style="display:inline-block;background:${APP_COLOR_PRIMARY};color:#fff;text-decoration:none;font-weight:600;font-size:14px;padding:12px 28px;border-radius:8px;">${ctaLabel}</a>
+            </td></tr></table>` : ''}
+          </td>
+        </tr>
+        <!-- Footer -->
+        <tr>
+          <td style="padding:20px 32px;border-top:1px solid #263248;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#6B7A94;">You're receiving this because you have email notifications enabled. <br/>Manage preferences in your <a href="/Settings" style="color:${APP_COLOR_PRIMARY};">Settings</a>.</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  try {
+    await base44.integrations.Core.SendEmail({ to: toEmail, subject, body: html, from_name: APP_NAME });
+  } catch (err) {
+    console.error('Failed to send branded email:', err);
+  }
+}
+
+/**
+ * Check if user has email channel enabled for a notification type.
+ */
+async function isEmailEnabled(userId, notificationType) {
+  try {
+    const prefs = await base44.entities.NotificationPreference.filter({ user_id: userId, notification_type: notificationType });
+    if (!prefs.length) return true;
+    return prefs[0].channels?.email !== false;
+  } catch {
+    return true;
+  }
+}
+
 /**
  * Check if user has notifications enabled for a specific type
  */
