@@ -114,6 +114,7 @@ export default function ScheduleEntryEditor({ entry, isOpen, onClose, onSave }) 
               ))}
               {daysInMonth.map(date => {
                 const dateStr = format(date, 'yyyy-MM-dd');
+                const isPast = date < new Date().setHours(0, 0, 0, 0);
                 const isStart = dateStr === formData.start_date;
                 const isEnd = dateStr === formData.end_date;
                 const isInRange = formData.start_date && formData.end_date &&
@@ -123,11 +124,13 @@ export default function ScheduleEntryEditor({ entry, isOpen, onClose, onSave }) 
                   <button
                     key={dateStr}
                     type="button"
-                    onClick={() => selectDate(date)}
+                    disabled={isPast}
+                    onClick={() => !isPast && selectDate(date)}
                     className={`aspect-square rounded text-xs font-medium transition-all
+                      ${isPast ? 'text-[#3A4A6B] opacity-40 cursor-not-allowed' : ''}
                       ${isStart || isEnd ? 'bg-[#4F8CFF] text-white' : ''}
                       ${isInRange ? 'bg-[#4F8CFF]/30 text-[#E8EEF9]' : ''}
-                      ${!isStart && !isEnd && !isInRange ? 'text-[#E8EEF9] hover:bg-[#263248]' : ''}
+                      ${!isPast && !isStart && !isEnd && !isInRange ? 'text-[#E8EEF9] hover:bg-[#263248]' : ''}
                     `}
                   >
                     {format(date, 'd')}
