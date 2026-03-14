@@ -137,9 +137,9 @@ export default function FriendSettingsCard({ userId }) {
             </label>
             <CCSelect
               value={localSettings.friend_count_visibility}
-              onChange={(value) => setLocalSettings({
+              onChange={(e) => setLocalSettings({
                 ...localSettings,
-                friend_count_visibility: value
+                friend_count_visibility: e.target.value
               })}
               options={[
                 { value: 'PUBLIC', label: 'Public' },
