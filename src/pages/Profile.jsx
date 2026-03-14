@@ -147,8 +147,8 @@ const compensationPreferences = [
 ];
 
 const performancePositioning = [
-  { value: 'Top', showFor: ['gay', 'bi'] },
-  { value: 'Bottom', showFor: ['gay', 'bi'] },
+  { value: 'Top', showFor: 'all' },
+  { value: 'Bottom', showFor: 'all' },
   { value: 'Versatile', showFor: ['gay', 'bi'] },
   { value: 'Switch', showFor: 'all' },
   { value: 'Dominant', showFor: 'all' },
