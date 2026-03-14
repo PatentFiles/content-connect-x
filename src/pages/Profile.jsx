@@ -46,7 +46,7 @@ function AvailabilityTravelSection({ user, profile }) {
   });
 
   const { data: travelEntries = [] } = useQuery({
-    queryKey: ['travelEntries', user?.email],
+    queryKey: ['travelEntries', user?.email, 'all'],
     queryFn: () => base44.entities.ScheduleEntry.filter({ 
       user_id: user?.email,
       entry_type: 'TRAVEL'
