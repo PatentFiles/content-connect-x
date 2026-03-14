@@ -23,6 +23,7 @@ import CCBadge from '../ui-custom/CCBadge';
 import CCEmpty from '../ui-custom/CCEmpty';
 import AvailabilityManager from '../profile/AvailabilityManager';
 import TravelDateManager from '../profile/TravelDateManager';
+import BookingRequestsInbox from '../booking/BookingRequestsInbox';
 
 export default function CreatorDashboard({ user, profile, onboardingChecklist, onOpenWizard }) {
   const [newTask, setNewTask] = useState('');
