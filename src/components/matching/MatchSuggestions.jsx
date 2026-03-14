@@ -57,20 +57,8 @@ export default function MatchSuggestions({ sourceType, sourceId, title = "AI Mat
   });
 
   const generateMatches = async () => {
-    setIsGenerating(true);
-    try {
-      await base44.functions.invoke('generateMatches', {
-        source_type: sourceType,
-        source_id: sourceId,
-        limit: 10
-      });
-      queryClient.invalidateQueries({ queryKey: ['matchSuggestions', sourceType, sourceId] });
-      queryClient.invalidateQueries({ queryKey: ['matchSuggestionsCount'] });
-    } catch (error) {
-      console.error('Failed to generate matches:', error);
-    } finally {
-      setIsGenerating(false);
-    }
+    // AI match generation requires backend functions (Builder+ plan)
+    alert('AI Match Generation requires a Builder+ subscription. Upgrade your plan to unlock this feature.');
   };
 
   const handleViewSuggestion = (suggestion) => {
