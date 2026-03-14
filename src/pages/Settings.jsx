@@ -72,8 +72,9 @@ export default function Settings() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['myProfile']);
+      queryClient.invalidateQueries({ queryKey: ['myProfile'] });
       setShowNameModal(false);
+      toast.success('Display name updated');
     },
   });
 
