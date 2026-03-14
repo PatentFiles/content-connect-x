@@ -70,9 +70,9 @@ export default function FriendSettingsCard({ userId }) {
             </label>
             <CCSelect
               value={localSettings.friend_request_policy}
-              onChange={(value) => setLocalSettings({
+              onChange={(e) => setLocalSettings({
                 ...localSettings,
-                friend_request_policy: value
+                friend_request_policy: e.target.value
               })}
               options={[
                 { value: 'EVERYONE', label: 'Everyone' },
