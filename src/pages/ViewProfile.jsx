@@ -423,7 +423,7 @@ export default function ViewProfile() {
             </div>
           )}
 
-          <div className="flex gap-3 w-full max-w-md">
+          <div className="flex gap-3 w-full max-w-md flex-wrap">
             <button
               onClick={handleSaveClick}
               disabled={unsaveFromFavoritesMutation.isPending}
@@ -436,6 +436,16 @@ export default function ViewProfile() {
                 {isSaved ? 'Saved' : 'Save'}
               </span>
             </button>
+            {user?.email !== profileUserId && (
+              <CCButton
+                variant="outline"
+                icon={Calendar}
+                className="flex-1"
+                onClick={() => setShowBookingModal(true)}
+              >
+                Book
+              </CCButton>
+            )}
             <CCButton 
               variant="primary" 
               icon={MessageCircle}
