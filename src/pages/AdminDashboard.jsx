@@ -476,7 +476,21 @@ export default function AdminDashboard() {
           </CCCard>
         </div>
 
-        <div className="space-y-2 mb-6">
+        {/* Mobile: Dropdown */}
+        <div className="block md:hidden mb-6">
+          <select
+            value={activeTab}
+            onChange={(e) => setActiveTab(e.target.value)}
+            className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-3 text-[#E8EEF9] text-sm focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+          >
+            {tabRows.flat().map((tab) => (
+              <option key={tab.value} value={tab.value}>{tab.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Desktop: Multi-row tabs */}
+        <div className="hidden md:block space-y-2 mb-6">
           {tabRows.map((row, i) => (
             <CCTabsList key={i} tabs={row} activeTab={activeTab} onChange={setActiveTab} />
           ))}
