@@ -824,7 +824,7 @@ export default function Profile() {
                 <CCCard padding="lg">
                   <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Performance Positioning</h3>
                   <div className="space-y-3">
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-2 justify-center">
                       {performancePositioning.filter(showPositioning).map(pp => (
                         <CCButton
                           key={pp.value}
