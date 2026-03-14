@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, Users, FileText, AlertTriangle, CheckCircle, Calendar, Download } from 'lucide-react';
+import { AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { TrendingUp, Users, FileText, AlertTriangle, CheckCircle, Calendar, Download, Activity } from 'lucide-react';
 import CCCard, { CCCardHeader, CCCardTitle, CCCardContent } from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCSelect from '@/components/ui-custom/CCSelect';
