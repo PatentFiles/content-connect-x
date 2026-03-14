@@ -1258,6 +1258,17 @@ export default function Profile() {
                   </CCCard>
                 )}
 
+                {/* Collaboration Rate - view mode */}
+                {details?.rates_text && (
+                  <CCCard padding="lg">
+                    <div className="flex items-center gap-2 mb-2 justify-center">
+                      <Briefcase className="w-5 h-5 text-[#9AA6BC]" />
+                      <h3 className="text-lg font-semibold text-[#E8EEF9]">Collaboration Rate</h3>
+                    </div>
+                    <p className="text-2xl font-bold text-[#22C55E] text-center">${details.rates_text} <span className="text-sm font-normal text-[#9AA6BC]">USD</span></p>
+                  </CCCard>
+                )}
+
                 {/* Physical Details */}
                 {details?.physical_details && Object.keys(details.physical_details).length > 0 && (
                   <CCCard padding="lg">
