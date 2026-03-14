@@ -164,6 +164,53 @@ export default function CollaborationAnalytics() {
     }));
   }, [filteredData.riskScores]);
 
+  // Collaboration growth over time (last 30 days)
+  const collaborationGrowth = useMemo(() => {
+    const days = [];
+    for (let i = 29; i >= 0; i--) {
+      const date = subDays(new Date(), i);
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const count = collaborations.filter(c => 
+        format(new Date(c.created_date), 'yyyy-MM-dd') === dateStr
+      ).length;
+      days.push({ date: format(date, 'MMM d'), count });
+    }
+    // Cumulative
+    let running = collaborations.filter(c => 
+      isBefore(new Date(c.created_date), subDays(new Date(), 29))
+    ).length;
+    return days.map(d => { running += d.count; return { date: d.date, total: running, new: d.count }; });
+  }, [collaborations]);
+
+  // Disputes trend (last 30 days)
+  const disputesTrend = useMemo(() => {
+    const days = [];
+    for (let i = 29; i >= 0; i--) {
+      const date = subDays(new Date(), i);
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const opened = disputes.filter(d => format(new Date(d.created_date), 'yyyy-MM-dd') === dateStr).length;
+      const resolved = disputes.filter(d => 
+        d.resolved_at && format(new Date(d.resolved_at), 'yyyy-MM-dd') === dateStr
+      ).length;
+      days.push({ date: format(date, 'MMM d'), opened, resolved });
+    }
+    return days;
+  }, [disputes]);
+
+  // User activity (registrations) over time
+  const userGrowth = useMemo(() => {
+    const days = [];
+    for (let i = 29; i >= 0; i--) {
+      const date = subDays(new Date(), i);
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const newUsers = allUsers.filter(u =>
+        u.created_date && format(new Date(u.created_date), 'yyyy-MM-dd') === dateStr
+      ).length;
+      days.push({ date: format(date, 'MMM d'), newUsers });
+    }
+    return days;
+  }, [allUsers]);
+
   // User engagement by collaboration
   const engagementData = useMemo(() => {
     const engagementMap = {};
