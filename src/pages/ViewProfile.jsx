@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import SaveToFavoritesModal from '@/components/profiles/SaveToFavoritesModal';
 import { motion } from 'framer-motion';
+import { format } from 'date-fns';
 import { 
   MapPin, 
   Calendar, 
@@ -17,7 +18,8 @@ import {
   Camera,
   Video,
   Briefcase,
-  Building
+  Building,
+  Image
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -26,6 +28,7 @@ import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
+import { CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs';
 import SocialLinksDisplay from '@/components/socials/SocialLinksDisplay';
 import AccessGate from '@/components/auth/AccessGate';
 import { useVerificationCheck } from '@/components/auth/useVerificationCheck';
