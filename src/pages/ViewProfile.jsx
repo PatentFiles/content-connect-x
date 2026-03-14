@@ -481,6 +481,34 @@ export default function ViewProfile() {
           message={errorMessage.message}
         />
 
+        {/* Tabs */}
+        <CCTabsList tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-6" />
+
+        {/* Galleries Tab */}
+        <CCTabsContent value="galleries" activeTab={activeTab}>
+          {galleries[0]?.items?.length > 0 ? (
+            <CCCard padding="lg" className="mb-6">
+              <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 text-center">Public Gallery</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {galleries[0].items.map((item, idx) => (
+                  <div key={idx} className="aspect-square rounded-lg overflow-hidden bg-[#151D2B]">
+                    {item.type === 'image' ? (
+                      <img src={item.url} alt={item.caption || 'Gallery item'} className="w-full h-full object-cover" />
+                    ) : (
+                      <video src={item.url} className="w-full h-full object-cover" controls />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CCCard>
+          ) : (
+            <CCEmpty icon={Image} title="No gallery items" description="This user hasn't added any public gallery items yet." />
+          )}
+        </CCTabsContent>
+
+        {/* Profile Tab */}
+        <CCTabsContent value="profile" activeTab={activeTab}>
+
         {/* Representation Section */}
         {profile.role_type === 'creator' && (agentRepresentations.length > 0 || studioRepresentations.length > 0) && (
           <CCCard padding="lg" className="mb-6">
