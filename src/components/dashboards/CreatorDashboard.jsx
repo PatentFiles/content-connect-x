@@ -294,11 +294,18 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
                   )}
                 </div>
                 {!profileComplete && (
-                  <Link to={createPageUrl('Profile')}>
-                    <CCButton variant="outline" size="sm" fullWidth>
-                      Complete Profile
-                    </CCButton>
-                  </Link>
+                  <div className="space-y-2">
+                    <Link to={createPageUrl('Profile')}>
+                      <CCButton variant="outline" size="sm" fullWidth>
+                        Complete Profile
+                      </CCButton>
+                    </Link>
+                    {onOpenWizard && (
+                      <CCButton variant="ghost" size="sm" fullWidth onClick={onOpenWizard}>
+                        Re-open Setup Wizard
+                      </CCButton>
+                    )}
+                  </div>
                 )}
               </div>
             </CCCard>
