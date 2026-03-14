@@ -84,10 +84,6 @@ export default function Settings() {
     base44.auth.logout();
   };
 
-  if (isLoading) {
-    return <CCLoadingScreen message="Loading settings..." />;
-  }
-
   const currentSubscription = subscription[0];
   const currentProfile = profile[0];
   const settings = userSettings[0];
@@ -102,7 +98,11 @@ export default function Settings() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['userSettings']);
+      queryClient.invalidateQueries({ queryKey: ['userSettings'] });
+      toast.success('Privacy settings saved');
+    },
+    onError: () => {
+      toast.error('Failed to save settings');
     },
   });
 
@@ -116,6 +116,10 @@ export default function Settings() {
     };
     updateSettingsMutation.mutate(updated);
   };
+
+  if (isLoading) {
+    return <CCLoadingScreen message="Loading settings..." />;
+  }
 
   const tabs = [
     { value: 'account', label: 'Account', icon: User },
