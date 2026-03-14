@@ -336,11 +336,11 @@ export async function notifyDisputeCreated(userId, dispute, collaboration, creat
 }
 
 /**
- * Trigger notification: Verification status updated
+ * Trigger notification: Verification status updated  (+ email)
  */
 export async function notifyVerificationStatus(userId, status) {
   const titles = {
-    approved: 'Verification Approved',
+    approved: 'Verification Approved ✓',
     rejected: 'Verification Rejected'
   };
 
@@ -349,7 +349,7 @@ export async function notifyVerificationStatus(userId, status) {
     rejected: 'Your identity verification was rejected. Please review the feedback and resubmit.'
   };
 
-  return createNotification({
+  const notification = await createNotification({
     userId,
     type: 'verification_status',
     actorUserId: null,
@@ -359,6 +359,26 @@ export async function notifyVerificationStatus(userId, status) {
     relatedEntityId: userId,
     actionUrl: '/Verification'
   });
+
+  // Send email if enabled
+  const emailOk = await isEmailEnabled(userId, 'verification_status');
+  if (emailOk) {
+    try {
+      const users = await base44.entities.User.filter({ id: userId });
+      const email = users[0]?.email || userId;
+      const isApproved = status === 'approved';
+      await sendBrandedEmail({
+        toEmail: email,
+        subject: isApproved ? '🎉 Your Verification is Approved!' : 'Verification Update – Action Required',
+        headline: isApproved ? 'Your identity has been verified!' : 'Verification was not approved',
+        bodyText: bodies[status] || 'Your verification status has been updated. Log in to check your status.',
+        ctaLabel: isApproved ? 'Explore the Platform' : 'Resubmit Verification',
+        ctaUrl: `${window.location.origin}/Verification`,
+      });
+    } catch (err) { console.error('Email send failed:', err); }
+  }
+
+  return notification;
 }
 
 /**
