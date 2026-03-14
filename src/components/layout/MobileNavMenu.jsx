@@ -91,8 +91,35 @@ export default function MobileNavMenu({ isOpen, onClose, profile, currentPage, o
               })}
             </nav>
 
+            {/* Admin Section */}
+            {isAdmin && (
+              <div className="px-4 pt-4">
+                <p className="text-xs font-semibold text-[#6B7A94] uppercase tracking-wider mb-2 px-4">Admin</p>
+                {adminNavItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = currentPage === item.path;
+                  return (
+                    <Link
+                      key={item.path}
+                      to={createPageUrl(item.path)}
+                      onClick={onClose}
+                      className={cn(
+                        'flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200',
+                        isActive
+                          ? 'bg-gradient-to-r from-[#4F8CFF]/20 to-[#FF2DAA]/20 text-[#E8EEF9] border border-[#4F8CFF]/30'
+                          : 'text-[#9AA6BC] hover:text-[#E8EEF9] hover:bg-[#151D2B]'
+                      )}
+                    >
+                      <Icon className="w-5 h-5 flex-shrink-0" />
+                      <span className="font-medium">{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Logout Button */}
-            <div className="p-4 border-t border-[#263248] mt-auto">
+            <div className="p-4 border-t border-[#263248] mt-4">
               <CCButton
                 variant="outline"
                 icon={LogOut}
