@@ -35,6 +35,7 @@ import { useVerificationCheck } from '@/components/auth/useVerificationCheck';
 import VerificationRequired from '@/components/auth/VerificationRequired';
 import FriendRequestButton from '@/components/friends/FriendRequestButton';
 import CCErrorModal from '@/components/ui-custom/CCErrorModal';
+import BookingRequestModal from '@/components/booking/BookingRequestModal';
 
 const roleColors = {
   creator: 'primary',
