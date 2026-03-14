@@ -19,6 +19,7 @@ import { useVerificationCheck } from '@/components/auth/useVerificationCheck';
 import VerificationRequired from '@/components/auth/VerificationRequired';
 import ContractVersionHistory from './ContractVersionHistory';
 import ContractAuditLog from './ContractAuditLog';
+import PrintContract from './PrintContract';
 import ConsentRevocationBanner from '@/components/collaboration/ConsentRevocationBanner';
 import { logRepObserverAccess } from '@/components/collaboration/RepObserverAccessControl';
 
@@ -236,6 +237,7 @@ export default function ContractViewer({ contractId }) {
             </div>
             
             <div className="flex gap-2 flex-wrap">
+              <PrintContract contract={contract} signatures={signatures} />
               {contract.pdf_url && (
                 <CCButton 
                   variant="outline" 
