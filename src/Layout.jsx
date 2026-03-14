@@ -46,7 +46,9 @@ const appPages = [
   'Representations',
   'Portfolio',
   'AgentManagement',
-  'DeveloperReadMe'
+  'DeveloperReadMe',
+  'AvailabilitySchedule',
+  'TravelSchedule'
 ];
 
 export default function Layout({ children, currentPageName }) {
