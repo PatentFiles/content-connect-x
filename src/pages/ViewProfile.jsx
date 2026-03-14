@@ -144,6 +144,29 @@ export default function ViewProfile() {
     enabled: !!profileUserId && !!profile,
   });
 
+  // Fetch availability entries
+  const { data: availabilityEntries = [] } = useQuery({
+    queryKey: ['availabilityEntries', profileUserId],
+    queryFn: async () => {
+      const entries = await base44.entities.ScheduleEntry.filter({ 
+        user_id: profileUserId,
+        entry_type: 'AVAILABILITY'
+      });
+      return entries.filter(e => e.status === 'AVAILABLE');
+    },
+    enabled: !!profileUserId && !!profile,
+  });
+
+  // Fetch travel entries
+  const { data: travelEntries = [] } = useQuery({
+    queryKey: ['travelEntries', profileUserId],
+    queryFn: () => base44.entities.ScheduleEntry.filter({ 
+      user_id: profileUserId,
+      entry_type: 'TRAVEL'
+    }),
+    enabled: !!profileUserId && !!profile,
+  });
+
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState({ title: '', message: '' });
