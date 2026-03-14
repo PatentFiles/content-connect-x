@@ -1179,21 +1179,53 @@ export default function CreateCollaboration() {
                 <AlertTriangle className="w-5 h-5 text-[#F59E0B]" />
                 Boundaries
               </h3>
-              <div className="text-center mb-4">
+              {/* Hard No's */}
+              <div className="mb-5">
                 <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Hard No's</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {['Bareback', 'Facials', 'Swallowing', 'Anal', 'Rough play', 'Filming face', 'Golden shower', 'Scat'].map(item => {
+                    const list = formData.boundaries.hard_no || [];
+                    const active = list.includes(item);
+                    return (
+                      <button key={item} onClick={() => {
+                        const updated = active ? list.filter(v => v !== item) : [...list, item];
+                        updateForm('boundaries', { ...formData.boundaries, hard_no: updated });
+                      }} className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${active ? 'bg-[#EF4444]/20 text-[#EF4444] border-[#EF4444]/40' : 'bg-transparent text-[#9AA6BC] border-[#263248] hover:border-[#EF4444]/40'}`}>
+                        {item}
+                      </button>
+                    );
+                  })}
+                </div>
                 <input
-                  placeholder="Acts that are absolutely off limits..."
-                  className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                  placeholder="Or type others (comma-separated)..."
+                  value={(formData.boundaries.hard_no_text || '')}
+                  onChange={(e) => updateForm('boundaries', { ...formData.boundaries, hard_no_text: e.target.value })}
+                  className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 text-sm"
                 />
-                <p className="text-xs text-[#6B7A94] mt-1">Comma-separated list</p>
               </div>
-              <div className="text-center mb-4">
+              {/* Soft Limits */}
+              <div className="mb-5">
                 <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Soft Limits</label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {['Kissing', 'Rough dirty talk', 'Spanking', 'Hair pulling', 'Light bondage', 'Choking', 'Toys'].map(item => {
+                    const list = formData.boundaries.soft_limits || [];
+                    const active = list.includes(item);
+                    return (
+                      <button key={item} onClick={() => {
+                        const updated = active ? list.filter(v => v !== item) : [...list, item];
+                        updateForm('boundaries', { ...formData.boundaries, soft_limits: updated });
+                      }} className={`px-3 py-1 rounded-full text-xs font-medium border transition-all ${active ? 'bg-[#F59E0B]/20 text-[#F59E0B] border-[#F59E0B]/40' : 'bg-transparent text-[#9AA6BC] border-[#263248] hover:border-[#F59E0B]/40'}`}>
+                        {item}
+                      </button>
+                    );
+                  })}
+                </div>
                 <input
-                  placeholder="Acts that may be negotiable..."
-                  className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                  placeholder="Or type others (comma-separated)..."
+                  value={(formData.boundaries.soft_limits_text || '')}
+                  onChange={(e) => updateForm('boundaries', { ...formData.boundaries, soft_limits_text: e.target.value })}
+                  className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 text-sm"
                 />
-                <p className="text-xs text-[#6B7A94] mt-1">Comma-separated list</p>
               </div>
               <label className="flex items-center justify-center gap-3 cursor-pointer">
                 <input
