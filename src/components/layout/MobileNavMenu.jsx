@@ -3,10 +3,17 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, LogOut } from 'lucide-react';
+import { X, LogOut, Shield, Home, Bot, BookOpen } from 'lucide-react';
 import { getNavigationForRole } from '@/components/utils/roleNavConfig';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
 import CCButton from '@/components/ui-custom/CCButton';
+
+const adminNavItems = [
+  { path: 'Dashboard', label: 'Dashboard', icon: Home },
+  { path: 'AdminDashboard', label: 'Admin Dashboard', icon: Shield },
+  { path: 'AgentManagement', label: 'Agent Management', icon: Bot },
+  { path: 'DeveloperReadMe', label: 'Developer ReadMe', icon: BookOpen },
+];
 
 export default function MobileNavMenu({ isOpen, onClose, profile, currentPage, onLogout, adminRoleView }) {
   const roleType = adminRoleView !== 'admin' ? adminRoleView : profile?.role_type;
