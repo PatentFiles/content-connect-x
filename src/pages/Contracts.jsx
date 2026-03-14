@@ -91,8 +91,12 @@ export default function Contracts() {
   const { data: contracts = [], isLoading: contractsLoading } = useQuery({
     queryKey: ['contracts', user?.email],
     queryFn: async () => {
-      // In a real app, filter by user participation
-      return base44.entities.Contract.list('-created_date');
+      const all = await base44.entities.Contract.list('-created_date');
+      return all.filter(c =>
+        c.created_by === user?.email ||
+        c.parties?.some(p => p.email === user?.email) ||
+        c.signatories?.some(s => s.user_id === user?.email)
+      );
     },
     enabled: !!user && isVerified && isSubscribed,
   });

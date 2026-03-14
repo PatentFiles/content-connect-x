@@ -117,7 +117,10 @@ export default function Search() {
         allProfiles = allProfiles.filter(p => {
           if (p.role_type !== 'creator') return true;
           const details = allCreatorDetails.find(d => d.user_id === p.user_id);
-          return details && filters.orientations.includes(details.orientation_category);
+          if (!details || !details.orientation_category) return false;
+          return Array.isArray(details.orientation_category)
+            ? details.orientation_category.some(o => filters.orientations.includes(o))
+            : filters.orientations.includes(details.orientation_category);
         });
       }
 
