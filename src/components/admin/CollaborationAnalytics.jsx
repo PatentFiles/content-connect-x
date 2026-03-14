@@ -461,6 +461,82 @@ export default function CollaborationAnalytics() {
         </CCCard>
       </div>
 
+      {/* NEW: Growth & Activity Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Collaboration Growth */}
+        <CCCard padding="lg">
+          <CCCardHeader>
+            <CCCardTitle>Collaboration Growth (30 Days)</CCCardTitle>
+          </CCCardHeader>
+          <CCCardContent>
+            <ResponsiveContainer width="100%" height={260}>
+              <AreaChart data={collaborationGrowth}>
+                <defs>
+                  <linearGradient id="collabGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#4F8CFF" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#4F8CFF" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#263248" />
+                <XAxis dataKey="date" stroke="#9AA6BC" tick={{ fontSize: 10 }} interval={4} />
+                <YAxis stroke="#9AA6BC" />
+                <Tooltip contentStyle={{ backgroundColor: '#151D2B', border: '1px solid #263248' }} labelStyle={{ color: '#E8EEF9' }} />
+                <Legend />
+                <Area type="monotone" dataKey="total" name="Total" stroke="#4F8CFF" fill="url(#collabGrad)" strokeWidth={2} />
+                <Bar dataKey="new" name="New Today" fill="#FF2DAA" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CCCardContent>
+        </CCCard>
+
+        {/* Disputes Trend */}
+        <CCCard padding="lg">
+          <CCCardHeader>
+            <CCCardTitle>Disputes Opened vs Resolved (30 Days)</CCCardTitle>
+          </CCCardHeader>
+          <CCCardContent>
+            <ResponsiveContainer width="100%" height={260}>
+              <LineChart data={disputesTrend}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#263248" />
+                <XAxis dataKey="date" stroke="#9AA6BC" tick={{ fontSize: 10 }} interval={4} />
+                <YAxis stroke="#9AA6BC" />
+                <Tooltip contentStyle={{ backgroundColor: '#151D2B', border: '1px solid #263248' }} labelStyle={{ color: '#E8EEF9' }} />
+                <Legend />
+                <Line type="monotone" dataKey="opened" name="Opened" stroke="#EF4444" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="resolved" name="Resolved" stroke="#22C55E" strokeWidth={2} dot={false} />
+              </LineChart>
+            </ResponsiveContainer>
+          </CCCardContent>
+        </CCCard>
+      </div>
+
+      {/* User Activity (New Registrations) */}
+      <CCCard padding="lg">
+        <CCCardHeader>
+          <CCCardTitle className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-[#FF2DAA]" />
+            User Registrations (30 Days)
+          </CCCardTitle>
+        </CCCardHeader>
+        <CCCardContent>
+          <ResponsiveContainer width="100%" height={220}>
+            <AreaChart data={userGrowth}>
+              <defs>
+                <linearGradient id="userGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#FF2DAA" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#FF2DAA" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="#263248" />
+              <XAxis dataKey="date" stroke="#9AA6BC" tick={{ fontSize: 10 }} interval={4} />
+              <YAxis stroke="#9AA6BC" />
+              <Tooltip contentStyle={{ backgroundColor: '#151D2B', border: '1px solid #263248' }} labelStyle={{ color: '#E8EEF9' }} />
+              <Area type="monotone" dataKey="newUsers" name="New Users" stroke="#FF2DAA" fill="url(#userGrad)" strokeWidth={2} />
+            </AreaChart>
+          </ResponsiveContainer>
+        </CCCardContent>
+      </CCCard>
+
       {/* Top Engaged Collaborations */}
       <CCCard padding="lg">
         <CCCardHeader>
