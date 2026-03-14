@@ -1513,11 +1513,23 @@ export default function CreateCollaboration() {
                       );
                     })}
                 </div>
+                {/* Selected custom platforms */}
+                {(formData.usage_rights.platforms || []).filter(p => !catalogItems.filter(i => i.category === 'platform').map(i => i.value).includes(p)).length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {(formData.usage_rights.platforms || []).filter(p => !catalogItems.filter(i => i.category === 'platform').map(i => i.value).includes(p)).map(p => (
+                      <div key={p} className="flex items-center gap-1 bg-[#4F8CFF]/20 border border-[#4F8CFF]/30 rounded-full px-3 py-1">
+                        <span className="text-xs text-[#4F8CFF]">{p}</span>
+                        <button onClick={() => updateForm('usage_rights', { ...formData.usage_rights, platforms: formData.usage_rights.platforms.filter(x => x !== p) })} className="text-[#9AA6BC] hover:text-[#EF4444]"><X className="w-3 h-3" /></button>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="flex gap-2">
                   <input
                     type="text"
                     value={customValues.custom_platform || ''}
                     onChange={(e) => setCustomValues({...customValues, custom_platform: e.target.value})}
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); const value = customValues.custom_platform?.trim(); if (!value) return; const currentPlatforms = formData.usage_rights.platforms || []; if (!currentPlatforms.includes(value)) { updateForm('usage_rights', { ...formData.usage_rights, platforms: [...currentPlatforms, value] }); } setCustomValues({...customValues, custom_platform: ''}); }}}
                     className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
                     placeholder="Add another platform..."
                   />
@@ -1528,26 +1540,13 @@ export default function CreateCollaboration() {
                     onClick={async () => {
                       const value = customValues.custom_platform?.trim();
                       if (!value) return;
-
                       const currentPlatforms = formData.usage_rights.platforms || [];
                       if (!currentPlatforms.includes(value)) {
-                        updateForm('usage_rights', {
-                          ...formData.usage_rights,
-                          platforms: [...currentPlatforms, value]
-                        });
+                        updateForm('usage_rights', { ...formData.usage_rights, platforms: [...currentPlatforms, value] });
                       }
-
                       try {
-                        await base44.entities.CustomValueSubmission.create({
-                          submitted_by: user.email,
-                          category: 'platform',
-                          custom_value: value,
-                          status: 'pending'
-                        });
-                      } catch (error) {
-                        console.error('Failed to submit custom platform:', error);
-                      }
-
+                        await base44.entities.CustomValueSubmission.create({ submitted_by: user.email, category: 'platform', custom_value: value, status: 'pending' });
+                      } catch (error) { console.error('Failed to submit custom platform:', error); }
                       setCustomValues({...customValues, custom_platform: ''});
                     }}
                   >
