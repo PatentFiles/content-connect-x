@@ -18,7 +18,7 @@ import CCBadge from '../ui-custom/CCBadge';
 import CCEmpty from '../ui-custom/CCEmpty';
 import StudioEarningsDashboard from '../studio/StudioEarningsDashboard';
 
-export default function StudioDashboard({ user, profile }) {
+export default function StudioDashboard({ user, profile, onboardingChecklist }) {
   const { data: roster = [] } = useQuery({
     queryKey: ['studioRoster', user?.email],
     queryFn: () => base44.entities.StudioRoster.filter({ studio_user_id: user?.email }),

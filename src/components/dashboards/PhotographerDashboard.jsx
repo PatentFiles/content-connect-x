@@ -16,7 +16,7 @@ import CCCard from '../ui-custom/CCCard';
 import CCButton from '../ui-custom/CCButton';
 import CCEmpty from '../ui-custom/CCEmpty';
 
-export default function PhotographerDashboard({ user, profile }) {
+export default function PhotographerDashboard({ user, profile, onboardingChecklist }) {
   const { data: portfolioItems = [] } = useQuery({
     queryKey: ['myPortfolio', user?.email],
     queryFn: () => base44.entities.ServicePortfolioItem.filter({ user_id: user?.email }),

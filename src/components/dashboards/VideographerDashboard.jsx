@@ -19,7 +19,7 @@ import CCButton from '../ui-custom/CCButton';
 import CCBadge from '../ui-custom/CCBadge';
 import CCEmpty from '../ui-custom/CCEmpty';
 
-export default function VideographerDashboard({ user, profile }) {
+export default function VideographerDashboard({ user, profile, onboardingChecklist }) {
   const { data: portfolioItems = [] } = useQuery({
     queryKey: ['myPortfolio', user?.email],
     queryFn: () => base44.entities.ServicePortfolioItem.filter({ user_id: user?.email }),
