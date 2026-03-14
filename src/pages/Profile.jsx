@@ -1433,7 +1433,7 @@ export default function Profile() {
                           queryClient.invalidateQueries(['myGalleries']);
                           setDeleteSuccessModal(true);
                         }}
-                        className="absolute top-1 right-1 p-1 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-1 right-1 p-1 bg-black/60 rounded-full opacity-100 transition-opacity"
                       >
                         <Trash2 className="w-3.5 h-3.5 text-white" />
                       </button>
@@ -1512,7 +1512,7 @@ export default function Profile() {
                           queryClient.invalidateQueries(['myGalleries']);
                           setDeleteSuccessModal(true);
                         }}
-                        className="absolute top-1 right-1 p-1 bg-black/60 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-1 right-1 p-1 bg-black/60 rounded-full opacity-100 transition-opacity"
                       >
                         <Trash2 className="w-3.5 h-3.5 text-white" />
                       </button>
