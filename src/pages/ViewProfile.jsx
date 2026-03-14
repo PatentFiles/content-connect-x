@@ -304,6 +304,11 @@ export default function ViewProfile() {
   const studio = studioDetails[0];
   const RoleIcon = roleIcons[profile.role_type] || Users;
 
+  const tabs = [
+    { value: 'profile', label: 'Profile', icon: Users },
+    { value: 'galleries', label: 'Galleries', icon: Image },
+  ];
+
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Cover Image */}
