@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   Shield
 } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCInput from '@/components/ui-custom/CCInput';
