@@ -1697,6 +1697,50 @@ export default function CreateCollaboration() {
           </motion.div>
         )}
 
+        {/* Success Modal */}
+        <AnimatePresence>
+          {showSuccessModal && (
+            <>
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9998]" onClick={() => { setShowSuccessModal(false); navigate(createPageUrl('Collaborations')); }} />
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+                <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }}
+                  className="bg-[#151D2B] border border-[#263248] rounded-2xl p-8 max-w-md w-full text-center shadow-2xl">
+                  <div className="w-16 h-16 rounded-full bg-[#22C55E]/20 flex items-center justify-center mx-auto mb-4">
+                    <Check className="w-8 h-8 text-[#22C55E]" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">Collaboration Created!</h2>
+                  <p className="text-[#9AA6BC] mb-2">Your collaboration has been created successfully.</p>
+                  {participantEmails.length > 0 && (
+                    <div className="bg-[#0B0F14] border border-[#263248] rounded-lg p-3 mb-5 text-sm">
+                      <p className="text-[#9AA6BC] mb-2">Invite status:</p>
+                      {participantEmails.map(email => {
+                        const profile = participantProfiles.find(p => p.user_id === email);
+                        return (
+                          <div key={email} className="flex items-center justify-between py-1">
+                            <span className="text-[#E8EEF9]">{profile?.display_name || email}</span>
+                            <span className="flex items-center gap-1 text-xs text-[#F59E0B] bg-[#F59E0B]/10 px-2 py-0.5 rounded-full">
+                              <Clock className="w-3 h-3" /> Invite Sent
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div className="flex gap-3">
+                    <CCButton variant="outline" fullWidth onClick={() => { setShowSuccessModal(false); navigate(createPageUrl('Collaborations')); }}>
+                      My Collaborations
+                    </CCButton>
+                    <CCButton variant="primary" fullWidth onClick={() => { setShowSuccessModal(false); navigate(`/CollaborationDetail?id=${createdCollabId}`); }}>
+                      View Collaboration
+                    </CCButton>
+                  </div>
+                </motion.div>
+              </div>
+            </>
+          )}
+        </AnimatePresence>
+
         {/* Navigation */}
         <div className="flex justify-between mt-8">
           <CCButton
