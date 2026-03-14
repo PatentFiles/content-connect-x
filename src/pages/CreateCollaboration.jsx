@@ -553,10 +553,10 @@ export default function CreateCollaboration() {
 
   const totalSteps = 7;
 
-  // Filter scene pairings based on orientation
+  // Filter scene pairings based on orientation (show all if no creator details)
   const orientations = details?.orientation_category || [];
   const genderIdentity = details?.gender_identity;
-  const filteredScenePairings = details ? scenePairings.filter(sp => {
+  const filteredScenePairings = (details && orientations.length > 0) ? scenePairings.filter(sp => {
     // Boy/Boy only for gay, bisexual, pansexual
     if (sp.includes('Boy / Boy') && !sp.includes('Girl')) {
       return orientations.some(o => ['gay', 'bi', 'pan'].includes(o));
