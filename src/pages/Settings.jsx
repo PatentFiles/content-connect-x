@@ -317,58 +317,7 @@ export default function Settings() {
 
         {/* Subscription Tab */}
         <CCTabsContent value="subscription" activeTab={activeTab}>
-          <CCCard padding="lg">
-            <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Current Plan</h3>
-            {currentSubscription ? (
-              <div className="space-y-4">
-                <div className="p-4 bg-[#121824] rounded-xl">
-                  <div className="flex items-center justify-between mb-3">
-                    <div>
-                      <p className="font-semibold text-[#E8EEF9] capitalize">
-                        {currentSubscription.plan_id?.replace(/_/g, ' ')}
-                      </p>
-                      <CCBadge 
-                        variant={currentSubscription.status === 'active' ? 'success' : 'warning'}
-                        className="mt-1"
-                      >
-                        {currentSubscription.status}
-                      </CCBadge>
-                    </div>
-                    <CCButton 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => window.location.href = createPageUrl('Pricing')}
-                    >
-                      Change Plan
-                    </CCButton>
-                  </div>
-                  <div className="text-sm text-[#9AA6BC]">
-                    {currentSubscription.renews_at && (
-                      <p>Renews: {new Date(currentSubscription.renews_at).toLocaleDateString()}</p>
-                    )}
-                  </div>
-                </div>
-                <CCButton 
-                  variant="outline" 
-                  fullWidth
-                  onClick={() => {
-                    if (currentSubscription?.external_subscription_id) {
-                      window.open('https://billing.stripe.com/p/login/test_...', '_blank');
-                    } else {
-                      toast.error('No billing portal available');
-                    }
-                  }}
-                >
-                  Manage Billing
-                </CCButton>
-              </div>
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-[#9AA6BC] mb-4">No active subscription</p>
-                <CCButton variant="primary">Subscribe Now</CCButton>
-              </div>
-            )}
-          </CCCard>
+          <SubscriptionManager user={user} />
         </CCTabsContent>
 
         {/* Admin Tab */}
