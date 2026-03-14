@@ -229,14 +229,77 @@ export default function PricingManager() {
           </div>
 
           <div>
+            <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Description</label>
+            <input
+              type="text"
+              placeholder="Short plan description..."
+              value={formData.description || ''}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+            />
+          </div>
+
+          <div>
             <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Features</label>
             <textarea
               value={formData.features || ''}
               onChange={(e) => setFormData({...formData, features: e.target.value})}
               placeholder="One feature per line..."
-              className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 min-h-[120px]"
+              className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 min-h-[100px]"
             />
             <p className="text-xs text-[#6B7A94] mt-1">Enter each feature on a new line</p>
+          </div>
+
+          {/* Stripe Integration */}
+          <div className="border border-[#263248] rounded-xl p-4 space-y-3">
+            <p className="text-sm font-medium text-[#E8EEF9] flex items-center gap-2">
+              <span className="text-[#4F8CFF]">💳</span> Stripe Integration
+            </p>
+            <p className="text-xs text-[#6B7A94]">
+              Add Stripe Payment Links (from your Stripe dashboard) to enable direct checkout. Users will be redirected to Stripe to complete payment securely.
+            </p>
+            <div className="grid grid-cols-1 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-[#9AA6BC] mb-1">Monthly Payment Link</label>
+                <input
+                  type="url"
+                  placeholder="https://buy.stripe.com/..."
+                  value={formData.stripe_payment_link_monthly || ''}
+                  onChange={(e) => setFormData({...formData, stripe_payment_link_monthly: e.target.value})}
+                  className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[#9AA6BC] mb-1">Yearly Payment Link</label>
+                <input
+                  type="url"
+                  placeholder="https://buy.stripe.com/..."
+                  value={formData.stripe_payment_link_yearly || ''}
+                  onChange={(e) => setFormData({...formData, stripe_payment_link_yearly: e.target.value})}
+                  className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[#9AA6BC] mb-1">Stripe Price ID (monthly) — for future Checkout Sessions</label>
+                <input
+                  type="text"
+                  placeholder="price_1ABC..."
+                  value={formData.stripe_price_id_monthly || ''}
+                  onChange={(e) => setFormData({...formData, stripe_price_id_monthly: e.target.value})}
+                  className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-[#9AA6BC] mb-1">Stripe Price ID (yearly) — for future Checkout Sessions</label>
+                <input
+                  type="text"
+                  placeholder="price_1XYZ..."
+                  value={formData.stripe_price_id_yearly || ''}
+                  onChange={(e) => setFormData({...formData, stripe_price_id_yearly: e.target.value})}
+                  className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200 text-sm"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
