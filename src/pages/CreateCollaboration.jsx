@@ -477,8 +477,29 @@ export default function CreateCollaboration() {
 
       return collaboration;
     },
-    onSuccess: (result) => {
-      navigate(createPageUrl(isEditing ? 'Collaborations' : `ViewCollaboration?id=${result.id}`));
+    onSuccess: async (result) => {
+      if (isEditing) {
+        navigate(createPageUrl('Collaborations'));
+        return;
+      }
+      // Send invite notifications to participants
+      const participants = result.participant_ids?.filter(id => id !== user.email) || [];
+      for (const participantId of participants) {
+        try {
+          await base44.entities.Notification.create({
+            user_id: participantId,
+            type: 'collaboration_invites',
+            actor_user_id: user.email,
+            title: 'New Collaboration Invite',
+            body: `${myProfile?.display_name || user.email} invited you to collaborate on "${result.collaboration_name || 'a collaboration'}"`,
+            related_entity_type: 'Collaboration',
+            related_entity_id: result.id,
+            action_url: `/CollaborationDetail?id=${result.id}`,
+          });
+        } catch (e) { console.error('notification error', e); }
+      }
+      setCreatedCollabId(result.id);
+      setShowSuccessModal(true);
     },
   });
 
