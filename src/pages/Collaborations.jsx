@@ -30,6 +30,7 @@ import { CCLoadingScreen, CCSkeletonLoader } from '@/components/ui-custom/CCLoad
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import AccessGate from '@/components/auth/AccessGate';
 import CCModal from '@/components/ui-custom/CCModal';
+import { logCollaborationActivity } from '@/components/collaboration/activityLogHelpers';
 
 const statusConfig = {
   draft: { label: 'Draft', variant: 'default', icon: FileText },
@@ -100,7 +101,15 @@ export default function Collaborations() {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: (id) => base44.entities.Collaboration.delete(id),
+    mutationFn: async (id) => {
+      await logCollaborationActivity({
+        collaborationId: id,
+        actorUserId: user?.email,
+        activityType: 'CANCELLED',
+        description: `Collaboration deleted by ${user?.email}`,
+      });
+      return base44.entities.Collaboration.delete(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['collaborations'] });
       toast.success('Collaboration deleted successfully');
