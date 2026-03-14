@@ -410,21 +410,37 @@ END:VCALENDAR`;
               const hasAvailable = dayEntries.some(e => e.status === 'AVAILABLE');
               const hasBooked = dayEntries.some(e => e.entry_type === 'BOOKING');
               const isPast = date < new Date().setHours(0, 0, 0, 0);
+              const isHovered = hoveredDate === dateStr;
               
               return (
                 <div
                   key={dateStr}
                   className={`
-                    aspect-square rounded-lg text-sm font-medium flex items-center justify-center relative
-                    ${isPast ? 'text-[#3A4A6B]' : 'text-[#E8EEF9]'}
+                    aspect-square rounded-lg text-sm font-medium flex items-center justify-center relative cursor-default
+                    ${isPast ? 'text-[#3A4A6B] opacity-40' : 'text-[#E8EEF9]'}
                     ${hasBooked ? 'bg-[#F59E0B]' : hasAvailable ? 'bg-[#4F8CFF]' : 'bg-[#151D2B]'}
                     ${hasBooked || hasAvailable ? 'text-white' : ''}
                   `}
-                  title={dayEntries.map(e => e.title || e.entry_type).join(', ')}
+                  onMouseEnter={() => dayEntries.length > 0 && setHoveredDate(dateStr)}
+                  onMouseLeave={() => setHoveredDate(null)}
                 >
                   {format(date, 'd')}
                   {dayEntries.length > 1 && (
                     <span className="absolute top-1 right-1 w-1.5 h-1.5 bg-white rounded-full" />
+                  )}
+                  {isHovered && dayEntries.length > 0 && (
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-50 w-48 bg-[#1A2438] border border-[#263248] rounded-lg p-2 shadow-xl pointer-events-none">
+                      {dayEntries.map((e, i) => (
+                        <div key={i} className={`${i > 0 ? 'border-t border-[#263248] pt-1 mt-1' : ''}`}>
+                          <p className="text-xs font-semibold text-[#E8EEF9]">{e.title || (e.entry_type === 'TRAVEL' ? 'Travel' : 'Available')}</p>
+                          {(e.location_city || e.location_region) && (
+                            <p className="text-xs text-[#9AA6BC]">📍 {[e.location_city, e.location_region].filter(Boolean).join(', ')}</p>
+                          )}
+                          {e.start_time && <p className="text-xs text-[#9AA6BC]">⏰ {e.start_time}{e.end_time ? ` - ${e.end_time}` : ''}</p>}
+                          <p className="text-xs text-[#6B7A94]">{format(new Date(e.start_date + 'T00:00:00'), 'MMM d')} – {format(new Date(e.end_date + 'T00:00:00'), 'MMM d')}</p>
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               );
