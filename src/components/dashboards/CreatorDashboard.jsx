@@ -24,6 +24,7 @@ import CCEmpty from '../ui-custom/CCEmpty';
 import AvailabilityManager from '../profile/AvailabilityManager';
 import TravelDateManager from '../profile/TravelDateManager';
 import BookingRequestsInbox from '../booking/BookingRequestsInbox';
+import ProfileCompletionBar from '../profile/ProfileCompletionBar';
 
 export default function CreatorDashboard({ user, profile, onboardingChecklist, onOpenWizard }) {
   const [newTask, setNewTask] = useState('');
@@ -107,6 +108,9 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
           </h1>
           <p className="text-[#6B7A94]">Here's what's happening with your collaborations</p>
         </div>
+
+        {/* Profile Completion */}
+        <ProfileCompletionBar user={user} profile={profile} />
 
         {/* Onboarding Checklist */}
         {onboardingChecklist}
