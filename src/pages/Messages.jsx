@@ -308,14 +308,8 @@ export default function Messages() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSendMessage = async () => {
+  const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedConversation) return;
-
-    // Enforce daily message limit from subscription plan
-    const sub = subscription?.[0];
-    if (sub?.status === 'active' || sub?.status === 'trial') {
-      const { data: pricingTiers = [] } = { data: [] }; // Limits checked client-side via cached data
-    }
 
     sendMessageMutation.mutate({
       conversation_id: selectedConversation.id,
