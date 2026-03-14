@@ -572,7 +572,7 @@ export default function CreateCollaboration() {
     }
     // All other pairings available to everyone
     return true;
-  }) : scenePairings;
+  }) : scenePairings; // show all if no creator details loaded yet
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
