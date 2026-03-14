@@ -24,6 +24,7 @@ import UserManager from '@/components/admin/UserManager';
 import SocialLinksManager from '@/components/socials/SocialLinksManager';
 import NotificationPreferences from '@/components/settings/NotificationPreferences';
 import FriendSettingsCard from '@/components/settings/FriendSettingsCard';
+import SubscriptionManager from '@/components/settings/SubscriptionManager';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
