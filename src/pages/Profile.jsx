@@ -462,6 +462,7 @@ export default function Profile() {
                       travel_regions: details?.travel_regions || [],
                       health_testing: details?.health_testing || {},
                       looking_for_genders: details?.looking_for_genders || [],
+                      rates_text: details?.rates_text || '',
                     });
                     setIsEditing(true);
                   }}
