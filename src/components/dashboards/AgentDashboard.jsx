@@ -18,7 +18,7 @@ import CCBadge from '../ui-custom/CCBadge';
 import CCEmpty from '../ui-custom/CCEmpty';
 import CCAvatar from '../ui-custom/CCAvatars';
 
-export default function AgentDashboard({ user, profile }) {
+export default function AgentDashboard({ user, profile, onboardingChecklist }) {
   const { data: representations = [] } = useQuery({
     queryKey: ['myRepresentations', user?.email],
     queryFn: () => base44.entities.AgentRepresentation.filter({ agent_user_id: user?.email }),
@@ -53,6 +53,8 @@ export default function AgentDashboard({ user, profile }) {
           </h1>
           <p className="text-[#6B7A94]">Manage your creator representations</p>
         </div>
+
+        {onboardingChecklist}
 
         {/* Metrics */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
