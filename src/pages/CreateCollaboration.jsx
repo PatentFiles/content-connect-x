@@ -274,6 +274,13 @@ export default function CreateCollaboration() {
   });
   const details = creatorDetails[0];
 
+  // Fetch service details (for photographers/videographers)
+  const { data: serviceDetails = [] } = useQuery({
+    queryKey: ['myServiceDetails', user?.email],
+    queryFn: () => base44.entities.ServiceDetails.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+
   // Fetch current user's profile for location
   const { data: myProfiles = [] } = useQuery({
     queryKey: ['myProfile', user?.email],
