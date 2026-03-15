@@ -264,6 +264,23 @@ export default function Notifications() {
 
                         {/* Actions */}
                         <div className="flex items-start gap-2 flex-shrink-0">
+                          {notification.title?.includes('Private Gallery Access Request') && !notification.title?.includes('Accepted') && notification.actor_user_id && (
+                            <CCButton
+                              variant="success"
+                              size="sm"
+                              icon={Unlock}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                grantGalleryAccessMutation.mutate({
+                                  actorUserId: notification.actor_user_id,
+                                  notificationId: notification.id,
+                                });
+                              }}
+                              loading={grantGalleryAccessMutation.isPending}
+                            >
+                              Accept
+                            </CCButton>
+                          )}
                           {isUnread && (
                             <CCButton
                               variant="ghost"
