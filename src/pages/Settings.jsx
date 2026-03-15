@@ -266,63 +266,7 @@ export default function Settings() {
 
         {/* Privacy Tab */}
         <CCTabsContent value="privacy" activeTab={activeTab}>
-          <CCCard padding="lg">
-            <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Privacy Settings</h3>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between py-3 border-b border-[#263248]">
-                <div>
-                  <p className="text-[#E8EEF9]">Profile Visibility</p>
-                  <p className="text-sm text-[#6B7A94]">Who can see your profile</p>
-                </div>
-                <CCBadge variant="primary">Verified Members</CCBadge>
-              </div>
-              <div className="flex items-center justify-between py-3 border-b border-[#263248]">
-                <div>
-                  <p className="text-[#E8EEF9]">Show Location</p>
-                  <p className="text-sm text-[#6B7A94]">Display your location on profile</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={settings?.privacy?.show_location ?? true}
-                    onChange={(e) => updateSetting('privacy', 'show_location', e.target.checked)}
-                    className="sr-only peer" 
-                  />
-                  <div className="w-11 h-6 bg-[#263248] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#4F8CFF]/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4F8CFF]"></div>
-                </label>
-              </div>
-              <div className="flex items-center justify-between py-3 border-b border-[#263248]">
-                <div>
-                  <p className="text-[#E8EEF9]">Show Online Status</p>
-                  <p className="text-sm text-[#6B7A94]">Let others see when you're online</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={settings?.privacy?.show_online_status ?? true}
-                    onChange={(e) => updateSetting('privacy', 'show_online_status', e.target.checked)}
-                    className="sr-only peer" 
-                  />
-                  <div className="w-11 h-6 bg-[#263248] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#4F8CFF]/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4F8CFF]"></div>
-                </label>
-              </div>
-              <div className="flex items-center justify-between py-3">
-                <div>
-                  <p className="text-[#E8EEF9]">Message Requests</p>
-                  <p className="text-sm text-[#6B7A94]">Require approval before receiving messages</p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    checked={settings?.privacy?.message_requests_approval ?? false}
-                    onChange={(e) => updateSetting('privacy', 'message_requests_approval', e.target.checked)}
-                    className="sr-only peer" 
-                  />
-                  <div className="w-11 h-6 bg-[#263248] peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#4F8CFF]/50 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#4F8CFF]"></div>
-                </label>
-              </div>
-            </div>
-          </CCCard>
+          <ProfilePrivacySettings userId={user?.email} />
         </CCTabsContent>
 
         {/* Notifications Tab */}
