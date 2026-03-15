@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { 
   ArrowLeft, Download, Send, CheckCircle, Clock, Eye, 
@@ -25,6 +25,7 @@ import { logRepObserverAccess } from '@/components/collaboration/RepObserverAcce
 
 export default function ContractViewer({ contractId }) {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const id = contractId || searchParams.get('id');
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showAuditLog, setShowAuditLog] = useState(false);
@@ -216,11 +217,15 @@ export default function ContractViewer({ contractId }) {
       {/* Header */}
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <Link to={createPageUrl('Contracts')}>
-            <CCButton variant="ghost" size="sm" icon={ArrowLeft} className="mb-3">
-              Back to Contracts
-            </CCButton>
-          </Link>
+          <CCButton
+            variant="ghost"
+            size="sm"
+            icon={ArrowLeft}
+            className="mb-3"
+            onClick={() => navigate(-1)}
+          >
+            Back
+          </CCButton>
           
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
