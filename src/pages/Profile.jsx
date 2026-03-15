@@ -1399,6 +1399,10 @@ export default function Profile() {
           </div>
         </CCTabsContent>
 
+        <CCTabsContent value="analytics" activeTab={activeTab}>
+          <ProfileAnalytics userId={user?.email} />
+        </CCTabsContent>
+
         <CCTabsContent value="galleries" activeTab={activeTab}>
 
           <div className="grid md:grid-cols-2 gap-6">
