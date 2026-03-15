@@ -1567,6 +1567,10 @@ export default function Profile() {
             images={gallery?.items || []}
             initialIndex={lightbox.index}
             onClose={() => setLightbox(null)}
+            galleryId={gallery?.id}
+            profileOwnerId={user?.email}
+            currentUser={user}
+            commentPolicy={commentPolicy}
           />
         );
       })()}
