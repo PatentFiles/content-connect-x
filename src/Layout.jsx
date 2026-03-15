@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/layout/NavBar';
 import BottomNav from '@/components/layout/BottomNav';
 import Sidebar from '@/components/layout/Sidebar';
