@@ -48,7 +48,8 @@ const appPages = [
   'AgentManagement',
   'DeveloperReadMe',
   'AvailabilitySchedule',
-  'TravelSchedule'
+  'TravelSchedule',
+  'Notifications'
 ];
 
 export default function Layout({ children, currentPageName }) {

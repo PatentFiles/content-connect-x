@@ -32,16 +32,16 @@ export default function NotificationBell({ user }) {
   });
 
   const markAsReadMutation = useMutation({
-    mutationFn: (id) => base44.entities.Notification.update(id, { read: true }),
+    mutationFn: (id) => base44.entities.Notification.update(id, { read_at: new Date().toISOString() }),
     onSuccess: () => {
       queryClient.invalidateQueries(['notifications']);
     },
   });
 
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const unreadCount = notifications.filter(n => !n.read_at).length;
 
   const handleNotificationClick = (notification) => {
-    if (!notification.read) {
+    if (!notification.read_at) {
       markAsReadMutation.mutate(notification.id);
     }
     setOpen(false);
@@ -100,17 +100,17 @@ export default function NotificationBell({ user }) {
                         to={notification.action_url || createPageUrl('Notifications')}
                         onClick={() => handleNotificationClick(notification)}
                         className={`block p-4 border-b border-[#263248] hover:bg-[#1A2438] transition-colors ${
-                          !notification.read ? 'bg-[#4F8CFF]/5' : ''
+                          !notification.read_at ? 'bg-[#4F8CFF]/5' : ''
                         }`}
                       >
                         <div className="flex gap-3">
                           <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-                            !notification.read ? 'bg-[#4F8CFF]/20' : 'bg-[#263248]'
+                            !notification.read_at ? 'bg-[#4F8CFF]/20' : 'bg-[#263248]'
                           }`}>
-                            <Icon className={`w-5 h-5 ${!notification.read ? 'text-[#4F8CFF]' : 'text-[#6B7A94]'}`} />
+                            <Icon className={`w-5 h-5 ${!notification.read_at ? 'text-[#4F8CFF]' : 'text-[#6B7A94]'}`} />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className={`text-sm font-medium mb-1 ${!notification.read ? 'text-[#E8EEF9]' : 'text-[#9AA6BC]'}`}>
+                            <p className={`text-sm font-medium mb-1 ${!notification.read_at ? 'text-[#E8EEF9]' : 'text-[#9AA6BC]'}`}>
                               {notification.title}
                             </p>
                             <p className="text-xs text-[#6B7A94] line-clamp-2">
@@ -120,7 +120,7 @@ export default function NotificationBell({ user }) {
                               {formatDistanceToNow(new Date(notification.created_date), { addSuffix: true })}
                             </p>
                           </div>
-                          {!notification.read && (
+                          {!notification.read_at && (
                             <div className="w-2 h-2 bg-[#4F8CFF] rounded-full flex-shrink-0 mt-2" />
                           )}
                         </div>
