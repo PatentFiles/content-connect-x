@@ -22,6 +22,7 @@ import {
   Flag
 } from 'lucide-react';
 import ReportModal from '@/components/moderation/ReportModal';
+import PullToRefresh from '@/components/mobile/PullToRefresh';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCInput from '@/components/ui-custom/CCInput';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
@@ -416,6 +417,7 @@ export default function Messages() {
           </div>
 
           {/* Conversation List */}
+          <PullToRefresh onRefresh={async () => { await queryClient.invalidateQueries(['conversations', user?.email]); }}>
           <div className="flex-1 overflow-y-auto">
             {conversationsLoading ? (
               <div className="p-4 space-y-3">
@@ -499,6 +501,7 @@ export default function Messages() {
               </div>
             )}
           </div>
+          </PullToRefresh>
         </div>
 
         {/* Chat Area */}
