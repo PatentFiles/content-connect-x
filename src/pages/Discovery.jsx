@@ -242,11 +242,14 @@ export default function Discovery() {
       });
     }
     
-    // Compensation filter
+    // Compensation filter — only applies to creators
     if (filters.compensation?.length > 0) {
       filtered = filtered.filter(p => {
+        if (p.role_type !== 'creator') return true;
         const details = allCreatorDetails.find(d => d.user_id === p.user_id);
-        const prefs = details?.compensation_preferences || [];
+        if (!details) return true; // creator hasn't filled details yet — don't hide them
+        const prefs = details.compensation_preferences || [];
+        if (prefs.length === 0) return true; // no prefs set — don't hide
         return filters.compensation.some(comp => prefs.includes(comp));
       });
     }
