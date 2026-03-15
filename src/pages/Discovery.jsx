@@ -224,7 +224,9 @@ export default function Discovery() {
       filtered = filtered.filter(p => {
         if (p.role_type !== 'creator') return true; // non-creators always pass
         const details = allCreatorDetails.find(d => d.user_id === p.user_id);
-        if (!details) return false;
+        if (!details) return true; // no details yet — don't hide
+        const hasAnyActs = (details.standard_acts?.length > 0) || (details.fetish_acts?.length > 0) || (details.kink_edge_acts?.length > 0);
+        if (!hasAnyActs) return true; // creator hasn't filled acts yet — don't hide
         return filters.sceneTypes.some(sceneType => {
           if (sceneType === 'standard') return details.standard_acts?.length > 0;
           if (sceneType === 'fetish') return details.fetish_acts?.length > 0;
