@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Compass, MapPin, Filter, ChevronRight } from 'lucide-react';
+import { Compass, MapPin, Filter, ChevronRight, Users, Camera, Video, Briefcase, Building } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import { CCLoadingScreen, CCProfileCardSkeleton } from '@/components/ui-custom/CCLoading';
