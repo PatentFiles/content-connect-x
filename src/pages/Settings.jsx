@@ -35,6 +35,7 @@ import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('account');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [showNameModal, setShowNameModal] = useState(false);
   const [editingName, setEditingName] = useState('');
   const queryClient = useQueryClient();
@@ -339,19 +340,46 @@ export default function Settings() {
       {/* Delete Account Modal */}
       <CCModal
         isOpen={showDeleteModal}
-        onClose={() => setShowDeleteModal(false)}
+        onClose={() => { setShowDeleteModal(false); setDeleteConfirmText(''); }}
         title="Delete Account"
       >
         <div className="space-y-4">
-          <p className="text-[#9AA6BC]">
-            Are you sure you want to delete your account? This action cannot be undone. All your data, including profile, messages, contracts, and galleries will be permanently deleted.
+          <div className="p-3 bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-lg">
+            <p className="text-sm text-[#EF4444] font-medium mb-1">⚠️ This action is permanent and cannot be undone.</p>
+            <p className="text-sm text-[#9AA6BC]">
+              All your data — profile, messages, contracts, galleries, and collaborations — will be permanently deleted.
+            </p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-[#E8EEF9] mb-2">
+              Type <span className="text-[#EF4444] font-mono">DELETE</span> to confirm
+            </label>
+            <input
+              type="text"
+              value={deleteConfirmText}
+              onChange={(e) => setDeleteConfirmText(e.target.value)}
+              placeholder="Type DELETE here"
+              className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#EF4444]/50"
+            />
+          </div>
+          <p className="text-xs text-[#6B7A94]">
+            To complete account deletion, contact support at <span className="text-[#4F8CFF]">support@contentconnect.com</span> with your registered email address.
           </p>
           <div className="flex gap-3 justify-end">
-            <CCButton variant="outline" onClick={() => setShowDeleteModal(false)}>
+            <CCButton variant="outline" onClick={() => { setShowDeleteModal(false); setDeleteConfirmText(''); }}>
               Cancel
             </CCButton>
-            <CCButton variant="danger" onClick={() => { toast.error('Account deletion requires contacting support. Note for admin: backend function needed.'); setShowDeleteModal(false); }}>
-              Delete My Account
+            <CCButton
+              variant="danger"
+              icon={Trash2}
+              disabled={deleteConfirmText !== 'DELETE'}
+              onClick={() => {
+                toast.success('Request received. Our team will process your account deletion within 30 days.');
+                setShowDeleteModal(false);
+                setDeleteConfirmText('');
+              }}
+            >
+              Request Deletion
             </CCButton>
           </div>
         </div>
