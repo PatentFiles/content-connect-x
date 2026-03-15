@@ -237,6 +237,15 @@ export default function Settings() {
           </div>
         </CCTabsContent>
 
+        {/* Analytics Tab */}
+        <CCTabsContent value="analytics" activeTab={activeTab}>
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold text-[#E8EEF9]">Profile Analytics</h3>
+            <p className="text-sm text-[#9AA6BC] mt-1">Track profile visits, gallery views, and saves over time.</p>
+          </div>
+          <ProfileAnalytics userId={user?.email} />
+        </CCTabsContent>
+
         {/* Social Links Tab */}
         <CCTabsContent value="social" activeTab={activeTab}>
           <div>
