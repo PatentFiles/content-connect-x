@@ -76,6 +76,39 @@ export default function Notifications() {
     },
   });
 
+  const grantGalleryAccessMutation = useMutation({
+    mutationFn: async ({ actorUserId, notificationId }) => {
+      // Find all galleries for the current user
+      const galleries = await base44.entities.Gallery.filter({ user_id: user.email });
+      const privateGallery = galleries.find(g => g.type === 'private');
+      if (privateGallery) {
+        await base44.entities.GalleryPermission.create({
+          user_id: user.email,
+          gallery_id: privateGallery.id,
+          granted_to: actorUserId,
+          granted_at: new Date().toISOString(),
+        });
+      }
+      // Mark notification as read and update title
+      await base44.entities.Notification.update(notificationId, { 
+        read_at: new Date().toISOString(),
+        title: 'Private Gallery Access Request (Accepted)',
+      });
+      // Send notification to requester
+      await base44.entities.Notification.create({
+        user_id: actorUserId,
+        type: 'messages',
+        actor_user_id: user.email,
+        title: 'Private Gallery Access Granted',
+        body: 'Your request to view the private gallery has been accepted.',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      toast.success('Gallery access granted!');
+    },
+  });
+
   const getProfileByEmail = (email) => profiles.find(p => p.user_id === email);
 
   const typeIcons = {
