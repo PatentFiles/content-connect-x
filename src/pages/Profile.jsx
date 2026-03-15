@@ -1519,6 +1519,40 @@ export default function Profile() {
         </CCTabsContent>
       </div>
 
+      {/* Delete Confirm Modal */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4">
+          <div className="bg-[#151D2B] border border-[#263248] rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl">
+            <div className="w-14 h-14 rounded-full bg-[#EF4444]/20 flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="w-7 h-7 text-[#EF4444]" />
+            </div>
+            <h2 className="text-lg font-semibold text-[#E8EEF9] mb-2">Delete Photo</h2>
+            <p className="text-[#9AA6BC] text-sm mb-6">Are you sure you want to delete this photo? This cannot be undone.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirm(null)}
+                className="flex-1 py-2 border border-[#263248] text-[#E8EEF9] rounded-lg font-medium hover:bg-[#1A2438] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  const gallery = galleries.find(g => g.type === deleteConfirm.galleryType);
+                  const updated = gallery.items.filter((_, idx) => idx !== deleteConfirm.index);
+                  await base44.entities.Gallery.update(gallery.id, { items: updated });
+                  queryClient.invalidateQueries(['myGalleries']);
+                  setDeleteConfirm(null);
+                  setDeleteSuccessModal(true);
+                }}
+                className="flex-1 py-2 bg-[#EF4444] hover:bg-[#DC2626] text-white rounded-lg font-medium transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete Success Modal */}
       {deleteSuccessModal && (
         <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4">
