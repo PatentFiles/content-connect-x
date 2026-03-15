@@ -314,14 +314,19 @@ export default function Discovery() {
       });
     }
     
-    if (filters.city) {
+    if (filters.country) {
       filtered = filtered.filter(p => 
-        p.base_location?.city?.toLowerCase().includes(filters.city.toLowerCase())
+        p.base_location?.country?.toLowerCase().includes(filters.country.toLowerCase())
       );
     }
     if (filters.state) {
       filtered = filtered.filter(p => 
         p.base_location?.state?.toLowerCase().includes(filters.state.toLowerCase())
+      );
+    }
+    if (filters.city) {
+      filtered = filtered.filter(p => 
+        p.base_location?.city?.toLowerCase().includes(filters.city.toLowerCase())
       );
     }
     
