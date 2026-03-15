@@ -539,14 +539,36 @@ export default function ViewProfile() {
         <CCTabsContent value="galleries" activeTab={activeTab}>
           {galleries[0]?.items?.length > 0 ? (
             <CCCard padding="lg" className="mb-6">
-              <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 text-center">Public Gallery</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <h2 className="text-xl font-semibold text-[#E8EEF9] mb-1 text-center">Public Gallery</h2>
+              {showGalleryCount && (
+                <p className="text-xs text-[#6B7A94] text-center mb-4">{galleries[0].items.length} photo{galleries[0].items.length !== 1 ? 's' : ''}</p>
+              )}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {galleries[0].items.map((item, idx) => (
-                  <div key={idx} className="aspect-square rounded-lg overflow-hidden bg-[#151D2B]">
-                    {item.type === 'image' ? (
-                      <img src={item.url} alt={item.caption || 'Gallery item'} className="w-full h-full object-cover" />
+                  <div
+                    key={idx}
+                    className="aspect-square rounded-lg overflow-hidden bg-[#151D2B] cursor-pointer hover:opacity-90 transition-opacity"
+                    onClick={() => {
+                      // track gallery view
+                      if (user?.email && profileUserId !== user.email) {
+                        const key = `gv_${user.email}_${profileUserId}_${idx}_${new Date().toDateString()}`;
+                        if (!sessionStorage.getItem(key)) {
+                          sessionStorage.setItem(key, '1');
+                          base44.entities.ProfileView.create({
+                            profile_owner_id: profileUserId,
+                            viewer_user_id: user.email,
+                            viewed_date: new Date().toISOString().split('T')[0],
+                            view_type: 'gallery',
+                          }).catch(() => {});
+                        }
+                      }
+                      setLightboxIndex(idx);
+                    }}
+                  >
+                    {item.type === 'video' ? (
+                      <video src={item.url} className="w-full h-full object-cover" />
                     ) : (
-                      <video src={item.url} className="w-full h-full object-cover" controls />
+                      <img src={item.url} alt={item.caption || 'Gallery item'} className="w-full h-full object-cover" />
                     )}
                   </div>
                 ))}
@@ -554,6 +576,19 @@ export default function ViewProfile() {
             </CCCard>
           ) : (
             <CCEmpty icon={Image} title="No gallery items" description="This user hasn't added any public gallery items yet." />
+          )}
+
+          {/* Lightbox */}
+          {lightboxIndex !== null && galleries[0]?.items?.length > 0 && (
+            <GalleryLightbox
+              images={galleries[0].items}
+              initialIndex={lightboxIndex}
+              onClose={() => setLightboxIndex(null)}
+              galleryId={galleries[0]?.id}
+              profileOwnerId={profileUserId}
+              currentUser={user}
+              commentPolicy={commentPolicy}
+            />
           )}
         </CCTabsContent>
 
