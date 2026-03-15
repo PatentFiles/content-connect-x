@@ -29,7 +29,16 @@ function calculateDistance(lat1, lon1, lat2, lon2) {
   return R * c;
 }
 
+const roleOptions = [
+  { value: 'creator', label: 'Creators', icon: Users },
+  { value: 'photographer', label: 'Photographers', icon: Camera },
+  { value: 'videographer', label: 'Videographers', icon: Video },
+  { value: 'agent', label: 'Agents', icon: Briefcase },
+  { value: 'studio', label: 'Studios', icon: Building },
+];
+
 export default function Discovery() {
+  const [selectedRole, setSelectedRole] = useState('');
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
