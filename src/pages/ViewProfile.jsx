@@ -365,7 +365,7 @@ export default function ViewProfile() {
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Cover Image */}
-      <div className="relative h-64 md:h-80 bg-gradient-to-br from-[#4F8CFF]/20 to-[#FF2DAA]/20">
+      <div className="relative h-64 md:h-80">
         {profile.cover_url ? (
           <img
             src={profile.cover_url}
@@ -373,7 +373,10 @@ export default function ViewProfile() {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-[#4F8CFF]/30 to-[#FF2DAA]/30" />
+          <div
+            className="w-full h-full"
+            style={{ background: PROFILE_THEMES[profile.profile_theme || 'default']?.bg }}
+          />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F14] via-transparent to-transparent" />
         
