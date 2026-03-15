@@ -543,13 +543,8 @@ agents/
           </CCCard>
         </section>
 
-        {/* 4. Entity Reference */}
-        <section id="entities" className="mb-8">
-          <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
-            <Database className="w-6 h-6 text-[#4F8CFF]" />
-            4. Entity Reference (Source of Truth)
-          </h2>
-          <CCCard className="space-y-6">
+        {/* 4. Entity Reference — extracted to keep file size manageable */}
+        <EntityReferenceSection />
             
             <div className="border border-[#263248] rounded-lg p-4">
               <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">UserProfile</h3>
