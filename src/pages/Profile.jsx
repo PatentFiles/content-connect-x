@@ -467,6 +467,7 @@ export default function Profile() {
                       role_type: profile?.role_type,
                       base_location: profile?.base_location,
                       travel_enabled: profile?.travel_enabled,
+                      profile_theme: profile?.profile_theme || 'default',
                       gender_identity: details?.gender_identity,
                       orientation_category: details?.orientation_category || [],
                       scene_pairings: details?.scene_pairings || [],
