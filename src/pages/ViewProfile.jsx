@@ -36,6 +36,8 @@ import VerificationRequired from '@/components/auth/VerificationRequired';
 import FriendRequestButton from '@/components/friends/FriendRequestButton';
 import CCErrorModal from '@/components/ui-custom/CCErrorModal';
 import BookingRequestModal from '@/components/booking/BookingRequestModal';
+import GalleryLightbox from '@/components/profile/GalleryLightbox';
+import { PROFILE_THEMES } from '@/components/profile/ProfileThemeSelector';
 
 const roleColors = {
   creator: 'primary',
