@@ -52,25 +52,27 @@ export default function GalleryLightbox({
     >
       {/* Image pane */}
       <div className="relative flex-1 flex flex-col items-center justify-center overflow-hidden">
-        {/* Top bar */}
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 z-10 bg-gradient-to-b from-black/70 to-transparent">
-          <div className="text-white/60 text-sm font-medium">{currentIndex + 1} / {images.length}</div>
-          <div className="flex items-center gap-2">
+        {/* Top bar - always on top with solid background so X is always visible */}
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 z-20 bg-black/80">
+          <div className="text-white/70 text-sm font-medium">{currentIndex + 1} / {images.length}</div>
+          <div className="flex items-center gap-3">
             {hasCommentFeature && (
               <button
                 onClick={() => setShowComments(v => !v)}
-                className={`p-2 rounded-full transition-colors ${showComments ? 'bg-[#4F8CFF]' : 'bg-white/10 hover:bg-white/20'}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${showComments ? 'bg-[#4F8CFF] text-white' : 'bg-white/10 hover:bg-white/20 text-white'}`}
                 title="Toggle comments"
               >
-                <MessageCircle className="w-5 h-5 text-white" />
+                <MessageCircle className="w-4 h-4" />
+                <span className="hidden sm:inline">Comments</span>
               </button>
             )}
             <button
               onClick={onClose}
-              className="p-2 bg-white/20 hover:bg-white/40 rounded-full transition-colors border border-white/30"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/40 rounded-full transition-colors border border-white/40 text-white text-xs font-medium"
               title="Close"
             >
-              <X className="w-6 h-6 text-white" />
+              <X className="w-4 h-4" />
+              <span className="hidden sm:inline">Close</span>
             </button>
           </div>
         </div>
