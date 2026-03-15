@@ -543,18 +543,11 @@ agents/
           </CCCard>
         </section>
 
-        {/* 4. Entity Reference — extracted to keep file size manageable */}
+        {/* 4. Entity Reference */}
         <EntityReferenceSection />
-            
-            <div className="border border-[#263248] rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">UserProfile_STUB</h3>
-            </div>
 
-            <div style={{display:'none'}} className="border border-[#263248] rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Collaboration_REMOVED</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                <strong>Purpose:</strong> REMOVED — now in EntityReference component
-              </p>
+        {/* REMOVED OLD DUPLICATE ENTITY CONTENT — see components/docs/EntityReference */}
+        <div style={{display:'none'}}>
               <div className="text-xs text-[#9AA6BC] space-y-1">
                 <p><strong>Key Fields:</strong> collaboration_name, participant_ids[], creator_ids[], agent_id, studio_id, photographer_id, videographer_id, scene_type (standard/fetish/kink_edge), scene_selected[], acts_selected[], acts_other_text, boundaries (hard_no, soft_limits, aftercare_required), compensation_type, compensation_details, schedule (proposed_dates, confirmed_date, start_time, end_time), location, deliverables, usage_rights, testing_share_rules, status (draft→pending_approval→active→negotiating→agreed→contract_pending→contract_sent→signed→completed→cancelled→disputed), created_by_role, created_by_user_id, tags[], internal_notes, conversation_id</p>
                 <p><strong>Relationships:</strong> UserProfile (many:many via participant_ids), Contract (1:many), CollaborationActivityLog (1:many), Conversation (1:1)</p>
