@@ -547,18 +547,7 @@ agents/
         <EntityReferenceSection />
             
             <div className="border border-[#263248] rounded-lg p-4">
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">UserProfile</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                <strong>Purpose:</strong> Extended profile data for all users
-              </p>
-              <div className="text-xs text-[#9AA6BC] space-y-1">
-                <p><strong>Key Fields:</strong> user_id (FK to User), real_name, display_name, age, ethnicity, bio, role_type, is_admin, avatar_url, cover_url, base_location, travel_enabled, travel_regions, travel_dates, availability_dates, visibility_settings, last_active_at, response_time_hours, profile_complete, primary_representation_type, primary_representation_id, allow_direct_contact_while_represented</p>
-                <p><strong>Relationships:</strong> User (1:1), CreatorDetails/AgentDetails/StudioDetails/ServiceDetails (1:1 based on role_type)</p>
-                <p><strong>Enforcement:</strong> Only visible to verified users (Discovery, Search). Admin can see all fields including real_name.</p>
-                <p><strong>Lifecycle:</strong> Created on signup, updated via Profile page</p>
-                <p><strong>UI Dependencies:</strong> Profile, ViewProfile, Discovery, Search, ProfileCard</p>
-                <p><strong>Write Functions:</strong> Profile page updates, admin user manager</p>
-              </div>
+              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">UserProfile_STUB</h3>
             </div>
 
             <div className="border border-[#263248] rounded-lg p-4">
