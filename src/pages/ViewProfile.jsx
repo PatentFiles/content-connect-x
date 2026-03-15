@@ -19,7 +19,9 @@ import {
   Video,
   Briefcase,
   Building,
-  Image
+  Image,
+  Lock,
+  CheckCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
