@@ -127,14 +127,14 @@ export default function Layout({ children, currentPageName }) {
       const redirectPath = sessionStorage.getItem('redirectAfterLogin');
       if (redirectPath && window.location.pathname !== redirectPath) {
         sessionStorage.removeItem('redirectAfterLogin');
-        window.location.href = redirectPath;
+        navigate(redirectPath);
       }
     }
   }, [isAuthenticated, userLoading]);
 
   const handleLogout = async () => {
     await base44.auth.logout();
-    window.location.href = createPageUrl('Landing');
+    navigate(createPageUrl('Landing'));
   };
 
   // For public pages, show minimal layout
