@@ -219,19 +219,26 @@ export default function Discovery() {
       });
     }
     
-    // Scene type filter
+    // Scene type filter — maps to the acts arrays in CreatorDetails
     if (filters.sceneTypes?.length > 0) {
       filtered = filtered.filter(p => {
+        if (p.role_type !== 'creator') return true; // non-creators always pass
         const details = allCreatorDetails.find(d => d.user_id === p.user_id);
-        return details && details.content_categories?.some(cat => filters.sceneTypes.includes(cat));
+        if (!details) return false;
+        return filters.sceneTypes.some(sceneType => {
+          if (sceneType === 'standard') return details.standard_acts?.length > 0;
+          if (sceneType === 'fetish') return details.fetish_acts?.length > 0;
+          if (sceneType === 'kink_edge') return details.kink_edge_acts?.length > 0;
+          return false;
+        });
       });
     }
     
-    // Tag filter
+    // Tag filter (niche tags stored in tags array on creator details)
     if (filters.tags?.length > 0) {
       filtered = filtered.filter(p => {
         const details = allCreatorDetails.find(d => d.user_id === p.user_id);
-        return details && details.tags?.some(tag => filters.tags.includes(tag));
+        return details && details.niche_tags?.some(tag => filters.tags.includes(tag));
       });
     }
     
@@ -239,8 +246,8 @@ export default function Discovery() {
     if (filters.compensation?.length > 0) {
       filtered = filtered.filter(p => {
         const details = allCreatorDetails.find(d => d.user_id === p.user_id);
-        const collabTypes = details?.collab_types || [];
-        return filters.compensation.some(comp => collabTypes.includes(comp));
+        const prefs = details?.compensation_preferences || [];
+        return filters.compensation.some(comp => prefs.includes(comp));
       });
     }
     
