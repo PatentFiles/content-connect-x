@@ -1,6 +1,7 @@
 import React from 'react';
 import { FileText, AlertTriangle, Database, Shield, Users, Network, Calendar, FileCheck, Lock, Activity } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
+import EntityReferenceSection from '@/components/docs/EntityReference';
 
 export default function DeveloperReadMe() {
   return (
