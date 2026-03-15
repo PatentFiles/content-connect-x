@@ -13,7 +13,8 @@ import {
   AlertTriangle,
   Shield,
   Calendar,
-  CheckCircle
+  CheckCircle,
+  Unlock
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import CCButton from '@/components/ui-custom/CCButton';
