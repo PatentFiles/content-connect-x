@@ -145,7 +145,7 @@ export default function ViewProfile() {
   // Fetch private gallery permission for current user
   const { data: galleryPermissions = [] } = useQuery({
     queryKey: ['galleryPermissions', profileUserId, user?.email],
-    queryFn: () => base44.entities.GalleryPermission.filter({ user_id: profileUserId, granted_to: user?.email }),
+    queryFn: () => base44.entities.GalleryPermission.filter({ owner_id: profileUserId, granted_to_user_id: user?.email, status: 'granted' }),
     enabled: !!profileUserId && !!user?.email,
   });
   const hasPrivateAccess = galleryPermissions.length > 0;
