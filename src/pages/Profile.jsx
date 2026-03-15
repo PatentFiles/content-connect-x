@@ -1539,6 +1539,20 @@ export default function Profile() {
                   await base44.entities.Gallery.update(gallery.id, { items: reordered });
                   queryClient.invalidateQueries(['myGalleries']);
                 }}
+                onUpload={async (files) => {
+                  const privateGallery = galleries.find(g => g.type === 'private');
+                  const items = privateGallery?.items || [];
+                  for (const file of files) {
+                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                    items.push({ id: Date.now().toString(), url: file_url, type: file.type.startsWith('video') ? 'video' : 'image', order: items.length });
+                  }
+                  if (privateGallery) {
+                    await base44.entities.Gallery.update(privateGallery.id, { items });
+                  } else {
+                    await base44.entities.Gallery.create({ user_id: user.email, type: 'private', name: 'Private Gallery', items });
+                  }
+                  queryClient.invalidateQueries(['myGalleries']);
+                }}
               />
             </CCCard>
           </div>
