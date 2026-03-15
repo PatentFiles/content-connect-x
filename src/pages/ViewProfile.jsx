@@ -657,7 +657,7 @@ export default function ViewProfile() {
                             type: 'messages',
                             actor_user_id: user?.email,
                             title: 'Private Gallery Access Request',
-                            body: `${user?.full_name || user?.email} is requesting access to your private gallery.`,
+                            body: `${myProfile?.display_name || user?.full_name || user?.email} is requesting access to your private gallery.`,
                           }).catch(() => {});
                           setAccessRequested(true);
                         }}
