@@ -51,6 +51,8 @@ export default function DeveloperReadMe() {
               { id: 'agents', title: '15. System Agents', icon: Activity },
               { id: 'deployment', title: '16. Deployment & Production', icon: Database },
               { id: 'governance', title: '17. Change Governance', icon: Shield },
+              { id: 'recent-changes', title: '18. Recent Changes & Updates', icon: Activity },
+              { id: 'backend-checklist', title: '19. Backend Deployment Checklist', icon: Database },
             ].map(item => (
               <a
                 key={item.id}
