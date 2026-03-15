@@ -652,7 +652,10 @@ export default function Profile() {
                     {profile?.bio && (
                       <div className="text-center">
                         <p className="text-sm text-[#6B7A94]">Bio</p>
-                        <p className="text-[#E8EEF9] mt-1">{profile.bio}</p>
+                        <div
+                          className="text-[#E8EEF9] mt-1 prose prose-invert prose-sm max-w-none text-center [&_a]:text-[#4F8CFF]"
+                          dangerouslySetInnerHTML={{ __html: profile.bio }}
+                        />
                       </div>
                     )}
                     {profile?.base_location?.city && (
