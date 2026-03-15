@@ -92,6 +92,14 @@ export default function ViewProfile() {
   const isVerified = verification?.[0]?.status === 'approved';
   const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
+  // Fetch current viewer's own profile for display name
+  const { data: myProfiles = [] } = useQuery({
+    queryKey: ['myProfile', user?.email],
+    queryFn: () => base44.entities.UserProfile.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+  const myProfile = myProfiles[0];
+
   // Fetch profile
   const { data: profiles = [], isLoading: profileLoading } = useQuery({
     queryKey: ['viewProfile', profileUserId],
