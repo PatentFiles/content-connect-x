@@ -546,11 +546,11 @@ agents/
         {/* 4. Entity Reference */}
         <EntityReferenceSection />
 
-        {/* duplicate entity content hidden */}
-        <div style={{display:'none'}}>
-              <div className="text-xs text-[#9AA6BC] space-y-1">
-                <p>SEE EntityReference COMPONENT</p>
-                <p><strong>Relationships:</strong> UserProfile (many:many via participant_ids), Contract (1:many), CollaborationActivityLog (1:many), Conversation (1:1)</p>
+        {/* 5. Enforcement Matrix */}
+        <div style={{display:'none'}} id="old-entity-stub">
+              <div className="text-xs">
+                <p>REMOVED</p>
+                <p>REMOVED</p>
                 <p><strong>Enforcement:</strong> Friend gate checked via validateCollaborationFriendGate. Testing requirements checked before contract initiation. Status transitions logged in CollaborationActivityLog.</p>
                 <p><strong>Lifecycle:</strong> draft → pending_approval (if multi-party) → active (all approved) → negotiating (terms discussion) → agreed (terms finalized) → contract_pending (contract generation) → contract_sent (signatures requested) → signed (all signatures collected) → completed (after scene) OR disputed (if issue)</p>
                 <p><strong>UI Dependencies:</strong> CreateCollaboration, CollaborationDetail, Collaborations list, Dashboard</p>
