@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { useSearchParams, Link } from 'react-router-dom';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { ArrowLeft, Users, Calendar, FileText, CheckSquare, Activity, MessageSquare, AlertTriangle, Shield, Download } from 'lucide-react';
 import { toast } from 'sonner';
@@ -32,6 +32,7 @@ import CollaborationPacketExporter from '@/components/collaboration/Collaboratio
 
 export default function CollaborationDetail() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const collaborationId = searchParams.get('id');
   const [activeTab, setActiveTab] = useState('tasks');
 
@@ -146,11 +147,15 @@ export default function CollaborationDetail() {
       {/* Header */}
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <Link to={createPageUrl('Collaborations')}>
-            <CCButton variant="ghost" size="sm" icon={ArrowLeft} className="mb-3">
-              Back
-            </CCButton>
-          </Link>
+          <CCButton
+            variant="ghost"
+            size="sm"
+            icon={ArrowLeft}
+            className="mb-3"
+            onClick={() => navigate(-1)}
+          >
+            Back
+          </CCButton>
           
           <div className="flex items-start justify-between gap-4">
             <div>
