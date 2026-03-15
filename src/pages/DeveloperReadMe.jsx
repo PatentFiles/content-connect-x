@@ -953,9 +953,6 @@ agents/
               </div>
             </div>
 
-          </CCCard>
-        </section>
-
         {/* 5. Enforcement Matrix */}
         <section id="enforcement" className="mb-8">
           <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
