@@ -51,7 +51,10 @@ export default function GalleryLightbox({
       onTouchEnd={handleTouchEnd}
     >
       {/* Image pane */}
-      <div className="relative flex-1 flex flex-col items-center justify-center overflow-hidden">
+      <div
+        className="relative flex-1 flex flex-col items-center justify-center overflow-hidden cursor-pointer"
+        onClick={onClose}
+      >
         {/* Top bar - always on top with solid background so X is always visible */}
         <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 z-20 bg-black/80">
           <div className="text-white/70 text-sm font-medium">{currentIndex + 1} / {images.length}</div>
