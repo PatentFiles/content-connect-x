@@ -37,15 +37,15 @@ export default function Search() {
     sceneTypes: [],
     tags: [],
     compensation: [],
-    skills: [],
     nearMe: false,
     travelAvailable: false,
     verifiedOnly: true,
     testingRequired: false,
     recentlyActive: false,
     sortBy: 'recently_active',
-    city: '',
+    country: '',
     state: '',
+    city: '',
   });
 
   // Check auth and access
