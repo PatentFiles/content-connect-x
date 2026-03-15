@@ -278,6 +278,7 @@ export default function Profile() {
       role_type: editData.role_type || profile?.role_type,
       base_location: editData.base_location || profile?.base_location,
       travel_enabled: editData.travel_enabled ?? profile?.travel_enabled,
+      profile_theme: editData.profile_theme || profile?.profile_theme || 'default',
       profile_complete: true,
     };
     updateProfileMutation.mutate(profileData);
