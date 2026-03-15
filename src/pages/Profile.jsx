@@ -596,13 +596,19 @@ export default function Profile() {
                     />
                     <div>
                       <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">Bio</label>
-                      <textarea
-                        value={editData.bio || ''}
-                        onChange={(e) => setEditData({...editData, bio: e.target.value})}
-                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 min-h-[100px]"
-                        placeholder="Tell others about yourself..."
-                      />
+                      <div className="rounded-lg overflow-hidden border border-[#263248] [&_.ql-toolbar]:bg-[#1A2438] [&_.ql-toolbar]:border-b [&_.ql-toolbar]:border-[#263248] [&_.ql-container]:bg-[#121824] [&_.ql-container]:border-0 [&_.ql-editor]:text-[#E8EEF9] [&_.ql-editor]:min-h-[120px] [&_.ql-picker-label]:text-[#9AA6BC] [&_.ql-stroke]:stroke-[#9AA6BC] [&_.ql-fill]:fill-[#9AA6BC]">
+                        <ReactQuill
+                          value={editData.bio || ''}
+                          onChange={(val) => setEditData({...editData, bio: val})}
+                          placeholder="Tell others about yourself..."
+                          modules={{ toolbar: [['bold','italic','underline'], [{ list: 'bullet' }], ['link'], ['clean']] }}
+                        />
+                      </div>
                     </div>
+                    <ProfileThemeSelector
+                      value={editData.profile_theme || 'default'}
+                      onChange={(theme) => setEditData({...editData, profile_theme: theme})}
+                    />
                   </>
                 ) : (
                   <>
