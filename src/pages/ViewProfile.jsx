@@ -616,9 +616,10 @@ export default function ViewProfile() {
         {profile.bio && (
           <CCCard padding="lg" className="mb-6 text-center">
             <h2 className="text-xl font-semibold text-[#E8EEF9] mb-3 text-center">About</h2>
-            <p className="text-[#9AA6BC] leading-relaxed whitespace-pre-wrap text-center">
-              {profile.bio}
-            </p>
+            <div
+              className="text-[#9AA6BC] leading-relaxed prose prose-invert prose-sm max-w-none text-center [&_a]:text-[#4F8CFF]"
+              dangerouslySetInnerHTML={{ __html: profile.bio }}
+            />
           </CCCard>
         )}
 
