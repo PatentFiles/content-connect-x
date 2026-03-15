@@ -33,6 +33,8 @@ import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import LocationSelector from '@/components/location/LocationSelector';
 import BioGenerator from '@/components/profile/BioGenerator';
 import { filterScenePairings } from '@/components/profiles/ScenePairingFilter';
+import GalleryLightbox from '@/components/profile/GalleryLightbox';
+import GalleryGrid from '@/components/profile/GalleryGrid';
 
 // Component to show availability and travel from ScheduleEntry
 function AvailabilityTravelSection({ user, profile }) {
