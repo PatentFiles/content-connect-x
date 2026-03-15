@@ -546,10 +546,10 @@ agents/
         {/* 4. Entity Reference */}
         <EntityReferenceSection />
 
-        {/* REMOVED OLD DUPLICATE ENTITY CONTENT — see components/docs/EntityReference */}
+        {/* 5+ content starts here — see below */}
         <div style={{display:'none'}}>
               <div className="text-xs text-[#9AA6BC] space-y-1">
-                <p><strong>Key Fields:</strong> collaboration_name, participant_ids[], creator_ids[], agent_id, studio_id, photographer_id, videographer_id, scene_type (standard/fetish/kink_edge), scene_selected[], acts_selected[], acts_other_text, boundaries (hard_no, soft_limits, aftercare_required), compensation_type, compensation_details, schedule (proposed_dates, confirmed_date, start_time, end_time), location, deliverables, usage_rights, testing_share_rules, status (draft→pending_approval→active→negotiating→agreed→contract_pending→contract_sent→signed→completed→cancelled→disputed), created_by_role, created_by_user_id, tags[], internal_notes, conversation_id</p>
+                <p>REMOVED</p>
                 <p><strong>Relationships:</strong> UserProfile (many:many via participant_ids), Contract (1:many), CollaborationActivityLog (1:many), Conversation (1:1)</p>
                 <p><strong>Enforcement:</strong> Friend gate checked via validateCollaborationFriendGate. Testing requirements checked before contract initiation. Status transitions logged in CollaborationActivityLog.</p>
                 <p><strong>Lifecycle:</strong> draft → pending_approval (if multi-party) → active (all approved) → negotiating (terms discussion) → agreed (terms finalized) → contract_pending (contract generation) → contract_sent (signatures requested) → signed (all signatures collected) → completed (after scene) OR disputed (if issue)</p>
