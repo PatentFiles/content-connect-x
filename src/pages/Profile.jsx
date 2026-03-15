@@ -387,7 +387,10 @@ export default function Profile() {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-[#4F8CFF] via-[#7B5FA9] to-[#FF2DAA]" />
+            <div
+              className="w-full h-full"
+              style={{ background: PROFILE_THEMES[profile?.profile_theme || 'default']?.bg }}
+            />
           )}
           <button 
             onClick={() => document.getElementById('cover-upload').click()}
