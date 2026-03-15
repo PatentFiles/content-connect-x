@@ -1500,6 +1500,18 @@ export default function Profile() {
         </CCTabsContent>
       </div>
 
+      {/* Gallery Lightbox */}
+      {lightbox && (() => {
+        const gallery = galleries.find(g => g.type === lightbox.galleryType);
+        return (
+          <GalleryLightbox
+            images={gallery?.items || []}
+            initialIndex={lightbox.index}
+            onClose={() => setLightbox(null)}
+          />
+        );
+      })()}
+
       {/* Delete Confirm Modal */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center p-4">
