@@ -1463,6 +1463,20 @@ export default function Profile() {
                   await base44.entities.Gallery.update(gallery.id, { items: reordered });
                   queryClient.invalidateQueries(['myGalleries']);
                 }}
+                onUpload={async (files) => {
+                  const publicGallery = galleries.find(g => g.type === 'public');
+                  const items = publicGallery?.items || [];
+                  for (const file of files) {
+                    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+                    items.push({ id: Date.now().toString(), url: file_url, type: file.type.startsWith('video') ? 'video' : 'image', order: items.length });
+                  }
+                  if (publicGallery) {
+                    await base44.entities.Gallery.update(publicGallery.id, { items });
+                  } else {
+                    await base44.entities.Gallery.create({ user_id: user.email, type: 'public', name: 'Public Gallery', items });
+                  }
+                  queryClient.invalidateQueries(['myGalleries']);
+                }}
               />
             </CCCard>
 
