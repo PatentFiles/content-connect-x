@@ -210,8 +210,10 @@ export default function Discovery() {
     
     let filtered = [...allProfiles];
     
-    // Role type filter
-    if (filters.roleTypes?.length > 0) {
+    // Role type filter — quick button takes precedence, then filter panel
+    if (selectedRole) {
+      filtered = filtered.filter(p => p.role_type === selectedRole);
+    } else if (filters.roleTypes?.length > 0) {
       filtered = filtered.filter(p => filters.roleTypes.includes(p.role_type));
     }
     
