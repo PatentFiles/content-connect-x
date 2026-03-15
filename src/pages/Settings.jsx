@@ -124,6 +124,7 @@ export default function Settings() {
 
   const tabs = [
     { value: 'account', label: 'Account', icon: User },
+    { value: 'analytics', label: 'Analytics', icon: BarChart2 },
     { value: 'social', label: 'Social Links', icon: Globe },
     { value: 'connections', label: 'Connections', icon: User },
     { value: 'privacy', label: 'Privacy', icon: Shield },
