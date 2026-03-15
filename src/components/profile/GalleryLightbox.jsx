@@ -106,21 +106,28 @@ export default function GalleryLightbox({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -30 }}
             transition={{ duration: 0.18 }}
-            className="flex items-center justify-center"
+            className="relative flex items-center justify-center"
             style={{ transform: `scale(${zoom})`, transition: 'transform 0.2s ease' }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={onClose}
           >
             {current?.type === 'video' ? (
-              <video src={current.url} controls className="max-h-[80vh] max-w-[80vw] object-contain" />
+              <video src={current.url} controls className="max-h-[80vh] max-w-[80vw] object-contain" onClick={(e) => e.stopPropagation()} />
             ) : (
               <img
                 src={current?.url}
                 alt=""
-                className="max-h-[80vh] max-w-[80vw] object-contain cursor-zoom-in select-none"
-                onClick={(e) => { e.stopPropagation(); setZoom(z => z === 1 ? 2.5 : 1); }}
+                className="max-h-[80vh] max-w-[80vw] object-contain select-none"
                 draggable={false}
               />
             )}
+            {/* X button on the image */}
+            <button
+              onClick={(e) => { e.stopPropagation(); onClose(); }}
+              className="absolute top-2 right-2 w-9 h-9 flex items-center justify-center bg-black/60 hover:bg-black/90 rounded-full border border-white/30 text-white transition-colors z-10"
+              title="Close"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </motion.div>
         </AnimatePresence>
 
