@@ -159,7 +159,7 @@ export default function GalleryLightbox({
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="w-80 bg-[#151D2B] border-l border-[#263248] flex flex-col overflow-hidden flex-shrink-0"
           >
-            <div className="flex items-center justify-between px-4 pt-16 pb-3 border-b border-[#263248]">
+            <div className="flex items-center justify-between px-4 pt-20 pb-4 border-b border-[#263248]">
               <h3 className="text-sm font-semibold text-[#E8EEF9]">Comments</h3>
               <button onClick={() => setShowComments(false)} className="text-[#6B7A94] hover:text-[#E8EEF9]">
                 <X className="w-4 h-4" />
