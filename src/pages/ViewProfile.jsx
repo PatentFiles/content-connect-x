@@ -175,6 +175,31 @@ export default function ViewProfile() {
   const [errorMessage, setErrorMessage] = useState({ title: '', message: '' });
   const [activeTab, setActiveTab] = useState('profile');
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+
+  // Fetch target user's privacy settings
+  const { data: targetSettingsArr = [] } = useQuery({
+    queryKey: ['targetSettings', profileUserId],
+    queryFn: () => base44.entities.UserSettings.filter({ user_id: profileUserId }),
+    enabled: !!profileUserId,
+  });
+  const targetSettings = targetSettingsArr[0];
+  const commentPolicy = targetSettings?.privacy?.gallery_comment_policy || 'everyone';
+  const showGalleryCount = targetSettings?.privacy?.show_gallery_count ?? true;
+
+  // Track profile view once per session per profile
+  useEffect(() => {
+    if (!user?.email || !profileUserId || profileUserId === user.email) return;
+    const key = `pv_${user.email}_${profileUserId}_${new Date().toDateString()}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, '1');
+    base44.entities.ProfileView.create({
+      profile_owner_id: profileUserId,
+      viewer_user_id: user.email,
+      viewed_date: new Date().toISOString().split('T')[0],
+      view_type: 'profile',
+    }).catch(() => {});
+  }, [user?.email, profileUserId]);
   
   // Fetch favorites to check if profile is saved
   const { data: favorites = [] } = useQuery({
