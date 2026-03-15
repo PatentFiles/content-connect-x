@@ -184,6 +184,8 @@ export default function ViewProfile() {
   const [activeTab, setActiveTab] = useState('profile');
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(null);
+  const [lightboxGalleryType, setLightboxGalleryType] = useState('public');
+  const [accessRequested, setAccessRequested] = useState(false);
 
   // Fetch target user's privacy settings
   const { data: targetSettingsArr = [] } = useQuery({
