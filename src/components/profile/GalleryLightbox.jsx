@@ -15,7 +15,7 @@ export default function GalleryLightbox({
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [zoom, setZoom] = useState(1);
   const [touchStart, setTouchStart] = useState(null);
-  const [showComments, setShowComments] = useState(false);
+  const [showComments, setShowComments] = useState(true);
 
   useEffect(() => {
     const handleKey = (e) => {
