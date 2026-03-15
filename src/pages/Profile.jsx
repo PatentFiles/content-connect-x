@@ -1427,13 +1427,7 @@ export default function Profile() {
                     <div key={i} className="aspect-square bg-[#121824] rounded-lg overflow-hidden relative group">
                       <img src={item.url} alt="" className="w-full h-full object-cover" />
                       <button
-                        onClick={async () => {
-                          if (!confirm('Delete this photo?')) return;
-                          const updated = gallery.items.filter((_, idx) => idx !== i);
-                          await base44.entities.Gallery.update(gallery.id, { items: updated });
-                          queryClient.invalidateQueries(['myGalleries']);
-                          setDeleteSuccessModal(true);
-                        }}
+                        onClick={() => setDeleteConfirm({ galleryType: 'public', index: i })}
                         className="absolute top-1 right-1 p-1 bg-black/60 rounded-full opacity-100 transition-opacity"
                       >
                         <Trash2 className="w-3.5 h-3.5 text-white" />
@@ -1506,13 +1500,7 @@ export default function Profile() {
                     <div key={i} className="aspect-square bg-[#121824] rounded-lg overflow-hidden relative group">
                       <img src={item.url} alt="" className="w-full h-full object-cover" />
                       <button
-                        onClick={async () => {
-                          if (!confirm('Delete this photo?')) return;
-                          const updated = gallery.items.filter((_, idx) => idx !== i);
-                          await base44.entities.Gallery.update(gallery.id, { items: updated });
-                          queryClient.invalidateQueries(['myGalleries']);
-                          setDeleteSuccessModal(true);
-                        }}
+                        onClick={() => setDeleteConfirm({ galleryType: 'private', index: i })}
                         className="absolute top-1 right-1 p-1 bg-black/60 rounded-full opacity-100 transition-opacity"
                       >
                         <Trash2 className="w-3.5 h-3.5 text-white" />
