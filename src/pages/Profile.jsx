@@ -35,6 +35,9 @@ import BioGenerator from '@/components/profile/BioGenerator';
 import { filterScenePairings } from '@/components/profiles/ScenePairingFilter';
 import GalleryLightbox from '@/components/profile/GalleryLightbox';
 import GalleryGrid from '@/components/profile/GalleryGrid';
+import ProfileThemeSelector, { PROFILE_THEMES } from '@/components/profile/ProfileThemeSelector';
+import ProfileAnalytics from '@/components/profile/ProfileAnalytics';
+import ReactQuill from 'react-quill';
 
 // Component to show availability and travel from ScheduleEntry
 function AvailabilityTravelSection({ user, profile }) {
