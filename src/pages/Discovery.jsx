@@ -411,7 +411,7 @@ export default function Discovery() {
       {/* Header */}
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4F8CFF]/20 to-[#FF2DAA]/20 flex items-center justify-center">
                 <Compass className="w-5 h-5 text-[#4F8CFF]" />
@@ -424,23 +424,26 @@ export default function Discovery() {
             <ProfileFilters
               filters={filters}
               onChange={setFilters}
-              onReset={() => setFilters({
-                roleTypes: [],
-                orientations: [],
-                sceneTypes: [],
-                tags: [],
-                compensation: [],
-                nearMe: false,
-                travelAvailable: false,
-                verifiedOnly: true,
-                testingRequired: false,
-                recentlyActive: false,
-                sortBy: 'distance',
-                country: '',
-                state: '',
-                city: '',
-              })}
+              onReset={() => { setFilters({ roleTypes: [], orientations: [], sceneTypes: [], tags: [], compensation: [], nearMe: false, travelAvailable: false, verifiedOnly: true, testingRequired: false, recentlyActive: false, sortBy: 'distance', country: '', state: '', city: '' }); setSelectedRole(''); }}
             />
+          </div>
+          {/* Role Quick Filters */}
+          <div className="flex flex-wrap gap-2 pb-1">
+            <CCButton variant={!selectedRole ? 'primary' : 'outline'} size="sm" onClick={() => setSelectedRole('')} className="flex-shrink-0">
+              All
+            </CCButton>
+            {roleOptions.map((role) => (
+              <CCButton
+                key={role.value}
+                variant={selectedRole === role.value ? 'primary' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedRole(role.value)}
+                className="flex-shrink-0"
+              >
+                <role.icon className="w-4 h-4 mr-1" />
+                {role.label}
+              </CCButton>
+            ))}
           </div>
         </div>
       </div>
