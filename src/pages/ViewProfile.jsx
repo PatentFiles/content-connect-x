@@ -136,9 +136,17 @@ export default function ViewProfile() {
   // Fetch galleries
   const { data: galleries = [] } = useQuery({
     queryKey: ['galleries', profileUserId],
-    queryFn: () => base44.entities.Gallery.filter({ user_id: profileUserId, type: 'public' }),
+    queryFn: () => base44.entities.Gallery.filter({ user_id: profileUserId }),
     enabled: !!profileUserId && !!profile,
   });
+
+  // Fetch private gallery permission for current user
+  const { data: galleryPermissions = [] } = useQuery({
+    queryKey: ['galleryPermissions', profileUserId, user?.email],
+    queryFn: () => base44.entities.GalleryPermission.filter({ user_id: profileUserId, granted_to: user?.email }),
+    enabled: !!profileUserId && !!user?.email,
+  });
+  const hasPrivateAccess = galleryPermissions.length > 0;
 
   // Fetch social links
   const { data: socialLinks = [] } = useQuery({
