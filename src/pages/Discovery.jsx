@@ -421,15 +421,15 @@ export default function Discovery() {
                 sceneTypes: [],
                 tags: [],
                 compensation: [],
-                skills: [],
                 nearMe: false,
                 travelAvailable: false,
                 verifiedOnly: true,
                 testingRequired: false,
                 recentlyActive: false,
                 sortBy: 'distance',
-                city: '',
+                country: '',
                 state: '',
+                city: '',
               })}
             />
           </div>
