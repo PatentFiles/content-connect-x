@@ -343,9 +343,19 @@ export default function Profile() {
     return <CCLoadingScreen message="Loading profile..." />;
   }
 
+  // Fetch user settings for comment policy
+  const { data: userSettingsArr = [] } = useQuery({
+    queryKey: ['userSettings', user?.email],
+    queryFn: () => base44.entities.UserSettings.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+  const userSettings = userSettingsArr[0];
+  const commentPolicy = userSettings?.privacy?.gallery_comment_policy || 'everyone';
+
   const tabs = [
     { value: 'profile', label: 'Profile', icon: User },
     { value: 'galleries', label: 'Galleries', icon: Image },
+    { value: 'analytics', label: 'Analytics', icon: Activity },
   ];
 
   const showFemaleFields = editData.gender_identity === 'woman' || editData.gender_identity === 'trans_woman';
