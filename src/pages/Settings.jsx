@@ -13,7 +13,8 @@ import {
   Globe,
   Lock,
   Trash2,
-  Crown
+  Crown,
+  BarChart2
 } from 'lucide-react';
 import PricingManager from '@/components/admin/PricingManager';
 import CouponManager from '@/components/admin/CouponManager';
