@@ -1697,6 +1697,157 @@ agents/
         {/* 17. Change Governance */}
         <ChangeGovernanceSection />
 
+        {/* 18. Recent Changes & Updates */}
+        <section id="recent-changes" className="mb-8">
+          <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
+            <Activity className="w-6 h-6 text-[#4F8CFF]" />
+            18. Recent Changes & Updates
+          </h2>
+          <CCCard className="space-y-4">
+            {[
+              { date: 'March 2026', title: 'Discovery & Search — Client-Side Filtering Unified', items: [
+                'Both Discovery and Search now use useMemo-based client-side filtering (avoids stale closure bugs)',
+                'Role quick-filter buttons added to Discovery (matching Search layout)',
+                'selectedRole state added to Discovery; takes precedence over filters.roleTypes',
+                'Filter reset on Discovery now clears selectedRole',
+                'Search queryKey simplified to [\'searchProfiles\'] — all filtering in useMemo',
+              ]},
+              { date: 'March 2026', title: 'Filter Logic — Consistent Creator-Aware Rules', items: [
+                'Scene type filter: non-creators always pass; creators without acts data pass (not hidden prematurely)',
+                'Compensation filter: non-creators always pass; creators with no prefs set pass',
+                'country field added to Discovery filter state (was missing)',
+                'Filter reset state aligned between Discovery and Search',
+              ]},
+              { date: 'Ongoing', title: 'Galleries — GalleryComment & ProfileView', items: [
+                'GalleryComment entity: users can comment on gallery items',
+                'Comment policy enforced via UserSettings.privacy.gallery_comment_policy (everyone/friends_only/no_one)',
+                'ProfileView entity tracks profile and gallery views (once per day per user)',
+                'GalleryLightbox integrates GalleryComments with policy enforcement',
+              ]},
+              { date: 'Ongoing', title: 'ViewProfile — Booking & Private Gallery Access', items: [
+                'BookingRequest entity + BookingRequestModal added to ViewProfile',
+                'Accepted bookings send Notification to recipient',
+                'Private gallery access request sends Notification to profile owner',
+                'GalleryPermission.status="granted" checked to show/hide private gallery content',
+                'Profile theme banners rendered from PROFILE_THEMES when no cover image',
+              ]},
+              { date: 'Ongoing', title: 'AvailabilitySchedule & TravelSchedule — ICS + Google Calendar Export', items: [
+                'ICS file export implemented for both schedules',
+                'Google Calendar link generation implemented',
+                'Lazy-loading by month confirmed working',
+              ]},
+              { date: 'Ongoing', title: 'Profile — AI Bio Generator, Analytics, Gallery Grid', items: [
+                'BioGenerator uses InvokeLLM to generate 3 bio suggestions from profile data',
+                'ProfileAnalytics shows profile/gallery views per week via recharts',
+                'GalleryGrid supports drag-and-drop reordering via @hello-pangea/dnd',
+                'GalleryLightbox integrated into Profile page for preview',
+              ]},
+              { date: 'Ongoing', title: 'Social Links — SocialLink Entity + Verification', items: [
+                'SocialLink and SocialLinkVerification entities support multiple platforms',
+                'SocialLinksManager: add, edit, delete social links',
+                'SocialLinksDisplay respects visibility settings and verification badges',
+              ]},
+              { date: 'Ongoing', title: 'Friends & Connections — Complete Friend System', items: [
+                'Friendship lifecycle: PENDING → ACCEPTED / DECLINED / CANCELLED',
+                'MESSAGE_FIRST gating: checks Conversation.participants_who_replied[] before request',
+                '30-day cooldown after DECLINED enforced via decline_cooldown_until',
+                'Friend count visibility enforced via FriendSettings.friend_count_visibility',
+                'FriendGateWarning shown in CreateCollaboration if target requires friends',
+              ]},
+            ].map((item, i) => (
+              <div key={i} className="border-l-2 border-[#263248] pl-4">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs text-[#6B7A94]">{item.date}</span>
+                  <h3 className="text-sm font-semibold text-[#E8EEF9]">{item.title}</h3>
+                </div>
+                <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
+                  {item.items.map((point, j) => <li key={j}>{point}</li>)}
+                </ul>
+              </div>
+            ))}
+          </CCCard>
+        </section>
+
+        {/* 19. Backend Deployment Checklist */}
+        <section id="backend-checklist" className="mb-8">
+          <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
+            <Database className="w-6 h-6 text-[#4F8CFF]" />
+            19. Backend Deployment Checklist
+          </h2>
+          <div className="p-4 bg-[#FF2DAA]/10 border border-[#FF2DAA]/30 rounded-lg mb-4">
+            <p className="text-sm text-[#FF2DAA]">
+              <strong>Action Required:</strong> Upgrade to <strong>Builder+</strong> on Base44 to enable backend functions. All 23 functions are already written — they just need the plan activated.
+            </p>
+          </div>
+          <CCCard className="space-y-5">
+            {[
+              { step: 1, color: 'bg-[#EF4444]', title: 'Upgrade to Builder+', items: [
+                'Go to base44.com → Account Settings → Upgrade to Builder+',
+                'Unlocks backend functions, scheduled automations, and OAuth app connectors',
+              ]},
+              { step: 2, color: 'bg-[#F59E0B]', title: 'Verify Critical Backend Functions', items: [
+                'startConversation — fires on every Message button click',
+                'sendFriendRequest / respondToFriendRequest / cancelFriendRequest',
+                'validateFriendRequestEligibility — MESSAGE_FIRST gating',
+                'validateContractInitiation + validateTestingRequirements — contract gate',
+                'createContractSnapshot — CRITICAL: must fire on all-signed contracts',
+                'triggerConsentRevocation — immutable, must be idempotent',
+                'autoAddStudioObserver — auto-fires when collaboration involves studio creator',
+                'lockCollaborationBooking / releaseCollaborationBooking',
+              ]},
+              { step: 3, color: 'bg-[#F59E0B]', title: 'Set Up Scheduled Automations', items: [
+                'checkTestingDeadlines → Daily at 6am UTC (marks expired credentials)',
+                'checkTestingDeadlineWarnings → Daily at 7am UTC (7-day expiry warnings)',
+                'executeAgentScan → Weekly off-peak (AI compliance + risk scoring)',
+                'generateMatches → Daily or on-demand (AI match suggestions)',
+              ]},
+              { step: 4, color: 'bg-[#22C55E]', title: 'Configure Stripe (Subscriptions)', items: [
+                'Create Stripe products for each PricingTier (role × basic/pro/elite)',
+                'Add Payment Link URLs to PricingTier.stripe_payment_link_monthly/yearly',
+                'Set up Stripe webhook → create/update Subscription record on payment events',
+                'Test: payment success → Subscription.status="active"',
+                'Test: payment failure → Subscription.status="past_due"',
+              ]},
+              { step: 5, color: 'bg-[#22C55E]', title: 'Configure Identity Verification', items: [
+                'Choose Yoti (primary) or Passbase (alternative) or manual admin review',
+                'Integrate provider webhook → create VerificationRecord.status="approved" on success',
+                'VerificationReviewQueue already exists for manual admin flow if needed',
+              ]},
+              { step: 6, color: 'bg-[#22C55E]', title: 'Seed Initial Data', items: [
+                'Create PricingTier records (use PricingManager in AdminDashboard)',
+                'Seed ContentCatalogItem records (scene_pairings, standard_acts, fetish_acts, kink_edge_acts, platforms)',
+                'Set at least one admin user: UserProfile.is_admin = true',
+                'Create SocialPlatform records (OnlyFans, Fansly, Twitter/X, Instagram, etc.)',
+              ]},
+              { step: 7, color: 'bg-[#4F8CFF]', title: 'Pre-Launch Security Checks', items: [
+                'AccessGate blocks unverified/unsubscribed users from Discovery, Search, Messages, Collaborations',
+                'Admin-only pages hidden from non-admin users (AdminDashboard, CompliancePortal, DeveloperReadMe)',
+                'Private files (testing docs, verification docs) use signed URLs — not public URLs',
+                'createContractSnapshot fires correctly (test with a dummy collaboration)',
+                'ConsentRevocation is immutable once created',
+                'BlockedUser records prevent profile visibility and messaging',
+                'Test friend gating: MESSAGE_FIRST requires prior message before friend request',
+              ]},
+              { step: 8, color: 'bg-[#4F8CFF]', title: 'Optional Enhancements', items: [
+                'Connect Google Drive connector for saveContractToGoogleDrive (Builder+ OAuth)',
+                'Configure Base44 SendEmail integration for notification emails',
+                'Set up custom domain in Base44 dashboard',
+                'Enable Base44 real-time subscriptions for Messages and Notifications pages',
+              ]},
+            ].map(({ step, color, title, items }) => (
+              <div key={step}>
+                <h3 className="text-sm font-semibold text-[#E8EEF9] mb-2 flex items-center gap-2">
+                  <span className={`w-5 h-5 rounded-full ${color} flex items-center justify-center text-white text-xs font-bold flex-shrink-0`}>{step}</span>
+                  {title}
+                </h3>
+                <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC] ml-7">
+                  {items.map((item, i) => <li key={i}>{item}</li>)}
+                </ul>
+              </div>
+            ))}
+          </CCCard>
+        </section>
+
         {/* Footer */}
         <div className="mt-8 p-4 bg-[#151D2B] border border-[#263248] rounded-lg text-center text-sm text-[#6B7A94]">
           <p>Last Updated: {new Date().toLocaleDateString()}</p>
