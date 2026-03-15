@@ -124,27 +124,32 @@ export default function Search() {
         });
       }
 
-      // Scene type & tags
+      // Scene type filter — maps to acts arrays in CreatorDetails
       if (filters.sceneTypes?.length > 0) {
         allProfiles = allProfiles.filter(p => {
+          if (p.role_type !== 'creator') return true;
           const details = allCreatorDetails.find(d => d.user_id === p.user_id);
-          return details && details.content_categories?.some(cat => filters.sceneTypes.includes(cat));
+          if (!details) return true;
+          const hasAnyActs = (details.standard_acts?.length > 0) || (details.fetish_acts?.length > 0) || (details.kink_edge_acts?.length > 0);
+          if (!hasAnyActs) return true;
+          return filters.sceneTypes.some(sceneType => {
+            if (sceneType === 'standard') return details.standard_acts?.length > 0;
+            if (sceneType === 'fetish') return details.fetish_acts?.length > 0;
+            if (sceneType === 'kink_edge') return details.kink_edge_acts?.length > 0;
+            return false;
+          });
         });
       }
 
-      if (filters.tags?.length > 0) {
-        allProfiles = allProfiles.filter(p => {
-          const details = allCreatorDetails.find(d => d.user_id === p.user_id);
-          return details && details.tags?.some(tag => filters.tags.includes(tag));
-        });
-      }
-
-      // Compensation
+      // Compensation — only applies to creators
       if (filters.compensation?.length > 0) {
         allProfiles = allProfiles.filter(p => {
+          if (p.role_type !== 'creator') return true;
           const details = allCreatorDetails.find(d => d.user_id === p.user_id);
-          const collabTypes = details?.collab_types || [];
-          return filters.compensation.some(comp => collabTypes.includes(comp));
+          if (!details) return true;
+          const prefs = details.compensation_preferences || [];
+          if (prefs.length === 0) return true;
+          return filters.compensation.some(comp => prefs.includes(comp));
         });
       }
 
@@ -153,15 +158,21 @@ export default function Search() {
         allProfiles = allProfiles.filter(p => p.travel_enabled);
       }
 
-      if (filters.city) {
-        allProfiles = allProfiles.filter(p => 
-          p.base_location?.city?.toLowerCase().includes(filters.city.toLowerCase())
+      if (filters.country) {
+        allProfiles = allProfiles.filter(p =>
+          p.base_location?.country?.toLowerCase().includes(filters.country.toLowerCase())
         );
       }
 
       if (filters.state) {
         allProfiles = allProfiles.filter(p => 
           p.base_location?.state?.toLowerCase().includes(filters.state.toLowerCase())
+        );
+      }
+
+      if (filters.city) {
+        allProfiles = allProfiles.filter(p => 
+          p.base_location?.city?.toLowerCase().includes(filters.city.toLowerCase())
         );
       }
 
