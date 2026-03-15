@@ -379,7 +379,7 @@ export default function Discovery() {
     }
     
     return filtered.slice(0, 20);
-  }, [allProfiles, filters, allVerifications, allCreatorDetails]);
+  }, [allProfiles, filters, selectedRole, allVerifications, allCreatorDetails, allTestingCredentials]);
 
   // Fetch creator details for profiles
   const { data: creatorDetails = [] } = useQuery({
