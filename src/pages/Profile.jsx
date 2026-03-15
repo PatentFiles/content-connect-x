@@ -164,6 +164,7 @@ export default function Profile() {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({});
   const [deleteSuccessModal, setDeleteSuccessModal] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(null); // { galleryType, index }
   const [customValues, setCustomValues] = useState({
     scene_pairings: '',
     standard_acts: '',
