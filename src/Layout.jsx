@@ -57,6 +57,7 @@ export default function Layout({ children, currentPageName }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [adminRoleView, setAdminRoleView] = useState('admin');
+  const navigate = useNavigate();
   const isPublicPage = publicPages.includes(currentPageName);
   const isAppPage = appPages.includes(currentPageName);
 
