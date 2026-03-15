@@ -56,7 +56,7 @@ export default function GalleryLightbox({
         onClick={onClose}
       >
         {/* Top bar - always on top with solid background so X is always visible */}
-        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 z-20 bg-black/80">
+        <div className="absolute top-0 left-0 right-0 flex items-center justify-between px-4 py-3 z-20 bg-black/80" onClick={(e) => e.stopPropagation()}>
           <div className="text-white/70 text-sm font-medium">{currentIndex + 1} / {images.length}</div>
           <div className="flex items-center gap-3">
             {hasCommentFeature && (
