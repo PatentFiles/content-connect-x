@@ -83,7 +83,7 @@ export default function GalleryLightbox({
         {/* Prev / Next */}
         {currentIndex > 0 && (
           <button
-            onClick={() => goTo(currentIndex - 1)}
+            onClick={(e) => { e.stopPropagation(); goTo(currentIndex - 1); }}
             className="absolute left-3 p-2 bg-white/10 rounded-full hover:bg-white/20 z-10"
           >
             <ChevronLeft className="w-6 h-6 text-white" />
@@ -91,7 +91,7 @@ export default function GalleryLightbox({
         )}
         {currentIndex < images.length - 1 && (
           <button
-            onClick={() => goTo(currentIndex + 1)}
+            onClick={(e) => { e.stopPropagation(); goTo(currentIndex + 1); }}
             className="absolute right-3 p-2 bg-white/10 rounded-full hover:bg-white/20 z-10"
           >
             <ChevronRight className="w-6 h-6 text-white" />
@@ -108,6 +108,7 @@ export default function GalleryLightbox({
             transition={{ duration: 0.18 }}
             className="flex items-center justify-center"
             style={{ transform: `scale(${zoom})`, transition: 'transform 0.2s ease' }}
+            onClick={(e) => e.stopPropagation()}
           >
             {current?.type === 'video' ? (
               <video src={current.url} controls className="max-h-[80vh] max-w-[80vw] object-contain" />
@@ -116,7 +117,7 @@ export default function GalleryLightbox({
                 src={current?.url}
                 alt=""
                 className="max-h-[80vh] max-w-[80vw] object-contain cursor-zoom-in select-none"
-                onClick={() => setZoom(z => z === 1 ? 2.5 : 1)}
+                onClick={(e) => { e.stopPropagation(); setZoom(z => z === 1 ? 2.5 : 1); }}
                 draggable={false}
               />
             )}
@@ -124,7 +125,7 @@ export default function GalleryLightbox({
         </AnimatePresence>
 
         {/* Bottom controls */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-3" onClick={(e) => e.stopPropagation()}>
           <button onClick={() => setZoom(z => Math.max(1, z - 0.5))} className="p-2 bg-white/10 rounded-full hover:bg-white/20">
             <ZoomOut className="w-4 h-4 text-white" />
           </button>
@@ -136,7 +137,7 @@ export default function GalleryLightbox({
 
         {/* Dots */}
         {images.length > 1 && (
-          <div className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1.5">
+          <div className="absolute bottom-14 left-1/2 -translate-x-1/2 flex gap-1.5" onClick={(e) => e.stopPropagation()}>
             {images.map((_, i) => (
               <button
                 key={i}
