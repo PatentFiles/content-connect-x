@@ -88,138 +88,129 @@ export default function Search() {
     enabled: !!user && isVerified && isSubscribed,
   });
 
-  // Fetch profiles with filters
-  const { data: profiles = [], isLoading: profilesLoading } = useQuery({
-    queryKey: ['searchProfiles', searchQuery, selectedRole, filters],
+  // Fetch all profiles (raw)
+  const { data: allProfiles = [], isLoading: profilesLoading } = useQuery({
+    queryKey: ['searchProfiles'],
     queryFn: async () => {
-      let allProfiles = await base44.entities.UserProfile.filter({ profile_complete: true });
-      allProfiles = allProfiles.filter(p => p.user_id !== user?.email && !p.is_admin);
-
-      // Search filter
-      if (searchQuery) {
-        const q = searchQuery.toLowerCase();
-        allProfiles = allProfiles.filter(p => 
-          p.display_name?.toLowerCase().includes(q) ||
-          p.bio?.toLowerCase().includes(q) ||
-          p.base_location?.city?.toLowerCase().includes(q)
-        );
-      }
-
-      // Role filter
-      if (selectedRole) {
-        allProfiles = allProfiles.filter(p => p.role_type === selectedRole);
-      } else if (filters.roleTypes?.length > 0) {
-        allProfiles = allProfiles.filter(p => filters.roleTypes.includes(p.role_type));
-      }
-
-      // Orientation filter (creators only)
-      if (filters.orientations?.length > 0) {
-        allProfiles = allProfiles.filter(p => {
-          if (p.role_type !== 'creator') return true;
-          const details = allCreatorDetails.find(d => d.user_id === p.user_id);
-          if (!details || !details.orientation_category) return false;
-          return Array.isArray(details.orientation_category)
-            ? details.orientation_category.some(o => filters.orientations.includes(o))
-            : filters.orientations.includes(details.orientation_category);
-        });
-      }
-
-      // Scene type filter — maps to acts arrays in CreatorDetails
-      if (filters.sceneTypes?.length > 0) {
-        allProfiles = allProfiles.filter(p => {
-          if (p.role_type !== 'creator') return true;
-          const details = allCreatorDetails.find(d => d.user_id === p.user_id);
-          if (!details) return true;
-          const hasAnyActs = (details.standard_acts?.length > 0) || (details.fetish_acts?.length > 0) || (details.kink_edge_acts?.length > 0);
-          if (!hasAnyActs) return true;
-          return filters.sceneTypes.some(sceneType => {
-            if (sceneType === 'standard') return details.standard_acts?.length > 0;
-            if (sceneType === 'fetish') return details.fetish_acts?.length > 0;
-            if (sceneType === 'kink_edge') return details.kink_edge_acts?.length > 0;
-            return false;
-          });
-        });
-      }
-
-      // Compensation — only applies to creators
-      if (filters.compensation?.length > 0) {
-        allProfiles = allProfiles.filter(p => {
-          if (p.role_type !== 'creator') return true;
-          const details = allCreatorDetails.find(d => d.user_id === p.user_id);
-          if (!details) return true;
-          const prefs = details.compensation_preferences || [];
-          if (prefs.length === 0) return true;
-          return filters.compensation.some(comp => prefs.includes(comp));
-        });
-      }
-
-      // Travel & Location
-      if (filters.travelAvailable) {
-        allProfiles = allProfiles.filter(p => p.travel_enabled);
-      }
-
-      if (filters.country) {
-        allProfiles = allProfiles.filter(p =>
-          p.base_location?.country?.toLowerCase().includes(filters.country.toLowerCase())
-        );
-      }
-
-      if (filters.state) {
-        allProfiles = allProfiles.filter(p => 
-          p.base_location?.state?.toLowerCase().includes(filters.state.toLowerCase())
-        );
-      }
-
-      if (filters.city) {
-        allProfiles = allProfiles.filter(p => 
-          p.base_location?.city?.toLowerCase().includes(filters.city.toLowerCase())
-        );
-      }
-
-      // Verified only
-      if (filters.verifiedOnly) {
-        const verifiedUserIds = allVerifications
-          .filter(v => v.status === 'approved')
-          .map(v => v.user_id);
-        allProfiles = allProfiles.filter(p => verifiedUserIds.includes(p.user_id));
-      }
-
-      // Testing required
-      if (filters.testingRequired) {
-        const now = new Date();
-        const verifiedTestingUserIds = allTestingCredentials
-          .filter(tc => {
-            // Must be valid status
-            if (tc.status_badge !== 'valid') return false;
-            // Must not be expired
-            if (tc.expires_at && new Date(tc.expires_at) < now) return false;
-            return true;
-          })
-          .map(tc => tc.user_id);
-        
-        allProfiles = allProfiles.filter(p => verifiedTestingUserIds.includes(p.user_id));
-      }
-
-      // Recently active
-      if (filters.recentlyActive) {
-        const threeDaysAgo = new Date();
-        threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-        allProfiles = allProfiles.filter(p => 
-          p.last_active_at && new Date(p.last_active_at) > threeDaysAgo
-        );
-      }
-
-      // Sort
-      if (filters.sortBy === 'recently_active') {
-        allProfiles.sort((a, b) => new Date(b.last_active_at || 0) - new Date(a.last_active_at || 0));
-      } else if (filters.sortBy === 'response_time') {
-        allProfiles.sort((a, b) => (a.response_time_hours || 999) - (b.response_time_hours || 999));
-      }
-
-      return allProfiles.slice(0, 50);
+      let profiles = await base44.entities.UserProfile.filter({ profile_complete: true });
+      return profiles.filter(p => p.user_id !== user?.email && !p.is_admin);
     },
     enabled: !!user && isVerified && isSubscribed,
   });
+
+  // Filter + sort client-side (same pattern as Discovery to avoid stale closure issues)
+  const profiles = React.useMemo(() => {
+    if (!allProfiles.length) return [];
+    let filtered = [...allProfiles];
+
+    // Search filter
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(p =>
+        p.display_name?.toLowerCase().includes(q) ||
+        p.bio?.toLowerCase().includes(q) ||
+        p.base_location?.city?.toLowerCase().includes(q)
+      );
+    }
+
+    // Role filter — quick button takes precedence, then filter panel
+    if (selectedRole) {
+      filtered = filtered.filter(p => p.role_type === selectedRole);
+    } else if (filters.roleTypes?.length > 0) {
+      filtered = filtered.filter(p => filters.roleTypes.includes(p.role_type));
+    }
+
+    // Orientation filter (creators only)
+    if (filters.orientations?.length > 0) {
+      filtered = filtered.filter(p => {
+        if (p.role_type !== 'creator') return true;
+        const details = allCreatorDetails.find(d => d.user_id === p.user_id);
+        if (!details || !details.orientation_category) return false;
+        return Array.isArray(details.orientation_category)
+          ? details.orientation_category.some(o => filters.orientations.includes(o))
+          : filters.orientations.includes(details.orientation_category);
+      });
+    }
+
+    // Scene type filter
+    if (filters.sceneTypes?.length > 0) {
+      filtered = filtered.filter(p => {
+        if (p.role_type !== 'creator') return true;
+        const details = allCreatorDetails.find(d => d.user_id === p.user_id);
+        if (!details) return true;
+        const hasAnyActs = (details.standard_acts?.length > 0) || (details.fetish_acts?.length > 0) || (details.kink_edge_acts?.length > 0);
+        if (!hasAnyActs) return true;
+        return filters.sceneTypes.some(sceneType => {
+          if (sceneType === 'standard') return details.standard_acts?.length > 0;
+          if (sceneType === 'fetish') return details.fetish_acts?.length > 0;
+          if (sceneType === 'kink_edge') return details.kink_edge_acts?.length > 0;
+          return false;
+        });
+      });
+    }
+
+    // Compensation — creators only
+    if (filters.compensation?.length > 0) {
+      filtered = filtered.filter(p => {
+        if (p.role_type !== 'creator') return true;
+        const details = allCreatorDetails.find(d => d.user_id === p.user_id);
+        if (!details) return true;
+        const prefs = details.compensation_preferences || [];
+        if (prefs.length === 0) return true;
+        return filters.compensation.some(comp => prefs.includes(comp));
+      });
+    }
+
+    // Travel & Location
+    if (filters.travelAvailable) filtered = filtered.filter(p => p.travel_enabled);
+
+    if (filters.country) {
+      filtered = filtered.filter(p =>
+        p.base_location?.country?.toLowerCase().includes(filters.country.toLowerCase())
+      );
+    }
+    if (filters.state) {
+      filtered = filtered.filter(p =>
+        p.base_location?.state?.toLowerCase().includes(filters.state.toLowerCase())
+      );
+    }
+    if (filters.city) {
+      filtered = filtered.filter(p =>
+        p.base_location?.city?.toLowerCase().includes(filters.city.toLowerCase())
+      );
+    }
+
+    // Verified only
+    if (filters.verifiedOnly) {
+      const verifiedIds = allVerifications.filter(v => v.status === 'approved').map(v => v.user_id);
+      filtered = filtered.filter(p => verifiedIds.includes(p.user_id));
+    }
+
+    // Testing required
+    if (filters.testingRequired) {
+      const now = new Date();
+      const validIds = allTestingCredentials
+        .filter(tc => tc.status_badge === 'valid' && !(tc.expires_at && new Date(tc.expires_at) < now))
+        .map(tc => tc.user_id);
+      filtered = filtered.filter(p => validIds.includes(p.user_id));
+    }
+
+    // Recently active
+    if (filters.recentlyActive) {
+      const threeDaysAgo = new Date();
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+      filtered = filtered.filter(p => p.last_active_at && new Date(p.last_active_at) > threeDaysAgo);
+    }
+
+    // Sort
+    if (filters.sortBy === 'recently_active') {
+      filtered.sort((a, b) => new Date(b.last_active_at || 0) - new Date(a.last_active_at || 0));
+    } else if (filters.sortBy === 'response_time') {
+      filtered.sort((a, b) => (a.response_time_hours || 999) - (b.response_time_hours || 999));
+    }
+
+    return filtered.slice(0, 50);
+  }, [allProfiles, searchQuery, selectedRole, filters, allVerifications, allCreatorDetails, allTestingCredentials]);
 
   // Fetch creator details
   const { data: creatorDetails = [] } = useQuery({
