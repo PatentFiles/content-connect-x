@@ -547,59 +547,136 @@ export default function ViewProfile() {
 
         {/* Galleries Tab */}
         <CCTabsContent value="galleries" activeTab={activeTab}>
-          {galleries[0]?.items?.length > 0 ? (
-            <CCCard padding="lg" className="mb-6">
-              <h2 className="text-xl font-semibold text-[#E8EEF9] mb-1 text-center">Public Gallery</h2>
-              {showGalleryCount && (
-                <p className="text-xs text-[#6B7A94] text-center mb-4">{galleries[0].items.length} photo{galleries[0].items.length !== 1 ? 's' : ''}</p>
-              )}
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                {galleries[0].items.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="aspect-square rounded-lg overflow-hidden bg-[#151D2B] cursor-pointer hover:opacity-90 transition-opacity"
-                    onClick={() => {
-                      // track gallery view
-                      if (user?.email && profileUserId !== user.email) {
-                        const key = `gv_${user.email}_${profileUserId}_${idx}_${new Date().toDateString()}`;
-                        if (!sessionStorage.getItem(key)) {
-                          sessionStorage.setItem(key, '1');
-                          base44.entities.ProfileView.create({
-                            profile_owner_id: profileUserId,
-                            viewer_user_id: user.email,
-                            viewed_date: new Date().toISOString().split('T')[0],
-                            view_type: 'gallery',
-                          }).catch(() => {});
+          {/* Public Gallery */}
+          {(() => {
+            const publicGallery = galleries.find(g => g.type === 'public');
+            return publicGallery?.items?.length > 0 ? (
+              <CCCard padding="lg" className="mb-6">
+                <h2 className="text-xl font-semibold text-[#E8EEF9] mb-1 text-center">Public Gallery</h2>
+                {showGalleryCount && (
+                  <p className="text-xs text-[#6B7A94] text-center mb-4">{publicGallery.items.length} photo{publicGallery.items.length !== 1 ? 's' : ''}</p>
+                )}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {publicGallery.items.map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="aspect-square rounded-lg overflow-hidden bg-[#151D2B] cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => {
+                        if (user?.email && profileUserId !== user.email) {
+                          const key = `gv_${user.email}_${profileUserId}_${idx}_${new Date().toDateString()}`;
+                          if (!sessionStorage.getItem(key)) {
+                            sessionStorage.setItem(key, '1');
+                            base44.entities.ProfileView.create({
+                              profile_owner_id: profileUserId,
+                              viewer_user_id: user.email,
+                              viewed_date: new Date().toISOString().split('T')[0],
+                              view_type: 'gallery',
+                            }).catch(() => {});
+                          }
                         }
-                      }
-                      setLightboxIndex(idx);
-                    }}
-                  >
-                    {item.type === 'video' ? (
-                      <video src={item.url} className="w-full h-full object-cover" />
+                        setLightboxGalleryType('public');
+                        setLightboxIndex(idx);
+                      }}
+                    >
+                      {item.type === 'video' ? (
+                        <video src={item.url} className="w-full h-full object-cover" />
+                      ) : (
+                        <img src={item.url} alt={item.caption || 'Gallery item'} className="w-full h-full object-cover" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </CCCard>
+            ) : (
+              <CCCard padding="lg" className="mb-6">
+                <CCEmpty icon={Image} title="No public gallery items" description="This user hasn't added any public gallery items yet." />
+              </CCCard>
+            );
+          })()}
+
+          {/* Private Gallery */}
+          {(() => {
+            const privateGallery = galleries.find(g => g.type === 'private');
+            if (!privateGallery && !hasPrivateAccess) return null;
+            return (
+              <CCCard padding="lg" className="mb-6">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <Lock className="w-4 h-4 text-[#9AA6BC]" />
+                  <h2 className="text-xl font-semibold text-[#E8EEF9]">Private Gallery</h2>
+                </div>
+                {hasPrivateAccess && privateGallery?.items?.length > 0 ? (
+                  <>
+                    {showGalleryCount && (
+                      <p className="text-xs text-[#6B7A94] text-center mb-4">{privateGallery.items.length} photo{privateGallery.items.length !== 1 ? 's' : ''}</p>
+                    )}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {privateGallery.items.map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="aspect-square rounded-lg overflow-hidden bg-[#151D2B] cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => {
+                            setLightboxGalleryType('private');
+                            setLightboxIndex(idx);
+                          }}
+                        >
+                          {item.type === 'video' ? (
+                            <video src={item.url} className="w-full h-full object-cover" />
+                          ) : (
+                            <img src={item.url} alt={item.caption || 'Gallery item'} className="w-full h-full object-cover" />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-6">
+                    <div className="w-16 h-16 rounded-full bg-[#263248] flex items-center justify-center mx-auto mb-4">
+                      <Lock className="w-8 h-8 text-[#6B7A94]" />
+                    </div>
+                    <p className="text-[#9AA6BC] text-sm mb-4">This gallery is private. Request access to view its contents.</p>
+                    {accessRequested ? (
+                      <div className="flex items-center justify-center gap-2 text-[#22C55E] text-sm font-medium">
+                        <CheckCircle className="w-4 h-4" />
+                        Access request sent!
+                      </div>
                     ) : (
-                      <img src={item.url} alt={item.caption || 'Gallery item'} className="w-full h-full object-cover" />
+                      <button
+                        onClick={() => {
+                          base44.entities.Notification.create({
+                            user_id: profileUserId,
+                            type: 'messages',
+                            actor_user_id: user?.email,
+                            title: 'Private Gallery Access Request',
+                            body: `${user?.full_name || user?.email} is requesting access to your private gallery.`,
+                          }).catch(() => {});
+                          setAccessRequested(true);
+                        }}
+                        className="px-4 py-2 bg-[#4F8CFF] hover:bg-[#3A7AEE] text-white text-sm font-medium rounded-lg transition-colors"
+                      >
+                        Request Access
+                      </button>
                     )}
                   </div>
-                ))}
-              </div>
-            </CCCard>
-          ) : (
-            <CCEmpty icon={Image} title="No gallery items" description="This user hasn't added any public gallery items yet." />
-          )}
+                )}
+              </CCCard>
+            );
+          })()}
 
           {/* Lightbox */}
-          {lightboxIndex !== null && galleries[0]?.items?.length > 0 && (
-            <GalleryLightbox
-              images={galleries[0].items}
-              initialIndex={lightboxIndex}
-              onClose={() => setLightboxIndex(null)}
-              galleryId={galleries[0]?.id}
-              profileOwnerId={profileUserId}
-              currentUser={user}
-              commentPolicy={commentPolicy}
-            />
-          )}
+          {lightboxIndex !== null && (() => {
+            const activeGallery = galleries.find(g => g.type === lightboxGalleryType);
+            return activeGallery?.items?.length > 0 ? (
+              <GalleryLightbox
+                images={activeGallery.items}
+                initialIndex={lightboxIndex}
+                onClose={() => setLightboxIndex(null)}
+                galleryId={activeGallery?.id}
+                profileOwnerId={profileUserId}
+                currentUser={user}
+                commentPolicy={commentPolicy}
+              />
+            ) : null;
+          })()}
         </CCTabsContent>
 
         {/* Profile Tab */}
