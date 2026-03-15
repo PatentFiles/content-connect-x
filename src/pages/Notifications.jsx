@@ -83,9 +83,10 @@ export default function Notifications() {
       const privateGallery = galleries.find(g => g.type === 'private');
       if (privateGallery) {
         await base44.entities.GalleryPermission.create({
-          user_id: user.email,
+          owner_id: user.email,
           gallery_id: privateGallery.id,
-          granted_to: actorUserId,
+          granted_to_user_id: actorUserId,
+          status: 'granted',
           granted_at: new Date().toISOString(),
         });
       }
