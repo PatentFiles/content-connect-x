@@ -171,23 +171,28 @@ export default function Discovery() {
     const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
     
     if (isSaved) {
-      // Unsave directly
-      unsaveFromFavoritesMutation.mutate(profile.user_id);
+    // Unsave directly
+    unsaveFromFavoritesMutation.mutate(profile.user_id);
     } else {
-      setSelectedProfile(profile);
-      if (favorites.length === 0) {
-        // No lists, create default
-        base44.entities.Favorite.create({
-          owner_id: user.email,
+    setSelectedProfile(profile);
+    if (favorites.length === 0) {
+      // No lists — create default via protected backend (ban-enforced)
+      revalidateBanStatus(user?.email).then(banStatus => {
+        if (!banStatus.allowed) {
+          toast.error('Your account is blocked.');
+          return;
+        }
+        base44.functions.invoke('protectedActions', {
           name: 'My Favorites',
-          items: [{ user_id: profile.user_id, added_at: new Date().toISOString() }],
-        }).then(() => {
+          items: [{ user_id: profile.user_id, added_at: new Date().toISOString() }]
+        }, { queryParams: { action: 'create_favorite_list' } }).then(() => {
           queryClient.invalidateQueries({ queryKey: ['myFavorites'] });
           toast.success('Saved to favorites');
         });
-      } else {
-        setShowSaveModal(true);
-      }
+      });
+    } else {
+      setShowSaveModal(true);
+    }
     }
   };
 
