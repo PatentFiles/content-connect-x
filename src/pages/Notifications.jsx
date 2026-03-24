@@ -23,6 +23,7 @@ import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCTabs, CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
+import PullToRefresh from '@/components/ui-custom/PullToRefresh';
 import { toast } from 'sonner';
 
 export default function Notifications() {
@@ -180,7 +181,12 @@ export default function Notifications() {
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 py-6">
+      <PullToRefresh
+        className="max-w-4xl mx-auto"
+        scrollable={false}
+        onRefresh={() => queryClient.invalidateQueries({ queryKey: ['notifications', user?.email] })}
+      >
+      <div className="px-4 py-6">
         {/* Tabs */}
         <CCTabsList
           tabs={[
