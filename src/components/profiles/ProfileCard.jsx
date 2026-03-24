@@ -42,7 +42,6 @@ export default function ProfileCard({
 }) {
   const navigate = useNavigate();
   const [isMessaging, setIsMessaging] = useState(false);
-  const [optimisticSaved, setOptimisticSaved] = useState(null); // null = use prop
 
   const isVerified = profile?.verified;
   const isOnline = profile?.last_active_at && 
@@ -190,22 +189,16 @@ export default function ProfileCard({
                   onClick={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    // Optimistic update
-                    const currentlySaved = optimisticSaved !== null ? optimisticSaved : isSaved;
-                    setOptimisticSaved(!currentlySaved);
                     onFavorite?.(profile);
                   }}
                   className="flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-[#263248] bg-transparent hover:bg-[#151D2B] transition-all duration-200"
                 >
-                  {(() => {
-                    const displaySaved = optimisticSaved !== null ? optimisticSaved : isSaved;
-                    return (
-                      <>
-                        <Heart className={`w-4 h-4 transition-all duration-150 ${displaySaved ? 'fill-[#EF4444] text-[#EF4444] scale-110' : 'text-[#E8EEF9] scale-100'}`} />
-                        <span className="text-[#E8EEF9]">{displaySaved ? 'Saved' : 'Save'}</span>
-                      </>
-                    );
-                  })()}
+                  <Heart 
+                    className={`w-4 h-4 ${isSaved ? 'fill-[#EF4444] text-[#EF4444]' : 'text-[#E8EEF9]'}`}
+                  />
+                  <span className="text-[#E8EEF9]">
+                    {isSaved ? 'Saved' : 'Save'}
+                  </span>
                 </button>
                 <CCButton
                   variant="primary"

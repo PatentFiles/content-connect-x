@@ -42,7 +42,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: #0B0F14;
   color: #E8EEF9;
-  overscroll-behavior-y: none;
 }
 
 /* Custom scrollbar */
@@ -288,34 +287,5 @@ button {
 @media (max-width: 640px) {
   html {
     font-size: 14px;
-  }
-}
-
-/* Auto dark mode via system preference */
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: #0B0F14;
-    color: #E8EEF9;
-  }
-  :root {
-    --background: 222 47% 6%;
-    --foreground: 220 27% 94%;
-    --card: 220 35% 12%;
-    --card-foreground: 220 27% 94%;
-    --popover: 220 35% 12%;
-    --popover-foreground: 220 27% 94%;
-    --primary: 217 100% 65%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 220 25% 18%;
-    --secondary-foreground: 220 27% 94%;
-    --muted: 220 25% 18%;
-    --muted-foreground: 220 18% 60%;
-    --accent: 325 100% 60%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 220 25% 22%;
-    --input: 220 25% 18%;
-    --ring: 217 100% 65%;
   }
 }

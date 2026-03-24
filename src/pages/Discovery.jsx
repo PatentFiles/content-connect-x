@@ -7,7 +7,6 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Compass, MapPin, Filter, ChevronRight, Users, Camera, Video, Briefcase, Building } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
-import PullToRefresh from '@/components/mobile/PullToRefresh';
 import CCCard from '@/components/ui-custom/CCCard';
 import { CCLoadingScreen, CCProfileCardSkeleton } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
@@ -409,13 +408,7 @@ export default function Discovery() {
     return <AccessGate type="subscription" />;
   }
 
-  const handleRefresh = async () => {
-    await queryClient.invalidateQueries({ queryKey: ['allProfiles'] });
-    await queryClient.invalidateQueries({ queryKey: ['allVerifications'] });
-  };
-
   return (
-    <PullToRefresh onRefresh={handleRefresh}>
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Header */}
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
@@ -529,8 +522,7 @@ export default function Discovery() {
         />
       )}
 
-    </div>
-    {/* Report Modal */}
+      {/* Report Modal */}
       <ReportModal
         isOpen={showReportModal}
         onClose={() => {
@@ -540,6 +532,6 @@ export default function Discovery() {
         targetUserId={reportTargetUserId}
         targetContentType="profile"
       />
-    </PullToRefresh>
+    </div>
   );
 }

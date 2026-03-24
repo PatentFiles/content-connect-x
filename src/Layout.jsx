@@ -4,7 +4,6 @@ import { useQuery } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { createPageUrl } from '@/utils';
 import { cn } from '@/lib/utils';
-import { useNavigate } from 'react-router-dom';
 import NavBar from '@/components/layout/NavBar';
 import BottomNav from '@/components/layout/BottomNav';
 import Sidebar from '@/components/layout/Sidebar';
@@ -57,7 +56,6 @@ export default function Layout({ children, currentPageName }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [adminRoleView, setAdminRoleView] = useState('admin');
-  const navigate = useNavigate();
   const isPublicPage = publicPages.includes(currentPageName);
   const isAppPage = appPages.includes(currentPageName);
 
@@ -127,14 +125,14 @@ export default function Layout({ children, currentPageName }) {
       const redirectPath = sessionStorage.getItem('redirectAfterLogin');
       if (redirectPath && window.location.pathname !== redirectPath) {
         sessionStorage.removeItem('redirectAfterLogin');
-        navigate(redirectPath);
+        window.location.href = redirectPath;
       }
     }
   }, [isAuthenticated, userLoading]);
 
   const handleLogout = async () => {
     await base44.auth.logout();
-    navigate(createPageUrl('Landing'));
+    window.location.href = createPageUrl('Landing');
   };
 
   // For public pages, show minimal layout

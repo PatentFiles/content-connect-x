@@ -54,12 +54,12 @@ export default function CCButton({
       {...props}
     >
       {loading ? (
-        <Loader2 className="w-4 h-4 animate-spin pointer-events-none select-none" />
+        <Loader2 className="w-4 h-4 animate-spin" />
       ) : Icon ? (
-        <Icon className="w-4 h-4 pointer-events-none select-none" />
+        <Icon className="w-4 h-4" />
       ) : null}
       {children}
-      {IconRight && !loading && <IconRight className="w-4 h-4 pointer-events-none select-none" />}
+      {IconRight && !loading && <IconRight className="w-4 h-4" />}
     </motion.button>
   );
 }
