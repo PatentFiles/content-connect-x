@@ -34,6 +34,7 @@ import { useVerificationCheck } from '@/components/auth/useVerificationCheck';
 import VerificationRequired from '@/components/auth/VerificationRequired';
 import AvailabilityCalendar from '@/components/collaboration/AvailabilityCalendar';
 import { logCollaborationActivity } from '@/components/collaboration/activityLogHelpers';
+import { revalidateBanStatus } from '@/hooks/useProtectedMutation';
 
 
 
@@ -379,9 +380,13 @@ export default function CreateCollaboration() {
     myFavorites.some(f => f.target_user_id === p.user_id)
   );
 
-  // Create/Update mutation
+  // Create/Update mutation — ban-enforced via protected backend
   const createMutation = useMutation({
     mutationFn: async (data) => {
+      // Re-check ban status before creating (closes stale-session bypass)
+      const banStatus = await revalidateBanStatus(user?.email);
+      if (!banStatus.allowed) throw new Error('BLOCKED:' + banStatus.reason);
+
       const participantEmails = data.participant_emails 
         ? data.participant_emails.split(',').map(e => e.trim()).filter(e => e)
         : [];
@@ -394,9 +399,19 @@ export default function CreateCollaboration() {
 
       let collaboration;
       if (isEditing) {
-        collaboration = await base44.entities.Collaboration.update(collaborationId, payload);
+        // Update still goes through protected action
+        const result = await base44.functions.invoke('protectedActions', {
+          collab_id: collaborationId,
+          ...payload
+        }, { queryParams: { action: 'update_collaboration' } });
+        if (result?.data?.blocked) throw new Error('BLOCKED:' + (result.data.code || 'blocked'));
+        collaboration = result?.data?.data;
       } else {
-        collaboration = await base44.entities.Collaboration.create(payload);
+        const result = await base44.functions.invoke('protectedActions', payload, {
+          queryParams: { action: 'create_collaboration' }
+        });
+        if (result?.data?.blocked) throw new Error('BLOCKED:' + (result.data.code || 'blocked'));
+        collaboration = result?.data?.data;
       }
 
       // Auto-add exclusive studios as observers
@@ -485,6 +500,11 @@ export default function CreateCollaboration() {
       });
 
       return collaboration;
+    },
+    onError: (error) => {
+      if (error.message?.startsWith('BLOCKED:')) {
+        toast.error('Your account is blocked. You cannot create collaborations.');
+      }
     },
     onSuccess: async (result) => {
       if (isEditing) {
