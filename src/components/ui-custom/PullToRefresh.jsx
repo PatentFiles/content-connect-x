@@ -60,7 +60,7 @@ export default function PullToRefresh({ children, onRefresh, className = '' }) {
   }, [pulling, pullDistance, onRefresh]);
 
   return (
-    <div className={`relative overflow-hidden ${className}`}>
+    <div className={`relative ${className}`}>
       {/* Pull indicator */}
       <motion.div
         style={{ opacity: iconOpacity }}
