@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Compass, MapPin, Filter, ChevronRight, Users, Camera, Video, Briefcase, Building } from 'lucide-react';
+import { revalidateBanStatus } from '@/hooks/useProtectedMutation';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import { CCLoadingScreen, CCProfileCardSkeleton } from '@/components/ui-custom/CCLoading';
@@ -139,14 +140,20 @@ export default function Discovery() {
     enabled: !!user?.email,
   });
 
-  // Unsave from favorites mutation
+  // Unsave from favorites mutation — ban-enforced
   const unsaveFromFavoritesMutation = useMutation({
     mutationFn: async (userId) => {
+      // Re-check ban before mutating
+      const banStatus = await revalidateBanStatus(user?.email);
+      if (!banStatus.allowed) throw new Error('BLOCKED:' + banStatus.reason);
+
       const listsWithProfile = favorites.filter(f => f.items?.some(item => item.user_id === userId));
       await Promise.all(
         listsWithProfile.map(list => {
           const updatedItems = list.items.filter(item => item.user_id !== userId);
-          return base44.entities.Favorite.update(list.id, { items: updatedItems });
+          return base44.functions.invoke('protectedActions', {
+            list_id: list.id, items: updatedItems
+          }, { queryParams: { action: 'update_favorite' } });
         })
       );
     },
@@ -155,6 +162,9 @@ export default function Discovery() {
       queryClient.invalidateQueries({ queryKey: ['favorites'] });
       toast.success('Removed from favorites');
     },
+    onError: (error) => {
+      if (error.message?.startsWith('BLOCKED:')) toast.error('Your account is blocked.');
+    }
   });
 
   const handleFavorite = (profile) => {
@@ -183,15 +193,21 @@ export default function Discovery() {
 
   const blockUserMutation = useMutation({
     mutationFn: async (userId) => {
-      await base44.entities.BlockedUser.create({
-        blocker_id: user.email,
-        blocked_id: userId,
-      });
+      const banStatus = await revalidateBanStatus(user?.email);
+      if (!banStatus.allowed) throw new Error('BLOCKED:' + banStatus.reason);
+
+      const result = await base44.functions.invoke('protectedActions', {
+        blocked_id: userId
+      }, { queryParams: { action: 'block_user' } });
+      if (result?.data?.blocked) throw new Error('BLOCKED:' + (result.data.code || 'blocked'));
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['allProfiles']);
       toast.success('User blocked');
     },
+    onError: (error) => {
+      if (error.message?.startsWith('BLOCKED:')) toast.error('Your account is blocked.');
+    }
   });
 
   const handleBlock = (profile) => {
