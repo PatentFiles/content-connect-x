@@ -361,7 +361,11 @@ export default function Collaborations() {
       </div>
 
       {/* Content */}
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <PullToRefresh
+        className="max-w-6xl mx-auto"
+        onRefresh={() => queryClient.invalidateQueries({ queryKey: ['collaborations', user?.email] })}
+      >
+      <div className="px-4 py-6">
         {collaborationsLoading ? (
           <div className="space-y-4">
             {[1, 2, 3].map(i => (
@@ -491,6 +495,7 @@ export default function Collaborations() {
           </div>
         )}
       </div>
+      </PullToRefresh>
 
       {/* Delete Confirmation Modal */}
       <CCModal
