@@ -259,15 +259,44 @@ input[type="radio"]:checked::after {
   border-radius: 50%;
 }
 
-/* PWA safe areas */
-@supports (padding: max(0px)) {
-  .safe-area-inset-top {
-    padding-top: max(1rem, env(safe-area-inset-top));
-  }
-  
-  .safe-area-inset-bottom {
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
-  }
+/* ================================================
+   iOS / PWA Safe Area Insets — strict mobile-first
+   ================================================ */
+
+/* Apply safe area to the document root so all fixed elements inherit correctly */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+/* Utility classes */
+.safe-top    { padding-top:    max(env(safe-area-inset-top, 0px), 0px); }
+.safe-bottom { padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px); }
+.safe-left   { padding-left:   max(env(safe-area-inset-left, 0px), 0px); }
+.safe-right  { padding-right:  max(env(safe-area-inset-right, 0px), 0px); }
+
+/* Fixed header — always sits below the status bar notch */
+.fixed-header {
+  top: 0;
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Fixed bottom navigation — always sits above the home indicator */
+.fixed-bottom-nav {
+  bottom: 0;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Main content area under a fixed header (64px header + safe-area) */
+.content-pt-safe {
+  padding-top: calc(4rem + env(safe-area-inset-top, 0px));
+}
+
+/* Scrollable containers: prevent content hiding behind home bar */
+.scroll-safe-bottom {
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
 }
 
 /* Mobile-first touch targets */
