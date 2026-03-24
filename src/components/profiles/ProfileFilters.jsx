@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Filter, X, MapPin, Users, DollarSign, Tag, ChevronDown, RotateCcw, Heart, Shield } from 'lucide-react';
 import CCButton from '../ui-custom/CCButton';
 import CCBadge from '../ui-custom/CCBadge';
+import BottomSheetSelect from '../ui-custom/BottomSheetSelect';
 
 const roleOptions = [
   { value: 'creator', label: 'Creator' },
