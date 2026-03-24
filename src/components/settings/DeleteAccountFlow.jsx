@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
-import { AlertTriangle, Trash2, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, Trash2 } from 'lucide-react';
 import { base44 } from '@/api/base44Client';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCModal from '@/components/ui-custom/CCModal';
