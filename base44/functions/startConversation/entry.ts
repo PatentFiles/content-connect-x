@@ -9,6 +9,36 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // CHECK BAN STATUS - Block banned/suspended users
+    try {
+      const profiles = await base44.asServiceRole.entities.UserProfile.filter({
+        user_id: user.email
+      });
+      const profile = profiles[0];
+
+      if (profile?.banned === true) {
+        await logBlockedAction(base44, user.email, 'start_conversation', 'banned');
+        return Response.json(
+          { error: 'Your account has been permanently banned', code: 'banned', blocked: true },
+          { status: 403 }
+        );
+      }
+
+      if (profile?.suspended === true) {
+        await logBlockedAction(base44, user.email, 'start_conversation', 'suspended');
+        return Response.json(
+          { error: 'Your account is temporarily suspended', code: 'suspended', blocked: true },
+          { status: 403 }
+        );
+      }
+    } catch (banCheckError) {
+      console.error('Ban check failed:', banCheckError);
+      return Response.json(
+        { error: 'Unable to verify account status', code: 'error', blocked: true },
+        { status: 403 }
+      );
+    }
+
     const { recipient_id } = await req.json();
 
     if (!recipient_id) {
@@ -48,3 +78,22 @@ Deno.serve(async (req) => {
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
+
+// Helper to log blocked action attempts
+async function logBlockedAction(base44, userId, actionName, blockReason) {
+  try {
+    await base44.asServiceRole.entities.AdminActionLog.create({
+      admin_id: 'SYSTEM_BAN_ENFORCEMENT',
+      action_type: 'blocked_action_attempt',
+      target_user_id: userId,
+      details: {
+        action_attempted: actionName,
+        block_reason: blockReason,
+        timestamp: new Date().toISOString()
+      },
+      reason: `Blocked ${blockReason} user from: ${actionName}`
+    });
+  } catch (e) {
+    console.error('Failed to log blocked action:', e);
+  }
+}
