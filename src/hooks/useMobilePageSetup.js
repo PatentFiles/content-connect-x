@@ -1,29 +1,22 @@
 /**
- * useMobilePageSetup — convenience hook to register a page title and back button
- * in the global MobileHeader.
+ * useMobilePageSetup — registers a page title and back button in MobileHeader.
  *
  * Usage:
- *   useMobilePageSetup({ title: 'Profile Details', onBack: () => navigate(-1) });
+ *   useMobilePageSetup({ title: 'View Profile', onBack: () => navigate(-1) });
  *
- * The hook handles cleanup on unmount automatically.
- * Safe to call outside MobileNavProvider (no-op in that case).
+ * Always safe to call — silently no-ops when MobileNavProvider is not mounted.
  */
 
-import { useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { useMobileNav } from '@/lib/MobileNavContext';
 
 export default function useMobilePageSetup({ title = '', onBack, rightAction } = {}) {
-  let mobileNav = null;
-  try {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-    mobileNav = useMobileNav();
-  } catch {
-    // MobileNavProvider not mounted (e.g. public pages) — silently skip
-  }
+  // useMobileNav will throw if called outside MobileNavProvider.
+  // We catch that at the MobileNavContext level by returning a no-op context
+  // when there's no provider — see MobileNavContext safe export below.
+  const mobileNav = useMobileNav();
 
   useEffect(() => {
-    if (!mobileNav) return;
     mobileNav.setTitle(title);
     mobileNav.setBackAction(onBack ?? null);
     mobileNav.setRightAction(rightAction ?? null);
