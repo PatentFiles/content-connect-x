@@ -89,7 +89,7 @@ export default function ViewProfile() {
     enabled: !!user?.email,
   });
 
-  const isAdmin = myProfile?.is_admin || user?.role === 'admin';
+  const isAdmin = myProfiles[0]?.is_admin || user?.role === 'admin';
   const isVerified = isAdmin || verification?.[0]?.status === 'approved';
   const isSubscribed = isAdmin || subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
