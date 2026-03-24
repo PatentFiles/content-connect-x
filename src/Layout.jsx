@@ -168,45 +168,47 @@ export default function Layout({ children, currentPageName }) {
   // For app pages, show full layout with sidebar and bottom nav
   if (isAppPage && isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#0B0F14]">
-        <Toaster position="top-center" theme="dark" />
-        <NavBar 
-          user={user}
-          profile={{...profile, verified: isVerified}}
-          isAuthenticated={isAuthenticated}
-          onMenuToggle={() => setMenuOpen(!menuOpen)}
-          menuOpen={menuOpen}
-          onHamburgerToggle={() => setMobileNavOpen(!mobileNavOpen)}
-        />
-        <MobileNavMenu
-          isOpen={mobileNavOpen}
-          onClose={() => setMobileNavOpen(false)}
-          profile={profile}
-          currentPage={currentPageName}
-          onLogout={handleLogout}
-          adminRoleView={adminRoleView}
-        />
-        {isAdmin && (
-          <AdminContextBanner 
-            currentView={adminRoleView}
-            onReturnToAdmin={() => setAdminRoleView('admin')}
+      <TabNavigatorProvider>
+        <div className="min-h-screen bg-[#0B0F14]">
+          <Toaster position="top-center" theme="dark" />
+          <NavBar 
+            user={user}
+            profile={{...profile, verified: isVerified}}
+            isAuthenticated={isAuthenticated}
+            onMenuToggle={() => setMenuOpen(!menuOpen)}
+            menuOpen={menuOpen}
+            onHamburgerToggle={() => setMobileNavOpen(!mobileNavOpen)}
           />
-        )}
-        <Sidebar 
-          currentPage={currentPageName}
-          profile={{...profile, verified: isVerified}}
-          onLogout={handleLogout}
-          adminRoleView={adminRoleView}
-          onAdminRoleViewChange={setAdminRoleView}
-        />
-        <main className={cn(
-          "pt-16 md:pl-64 min-h-screen",
-          isAdmin && adminRoleView !== 'admin' && "pt-36"
-        )}>
-          <PageTransition>{children}</PageTransition>
-        </main>
-        <BottomNav currentPage={currentPageName} />
-      </div>
+          <MobileNavMenu
+            isOpen={mobileNavOpen}
+            onClose={() => setMobileNavOpen(false)}
+            profile={profile}
+            currentPage={currentPageName}
+            onLogout={handleLogout}
+            adminRoleView={adminRoleView}
+          />
+          {isAdmin && (
+            <AdminContextBanner 
+              currentView={adminRoleView}
+              onReturnToAdmin={() => setAdminRoleView('admin')}
+            />
+          )}
+          <Sidebar 
+            currentPage={currentPageName}
+            profile={{...profile, verified: isVerified}}
+            onLogout={handleLogout}
+            adminRoleView={adminRoleView}
+            onAdminRoleViewChange={setAdminRoleView}
+          />
+          <main className={cn(
+            "pt-16 md:pl-64 min-h-screen",
+            isAdmin && adminRoleView !== 'admin' && "pt-36"
+          )}>
+            <PageTransition>{children}</PageTransition>
+          </main>
+          <BottomNav currentPage={currentPageName} />
+        </div>
+      </TabNavigatorProvider>
     );
   }
 
