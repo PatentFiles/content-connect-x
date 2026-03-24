@@ -299,11 +299,49 @@ input[type="radio"]:checked::after {
   padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
 }
 
-/* Mobile-first touch targets */
-@media (hover: none) and (pointer: coarse) {
-  button, a, [role="button"] {
-    min-height: 44px;
-  }
+/* ============================================
+   OVERSCROLL — prevent pull-to-refresh browser
+   bounce and rubber-banding globally
+   ============================================ */
+html, body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent all scrollable containers from
+   triggering native overscroll on iOS */
+* {
+  overscroll-behavior: contain;
+}
+
+/* ============================================
+   TOUCH TARGETS — Apple HIG / Google Material
+   minimum 44×44px for all interactive elements
+   ============================================ */
+button,
+a,
+[role="button"],
+[role="tab"],
+[role="menuitem"],
+[role="option"],
+input[type="checkbox"],
+input[type="radio"],
+select {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Inline / icon-only elements that intentionally
+   stay small visually but need a larger hit area */
+.touch-target {
+  position: relative;
+}
+.touch-target::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  min-width: 44px;
+  min-height: 44px;
 }
 
 /* Prevent text selection on buttons */
