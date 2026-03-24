@@ -246,7 +246,7 @@ export default function Profile() {
     enabled: !!user?.email,
   });
 
-  // Update profile mutation
+  // Update profile mutation — all hooks must be declared unconditionally before any early return
   const updateProfileMutation = useMutation({
     mutationFn: async (data) => {
       if (profile) {
@@ -255,8 +255,19 @@ export default function Profile() {
         return base44.entities.UserProfile.create({ ...data, user_id: user.email });
       }
     },
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['myProfile', user?.email] });
+      const prev = queryClient.getQueryData(['myProfile', user?.email]);
+      queryClient.setQueryData(['myProfile', user?.email], (old = []) =>
+        old.map((p) => (p.id === profile?.id ? { ...p, ...data } : p))
+      );
+      return { prev };
+    },
+    onError: (_err, _data, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['myProfile', user?.email], ctx.prev);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['myProfile']);
+      queryClient.invalidateQueries({ queryKey: ['myProfile'] });
       setIsEditing(false);
     },
   });
@@ -270,8 +281,19 @@ export default function Profile() {
         return base44.entities.CreatorDetails.create({ ...data, user_id: user.email });
       }
     },
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['myCreatorDetails', user?.email] });
+      const prev = queryClient.getQueryData(['myCreatorDetails', user?.email]);
+      queryClient.setQueryData(['myCreatorDetails', user?.email], (old = []) =>
+        old.map((d) => (d.id === details?.id ? { ...d, ...data } : d))
+      );
+      return { prev };
+    },
+    onError: (_err, _data, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(['myCreatorDetails', user?.email], ctx.prev);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['myCreatorDetails']);
+      queryClient.invalidateQueries({ queryKey: ['myCreatorDetails'] });
     },
   });
 
