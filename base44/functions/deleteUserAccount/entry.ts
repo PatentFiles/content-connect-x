@@ -100,9 +100,8 @@ Deno.serve(async (req) => {
     await deleteAll('ProfileView', { viewer_id: userId });
     await deleteAll('SessionHistory', { user_id: userId });
 
-    // 13. Scheduling & availability
+    // 13. Scheduling
     await deleteAll('ScheduleEntry', { user_id: userId });
-    await deleteAll('AvailabilitySchedule', { user_id: userId });
 
     console.log(`Full account deletion completed for ${userId}`);
     return Response.json({ success: true, message: 'Account data deleted successfully' });
