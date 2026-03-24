@@ -11,6 +11,9 @@ import MobileNavMenu from '@/components/layout/MobileNavMenu';
 import AdminContextBanner from '@/components/admin/AdminContextBanner';
 import PageTransition from '@/components/layout/PageTransition';
 import TabNavigatorProvider from '@/components/layout/TabNavigator';
+import { MobileNavProvider } from '@/lib/MobileNavContext';
+import MobileHeader from '@/components/layout/MobileHeader';
+import { getPlatform } from '@/lib/usePlatform';
 
 // Public pages that don't need auth
 const publicPages = [
