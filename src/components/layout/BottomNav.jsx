@@ -19,14 +19,8 @@ export default function BottomNav({ currentPage }) {
     enabled: !!user?.email,
   });
 
-  // TabNavigator may not be available on public pages — guard it
-  let switchTab = null;
-  try {
-    const nav = useTabNavigator();
-    switchTab = nav.switchTab;
-  } catch (_) {
-    // Outside TabNavigatorProvider (public pages) — fallback to null
-  }
+  const tabNav = useTabNavigator();
+  const switchTab = tabNav?.switchTab ?? null;
 
   const profile = profiles[0];
   const roleType = profile?.role_type || 'creator';
