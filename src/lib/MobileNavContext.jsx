@@ -32,8 +32,11 @@ export function MobileNavProvider({ children }) {
   );
 }
 
+const NOOP = () => {};
+const NOOP_CTX = { title: '', backAction: null, rightAction: null, setTitle: NOOP, setBackAction: NOOP, setRightAction: NOOP };
+
 export function useMobileNav() {
   const ctx = useContext(MobileNavContext);
-  if (!ctx) throw new Error('useMobileNav must be used inside MobileNavProvider');
-  return ctx;
+  // Return a no-op context when used outside MobileNavProvider (public pages, etc.)
+  return ctx ?? NOOP_CTX;
 }
