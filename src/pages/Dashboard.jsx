@@ -57,7 +57,7 @@ export default function Dashboard() {
   };
 
   return (
-    <PullToRefresh onRefresh={handleRefresh} className="min-h-screen">
+    <PullToRefresh onRefresh={handleRefresh} className="min-h-screen" scrollable={false}>
       {/* Onboarding checklist — rendered inside dashboards below */}
       {(autoShowWizard || showWizard) && (
         <ProfileWizard

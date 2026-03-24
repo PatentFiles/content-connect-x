@@ -419,6 +419,7 @@ export default function Messages() {
           {/* Conversation List */}
           <PullToRefresh
             className="flex-1"
+            scrollable={true}
             onRefresh={() => queryClient.invalidateQueries(['conversations', user?.email])}
           >
             {conversationsLoading ? (

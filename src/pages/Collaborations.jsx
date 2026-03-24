@@ -363,6 +363,7 @@ export default function Collaborations() {
       {/* Content */}
       <PullToRefresh
         className="max-w-6xl mx-auto"
+        scrollable={false}
         onRefresh={() => queryClient.invalidateQueries({ queryKey: ['collaborations', user?.email] })}
       >
       <div className="px-4 py-6">
