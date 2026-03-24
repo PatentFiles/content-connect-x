@@ -32,20 +32,11 @@ export default function DeleteAccountFlow({ isOpen, onClose, userEmail }) {
 
   const handleFinalDelete = async () => {
     setIsDeleting(true);
-    try {
-      // Call the backend function to wipe all data
-      const response = await base44.functions.invoke('deleteUserAccount', {});
-      if (response.data?.error) throw new Error(response.data.error);
-
-      toast.success('Account deleted. Logging out...');
-      // Small delay so user sees the success message
-      setTimeout(() => {
-        base44.auth.logout();
-      }, 1500);
-    } catch (err) {
-      toast.error(err.message || 'Failed to delete account. Please contact support.');
-      setIsDeleting(false);
-    }
+    await base44.functions.invoke('deleteUserAccount', {});
+    toast.success('Account deleted. Logging out...');
+    setTimeout(() => {
+      base44.auth.logout();
+    }, 1500);
   };
 
   return (
