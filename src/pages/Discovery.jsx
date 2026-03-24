@@ -99,8 +99,9 @@ export default function Discovery() {
     enabled: !!user?.email,
   });
 
-  const isVerified = verification?.[0]?.status === 'approved';
-  const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
+  const isAdmin = myProfile?.[0]?.is_admin || user?.role === 'admin';
+  const isVerified = isAdmin || verification?.[0]?.status === 'approved';
+  const isSubscribed = isAdmin || subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
   // Fetch all profiles and creator details
   const { data: allProfiles = [], isLoading: profilesLoading } = useQuery({
