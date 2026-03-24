@@ -64,6 +64,14 @@ export default function Layout({ children, currentPageName }) {
   const isPublicPage = publicPages.includes(currentPageName);
   const isAppPage = appPages.includes(currentPageName);
 
+  // Apply platform class to <html> once so CSS can target it
+  useEffect(() => {
+    const platform = getPlatform();
+    document.documentElement.classList.add(`platform-${platform}`);
+    if (platform === 'ios') document.documentElement.classList.add('platform-native');
+    if (platform === 'android') document.documentElement.classList.add('platform-native');
+  }, []);
+
   // Fetch user data
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
