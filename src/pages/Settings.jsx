@@ -75,6 +75,19 @@ export default function Settings() {
         });
       }
     },
+    onMutate: async (name) => {
+      // Optimistic update — immediately reflect new name in UI
+      await queryClient.cancelQueries({ queryKey: ['myProfile', user?.email] });
+      const previous = queryClient.getQueryData(['myProfile', user?.email]);
+      queryClient.setQueryData(['myProfile', user?.email], (old) =>
+        old?.map((p, i) => i === 0 ? { ...p, display_name: name } : p) ?? old
+      );
+      return { previous };
+    },
+    onError: (_err, _name, context) => {
+      queryClient.setQueryData(['myProfile', user?.email], context?.previous);
+      toast.error('Failed to update display name');
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myProfile'] });
       setShowNameModal(false);
