@@ -357,14 +357,13 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
 
               {/* Sort */}
               <div className="border-t border-[#263248] pt-4">
-                <label className="text-sm font-medium text-[#E8EEF9] mb-2 block">Sort By</label>
-                <select
+                <BottomSheetSelect
+                  label="Sort By"
                   value={filters.sortBy || 'distance'}
-                  onChange={(e) => updateFilter('sortBy', e.target.value)}
-                  className="w-full bg-[#121824] border border-[#263248] rounded-lg px-3 py-2 text-sm text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                >
-                  {sortOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                </select>
+                  onChange={(val) => updateFilter('sortBy', val)}
+                  options={sortOptions}
+                  placeholder="Sort By"
+                />
               </div>
 
               {/* Actions */}
