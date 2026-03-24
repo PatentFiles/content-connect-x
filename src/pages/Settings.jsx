@@ -150,7 +150,7 @@ export default function Settings() {
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Header */}
-      <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
+      <div className="sticky z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]" style={{ top: 'calc(4rem + env(safe-area-inset-top, 0px))' }}>
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4F8CFF]/20 to-[#FF2DAA]/20 flex items-center justify-center">
