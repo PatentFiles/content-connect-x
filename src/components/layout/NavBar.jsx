@@ -21,7 +21,7 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
   const unreadCount = notifications.filter(n => !n.read_at).length;
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
+    <header className="fixed top-0 left-0 right-0 z-40 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link to={createPageUrl('Landing')} className="flex items-center gap-2">
