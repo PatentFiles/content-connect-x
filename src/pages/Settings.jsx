@@ -30,6 +30,7 @@ import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCTabs, CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs';
 import CCModal from '@/components/ui-custom/CCModal';
+import DeleteAccountFlow from '@/components/settings/DeleteAccountFlow';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 
 export default function Settings() {

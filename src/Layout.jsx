@@ -9,6 +9,7 @@ import BottomNav from '@/components/layout/BottomNav';
 import Sidebar from '@/components/layout/Sidebar';
 import MobileNavMenu from '@/components/layout/MobileNavMenu';
 import AdminContextBanner from '@/components/admin/AdminContextBanner';
+import PageTransition from '@/components/layout/PageTransition';
 
 // Public pages that don't need auth
 const publicPages = [
