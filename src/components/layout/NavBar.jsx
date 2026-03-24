@@ -57,7 +57,8 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
               {/* Hamburger Menu for Mobile (authenticated users only) */}
               <button
                 onClick={onHamburgerToggle}
-                className="md:hidden p-2 hover:bg-[#151D2B] rounded-lg transition-colors"
+                className="md:hidden p-3 hover:bg-[#151D2B] rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label="Open menu"
               >
                 <Menu className="w-6 h-6 text-[#E8EEF9]" />
               </button>
