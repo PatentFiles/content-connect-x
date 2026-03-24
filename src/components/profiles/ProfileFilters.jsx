@@ -271,38 +271,30 @@ export default function ProfileFilters({ filters, onChange, onReset }) {
                     </div>
 
                     {/* Country */}
-                    <div>
-                      <label className="text-xs text-[#6B7A94] mb-1 block">Country</label>
-                      <select
-                        value={filters.country || ''}
-                        onChange={(e) => {
-                          updateFilter('country', e.target.value);
-                          updateFilter('state', '');
-                          updateFilter('city', '');
-                        }}
-                        className="w-full bg-[#121824] border border-[#263248] rounded-lg px-3 py-2 text-sm text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                      >
-                        <option value="">All Countries</option>
-                        {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                    </div>
+                    <BottomSheetSelect
+                      label="Country"
+                      value={filters.country || ''}
+                      onChange={(val) => {
+                        updateFilter('country', val);
+                        updateFilter('state', '');
+                        updateFilter('city', '');
+                      }}
+                      options={[{ value: '', label: 'All Countries' }, ...COUNTRIES.map(c => ({ value: c, label: c }))]}
+                      placeholder="All Countries"
+                    />
 
                     {/* State — only shown for US */}
                     {(isUS || filters.country === 'United States') && (
-                      <div>
-                        <label className="text-xs text-[#6B7A94] mb-1 block">State (US)</label>
-                        <select
-                          value={filters.state || ''}
-                          onChange={(e) => {
-                            updateFilter('state', e.target.value);
-                            updateFilter('city', '');
-                          }}
-                          className="w-full bg-[#121824] border border-[#263248] rounded-lg px-3 py-2 text-sm text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                        >
-                          <option value="">All States</option>
-                          {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                      </div>
+                      <BottomSheetSelect
+                        label="State (US)"
+                        value={filters.state || ''}
+                        onChange={(val) => {
+                          updateFilter('state', val);
+                          updateFilter('city', '');
+                        }}
+                        options={[{ value: '', label: 'All States' }, ...US_STATES.map(s => ({ value: s, label: s }))]}
+                        placeholder="All States"
+                      />
                     )}
 
                     {/* City — free text */}
