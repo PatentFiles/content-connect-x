@@ -202,6 +202,7 @@ export default function Layout({ children, currentPageName }) {
           />
           <main className={cn(
             "pt-16 md:pl-64 min-h-screen",
+            "pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:pb-0",
             isAdmin && adminRoleView !== 'admin' && "pt-36"
           )}>
             <PageTransition>{children}</PageTransition>
