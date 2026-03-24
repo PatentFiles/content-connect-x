@@ -34,19 +34,12 @@ export function CCTabsList({ tabs, activeTab, onChange, className, children }) {
           key={tab.value}
           onClick={() => onChange(tab.value)}
           className={cn(
-            'relative min-w-0 px-2 py-2 text-xs md:text-sm font-medium rounded-md transition-colors md:flex-1',
+            'relative min-w-0 px-2 py-2 text-xs md:text-sm font-medium rounded-md transition-all duration-200 md:flex-1',
             activeTab === tab.value
-              ? 'text-[#E8EEF9]'
+              ? 'text-[#E8EEF9] bg-[#151D2B]'
               : 'text-[#6B7A94] hover:text-[#9AA6BC]'
           )}
         >
-          {activeTab === tab.value && (
-            <motion.div
-              layoutId={`activeTab-${tab.value}`}
-              className="absolute inset-0 bg-[#151D2B] rounded-md"
-              transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
-            />
-          )}
           <span className="relative z-10 flex items-center justify-center gap-1">
             {tab.icon && <tab.icon className="w-3 h-3 md:w-4 md:h-4 flex-shrink-0" />}
             <span className="leading-tight text-center">{tab.label}</span>
