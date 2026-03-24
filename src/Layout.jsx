@@ -180,51 +180,55 @@ export default function Layout({ children, currentPageName }) {
   if (isAppPage && isAuthenticated) {
     // Main content must clear NavBar (64px) + safe-area-inset-top
     return (
-      <TabNavigatorProvider>
-        <div className="min-h-screen bg-[#0B0F14]">
-          <Toaster position="top-center" theme="dark" />
-          <NavBar 
-            user={user}
-            profile={{...profile, verified: isVerified}}
-            isAuthenticated={isAuthenticated}
-            onMenuToggle={() => setMenuOpen(!menuOpen)}
-            menuOpen={menuOpen}
-            onHamburgerToggle={() => setMobileNavOpen(!mobileNavOpen)}
-          />
-          <MobileNavMenu
-            isOpen={mobileNavOpen}
-            onClose={() => setMobileNavOpen(false)}
-            profile={profile}
-            currentPage={currentPageName}
-            onLogout={handleLogout}
-            adminRoleView={adminRoleView}
-          />
-          {isAdmin && (
-            <AdminContextBanner 
-              currentView={adminRoleView}
-              onReturnToAdmin={() => setAdminRoleView('admin')}
+      <MobileNavProvider>
+        <TabNavigatorProvider>
+          <div className="min-h-screen bg-[#0B0F14]">
+            <Toaster position="top-center" theme="dark" />
+            <NavBar 
+              user={user}
+              profile={{...profile, verified: isVerified}}
+              isAuthenticated={isAuthenticated}
+              onMenuToggle={() => setMenuOpen(!menuOpen)}
+              menuOpen={menuOpen}
+              onHamburgerToggle={() => setMobileNavOpen(!mobileNavOpen)}
             />
-          )}
-          <Sidebar 
-            currentPage={currentPageName}
-            profile={{...profile, verified: isVerified}}
-            onLogout={handleLogout}
-            adminRoleView={adminRoleView}
-            onAdminRoleViewChange={setAdminRoleView}
-          />
-          <main
-            className={cn(
-              "md:pl-64 min-h-screen",
-              "pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:pb-0",
-              isAdmin && adminRoleView !== 'admin' ? "pt-36" : "pt-16"
+            <MobileNavMenu
+              isOpen={mobileNavOpen}
+              onClose={() => setMobileNavOpen(false)}
+              profile={profile}
+              currentPage={currentPageName}
+              onLogout={handleLogout}
+              adminRoleView={adminRoleView}
+            />
+            {isAdmin && (
+              <AdminContextBanner 
+                currentView={adminRoleView}
+                onReturnToAdmin={() => setAdminRoleView('admin')}
+              />
             )}
-            style={{ paddingTop: isAdmin && adminRoleView !== 'admin' ? undefined : 'calc(4rem + env(safe-area-inset-top, 0px))' }}
-          >
-            <PageTransition>{children}</PageTransition>
-          </main>
-          <BottomNav currentPage={currentPageName} />
-        </div>
-      </TabNavigatorProvider>
+            <Sidebar 
+              currentPage={currentPageName}
+              profile={{...profile, verified: isVerified}}
+              onLogout={handleLogout}
+              adminRoleView={adminRoleView}
+              onAdminRoleViewChange={setAdminRoleView}
+            />
+            {/* Per-page dynamic header (back button + title) — mobile only */}
+            <MobileHeader />
+            <main
+              className={cn(
+                "md:pl-64 min-h-screen",
+                "pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:pb-0",
+                isAdmin && adminRoleView !== 'admin' ? "pt-36" : "pt-16"
+              )}
+              style={{ paddingTop: isAdmin && adminRoleView !== 'admin' ? undefined : 'calc(4rem + env(safe-area-inset-top, 0px))' }}
+            >
+              <PageTransition>{children}</PageTransition>
+            </main>
+            <BottomNav currentPage={currentPageName} />
+          </div>
+        </TabNavigatorProvider>
+      </MobileNavProvider>
     );
   }
 
