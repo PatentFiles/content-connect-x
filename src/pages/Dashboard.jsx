@@ -46,8 +46,18 @@ export default function Dashboard() {
     videographer: <VideographerDashboard user={user} profile={profile} />,
   };
 
+  const handleRefresh = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] }),
+      queryClient.invalidateQueries({ queryKey: ['myProfile', user?.email] }),
+      queryClient.invalidateQueries({ queryKey: ['myCollaborations', user?.email] }),
+      queryClient.invalidateQueries({ queryKey: ['myContracts', user?.email] }),
+      queryClient.invalidateQueries({ queryKey: ['myTasks', user?.email] }),
+    ]);
+  };
+
   return (
-    <>
+    <PullToRefresh onRefresh={handleRefresh} className="min-h-screen">
       {/* Onboarding checklist — rendered inside dashboards below */}
       {(autoShowWizard || showWizard) && (
         <ProfileWizard
@@ -61,6 +71,6 @@ export default function Dashboard() {
         onboardingChecklist: <OnboardingChecklist user={user} profile={profile} />,
         onOpenWizard: () => setShowWizard(true),
       })}
-    </>
+    </PullToRefresh>
   );
 }
