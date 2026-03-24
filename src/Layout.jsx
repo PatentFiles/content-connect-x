@@ -177,7 +177,7 @@ export default function Layout({ children, currentPageName }) {
   }
 
   // For app pages, show full layout with sidebar and bottom nav
-  if (isAppPage && isAuthenticated) {
+  if (isAppPage && (isAuthenticated || userLoading)) {
     // Main content must clear NavBar (64px) + safe-area-inset-top
     return (
       <MobileNavProvider>
