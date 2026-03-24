@@ -283,16 +283,18 @@ export default function Collaborations() {
               >
                 Filters
               </CCButton>
-              <select
+              <BottomSheetSelect
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="bg-[#121824] border border-[#263248] rounded-lg px-3 py-2 text-sm text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-              >
-                <option value="created_date">Latest</option>
-                <option value="updated_date">Last Activity</option>
-                <option value="status">Status</option>
-                <option value="name">Name</option>
-              </select>
+                onChange={setSortBy}
+                options={[
+                  { value: 'created_date', label: 'Latest' },
+                  { value: 'updated_date', label: 'Last Activity' },
+                  { value: 'status', label: 'Status' },
+                  { value: 'name', label: 'Name' },
+                ]}
+                placeholder="Sort"
+                className="min-w-[110px]"
+              />
             </div>
 
             {/* Advanced Filters Panel */}
@@ -306,18 +308,19 @@ export default function Collaborations() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs text-[#6B7A94] mb-1">Created By Role</label>
-                    <select
+                    <BottomSheetSelect
                       value={roleFilter}
-                      onChange={(e) => setRoleFilter(e.target.value)}
-                      className="w-full bg-[#0B0F14] border border-[#263248] rounded-lg px-3 py-2 text-sm text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                    >
-                      <option value="all">All Roles</option>
-                      <option value="creator">Creator</option>
-                      <option value="agent">Agent</option>
-                      <option value="studio">Studio</option>
-                      <option value="photographer">Photographer</option>
-                      <option value="videographer">Videographer</option>
-                    </select>
+                      onChange={setRoleFilter}
+                      options={[
+                        { value: 'all', label: 'All Roles' },
+                        { value: 'creator', label: 'Creator' },
+                        { value: 'agent', label: 'Agent' },
+                        { value: 'studio', label: 'Studio' },
+                        { value: 'photographer', label: 'Photographer' },
+                        { value: 'videographer', label: 'Videographer' },
+                      ]}
+                      label="Created By Role"
+                    />
                   </div>
                   <div>
                     <label className="block text-xs text-[#6B7A94] mb-1">Created From</label>
