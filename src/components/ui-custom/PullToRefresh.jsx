@@ -8,7 +8,7 @@ const PULL_THRESHOLD = 72;
  * Pure-CSS pull-to-refresh wrapper. No external package needed.
  * Usage: <PullToRefresh onRefresh={async () => { ... }}>...</PullToRefresh>
  */
-export default function PullToRefresh({ children, onRefresh, className = '' }) {
+export default function PullToRefresh({ children, onRefresh, className = '', scrollable = true }) {
   const [refreshing, setRefreshing] = useState(false);
   const [pulling, setPulling] = useState(false);
   const touchStartY = useRef(0);
@@ -80,7 +80,7 @@ export default function PullToRefresh({ children, onRefresh, className = '' }) {
       <motion.div
         ref={containerRef}
         style={{ y: contentY }}
-        className="h-full overflow-y-auto"
+        className={scrollable ? "h-full overflow-y-auto" : ""}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
