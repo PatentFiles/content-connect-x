@@ -22,6 +22,7 @@ import {
   Flag
 } from 'lucide-react';
 import ReportModal from '@/components/moderation/ReportModal';
+import PullToRefresh from '@/components/ui-custom/PullToRefresh';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCInput from '@/components/ui-custom/CCInput';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
