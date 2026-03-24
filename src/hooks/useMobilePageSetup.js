@@ -1,43 +1,38 @@
 /**
- * useMobilePageSetup — convenience hook to set the MobileHeader title and back action
- * for sub-pages (detail views, settings sub-sections, etc.).
+ * useMobilePageSetup — convenience hook to register a page title and back button
+ * in the global MobileHeader.
  *
  * Usage:
- *   useMobilePageSetup({ title: 'Profile', onBack: () => navigate(-1) });
+ *   useMobilePageSetup({ title: 'Profile Details', onBack: () => navigate(-1) });
  *
  * The hook handles cleanup on unmount automatically.
+ * Safe to call outside MobileNavProvider (no-op in that case).
  */
 
-import { useEffect } from 'react';
+import { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMobileNav } from '@/lib/MobileNavContext';
 
-// Gracefully handle cases where MobileNavContext is not mounted
-// (e.g. public pages that don't use the full layout)
-let _useMobileNav = null;
-try {
-  const ctx = require('@/lib/MobileNavContext');
-  _useMobileNav = ctx.useMobileNav;
-} catch {}
-
-export default function useMobilePageSetup({ title, onBack, rightAction } = {}) {
-  const navigate = useNavigate();
-
+export default function useMobilePageSetup({ title = '', onBack, rightAction } = {}) {
   let mobileNav = null;
   try {
-    if (_useMobileNav) mobileNav = _useMobileNav();
-  } catch {}
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    mobileNav = useMobileNav();
+  } catch {
+    // MobileNavProvider not mounted (e.g. public pages) — silently skip
+  }
 
   useEffect(() => {
     if (!mobileNav) return;
-    if (title)       mobileNav.setTitle(title);
-    if (onBack)      mobileNav.setBackAction(onBack);
-    else if (onBack === null) mobileNav.setBackAction(null); // explicit clear
-    if (rightAction) mobileNav.setRightAction(rightAction);
+    mobileNav.setTitle(title);
+    mobileNav.setBackAction(onBack ?? null);
+    mobileNav.setRightAction(rightAction ?? null);
 
     return () => {
       mobileNav.setTitle('');
       mobileNav.setBackAction(null);
       mobileNav.setRightAction(null);
     };
-  }, [title]); // re-run only when title changes
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title]);
 }
