@@ -18,12 +18,8 @@ Deno.serve(async (req) => {
 
     // Helper: delete all records matching a filter
     async function deleteAll(entityName, filterObj) {
-      try {
-        const records = await svc.entities[entityName].filter(filterObj);
-        await Promise.all(records.map(r => svc.entities[entityName].delete(r.id)));
-      } catch (e) {
-        console.warn(`Failed deleting ${entityName}:`, e.message);
-      }
+      const records = await svc.entities[entityName].filter(filterObj);
+      await Promise.all(records.map(r => svc.entities[entityName].delete(r.id)));
     }
 
     // 1. Profile data

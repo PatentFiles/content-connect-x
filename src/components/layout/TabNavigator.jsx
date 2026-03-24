@@ -122,6 +122,7 @@ export function TabNavigatorProvider({ children }) {
   /**
    * Pop back within the current tab's stack.
    * Falls back to the tab root if stack is empty.
+   * Also supports native browser back (window.history.back).
    */
   const popRoute = useCallback(() => {
     const tab = activeTab;
@@ -137,6 +138,15 @@ export function TabNavigatorProvider({ children }) {
       setTimeout(() => restoreScroll(tab), 80);
     }
   }, [activeTab, navigate, restoreScroll]);
+
+  // Listen to native browser back/forward so direction is set correctly
+  useEffect(() => {
+    const handlePopState = () => {
+      navigationDirection.current = 'back';
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   /**
    * Sync the stack when the location changes externally (e.g. browser back/forward, Link clicks).

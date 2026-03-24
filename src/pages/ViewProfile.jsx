@@ -401,15 +401,15 @@ export default function ViewProfile() {
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F14] via-transparent to-transparent" />
         
         {/* Back Button */}
-        <Link to={createPageUrl('Discovery')}>
-          <CCButton
-            variant="outline"
-            icon={ArrowLeft}
-            className="absolute top-4 left-4 backdrop-blur-sm"
-          >
-            Back
-          </CCButton>
-        </Link>
+        <button
+          onClick={() => window.history.back()}
+          className="absolute left-4 flex items-center gap-1.5 px-3 py-2 rounded-lg bg-black/40 backdrop-blur-sm border border-white/20 text-white text-sm font-medium min-h-[44px] min-w-[44px] transition-opacity active:opacity-70"
+          style={{ top: 'calc(env(safe-area-inset-top, 0px) + 0.5rem)' }}
+          aria-label="Go back"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          <span className="hidden sm:inline">Back</span>
+        </button>
       </div>
 
       {/* Profile Content */}
