@@ -129,9 +129,7 @@ export function TabNavigatorProvider({ children }) {
 }
 
 export function useTabNavigator() {
-  const ctx = useContext(TabNavigatorContext);
-  if (!ctx) throw new Error('useTabNavigator must be used inside TabNavigatorProvider');
-  return ctx;
+  return useContext(TabNavigatorContext); // returns null if outside provider — callers must guard
 }
 
 export default TabNavigatorProvider;
