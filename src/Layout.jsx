@@ -10,6 +10,7 @@ import Sidebar from '@/components/layout/Sidebar';
 import MobileNavMenu from '@/components/layout/MobileNavMenu';
 import AdminContextBanner from '@/components/admin/AdminContextBanner';
 import PageTransition from '@/components/layout/PageTransition';
+import TabNavigatorProvider from '@/components/layout/TabNavigator';
 
 // Public pages that don't need auth
 const publicPages = [
