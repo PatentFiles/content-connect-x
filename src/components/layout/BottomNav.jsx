@@ -24,7 +24,7 @@ export default function BottomNav({ currentPage }) {
   const allNavItems = getNavigationForRole(roleType);
   const navItems = allNavItems.slice(0, 5);
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#0B0F14]/95 backdrop-blur-xl border-t border-[#263248] md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+    <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#0B0F14]/95 backdrop-blur-xl border-t border-[#263248] md:hidden fixed-bottom-nav">
       <div className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
           const isActive = currentPage === item.path;
