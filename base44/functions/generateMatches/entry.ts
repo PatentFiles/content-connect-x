@@ -9,6 +9,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // BAN CHECK
+    try {
+      const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: user.email });
+      const profile = profiles[0];
+      if (profile?.banned === true || profile?.suspended === true) {
+        await base44.asServiceRole.entities.AdminActionLog.create({
+          admin_id: 'SYSTEM_BAN_ENFORCEMENT', action_type: 'blocked_action_attempt',
+          target_user_id: user.email,
+          details: { action_attempted: 'generate_matches', block_reason: profile?.banned ? 'banned' : 'suspended', timestamp: new Date().toISOString() },
+          reason: `Blocked ${profile?.banned ? 'banned' : 'suspended'} user from: generate_matches`
+        });
+        return Response.json({ error: 'Account is blocked', code: profile?.banned ? 'banned' : 'suspended', blocked: true }, { status: 403 });
+      }
+    } catch (e) { return Response.json({ error: 'Unable to verify account status', blocked: true }, { status: 403 }); }
+
     const { source_type, source_id, limit = 10 } = await req.json();
 
     // Fetch source data
