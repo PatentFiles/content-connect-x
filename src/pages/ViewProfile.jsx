@@ -89,8 +89,9 @@ export default function ViewProfile() {
     enabled: !!user?.email,
   });
 
-  const isVerified = verification?.[0]?.status === 'approved';
-  const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
+  const isAdmin = myProfile?.is_admin || user?.role === 'admin';
+  const isVerified = isAdmin || verification?.[0]?.status === 'approved';
+  const isSubscribed = isAdmin || subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
   // Fetch current viewer's own profile for display name
   const { data: myProfiles = [] } = useQuery({
