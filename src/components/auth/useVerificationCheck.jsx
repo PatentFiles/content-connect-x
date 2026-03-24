@@ -21,9 +21,18 @@ export function useVerificationCheck(action) {
 
   const profile = profiles[0];
   const isAdmin = profile?.is_admin;
+  const isBanned = profile?.banned === true;
+  const isSuspended = profile?.suspended === true;
   const isVerified = isAdmin || verifications.some(v => v.status === 'approved');
   const checking = isLoading;
-  const blocked = !isVerified;
+  const blocked = !isVerified || isBanned || isSuspended;
+  const blockReason = isBanned ? 'banned' : isSuspended ? 'suspended' : null;
 
-  return { checking, blocked, verificationStatus: { blocked, is_admin: isAdmin } };
+  return {
+    checking,
+    blocked,
+    blockReason,
+    suspensionReason: profile?.suspension_reason,
+    verificationStatus: { blocked, is_admin: isAdmin, banned: isBanned, suspended: isSuspended }
+  };
 }

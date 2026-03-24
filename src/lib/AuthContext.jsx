@@ -12,6 +12,7 @@ export const AuthProvider = ({ children }) => {
   const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(true);
   const [authError, setAuthError] = useState(null);
   const [appPublicSettings, setAppPublicSettings] = useState(null); // Contains only { id, public_settings }
+  const [blockStatus, setBlockStatus] = useState(null); // { reason: 'banned'|'suspended', suspensionReason: string }
 
   useEffect(() => {
     checkAppState();
@@ -93,6 +94,30 @@ export const AuthProvider = ({ children }) => {
       setIsLoadingAuth(true);
       const currentUser = await base44.auth.me();
       setUser(currentUser);
+      
+      // Check if user is banned or suspended
+      try {
+        const profiles = await base44.entities.UserProfile.filter({ user_id: currentUser.email });
+        const profile = profiles[0];
+        
+        if (profile?.banned) {
+          setBlockStatus({ reason: 'banned', suspensionReason: null });
+          setIsAuthenticated(false);
+          setIsLoadingAuth(false);
+          return;
+        }
+        
+        if (profile?.suspended) {
+          setBlockStatus({ reason: 'suspended', suspensionReason: profile?.suspension_reason });
+          setIsAuthenticated(false);
+          setIsLoadingAuth(false);
+          return;
+        }
+      } catch (profileError) {
+        console.error('Failed to fetch user profile:', profileError);
+      }
+      
+      setBlockStatus(null);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
     } catch (error) {
@@ -135,6 +160,7 @@ export const AuthProvider = ({ children }) => {
       isLoadingAuth,
       isLoadingPublicSettings,
       authError,
+      blockStatus,
       appPublicSettings,
       logout,
       navigateToLogin,
