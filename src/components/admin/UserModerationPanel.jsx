@@ -290,6 +290,8 @@ export default function UserModerationPanel({ currentAdmin }) {
                       {userSubscription?.status === 'active' && (
                         <CCBadge variant="primary" size="sm">{userSubscription.plan_id}</CCBadge>
                       )}
+                      {profile.banned && <CCBadge variant="danger" size="sm">BANNED</CCBadge>}
+                      {profile.suspended && !profile.banned && <CCBadge variant="warning" size="sm">SUSPENDED</CCBadge>}
                     </div>
                     <p className="text-xs text-[#6B7A94]">{profile.user_id}</p>
                   </div>
