@@ -13,6 +13,7 @@ import PullToRefresh from '../components/ui-custom/PullToRefresh';
 
 export default function Dashboard() {
   const [showWizard, setShowWizard] = useState(false);
+  const [wizardDismissed, setWizardDismissed] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: user, isLoading: userLoading } = useQuery({
@@ -33,9 +34,7 @@ export default function Dashboard() {
   const profile = profiles[0];
   const roleType = profile?.role_type || 'creator';
 
-  // Show wizard automatically for new users who haven't completed their profile
   const shouldShowWizard = profile && !profile.profile_complete && !showWizard;
-  const [wizardDismissed, setWizardDismissed] = useState(false);
   const autoShowWizard = shouldShowWizard && !wizardDismissed;
 
   const dashboards = {
