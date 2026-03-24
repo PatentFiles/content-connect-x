@@ -239,6 +239,13 @@ export default function Profile() {
     enabled: !!user?.email,
   });
 
+  // Fetch user settings for comment policy
+  const { data: userSettingsArr = [] } = useQuery({
+    queryKey: ['userSettings', user?.email],
+    queryFn: () => base44.entities.UserSettings.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+
   // Update profile mutation
   const updateProfileMutation = useMutation({
     mutationFn: async (data) => {
