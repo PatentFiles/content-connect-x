@@ -369,11 +369,12 @@ export default function Profile() {
     setCustomValues({...customValues, [field]: ''});
   };
 
+  // ── All hooks above this line ── early returns below are safe ──
+  const userSettings = userSettingsArr[0];
+
   if (userLoading || profileLoading) {
     return <CCLoadingScreen message="Loading profile..." />;
   }
-
-  const userSettings = userSettingsArr[0];
   const commentPolicy = userSettings?.privacy?.gallery_comment_policy || 'everyone';
 
   const tabs = [
