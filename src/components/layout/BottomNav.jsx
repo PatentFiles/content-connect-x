@@ -36,7 +36,13 @@ export default function BottomNav({ currentPage }) {
           return (
             <button
               key={item.path}
-              onClick={() => switchTab ? switchTab(`/${item.path}`) : (window.location.href = dest)}
+              onClick={() => {
+                if (switchTab) {
+                  switchTab(`/${item.path}`);
+                } else {
+                  window.location.href = dest;
+                }
+              }}
               className={cn(
                 'relative flex flex-col items-center justify-center flex-1 h-full gap-1',
                 'transition-colors duration-200 min-h-[44px] min-w-[44px]',
