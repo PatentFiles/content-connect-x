@@ -92,7 +92,7 @@ export function BottomSheetItem({ onClick, icon: Icon, label, variant = 'default
         disabled && 'opacity-40 pointer-events-none'
       )}
     >
-      {Icon && <Icon className="w-5 h-5 flex-shrink-0" />}
+      {Icon && React.createElement(Icon, { className: 'w-5 h-5 flex-shrink-0' })}
       <span>{label}</span>
     </button>
   );
