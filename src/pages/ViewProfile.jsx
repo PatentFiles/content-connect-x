@@ -69,6 +69,9 @@ const roleIcons = {
 export default function ViewProfile() {
   const urlParams = new URLSearchParams(window.location.search);
   const profileUserId = urlParams.get('id');
+
+  // Register mobile header back button
+  useMobilePageSetup({ title: 'Profile', onBack: () => window.history.back() });
   
   const { checking: verificationChecking, blocked: verificationBlocked } = useVerificationCheck('view_profile');
 
