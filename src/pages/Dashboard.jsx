@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CreatorDashboard from '../components/dashboards/CreatorDashboard';
 import AgentDashboard from '../components/dashboards/AgentDashboard';
@@ -9,9 +9,11 @@ import PhotographerDashboard from '../components/dashboards/PhotographerDashboar
 import VideographerDashboard from '../components/dashboards/VideographerDashboard';
 import ProfileWizard from '../components/profile/ProfileWizard';
 import OnboardingChecklist from '../components/onboarding/OnboardingChecklist';
+import PullToRefresh from '../components/ui-custom/PullToRefresh';
 
 export default function Dashboard() {
   const [showWizard, setShowWizard] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
