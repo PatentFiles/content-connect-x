@@ -32,9 +32,13 @@ export default function NavigationTracker() {
         }
 
         if (isAuthenticated && pageName) {
-            base44.appLogs.logUserInApp(pageName).catch(() => {
+            try {
+                if (base44.appLogs?.logUserInApp) {
+                    base44.appLogs.logUserInApp(pageName).catch(() => {});
+                }
+            } catch (_) {
                 // Silently fail - logging shouldn't break the app
-            });
+            }
         }
     }, [location, isAuthenticated, Pages, mainPageKey]);
 
