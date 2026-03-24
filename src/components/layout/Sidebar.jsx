@@ -62,7 +62,10 @@ export default function Sidebar({ currentPage, profile, onLogout, adminRoleView,
     return total + unread;
   }, 0);
   return (
-    <aside className="hidden md:flex fixed left-0 top-16 bottom-0 w-64 bg-[#121824] border-r border-[#263248] flex-col">
+    <aside
+      className="hidden md:flex fixed left-0 bottom-0 w-64 bg-[#121824] border-r border-[#263248] flex-col"
+      style={{ top: 'calc(4rem + env(safe-area-inset-top, 0px))' }}
+    >
       {/* Profile Section */}
       {profile && (
         <div className="p-4 border-b border-[#263248]">
