@@ -318,17 +318,29 @@ html, body {
    TOUCH TARGETS — Apple HIG / Google Material
    minimum 44×44px for all interactive elements
    ============================================ */
+/* Buttons and explicit roles always get 44px */
 button,
-a,
 [role="button"],
 [role="tab"],
 [role="menuitem"],
-[role="option"],
-input[type="checkbox"],
-input[type="radio"],
-select {
+[role="option"] {
   min-height: 44px;
-  min-width: 44px;
+}
+
+/* Block-level links (nav, cards) get 44px; inline text links are excluded */
+a:not(:where(p a, span a, li a, td a, .inline-link)) {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Checkboxes and radios use expanded hit areas via padding instead */
+input[type="checkbox"],
+input[type="radio"] {
+  min-width: 20px;
+  min-height: 20px;
+  padding: 12px;
+  margin: -12px;
 }
 
 /* Inline / icon-only elements that intentionally
