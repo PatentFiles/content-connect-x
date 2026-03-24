@@ -132,7 +132,9 @@ export default function Settings() {
     updateSettingsMutation.mutate(updated);
   };
 
-  if (isLoading) {
+  const profileLoading = !user || profile === undefined;
+
+  if (isLoading || profileLoading) {
     return <CCLoadingScreen message="Loading settings..." />;
   }
 
