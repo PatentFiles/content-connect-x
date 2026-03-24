@@ -355,19 +355,6 @@ export default function Settings() {
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
         userEmail={user?.email}
-        onConfirm={async () => {
-          // Soft delete: flag profile as deleted and log out
-          if (currentProfile?.id) {
-            await base44.entities.UserProfile.update(currentProfile.id, { 
-              display_name: '[Deleted User]',
-              bio: '',
-              avatar_url: '',
-              profile_complete: false,
-            });
-          }
-          toast.success('Account marked for deletion. Logging out...');
-          setTimeout(() => base44.auth.logout(), 2000);
-        }}
       />
     </div>
   );
