@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import ReportModal from '@/components/moderation/ReportModal';
 import PullToRefresh from '@/components/ui-custom/PullToRefresh';
+import { useProtectedMutation, revalidateBanStatus } from '@/hooks/useProtectedMutation';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCInput from '@/components/ui-custom/CCInput';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
@@ -68,6 +69,7 @@ export default function Messages() {
   }, [user?.email]);
   
   const { checking: verificationChecking, blocked: verificationBlocked } = useVerificationCheck('send_message');
+  const { protectedMutate } = useProtectedMutation();
 
   // Check auth and access
   const { data: user, isLoading: userLoading } = useQuery({
@@ -167,34 +169,43 @@ export default function Messages() {
     markAsRead();
   }, [selectedConversation?.id, messages.length]);
 
-  // Send message mutation
+  // Send message mutation — routes through protected backend (ban-enforced)
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData) => {
-      const message = await base44.entities.Message.create(messageData);
-      
-      // Track that this participant has replied
+      // Re-validate ban status before sending (closes stale-session bypass)
+      const banStatus = await revalidateBanStatus(user?.email);
+      if (!banStatus.allowed) {
+        throw new Error('BLOCKED:' + banStatus.reason);
+      }
+
+      const result = await base44.functions.invoke('protectedActions', {
+        conversation_id: messageData.conversation_id,
+        body: messageData.body,
+        attachments: messageData.attachments || []
+      }, { queryParams: { action: 'send_message' } });
+
+      if (result?.data?.blocked) {
+        throw new Error('BLOCKED:' + (result.data.code || 'blocked'));
+      }
+
+      // Also update conversation participant tracking and send notifications client-side
       const currentRepliers = selectedConversation.participants_who_replied || [];
-      const newRepliers = currentRepliers.includes(user.email) 
-        ? currentRepliers 
+      const newRepliers = currentRepliers.includes(user.email)
+        ? currentRepliers
         : [...currentRepliers, user.email];
-      
+
       await base44.entities.Conversation.update(selectedConversation.id, {
-        last_message_at: new Date().toISOString(),
-        last_message_preview: messageData.body.substring(0, 50),
         participants_who_replied: newRepliers
       });
 
-      // Send notification to recipient(s)
+      // Send notification to recipient(s) — non-critical, don't throw on failure
       const recipients = selectedConversation.participant_ids.filter(id => id !== user.email);
-      
       for (const recipientId of recipients) {
         try {
           const prefs = await base44.entities.NotificationPreference.filter({
-            user_id: recipientId,
-            notification_type: 'messages'
+            user_id: recipientId, notification_type: 'messages'
           });
           const shouldNotify = !prefs.length || prefs[0].enabled !== false;
-
           if (shouldNotify) {
             await base44.entities.Notification.create({
               user_id: recipientId,
@@ -207,18 +218,21 @@ export default function Messages() {
               action_url: `Messages?conversation=${selectedConversation.id}`
             });
           }
-        } catch (error) {
-          console.error('Failed to send notification:', error);
-        }
+        } catch (e) { console.error('Notification error:', e); }
       }
 
-      return message;
+      return result?.data?.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['messages', selectedConversation?.id]);
       queryClient.invalidateQueries(['conversations']);
       setNewMessage('');
     },
+    onError: (error) => {
+      if (error.message?.startsWith('BLOCKED:')) {
+        toast.error('Your account is blocked. You cannot send messages.');
+      }
+    }
   });
 
   // Delete message mutation
@@ -288,13 +302,17 @@ export default function Messages() {
     },
   });
 
-  // Block user
+  // Block user — routes through protected backend (ban-enforced)
   const blockUserMutation = useMutation({
     mutationFn: async (targetUserId) => {
-      await base44.entities.BlockedUser.create({
-        blocker_id: user.email,
-        blocked_id: targetUserId,
-      });
+      const banStatus = await revalidateBanStatus(user?.email);
+      if (!banStatus.allowed) throw new Error('BLOCKED:' + banStatus.reason);
+
+      const result = await base44.functions.invoke('protectedActions', {
+        blocked_id: targetUserId
+      }, { queryParams: { action: 'block_user' } });
+
+      if (result?.data?.blocked) throw new Error('BLOCKED:' + (result.data.code || 'blocked'));
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['conversations']);
@@ -302,6 +320,9 @@ export default function Messages() {
       setShowConversationMenu(false);
       toast.success('User blocked');
     },
+    onError: (error) => {
+      if (error.message?.startsWith('BLOCKED:')) toast.error('Your account is blocked.');
+    }
   });
 
   // Scroll to bottom when messages change
