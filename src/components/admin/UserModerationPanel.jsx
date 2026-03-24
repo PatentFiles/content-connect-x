@@ -150,11 +150,23 @@ export default function UserModerationPanel({ currentAdmin }) {
       toast.error('Reason is required');
       return;
     }
+
+    // Determine profile update based on action
+    let updateData = null;
+    if (actionType === 'ban_account') {
+      updateData = { banned: true, suspended: false, suspension_reason: actionReason };
+    } else if (actionType === 'suspend_account') {
+      updateData = { suspended: true, banned: false, suspension_reason: actionReason };
+    } else if (actionType === 'unsuspend_account') {
+      updateData = { suspended: false, banned: false, suspension_reason: null };
+    }
+
     adminActionMutation.mutate({
       action: actionType,
       userId: selectedUser.user_id,
       reason: actionReason,
-      notes: actionNotes
+      notes: actionNotes,
+      updateData
     });
   };
 

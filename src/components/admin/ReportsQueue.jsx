@@ -69,6 +69,7 @@ export default function ReportsQueue({ currentAdmin }) {
       if (profile) {
         await base44.entities.UserProfile.update(profile.id, { 
           suspended: true,
+          banned: false,
           suspension_reason: reason 
         });
       }
