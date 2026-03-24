@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
+import useMobilePageSetup from '@/hooks/useMobilePageSetup';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
@@ -34,6 +35,8 @@ export default function CollaborationDetail() {
   const [searchParams] = useSearchParams();
   const collaborationId = searchParams.get('id');
   const [activeTab, setActiveTab] = useState('tasks');
+
+  useMobilePageSetup({ title: 'Collaboration', onBack: () => window.history.back() });
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
