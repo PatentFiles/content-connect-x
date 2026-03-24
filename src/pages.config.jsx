@@ -1,5 +1,5 @@
 /**
- * pages.config.js — Code-split page registry.
+ * pages.config.jsx — Code-split page registry.
  * Every page is lazy-loaded via React.lazy() so each route is a
  * separate JS chunk, reducing the initial bundle size significantly.
  */
