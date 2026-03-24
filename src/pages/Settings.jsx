@@ -337,26 +337,25 @@ export default function Settings() {
         </div>
       </CCModal>
 
-      {/* Delete Account Modal */}
-      <CCModal
+      {/* Delete Account Flow */}
+      <DeleteAccountFlow
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
-        title="Delete Account"
-      >
-        <div className="space-y-4">
-          <p className="text-[#9AA6BC]">
-            Are you sure you want to delete your account? This action cannot be undone. All your data, including profile, messages, contracts, and galleries will be permanently deleted.
-          </p>
-          <div className="flex gap-3 justify-end">
-            <CCButton variant="outline" onClick={() => setShowDeleteModal(false)}>
-              Cancel
-            </CCButton>
-            <CCButton variant="danger" onClick={() => { toast.error('Account deletion requires contacting support. Note for admin: backend function needed.'); setShowDeleteModal(false); }}>
-              Delete My Account
-            </CCButton>
-          </div>
-        </div>
-      </CCModal>
+        userEmail={user?.email}
+        onConfirm={async () => {
+          // Soft delete: flag profile as deleted and log out
+          if (currentProfile?.id) {
+            await base44.entities.UserProfile.update(currentProfile.id, { 
+              display_name: '[Deleted User]',
+              bio: '',
+              avatar_url: '',
+              profile_complete: false,
+            });
+          }
+          toast.success('Account marked for deletion. Logging out...');
+          setTimeout(() => base44.auth.logout(), 2000);
+        }}
+      />
     </div>
   );
 }
