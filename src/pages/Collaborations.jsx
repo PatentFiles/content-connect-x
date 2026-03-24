@@ -234,7 +234,7 @@ export default function Collaborations() {
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Header */}
-      <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
+      <div className="sticky z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]" style={{ top: 'calc(4rem + env(safe-area-inset-top, 0px))' }}>
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
             <div className="text-center md:text-left flex-1">
