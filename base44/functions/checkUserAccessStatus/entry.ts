@@ -1,9 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
 /**
- * Backend guard: call this to verify a user is not banned or suspended.
- * Returns { allowed: true } or { allowed: false, reason, suspensionReason }
- * Can be invoked by other backend functions or called directly from frontend.
+ * Backend guard: verify a user is not banned or suspended.
+ * Uses service role so it cannot be spoofed.
+ * Returns { allowed: true } or { allowed: false, reason, message }
  */
 Deno.serve(async (req) => {
   try {
@@ -14,34 +14,55 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const profiles = await base44.entities.UserProfile.filter({ user_id: user.email });
+    // Use service role to fetch profile (cannot be spoofed by user)
+    const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: user.email });
     const profile = profiles[0];
 
     if (!profile) {
-      // No profile yet — allow (new user)
       return Response.json({ allowed: true });
     }
 
     if (profile.banned === true) {
+      // Log the access attempt
+      try {
+        await base44.asServiceRole.entities.AdminActionLog.create({
+          admin_id: 'SYSTEM_BAN_ENFORCEMENT',
+          action_type: 'blocked_access_check',
+          target_user_id: user.email,
+          details: { block_reason: 'banned', timestamp: new Date().toISOString() },
+          reason: 'Blocked banned user from access check'
+        });
+      } catch (e) {}
+
       return Response.json({
         allowed: false,
         reason: 'banned',
-        suspensionReason: null,
         message: 'Your account has been permanently banned.'
       }, { status: 403 });
     }
 
     if (profile.suspended === true) {
+      try {
+        await base44.asServiceRole.entities.AdminActionLog.create({
+          admin_id: 'SYSTEM_BAN_ENFORCEMENT',
+          action_type: 'blocked_access_check',
+          target_user_id: user.email,
+          details: { block_reason: 'suspended', timestamp: new Date().toISOString() },
+          reason: 'Blocked suspended user from access check'
+        });
+      } catch (e) {}
+
       return Response.json({
         allowed: false,
         reason: 'suspended',
         suspensionReason: profile.suspension_reason || null,
-        message: `Your account has been suspended. Reason: ${profile.suspension_reason || 'Policy violation.'}`
+        message: `Your account has been suspended. ${profile.suspension_reason ? `Reason: ${profile.suspension_reason}` : 'Contact support.'}`
       }, { status: 403 });
     }
 
     return Response.json({ allowed: true });
   } catch (error) {
-    return Response.json({ error: error.message }, { status: 500 });
+    // Fail secure: if we cannot verify, deny access
+    return Response.json({ error: error.message, allowed: false }, { status: 500 });
   }
 });
