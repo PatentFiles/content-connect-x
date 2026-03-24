@@ -18,6 +18,34 @@ export const AuthProvider = ({ children }) => {
     checkAppState();
   }, []);
 
+  // REAL-TIME BAN POLLING: Re-check every 60 seconds while session is active.
+  // This closes the stale-session bypass where a user is banned mid-session.
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const currentUser = await base44.auth.me().catch(() => null);
+        if (!currentUser?.email) return;
+
+        const profiles = await base44.entities.UserProfile.filter({ user_id: currentUser.email });
+        const profile = profiles[0];
+
+        if (profile?.banned === true) {
+          setBlockStatus({ reason: 'banned', suspensionReason: null });
+          setIsAuthenticated(false);
+        } else if (profile?.suspended === true) {
+          setBlockStatus({ reason: 'suspended', suspensionReason: profile?.suspension_reason });
+          setIsAuthenticated(false);
+        }
+      } catch (e) {
+        // Silently ignore poll errors — don't disrupt the session
+      }
+    }, 60000); // every 60 seconds
+
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
+
   const checkAppState = async () => {
     try {
       setIsLoadingPublicSettings(true);
