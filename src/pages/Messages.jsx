@@ -417,7 +417,10 @@ export default function Messages() {
           </div>
 
           {/* Conversation List */}
-          <div className="flex-1 overflow-y-auto">
+          <PullToRefresh
+            className="flex-1"
+            onRefresh={() => queryClient.invalidateQueries(['conversations', user?.email])}
+          >
             {conversationsLoading ? (
               <div className="p-4 space-y-3">
                 {[1, 2, 3].map(i => (
@@ -499,7 +502,7 @@ export default function Messages() {
                 })}
               </div>
             )}
-          </div>
+          </PullToRefresh>
         </div>
 
         {/* Chat Area */}
