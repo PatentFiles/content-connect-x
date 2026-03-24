@@ -158,7 +158,7 @@ export default function Layout({ children, currentPageName }) {
           adminRoleView={adminRoleView}
         />
         <main>
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
       </div>
     );
@@ -202,7 +202,7 @@ export default function Layout({ children, currentPageName }) {
           "pt-16 md:pl-64 min-h-screen",
           isAdmin && adminRoleView !== 'admin' && "pt-36"
         )}>
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
         <BottomNav currentPage={currentPageName} />
       </div>
@@ -230,7 +230,7 @@ export default function Layout({ children, currentPageName }) {
         adminRoleView={adminRoleView}
       />
       <main className="pt-16">
-        {children}
+        <PageTransition>{children}</PageTransition>
       </main>
     </div>
   );
