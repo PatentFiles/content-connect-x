@@ -246,14 +246,14 @@ export default function Profile() {
     enabled: !!user?.email,
   });
 
-  // Update profile mutation — all hooks must be declared unconditionally before any early return
+  // Update profile mutation — routes through protected backend
   const updateProfileMutation = useMutation({
     mutationFn: async (data) => {
-      if (profile) {
-        return base44.entities.UserProfile.update(profile.id, data);
-      } else {
-        return base44.entities.UserProfile.create({ ...data, user_id: user.email });
-      }
+      const res = await base44.functions.invoke('protectedProfileActions', {
+        action: 'updateProfile',
+        payload: { profileId: profile?.id, data }
+      });
+      return res.data;
     },
     onMutate: async (data) => {
       await queryClient.cancelQueries({ queryKey: ['myProfile', user?.email] });
@@ -272,14 +272,14 @@ export default function Profile() {
     },
   });
 
-  // Update creator details mutation
+  // Update creator details mutation — routes through protected backend
   const updateDetailsMutation = useMutation({
     mutationFn: async (data) => {
-      if (details) {
-        return base44.entities.CreatorDetails.update(details.id, data);
-      } else {
-        return base44.entities.CreatorDetails.create({ ...data, user_id: user.email });
-      }
+      const res = await base44.functions.invoke('protectedProfileActions', {
+        action: 'updateCreatorDetails',
+        payload: { detailsId: details?.id, data }
+      });
+      return res.data;
     },
     onMutate: async (data) => {
       await queryClient.cancelQueries({ queryKey: ['myCreatorDetails', user?.email] });
@@ -1464,13 +1464,14 @@ export default function Profile() {
                     }
                     
                     if (publicGallery) {
-                      await base44.entities.Gallery.update(publicGallery.id, { items });
+                      await base44.functions.invoke('protectedProfileActions', {
+                        action: 'updateGallery',
+                        payload: { galleryId: publicGallery.id, data: { items } }
+                      });
                     } else {
-                      await base44.entities.Gallery.create({
-                        user_id: user.email,
-                        type: 'public',
-                        name: 'Public Gallery',
-                        items
+                      await base44.functions.invoke('protectedProfileActions', {
+                        action: 'updateGallery',
+                        payload: { galleryId: null, data: { user_id: user.email, type: 'public', name: 'Public Gallery', items } }
                       });
                     }
                     queryClient.invalidateQueries(['myGalleries']);
@@ -1484,7 +1485,10 @@ export default function Profile() {
                 onImageClick={(i) => setLightbox({ galleryType: 'public', index: i })}
                 onReorder={async (reordered) => {
                   const gallery = galleries.find(g => g.type === 'public');
-                  await base44.entities.Gallery.update(gallery.id, { items: reordered });
+                  await base44.functions.invoke('protectedProfileActions', {
+                    action: 'updateGallery',
+                    payload: { galleryId: gallery.id, data: { items: reordered } }
+                  });
                   queryClient.invalidateQueries(['myGalleries']);
                 }}
                 onUpload={async (files) => {
@@ -1495,9 +1499,15 @@ export default function Profile() {
                     items.push({ id: Date.now().toString(), url: file_url, type: file.type.startsWith('video') ? 'video' : 'image', order: items.length });
                   }
                   if (publicGallery) {
-                    await base44.entities.Gallery.update(publicGallery.id, { items });
+                    await base44.functions.invoke('protectedProfileActions', {
+                      action: 'updateGallery',
+                      payload: { galleryId: publicGallery.id, data: { items } }
+                    });
                   } else {
-                    await base44.entities.Gallery.create({ user_id: user.email, type: 'public', name: 'Public Gallery', items });
+                    await base44.functions.invoke('protectedProfileActions', {
+                      action: 'updateGallery',
+                      payload: { galleryId: null, data: { user_id: user.email, type: 'public', name: 'Public Gallery', items } }
+                    });
                   }
                   queryClient.invalidateQueries(['myGalleries']);
                 }}
@@ -1540,13 +1550,14 @@ export default function Profile() {
                     }
                     
                     if (privateGallery) {
-                      await base44.entities.Gallery.update(privateGallery.id, { items });
+                      await base44.functions.invoke('protectedProfileActions', {
+                        action: 'updateGallery',
+                        payload: { galleryId: privateGallery.id, data: { items } }
+                      });
                     } else {
-                      await base44.entities.Gallery.create({
-                        user_id: user.email,
-                        type: 'private',
-                        name: 'Private Gallery',
-                        items
+                      await base44.functions.invoke('protectedProfileActions', {
+                        action: 'updateGallery',
+                        payload: { galleryId: null, data: { user_id: user.email, type: 'private', name: 'Private Gallery', items } }
                       });
                     }
                     queryClient.invalidateQueries(['myGalleries']);
@@ -1560,7 +1571,10 @@ export default function Profile() {
                 onImageClick={(i) => setLightbox({ galleryType: 'private', index: i })}
                 onReorder={async (reordered) => {
                   const gallery = galleries.find(g => g.type === 'private');
-                  await base44.entities.Gallery.update(gallery.id, { items: reordered });
+                  await base44.functions.invoke('protectedProfileActions', {
+                    action: 'updateGallery',
+                    payload: { galleryId: gallery.id, data: { items: reordered } }
+                  });
                   queryClient.invalidateQueries(['myGalleries']);
                 }}
                 onUpload={async (files) => {
@@ -1571,9 +1585,15 @@ export default function Profile() {
                     items.push({ id: Date.now().toString(), url: file_url, type: file.type.startsWith('video') ? 'video' : 'image', order: items.length });
                   }
                   if (privateGallery) {
-                    await base44.entities.Gallery.update(privateGallery.id, { items });
+                    await base44.functions.invoke('protectedProfileActions', {
+                      action: 'updateGallery',
+                      payload: { galleryId: privateGallery.id, data: { items } }
+                    });
                   } else {
-                    await base44.entities.Gallery.create({ user_id: user.email, type: 'private', name: 'Private Gallery', items });
+                    await base44.functions.invoke('protectedProfileActions', {
+                      action: 'updateGallery',
+                      payload: { galleryId: null, data: { user_id: user.email, type: 'private', name: 'Private Gallery', items } }
+                    });
                   }
                   queryClient.invalidateQueries(['myGalleries']);
                 }}
@@ -1617,13 +1637,16 @@ export default function Profile() {
               </button>
               <button
                 onClick={async () => {
-                  const gallery = galleries.find(g => g.type === deleteConfirm.galleryType);
-                  const updated = gallery.items.filter((_, idx) => idx !== deleteConfirm.index);
-                  await base44.entities.Gallery.update(gallery.id, { items: updated });
-                  queryClient.invalidateQueries(['myGalleries']);
-                  setDeleteConfirm(null);
-                  setDeleteSuccessModal(true);
-                }}
+                   const gallery = galleries.find(g => g.type === deleteConfirm.galleryType);
+                   const updated = gallery.items.filter((_, idx) => idx !== deleteConfirm.index);
+                   await base44.functions.invoke('protectedProfileActions', {
+                     action: 'updateGallery',
+                     payload: { galleryId: gallery.id, data: { items: updated } }
+                   });
+                   queryClient.invalidateQueries(['myGalleries']);
+                   setDeleteConfirm(null);
+                   setDeleteSuccessModal(true);
+                 }}
                 className="flex-1 py-2 bg-[#EF4444] hover:bg-[#DC2626] text-white rounded-lg font-medium transition-colors"
               >
                 Delete
