@@ -167,6 +167,7 @@ export default function Layout({ children, currentPageName }) {
 
   // For app pages, show full layout with sidebar and bottom nav
   if (isAppPage && isAuthenticated) {
+    // Main content must clear NavBar (64px) + safe-area-inset-top
     return (
       <TabNavigatorProvider>
         <div className="min-h-screen bg-[#0B0F14]">
