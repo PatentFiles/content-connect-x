@@ -95,8 +95,9 @@ export default function Discovery() {
 
   const { data: allVerifications = [] } = useQuery({
     queryKey: ['allVerifications'],
-    queryFn: () => base44.entities.VerificationRecord.list(),
+    queryFn: () => base44.entities.VerificationRecord.list('-created_date', 1000),
     enabled: !!user,
+    staleTime: 10 * 60 * 1000,
   });
 
   const { data: allTestingCredentials = [] } = useQuery({
@@ -131,16 +132,18 @@ export default function Discovery() {
   const { data: allProfiles = [], isLoading: profilesLoading } = useQuery({
     queryKey: ['allProfiles'],
     queryFn: async () => {
-      let profiles = await base44.entities.UserProfile.filter({ profile_complete: true });
-      return profiles.filter(p => p.user_id !== user?.email && p.role_type !== 'admin');
+      let profiles = await base44.entities.UserProfile.list();
+      return profiles.filter(p => p.user_id !== user?.email && p.role_type !== 'admin' && p.profile_complete);
     },
     enabled: !!user && isVerified && isSubscribed,
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: allCreatorDetails = [] } = useQuery({
     queryKey: ['allCreatorDetails'],
-    queryFn: () => base44.entities.CreatorDetails.list(),
+    queryFn: () => base44.entities.CreatorDetails.list('-updated_date', 500),
     enabled: !!user && isVerified && isSubscribed,
+    staleTime: 10 * 60 * 1000,
   });
 
   // Fetch representation data for creators
@@ -160,14 +163,16 @@ export default function Discovery() {
   // Fetch agent details for marketplace
   const { data: allAgentDetails = [] } = useQuery({
     queryKey: ['allAgentDetails'],
-    queryFn: () => base44.entities.AgentDetails.list(),
+    queryFn: () => base44.entities.AgentDetails.list('-updated_date', 200),
     enabled: !!user && isVerified && isSubscribed && selectedRole === 'agent',
+    staleTime: 10 * 60 * 1000,
   });
 
   const { data: allStudioRosters = [] } = useQuery({
     queryKey: ['allStudioRosters'],
-    queryFn: () => base44.entities.StudioRoster.filter({ status: 'ACTIVE' }),
+    queryFn: () => base44.entities.StudioRoster.filter({ status: 'ACTIVE' }, '-updated_date', 200),
     enabled: !!user && isVerified && isSubscribed,
+    staleTime: 10 * 60 * 1000,
   });
 
   // Fetch favorites
@@ -615,6 +620,7 @@ export default function Discovery() {
                 })}
                </div>
                )}
+               </div>
                </div>
                </div>
                </div>

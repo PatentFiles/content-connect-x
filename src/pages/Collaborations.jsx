@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -80,25 +80,32 @@ export default function Collaborations() {
   const isVerified = verification?.[0]?.status === 'approved';
   const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
-  // Fetch collaborations
+  // Fetch collaborations - only for current user
   const { data: collaborations = [], isLoading: collaborationsLoading } = useQuery({
     queryKey: ['collaborations', user?.email],
     queryFn: async () => {
-      const allCollaborations = await base44.entities.Collaboration.list('-created_date');
+      const allCollaborations = await base44.entities.Collaboration.list('-created_date', 100);
       return allCollaborations.filter(r => r.participant_ids?.includes(user?.email));
     },
     enabled: !!user && isVerified && isSubscribed,
+    staleTime: 30000,
   });
 
-  // Fetch participant profiles
+  // Fetch only needed participant profiles - lazy load
+  const participantIds = useMemo(
+    () => [...new Set(collaborations.flatMap(r => r.participant_ids || []))],
+    [collaborations]
+  );
+
   const { data: profiles = [] } = useQuery({
-    queryKey: ['collaborationProfiles', collaborations],
+    queryKey: ['collaborationProfiles', participantIds],
     queryFn: async () => {
-      const allIds = [...new Set(collaborations.flatMap(r => r.participant_ids || []))];
+      if (!participantIds.length) return [];
       const allProfiles = await base44.entities.UserProfile.list();
-      return allProfiles.filter(p => allIds.includes(p.user_id));
+      return allProfiles.filter(p => participantIds.includes(p.user_id));
     },
-    enabled: collaborations.length > 0,
+    enabled: participantIds.length > 0,
+    staleTime: 60000,
   });
 
   // Delete mutation

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, lazy, Suspense } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
@@ -26,28 +26,36 @@ import { CCTabs, CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs
 import CCModal from '@/components/ui-custom/CCModal';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
-import ModerationOverview from '@/components/admin/ModerationOverview';
-import UserModerationPanel from '@/components/admin/UserModerationPanel';
-import CollaborationModerationPanel from '@/components/admin/CollaborationModerationPanel';
-import ArbitrationCaseManager from '@/components/admin/ArbitrationCaseManager';
-import ComplianceDashboard from '@/components/admin/ComplianceDashboard';
-import JurisdictionManager from '@/components/admin/JurisdictionManager';
-import InsuranceManager from '@/components/admin/InsuranceManager';
-import DisputeSimulator from '@/components/admin/DisputeSimulator';
-import CollaborationAnalytics from '@/components/admin/CollaborationAnalytics';
-import ComplianceAgent from '@/components/admin/ComplianceAgent';
-import AgentAlertsCard from '@/components/admin/AgentAlertsCard';
-import CatalogModeration from '@/components/admin/CatalogModeration';
-import RepresentationManager from '@/components/admin/RepresentationManager';
-import VerificationReviewQueue from '@/components/admin/VerificationReviewQueue';
-import ReportsQueue from '@/components/admin/ReportsQueue';
-import SessionHistoryViewer from '@/components/admin/SessionHistoryViewer';
-import SafetyAlertsQueue from '@/components/admin/SafetyAlertsQueue';
-import SecurityDashboard from '@/components/admin/SecurityDashboard';
-import ReputationAdminPanel from '@/components/admin/ReputationAdminPanel';
-import IdentityConsistencyPanel from '@/components/admin/IdentityConsistencyPanel';
-import TemplateManager from '@/components/admin/TemplateManager';
-import EarningsAdminPanel from '@/components/admin/EarningsAdminPanel';
+
+// Lazy-load heavy admin components
+const ModerationOverview = lazy(() => import('@/components/admin/ModerationOverview'));
+const UserModerationPanel = lazy(() => import('@/components/admin/UserModerationPanel'));
+const CollaborationModerationPanel = lazy(() => import('@/components/admin/CollaborationModerationPanel'));
+const ArbitrationCaseManager = lazy(() => import('@/components/admin/ArbitrationCaseManager'));
+const ComplianceDashboard = lazy(() => import('@/components/admin/ComplianceDashboard'));
+const JurisdictionManager = lazy(() => import('@/components/admin/JurisdictionManager'));
+const InsuranceManager = lazy(() => import('@/components/admin/InsuranceManager'));
+const DisputeSimulator = lazy(() => import('@/components/admin/DisputeSimulator'));
+const CollaborationAnalytics = lazy(() => import('@/components/admin/CollaborationAnalytics'));
+const ComplianceAgent = lazy(() => import('@/components/admin/ComplianceAgent'));
+const AgentAlertsCard = lazy(() => import('@/components/admin/AgentAlertsCard'));
+const CatalogModeration = lazy(() => import('@/components/admin/CatalogModeration'));
+const RepresentationManager = lazy(() => import('@/components/admin/RepresentationManager'));
+const VerificationReviewQueue = lazy(() => import('@/components/admin/VerificationReviewQueue'));
+const ReportsQueue = lazy(() => import('@/components/admin/ReportsQueue'));
+const SessionHistoryViewer = lazy(() => import('@/components/admin/SessionHistoryViewer'));
+const SafetyAlertsQueue = lazy(() => import('@/components/admin/SafetyAlertsQueue'));
+const SecurityDashboard = lazy(() => import('@/components/admin/SecurityDashboard'));
+const ReputationAdminPanel = lazy(() => import('@/components/admin/ReputationAdminPanel'));
+const IdentityConsistencyPanel = lazy(() => import('@/components/admin/IdentityConsistencyPanel'));
+const TemplateManager = lazy(() => import('@/components/admin/TemplateManager'));
+const EarningsAdminPanel = lazy(() => import('@/components/admin/EarningsAdminPanel'));
+
+const TabSuspense = ({ children }) => (
+  <Suspense fallback={<div className="p-4 text-[#6B7A94]">Loading...</div>}>
+    {children}
+  </Suspense>
+);
 
 // User Management Component
 function UserManagement({ currentUser }) {
@@ -554,49 +562,63 @@ export default function AdminDashboard() {
         <div className="max-w-6xl mx-auto px-4">
         {/* Safety Alerts Tab — first and highest priority */}
         <CCTabsContent value="safety_alerts" activeTab={activeTab}>
-          <div className="space-y-4">
-            <div>
-              <h2 className="text-xl font-bold text-[#EF4444] mb-1">Safety Alerts</h2>
-              <p className="text-sm text-[#9AA6BC]">
-                Auto-detected and user-reported underage risk, trafficking, coercion, solicitation, and other high-risk cases.
-                These cases require structured moderator resolution — they cannot be silently dismissed.
-              </p>
+          <TabSuspense>
+            <div className="space-y-4">
+              <div>
+                <h2 className="text-xl font-bold text-[#EF4444] mb-1">Safety Alerts</h2>
+                <p className="text-sm text-[#9AA6BC]">
+                  Auto-detected and user-reported underage risk, trafficking, coercion, solicitation, and other high-risk cases.
+                  These cases require structured moderator resolution — they cannot be silently dismissed.
+                </p>
+              </div>
+              <SafetyAlertsQueue currentAdmin={user} />
             </div>
-            <SafetyAlertsQueue currentAdmin={user} />
-          </div>
+          </TabSuspense>
         </CCTabsContent>
 
         {/* Overview Tab */}
         <CCTabsContent value="overview" activeTab={activeTab}>
-          <div className="space-y-6">
-            <ModerationOverview />
-            <AgentAlertsCard />
-          </div>
+          <TabSuspense>
+            <div className="space-y-6">
+              <ModerationOverview />
+              <AgentAlertsCard />
+            </div>
+          </TabSuspense>
         </CCTabsContent>
 
         {/* Analytics Tab */}
         <CCTabsContent value="analytics" activeTab={activeTab}>
-          <CollaborationAnalytics />
+          <TabSuspense>
+            <CollaborationAnalytics />
+          </TabSuspense>
         </CCTabsContent>
 
         {/* Compliance Agent Tab */}
         <CCTabsContent value="compliance_agent" activeTab={activeTab}>
-          <ComplianceAgent />
+          <TabSuspense>
+            <ComplianceAgent />
+          </TabSuspense>
         </CCTabsContent>
 
         {/* Verifications Tab */}
         <CCTabsContent value="verifications" activeTab={activeTab}>
-          <VerificationReviewQueue />
+          <TabSuspense>
+            <VerificationReviewQueue />
+          </TabSuspense>
         </CCTabsContent>
 
         {/* Catalog Moderation Tab */}
         <CCTabsContent value="catalog" activeTab={activeTab}>
-          <CatalogModeration />
+          <TabSuspense>
+            <CatalogModeration />
+          </TabSuspense>
         </CCTabsContent>
 
         {/* Representation Tab */}
         <CCTabsContent value="representation" activeTab={activeTab}>
-          <RepresentationManager />
+          <TabSuspense>
+            <RepresentationManager />
+          </TabSuspense>
         </CCTabsContent>
 
         {/* Tags Tab */}
@@ -683,67 +705,93 @@ export default function AdminDashboard() {
 
         {/* Users Tab */}
         <CCTabsContent value="users" activeTab={activeTab}>
-          <UserModerationPanel currentAdmin={user} />
+         <TabSuspense>
+           <UserModerationPanel currentAdmin={user} />
+         </TabSuspense>
         </CCTabsContent>
 
         {/* Reports Queue Tab */}
         <CCTabsContent value="reports_queue" activeTab={activeTab}>
-          <ReportsQueue currentAdmin={user} />
+         <TabSuspense>
+           <ReportsQueue currentAdmin={user} />
+         </TabSuspense>
         </CCTabsContent>
 
         {/* Session History Tab */}
         <CCTabsContent value="sessions" activeTab={activeTab}>
-          <SessionHistoryViewer />
+         <TabSuspense>
+           <SessionHistoryViewer />
+         </TabSuspense>
         </CCTabsContent>
 
         {/* Collaborations Tab */}
         <CCTabsContent value="collaborations" activeTab={activeTab}>
-          <CollaborationModerationPanel currentAdmin={user} />
+         <TabSuspense>
+           <CollaborationModerationPanel currentAdmin={user} />
+         </TabSuspense>
         </CCTabsContent>
 
         {/* Arbitration Tab */}
         <CCTabsContent value="arbitration" activeTab={activeTab}>
-          <ArbitrationCaseManager currentUser={user} />
+         <TabSuspense>
+           <ArbitrationCaseManager currentUser={user} />
+         </TabSuspense>
         </CCTabsContent>
 
         {/* Compliance Tab */}
         <CCTabsContent value="compliance" activeTab={activeTab}>
-          <ComplianceDashboard />
+         <TabSuspense>
+           <ComplianceDashboard />
+         </TabSuspense>
         </CCTabsContent>
 
         {/* Jurisdiction Tab */}
         <CCTabsContent value="jurisdiction" activeTab={activeTab}>
-          <JurisdictionManager currentAdmin={user} />
+         <TabSuspense>
+           <JurisdictionManager currentAdmin={user} />
+         </TabSuspense>
         </CCTabsContent>
 
         {/* Dispute Testing Tab */}
         <CCTabsContent value="disputes" activeTab={activeTab}>
-          <DisputeSimulator currentAdmin={user} />
+         <TabSuspense>
+           <DisputeSimulator currentAdmin={user} />
+         </TabSuspense>
         </CCTabsContent>
 
         {/* Security & Compliance Checks Tab */}
         <CCTabsContent value="security" activeTab={activeTab}>
-          <SecurityDashboard />
+         <TabSuspense>
+           <SecurityDashboard />
+         </TabSuspense>
         </CCTabsContent>
 
         {/* Reputation Scores Tab */}
         <CCTabsContent value="reputation" activeTab={activeTab}>
-          <ReputationAdminPanel />
+         <TabSuspense>
+           <ReputationAdminPanel />
+         </TabSuspense>
         </CCTabsContent>
 
         {/* Identity Consistency Tab */}
         <CCTabsContent value="identity" activeTab={activeTab}>
-          <IdentityConsistencyPanel />
+         <TabSuspense>
+           <IdentityConsistencyPanel />
+         </TabSuspense>
         </CCTabsContent>
 
         {/* Smart Deal Templates Tab */}
         <CCTabsContent value="templates" activeTab={activeTab}>
-          <TemplateManager />
+         <TabSuspense>
+           <TemplateManager />
+         </TabSuspense>
         </CCTabsContent>
 
         {/* Earnings Admin Tab */}
         <CCTabsContent value="earnings" activeTab={activeTab}>
-          <EarningsAdminPanel />
+         <TabSuspense>
+           <EarningsAdminPanel />
+         </TabSuspense>
         </CCTabsContent>
         </div>
       </div>

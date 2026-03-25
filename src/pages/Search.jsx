@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -69,37 +69,41 @@ export default function Search() {
   const isVerified = verification?.[0]?.status === 'approved';
   const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
-  // Fetch all creator details and verifications
+  // Fetch all creator details and verifications with staleTime and limits
   const { data: allVerifications = [] } = useQuery({
     queryKey: ['allVerifications'],
-    queryFn: () => base44.entities.VerificationRecord.list(),
+    queryFn: () => base44.entities.VerificationRecord.list('-created_date', 1000),
     enabled: !!user && isVerified && isSubscribed,
+    staleTime: 10 * 60 * 1000,
   });
 
   const { data: allTestingCredentials = [] } = useQuery({
     queryKey: ['allTestingCredentials'],
-    queryFn: () => base44.entities.TestingCredential.list(),
+    queryFn: () => base44.entities.TestingCredential.list('-updated_date', 500),
     enabled: !!user && isVerified && isSubscribed && filters.testingRequired,
+    staleTime: 10 * 60 * 1000,
   });
 
   const { data: allCreatorDetails = [] } = useQuery({
     queryKey: ['allCreatorDetails'],
-    queryFn: () => base44.entities.CreatorDetails.list(),
+    queryFn: () => base44.entities.CreatorDetails.list('-updated_date', 500),
     enabled: !!user && isVerified && isSubscribed,
+    staleTime: 10 * 60 * 1000,
   });
 
-  // Fetch all profiles (raw)
+  // Fetch all profiles (raw) with limits
   const { data: allProfiles = [], isLoading: profilesLoading } = useQuery({
     queryKey: ['searchProfiles'],
     queryFn: async () => {
-      let profiles = await base44.entities.UserProfile.filter({ profile_complete: true });
-      return profiles.filter(p => p.user_id !== user?.email && !p.is_admin);
+      let profiles = await base44.entities.UserProfile.list('-updated_date', 1000);
+      return profiles.filter(p => p.user_id !== user?.email && !p.is_admin && p.profile_complete);
     },
     enabled: !!user && isVerified && isSubscribed,
+    staleTime: 5 * 60 * 1000,
   });
 
   // Filter + sort client-side (same pattern as Discovery to avoid stale closure issues)
-  const profiles = React.useMemo(() => {
+  const profiles = useMemo(() => {
     if (!allProfiles.length) return [];
     let filtered = [...allProfiles];
 
