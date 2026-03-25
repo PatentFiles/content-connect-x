@@ -39,6 +39,7 @@ import VerificationRequired from '@/components/auth/VerificationRequired';
 import FriendRequestButton from '@/components/friends/FriendRequestButton';
 import CCErrorModal from '@/components/ui-custom/CCErrorModal';
 import BookingRequestModal from '@/components/booking/BookingRequestModal';
+import StudioBookingModal from '@/components/booking/StudioBookingModal';
 import GalleryLightbox from '@/components/profile/GalleryLightbox';
 import { PROFILE_THEMES } from '@/components/profile/ProfileThemeSelector';
 import ReputationBadge from '@/components/trust/ReputationBadge';
