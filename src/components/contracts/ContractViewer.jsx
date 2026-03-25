@@ -343,25 +343,44 @@ export default function ContractViewer({ contractId }) {
 
             {/* Signatures */}
             <CCCard padding="lg">
-              <h3 className="text-sm font-semibold text-[#E8EEF9] mb-4">Signatures</h3>
-              <div className="space-y-2">
-                {contract.signatories?.map((sig, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-sm">
-                    <span className="text-[#9AA6BC]">{sig.name}</span>
-                    {sig.signed ? (
-                      <div className="flex items-center gap-1 text-[#22C55E]">
-                        <CheckCircle className="w-4 h-4" />
-                        <span className="text-xs">{format(new Date(sig.signed_at), 'MMM d')}</span>
+              <h3 className="text-sm font-semibold text-[#E8EEF9] mb-1">Signatures</h3>
+              <p className="text-xs text-[#6B7A94] mb-4">
+                {contract.signatories?.filter(s => s.signed).length || 0} of {contract.signatories?.length || 0} signed
+              </p>
+              {contract.signatories?.length > 0 ? (
+                <div className="space-y-2">
+                  {contract.signatories.map((sig, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-sm py-1 border-b border-[#1A2438] last:border-0">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${sig.signed ? 'bg-[#22C55E]' : 'bg-[#6B7A94]'}`} />
+                        <span className={`truncate ${sig.user_id === user?.email ? 'text-[#4F8CFF]' : 'text-[#9AA6BC]'}`}>
+                          {sig.name}{sig.user_id === user?.email ? ' (you)' : ''}
+                        </span>
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-1 text-[#6B7A94]">
-                        <Clock className="w-4 h-4" />
-                        <span className="text-xs">Pending</span>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
+                      {sig.signed ? (
+                        <div className="flex items-center gap-1 text-[#22C55E] flex-shrink-0">
+                          <CheckCircle className="w-3.5 h-3.5" />
+                          <span className="text-xs">{sig.signed_at ? format(new Date(sig.signed_at), 'MMM d') : 'Signed'}</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-1 text-[#6B7A94] flex-shrink-0">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span className="text-xs">Pending</span>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-[#6B7A94] italic">
+                  {contract.status === 'generated'
+                    ? 'Contract not yet sent for signatures.'
+                    : 'No signatories assigned.'}
+                </p>
+              )}
+              {!isSignatory && contract.signatories?.length > 0 && (
+                <p className="text-xs text-[#6B7A94] mt-3 italic">You are not a required signatory.</p>
+              )}
             </CCCard>
           </div>
         </div>
