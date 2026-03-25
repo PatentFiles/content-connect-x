@@ -344,6 +344,16 @@ export default function ViewProfile() {
     enabled: !!profileUserId && profile?.role_type === 'creator',
   });
 
+  // Fetch my representation relationship with viewed agent (if I'm a creator)
+  const { data: myRepWithThisAgent } = useQuery({
+    queryKey: ['myRepWithAgent', user?.email, profileUserId],
+    queryFn: () => base44.entities.AgentRepresentation.filter({ 
+      creator_user_id: user?.email,
+      agent_user_id: profileUserId,
+    }).then(reps => reps[0]),
+    enabled: !!user?.email && !!profileUserId && profile?.role_type === 'agent' && myProfile?.[0]?.role_type === 'creator',
+  });
+
   const { data: studioRepresentations = [] } = useQuery({
     queryKey: ['studioRepresentation', profileUserId],
     queryFn: () => base44.entities.StudioRepresentation.filter({ 
