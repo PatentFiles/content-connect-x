@@ -69,8 +69,8 @@ export default function Verification() {
         provider: 'manual',
         status: 'pending',
         documents_submitted: [
-          { type: 'id', url: uploadedId, submitted_at: new Date().toISOString() },
-          { type: 'selfie', url: uploadedSelfie, submitted_at: new Date().toISOString() },
+          { type: 'id', uri: uploadedId, submitted_at: new Date().toISOString() },
+          { type: 'selfie', uri: uploadedSelfie, submitted_at: new Date().toISOString() },
         ],
       };
       
@@ -89,13 +89,14 @@ export default function Verification() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const { file_url } = await base44.integrations.Core.UploadFile({ file });
+    // Use private storage — sensitive identity documents must never be publicly accessible
+    const { file_uri } = await base44.integrations.Core.UploadPrivateFile({ file });
     
     if (type === 'id') {
-      setUploadedId(file_url);
+      setUploadedId(file_uri);
       setCurrentStep(1);
     } else {
-      setUploadedSelfie(file_url);
+      setUploadedSelfie(file_uri);
     }
   };
 
