@@ -434,6 +434,7 @@ export default function AdminDashboard() {
       { value: 'security', label: '🔒 Security Checks', icon: Shield },
       { value: 'reputation', label: '⭐ Reputation Scores', icon: TrendingUp },
       { value: 'identity', label: '🔍 Identity Check', icon: Shield },
+      { value: 'templates', label: '📄 Deal Templates', icon: Tag },
     ],
   ];
 
@@ -720,6 +721,11 @@ export default function AdminDashboard() {
         {/* Identity Consistency Tab */}
         <CCTabsContent value="identity" activeTab={activeTab}>
           <IdentityConsistencyPanel />
+        </CCTabsContent>
+
+        {/* Smart Deal Templates Tab */}
+        <CCTabsContent value="templates" activeTab={activeTab}>
+          <TemplateManager />
         </CCTabsContent>
       </div>
 
