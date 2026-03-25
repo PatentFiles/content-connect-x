@@ -59,6 +59,12 @@ export default function StudioDashboard({ user, profile, onboardingChecklist }) 
   const pendingApprovals = roster.filter(r => r.status === 'PENDING');
   const activeCollaborations = collaborations.filter(d => ['negotiating', 'agreed', 'contract_sent'].includes(d.status));
 
+  const dashTabs = [
+    { value: 'overview', label: 'Overview' },
+    { value: 'bookings', label: pendingBookingCount > 0 ? `Bookings (${pendingBookingCount})` : 'Bookings' },
+    { value: 'availability', label: 'Availability' },
+  ];
+
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-6xl mx-auto px-4 py-6">
@@ -66,13 +72,13 @@ export default function StudioDashboard({ user, profile, onboardingChecklist }) 
           <h1 className="text-2xl font-bold text-[#E8EEF9] mb-1">
             Studio Dashboard
           </h1>
-          <p className="text-[#6B7A94]">Manage your roster and productions</p>
+          <p className="text-[#6B7A94]">Manage your roster, bookings, and productions</p>
         </div>
 
         {onboardingChecklist}
 
         {/* Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           <CCCard padding="md">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-[#4F8CFF]/20 flex items-center justify-center">
