@@ -1012,14 +1012,26 @@ export default function ViewProfile() {
                   )}
                   {agent.content_types?.length > 0 && (
                     <div>
-                      <p className="text-sm text-[#6B7A94] mb-2">Content Types</p>
+                      <p className="text-sm text-[#6B7A94] mb-2">Specialties</p>
                       <div className="flex flex-wrap gap-2">
                        {agent.content_types.map(type => (
-                         <span key={type} className="text-sm text-[#E8EEF9]">
-                           {type.charAt(0).toUpperCase() + type.slice(1)}
-                         </span>
-                       ))}
-                      </div>
+                          <span key={type} className="text-sm text-[#E8EEF9]">
+                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                          </span>
+                        ))}
+                       </div>
+                    </div>
+                  )}
+                  {agent.commission_rate != null && (
+                    <div>
+                      <p className="text-sm text-[#6B7A94] mb-1">Commission</p>
+                      <p className="text-[#E8EEF9] font-medium">{agent.commission_rate}%</p>
+                    </div>
+                  )}
+                  {agent.represented_creator_ids?.length > 0 && (
+                    <div>
+                      <p className="text-sm text-[#6B7A94] mb-1">Roster Size</p>
+                      <p className="text-[#E8EEF9] font-medium">{agent.represented_creator_ids.length} creators</p>
                     </div>
                   )}
                 </div>
