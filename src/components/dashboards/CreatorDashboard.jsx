@@ -25,11 +25,18 @@ import AvailabilityManager from '../profile/AvailabilityManager';
 import TravelDateManager from '../profile/TravelDateManager';
 import BookingRequestsInbox from '../booking/BookingRequestsInbox';
 import ProfileCompletionBar from '../profile/ProfileCompletionBar';
+import CollaborationFeed from '@/components/discovery/CollaborationFeed';
+import TopCreators from '@/components/discovery/TopCreators';
+import TravelSync from '@/components/discovery/TravelSync';
+import EarningsTracker from '@/components/earnings/EarningsTracker';
+import { ReputationScoreBar } from '@/components/trust/ReputationBadge';
+import CCModal from '../ui-custom/CCModal';
 
 export default function CreatorDashboard({ user, profile, onboardingChecklist, onOpenWizard }) {
   const [newTask, setNewTask] = useState('');
   const [showAvailability, setShowAvailability] = useState(false);
   const [showTravelDate, setShowTravelDate] = useState(false);
+  const [showEarnings, setShowEarnings] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch active collaborations
@@ -62,6 +69,14 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
     queryFn: () => base44.entities.VerificationRecord.filter({ user_id: user?.email }),
     enabled: !!user?.email,
   });
+
+  // Fetch reputation score
+  const { data: reputationScores = [] } = useQuery({
+    queryKey: ['myReputationScore', user?.email],
+    queryFn: () => base44.entities.ReputationScore.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+  const myReputationScore = reputationScores[0];
 
   // Fetch favorites
   const { data: favorites = [] } = useQuery({
