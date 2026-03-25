@@ -46,6 +46,7 @@ import SafetyAlertsQueue from '@/components/admin/SafetyAlertsQueue';
 import SecurityDashboard from '@/components/admin/SecurityDashboard';
 import ReputationAdminPanel from '@/components/admin/ReputationAdminPanel';
 import IdentityConsistencyPanel from '@/components/admin/IdentityConsistencyPanel';
+import TemplateManager from '@/components/admin/TemplateManager';
 
 // User Management Component
 function UserManagement({ currentUser }) {
