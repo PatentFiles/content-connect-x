@@ -416,6 +416,27 @@ Deno.serve(async (req) => {
         // Strip any ban/admin fields (users cannot self-unban)
         const { banned, suspended, suspension_reason, legal_hold, is_admin, ...safeData } = profile_data;
 
+        // ── MODERATION: scan profile bio and display_name ─────────────────────
+        const profileText = [safeData.bio, safeData.display_name, safeData.real_name].filter(Boolean).join(' ');
+        if (profileText) {
+          const profileMod = await enforceModerationInline(base44, user.email, profileText, 'profile_update');
+          if (profileMod && profileMod.severity === 'critical') {
+            return Response.json({
+              error: 'Your profile could not be saved. Content violates platform safety policies and your account has been placed under review.',
+              code: 'account_suspended',
+              blocked: true,
+            }, { status: 403 });
+          }
+          if (profileMod && profileMod.severity === 'high') {
+            return Response.json({
+              error: 'Your profile could not be saved. One or more fields contain content that violates platform policies. Please review your bio and display name.',
+              code: 'content_blocked',
+              blocked: true,
+            }, { status: 403 });
+          }
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         const result = await base44.entities.UserProfile.update(profile_id, safeData);
         return Response.json({ success: true, data: result });
       }
