@@ -226,12 +226,15 @@ export default function StudioDashboard({ user, profile, onboardingChecklist }) 
         {/* Quick Actions */}
         <CCCard padding="lg" className="mt-6">
           <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <Link to={createPageUrl('RosterPortfolio')}>
               <CCButton variant="primary" size="sm" fullWidth icon={Users}>
                 Add to Roster
               </CCButton>
             </Link>
+            <CCButton variant="outline" size="sm" fullWidth icon={Building2} onClick={() => setActiveTab('availability')}>
+              Manage Availability
+            </CCButton>
             <Link to={createPageUrl('CreateCollaboration')}>
               <CCButton variant="outline" size="sm" fullWidth icon={Briefcase}>
                 Create Collaboration
@@ -244,6 +247,8 @@ export default function StudioDashboard({ user, profile, onboardingChecklist }) 
             </Link>
           </div>
         </CCCard>
+
+        </CCTabsContent>{/* end overview tab */}
       </div>
     </div>
   );
