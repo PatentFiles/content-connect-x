@@ -47,6 +47,7 @@ import SecurityDashboard from '@/components/admin/SecurityDashboard';
 import ReputationAdminPanel from '@/components/admin/ReputationAdminPanel';
 import IdentityConsistencyPanel from '@/components/admin/IdentityConsistencyPanel';
 import TemplateManager from '@/components/admin/TemplateManager';
+import EarningsAdminPanel from '@/components/admin/EarningsAdminPanel';
 
 // User Management Component
 function UserManagement({ currentUser }) {
@@ -435,6 +436,7 @@ export default function AdminDashboard() {
       { value: 'reputation', label: '⭐ Reputation Scores', icon: TrendingUp },
       { value: 'identity', label: '🔍 Identity Check', icon: Shield },
       { value: 'templates', label: '📄 Deal Templates', icon: Tag },
+      { value: 'earnings', label: '💰 Earnings', icon: TrendingUp },
     ],
   ];
 
@@ -726,6 +728,11 @@ export default function AdminDashboard() {
         {/* Smart Deal Templates Tab */}
         <CCTabsContent value="templates" activeTab={activeTab}>
           <TemplateManager />
+        </CCTabsContent>
+
+        {/* Earnings Admin Tab */}
+        <CCTabsContent value="earnings" activeTab={activeTab}>
+          <EarningsAdminPanel />
         </CCTabsContent>
       </div>
 
