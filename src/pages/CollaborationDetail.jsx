@@ -31,6 +31,8 @@ import TestingPolicyManager from '@/components/collaboration/TestingPolicyManage
 import { useRepObserverCheck, logRepObserverAccess } from '@/components/collaboration/RepObserverAccessControl';
 import CollaborationPacketExporter from '@/components/collaboration/CollaborationPacketExporter';
 import SafetyCheckInWidget from '@/components/safety/SafetyCheckInWidget';
+import CompletionBanner from '@/components/collaboration/CompletionBanner';
+import CompletionManager from '@/components/collaboration/CompletionManager';
 
 export default function CollaborationDetail() {
   const [searchParams] = useSearchParams();
@@ -201,9 +203,10 @@ export default function CollaborationDetail() {
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="grid lg:grid-cols-3 gap-6">
           {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
+           <div className="lg:col-span-2 space-y-6">
             <ConsentRevocationBanner collaborationId={collaboration.id} />
             <TestingStatusBanner collaboration={collaboration} currentUserId={user?.email} />
+            <CompletionBanner collaboration={collaboration} userEmail={user?.email} />
             <CCCard padding="none">
               <CCTabs activeTab={activeTab} onTabChange={setActiveTab}>
                 <div className="border-b border-[#263248] px-4">
