@@ -395,8 +395,9 @@ export default function ReportsQueue({ currentAdmin }) {
                   <CCButton
                     variant={actionType === 'suspend' ? 'danger' : 'primary'}
                     onClick={() => {
-                      if (!actionNotes.trim()) {
-                        toast.error('Please add notes');
+                      const minLength = isHighRiskReport(selectedReport) ? 20 : 1;
+                      if (!actionNotes.trim() || actionNotes.trim().length < minLength) {
+                        toast.error(minLength > 1 ? `High-risk cases require at least ${minLength} characters of notes` : 'Please add notes');
                         return;
                       }
 
