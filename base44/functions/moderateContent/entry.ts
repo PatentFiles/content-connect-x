@@ -154,12 +154,14 @@ async function createModerationCase(svc, userId, context, analysisResult, conten
   const isUnderage = reasons.includes('underage_risk');
   const isTrafficking = reasons.includes('trafficking_coercion');
   const isSolicitation = reasons.includes('direct_solicitation') || reasons.includes('combination_solicitation');
+  // Use specific 'solicitation' reason in Report when applicable
+  const reportReason = isUnderage ? 'underage' : isTrafficking ? 'non_consensual' : isSolicitation ? 'solicitation' : 'other';
 
   // Create report record — auto-escalated (must use service role — reporter is SYSTEM)
   const report = await svc.entities.Report.create({
     reporter_id: 'SYSTEM_AUTO_MODERATION',
     target_user_id: userId,
-    reason: isUnderage ? 'underage' : isTrafficking ? 'non_consensual' : 'other',
+    reason: reportReason,
     details: `[AUTO-MODERATION] Severity: ${severity.toUpperCase()}. Flags: ${flags.map(f => f.type).join(', ')}. Context: ${context}. Content snippet: ${contentSnippet.substring(0, 200)}`,
     status: severity === 'critical' ? 'investigating' : 'pending',
     target_content_type: 'message',
@@ -311,7 +313,37 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Content moderation error:', error);
-    // Fail open for availability — but log
+
+    // ALERT on moderation failure — never silently fail
+    try {
+      const base44Emergency = createClientFromRequest(req);
+      await base44Emergency.asServiceRole.entities.AdminActionLog.create({
+        admin_user_id: 'SYSTEM_MODERATION_HEALTH',
+        target_type: 'System',
+        target_id: 'moderateContent',
+        action: 'system_health_alert',
+        reason: 'MODERATION ENGINE FAILURE — content moderation check failed',
+        notes: `Error: ${error.message}. Content moderation was non-blocking (fail-open). Manual review may be required for recent content.`,
+        metadata_json: {
+          error: error.message,
+          timestamp: new Date().toISOString(),
+          severity: 'HIGH',
+          alert_type: 'moderation_check_failed',
+        },
+      }).catch(() => {});
+
+      // Also create a system alert report for admin dashboard visibility
+      await base44Emergency.asServiceRole.entities.Report.create({
+        reporter_id: 'SYSTEM_MODERATION_HEALTH',
+        target_user_id: 'SYSTEM',
+        reason: 'other',
+        details: `[SYSTEM HEALTH ALERT] Moderation engine failure at ${new Date().toISOString()}. Error: ${error.message}. Content was allowed through without moderation check. Manual review recommended.`,
+        status: 'investigating',
+        admin_notes: '⚠️ SYSTEM HEALTH — MODERATION ENGINE FAILURE — CHECK INFRASTRUCTURE',
+      }).catch(() => {});
+    } catch (_) { /* best-effort alert */ }
+
+    // Fail open for availability — but now we've alerted
     return Response.json({ allowed: true, severity: 'none', flags: [], error_note: 'moderation_check_failed' });
   }
 });
