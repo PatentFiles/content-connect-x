@@ -79,6 +79,13 @@ export default function VerificationReviewQueue() {
         expires_at: expiryDate.toISOString()
       });
 
+      // Trigger identity consistency scan after approval
+      base44.functions.invoke('checkIdentityConsistency', {
+        action: 'scan_user',
+        user_id: userId,
+        triggered_by: 'verification_approved',
+      }).catch(() => {});
+
       await base44.entities.AdminActionLog.create({
         admin_user_id: admin.email,
         action_type: 'verification_approved',
@@ -112,6 +119,13 @@ export default function VerificationReviewQueue() {
         status: 'rejected',
         rejection_reason: reason
       });
+
+      // Trigger identity consistency scan after rejection (detect repeated failures)
+      base44.functions.invoke('checkIdentityConsistency', {
+        action: 'scan_user',
+        user_id: userId,
+        triggered_by: 'verification_rejected',
+      }).catch(() => {});
 
       await base44.entities.AdminActionLog.create({
         admin_user_id: admin.email,
