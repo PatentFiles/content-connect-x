@@ -307,7 +307,8 @@ export default function Testing() {
                   <li>Documents are reviewed by platform administrators</li>
                   <li>Verification typically takes 1-2 business days</li>
                   <li>Keep your testing current to maintain verified status</li>
-                  <li>Documents are stored securely and shared only per your visibility settings</li>
+                  <li>Documents are uploaded to private encrypted storage and are never publicly accessible</li>
+                  <li>Only authorized administrators can view documents for review, and all access is logged</li>
                 </ul>
               </div>
             </div>
