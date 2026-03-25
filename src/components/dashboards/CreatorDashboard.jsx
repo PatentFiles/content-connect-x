@@ -131,6 +131,9 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
         {/* Onboarding Checklist */}
         {onboardingChecklist}
 
+        {/* Agent Representation Invite Inbox */}
+        <AgentInviteInbox userId={user?.email} profile={profile} />
+
         {/* Booking Requests Inbox */}
         <BookingRequestsInbox userId={user?.email} />
 
