@@ -551,6 +551,9 @@ export default function Discovery() {
 
 
 
+        </div>
+      </div>
+
       {/* Save to Favorites Modal */}
       {selectedProfile && (
         <SaveToFavoritesModal
