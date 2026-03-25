@@ -1,14 +1,23 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { DollarSign, Briefcase, TrendingUp, Eye, Users, Download } from 'lucide-react';
+import { DollarSign, Briefcase, TrendingUp, Eye, Users, Download, CheckCircle, Clock, AlertTriangle } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
+
+const STATUS_CONFIG = {
+  projected: { label: 'Projected', variant: 'outline' },
+  pending_settlement: { label: 'Pending', variant: 'warning' },
+  settled: { label: 'Settled', variant: 'success' },
+  disputed: { label: 'Disputed', variant: 'danger' },
+};
+const fmtMoney = (n) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 }).format(n || 0);
 
 export default function StudioEarningsDashboard({ studioUserId }) {
   const [dateFilter, setDateFilter] = useState('all');
