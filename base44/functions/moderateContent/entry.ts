@@ -155,7 +155,7 @@ async function createModerationCase(svc, userId, context, analysisResult, conten
   const isTrafficking = reasons.includes('trafficking_coercion');
   const isSolicitation = reasons.includes('direct_solicitation') || reasons.includes('combination_solicitation');
 
-  // Create report record — auto-escalated
+  // Create report record — auto-escalated (must use service role — reporter is SYSTEM)
   const report = await svc.entities.Report.create({
     reporter_id: 'SYSTEM_AUTO_MODERATION',
     target_user_id: userId,
