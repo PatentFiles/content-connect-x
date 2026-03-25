@@ -105,6 +105,11 @@ export default function AgentDashboard({ user, profile, onboardingChecklist }) {
           </CCCard>
         </div>
 
+        {/* Agent Commission Earnings */}
+        <div className="mb-6">
+          <AgentEarningsWidget agentUserId={user?.email} />
+        </div>
+
         <div className="grid md:grid-cols-2 gap-6">
           {/* Representations */}
           <CCCard padding="lg">
