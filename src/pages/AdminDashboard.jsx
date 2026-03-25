@@ -446,7 +446,25 @@ export default function AdminDashboard() {
 
       {/* Stats */}
       <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+          {safetyAlertsCount > 0 && (
+            <CCCard
+              padding="md"
+              clickable
+              onClick={() => setActiveTab('safety_alerts')}
+              className="border-[#EF4444]/50 bg-[#EF4444]/10 col-span-2 md:col-span-1"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-[#EF4444]/30 flex items-center justify-center animate-pulse">
+                  <AlertTriangle className="w-5 h-5 text-[#EF4444]" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-[#EF4444]">{safetyAlertsCount}</p>
+                  <p className="text-xs text-[#EF4444]/80">Safety Alerts</p>
+                </div>
+              </div>
+            </CCCard>
+          )}
           <CCCard padding="md">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-[#F59E0B]/20 flex items-center justify-center">
