@@ -35,7 +35,7 @@ export default function ReputationAdminPanel() {
 
   const { data: missedCheckIns = [] } = useQuery({
     queryKey: ['adminMissedCheckIns'],
-    queryFn: () => base44.functions.invoke('safetyCheckIn', {}, { queryParams: { action: 'list_missed' } }).then(r => r.data?.data || []),
+    queryFn: () => base44.functions.invoke('safetyCheckIn', { action: 'list_missed' }).then(r => r.data?.data || []),
   });
 
   const profileMap = React.useMemo(
