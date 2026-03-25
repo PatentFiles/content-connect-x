@@ -498,6 +498,20 @@ export default function AdminDashboard() {
           ))}
         </div>
 
+        {/* Safety Alerts Tab — first and highest priority */}
+        <CCTabsContent value="safety_alerts" activeTab={activeTab}>
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-xl font-bold text-[#EF4444] mb-1">Safety Alerts</h2>
+              <p className="text-sm text-[#9AA6BC]">
+                Auto-detected and user-reported underage risk, trafficking, coercion, solicitation, and other high-risk cases.
+                These cases require structured moderator resolution — they cannot be silently dismissed.
+              </p>
+            </div>
+            <SafetyAlertsQueue currentAdmin={user} />
+          </div>
+        </CCTabsContent>
+
         {/* Overview Tab */}
         <CCTabsContent value="overview" activeTab={activeTab}>
           <div className="space-y-6">
