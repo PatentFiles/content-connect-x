@@ -131,6 +131,7 @@ Deno.serve(async (req) => {
     // ─── STEP 3: ANONYMIZE PROFILE (not delete) ──────────────────────────────────
     // Scrub all PII from the profile record, hide from public discovery,
     // but keep the record intact for admin audit.
+    // Uses service role (svc) throughout to bypass RLS ownership checks.
     if (profile?.id) {
       await svc.entities.UserProfile.update(profile.id, {
         display_name: '[Deleted User]',
