@@ -449,8 +449,9 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 justify-center mx-auto">
+      <div className="px-4 py-6">
+        <div className="flex justify-center">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
           {safetyAlertsCount > 0 && (
             <CCCard
               padding="md"
@@ -514,9 +515,10 @@ export default function AdminDashboard() {
             </div>
           </CCCard>
         </div>
+        </div>
 
         {/* Mobile: Dropdown */}
-        <div className="block md:hidden mb-6">
+        <div className="max-w-6xl mx-auto px-4 block md:hidden mb-6">
           <select
             value={activeTab}
             onChange={(e) => setActiveTab(e.target.value)}
@@ -529,7 +531,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Desktop: Horizontal Tab Layout */}
-        <div className="hidden md:flex flex-wrap gap-2 mb-6 justify-center">
+        <div className="max-w-6xl mx-auto px-4 hidden md:flex flex-wrap gap-2 mb-6 justify-center">
           {tabs.map((tab) => (
             <button
               key={tab.value}
@@ -545,6 +547,7 @@ export default function AdminDashboard() {
           ))}
         </div>
 
+        <div className="max-w-6xl mx-auto px-4">
         {/* Safety Alerts Tab — first and highest priority */}
         <CCTabsContent value="safety_alerts" activeTab={activeTab}>
           <div className="space-y-4">
@@ -738,6 +741,7 @@ export default function AdminDashboard() {
         <CCTabsContent value="earnings" activeTab={activeTab}>
           <EarningsAdminPanel />
         </CCTabsContent>
+        </div>
       </div>
 
       {/* Verification Review Modal */}
