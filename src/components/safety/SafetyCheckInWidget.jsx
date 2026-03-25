@@ -42,8 +42,9 @@ export default function SafetyCheckInWidget({ collaborationId, userId }) {
 
   const markSafeMutation = useMutation({
     mutationFn: () => base44.functions.invoke('safetyCheckIn', {
-      check_in_id: checkInStatus?.id
-    }, { queryParams: { action: 'mark_safe' } }),
+      action: 'mark_safe',
+      check_in_id: checkInStatus?.id,
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['safetyCheckin', collaborationId] });
       toast.success('Marked as safe ✓');
