@@ -9,6 +9,8 @@ import CCEmpty from '@/components/ui-custom/CCEmpty';
 import { FileText, Plus, Send, CheckCircle2, Clock, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import AIContractBuilder from '@/components/contracts/AIContractBuilder';
+import TemplateContractGenerator from '@/components/contracts/TemplateContractGenerator';
 
 export default function ContractManager({ collaborationId, profiles, user }) {
   const [showNewContract, setShowNewContract] = useState(false);
