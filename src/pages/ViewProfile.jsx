@@ -41,6 +41,9 @@ import CCErrorModal from '@/components/ui-custom/CCErrorModal';
 import BookingRequestModal from '@/components/booking/BookingRequestModal';
 import GalleryLightbox from '@/components/profile/GalleryLightbox';
 import { PROFILE_THEMES } from '@/components/profile/ProfileThemeSelector';
+import ReputationBadge from '@/components/trust/ReputationBadge';
+import CollaborationHistory from '@/components/profile/CollaborationHistory';
+import TrustBadges from '@/components/profile/TrustBadges';
 
 const roleColors = {
   creator: 'primary',
@@ -147,6 +150,22 @@ export default function ViewProfile() {
     queryFn: () => base44.entities.StudioDetails.filter({ user_id: profileUserId }),
     enabled: !!profileUserId && profile?.role_type === 'studio',
   });
+
+  // Fetch reputation score for profile
+  const { data: profileReputationArr = [] } = useQuery({
+    queryKey: ['profileReputation', profileUserId],
+    queryFn: () => base44.entities.ReputationScore.filter({ user_id: profileUserId }),
+    enabled: !!profileUserId && !!profile,
+  });
+  const profileReputation = profileReputationArr[0];
+
+  // Fetch testing credential for trust badges
+  const { data: profileTestingArr = [] } = useQuery({
+    queryKey: ['profileTesting', profileUserId],
+    queryFn: () => base44.entities.TestingCredential.filter({ user_id: profileUserId }),
+    enabled: !!profileUserId && !!profile,
+  });
+  const profileTestingCred = profileTestingArr[0];
 
   // Fetch galleries
   const { data: galleries = [] } = useQuery({
