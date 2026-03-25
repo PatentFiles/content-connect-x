@@ -37,7 +37,7 @@ const roleOptions = [
   { value: 'creator', label: 'Creators', icon: Users },
   { value: 'photographer', label: 'Photographers', icon: Camera },
   { value: 'videographer', label: 'Videographers', icon: Video },
-  { value: 'agent', label: 'Agents', icon: Briefcase },
+  { value: 'agent', label: 'Talent Agents', icon: Briefcase },
   { value: 'studio', label: 'Studios', icon: Building },
 ];
 
