@@ -204,12 +204,20 @@ export default function ReportsQueue({ currentAdmin }) {
                     <div className="flex-1 space-y-3">
                       {/* Header */}
                       <div className="flex items-center gap-2 flex-wrap">
+                        {isHighRiskReport(report) && (
+                          <CCBadge variant="danger" icon={AlertTriangle} size="sm">
+                            HIGH PRIORITY
+                          </CCBadge>
+                        )}
                         <CCBadge variant={statusInfo.variant} icon={StatusIcon}>
                           {statusInfo.label}
                         </CCBadge>
                         <CCBadge variant={reasonInfo.variant} icon={ReasonIcon}>
                           {report.reason.replace(/_/g, ' ')}
                         </CCBadge>
+                        {report.reporter_id === 'SYSTEM_AUTO_MODERATION' && (
+                          <CCBadge variant="warning" size="sm">Auto-Detected</CCBadge>
+                        )}
                         <span className="text-xs text-[#6B7A94]">
                           {new Date(report.created_date).toLocaleString()}
                         </span>
