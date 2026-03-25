@@ -17,6 +17,7 @@ import CCButton from '../ui-custom/CCButton';
 import CCBadge from '../ui-custom/CCBadge';
 import CCEmpty from '../ui-custom/CCEmpty';
 import CCAvatar from '../ui-custom/CCAvatars';
+import AgentEarningsWidget from '../earnings/AgentEarningsWidget';
 
 export default function AgentDashboard({ user, profile, onboardingChecklist }) {
   const { data: representations = [] } = useQuery({
