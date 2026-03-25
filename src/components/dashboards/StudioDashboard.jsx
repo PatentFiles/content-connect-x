@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -10,13 +10,18 @@ import {
   Plus,
   Camera,
   Clock,
-  MessageCircle
+  MessageCircle,
+  CalendarCheck,
+  Building2
 } from 'lucide-react';
 import CCCard from '../ui-custom/CCCard';
 import CCButton from '../ui-custom/CCButton';
 import CCBadge from '../ui-custom/CCBadge';
 import CCEmpty from '../ui-custom/CCEmpty';
 import StudioEarningsDashboard from '../studio/StudioEarningsDashboard';
+import StudioBookingManager from '../studio/StudioBookingManager';
+import StudioAvailabilityManager from '../studio/StudioAvailabilityManager';
+import { CCTabs, CCTabsList, CCTabsContent } from '../ui-custom/CCTabs';
 
 export default function StudioDashboard({ user, profile, onboardingChecklist }) {
   const { data: roster = [] } = useQuery({
