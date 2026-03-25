@@ -45,6 +45,7 @@ import SessionHistoryViewer from '@/components/admin/SessionHistoryViewer';
 import SafetyAlertsQueue from '@/components/admin/SafetyAlertsQueue';
 import SecurityDashboard from '@/components/admin/SecurityDashboard';
 import ReputationAdminPanel from '@/components/admin/ReputationAdminPanel';
+import IdentityConsistencyPanel from '@/components/admin/IdentityConsistencyPanel';
 
 // User Management Component
 function UserManagement({ currentUser }) {
@@ -431,6 +432,7 @@ export default function AdminDashboard() {
       { value: 'reports', label: 'Reports', icon: AlertTriangle },
       { value: 'security', label: '🔒 Security Checks', icon: Shield },
       { value: 'reputation', label: '⭐ Reputation Scores', icon: TrendingUp },
+      { value: 'identity', label: '🔍 Identity Check', icon: Shield },
     ],
   ];
 
@@ -712,6 +714,11 @@ export default function AdminDashboard() {
         {/* Reputation Scores Tab */}
         <CCTabsContent value="reputation" activeTab={activeTab}>
           <ReputationAdminPanel />
+        </CCTabsContent>
+
+        {/* Identity Consistency Tab */}
+        <CCTabsContent value="identity" activeTab={activeTab}>
+          <IdentityConsistencyPanel />
         </CCTabsContent>
       </div>
 
