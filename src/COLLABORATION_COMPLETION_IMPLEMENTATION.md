@@ -31,7 +31,7 @@ Complete end-to-end collaboration completion system enabling users to explicitly
    - Optional reason text field
    - Shows participant count, total compensation, status
 
-### UI Updates (4 modified)
+### UI Updates (6 modified)
 1. **pages/CollaborationDetail**
    - Added CompletionBanner (post-signature reminder)
    - Added CompletionManager (completion CTA in sidebar)
@@ -51,6 +51,20 @@ Complete end-to-end collaboration completion system enabling users to explicitly
    - Added "Ready to Complete" section
    - Integrated with editing queue display
    - Consistent UI with photographer dashboard
+
+5. **components/dashboards/AgentDashboard** ⭐ NEW
+   - Added "Awaiting Completion" section
+   - Shows signed collaborations where agent is participant
+   - Displays participant count and signed status
+   - Direct links to CollaborationDetail for completion action
+   - Note: Agents see this for collaborations they're directly involved in
+
+6. **components/dashboards/StudioDashboard** ⭐ NEW
+   - Added "Ready to Complete" section
+   - Shows signed collaborations where studio is participant
+   - Explains completion triggers earnings/splits calculation
+   - Direct links to CollaborationDetail for completion action
+   - Integrated in overview tab above earnings dashboard
 
 ---
 
@@ -192,19 +206,24 @@ Earnings become visible in EarningsTracker (private view)
 
 ### Is Collaboration Completion Now a Clear and Reliable Part of the User Flow?
 
-**YES - FULLY IMPLEMENTED**
+**YES - FULLY IMPLEMENTED FOR ALL ROLES**
 
 #### Evidence:
 1. ✅ **Visible CTA**: CompletionManager in sidebar, CompletionBanner post-signature
 2. ✅ **Protected Backend**: completeCollaboration function with full validation
-3. ✅ **Dashboard Integration**: All roles (Creator/Photo/Video) show "Awaiting Completion"
+3. ✅ **Dashboard Integration**: ALL roles show "Awaiting Completion":
+   - Creator Dashboard: "Awaiting Completion" stat + section
+   - Photographer Dashboard: "Ready to Complete" section
+   - Videographer Dashboard: "Ready to Complete" section
+   - Agent Dashboard: "Awaiting Completion" section ⭐ NEW
+   - Studio Dashboard: "Ready to Complete" section ⭐ NEW
 4. ✅ **Automated Reminders**: Weekly email-like notifications for stalled collabs
 5. ✅ **Guaranteed Earnings Trigger**: Entity automation on status=completed fires immediately
 6. ✅ **Clear State**: Completion is explicit action, not implicit consequence
 7. ✅ **Activity Logging**: All completions logged in CollaborationActivityLog
 8. ✅ **User Notifications**: Participants notified when completion happens
 9. ✅ **Idempotent Earnings**: autoCreateEarnings checks for duplicates, never double-counts
-10. ✅ **Role Parity**: Same completion flow works for Creator, Photographer, Videographer, Agent, Studio
+10. ✅ **Role Parity**: Same completion flow works for ALL 5 roles (Creator, Photographer, Videographer, Agent, Studio)
 
 #### Reliability Factors:
 - Backend enforcement prevents invalid states
@@ -213,5 +232,13 @@ Earnings become visible in EarningsTracker (private view)
 - Earnings calculation is idempotent
 - Weekly reminders catch stalled collaborations
 - Notifications confirm completion to all parties
+- No duplicate completion systems (single flow reused across all roles)
 
-**This is now a production-ready, user-facing feature.**
+#### Dashboard Coverage:
+- **Creator**: Awaiting Completion stat card + dedicated section + completion banner + manager CTA
+- **Photographer**: Ready to Complete section integrated with editing queue
+- **Videographer**: Ready to Complete section with earning context
+- **Agent**: Awaiting Completion section shows represented collaborations
+- **Studio**: Ready to Complete section shows studio's direct collaborations
+
+**This is now a production-ready, user-facing feature covering all required roles.**

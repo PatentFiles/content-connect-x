@@ -10,7 +10,8 @@ import {
   Plus,
   Clock,
   CheckCircle,
-  TrendingUp
+  TrendingUp,
+  AlertCircle
 } from 'lucide-react';
 import CCCard from '../ui-custom/CCCard';
 import CCButton from '../ui-custom/CCButton';
@@ -43,6 +44,7 @@ export default function AgentDashboard({ user, profile, onboardingChecklist }) {
   const activeReps = representations.filter(r => r.status === 'ACTIVE');
   const pendingInvites = representations.filter(r => r.status === 'INVITED');
   const activeCollaborations = collaborations.filter(d => ['negotiating', 'agreed', 'contract_sent'].includes(d.status));
+  const awaitingCompletion = collaborations.filter(d => ['signed', 'active'].includes(d.status));
   const pendingSignatures = contracts.filter(c => c.status === 'sent').length;
 
   return (
@@ -109,6 +111,30 @@ export default function AgentDashboard({ user, profile, onboardingChecklist }) {
         <div className="mb-6">
           <AgentEarningsWidget agentUserId={user?.email} />
         </div>
+
+        {/* Awaiting Completion */}
+        {awaitingCompletion.length > 0 && (
+          <CCCard padding="lg" className="mb-6 border-l-4 border-l-[#F59E0B]">
+            <div className="flex items-center gap-2 mb-4">
+              <AlertCircle className="w-5 h-5 text-[#F59E0B]" />
+              <h2 className="text-lg font-semibold text-[#E8EEF9]">Awaiting Completion ({awaitingCompletion.length})</h2>
+            </div>
+            <p className="text-xs text-[#9AA6BC] mb-3">These collaborations are signed and ready for completion. Completion triggers commission calculation.</p>
+            <div className="space-y-2">
+              {awaitingCompletion.map(collab => (
+                <Link key={collab.id} to={createPageUrl(`CollaborationDetail?id=${collab.id}`)}>
+                  <div className="flex items-center justify-between p-3 bg-[#151D2B] rounded-lg hover:bg-[#1A2438] transition-colors">
+                    <div>
+                      <p className="text-sm font-medium text-[#E8EEF9]">{collab.collaboration_name || 'Untitled'}</p>
+                      <p className="text-xs text-[#6B7A94]">{collab.participant_ids?.length || 0} participants</p>
+                    </div>
+                    <CCBadge variant="warning" size="sm" icon={Clock}>Signed</CCBadge>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </CCCard>
+        )}
 
         <div className="grid md:grid-cols-2 gap-6">
           {/* Representations */}
