@@ -24,6 +24,16 @@ import StudioAvailabilityManager from '../studio/StudioAvailabilityManager';
 import { CCTabs, CCTabsList, CCTabsContent } from '../ui-custom/CCTabs';
 
 export default function StudioDashboard({ user, profile, onboardingChecklist }) {
+  const [activeTab, setActiveTab] = useState('overview');
+
+  const { data: bookingRequests = [] } = useQuery({
+    queryKey: ['studioIncomingBookings', user?.email],
+    queryFn: () => base44.entities.BookingRequest.filter({ recipient_user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+
+  const pendingBookingCount = bookingRequests.filter(b => b.status === 'pending').length;
+
   const { data: roster = [] } = useQuery({
     queryKey: ['studioRoster', user?.email],
     queryFn: () => base44.entities.StudioRoster.filter({ studio_user_id: user?.email }),
