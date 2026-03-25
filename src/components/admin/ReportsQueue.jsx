@@ -123,9 +123,22 @@ export default function ReportsQueue({ currentAdmin }) {
     other: { variant: 'outline', icon: Flag },
   };
 
-  const filteredReports = statusFilter === 'all' 
-    ? reports 
-    : reports.filter(r => r.status === statusFilter);
+  // High-risk reasons that should sort to top
+  const HIGH_RISK = ['underage', 'non_consensual'];
+  const isHighRiskReport = (r) => {
+    const notes = (r.admin_notes || '') + (r.details || '');
+    return HIGH_RISK.includes(r.reason) || /IMMEDIATE_REVIEW|AUTO-MODERATION|underage|trafficking|coercion/i.test(notes);
+  };
+
+  const filteredReports = (statusFilter === 'all'
+    ? reports
+    : reports.filter(r => r.status === statusFilter)
+  ).sort((a, b) => {
+    const aHigh = isHighRiskReport(a) ? 0 : 1;
+    const bHigh = isHighRiskReport(b) ? 0 : 1;
+    if (aHigh !== bHigh) return aHigh - bHigh;
+    return new Date(b.created_date) - new Date(a.created_date);
+  });
 
   return (
     <div className="space-y-6">
