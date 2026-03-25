@@ -387,6 +387,18 @@ Deno.serve(async (req) => {
           return Response.json({ error: 'target_user_id and reason required' }, { status: 400 });
         }
 
+        // Determine severity / escalation level
+        const HIGH_RISK_REASONS = ['underage', 'non_consensual'];
+        const CRITICAL_REASONS = ['underage'];
+        const isHighRisk = HIGH_RISK_REASONS.includes(reason);
+        const isCritical = CRITICAL_REASONS.includes(reason);
+
+        const adminNotes = isCritical
+          ? `⚠️ UNDERAGE RISK — IMMEDIATE_REVIEW_REQUIRED — DO NOT DISMISS WITHOUT STRUCTURED REVIEW. Reported by: ${user.email}`
+          : isHighRisk
+            ? `⚠️ HIGH RISK (${reason}) — REQUIRES_IMMEDIATE_REVIEW. Reported by: ${user.email}`
+            : null;
+
         const report = await base44.entities.Report.create({
           reporter_id: user.email,
           target_user_id,
@@ -394,8 +406,59 @@ Deno.serve(async (req) => {
           details: details || '',
           target_content_type,
           target_content_id,
-          status: 'pending'
+          status: isHighRisk ? 'investigating' : 'pending',
+          ...(adminNotes ? { admin_notes: adminNotes } : {}),
         });
+
+        // UNDERAGE / CRITICAL: immediately suspend target pending review, legal hold
+        if (isCritical) {
+          const targetProfiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: target_user_id });
+          const targetProfile = targetProfiles[0];
+          if (targetProfile?.id && !targetProfile.banned) {
+            await base44.asServiceRole.entities.UserProfile.update(targetProfile.id, {
+              suspended: true,
+              suspension_reason: 'Account suspended pending mandatory safety review (underage risk report received). Please contact support.',
+              legal_hold: true,
+            }).catch(() => {});
+          }
+
+          // Log the auto-suspension
+          await base44.asServiceRole.entities.AdminActionLog.create({
+            admin_user_id: 'SYSTEM_UNDERAGE_ESCALATION',
+            target_type: 'User',
+            target_id: target_user_id,
+            action: 'suspend_account',
+            reason: 'Auto-suspended: underage risk report received',
+            notes: `Report #${report.id} filed by ${user.email}. Account auto-suspended pending review. Legal hold applied.`,
+            metadata_json: {
+              report_id: report.id,
+              reporter_id: user.email,
+              reason,
+              auto_action: 'suspended_legal_hold',
+              requires_immediate_review: true,
+              timestamp: new Date().toISOString(),
+            },
+          }).catch(() => {});
+        }
+
+        // HIGH RISK (non_consensual etc): mark as investigating immediately
+        if (isHighRisk && !isCritical) {
+          await base44.asServiceRole.entities.AdminActionLog.create({
+            admin_user_id: 'SYSTEM_HIGH_RISK_ESCALATION',
+            target_type: 'Report',
+            target_id: report.id,
+            action: 'content_moderation_flag',
+            reason: `High-risk report auto-escalated: ${reason}`,
+            notes: `Report #${report.id} filed by ${user.email} for reason: ${reason}. Details: ${(details || '').substring(0, 300)}`,
+            metadata_json: {
+              report_id: report.id,
+              reporter_id: user.email,
+              reason,
+              requires_immediate_review: true,
+              timestamp: new Date().toISOString(),
+            },
+          }).catch(() => {});
+        }
 
         return Response.json({ success: true, data: report });
       }
