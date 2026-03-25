@@ -16,6 +16,7 @@ import {
   Crown,
   BarChart2
 } from 'lucide-react';
+// Shield already imported above — used for legal hold status display
 import PricingManager from '@/components/admin/PricingManager';
 import CouponManager from '@/components/admin/CouponManager';
 import UserManager from '@/components/admin/UserManager';
