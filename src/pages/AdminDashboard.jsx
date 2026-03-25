@@ -528,7 +528,7 @@ export default function AdminDashboard() {
             onChange={(e) => setActiveTab(e.target.value)}
             className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-3 text-[#E8EEF9] text-sm focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
           >
-            {[...tabRows.flat(), { value: 'reputation', label: '⭐ Reputation Scores' }, { value: 'identity', label: '🔍 Identity Check' }, { value: 'templates', label: '📄 Deal Templates' }].map((tab) => (
+            {[...tabRows.flat(), { value: 'reputation', label: '⭐ Reputation Scores' }, { value: 'identity', label: '🔍 Identity Check' }, { value: 'templates', label: '📄 Deal Templates' }, { value: 'earnings', label: '💰 Earnings' }].map((tab) => (
               <option key={tab.value} value={tab.value}>{tab.label}</option>
             ))}
           </select>
