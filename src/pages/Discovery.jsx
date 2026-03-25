@@ -617,6 +617,21 @@ export default function Discovery() {
         targetUserId={reportTargetUserId}
         targetContentType="profile"
       />
+
+      {/* Agent Representation Request Modal */}
+      <AgentRepresentationRequestModal
+        isOpen={showAgentRepModal}
+        onClose={() => {
+          setShowAgentRepModal(false);
+          setSelectedAgentUserId(null);
+        }}
+        agentUserId={selectedAgentUserId}
+        creatorUserId={user?.email}
+        onSuccess={() => {
+          queryClient.invalidateQueries({ queryKey: ['myCreatorReps'] });
+          queryClient.invalidateQueries({ queryKey: ['discoveryReputationScores'] });
+        }}
+      />
     </div>
   );
 }
