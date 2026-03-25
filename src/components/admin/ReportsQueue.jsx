@@ -326,6 +326,14 @@ export default function ReportsQueue({ currentAdmin }) {
             {/* Action Selection */}
             {!actionType && selectedReport.status !== 'resolved' && selectedReport.status !== 'dismissed' && (
               <div className="space-y-3 border-t border-[#263248] pt-4">
+                {isHighRiskReport(selectedReport) && (
+                  <div className="flex items-start gap-2 p-3 bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-lg">
+                    <AlertTriangle className="w-4 h-4 text-[#EF4444] flex-shrink-0 mt-0.5" />
+                    <p className="text-xs text-[#EF4444]">
+                      <strong>High-priority safety case.</strong> Dismissal requires structured justification notes (minimum 20 characters). This case cannot be silently dismissed.
+                    </p>
+                  </div>
+                )}
                 <p className="text-sm font-medium text-[#E8EEF9]">Select Action</p>
                 <div className="grid grid-cols-2 gap-3">
                   <CCButton
