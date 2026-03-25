@@ -56,7 +56,7 @@ export default function ReputationAdminPanel() {
   });
 
   const escalateMutation = useMutation({
-    mutationFn: ({ check_in_id, reason }) => base44.functions.invoke('safetyCheckIn', { check_in_id, reason }, { queryParams: { action: 'escalate' } }),
+    mutationFn: ({ check_in_id, reason }) => base44.functions.invoke('safetyCheckIn', { action: 'escalate', check_in_id, reason }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['adminMissedCheckIns'] });
       toast.success('Escalated');
