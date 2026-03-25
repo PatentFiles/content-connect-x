@@ -197,6 +197,20 @@ Deno.serve(async (req) => {
           return Response.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
+        // ── MODERATION CHECK ──────────────────────────────────────────────────
+        const msgModeration = await enforceModerationInline(base44, user.email, messageBody, 'message');
+        if (msgModeration && (msgModeration.severity === 'critical' || msgModeration.severity === 'high')) {
+          const isCritical = msgModeration.severity === 'critical';
+          return Response.json({
+            error: isCritical
+              ? 'Your account has been placed under review. This message was blocked.'
+              : 'This message could not be sent. This platform is for professional content collaboration only. Solicitation, escort services, and meetup-for-payment arrangements are strictly prohibited.',
+            code: isCritical ? 'account_suspended' : 'content_blocked',
+            blocked: true,
+          }, { status: 403 });
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         const message = await base44.entities.Message.create({
           conversation_id,
           sender_id: user.email,
