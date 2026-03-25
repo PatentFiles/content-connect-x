@@ -16,6 +16,7 @@ import ProfileFilters from '@/components/profiles/ProfileFilters';
 import AccessGate from '@/components/auth/AccessGate';
 import SaveToFavoritesModal from '@/components/profiles/SaveToFavoritesModal';
 import ReportModal from '@/components/moderation/ReportModal';
+import AgentRepresentationRequestModal from '@/components/representation/AgentRepresentationRequestModal';
 import TopCreators from '@/components/discovery/TopCreators';
 import CollaborationFeed from '@/components/discovery/CollaborationFeed';
 import TravelSync from '@/components/discovery/TravelSync';
