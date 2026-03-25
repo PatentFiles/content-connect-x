@@ -21,6 +21,24 @@ const fmtMoney = (n) =>
 
 export default function StudioEarningsDashboard({ studioUserId }) {
   const [dateFilter, setDateFilter] = useState('all');
+  const queryClient = useQueryClient();
+
+  // Actual earnings records for the studio
+  const { data: earningsRecords = [] } = useQuery({
+    queryKey: ['studioEarningsRecords', studioUserId],
+    queryFn: () => base44.entities.EarningsRecord.filter({ user_id: studioUserId, type: 'commission_received' }),
+    enabled: !!studioUserId,
+  });
+
+  const settleMutation = useMutation({
+    mutationFn: (id) => base44.functions.invoke('updateEarningsSettlement', { record_id: id, new_status: 'settled' }),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['studioEarningsRecords'] }); toast.success('Marked settled'); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const totalSettled = earningsRecords.filter(r => r.settlement_status === 'settled').reduce((s, r) => s + (r.net_amount || 0), 0);
+  const totalPending = earningsRecords.filter(r => r.settlement_status === 'pending_settlement').reduce((s, r) => s + (r.net_amount || 0), 0);
+  const totalProjected = earningsRecords.filter(r => r.settlement_status === 'projected').reduce((s, r) => s + (r.net_amount || 0), 0);
 
   // Fetch representations
   const { data: representations = [] } = useQuery({
