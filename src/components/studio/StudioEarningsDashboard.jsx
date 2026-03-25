@@ -180,11 +180,59 @@ export default function StudioEarningsDashboard({ studioUserId }) {
             </div>
             <div>
               <p className="text-2xl font-bold text-[#E8EEF9]">{totalRevenueShare.toFixed(0)}%</p>
-              <p className="text-xs text-[#6B7A94]">Total Revenue</p>
+              <p className="text-xs text-[#6B7A94]">Avg Revenue Share</p>
             </div>
           </div>
         </CCCard>
       </div>
+
+      {/* Earnings Summary from actual EarningsRecords */}
+      {earningsRecords.length > 0 && (
+        <CCCard padding="lg">
+          <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Studio Split Earnings</h3>
+          <div className="grid grid-cols-3 gap-3 mb-4">
+            <div className="text-center p-3 bg-[#0D1520] rounded-lg">
+              <p className="text-lg font-bold text-[#22C55E]">{fmtMoney(totalSettled)}</p>
+              <p className="text-xs text-[#6B7A94]">Settled</p>
+            </div>
+            <div className="text-center p-3 bg-[#0D1520] rounded-lg">
+              <p className="text-lg font-bold text-[#F59E0B]">{fmtMoney(totalPending)}</p>
+              <p className="text-xs text-[#6B7A94]">Pending</p>
+            </div>
+            <div className="text-center p-3 bg-[#0D1520] rounded-lg">
+              <p className="text-lg font-bold text-[#9AA6BC]">{fmtMoney(totalProjected)}</p>
+              <p className="text-xs text-[#6B7A94]">Projected</p>
+            </div>
+          </div>
+          <div className="space-y-2 max-h-48 overflow-y-auto">
+            {earningsRecords.map(record => {
+              const collab = collaborations.find(c => c.id === record.collaboration_id);
+              const cfg = STATUS_CONFIG[record.settlement_status] || STATUS_CONFIG.projected;
+              return (
+                <div key={record.id} className="flex items-center justify-between p-2.5 bg-[#151D2B] rounded-lg gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-[#E8EEF9] truncate">
+                      {collab?.collaboration_name || record.notes || 'Collaboration'}
+                    </p>
+                    <p className="text-xs text-[#6B7A94]">{record.split_percentage}% studio split</p>
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-sm font-bold text-[#E8EEF9]">{fmtMoney(record.net_amount)}</span>
+                    <CCBadge variant={cfg.variant} size="sm">{cfg.label}</CCBadge>
+                    {record.settlement_status === 'pending_settlement' && (
+                      <CCButton size="sm" variant="success"
+                        onClick={() => settleMutation.mutate(record.id)}
+                        loading={settleMutation.isPending}>
+                        Settle
+                      </CCButton>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </CCCard>
+      )}
 
       {/* Represented Creators */}
       <CCCard padding="lg">
