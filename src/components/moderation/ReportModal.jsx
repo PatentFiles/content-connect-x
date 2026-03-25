@@ -11,6 +11,7 @@ const reportReasons = [
   { value: 'fake_profile', label: 'Fake profile or impersonation' },
   { value: 'underage', label: 'Suspected underage user' },
   { value: 'non_consensual', label: 'Non-consensual content' },
+  { value: 'solicitation', label: 'Solicitation / escort / prostitution' },
   { value: 'spam', label: 'Spam or misleading' },
   { value: 'scam', label: 'Scam or fraud' },
   { value: 'other', label: 'Other' },
@@ -29,16 +30,14 @@ export default function ReportModal({
 
   const reportMutation = useMutation({
     mutationFn: async () => {
-      const user = await base44.auth.me();
-      return base44.entities.Report.create({
-        reporter_id: user.email,
+      const response = await base44.functions.invoke('protectedActions', {
         target_user_id: targetUserId,
-        target_content_type: targetContentType,
-        target_content_id: targetContentId,
         reason: selectedReason,
         details: details.trim(),
-        status: 'pending',
-      });
+        target_content_type: targetContentType,
+        target_content_id: targetContentId,
+      }, { queryParams: { action: 'submit_report' } });
+      return response?.data;
     },
     onSuccess: () => {
       toast.success('Report submitted. Our team will review it shortly.');

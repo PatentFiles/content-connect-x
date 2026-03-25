@@ -45,6 +45,35 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'recipient_id is required' }, { status: 400 });
     }
 
+    // CHECK RECIPIENT BAN STATUS — don't allow conversations with banned/suspended users
+    try {
+      const recipientProfiles = await base44.asServiceRole.entities.UserProfile.filter({
+        user_id: recipient_id
+      });
+      const recipientProfile = recipientProfiles[0];
+      if (recipientProfile?.banned === true) {
+        return Response.json(
+          { error: 'This user is not available on the platform.', code: 'recipient_unavailable', blocked: true },
+          { status: 403 }
+        );
+      }
+      if (recipientProfile?.suspended === true) {
+        return Response.json(
+          { error: 'This user is currently unavailable. Please try again later.', code: 'recipient_unavailable', blocked: true },
+          { status: 403 }
+        );
+      }
+      if (recipientProfile?.account_deactivated === true) {
+        return Response.json(
+          { error: 'This user account is no longer active.', code: 'recipient_unavailable', blocked: true },
+          { status: 403 }
+        );
+      }
+    } catch (recipientCheckError) {
+      console.error('Recipient check failed:', recipientCheckError);
+      // Fail open — don't block message if check errors
+    }
+
     // Check if conversation already exists between these two users
     const existingConvs = await base44.entities.Conversation.list();
     const existingConv = existingConvs.find(conv => 

@@ -118,16 +118,17 @@ export default function ReportsQueue({ currentAdmin }) {
     fake_profile: { variant: 'warning', icon: UserX },
     underage: { variant: 'danger', icon: AlertTriangle },
     non_consensual: { variant: 'danger', icon: Flag },
+    solicitation: { variant: 'danger', icon: Ban },
     spam: { variant: 'outline', icon: MessageCircle },
     scam: { variant: 'danger', icon: AlertTriangle },
     other: { variant: 'outline', icon: Flag },
   };
 
   // High-risk reasons that should sort to top
-  const HIGH_RISK = ['underage', 'non_consensual'];
+  const HIGH_RISK = ['underage', 'non_consensual', 'solicitation'];
   const isHighRiskReport = (r) => {
     const notes = (r.admin_notes || '') + (r.details || '');
-    return HIGH_RISK.includes(r.reason) || /IMMEDIATE_REVIEW|AUTO-MODERATION|underage|trafficking|coercion/i.test(notes);
+    return HIGH_RISK.includes(r.reason) || /IMMEDIATE_REVIEW|AUTO-MODERATION|underage|trafficking|coercion|solicitation/i.test(notes);
   };
 
   const filteredReports = (statusFilter === 'all'
