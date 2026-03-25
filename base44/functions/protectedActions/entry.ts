@@ -298,6 +298,32 @@ Deno.serve(async (req) => {
       case 'create_collaboration': {
         const collabData = body;
 
+        // ── MODERATION: scan all free-text fields ─────────────────────────────
+        const collabFreeText = [
+          collabData.collaboration_name,
+          collabData.internal_notes,
+          collabData.acts_other_text,
+          collabData.compensation_details?.notes,
+          collabData.compensation_details?.split_details,
+          collabData.location?.notes,
+          collabData.location?.address,
+          collabData.deliverables?.notes,
+          collabData.usage_rights?.notes,
+          collabData.boundaries?.aftercare_notes,
+        ].filter(Boolean).join(' ');
+
+        if (collabFreeText) {
+          const collabMod = await enforceModerationInline(base44, user.email, collabFreeText, 'collaboration_create');
+          if (collabMod && (collabMod.severity === 'critical' || collabMod.severity === 'high')) {
+            return Response.json({
+              error: 'This collaboration could not be created. Content in one or more fields violates platform safety policies. This platform is for professional content collaboration only.',
+              code: 'content_blocked',
+              blocked: true,
+            }, { status: 403 });
+          }
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         const participant_ids = [
           user.email,
           ...((collabData.participant_ids || []).filter(id => id !== user.email))
