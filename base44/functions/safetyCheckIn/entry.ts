@@ -6,6 +6,9 @@
  *  - mark_safe: User marks themselves safe after
  *  - escalate: Admin or system escalates a missed check-in
  *  - get_status: Get check-in status for a collaboration
+ *  - list_missed: Admin — find overdue check-ins
+ *
+ * NOTE: action is passed in the request BODY as { action: '...' }
  */
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
@@ -20,13 +23,13 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const url = new URL(req.url);
-    const action = url.searchParams.get('action');
     const body = await req.json();
+    // action comes from body (SDK invoke doesn't support query params)
+    const action = body.action;
     const svc = base44.asServiceRole;
 
     // Check user is not banned
-    const profiles = await svc.entities.UserProfile.filter({ user_id: user.email });
+    const profiles = await svc.entities.UserProfile.filter({ user_id: user.email }).catch(() => []);
     const profile = profiles[0];
     if (profile?.banned || profile?.suspended) {
       return Response.json({ error: 'Account restricted' }, { status: 403 });
@@ -39,7 +42,7 @@ Deno.serve(async (req) => {
         if (!collaboration_id) return Response.json({ error: 'collaboration_id required' }, { status: 400 });
 
         // Verify user is participant
-        const collabs = await svc.entities.Collaboration.filter({ id: collaboration_id });
+        const collabs = await svc.entities.Collaboration.filter({ id: collaboration_id }).catch(() => []);
         const collab = collabs[0];
         if (!collab?.participant_ids?.includes(user.email)) {
           return Response.json({ error: 'Not a participant in this collaboration' }, { status: 403 });
@@ -49,9 +52,9 @@ Deno.serve(async (req) => {
         const existing = await svc.entities.SafetyCheckIn.filter({
           user_id: user.email,
           collaboration_id,
-          status: { $in: ['pending', 'checked_in'] }
         }).catch(() => []);
-        if (existing.length > 0) {
+        const activeExisting = existing.filter(c => ['pending', 'checked_in'].includes(c.status));
+        if (activeExisting.length > 0) {
           return Response.json({ error: 'Check-in already active for this collaboration' }, { status: 409 });
         }
 
@@ -74,7 +77,7 @@ Deno.serve(async (req) => {
             type: 'safety_checkin',
             title: 'Safety Reminder',
             body: `Don't forget to mark yourself safe after your collaboration ends around ${new Date(expected_end_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`,
-            action_url: `/ViewCollaboration?id=${collaboration_id}`,
+            action_url: `/CollaborationDetail?id=${collaboration_id}`,
           }).catch(() => {});
         }
 
@@ -95,7 +98,7 @@ Deno.serve(async (req) => {
         const { check_in_id } = body;
         if (!check_in_id) return Response.json({ error: 'check_in_id required' }, { status: 400 });
 
-        const checkIns = await svc.entities.SafetyCheckIn.filter({ id: check_in_id, user_id: user.email });
+        const checkIns = await svc.entities.SafetyCheckIn.filter({ id: check_in_id, user_id: user.email }).catch(() => []);
         const checkIn = checkIns[0];
         if (!checkIn) return Response.json({ error: 'Check-in not found' }, { status: 404 });
         if (checkIn.status === 'safe') return Response.json({ success: true, data: checkIn, already_safe: true });
@@ -122,7 +125,7 @@ Deno.serve(async (req) => {
         const { check_in_id, reason } = body;
         if (user?.role !== 'admin') return Response.json({ error: 'Admin only' }, { status: 403 });
 
-        const checkIns = await svc.entities.SafetyCheckIn.filter({ id: check_in_id });
+        const checkIns = await svc.entities.SafetyCheckIn.filter({ id: check_in_id }).catch(() => []);
         const checkIn = checkIns[0];
         if (!checkIn) return Response.json({ error: 'Not found' }, { status: 404 });
 
@@ -151,17 +154,19 @@ Deno.serve(async (req) => {
 
         const checkIns = await svc.entities.SafetyCheckIn.filter({
           user_id: user.email,
-          collaboration_id
-        });
+          collaboration_id,
+        }).catch(() => []);
 
-        return Response.json({ success: true, data: checkIns[0] || null });
+        // Return most recent
+        const sorted = checkIns.sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
+        return Response.json({ success: true, data: sorted[0] || null });
       }
 
       case 'list_missed': {
         // Admin: find missed check-ins
         if (user?.role !== 'admin') return Response.json({ error: 'Admin only' }, { status: 403 });
         const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString();
-        const allCheckIns = await svc.entities.SafetyCheckIn.list('-checkin_time', 100);
+        const allCheckIns = await svc.entities.SafetyCheckIn.list('-checkin_time', 100).catch(() => []);
         const missed = allCheckIns.filter(c =>
           c.status === 'checked_in' &&
           c.expected_end_time &&
