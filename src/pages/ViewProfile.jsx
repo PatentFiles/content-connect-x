@@ -260,7 +260,6 @@ export default function ViewProfile() {
   });
 
   const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profileUserId));
-  const queryClient = useQueryClient();
 
   // Fetch friend count and friendship status
   const { data: friendCount } = useQuery({
