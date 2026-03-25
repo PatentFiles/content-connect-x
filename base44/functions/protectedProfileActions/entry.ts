@@ -45,10 +45,12 @@ Deno.serve(async (req) => {
     // Execute action
     if (action === 'updateProfile') {
       const { profileId, data } = payload;
+      // Strip privileged fields — users cannot self-modify ban/admin status
+      const { banned, suspended, suspension_reason, legal_hold, is_admin, deletion_status, deleted_at, account_deactivated, ...safeData } = data || {};
       if (profileId) {
-        return Response.json(await base44.entities.UserProfile.update(profileId, data));
+        return Response.json(await base44.entities.UserProfile.update(profileId, safeData));
       } else {
-        return Response.json(await base44.entities.UserProfile.create({ ...data, user_id: user.email }));
+        return Response.json(await base44.entities.UserProfile.create({ ...safeData, user_id: user.email }));
       }
     }
 
