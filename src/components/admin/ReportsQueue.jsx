@@ -194,7 +194,11 @@ export default function ReportsQueue({ currentAdmin }) {
                   hover 
                   clickable
                   onClick={() => setSelectedReport(report)}
-                  className={report.status === 'pending' ? 'border-l-4 border-l-[#F59E0B]' : ''}
+                  className={
+                    isHighRiskReport(report)
+                      ? 'border-l-4 border-l-[#EF4444] bg-[#EF4444]/5'
+                      : report.status === 'pending' ? 'border-l-4 border-l-[#F59E0B]' : ''
+                  }
                 >
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 space-y-3">
