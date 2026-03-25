@@ -63,6 +63,9 @@ export const roleNavigation = {
     { path: 'Connections', label: 'Friends', icon: UserPlus },
     { path: 'Messages', label: 'Messages', icon: MessageCircle },
     { path: 'Portfolio', label: 'Portfolio', icon: Camera },
+    { path: 'Collaborations', label: 'Collaborations', icon: Briefcase },
+    { path: 'Contracts', label: 'Contracts', icon: FileText },
+    { path: 'Verification', label: 'Verification', icon: Shield },
   ],
   videographer: [
     { path: 'Dashboard', label: 'Dashboard', icon: Home },
@@ -73,6 +76,9 @@ export const roleNavigation = {
     { path: 'Connections', label: 'Friends', icon: UserPlus },
     { path: 'Messages', label: 'Messages', icon: MessageCircle },
     { path: 'Portfolio', label: 'Reels/Portfolio', icon: Video },
+    { path: 'Collaborations', label: 'Collaborations', icon: Briefcase },
+    { path: 'Contracts', label: 'Contracts', icon: FileText },
+    { path: 'Verification', label: 'Verification', icon: Shield },
   ],
 };
 

@@ -35,8 +35,7 @@ import VerificationRequired from '@/components/auth/VerificationRequired';
 import AvailabilityCalendar from '@/components/collaboration/AvailabilityCalendar';
 import { logCollaborationActivity } from '@/components/collaboration/activityLogHelpers';
 import { revalidateBanStatus } from '@/hooks/useProtectedMutation';
-
-
+import { toast } from 'sonner';
 
 const compensationTypes = [
   { value: 'paid', label: 'Paid', description: 'Direct payment for services' },
@@ -294,7 +293,7 @@ export default function CreateCollaboration() {
   // Fetch my favorites
   const { data: myFavorites = [] } = useQuery({
     queryKey: ['myFavorites', user?.email],
-    queryFn: () => base44.entities.Favorite.filter({ user_id: user?.email }),
+    queryFn: () => base44.entities.Favorite.filter({ owner_id: user?.email }),
     enabled: !!user?.email,
   });
 
@@ -375,10 +374,9 @@ export default function CreateCollaboration() {
     v.user_id?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Get favorite profiles
-  const favoriteProfiles = allProfiles.filter(p => 
-    myFavorites.some(f => f.target_user_id === p.user_id)
-  );
+  // Get favorite profiles — items is an array of {user_id, added_at} objects
+  const favoriteUserIds = myFavorites.flatMap(f => (f.items || []).map(item => item.user_id).filter(Boolean));
+  const favoriteProfiles = allProfiles.filter(p => favoriteUserIds.includes(p.user_id));
 
   // Create/Update mutation — ban-enforced via protected backend
   const createMutation = useMutation({
@@ -391,8 +389,22 @@ export default function CreateCollaboration() {
         ? data.participant_emails.split(',').map(e => e.trim()).filter(e => e)
         : [];
       
+      // Merge hard_no_text / soft_limits_text into structured arrays before saving
+      const mergedBoundaries = { ...data.boundaries };
+      if (mergedBoundaries.hard_no_text) {
+        const extras = mergedBoundaries.hard_no_text.split(',').map(v => v.trim()).filter(Boolean);
+        mergedBoundaries.hard_no = [...new Set([...(mergedBoundaries.hard_no || []), ...extras])];
+        delete mergedBoundaries.hard_no_text;
+      }
+      if (mergedBoundaries.soft_limits_text) {
+        const extras = mergedBoundaries.soft_limits_text.split(',').map(v => v.trim()).filter(Boolean);
+        mergedBoundaries.soft_limits = [...new Set([...(mergedBoundaries.soft_limits || []), ...extras])];
+        delete mergedBoundaries.soft_limits_text;
+      }
+
       const payload = {
         ...data,
+        boundaries: mergedBoundaries,
         participant_ids: [user.email, ...participantEmails],
         status: 'draft',
       };

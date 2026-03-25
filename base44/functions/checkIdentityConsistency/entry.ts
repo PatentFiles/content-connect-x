@@ -266,13 +266,29 @@ Deno.serve(async (req) => {
 
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
+    const svc = base44.asServiceRole;
 
+    let body = {};
+    try { body = await req.json(); } catch (_) {}
+
+    // ── Entity automation payload: { event, data } ─────────────────────────
+    const isEntityAutomation = !!(body.event && body.data);
+    if (isEntityAutomation) {
+      const verificationRecord = body.data;
+      const userId = verificationRecord?.user_id;
+      const status = verificationRecord?.status;
+      if (!userId) return Response.json({ skipped: true, reason: 'No user_id in payload' });
+      const triggeredBy = status === 'approved' ? 'verification_approved' : 'verification_rejected';
+      const result = await scanUser(svc, userId, triggeredBy);
+      return Response.json({ success: true, ...result });
+    }
+    // ── Manual / Admin API call ─────────────────────────────────────────────
+
+    const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     if (user.role !== 'admin') return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
 
-    const svc = base44.asServiceRole;
-    const { action, user_id, triggered_by } = await req.json();
+    const { action, user_id, triggered_by } = body;
 
     if (action === 'scan_user') {
       if (!user_id) return Response.json({ error: 'user_id required' }, { status: 400 });

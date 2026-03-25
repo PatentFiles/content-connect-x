@@ -20,6 +20,7 @@ import AgentRepresentationRequestModal from '@/components/representation/AgentRe
 import TopCreators from '@/components/discovery/TopCreators';
 import CollaborationFeed from '@/components/discovery/CollaborationFeed';
 import TravelSync from '@/components/discovery/TravelSync';
+import AgentMarketplaceCard from '@/components/marketplace/AgentMarketplaceCard';
 
 // Calculate distance between two coordinates in miles
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -57,6 +58,10 @@ export default function Discovery() {
     setShowAgentRepModal(true);
   };
   
+  // Parse ?role= query param on mount to pre-filter (e.g. "Browse Agents" links)
+  const urlParams = new URLSearchParams(window.location.search);
+  const roleParam = urlParams.get('role') || '';
+
   const [filters, setFilters] = useState({
     roleTypes: [],
     orientations: [],
@@ -74,6 +79,13 @@ export default function Discovery() {
     state: '',
     availableDates: [],
   });
+
+  // Apply role param on mount
+  React.useEffect(() => {
+    if (roleParam) {
+      setSelectedRole(roleParam);
+    }
+  }, []);
 
   // Check auth and access
   const { data: user, isLoading: userLoading } = useQuery({
@@ -556,7 +568,6 @@ export default function Discovery() {
 
              // For agents: show marketplace card if creator is browsing
              if (profile.role_type === 'agent' && myProfile?.[0]?.role_type === 'creator') {
-               const AgentMarketplaceCard = require('@/components/marketplace/AgentMarketplaceCard').default;
                const agentDetails = allAgentDetails.find(d => d.user_id === profile.user_id);
                return (
                  <AgentMarketplaceCard

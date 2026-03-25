@@ -243,7 +243,7 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
               ) : (
                 <div className="space-y-3">
                   {collaborations.slice(0, 5).map(room => (
-                    <Link key={room.id} to={createPageUrl(`ViewCollaboration?id=${room.id}`)}>
+                    <Link key={room.id} to={createPageUrl(`CollaborationDetail?id=${room.id}`)}>
                       <div className="flex items-center justify-between p-3 bg-[#151D2B] rounded-lg hover:bg-[#1A2438] transition-colors">
                         <div>
                           <p className="text-sm font-medium text-[#E8EEF9]">

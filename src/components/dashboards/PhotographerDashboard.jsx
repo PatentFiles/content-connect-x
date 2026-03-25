@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -14,9 +14,16 @@ import {
 } from 'lucide-react';
 import CCCard from '../ui-custom/CCCard';
 import CCButton from '../ui-custom/CCButton';
+import CCBadge from '../ui-custom/CCBadge';
 import CCEmpty from '../ui-custom/CCEmpty';
+import CCModal from '../ui-custom/CCModal';
+import BookingRequestsInbox from '../booking/BookingRequestsInbox';
+import EarningsTracker from '../earnings/EarningsTracker';
+import { ReputationScoreBar } from '../trust/ReputationBadge';
 
 export default function PhotographerDashboard({ user, profile, onboardingChecklist }) {
+  const [showEarnings, setShowEarnings] = useState(false);
+
   const { data: portfolioItems = [] } = useQuery({
     queryKey: ['myPortfolio', user?.email],
     queryFn: () => base44.entities.ServicePortfolioItem.filter({ user_id: user?.email }),
@@ -37,8 +44,18 @@ export default function PhotographerDashboard({ user, profile, onboardingCheckli
     enabled: !!user?.email,
   });
 
+  const { data: myReputationScore } = useQuery({
+    queryKey: ['myReputationScore', user?.email],
+    queryFn: async () => {
+      const scores = await base44.entities.ReputationScore.filter({ user_id: user?.email });
+      return scores[0] || null;
+    },
+    enabled: !!user?.email,
+  });
+
   const service = serviceDetails[0];
-  const activeBookings = collaborations.filter(d => ['agreed', 'contract_sent'].includes(d.status));
+  // Use correct status: 'contract_pending' not 'contract_sent'
+  const activeBookings = collaborations.filter(d => ['agreed', 'contract_pending'].includes(d.status));
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
@@ -100,6 +117,12 @@ export default function PhotographerDashboard({ user, profile, onboardingCheckli
           </CCCard>
         </div>
 
+        {/* Booking Requests Inbox */}
+        <CCCard padding="lg" className="mb-6">
+          <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4">Incoming Booking Requests</h2>
+          <BookingRequestsInbox userId={user?.email} />
+        </CCCard>
+
         <div className="grid md:grid-cols-2 gap-6">
           {/* Portfolio Status */}
           <CCCard padding="lg">
@@ -159,6 +182,23 @@ export default function PhotographerDashboard({ user, profile, onboardingCheckli
           </CCCard>
         </div>
 
+        {/* Reputation / Trust Standing */}
+        {myReputationScore && (
+          <CCCard padding="lg" className="mt-6">
+            <h2 className="text-sm font-semibold text-[#E8EEF9] mb-3">Trust Standing</h2>
+            <ReputationScoreBar score={myReputationScore} />
+          </CCCard>
+        )}
+
+        {/* Earnings */}
+        <CCCard padding="lg" className="mt-6">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-sm font-semibold text-[#E8EEF9]">Earnings</h2>
+            <CCButton variant="ghost" size="sm" onClick={() => setShowEarnings(true)}>View</CCButton>
+          </div>
+          <p className="text-xs text-[#6B7A94]">Track projected and confirmed collaboration earnings (private)</p>
+        </CCCard>
+
         {/* Quick Actions */}
         <CCCard padding="lg" className="mt-6">
           <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4">Quick Actions</h2>
@@ -181,6 +221,10 @@ export default function PhotographerDashboard({ user, profile, onboardingCheckli
           </div>
         </CCCard>
       </div>
+
+      <CCModal isOpen={showEarnings} onClose={() => setShowEarnings(false)} title="Earnings Tracker" size="lg">
+        <EarningsTracker userId={user?.email} />
+      </CCModal>
     </div>
   );
 }

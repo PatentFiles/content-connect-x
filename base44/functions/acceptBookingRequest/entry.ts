@@ -42,6 +42,8 @@ Deno.serve(async (req) => {
     if (!booking) return Response.json({ error: 'Booking not found' }, { status: 404 });
 
     const isStudioBooking = booking.booking_type === 'studio';
+    const isPhotographerBooking = booking.booking_type === 'photographer';
+    const isVideographerBooking = booking.booking_type === 'videographer';
 
     // ─── ACCEPT ────────────────────────────────────────────────────────────────
     if (action === 'accept') {
@@ -63,6 +65,10 @@ Deno.serve(async (req) => {
       // Build collaboration name
       const collabName = isStudioBooking
         ? `Studio Booking: ${booking.studio_location_name || profile?.display_name || 'Studio'} — ${booking.requested_date}`
+        : isPhotographerBooking
+        ? `Photography Booking: ${booking.requested_date}`
+        : isVideographerBooking
+        ? `Videography Booking: ${booking.requested_date}`
         : `Booking: ${booking.requested_date}`;
 
       // Build tags
@@ -96,6 +102,8 @@ Deno.serve(async (req) => {
         tags,
         ...(locationData && { location: locationData }),
         ...(isStudioBooking && { studio_id: booking.recipient_user_id }),
+        ...(isPhotographerBooking && { photographer_id: booking.recipient_user_id }),
+        ...(isVideographerBooking && { videographer_id: booking.recipient_user_id }),
       };
 
       const collaboration = await svc.entities.Collaboration.create(collaborationPayload);
