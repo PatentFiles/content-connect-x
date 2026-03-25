@@ -130,6 +130,20 @@ export default function Discovery() {
     enabled: !!user && isVerified && isSubscribed,
   });
 
+  // Fetch my creator reps (to show agent status in marketplace)
+  const { data: myCreatorReps = [] } = useQuery({
+    queryKey: ['myCreatorReps', user?.email],
+    queryFn: () => base44.entities.AgentRepresentation.filter({ creator_user_id: user?.email }),
+    enabled: !!user?.email && myProfile?.[0]?.role_type === 'creator',
+  });
+
+  // Fetch agent details for marketplace
+  const { data: allAgentDetails = [] } = useQuery({
+    queryKey: ['allAgentDetails'],
+    queryFn: () => base44.entities.AgentDetails.list(),
+    enabled: !!user && isVerified && isSubscribed && selectedRole === 'agent',
+  });
+
   const { data: allStudioRosters = [] } = useQuery({
     queryKey: ['allStudioRosters'],
     queryFn: () => base44.entities.StudioRoster.filter({ status: 'ACTIVE' }),
