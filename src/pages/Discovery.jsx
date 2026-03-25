@@ -16,6 +16,9 @@ import ProfileFilters from '@/components/profiles/ProfileFilters';
 import AccessGate from '@/components/auth/AccessGate';
 import SaveToFavoritesModal from '@/components/profiles/SaveToFavoritesModal';
 import ReportModal from '@/components/moderation/ReportModal';
+import TopCreators from '@/components/discovery/TopCreators';
+import CollaborationFeed from '@/components/discovery/CollaborationFeed';
+import TravelSync from '@/components/discovery/TravelSync';
 
 // Calculate distance between two coordinates in miles
 function calculateDistance(lat1, lon1, lat2, lon2) {
@@ -402,6 +405,14 @@ export default function Discovery() {
     
     return filtered.slice(0, 20);
   }, [allProfiles, filters, selectedRole, allVerifications, allCreatorDetails, allTestingCredentials]);
+
+  // Fetch reputation scores for visible profiles
+  const { data: reputationScores = [] } = useQuery({
+    queryKey: ['discoveryReputationScores'],
+    queryFn: () => base44.entities.ReputationScore.list('-score', 100),
+    enabled: !!user && isVerified && isSubscribed,
+    staleTime: 10 * 60 * 1000,
+  });
 
   // Fetch creator details for profiles
   const { data: creatorDetails = [] } = useQuery({
