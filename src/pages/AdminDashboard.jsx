@@ -43,6 +43,7 @@ import VerificationReviewQueue from '@/components/admin/VerificationReviewQueue'
 import ReportsQueue from '@/components/admin/ReportsQueue';
 import SessionHistoryViewer from '@/components/admin/SessionHistoryViewer';
 import SafetyAlertsQueue from '@/components/admin/SafetyAlertsQueue';
+import SecurityDashboard from '@/components/admin/SecurityDashboard';
 
 // User Management Component
 function UserManagement({ currentUser }) {
@@ -427,6 +428,7 @@ export default function AdminDashboard() {
       { value: 'disputes', label: 'Dispute Testing', icon: AlertTriangle },
       { value: 'tags', label: 'Tags', icon: Tag },
       { value: 'reports', label: 'Reports', icon: AlertTriangle },
+      { value: 'security', label: '🔒 Security Checks', icon: Shield },
     ],
   ];
 
@@ -698,6 +700,11 @@ export default function AdminDashboard() {
         {/* Dispute Testing Tab */}
         <CCTabsContent value="disputes" activeTab={activeTab}>
           <DisputeSimulator currentAdmin={user} />
+        </CCTabsContent>
+
+        {/* Security & Compliance Checks Tab */}
+        <CCTabsContent value="security" activeTab={activeTab}>
+          <SecurityDashboard />
         </CCTabsContent>
       </div>
 
