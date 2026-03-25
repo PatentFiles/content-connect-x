@@ -338,6 +338,14 @@ export default function CollaborationDetail() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Safety Check-In — shown when collab is signed/active for participants */}
+            {['signed', 'active', 'agreed'].includes(collaboration.status) &&
+              collaboration.participant_ids?.includes(user?.email) && !isRepObserver && (
+              <SafetyCheckInWidget
+                collaborationId={collaboration.id}
+                userId={user?.email}
+              />
+            )}
             <TestingPolicyManager 
               collaborationId={collaboration.id} 
               userRole={userRole}
