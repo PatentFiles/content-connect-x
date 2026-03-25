@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
 // High-risk reason categories
-const HIGH_RISK_REASONS = ['underage', 'non_consensual'];
+const HIGH_RISK_REASONS = ['underage', 'non_consensual', 'solicitation'];
 const HIGH_RISK_KEYWORDS_IN_NOTES = ['underage', 'trafficking', 'coercion', 'solicitation', 'IMMEDIATE_REVIEW', 'AUTO-MODERATION'];
 
 function severityConfig(report) {
