@@ -119,11 +119,43 @@ export default function StudioDashboard({ user, profile, onboardingChecklist }) 
               </div>
               <div>
                 <p className="text-2xl font-bold text-[#E8EEF9]">{pendingApprovals.length}</p>
-                <p className="text-xs text-[#6B7A94]">Pending</p>
+                <p className="text-xs text-[#6B7A94]">Pending Roster</p>
+              </div>
+            </div>
+          </CCCard>
+          <CCCard
+            padding="md"
+            clickable
+            onClick={() => setActiveTab('bookings')}
+            className={pendingBookingCount > 0 ? 'border-[#F59E0B]/40 bg-[#F59E0B]/5' : ''}
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-[#FF2DAA]/20 flex items-center justify-center">
+                <CalendarCheck className="w-5 h-5 text-[#FF2DAA]" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-[#E8EEF9]">{pendingBookingCount}</p>
+                <p className="text-xs text-[#6B7A94]">Booking Requests</p>
               </div>
             </div>
           </CCCard>
         </div>
+
+        {/* Tab navigation */}
+        <CCTabsList tabs={dashTabs} activeTab={activeTab} onChange={setActiveTab} className="mb-6" />
+
+        {/* Bookings Tab */}
+        <CCTabsContent value="bookings" activeTab={activeTab}>
+          <StudioBookingManager studioUserId={user?.email} />
+        </CCTabsContent>
+
+        {/* Availability Tab */}
+        <CCTabsContent value="availability" activeTab={activeTab}>
+          <StudioAvailabilityManager userId={user?.email} />
+        </CCTabsContent>
+
+        {/* Overview Tab */}
+        <CCTabsContent value="overview" activeTab={activeTab}>
 
         {/* Studio Earnings Dashboard */}
         <StudioEarningsDashboard studioUserId={user?.email} />
