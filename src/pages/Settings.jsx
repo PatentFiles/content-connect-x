@@ -236,13 +236,22 @@ export default function Settings() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-[#E8EEF9]">Delete Account</p>
-                  <p className="text-sm text-[#6B7A94]">Permanently delete your account and all data</p>
+                  <p className="text-sm text-[#6B7A94]">Anonymize and deactivate your account. Safety and legal records are retained per platform policy.</p>
+                  {currentProfile?.deletion_status === 'blocked_legal_hold' && (
+                    <p className="text-xs text-[#F59E0B] mt-1 flex items-center gap-1">
+                      <Shield className="w-3 h-3" /> Deletion is currently blocked — account is under compliance review.
+                    </p>
+                  )}
+                  {currentProfile?.deletion_status === 'anonymized' && (
+                    <p className="text-xs text-[#22C55E] mt-1">Account deactivation in progress.</p>
+                  )}
                 </div>
                 <CCButton 
                   variant="danger" 
                   size="sm" 
                   icon={Trash2}
                   onClick={() => setShowDeleteModal(true)}
+                  disabled={currentProfile?.deletion_status === 'anonymized' || currentProfile?.deletion_status === 'completed'}
                 >
                   Delete
                 </CCButton>
