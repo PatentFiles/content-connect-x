@@ -794,6 +794,17 @@ export default function ViewProfile() {
           </CCCard>
         )}
 
+        {/* Collaboration History */}
+        {user?.email !== profileUserId && (
+          <div className="mb-6">
+            <CollaborationHistory
+              targetUserId={profileUserId}
+              isOwner={false}
+              visibilitySetting="summary"
+            />
+          </div>
+        )}
+
         {/* Bio */}
         {profile.bio && (
           <CCCard padding="lg" className="mb-6 text-center">
