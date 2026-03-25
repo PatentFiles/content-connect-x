@@ -187,8 +187,11 @@ export default function ContractViewer({ contractId }) {
     }
   }, [isRepObserver, contract?.id, user?.email]);
 
-  const userHasSigned = signatures.some(s => s.user_id === user?.email);
-  const canSign = !isContractLocked && !isRepObserver && contract.status === 'sent' && contract.signatories?.some(s => s.user_id === user?.email && !s.signed);
+  const userHasSigned = signatures.some(s => s.signer_id === user?.email);
+  const isSignatory = contract.signatories?.some(s => s.user_id === user?.email);
+  const alreadySigned = contract.signatories?.find(s => s.user_id === user?.email)?.signed === true;
+  const canSign = !isContractLocked && !isRepObserver && ['sent', 'partially_signed'].includes(contract.status) && isSignatory && !alreadySigned;
+  const canSend = !isContractLocked && contract.status === 'generated' && contract.created_by === user?.email;
   
   const statusConfig = {
     draft: { variant: 'default', icon: FileText },
