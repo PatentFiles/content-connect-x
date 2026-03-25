@@ -113,6 +113,72 @@ async function enforceModerationInline(base44, userId, text, context) {
   return result;
 }
 
+// ─── RATE LIMIT CHECK ────────────────────────────────────────────────────────
+
+const RATE_LIMITS = {
+  send_message:         [{ window_minutes: 1, max: 30 }, { window_minutes: 60, max: 300 }],
+  submit_report:        [{ window_minutes: 60, max: 5 }],
+  create_collaboration: [{ window_minutes: 60, max: 10 }],
+  update_profile:       [{ window_minutes: 60, max: 20 }],
+};
+
+async function checkRateLimit(svc, userId, action) {
+  const rules = RATE_LIMITS[action];
+  if (!rules) return null; // No limit defined for this action
+
+  const now = Date.now();
+  let recentLogs = [];
+  try {
+    recentLogs = await svc.entities.AdminActionLog.filter({
+      target_id: userId,
+      action: `rate_limit_action_${action}`,
+    });
+  } catch (e) {
+    return null; // fail open
+  }
+
+  for (const rule of rules) {
+    const windowMs = rule.window_minutes * 60 * 1000;
+    const actionsInWindow = recentLogs.filter(l =>
+      new Date(l.created_date).getTime() > now - windowMs
+    ).length;
+
+    if (actionsInWindow >= rule.max) {
+      // Log violation
+      await svc.entities.AdminActionLog.create({
+        admin_user_id: 'SYSTEM_RATE_LIMITER',
+        target_type: 'User',
+        target_id: userId,
+        action: 'rate_limit_exceeded',
+        reason: `Rate limit exceeded: ${action} (${actionsInWindow}/${rule.max} per ${rule.window_minutes}min)`,
+        notes: `User ${userId} exceeded rate limit for action: ${action}`,
+        metadata_json: { action, limit: rule.max, window_minutes: rule.window_minutes, actions_in_window: actionsInWindow, timestamp: new Date().toISOString() },
+      }).catch(() => {});
+      return {
+        blocked: true,
+        response: Response.json({
+          error: `Too many requests. Please wait before trying again.`,
+          code: 'rate_limited',
+          retry_after_seconds: rule.window_minutes * 60,
+        }, { status: 429 }),
+      };
+    }
+  }
+
+  // Log the action for future counting
+  await svc.entities.AdminActionLog.create({
+    admin_user_id: 'SYSTEM_RATE_LIMITER',
+    target_type: 'User',
+    target_id: userId,
+    action: `rate_limit_action_${action}`,
+    reason: `Rate limit tracking: ${action}`,
+    notes: `Allowed action: ${action} by ${userId}`,
+    metadata_json: { action, timestamp: new Date().toISOString() },
+  }).catch(() => {});
+
+  return null; // allowed
+}
+
 // ─── BAN CHECK ─────────────────────────────────────────────────────────────────
 
 // Inline ban check - cannot import from other files due to deployment isolation
@@ -185,6 +251,15 @@ Deno.serve(async (req) => {
     const banResult = await checkBanStatus(base44, user.email, action || 'unknown');
     if (banResult.blocked) {
       return banResult.response;
+    }
+
+    // Check rate limit for applicable actions
+    const RATE_LIMITED_ACTIONS = ['send_message', 'submit_report', 'create_collaboration', 'update_profile'];
+    if (RATE_LIMITED_ACTIONS.includes(action)) {
+      const rateLimitResult = await checkRateLimit(base44.asServiceRole, user.email, action);
+      if (rateLimitResult?.blocked) {
+        return rateLimitResult.response;
+      }
     }
 
     const body = await req.json();
@@ -389,16 +464,18 @@ Deno.serve(async (req) => {
         }
 
         // Determine severity / escalation level
-        const HIGH_RISK_REASONS = ['underage', 'non_consensual'];
+        const HIGH_RISK_REASONS = ['underage', 'non_consensual', 'solicitation'];
         const CRITICAL_REASONS = ['underage'];
         const isHighRisk = HIGH_RISK_REASONS.includes(reason);
         const isCritical = CRITICAL_REASONS.includes(reason);
 
         const adminNotes = isCritical
           ? `⚠️ UNDERAGE RISK — IMMEDIATE_REVIEW_REQUIRED — DO NOT DISMISS WITHOUT STRUCTURED REVIEW. Reported by: ${user.email}`
-          : isHighRisk
-            ? `⚠️ HIGH RISK (${reason}) — REQUIRES_IMMEDIATE_REVIEW. Reported by: ${user.email}`
-            : null;
+          : isHighRisk && reason === 'solicitation'
+            ? `⚠️ SOLICITATION REPORT — IMMEDIATE_REVIEW_REQUIRED. Possible escort/prostitution activity. Reported by: ${user.email}`
+            : isHighRisk
+              ? `⚠️ HIGH RISK (${reason}) — REQUIRES_IMMEDIATE_REVIEW. Reported by: ${user.email}`
+              : null;
 
         const report = await base44.entities.Report.create({
           reporter_id: user.email,
