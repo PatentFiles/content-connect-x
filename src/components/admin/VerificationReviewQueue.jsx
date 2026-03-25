@@ -8,6 +8,50 @@ import CCBadge from '@/components/ui-custom/CCBadge';
 import CCInput from '@/components/ui-custom/CCInput';
 import { toast } from 'sonner';
 
+// Secure document viewer — requests a short-lived signed URL from backend
+function SecureDocumentButton({ doc, verificationId, userId }) {
+  const [loading, setLoading] = useState(false);
+
+  const handleView = async () => {
+    // doc.uri is the private storage URI; doc.url is legacy (public — should not be used)
+    const uri = doc.uri || doc.url;
+    if (!uri) {
+      toast.error('No document URI available');
+      return;
+    }
+    setLoading(true);
+    try {
+      const res = await base44.functions.invoke('getSecureDocumentUrl', {
+        file_uri: uri,
+        document_type: doc.type,
+        belongs_to_user_id: userId,
+        record_id: verificationId,
+        entity_name: 'VerificationRecord',
+      });
+      const { signed_url } = res.data;
+      if (!signed_url) throw new Error('No signed URL returned');
+      window.open(signed_url, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      toast.error('Failed to open document: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <CCButton
+      variant="outline"
+      size="sm"
+      onClick={handleView}
+      loading={loading}
+      icon={loading ? undefined : Eye}
+      className="text-[#4F8CFF] border-[#4F8CFF]/40 hover:bg-[#4F8CFF]/10"
+    >
+      View {doc.type}
+    </CCButton>
+  );
+}
+
 export default function VerificationReviewQueue() {
   const [rejectionReason, setRejectionReason] = useState({});
   const [overrideReason, setOverrideReason] = useState('');
