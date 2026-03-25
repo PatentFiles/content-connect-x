@@ -485,7 +485,6 @@ export default function Discovery() {
 
       {/* Near Me Section */}
       <div className="max-w-6xl mx-auto px-4 py-6 grid md:grid-cols-3 gap-6">
-
         {/* Sidebar — Feed + Travel */}
         <div className="md:col-span-1 space-y-4 hidden md:block">
           <CollaborationFeed userId={user?.email} />
