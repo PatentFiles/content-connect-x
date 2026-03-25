@@ -18,6 +18,102 @@
 
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
+// ─── INLINE MODERATION (cannot import cross-file in Deno deploy) ─────────────
+
+const UNDERAGE_PATTERNS = [
+  /\b(minor|minors|underage|under.?age|u18|under 18|u-18|teen|teenager|jailbait|preteen|pre-teen|lolita|child|children)\b/i,
+  /\byoung.{0,10}(girl|boy|man|woman|lady|performer)\b/i,
+];
+const TRAFFICKING_PATTERNS = [
+  /\b(trafficking|traffick|forced|force them|coerce|coercion|exploit|exploitation|pimp|pimping|debt bondage|slave)\b/i,
+  /\b(take their passport|confiscate|immigration threat|visa threat)\b/i,
+];
+const SOLICITATION_PATTERNS = [
+  /\b(pay for sex|payment for sex|cash for sex|money for sex|escort|escorting|call girl|hooker|prostitut(e|ion)|full service|GFE|girlfriend experience|p4p|pay.{0,5}play)\b/i,
+  /\b(happy ending|extras|in-call|incall|out-call|outcall|donation|roses|rosebuds)\b/i,
+];
+const THREAT_PATTERNS = [
+  /\b(threaten|threat|blackmail|extort|expose you|release your|post your|leak your|revenge porn|doxxing|dox you|hurt you|harm you)\b/i,
+];
+const PAYMENT_TERMS = /\b(pay|payment|cash|venmo|paypal|cashapp|zelle|crypto|bitcoin|gift card|deposit|fee|rate|price|charge|tips|tip me|send money)\b/i;
+const MEETUP_TERMS = /\b(meet(up)?|come over|my place|your place|hotel|motel|visit|in person|hook up|link up|private session|one-on-one)\b/i;
+const SEXUAL_TERMS = /\b(sex|sexual|fuck|intercourse|blowjob|handjob|oral|anal|penetrat|naked|nude|strip|adult service|adult meet)\b/i;
+
+function inlineAnalyzeText(text) {
+  if (!text || typeof text !== 'string') return { severity: 'none', reasons: [] };
+  const flags = [];
+  let severity = 'none';
+
+  for (const p of UNDERAGE_PATTERNS) {
+    if (p.test(text)) { flags.push('underage_risk'); severity = 'critical'; }
+  }
+  for (const p of TRAFFICKING_PATTERNS) {
+    if (p.test(text)) { flags.push('trafficking_coercion'); severity = 'critical'; }
+  }
+  for (const p of THREAT_PATTERNS) {
+    if (p.test(text)) { flags.push('threat'); if (severity !== 'critical') severity = 'high'; }
+  }
+  for (const p of SOLICITATION_PATTERNS) {
+    if (p.test(text)) { flags.push('direct_solicitation'); if (severity !== 'critical') severity = 'high'; }
+  }
+
+  const hasPayment = PAYMENT_TERMS.test(text);
+  const hasMeetup = MEETUP_TERMS.test(text);
+  const hasSexual = SEXUAL_TERMS.test(text);
+  if (hasPayment && hasMeetup && hasSexual) {
+    flags.push('combination_solicitation');
+    if (severity === 'none') severity = 'high';
+  }
+
+  return { severity, reasons: [...new Set(flags)] };
+}
+
+async function enforceModerationInline(base44, userId, text, context) {
+  const result = inlineAnalyzeText(text);
+  if (result.severity === 'none') return null; // pass
+
+  const svc = base44.asServiceRole;
+  const snippet = text.substring(0, 300);
+  const now = new Date().toISOString();
+
+  // Log and create report
+  await svc.entities.Report.create({
+    reporter_id: 'SYSTEM_AUTO_MODERATION',
+    target_user_id: userId,
+    reason: result.reasons.includes('underage_risk') ? 'underage' : 'other',
+    details: `[AUTO-MODERATION] Severity: ${result.severity.toUpperCase()}. Context: ${context}. Flags: ${result.reasons.join(', ')}. Snippet: ${snippet}`,
+    status: result.severity === 'critical' ? 'investigating' : 'pending',
+    admin_notes: `AUTO-GENERATED. Priority: ${result.severity === 'critical' ? 'IMMEDIATE_REVIEW_REQUIRED' : 'HIGH'}. ${result.reasons.includes('underage_risk') ? '⚠️ UNDERAGE RISK — DO NOT DISMISS WITHOUT STRUCTURED REVIEW' : ''}`,
+  }).catch(() => {});
+
+  await svc.entities.AdminActionLog.create({
+    admin_user_id: 'SYSTEM_CONTENT_MODERATION',
+    target_type: 'User',
+    target_id: userId,
+    action: 'content_moderation_flag',
+    reason: `Content moderation: ${result.severity} — ${result.reasons.join(', ')}`,
+    notes: `Context: ${context}. Snippet: ${snippet}`,
+    metadata_json: { severity: result.severity, flags: result.reasons, context, timestamp: now },
+  }).catch(() => {});
+
+  // Auto-suspend for critical severity
+  if (result.severity === 'critical') {
+    const profiles = await svc.entities.UserProfile.filter({ user_id: userId });
+    const profile = profiles[0];
+    if (profile?.id) {
+      await svc.entities.UserProfile.update(profile.id, {
+        suspended: true,
+        suspension_reason: `Automated safety enforcement: ${result.reasons[0]}. Account under review.`,
+        legal_hold: true,
+      }).catch(() => {});
+    }
+  }
+
+  return result;
+}
+
+// ─── BAN CHECK ─────────────────────────────────────────────────────────────────
+
 // Inline ban check - cannot import from other files due to deployment isolation
 async function checkBanStatus(base44, userEmail, actionName) {
   const profiles = await base44.asServiceRole.entities.UserProfile.filter({
