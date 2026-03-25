@@ -417,6 +417,10 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
           onClose={() => setShowTravelDate(false)}
         />
       )}
+
+      <CCModal isOpen={showEarnings} onClose={() => setShowEarnings(false)} title="Earnings Tracker" size="lg">
+        <EarningsTracker userId={user?.email} />
+      </CCModal>
     </div>
   );
 }
