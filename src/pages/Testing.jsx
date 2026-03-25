@@ -50,13 +50,13 @@ export default function Testing() {
   // Upload mutation
   const uploadMutation = useMutation({
     mutationFn: async (file) => {
-      // Upload file
-      const { file_url } = await base44.integrations.Core.UploadPrivateFile({ file });
+      // Upload to private storage — lab results must never be publicly accessible
+      const { file_uri } = await base44.integrations.Core.UploadPrivateFile({ file });
       
-      // Create testing document record
+      // Create testing document record — store file_uri (private), never a public URL
       const doc = await base44.entities.TestingDocument.create({
         user_id: user.email,
-        file_url,
+        file_uri,
         file_name: file.name,
         file_type: file.name.split('.').pop().toLowerCase(),
         file_size: file.size,
