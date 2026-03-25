@@ -244,6 +244,16 @@ export default function ContractViewer({ contractId }) {
                   Download PDF
                 </CCButton>
               )}
+              {canSend && (
+                <CCButton
+                  variant="accent"
+                  icon={Send}
+                  onClick={() => sendForSignaturesMutation.mutate()}
+                  loading={sendForSignaturesMutation.isPending}
+                >
+                  Send for Signatures
+                </CCButton>
+              )}
               {canSign && (
                 <CCButton 
                   variant="primary" 
@@ -252,6 +262,9 @@ export default function ContractViewer({ contractId }) {
                 >
                   Sign Contract
                 </CCButton>
+              )}
+              {isSignatory && alreadySigned && (
+                <CCBadge variant="success" icon={CheckCircle}>You have signed</CCBadge>
               )}
               <CCButton variant="outline" icon={History} onClick={() => setShowVersionHistory(true)}>
                 History
