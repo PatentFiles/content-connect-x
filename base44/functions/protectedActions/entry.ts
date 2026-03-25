@@ -72,11 +72,12 @@ async function enforceModerationInline(base44, userId, text, context) {
   const result = inlineAnalyzeText(text);
   if (result.severity === 'none') return null; // pass
 
+  // Always use service role for system-generated reports — bypasses RLS
   const svc = base44.asServiceRole;
   const snippet = text.substring(0, 300);
   const now = new Date().toISOString();
 
-  // Log and create report
+  // Log and create report (service role — SYSTEM_AUTO_MODERATION is reporter)
   await svc.entities.Report.create({
     reporter_id: 'SYSTEM_AUTO_MODERATION',
     target_user_id: userId,
