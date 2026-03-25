@@ -42,6 +42,7 @@ import RepresentationManager from '@/components/admin/RepresentationManager';
 import VerificationReviewQueue from '@/components/admin/VerificationReviewQueue';
 import ReportsQueue from '@/components/admin/ReportsQueue';
 import SessionHistoryViewer from '@/components/admin/SessionHistoryViewer';
+import SafetyAlertsQueue from '@/components/admin/SafetyAlertsQueue';
 
 // User Management Component
 function UserManagement({ currentUser }) {
