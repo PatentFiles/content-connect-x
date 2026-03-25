@@ -47,7 +47,14 @@ export default function Discovery() {
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportTargetUserId, setReportTargetUserId] = useState(null);
+  const [showAgentRepModal, setShowAgentRepModal] = useState(false);
+  const [selectedAgentUserId, setSelectedAgentUserId] = useState(null);
   const queryClient = useQueryClient();
+
+  const handleAgentRepresentationRequest = (agentUserId) => {
+    setSelectedAgentUserId(agentUserId);
+    setShowAgentRepModal(true);
+  };
   
   const [filters, setFilters] = useState({
     roleTypes: [],
