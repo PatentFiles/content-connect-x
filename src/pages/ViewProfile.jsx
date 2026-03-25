@@ -44,6 +44,8 @@ import { PROFILE_THEMES } from '@/components/profile/ProfileThemeSelector';
 import ReputationBadge from '@/components/trust/ReputationBadge';
 import CollaborationHistory from '@/components/profile/CollaborationHistory';
 import TrustBadges from '@/components/profile/TrustBadges';
+import PreCollaborationCheck from '@/components/trust/PreCollaborationCheck';
+import CCModal from '@/components/ui-custom/CCModal';
 
 const roleColors = {
   creator: 'primary',
