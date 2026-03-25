@@ -20,17 +20,18 @@ export default function SafetyCheckInWidget({ collaborationId, userId }) {
 
   const { data: checkInStatus } = useQuery({
     queryKey: ['safetyCheckin', collaborationId, userId],
-    queryFn: () => base44.functions.invoke('safetyCheckIn', { collaboration_id: collaborationId }, { queryParams: { action: 'get_status' } }).then(r => r.data?.data),
+    queryFn: () => base44.functions.invoke('safetyCheckIn', { action: 'get_status', collaboration_id: collaborationId }).then(r => r.data?.data),
     enabled: !!collaborationId && !!userId,
     refetchInterval: 60000,
   });
 
   const checkInMutation = useMutation({
     mutationFn: () => base44.functions.invoke('safetyCheckIn', {
+      action: 'check_in',
       collaboration_id: collaborationId,
       expected_end_time: expectedEnd ? new Date(expectedEnd).toISOString() : null,
       location_shared: locationHint || null,
-    }, { queryParams: { action: 'check_in' } }),
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['safetyCheckin', collaborationId] });
       toast.success('Safety check-in recorded ✓');
