@@ -24,6 +24,7 @@ import CCEmpty from '../ui-custom/CCEmpty';
 import AvailabilityManager from '../profile/AvailabilityManager';
 import TravelDateManager from '../profile/TravelDateManager';
 import BookingRequestsInbox from '../booking/BookingRequestsInbox';
+import AgentInviteInbox from '@/components/representation/AgentInviteInbox';
 import ProfileCompletionBar from '../profile/ProfileCompletionBar';
 import CollaborationFeed from '@/components/discovery/CollaborationFeed';
 import TopCreators from '@/components/discovery/TopCreators';
