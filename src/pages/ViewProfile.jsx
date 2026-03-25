@@ -532,7 +532,18 @@ export default function ViewProfile() {
                 {isSaved ? 'Saved' : 'Save'}
               </span>
             </button>
-            {user?.email !== profileUserId && (
+            {user?.email !== profileUserId && profile?.role_type === 'agent' && myProfile?.[0]?.role_type === 'creator' && (
+              <CCButton
+                variant="primary"
+                icon={Briefcase}
+                className="flex-1"
+                disabled={myRepWithThisAgent?.status === 'ACTIVE'}
+                onClick={() => setShowAgentRepModal(true)}
+              >
+                {myRepWithThisAgent?.status === 'ACTIVE' ? 'Represented' : myRepWithThisAgent?.status === 'INVITED' ? 'Pending' : 'Request Representation'}
+              </CCButton>
+            )}
+            {user?.email !== profileUserId && profile?.role_type !== 'agent' && (
               <CCButton
                 variant="outline"
                 icon={Calendar}
