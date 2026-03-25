@@ -1158,18 +1158,47 @@ export default function ViewProfile() {
         {/* Availability & Travel */}
         <div className="grid md:grid-cols-2 gap-6 mb-6">
           <CCCard padding="lg">
-            <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Availability</h3>
+            <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">
+              {profile.role_type === 'studio' ? 'Studio Availability' : 'Availability'}
+            </h3>
             {availabilityEntries.length > 0 ? (
-              <div className="flex flex-wrap gap-2 justify-center">
-                {availabilityEntries.slice(0, 8).map(entry => (
-                  <CCBadge key={entry.id} variant="outline">
-                    {format(new Date(entry.start_date), 'MMM d')}
-                  </CCBadge>
-                ))}
-                {availabilityEntries.length > 8 && (
-                  <CCBadge variant="outline">+{availabilityEntries.length - 8} more</CCBadge>
-                )}
-              </div>
+              profile.role_type === 'studio' ? (
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {availabilityEntries.slice(0, 6).map(entry => (
+                    <div key={entry.id} className="p-2 bg-[#0B0F14] rounded-lg border border-[#263248]">
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="text-sm font-medium text-[#E8EEF9]">
+                          {format(new Date(entry.start_date), 'MMM d')}
+                          {entry.end_date !== entry.start_date && ` – ${format(new Date(entry.end_date), 'MMM d')}`}
+                        </div>
+                        <CCBadge variant="success" size="sm">Open</CCBadge>
+                      </div>
+                      {(entry.start_time || entry.end_time) && (
+                        <p className="text-xs text-[#6B7A94] mt-0.5">
+                          {entry.start_time}{entry.end_time && ` – ${entry.end_time}`}
+                        </p>
+                      )}
+                      {entry.room_label && (
+                        <p className="text-xs text-[#4F8CFF] mt-0.5">{entry.room_label}</p>
+                      )}
+                    </div>
+                  ))}
+                  {availabilityEntries.length > 6 && (
+                    <p className="text-xs text-[#6B7A94] text-center">+{availabilityEntries.length - 6} more windows</p>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {availabilityEntries.slice(0, 8).map(entry => (
+                    <CCBadge key={entry.id} variant="outline">
+                      {format(new Date(entry.start_date), 'MMM d')}
+                    </CCBadge>
+                  ))}
+                  {availabilityEntries.length > 8 && (
+                    <CCBadge variant="outline">+{availabilityEntries.length - 8} more</CCBadge>
+                  )}
+                </div>
+              )
             ) : (
               <p className="text-sm text-[#6B7A94] text-center">No availability dates posted</p>
             )}
