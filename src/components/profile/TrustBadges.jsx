@@ -17,7 +17,8 @@ import { ShieldCheck, Calendar, FlaskConical, Star, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 
-function Badge({ icon: Icon, label, sublabel, active, variant = 'primary', size = 'md' }) {
+function Badge({ icon: IconComponent, label, sublabel, active, variant = 'primary', size = 'md' }) {
+  const Icon = IconComponent;
   const variants = {
     primary: active ? 'bg-[#4F8CFF]/20 border-[#4F8CFF]/40 text-[#4F8CFF]' : 'bg-[#1A2438]/50 border-[#263248]/50 text-[#3A4A6B]',
     success: active ? 'bg-[#22C55E]/20 border-[#22C55E]/40 text-[#22C55E]' : 'bg-[#1A2438]/50 border-[#263248]/50 text-[#3A4A6B]',
