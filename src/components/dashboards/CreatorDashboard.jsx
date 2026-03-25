@@ -347,6 +347,23 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
                 </CCButton>
               </Link>
             </CCCard>
+
+            {/* Reputation Score */}
+            {myReputationScore && (
+              <CCCard padding="lg">
+                <h2 className="text-sm font-semibold text-[#E8EEF9] mb-3 text-center">Trust Standing</h2>
+                <ReputationScoreBar score={myReputationScore} showFactors />
+              </CCCard>
+            )}
+
+            {/* Earnings */}
+            <CCCard padding="lg">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-semibold text-[#E8EEF9]">Earnings</h2>
+                <CCButton variant="ghost" size="sm" onClick={() => setShowEarnings(true)}>View</CCButton>
+              </div>
+              <p className="text-xs text-[#6B7A94]">Track projected and confirmed collaboration earnings (private)</p>
+            </CCCard>
           </div>
         </div>
 
