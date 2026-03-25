@@ -30,6 +30,7 @@ import ConsentRevocationBanner from '@/components/collaboration/ConsentRevocatio
 import TestingPolicyManager from '@/components/collaboration/TestingPolicyManager';
 import { useRepObserverCheck, logRepObserverAccess } from '@/components/collaboration/RepObserverAccessControl';
 import CollaborationPacketExporter from '@/components/collaboration/CollaborationPacketExporter';
+import SafetyCheckInWidget from '@/components/safety/SafetyCheckInWidget';
 
 export default function CollaborationDetail() {
   const [searchParams] = useSearchParams();
