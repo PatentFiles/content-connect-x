@@ -25,9 +25,9 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
       className="fixed top-0 left-0 right-0 z-40 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-center">
-        {/* Logo — Centered */}
-        <Link to={createPageUrl('Landing')} className="absolute left-4 flex items-center gap-2">
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-center relative">
+        {/* Centered Logo */}
+        <Link to={createPageUrl('Landing')} className="flex items-center gap-2">
           <img 
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69495df631e52046b1356040/51f211167_image.png"
             alt="Content Connect"
@@ -36,17 +36,7 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
           <span className="text-[#E8EEF9] font-semibold text-lg hidden sm:block">Content Connect</span>
         </Link>
 
-        {/* Center Logo for Mobile/Tablet */}
-        <Link to={createPageUrl('Landing')} className="md:hidden flex items-center gap-2">
-          <img 
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69495df631e52046b1356040/51f211167_image.png"
-            alt="Content Connect"
-            className="w-8 h-8 rounded-lg object-contain"
-          />
-          <span className="text-[#E8EEF9] font-semibold text-lg">Content Connect</span>
-        </Link>
-
-        {/* Desktop Navigation */}
+        {/* Desktop Navigation — Hidden on mobile */}
         <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-6">
           {!isAuthenticated ? (
             <>
@@ -64,7 +54,7 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
         </nav>
 
         {/* Right side */}
-        <div className="absolute right-4 flex items-center gap-3">
+        <div className="absolute right-4 flex items-center gap-3 md:static">
           {isAuthenticated && user ? (
             <>
               {/* Hamburger Menu for Mobile (authenticated users only) */}

@@ -480,29 +480,30 @@ export default function Discovery() {
       {/* Header */}
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          {/* Title and Filters Row */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3 gap-3">
-            <div className="flex-1 text-center md:text-left">
-              <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4F8CFF]/20 to-[#FF2DAA]/20 flex items-center justify-center">
-                  <Compass className="w-5 h-5 text-[#4F8CFF]" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-semibold text-[#E8EEF9]">Discovery</h1>
-                  <p className="text-xs text-[#6B7A94]">Find your next collaboration</p>
-                </div>
+          {/* Centered Title */}
+          <div className="text-center mb-4">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4F8CFF]/20 to-[#FF2DAA]/20 flex items-center justify-center">
+                <Compass className="w-5 h-5 text-[#4F8CFF]" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-[#E8EEF9]">Discovery</h1>
+                <p className="text-xs text-[#6B7A94]">Find your next collaboration</p>
               </div>
             </div>
-            <div className="flex justify-center md:justify-end">
-              <ProfileFilters
-                filters={filters}
-                onChange={setFilters}
-                onReset={() => { setFilters({ roleTypes: [], orientations: [], sceneTypes: [], tags: [], compensation: [], nearMe: false, travelAvailable: false, verifiedOnly: true, testingRequired: false, recentlyActive: false, sortBy: 'distance', country: '', state: '', city: '' }); setSelectedRole(''); }}
-              />
-            </div>
           </div>
+          
+          {/* Filters */}
+          <div className="flex justify-end mb-3">
+            <ProfileFilters
+              filters={filters}
+              onChange={setFilters}
+              onReset={() => { setFilters({ roleTypes: [], orientations: [], sceneTypes: [], tags: [], compensation: [], nearMe: false, travelAvailable: false, verifiedOnly: true, testingRequired: false, recentlyActive: false, sortBy: 'distance', country: '', state: '', city: '' }); setSelectedRole(''); }}
+            />
+          </div>
+          
           {/* Role Quick Filters — Centered */}
-          <div className="flex flex-wrap gap-2 pb-1 justify-center md:justify-start">
+          <div className="flex flex-wrap gap-2 pb-1 justify-center">
             <CCButton variant={!selectedRole ? 'primary' : 'outline'} size="sm" onClick={() => setSelectedRole('')} className="flex-shrink-0">
               All
             </CCButton>
@@ -562,7 +563,7 @@ export default function Discovery() {
                 description="Try adjusting your filters or expanding your search radius."
               />
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-start">
             {profiles.map((profile) => {
              const details = creatorDetails.find(d => d.user_id === profile.user_id);
              const verification = allVerifications.find(v => v.user_id === profile.user_id);
