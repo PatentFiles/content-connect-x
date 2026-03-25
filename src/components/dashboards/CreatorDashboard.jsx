@@ -367,6 +367,17 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
           </div>
         </div>
 
+        {/* Activity Feed + Travel Sync */}
+        <div className="grid md:grid-cols-2 gap-6 mt-6">
+          <CollaborationFeed userId={user?.email} />
+          <TravelSync userId={user?.email} myProfile={profile} />
+        </div>
+
+        {/* Top Creators */}
+        <div className="mt-6">
+          <TopCreators userId={user?.email} title="Trusted Creators Near You" limit={5} />
+        </div>
+
         {/* Contracts Status */}
         {contracts.length > 0 && (
           <CCCard padding="lg" className="mt-6">
