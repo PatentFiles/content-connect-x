@@ -354,7 +354,7 @@ export default function Verification() {
             <div>
               <p className="text-sm text-[#E8EEF9] font-medium">Your privacy is protected</p>
               <p className="text-xs text-[#6B7A94] mt-1">
-                Documents are processed securely and never shared with other members. Only your verification status is visible.
+                Documents are uploaded to private encrypted storage and are never accessible publicly. Only authorized platform administrators can view them for verification purposes, and all access is logged. Only your verification status (approved/pending) is visible to other members.
               </p>
             </div>
           </div>
