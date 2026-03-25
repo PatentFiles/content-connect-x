@@ -6,8 +6,9 @@
  *  - decline: update status, notify requester, log
  *  - cancel: requester cancels their own pending request
  *
+ * Studio bookings set booking_type='studio', carry studio_location_name,
+ * studio_notes, and wire studio_id into the created Collaboration.
  * All actions enforce ban/suspension checks.
- * action is passed in the request BODY.
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
 
@@ -40,6 +41,8 @@ Deno.serve(async (req) => {
     const booking = bookings[0];
     if (!booking) return Response.json({ error: 'Booking not found' }, { status: 404 });
 
+    const isStudioBooking = booking.booking_type === 'studio';
+
     // ─── ACCEPT ────────────────────────────────────────────────────────────────
     if (action === 'accept') {
       // Only recipient can accept
@@ -57,22 +60,61 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Requester account is restricted — cannot accept' }, { status: 403 });
       }
 
+      // Build collaboration name
+      const collabName = isStudioBooking
+        ? `Studio Booking: ${booking.studio_location_name || profile?.display_name || 'Studio'} — ${booking.requested_date}`
+        : `Booking: ${booking.requested_date}`;
+
+      // Build tags
+      const tags = ['from_booking'];
+      if (isStudioBooking) tags.push('from_studio_booking', 'created_from_studio_booking');
+
+      // Build location from booking / schedule entry
+      let locationData = null;
+      if (isStudioBooking) {
+        locationData = {
+          type: 'studio',
+          address: booking.studio_location_name || null,
+          notes: booking.studio_notes || null,
+        };
+      }
+
       // Create the Collaboration
-      const collaboration = await svc.entities.Collaboration.create({
-        collaboration_name: `Booking: ${booking.requested_date}`,
+      const collaborationPayload = {
+        collaboration_name: collabName,
         participant_ids: [booking.requester_user_id, booking.recipient_user_id],
-        creator_ids: [booking.requester_user_id, booking.recipient_user_id],
+        creator_ids: [booking.requester_user_id],
         status: 'agreed',
         created_by_user_id: booking.recipient_user_id,
-        created_by_role: profile?.role_type || 'creator',
+        created_by_role: isStudioBooking ? 'studio' : (profile?.role_type || 'creator'),
         schedule: {
           confirmed_date: booking.requested_date,
           start_time: booking.requested_time || null,
+          end_time: booking.requested_end_time || null,
         },
-        // Store booking reference as internal note
-        internal_notes: `Created from BookingRequest ${booking_id}`,
-        tags: ['from_booking'],
-      });
+        internal_notes: `Created from BookingRequest ${booking_id}${booking.studio_notes ? `. Studio notes: ${booking.studio_notes}` : ''}`,
+        tags,
+        ...(locationData && { location: locationData }),
+        ...(isStudioBooking && { studio_id: booking.recipient_user_id }),
+      };
+
+      const collaboration = await svc.entities.Collaboration.create(collaborationPayload);
+
+      // If there's a schedule entry, mark it as BOOKED and increment booking count
+      if (booking.schedule_entry_id) {
+        const entries = await svc.entities.ScheduleEntry.filter({ id: booking.schedule_entry_id }).catch(() => []);
+        const entry = entries[0];
+        if (entry) {
+          const maxBookings = entry.max_bookings || 1;
+          const currentCount = (entry.current_booking_count || 0) + 1;
+          const newStatus = currentCount >= maxBookings ? 'BOOKED' : 'AVAILABLE';
+          await svc.entities.ScheduleEntry.update(booking.schedule_entry_id, {
+            collaboration_id: collaboration.id,
+            current_booking_count: currentCount,
+            status: newStatus,
+          }).catch(() => {});
+        }
+      }
 
       // Update BookingRequest — link collaboration
       await svc.entities.BookingRequest.update(booking_id, {
@@ -83,12 +125,16 @@ Deno.serve(async (req) => {
       });
 
       // Notify requester
+      const notifBody = isStudioBooking
+        ? `Your studio booking request at ${booking.studio_location_name || 'the studio'} for ${booking.requested_date} was accepted. A collaboration has been created.`
+        : `Your booking request for ${booking.requested_date} was accepted. A collaboration has been created.`;
+
       await svc.entities.Notification.create({
         user_id: booking.requester_user_id,
         type: 'collaboration_invites',
         actor_user_id: user.email,
-        title: 'Booking Request Accepted!',
-        body: `Your booking request for ${booking.requested_date} was accepted. A collaboration has been created.`,
+        title: isStudioBooking ? 'Studio Booking Accepted!' : 'Booking Request Accepted!',
+        body: notifBody,
         related_entity_type: 'Collaboration',
         related_entity_id: collaboration.id,
         action_url: `/CollaborationDetail?id=${collaboration.id}`,
@@ -99,14 +145,16 @@ Deno.serve(async (req) => {
         admin_user_id: 'SYSTEM_BOOKING',
         target_type: 'BookingRequest',
         target_id: booking_id,
-        action: 'booking_accepted',
+        action: isStudioBooking ? 'studio_booking_accepted' : 'booking_accepted',
         reason: 'Recipient accepted booking request',
         metadata_json: {
           booking_id,
+          booking_type: booking.booking_type || 'creator',
           collaboration_id: collaboration.id,
           requester: booking.requester_user_id,
           recipient: booking.recipient_user_id,
           date: booking.requested_date,
+          studio_location: booking.studio_location_name || null,
           timestamp: new Date().toISOString(),
         },
       }).catch(() => {});
@@ -134,27 +182,30 @@ Deno.serve(async (req) => {
         response_message: response_message || null,
       });
 
-      // Notify requester
+      const declineBody = isStudioBooking
+        ? `Your studio booking request for ${booking.requested_date} was declined.${response_message ? ` Reason: ${response_message}` : ''}`
+        : `Your booking request for ${booking.requested_date} was declined.`;
+
       await svc.entities.Notification.create({
         user_id: booking.requester_user_id,
         type: 'collaboration_invites',
         actor_user_id: user.email,
-        title: 'Booking Request Declined',
-        body: `Your booking request for ${booking.requested_date} was declined.`,
+        title: isStudioBooking ? 'Studio Booking Declined' : 'Booking Request Declined',
+        body: declineBody,
         related_entity_type: 'BookingRequest',
         related_entity_id: booking_id,
         action_url: 'Dashboard',
       }).catch(() => {});
 
-      // Log
       await svc.entities.AdminActionLog.create({
         admin_user_id: 'SYSTEM_BOOKING',
         target_type: 'BookingRequest',
         target_id: booking_id,
-        action: 'booking_declined',
+        action: isStudioBooking ? 'studio_booking_declined' : 'booking_declined',
         reason: 'Recipient declined booking request',
         metadata_json: {
           booking_id,
+          booking_type: booking.booking_type || 'creator',
           requester: booking.requester_user_id,
           recipient: booking.recipient_user_id,
           timestamp: new Date().toISOString(),
@@ -177,6 +228,20 @@ Deno.serve(async (req) => {
         status: 'cancelled',
         responded_at: new Date().toISOString(),
       });
+
+      // Notify studio of cancellation
+      if (isStudioBooking) {
+        await svc.entities.Notification.create({
+          user_id: booking.recipient_user_id,
+          type: 'collaboration_invites',
+          actor_user_id: booking.requester_user_id,
+          title: 'Studio Booking Cancelled',
+          body: `A studio booking request for ${booking.requested_date} was cancelled by the requester.`,
+          related_entity_type: 'BookingRequest',
+          related_entity_id: booking_id,
+          action_url: 'Dashboard',
+        }).catch(() => {});
+      }
 
       return Response.json({ success: true, status: 'cancelled' });
     }
