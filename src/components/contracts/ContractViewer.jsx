@@ -370,27 +370,43 @@ export default function ContractViewer({ contractId }) {
       {/* Sign Modal */}
       <CCModal
         isOpen={showSignModal}
-        onClose={() => setShowSignModal(false)}
+        onClose={() => { setShowSignModal(false); setSignedName(''); }}
         title="Sign Contract"
-        description="By signing, you agree to all terms and conditions"
+        description="By signing, you confirm you have read and agree to all terms"
       >
         <div className="space-y-4">
-          <div className="bg-[#151D2B] border border-[#263248] rounded-lg p-4">
-            <p className="text-sm text-[#E8EEF9] mb-2">I hereby sign this contract:</p>
-            <p className="text-lg font-semibold text-[#4F8CFF]">{user?.full_name || user?.email}</p>
-            <p className="text-xs text-[#6B7A94] mt-2">
-              Date: {format(new Date(), 'PPP')}
+          <div className="bg-[#0B0F14] border border-[#263248] rounded-lg p-4 text-sm text-[#9AA6BC] leading-relaxed">
+            <p className="font-medium text-[#E8EEF9] mb-1">"{contract.title}"</p>
+            <p>Your typed name below serves as your legally binding electronic signature.</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-[#E8EEF9] mb-1.5">
+              Type your full name to sign
+            </label>
+            <input
+              type="text"
+              className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF]"
+              placeholder={user?.full_name || user?.email}
+              value={signedName}
+              onChange={e => setSignedName(e.target.value)}
+              autoFocus
+            />
+            <p className="text-xs text-[#6B7A94] mt-1">
+              Date: {format(new Date(), 'PPP')} · Signer: {user?.email}
             </p>
           </div>
-          
-          <div className="flex gap-3 justify-end">
-            <CCButton variant="outline" onClick={() => setShowSignModal(false)}>
+
+          <div className="flex gap-3 justify-end pt-2">
+            <CCButton variant="outline" onClick={() => { setShowSignModal(false); setSignedName(''); }}>
               Cancel
             </CCButton>
             <CCButton 
-              variant="primary" 
+              variant="primary"
+              icon={CheckCircle}
               onClick={() => signContractMutation.mutate()}
               loading={signContractMutation.isPending}
+              disabled={!signedName.trim()}
             >
               Confirm Signature
             </CCButton>
