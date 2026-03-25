@@ -10,6 +10,7 @@ import CCAvatar from '../ui-custom/CCAvatars';
 import CCBadge from '../ui-custom/CCBadge';
 import CCButton from '../ui-custom/CCButton';
 import TrustBadges from '@/components/profile/TrustBadges';
+import ReputationBadge from '@/components/trust/ReputationBadge';
 
 const roleColors = {
   creator: 'primary',
@@ -33,6 +34,7 @@ export default function ProfileCard({
   serviceDetails,
   verification,
   testingCred,
+  reputationScore,
   distance,
   onFavorite,
   onMessage,
@@ -184,10 +186,11 @@ export default function ProfileCard({
             </div>
           </div>
 
-          {/* Trust Badges */}
-          {(verification || testingCred) && (
-            <div className="px-3 pt-2">
+          {/* Trust Badges + Reputation */}
+          {(verification || testingCred || reputationScore) && (
+            <div className="px-3 pt-2 flex flex-wrap gap-1.5">
               <TrustBadges profile={profile} verification={verification} testingCred={testingCred} size="sm" />
+              {reputationScore && <ReputationBadge score={reputationScore} size="sm" compact />}
             </div>
           )}
 
