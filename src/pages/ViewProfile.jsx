@@ -576,6 +576,23 @@ export default function ViewProfile() {
           message={errorMessage.message}
         />
 
+        {/* Pre-Collaboration Check Modal */}
+        <CCModal
+          isOpen={showPreCheck}
+          onClose={() => setShowPreCheck(false)}
+          title=""
+          size="md"
+          showClose
+        >
+          <PreCollaborationCheck
+            targetUserId={profileUserId}
+            currentUserId={user?.email}
+            onProceed={() => { setShowPreCheck(false); setShowBookingModal(true); }}
+            onCancel={() => setShowPreCheck(false)}
+            showProceed={user?.email !== profileUserId}
+          />
+        </CCModal>
+
         {/* Booking Request Modal */}
         <BookingRequestModal
           isOpen={showBookingModal}
