@@ -211,6 +211,11 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
                 >
                   Post Travel Dates
                 </CCButton>
+                <Link to={createPageUrl('Discovery?role=agent')} className="col-span-2">
+                  <CCButton variant="outline" size="sm" fullWidth icon={Handshake}>
+                    Browse Agents
+                  </CCButton>
+                </Link>
                 <Link to={createPageUrl('CreateCollaboration')} className="col-span-2">
                   <CCButton variant="primary" size="sm" fullWidth>
                     New Collaboration
