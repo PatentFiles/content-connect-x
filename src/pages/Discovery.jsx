@@ -612,7 +612,7 @@ export default function Discovery() {
                  onReport={handleReport}
                />
                );
-               })}
+                })}
                </div>
                )}
                </div>
