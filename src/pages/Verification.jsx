@@ -292,11 +292,11 @@ export default function Verification() {
               
               {uploadedSelfie ? (
                 <div className="space-y-4">
-                  <div className="relative w-32 h-32 mx-auto rounded-full overflow-hidden bg-[#121824]">
-                    <img src={uploadedSelfie} alt="Selfie" className="w-full h-full object-cover" />
-                    <CCBadge variant="success" className="absolute bottom-0 left-1/2 -translate-x-1/2" icon={CheckCircle}>
-                      Uploaded
-                    </CCBadge>
+                  <div className="flex flex-col items-center gap-3 p-6 bg-[#121824] rounded-xl border border-[#22C55E]/30">
+                    <CheckCircle className="w-10 h-10 text-[#22C55E]" />
+                    <p className="text-[#E8EEF9] font-medium">Selfie uploaded securely</p>
+                    <p className="text-xs text-[#6B7A94]">Stored in private encrypted storage — not accessible publicly</p>
+                    <CCBadge variant="success" icon={CheckCircle}>Uploaded</CCBadge>
                   </div>
                   <CCButton
                     variant="primary"
