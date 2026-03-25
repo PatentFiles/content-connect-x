@@ -41,12 +41,22 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
   const [showEarnings, setShowEarnings] = useState(false);
   const queryClient = useQueryClient();
 
-  // Fetch active collaborations
+  // Fetch active collaborations (draft/negotiating/agreed)
   const { data: collaborations = [] } = useQuery({
     queryKey: ['myCollaborations', user?.email],
     queryFn: () => base44.entities.Collaboration.filter({ 
       participant_ids: { $in: [user.email] },
       status: { $in: ['draft', 'negotiating', 'agreed'] }
+    }),
+    enabled: !!user?.email,
+  });
+
+  // Fetch signed/awaiting completion collaborations
+  const { data: awaitingCompletionCollabs = [] } = useQuery({
+    queryKey: ['awaitingCompletion', user?.email],
+    queryFn: () => base44.entities.Collaboration.filter({
+      participant_ids: { $in: [user.email] },
+      status: { $in: ['signed', 'active'] }
     }),
     enabled: !!user?.email,
   });
@@ -174,17 +184,28 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
             </div>
           </CCCard>
           <CCCard padding="md">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#22C55E]/20 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-[#22C55E]" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[#E8EEF9]">{completedCollabs}</p>
-                <p className="text-xs text-[#6B7A94]">Completed</p>
-              </div>
-            </div>
+           <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-lg bg-[#22C55E]/20 flex items-center justify-center">
+               <TrendingUp className="w-5 h-5 text-[#22C55E]" />
+             </div>
+             <div>
+               <p className="text-2xl font-bold text-[#E8EEF9]">{completedCollabs}</p>
+               <p className="text-xs text-[#6B7A94]">Completed</p>
+             </div>
+           </div>
           </CCCard>
-        </div>
+          <CCCard padding="md">
+           <div className="flex items-center gap-3">
+             <div className="w-10 h-10 rounded-lg bg-[#F59E0B]/20 flex items-center justify-center">
+               <CheckCircle className="w-5 h-5 text-[#F59E0B]" />
+             </div>
+             <div>
+               <p className="text-2xl font-bold text-[#E8EEF9]">{awaitingCompletionCollabs.length}</p>
+               <p className="text-xs text-[#6B7A94]">Awaiting Completion</p>
+             </div>
+           </div>
+          </CCCard>
+          </div>
 
         <div className="grid md:grid-cols-3 gap-6">
           {/* Left Column */}
@@ -224,10 +245,40 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
               </div>
             </CCCard>
 
+            {/* Awaiting Completion */}
+            {awaitingCompletionCollabs.length > 0 && (
+              <CCCard padding="lg" className="border-l-4 border-l-[#F59E0B]">
+                <div className="flex flex-col items-center mb-4">
+                  <h2 className="text-lg font-semibold text-[#E8EEF9] mb-2 flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5 text-[#F59E0B]" />
+                    Ready to Complete
+                  </h2>
+                  <p className="text-xs text-[#9AA6BC] text-center">These collaborations are signed and ready for completion</p>
+                </div>
+                <div className="space-y-3">
+                  {awaitingCompletionCollabs.slice(0, 3).map(room => (
+                    <Link key={room.id} to={createPageUrl(`CollaborationDetail?id=${room.id}`)}>
+                      <div className="flex items-center justify-between p-3 bg-[#151D2B] rounded-lg hover:bg-[#1A2438] transition-colors">
+                        <div>
+                          <p className="text-sm font-medium text-[#E8EEF9]">
+                            {room.collaboration_name || 'Untitled Collaboration'}
+                          </p>
+                          <p className="text-xs text-[#6B7A94]">{room.participant_ids?.length || 0} participants</p>
+                        </div>
+                        <CCBadge variant="warning" size="sm" icon={Clock}>
+                          Signed
+                        </CCBadge>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </CCCard>
+            )}
+
             {/* Active Collaborations */}
             <CCCard padding="lg">
               <div className="flex flex-col items-center mb-4">
-                <h2 className="text-lg font-semibold text-[#E8EEF9] mb-2">Active Collaborations</h2>
+                <h2 className="text-lg font-semibold text-[#E8EEF9] mb-2">Negotiating</h2>
                 <Link to={createPageUrl('Collaborations')}>
                   <CCButton variant="ghost" size="sm">View All</CCButton>
                 </Link>

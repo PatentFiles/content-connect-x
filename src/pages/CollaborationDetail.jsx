@@ -361,6 +361,12 @@ export default function CollaborationDetail() {
 
             {(userRole === 'Admin' || userRole === 'Member') && (
               <>
+                <CompletionManager
+                  collaboration={collaboration}
+                  currentUser={user}
+                  userRole={userRole}
+                />
+
                 <CCCard padding="lg">
                   <ConfirmationManager 
                     collaborationId={collaboration.id}
