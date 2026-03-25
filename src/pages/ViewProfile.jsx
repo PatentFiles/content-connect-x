@@ -524,7 +524,7 @@ export default function ViewProfile() {
                 variant="outline"
                 icon={Calendar}
                 className="flex-1"
-                onClick={() => setShowBookingModal(true)}
+                onClick={() => setShowPreCheck(true)}
               >
                 Book
               </CCButton>
