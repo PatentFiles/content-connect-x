@@ -517,16 +517,24 @@ export default function Discovery() {
         </div>
       </div>
 
-      {/* Near Me Section */}
-      <div className="max-w-6xl mx-auto px-4 py-6 grid md:grid-cols-3 gap-6">
-        {/* Sidebar — Feed + Travel */}
-        <div className="md:col-span-1 space-y-4 hidden md:block">
-          <CollaborationFeed userId={user?.email} />
-          <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
-          <TopCreators userId={user?.email} limit={4} title="Top Trusted Members" />
-        </div>
-        <div className="md:col-span-2">
-        <div className="flex items-center justify-between mb-4">
+      {/* Main Content */}
+      <div className="max-w-6xl mx-auto px-4 py-6">
+        {/* Desktop Sidebar — Feed + Travel */}
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="md:col-span-1 space-y-4 hidden md:block">
+            <CollaborationFeed userId={user?.email} />
+            <TopCreators userId={user?.email} limit={4} title="Top Trusted Members" />
+          </div>
+          <div className="md:col-span-2">
+            {/* Travel Sync — Centered Above Near You Section */}
+            <div className="mb-6 flex justify-center">
+              <div className="w-full max-w-lg">
+                <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
+              </div>
+            </div>
+
+            {/* Near You Section */}
+            <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-[#FF2DAA]" />
             <h2 className="text-lg font-medium text-[#E8EEF9]">Near You</h2>
@@ -598,12 +606,13 @@ export default function Discovery() {
                  onBlock={handleBlock}
                  onReport={handleReport}
                />
-             );
-            })}
-          </div>
-        )}
-        </div>
-      </div>
+               );
+               })}
+               </div>
+               )}
+               </div>
+               </div>
+               </div>
 
       {/* Save to Favorites Modal */}
       {selectedProfile && (

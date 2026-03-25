@@ -409,35 +409,29 @@ export default function AdminDashboard() {
     );
   }
 
-  const tabRows = [
-    [
-      { value: 'safety_alerts', label: '🚨 Safety Alerts', icon: AlertTriangle },
-      { value: 'overview', label: 'Overview', icon: Shield },
-      { value: 'analytics', label: 'Analytics', icon: TrendingUp },
-      { value: 'compliance_agent', label: 'Compliance Agent', icon: Shield },
-      { value: 'verifications', label: 'Verifications', icon: Shield },
-      { value: 'catalog', label: 'Catalog Moderation', icon: Tag },
-    ],
-    [
-      { value: 'representation', label: 'Representations', icon: Users },
-      { value: 'users', label: 'User Moderation', icon: Users },
-      { value: 'reports_queue', label: 'Reports Queue', icon: AlertTriangle },
-      { value: 'sessions', label: 'Session History', icon: Clock },
-      { value: 'collaborations', label: 'Collaborations', icon: AlertTriangle },
-    ],
-    [
-      { value: 'arbitration', label: 'Arbitration', icon: Shield },
-      { value: 'compliance', label: 'Compliance', icon: CheckCircle },
-      { value: 'jurisdiction', label: 'Jurisdictions', icon: Shield },
-      { value: 'disputes', label: 'Dispute Testing', icon: AlertTriangle },
-      { value: 'tags', label: 'Tags', icon: Tag },
-      { value: 'reports', label: 'Reports', icon: AlertTriangle },
-      { value: 'security', label: '🔒 Security Checks', icon: Shield },
-      { value: 'reputation', label: '⭐ Reputation Scores', icon: TrendingUp },
-      { value: 'identity', label: '🔍 Identity Check', icon: Shield },
-      { value: 'templates', label: '📄 Deal Templates', icon: Tag },
-      { value: 'earnings', label: '💰 Earnings', icon: TrendingUp },
-    ],
+  const tabs = [
+    { value: 'safety_alerts', label: 'Safety Alerts' },
+    { value: 'overview', label: 'Overview' },
+    { value: 'analytics', label: 'Analytics' },
+    { value: 'compliance_agent', label: 'Compliance Agent' },
+    { value: 'verifications', label: 'Verifications' },
+    { value: 'catalog', label: 'Catalog Moderation' },
+    { value: 'representation', label: 'Representations' },
+    { value: 'users', label: 'User Moderation' },
+    { value: 'reports_queue', label: 'Reports Queue' },
+    { value: 'sessions', label: 'Session History' },
+    { value: 'collaborations', label: 'Collaborations' },
+    { value: 'arbitration', label: 'Arbitration' },
+    { value: 'compliance', label: 'Compliance' },
+    { value: 'jurisdiction', label: 'Jurisdictions' },
+    { value: 'disputes', label: 'Dispute Testing' },
+    { value: 'tags', label: 'Tags' },
+    { value: 'reports', label: 'Reports' },
+    { value: 'security', label: 'Security Checks' },
+    { value: 'reputation', label: 'Reputation Scores' },
+    { value: 'identity', label: 'Identity Check' },
+    { value: 'templates', label: 'Deal Templates' },
+    { value: 'earnings', label: 'Earnings' },
   ];
 
   const getProfileForVerification = (v) => userProfiles.find(p => p.user_id === v.user_id);
@@ -456,7 +450,7 @@ export default function AdminDashboard() {
 
       {/* Stats */}
       <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6 justify-center mx-auto">
           {safetyAlertsCount > 0 && (
             <CCCard
               padding="md"
@@ -528,16 +522,26 @@ export default function AdminDashboard() {
             onChange={(e) => setActiveTab(e.target.value)}
             className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-3 text-[#E8EEF9] text-sm focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
           >
-            {[...tabRows.flat(), { value: 'reputation', label: '⭐ Reputation Scores' }, { value: 'identity', label: '🔍 Identity Check' }, { value: 'templates', label: '📄 Deal Templates' }, { value: 'earnings', label: '💰 Earnings' }].map((tab) => (
+            {tabs.map((tab) => (
               <option key={tab.value} value={tab.value}>{tab.label}</option>
             ))}
           </select>
         </div>
 
-        {/* Desktop: Multi-row tabs */}
-        <div className="hidden md:block space-y-2 mb-6">
-          {tabRows.map((row, i) => (
-            <CCTabsList key={i} tabs={row} activeTab={activeTab} onChange={setActiveTab} />
+        {/* Desktop: Horizontal Tab Layout */}
+        <div className="hidden md:flex flex-wrap gap-2 mb-6 justify-center">
+          {tabs.map((tab) => (
+            <button
+              key={tab.value}
+              onClick={() => setActiveTab(tab.value)}
+              className={`px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 ${
+                activeTab === tab.value
+                  ? 'bg-[#4F8CFF] text-white shadow-lg'
+                  : 'bg-[#151D2B] border border-[#263248] text-[#9AA6BC] hover:border-[#4F8CFF] hover:text-[#E8EEF9]'
+              }`}
+            >
+              {tab.label}
+            </button>
           ))}
         </div>
 
