@@ -531,33 +531,55 @@ export default function Discovery() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center">
             {profiles.map((profile) => {
-              const details = creatorDetails.find(d => d.user_id === profile.user_id);
-              const verification = allVerifications.find(v => v.user_id === profile.user_id);
-              const isVerified = verification?.status === 'approved';
-              const reputationScore = reputationScores.find(r => r.user_id === profile.user_id);
-              const isRepresented = profile.role_type === 'creator' && (
-                allAgentReps.some(r => r.creator_user_id === profile.user_id) ||
-                allStudioRosters.some(r => r.creator_user_id === profile.user_id)
-              );
-              const myLocation = myProfile?.[0]?.base_location;
-              const distance = myLocation?.lat && myLocation?.lng && profile.base_location?.lat && profile.base_location?.lng
-                ? calculateDistance(myLocation.lat, myLocation.lng, profile.base_location.lat, profile.base_location.lng)
-                : undefined;
-              const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
-              return (
-                <ProfileCard
-                  key={profile.id}
-                  profile={{...profile, verified: isVerified}}
-                  creatorDetails={details}
-                  distance={distance}
-                  isRepresented={isRepresented}
-                  isSaved={isSaved}
-                  reputationScore={reputationScore}
-                  onFavorite={handleFavorite}
-                  onBlock={handleBlock}
-                  onReport={handleReport}
-                />
-              );
+             const details = creatorDetails.find(d => d.user_id === profile.user_id);
+             const verification = allVerifications.find(v => v.user_id === profile.user_id);
+             const isVerified = verification?.status === 'approved';
+             const reputationScore = reputationScores.find(r => r.user_id === profile.user_id);
+             const isRepresented = profile.role_type === 'creator' && (
+               allAgentReps.some(r => r.creator_user_id === profile.user_id) ||
+               allStudioRosters.some(r => r.creator_user_id === profile.user_id)
+             );
+             const myRepWithThisAgent = myCreatorReps.find(r => r.agent_user_id === profile.user_id);
+             const myLocation = myProfile?.[0]?.base_location;
+             const distance = myLocation?.lat && myLocation?.lng && profile.base_location?.lat && profile.base_location?.lng
+               ? calculateDistance(myLocation.lat, myLocation.lng, profile.base_location.lat, profile.base_location.lng)
+               : undefined;
+             const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
+
+             // For agents: show marketplace card if creator is browsing
+             if (profile.role_type === 'agent' && myProfile?.[0]?.role_type === 'creator') {
+               const AgentMarketplaceCard = require('@/components/marketplace/AgentMarketplaceCard').default;
+               const agentDetails = allAgentDetails.find(d => d.user_id === profile.user_id);
+               return (
+                 <AgentMarketplaceCard
+                   key={profile.id}
+                   agentProfile={{...profile, verified: isVerified}}
+                   agentDetails={agentDetails}
+                   representationStatus={myRepWithThisAgent}
+                   reputationScore={reputationScore}
+                   onRequestRepresentation={(agentId) => {
+                     // Trigger representation request flow
+                     setSelectedProfile(profile);
+                     handleAgentRepresentationRequest(profile.user_id);
+                   }}
+                 />
+               );
+             }
+
+             return (
+               <ProfileCard
+                 key={profile.id}
+                 profile={{...profile, verified: isVerified}}
+                 creatorDetails={details}
+                 distance={distance}
+                 isRepresented={isRepresented}
+                 isSaved={isSaved}
+                 reputationScore={reputationScore}
+                 onFavorite={handleFavorite}
+                 onBlock={handleBlock}
+                 onReport={handleReport}
+               />
+             );
             })}
           </div>
         )}
