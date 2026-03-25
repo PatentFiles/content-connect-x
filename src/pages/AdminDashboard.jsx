@@ -391,6 +391,7 @@ export default function AdminDashboard() {
 
   const tabRows = [
     [
+      { value: 'safety_alerts', label: '🚨 Safety Alerts', icon: AlertTriangle },
       { value: 'overview', label: 'Overview', icon: Shield },
       { value: 'analytics', label: 'Analytics', icon: TrendingUp },
       { value: 'compliance_agent', label: 'Compliance Agent', icon: Shield },
