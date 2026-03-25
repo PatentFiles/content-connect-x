@@ -7,7 +7,7 @@
  * - Inspect score factors per user
  * - See safety check-in escalations
  */
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Award, RefreshCw, ChevronDown, ChevronUp, Shield, AlertTriangle } from 'lucide-react';
