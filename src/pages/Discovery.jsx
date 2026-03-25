@@ -484,7 +484,14 @@ export default function Discovery() {
       </div>
 
       {/* Near Me Section */}
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      <div className="max-w-6xl mx-auto px-4 py-6 grid md:grid-cols-3 gap-6">
+        {/* Sidebar — Feed + Travel */}
+        <div className="md:col-span-1 space-y-4 hidden md:block">
+          <CollaborationFeed userId={user?.email} />
+          <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
+          <TopCreators userId={user?.email} limit={4} title="Top Trusted Members" />
+        </div>
+        <div className="md:col-span-2">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-[#FF2DAA]" />
