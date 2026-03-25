@@ -489,6 +489,12 @@ export default function ViewProfile() {
             )}
           </div>
 
+          {/* Trust Badges + Reputation */}
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-3">
+            <TrustBadges profile={profile} verification={profileVerifications[0]} testingCred={profileTestingCred} size="sm" />
+            {profileReputation && <ReputationBadge score={profileReputation} size="sm" />}
+          </div>
+
           {/* Connection Stats */}
           {canSeeFriendCount() && friendCount !== undefined && (
             <div className="flex items-center justify-center gap-2 mb-4 text-[#9AA6BC]">
