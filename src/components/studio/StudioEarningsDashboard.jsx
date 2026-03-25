@@ -83,6 +83,7 @@ export default function StudioEarningsDashboard({ studioUserId }) {
 
   const totalRevenueShare = observers.reduce((sum, o) => sum + (o.revenue_share_percentage || 0), 0);
   const completedCollabs = collaborations.filter(c => c.status === 'completed');
+  
 
   const exportEarningsReport = () => {
     try {
