@@ -66,53 +66,46 @@ export default function ContractViewer({ contractId }) {
 
   const currentVersion = versions.find(v => v.id === contract?.current_version_id) || versions[versions.length - 1];
 
+  const [signedName, setSignedName] = useState('');
+
   const signContractMutation = useMutation({
     mutationFn: async () => {
-      // Create signature
-      await base44.entities.ContractSignature.create({
+      const res = await base44.functions.invoke('signContract', {
+        action: 'sign',
         contract_id: id,
-        user_id: user.email,
-        signature_text: user.full_name || user.email,
-        signed_at: new Date().toISOString(),
+        signed_name: signedName || user?.full_name || user?.email,
       });
-
-      // Update contract signatories
-      const updatedSignatories = contract.signatories?.map(s => 
-        s.user_id === user.email 
-          ? { ...s, signed: true, signed_at: new Date().toISOString() }
-          : s
-      ) || [];
-
-      const allSigned = updatedSignatories.every(s => s.signed);
-      
-      // Update contract status
-      const newStatus = allSigned ? 'signed' : 'partially_signed';
-      await base44.entities.Contract.update(id, {
-        signatories: updatedSignatories,
-        status: newStatus,
-        ...(allSigned && { signed_at: new Date().toISOString() }),
-      });
-
-      // Create audit log
-      await base44.entities.ContractAuditLog.create({
-        contract_id: id,
-        collaboration_id: contract.collaboration_id,
-        action: allSigned ? 'contract_signed' : 'signature_added',
-        actor_email: user.email,
-        metadata_json: { signatory: user.email },
-      });
-
-      return { allSigned };
+      if (res.data?.error) throw new Error(res.data.error);
+      return res.data;
     },
-    onSuccess: ({ allSigned }) => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['contract', id] });
       queryClient.invalidateQueries({ queryKey: ['contractSignatures', id] });
       queryClient.invalidateQueries({ queryKey: ['contractAuditLogs', id] });
-      toast.success(allSigned ? 'Contract fully signed!' : 'Signature added successfully');
+      toast.success(data.all_signed ? 'Contract fully signed by all parties!' : 'Signature recorded successfully');
       setShowSignModal(false);
     },
-    onError: () => {
-      toast.error('Failed to sign contract');
+    onError: (e) => {
+      toast.error(e.message || 'Failed to sign contract');
+    },
+  });
+
+  const sendForSignaturesMutation = useMutation({
+    mutationFn: async () => {
+      const res = await base44.functions.invoke('signContract', {
+        action: 'send_for_signatures',
+        contract_id: id,
+      });
+      if (res.data?.error) throw new Error(res.data.error);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contract', id] });
+      queryClient.invalidateQueries({ queryKey: ['contractAuditLogs', id] });
+      toast.success('Contract sent for signatures — all participants notified');
+    },
+    onError: (e) => {
+      toast.error(e.message || 'Failed to send contract');
     },
   });
 
