@@ -313,6 +313,21 @@ export default function AdminDashboard() {
     enabled: isAdmin,
   });
 
+  // Fetch high-risk safety alerts count
+  const { data: allReportsForAlerts = [] } = useQuery({
+    queryKey: ['allReportsForAlerts'],
+    queryFn: () => base44.entities.Report.list('-created_date', 200),
+    enabled: isAdmin,
+    refetchInterval: 30000,
+  });
+
+  const HIGH_RISK_KEYWORDS = ['underage', 'IMMEDIATE_REVIEW', 'AUTO-MODERATION', 'trafficking', 'coercion', 'solicitation'];
+  const safetyAlertsCount = allReportsForAlerts.filter(r => {
+    if (r.status === 'resolved' || r.status === 'dismissed') return false;
+    const notes = (r.admin_notes || '') + (r.details || '');
+    return r.reason === 'underage' || r.reason === 'non_consensual' || HIGH_RISK_KEYWORDS.some(kw => notes.includes(kw));
+  }).length;
+
   // Fetch total users count
   const { data: allUsers = [] } = useQuery({
     queryKey: ['totalUsers'],
