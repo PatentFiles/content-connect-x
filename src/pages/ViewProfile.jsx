@@ -225,6 +225,7 @@ export default function ViewProfile() {
   const [lightboxGalleryType, setLightboxGalleryType] = useState('public');
   const [accessRequested, setAccessRequested] = useState(false);
   const [showPreCheck, setShowPreCheck] = useState(false);
+  const [showAgentRepModal, setShowAgentRepModal] = useState(false);
 
   // Fetch target user's privacy settings
   const { data: targetSettingsArr = [] } = useQuery({
