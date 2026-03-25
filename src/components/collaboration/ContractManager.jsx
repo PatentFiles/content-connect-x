@@ -88,13 +88,26 @@ export default function ContractManager({ collaborationId, profiles, user }) {
 
   return (
     <div className="space-y-4">
-      <CCButton
-        variant="primary"
-        icon={Plus}
-        onClick={() => setShowNewContract(!showNewContract)}
-      >
-        New Contract
-      </CCButton>
+      {/* Contract creation buttons */}
+      <div className="flex flex-wrap gap-2">
+        <AIContractBuilder
+          collaborationId={collaborationId}
+          user={user}
+          profiles={profiles}
+          onContractCreated={() => queryClient.invalidateQueries(['collaborationContracts', collaborationId])}
+        />
+        <TemplateContractGenerator
+          collaborationId={collaborationId}
+          onContractCreated={() => queryClient.invalidateQueries(['collaborationContracts', collaborationId])}
+        />
+        <CCButton
+          variant="outline"
+          icon={Plus}
+          onClick={() => setShowNewContract(!showNewContract)}
+        >
+          Manual Draft
+        </CCButton>
+      </div>
 
       {showNewContract && (
         <CCCard className="p-4">
