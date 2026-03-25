@@ -513,6 +513,7 @@ export default function Discovery() {
               const details = creatorDetails.find(d => d.user_id === profile.user_id);
               const verification = allVerifications.find(v => v.user_id === profile.user_id);
               const isVerified = verification?.status === 'approved';
+              const reputationScore = reputationScores.find(r => r.user_id === profile.user_id);
               const isRepresented = profile.role_type === 'creator' && (
                 allAgentReps.some(r => r.creator_user_id === profile.user_id) ||
                 allStudioRosters.some(r => r.creator_user_id === profile.user_id)
@@ -530,6 +531,7 @@ export default function Discovery() {
                   distance={distance}
                   isRepresented={isRepresented}
                   isSaved={isSaved}
+                  reputationScore={reputationScore}
                   onFavorite={handleFavorite}
                   onBlock={handleBlock}
                   onReport={handleReport}
