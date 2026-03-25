@@ -179,18 +179,18 @@ export default function VerificationReviewQueue() {
 
                   {verification.documents_submitted && verification.documents_submitted.length > 0 && (
                     <div className="mb-3">
-                      <p className="text-xs text-[#6B7A94] mb-2">Documents:</p>
-                      <div className="space-y-1">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <Lock className="w-3 h-3 text-[#6B7A94]" />
+                        <p className="text-xs text-[#6B7A94]">Sensitive documents — signed URL access only, all views logged:</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
                         {verification.documents_submitted.map((doc, idx) => (
-                          <a
+                          <SecureDocumentButton
                             key={idx}
-                            href={doc.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block text-xs text-[#4F8CFF] hover:underline"
-                          >
-                            {doc.type} - View Document
-                          </a>
+                            doc={doc}
+                            verificationId={verification.id}
+                            userId={verification.user_id}
+                          />
                         ))}
                       </div>
                     </div>
