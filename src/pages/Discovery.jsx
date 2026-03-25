@@ -493,14 +493,7 @@ export default function Discovery() {
             </div>
           </div>
           
-          {/* Filters */}
-          <div className="flex justify-end mb-3">
-            <ProfileFilters
-              filters={filters}
-              onChange={setFilters}
-              onReset={() => { setFilters({ roleTypes: [], orientations: [], sceneTypes: [], tags: [], compensation: [], nearMe: false, travelAvailable: false, verifiedOnly: true, testingRequired: false, recentlyActive: false, sortBy: 'distance', country: '', state: '', city: '' }); setSelectedRole(''); }}
-            />
-          </div>
+          {/* Filters — Positioned with See all link */}
           
           {/* Role Quick Filters — Centered */}
           <div className="flex flex-wrap gap-2 pb-1 justify-center">
@@ -531,27 +524,33 @@ export default function Discovery() {
             <CollaborationFeed userId={user?.email} />
             <TopCreators userId={user?.email} limit={4} title="Top Trusted Members" />
           </div>
-          <div className="md:col-span-2">
-            {/* Travel Sync — Centered Above Near You Section */}
-            <div className="mb-6 flex justify-center">
-              <div className="w-full max-w-lg">
-                <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
-              </div>
+          <div className="md:col-span-2 space-y-6">
+            {/* Travel Sync — Centered */}
+            <div className="flex justify-center">
+              <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
             </div>
 
             {/* Near You Section */}
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-[#FF2DAA]" />
-                <h2 className="text-lg font-medium text-[#E8EEF9]">Near You</h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#FF2DAA]" />
+                  <h2 className="text-lg font-medium text-[#E8EEF9]">Near You</h2>
+                </div>
+                <div className="flex items-center gap-3">
+                  <ProfileFilters
+                    filters={filters}
+                    onChange={setFilters}
+                    onReset={() => { setFilters({ roleTypes: [], orientations: [], sceneTypes: [], tags: [], compensation: [], nearMe: false, travelAvailable: false, verifiedOnly: true, testingRequired: false, recentlyActive: false, sortBy: 'distance', country: '', state: '', city: '' }); setSelectedRole(''); }}
+                  />
+                  <Link to={createPageUrl('Search')} className="text-sm text-[#4F8CFF] flex items-center gap-1">
+                    See all <ChevronRight className="w-4 h-4" />
+                  </Link>
+                </div>
               </div>
-              <Link to={createPageUrl('Search')} className="text-sm text-[#4F8CFF] flex items-center gap-1">
-                See all <ChevronRight className="w-4 h-4" />
-              </Link>
-            </div>
 
             {profilesLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[1, 2, 3, 4, 5, 6].map(i => (
                   <CCProfileCardSkeleton key={i} />
                 ))}
@@ -563,7 +562,7 @@ export default function Discovery() {
                 description="Try adjusting your filters or expanding your search radius."
               />
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-start">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {profiles.map((profile) => {
              const details = creatorDetails.find(d => d.user_id === profile.user_id);
              const verification = allVerifications.find(v => v.user_id === profile.user_id);
