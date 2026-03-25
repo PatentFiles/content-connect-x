@@ -628,14 +628,25 @@ export default function ViewProfile() {
             studioDetails={studio}
           />
         ) : (
-          <BookingRequestModal
-            isOpen={showBookingModal}
-            onClose={() => setShowBookingModal(false)}
-            recipientUserId={profileUserId}
-            recipientName={profile?.display_name}
-            requesterUserId={user?.email}
-          />
+         <BookingRequestModal
+           isOpen={showBookingModal}
+           onClose={() => setShowBookingModal(false)}
+           recipientUserId={profileUserId}
+           recipientName={profile?.display_name}
+           requesterUserId={user?.email}
+         />
         )}
+
+        {/* Agent Representation Request Modal */}
+        <AgentRepresentationRequestModal
+         isOpen={showAgentRepModal}
+         onClose={() => setShowAgentRepModal(false)}
+         agentUserId={profileUserId}
+         creatorUserId={user?.email}
+         onSuccess={() => {
+           queryClient.invalidateQueries({ queryKey: ['myRepWithAgent'] });
+         }}
+        />
 
         {/* Tabs */}
         <CCTabsList tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-6" />
