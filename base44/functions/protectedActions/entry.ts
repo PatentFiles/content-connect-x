@@ -344,6 +344,28 @@ Deno.serve(async (req) => {
           return Response.json({ error: 'collab_id required' }, { status: 400 });
         }
 
+        // ── MODERATION: scan updated free-text ────────────────────────────────
+        const updateFreeText = [
+          updateData.collaboration_name,
+          updateData.internal_notes,
+          updateData.acts_other_text,
+          updateData.compensation_details?.notes,
+          updateData.location?.notes,
+          updateData.boundaries?.aftercare_notes,
+        ].filter(Boolean).join(' ');
+
+        if (updateFreeText) {
+          const updateMod = await enforceModerationInline(base44, user.email, updateFreeText, 'collaboration_update');
+          if (updateMod && (updateMod.severity === 'critical' || updateMod.severity === 'high')) {
+            return Response.json({
+              error: 'This update was blocked. Content in one or more fields violates platform safety policies.',
+              code: 'content_blocked',
+              blocked: true,
+            }, { status: 403 });
+          }
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         // Verify the user is a participant
         const collabs = await base44.entities.Collaboration.filter({ id: collab_id });
         const collab = collabs[0];
