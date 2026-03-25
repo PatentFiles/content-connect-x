@@ -15,7 +15,8 @@ import {
   MessageCircle,
   Calendar,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  Handshake
 } from 'lucide-react';
 import CCCard from '../ui-custom/CCCard';
 import CCButton from '../ui-custom/CCButton';
