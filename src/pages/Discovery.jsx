@@ -182,10 +182,11 @@ export default function Discovery() {
     enabled: !!user?.email,
   });
 
-  // Unsave from favorites mutation — ban-enforced
+  const favQueryKey = ['myFavorites', user?.email];
+
+  // Unsave from favorites mutation — ban-enforced, with optimistic update
   const unsaveFromFavoritesMutation = useMutation({
     mutationFn: async (userId) => {
-      // Re-check ban before mutating
       const banStatus = await revalidateBanStatus(user?.email);
       if (!banStatus.allowed) throw new Error('BLOCKED:' + banStatus.reason);
 
@@ -199,14 +200,26 @@ export default function Discovery() {
         })
       );
     },
+    onMutate: async (userId) => {
+      await queryClient.cancelQueries({ queryKey: favQueryKey });
+      const previous = queryClient.getQueryData(favQueryKey);
+      queryClient.setQueryData(favQueryKey, (old = []) =>
+        old.map(f => ({ ...f, items: (f.items || []).filter(i => i.user_id !== userId) }))
+      );
+      return { previous };
+    },
+    onError: (error, _userId, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(favQueryKey, ctx.previous);
+      if (error.message?.startsWith('BLOCKED:')) toast.error('Your account is blocked.');
+      else toast.error('Failed to remove from favorites');
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myFavorites'] });
-      queryClient.invalidateQueries({ queryKey: ['favorites'] });
       toast.success('Removed from favorites');
     },
-    onError: (error) => {
-      if (error.message?.startsWith('BLOCKED:')) toast.error('Your account is blocked.');
-    }
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: favQueryKey });
+      queryClient.invalidateQueries({ queryKey: ['favorites'] });
+    },
   });
 
   const handleFavorite = (profile) => {

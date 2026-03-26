@@ -38,8 +38,7 @@ export default function CCButton({
   return (
     <motion.button
       type={type}
-      whileTap={{ scale: disabled || loading ? 1 : 0.98 }}
-      whileHover={{ scale: disabled || loading ? 1 : 1.01 }}
+      whileTap={{ scale: disabled || loading ? 1 : 0.97 }}
       onClick={onClick}
       disabled={disabled || loading}
       className={cn(

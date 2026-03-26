@@ -87,6 +87,8 @@ export default function Favorites() {
     enabled: allFavoriteUserIds.length > 0 && profiles.length > 0,
   });
 
+  const favQueryKey = ['favorites', user?.email];
+
   // Create favorites list mutation
   const createMutation = useMutation({
     mutationFn: (name) => base44.entities.Favorite.create({
@@ -94,8 +96,18 @@ export default function Favorites() {
       name,
       items: [],
     }),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['favorites']);
+    onMutate: async (name) => {
+      await queryClient.cancelQueries({ queryKey: favQueryKey });
+      const previous = queryClient.getQueryData(favQueryKey);
+      const optimistic = { id: `tmp_${Date.now()}`, owner_id: user.email, name, items: [] };
+      queryClient.setQueryData(favQueryKey, (old = []) => [...old, optimistic]);
+      return { previous };
+    },
+    onError: (_err, _name, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(favQueryKey, ctx.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: favQueryKey });
       setIsCreating(false);
       setNewListName('');
     },
@@ -104,8 +116,17 @@ export default function Favorites() {
   // Delete favorites list mutation
   const deleteMutation = useMutation({
     mutationFn: (id) => base44.entities.Favorite.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['favorites']);
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: favQueryKey });
+      const previous = queryClient.getQueryData(favQueryKey);
+      queryClient.setQueryData(favQueryKey, (old = []) => old.filter(f => f.id !== id));
+      return { previous };
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(favQueryKey, ctx.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: favQueryKey });
       setSelectedList(null);
     },
   });
@@ -117,9 +138,23 @@ export default function Favorites() {
       const updatedItems = list.items.filter(item => item.user_id !== userId);
       await base44.entities.Favorite.update(listId, { items: updatedItems });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['favorites']);
-      queryClient.invalidateQueries(['myFavorites']);
+    onMutate: async ({ listId, userId }) => {
+      await queryClient.cancelQueries({ queryKey: favQueryKey });
+      const previous = queryClient.getQueryData(favQueryKey);
+      queryClient.setQueryData(favQueryKey, (old = []) =>
+        old.map(f => f.id === listId
+          ? { ...f, items: (f.items || []).filter(i => i.user_id !== userId) }
+          : f
+        )
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(favQueryKey, ctx.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: favQueryKey });
+      queryClient.invalidateQueries({ queryKey: ['myFavorites'] });
     },
   });
 
@@ -130,9 +165,23 @@ export default function Favorites() {
       const updatedItems = [...(list.items || []), { user_id: userId, added_at: new Date().toISOString() }];
       await base44.entities.Favorite.update(listId, { items: updatedItems });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['favorites']);
-      queryClient.invalidateQueries(['myFavorites']);
+    onMutate: async ({ listId, userId }) => {
+      await queryClient.cancelQueries({ queryKey: favQueryKey });
+      const previous = queryClient.getQueryData(favQueryKey);
+      queryClient.setQueryData(favQueryKey, (old = []) =>
+        old.map(f => f.id === listId
+          ? { ...f, items: [...(f.items || []), { user_id: userId, added_at: new Date().toISOString() }] }
+          : f
+        )
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(favQueryKey, ctx.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: favQueryKey });
+      queryClient.invalidateQueries({ queryKey: ['myFavorites'] });
       setAddingToList(null);
       setSelectedListForAdd('');
     },

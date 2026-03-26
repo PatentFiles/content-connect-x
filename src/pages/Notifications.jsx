@@ -46,12 +46,23 @@ export default function Notifications() {
     queryFn: () => base44.entities.UserProfile.list(),
   });
 
+  const notifQueryKey = ['notifications', user?.email];
+
   const markAsReadMutation = useMutation({
     mutationFn: (notificationId) =>
       base44.entities.Notification.update(notificationId, { read_at: new Date().toISOString() }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    onMutate: async (notificationId) => {
+      await queryClient.cancelQueries({ queryKey: notifQueryKey });
+      const previous = queryClient.getQueryData(notifQueryKey);
+      queryClient.setQueryData(notifQueryKey, (old = []) =>
+        old.map(n => n.id === notificationId ? { ...n, read_at: new Date().toISOString() } : n)
+      );
+      return { previous };
     },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(notifQueryKey, ctx.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: notifQueryKey }),
   });
 
   const markAllReadMutation = useMutation({
@@ -63,18 +74,38 @@ export default function Notifications() {
         )
       );
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      toast.success('All notifications marked as read');
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: notifQueryKey });
+      const previous = queryClient.getQueryData(notifQueryKey);
+      const now = new Date().toISOString();
+      queryClient.setQueryData(notifQueryKey, (old = []) =>
+        old.map(n => n.read_at ? n : { ...n, read_at: now })
+      );
+      return { previous };
     },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(notifQueryKey, ctx.previous);
+    },
+    onSuccess: () => toast.success('All notifications marked as read'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: notifQueryKey }),
   });
 
   const deleteNotificationMutation = useMutation({
     mutationFn: (notificationId) => base44.entities.Notification.delete(notificationId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      toast.success('Notification deleted');
+    onMutate: async (notificationId) => {
+      await queryClient.cancelQueries({ queryKey: notifQueryKey });
+      const previous = queryClient.getQueryData(notifQueryKey);
+      queryClient.setQueryData(notifQueryKey, (old = []) =>
+        old.filter(n => n.id !== notificationId)
+      );
+      return { previous };
     },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(notifQueryKey, ctx.previous);
+      toast.error('Failed to delete notification');
+    },
+    onSuccess: () => toast.success('Notification deleted'),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: notifQueryKey }),
   });
 
   const grantGalleryAccessMutation = useMutation({

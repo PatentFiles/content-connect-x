@@ -308,9 +308,13 @@ html, body {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Prevent all scrollable containers from
-   triggering native overscroll on iOS */
-* {
+/* Scoped overscroll containment — only apply to known scrollable panels,
+   not globally (global * { overscroll-behavior } traps nested scroll and
+   breaks iOS momentum scrolling in sheets, modals, and lists). */
+.scroll-container,
+.overflow-y-auto,
+.overflow-x-auto,
+.overflow-auto {
   overscroll-behavior: contain;
 }
 
@@ -356,8 +360,13 @@ input[type="radio"] {
   min-height: 44px;
 }
 
-/* Prevent text selection on buttons */
-button {
+/* Prevent accidental text selection on icon-only or purely interactive buttons.
+   Scoped narrowly — do NOT apply globally to all text-containing buttons.
+   Text inside buttons (labels, descriptions) remains selectable for accessibility. */
+button[aria-label],
+button.icon-btn,
+[role="tab"],
+[role="menuitem"] {
   user-select: none;
   -webkit-user-select: none;
 }
