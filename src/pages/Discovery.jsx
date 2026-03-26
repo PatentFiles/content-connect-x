@@ -516,12 +516,11 @@ export default function Discovery() {
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Top row: Travel Sync + Top Trusted Members centered */}
-        <div className="flex flex-col md:flex-row gap-4 justify-center mb-6">
-          <div className="w-full md:w-80">
-            <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
-          </div>
-          <div className="w-full md:w-80 border border-[#263248] rounded-xl p-4 bg-[#0D1117]">
+
+        {/* Travel Sync + Top Trusted Members — always stacked full width */}
+        <div className="flex flex-col gap-4 mb-4 md:max-w-xl lg:max-w-2xl">
+          <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
+          <div className="border border-[#263248] rounded-xl p-4 bg-[#0D1117]">
             <TopCreators userId={user?.email} limit={4} title="Top Trusted Members" />
           </div>
         </div>
@@ -547,7 +546,7 @@ export default function Discovery() {
           </div>
 
               {profilesLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 justify-items-center sm:justify-items-start">
                   {[1, 2, 3, 4, 5, 6].map(i => (
                     <CCProfileCardSkeleton key={i} />
                   ))}
@@ -559,7 +558,7 @@ export default function Discovery() {
                   description="Try adjusting your filters or expanding your search radius."
                 />
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center sm:justify-items-start">
                   {profiles.map((profile) => {
                     const details = creatorDetails.find(d => d.user_id === profile.user_id);
                     const verification = allVerifications.find(v => v.user_id === profile.user_id);
