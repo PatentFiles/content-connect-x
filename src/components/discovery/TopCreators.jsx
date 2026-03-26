@@ -131,15 +131,21 @@ export default function TopCreators({ userId, roleFilter = '', limit = 6, title 
                   </p>
                   {isVerified && <ShieldCheck className="w-3 h-3 text-[#4F8CFF] flex-shrink-0" />}
                 </div>
+
                 <div className="flex flex-wrap items-center gap-1.5 mt-0.5">
                   <CCBadge variant={ROLE_COLORS[profile.role_type] || 'default'} size="sm">
                     {ROLE_LABELS[profile.role_type] || profile.role_type}
                   </CCBadge>
-                  {profile.base_location?.city && (
-                    <span className="text-xs text-[#6B7A94] break-words">{profile.base_location.city}</span>
-                  )}
                   <ReputationBadge score={score} size="sm" compact />
                 </div>
+
+                {profile.base_location?.city && (
+                  <div className="mt-1">
+                    <span className="text-xs text-[#6B7A94] break-words">
+                      {profile.base_location.city}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </Link>
