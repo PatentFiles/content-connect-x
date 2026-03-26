@@ -25,9 +25,9 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
       className="fixed top-0 left-0 right-0 z-40 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-center relative">
-        {/* Centered Logo */}
-        <Link to={createPageUrl('Landing')} className="flex items-center gap-2">
+      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+        {/* Left — Logo */}
+        <Link to={createPageUrl('Landing')} className="flex items-center gap-2 flex-shrink-0">
           <img 
             src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69495df631e52046b1356040/51f211167_image.png"
             alt="Content Connect"
@@ -36,36 +36,25 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
           <span className="text-[#E8EEF9] font-semibold text-lg hidden sm:block">Content Connect</span>
         </Link>
 
-        {/* Desktop Navigation — Hidden on mobile */}
-        <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-6">
-          {!isAuthenticated ? (
-            <>
-              <Link to={createPageUrl('HowItWorks')} className="text-[#9AA6BC] hover:text-[#E8EEF9] text-sm font-medium transition-colors">
-                How it Works
-              </Link>
-              <Link to={createPageUrl('Pricing')} className="text-[#9AA6BC] hover:text-[#E8EEF9] text-sm font-medium transition-colors">
-                Pricing
-              </Link>
-              <Link to={createPageUrl('FAQ')} className="text-[#9AA6BC] hover:text-[#E8EEF9] text-sm font-medium transition-colors">
-                FAQ
-              </Link>
-            </>
-          ) : null}
-        </nav>
+        {/* Center — Desktop public nav */}
+        {!isAuthenticated && (
+          <nav className="hidden md:flex items-center gap-6">
+            <Link to={createPageUrl('HowItWorks')} className="text-[#9AA6BC] hover:text-[#E8EEF9] text-sm font-medium transition-colors">
+              How it Works
+            </Link>
+            <Link to={createPageUrl('Pricing')} className="text-[#9AA6BC] hover:text-[#E8EEF9] text-sm font-medium transition-colors">
+              Pricing
+            </Link>
+            <Link to={createPageUrl('FAQ')} className="text-[#9AA6BC] hover:text-[#E8EEF9] text-sm font-medium transition-colors">
+              FAQ
+            </Link>
+          </nav>
+        )}
 
-        {/* Right side */}
-        <div className="absolute right-4 flex items-center gap-3 md:static">
+        {/* Right — Icons */}
+        <div className="flex items-center gap-2">
           {isAuthenticated && user ? (
             <>
-              {/* Hamburger Menu for Mobile (authenticated users only) */}
-              <button
-                onClick={onHamburgerToggle}
-                className="md:hidden p-3 hover:bg-[#151D2B] rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-                aria-label="Open menu"
-              >
-                <Menu className="w-6 h-6 text-[#E8EEF9]" />
-              </button>
-              
               <Link to={createPageUrl('Notifications')} className="relative">
                 <CCButton variant="ghost" size="icon">
                   <Bell className="w-5 h-5" />
@@ -82,6 +71,15 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
                   <Settings className="w-5 h-5" />
                 </CCButton>
               </Link>
+
+              {/* Hamburger Menu for Mobile — rightmost */}
+              <button
+                onClick={onHamburgerToggle}
+                className="md:hidden p-3 hover:bg-[#151D2B] rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                aria-label="Open menu"
+              >
+                <Menu className="w-6 h-6 text-[#E8EEF9]" />
+              </button>
             </>
           ) : profile ? (
             <>
@@ -120,8 +118,6 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
               </CCButton>
             </>
           )}
-
-
         </div>
       </div>
 

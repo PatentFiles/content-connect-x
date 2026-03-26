@@ -50,7 +50,7 @@ const LABEL_CONFIG = {
 };
 
 const SIZES = {
-  sm: { badge: 'px-2 py-0.5 text-xs gap-1', icon: 'w-3 h-3' },
+  sm: { badge: 'px-2 py-1 text-xs gap-1', icon: 'w-3 h-3' },
   md: { badge: 'px-3 py-1 text-xs gap-1.5', icon: 'w-3.5 h-3.5' },
   lg: { badge: 'px-4 py-1.5 text-sm gap-2', icon: 'w-4 h-4' },
 };

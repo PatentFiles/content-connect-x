@@ -188,7 +188,7 @@ export default function ProfileCard({
 
           {/* Trust Badges + Reputation */}
           {(verification || testingCred || reputationScore) && (
-            <div className="px-3 pt-2 flex flex-wrap gap-1.5">
+            <div className="px-3 pt-2 flex flex-wrap gap-1.5 justify-center items-center">
               <TrustBadges profile={profile} verification={verification} testingCred={testingCred} size="sm" />
               {reputationScore && <ReputationBadge score={reputationScore} size="sm" compact />}
             </div>

@@ -523,18 +523,11 @@ export default function Discovery() {
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Desktop Sidebar — Feed + Travel */}
+        {/* Desktop Layout: profile cards left, right column for travel + trusted members */}
         <div className="grid md:grid-cols-3 gap-6">
-          <div className="md:col-span-1 space-y-4 hidden md:block">
-            <CollaborationFeed userId={user?.email} />
-            <TopCreators userId={user?.email} limit={4} title="Top Trusted Members" />
-          </div>
-          <div className="md:col-span-2 space-y-6">
-            {/* Travel Sync — Centered */}
-            <div className="flex justify-center">
-              <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
-            </div>
 
+          {/* Left — Profile Cards */}
+          <div className="md:col-span-2 space-y-6">
             {/* Near You Section */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -554,76 +547,87 @@ export default function Discovery() {
                 </div>
               </div>
 
-            {profilesLoading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[1, 2, 3, 4, 5, 6].map(i => (
-                  <CCProfileCardSkeleton key={i} />
-                ))}
-              </div>
-            ) : profiles.length === 0 ? (
-              <CCEmpty
-                icon={Compass}
-                title="No profiles found"
-                description="Try adjusting your filters or expanding your search radius."
-              />
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {profiles.map((profile) => {
-             const details = creatorDetails.find(d => d.user_id === profile.user_id);
-             const verification = allVerifications.find(v => v.user_id === profile.user_id);
-             const isVerified = verification?.status === 'approved';
-             const reputationScore = reputationScores.find(r => r.user_id === profile.user_id);
-             const isRepresented = profile.role_type === 'creator' && (
-               allAgentReps.some(r => r.creator_user_id === profile.user_id) ||
-               allStudioRosters.some(r => r.creator_user_id === profile.user_id)
-             );
-             const myRepWithThisAgent = myCreatorReps.find(r => r.agent_user_id === profile.user_id);
-             const myLocation = myProfile?.[0]?.base_location;
-             const distance = myLocation?.lat && myLocation?.lng && profile.base_location?.lat && profile.base_location?.lng
-               ? calculateDistance(myLocation.lat, myLocation.lng, profile.base_location.lat, profile.base_location.lng)
-               : undefined;
-             const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
+              {profilesLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[1, 2, 3, 4, 5, 6].map(i => (
+                    <CCProfileCardSkeleton key={i} />
+                  ))}
+                </div>
+              ) : profiles.length === 0 ? (
+                <CCEmpty
+                  icon={Compass}
+                  title="No profiles found"
+                  description="Try adjusting your filters or expanding your search radius."
+                />
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {profiles.map((profile) => {
+                    const details = creatorDetails.find(d => d.user_id === profile.user_id);
+                    const verification = allVerifications.find(v => v.user_id === profile.user_id);
+                    const isVerified = verification?.status === 'approved';
+                    const reputationScore = reputationScores.find(r => r.user_id === profile.user_id);
+                    const isRepresented = profile.role_type === 'creator' && (
+                      allAgentReps.some(r => r.creator_user_id === profile.user_id) ||
+                      allStudioRosters.some(r => r.creator_user_id === profile.user_id)
+                    );
+                    const myRepWithThisAgent = myCreatorReps.find(r => r.agent_user_id === profile.user_id);
+                    const myLocation = myProfile?.[0]?.base_location;
+                    const distance = myLocation?.lat && myLocation?.lng && profile.base_location?.lat && profile.base_location?.lng
+                      ? calculateDistance(myLocation.lat, myLocation.lng, profile.base_location.lat, profile.base_location.lng)
+                      : undefined;
+                    const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
 
-             // For agents: show marketplace card if creator is browsing
-             if (profile.role_type === 'agent' && myProfile?.[0]?.role_type === 'creator') {
-               const agentDetails = allAgentDetails.find(d => d.user_id === profile.user_id);
-               return (
-                 <AgentMarketplaceCard
-                   key={profile.id}
-                   agentProfile={{...profile, verified: isVerified}}
-                   agentDetails={agentDetails}
-                   representationStatus={myRepWithThisAgent}
-                   reputationScore={reputationScore}
-                   onRequestRepresentation={(agentId) => {
-                     // Trigger representation request flow
-                     setSelectedProfile(profile);
-                     handleAgentRepresentationRequest(profile.user_id);
-                   }}
-                 />
-               );
-             }
+                    if (profile.role_type === 'agent' && myProfile?.[0]?.role_type === 'creator') {
+                      const agentDetails = allAgentDetails.find(d => d.user_id === profile.user_id);
+                      return (
+                        <AgentMarketplaceCard
+                          key={profile.id}
+                          agentProfile={{...profile, verified: isVerified}}
+                          agentDetails={agentDetails}
+                          representationStatus={myRepWithThisAgent}
+                          reputationScore={reputationScore}
+                          onRequestRepresentation={(agentId) => {
+                            setSelectedProfile(profile);
+                            handleAgentRepresentationRequest(profile.user_id);
+                          }}
+                        />
+                      );
+                    }
 
-             return (
-               <ProfileCard
-                 key={profile.id}
-                 profile={{...profile, verified: isVerified}}
-                 creatorDetails={details}
-                 distance={distance}
-                 isRepresented={isRepresented}
-                 isSaved={isSaved}
-                 reputationScore={reputationScore}
-                 onFavorite={handleFavorite}
-                 onBlock={handleBlock}
-                 onReport={handleReport}
-               />
-               );
-                })}
-               </div>
-               )}
-               </div>
-               </div>
-               </div>
-               </div>
+                    return (
+                      <ProfileCard
+                        key={profile.id}
+                        profile={{...profile, verified: isVerified}}
+                        creatorDetails={details}
+                        distance={distance}
+                        isRepresented={isRepresented}
+                        isSaved={isSaved}
+                        reputationScore={reputationScore}
+                        onFavorite={handleFavorite}
+                        onBlock={handleBlock}
+                        onReport={handleReport}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right — Travel Sync (centered) + Top Trusted Members */}
+          <div className="md:col-span-1 hidden md:flex flex-col gap-4">
+            {/* Travel Sync */}
+            <div className="flex justify-center">
+              <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
+            </div>
+
+            {/* Top Trusted Members — outlined card area */}
+            <div className="border border-[#263248] rounded-xl p-4 bg-[#0D1117]">
+              <TopCreators userId={user?.email} limit={4} title="Top Trusted Members" />
+            </div>
+          </div>
+
+        </div>
 
       {/* Save to Favorites Modal */}
       {selectedProfile && (
@@ -664,5 +668,6 @@ export default function Discovery() {
         }}
       />
     </div>
+  </div>
   );
 }
