@@ -487,15 +487,8 @@ export default function Discovery() {
         <div className="max-w-6xl mx-auto px-4 py-4">
           {/* Centered Title */}
           <div className="text-center mb-4">
-            <div className="flex items-center justify-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4F8CFF]/20 to-[#FF2DAA]/20 flex items-center justify-center">
-                <Compass className="w-5 h-5 text-[#4F8CFF]" />
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold text-[#E8EEF9]">Discovery</h1>
-                <p className="text-xs text-[#6B7A94]">Find your next collaboration</p>
-              </div>
-            </div>
+            <h1 className="text-xl font-semibold text-[#E8EEF9]">Discovery</h1>
+            <p className="text-xs text-[#6B7A94]">Find your next collaboration</p>
           </div>
           
           {/* Filters — Positioned with See all link */}
@@ -523,29 +516,35 @@ export default function Discovery() {
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {/* Desktop Layout: profile cards left, right column for travel + trusted members */}
-        <div className="grid md:grid-cols-3 gap-6">
+        {/* Top row: Travel Sync + Top Trusted Members centered */}
+        <div className="flex flex-col md:flex-row gap-4 justify-center mb-6">
+          <div className="w-full md:w-80">
+            <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
+          </div>
+          <div className="w-full md:w-80 border border-[#263248] rounded-xl p-4 bg-[#0D1117]">
+            <TopCreators userId={user?.email} limit={4} title="Top Trusted Members" />
+          </div>
+        </div>
 
-          {/* Left — Profile Cards */}
-          <div className="md:col-span-2 space-y-6">
-            {/* Near You Section */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-[#FF2DAA]" />
-                  <h2 className="text-lg font-medium text-[#E8EEF9]">Near You</h2>
-                </div>
-                <div className="flex items-center gap-3">
-                  <ProfileFilters
-                    filters={filters}
-                    onChange={setFilters}
-                    onReset={() => { setFilters({ roleTypes: [], orientations: [], sceneTypes: [], tags: [], compensation: [], nearMe: false, travelAvailable: false, verifiedOnly: true, testingRequired: false, recentlyActive: false, sortBy: 'distance', country: '', state: '', city: '' }); setSelectedRole(''); }}
-                  />
-                  <Link to={createPageUrl('Search')} className="text-sm text-[#4F8CFF] flex items-center gap-1">
-                    See all <ChevronRight className="w-4 h-4" />
-                  </Link>
-                </div>
-              </div>
+        {/* Profile Cards section */}
+        <div className="space-y-4">
+          {/* Section header: title left, filters+see all right */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-[#FF2DAA]" />
+              <h2 className="text-lg font-medium text-[#E8EEF9]">Near You</h2>
+            </div>
+            <div className="flex items-center gap-3">
+              <ProfileFilters
+                filters={filters}
+                onChange={setFilters}
+                onReset={() => { setFilters({ roleTypes: [], orientations: [], sceneTypes: [], tags: [], compensation: [], nearMe: false, travelAvailable: false, verifiedOnly: true, testingRequired: false, recentlyActive: false, sortBy: 'distance', country: '', state: '', city: '' }); setSelectedRole(''); }}
+              />
+              <Link to={createPageUrl('Search')} className="text-sm text-[#4F8CFF] flex items-center gap-1">
+                See all <ChevronRight className="w-4 h-4" />
+              </Link>
+            </div>
+          </div>
 
               {profilesLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -560,7 +559,7 @@ export default function Discovery() {
                   description="Try adjusting your filters or expanding your search radius."
                 />
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {profiles.map((profile) => {
                     const details = creatorDetails.find(d => d.user_id === profile.user_id);
                     const verification = allVerifications.find(v => v.user_id === profile.user_id);
@@ -613,61 +612,47 @@ export default function Discovery() {
               )}
             </div>
           </div>
-
-          {/* Right — Travel Sync (centered) + Top Trusted Members */}
-          <div className="md:col-span-1 hidden md:flex flex-col gap-4">
-            {/* Travel Sync */}
-            <div className="flex justify-center">
-              <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
-            </div>
-
-            {/* Top Trusted Members — outlined card area */}
-            <div className="border border-[#263248] rounded-xl p-4 bg-[#0D1117]">
-              <TopCreators userId={user?.email} limit={4} title="Top Trusted Members" />
-            </div>
-          </div>
-
         </div>
 
-      {/* Save to Favorites Modal */}
-      {selectedProfile && (
-        <SaveToFavoritesModal
-          isOpen={showSaveModal}
+        {/* Save to Favorites Modal */}
+        {selectedProfile && (
+          <SaveToFavoritesModal
+            isOpen={showSaveModal}
+            onClose={() => {
+              setShowSaveModal(false);
+              setSelectedProfile(null);
+            }}
+            profileUserId={selectedProfile.user_id}
+            userEmail={user?.email}
+          />
+        )}
+
+        {/* Report Modal */}
+        <ReportModal
+          isOpen={showReportModal}
           onClose={() => {
-            setShowSaveModal(false);
-            setSelectedProfile(null);
+            setShowReportModal(false);
+            setReportTargetUserId(null);
           }}
-          profileUserId={selectedProfile.user_id}
-          userEmail={user?.email}
+          targetUserId={reportTargetUserId}
+          targetContentType="profile"
         />
-      )}
 
-      {/* Report Modal */}
-      <ReportModal
-        isOpen={showReportModal}
-        onClose={() => {
-          setShowReportModal(false);
-          setReportTargetUserId(null);
-        }}
-        targetUserId={reportTargetUserId}
-        targetContentType="profile"
-      />
-
-      {/* Agent Representation Request Modal */}
-      <AgentRepresentationRequestModal
-        isOpen={showAgentRepModal}
-        onClose={() => {
-          setShowAgentRepModal(false);
-          setSelectedAgentUserId(null);
-        }}
-        agentUserId={selectedAgentUserId}
-        creatorUserId={user?.email}
-        onSuccess={() => {
-          queryClient.invalidateQueries({ queryKey: ['myCreatorReps'] });
-          queryClient.invalidateQueries({ queryKey: ['discoveryReputationScores'] });
-        }}
-      />
+        {/* Agent Representation Request Modal */}
+        <AgentRepresentationRequestModal
+          isOpen={showAgentRepModal}
+          onClose={() => {
+            setShowAgentRepModal(false);
+            setSelectedAgentUserId(null);
+          }}
+          agentUserId={selectedAgentUserId}
+          creatorUserId={user?.email}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ['myCreatorReps'] });
+            queryClient.invalidateQueries({ queryKey: ['discoveryReputationScores'] });
+          }}
+        />
+      </div>
     </div>
-  </div>
   );
 }

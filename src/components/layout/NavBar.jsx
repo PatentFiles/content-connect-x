@@ -25,7 +25,7 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
       className="fixed top-0 left-0 right-0 z-40 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
-      <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div className="w-full px-4 h-16 flex items-center justify-between">
         {/* Left — Logo */}
         <Link to={createPageUrl('Landing')} className="flex items-center gap-2 flex-shrink-0">
           <img 
