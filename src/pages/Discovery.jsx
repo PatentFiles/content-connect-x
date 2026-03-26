@@ -610,8 +610,6 @@ export default function Discovery() {
                   })}
                 </div>
               )}
-            </div>
-          </div>
         </div>
 
         {/* Save to Favorites Modal */}
