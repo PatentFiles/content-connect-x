@@ -647,7 +647,7 @@ agents/
             <div>
               <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Admin & Security</h3>
               <ul className="list-disc list-inside space-y-2 text-sm text-[#9AA6BC]">
-                <li><strong>checkUserAccessStatus:</strong> Checks if user banned/suspended. Returns {banned: bool, suspended: bool, reason: string}.</li>
+                <li><strong>checkUserAccessStatus:</strong> Checks if user banned/suspended. Returns &#123;banned: bool, suspended: bool, reason: string&#125;.</li>
                 <li><strong>logVerificationBlock:</strong> Logs blocked actions to AdminActionLog (for forensics/audit trail).</li>
                 <li><strong>getSecureDocumentUrl:</strong> Returns signed URL for private TestingDocument/VerificationRecord files. Expires in 5-15min.</li>
               </ul>
@@ -1903,8 +1903,7 @@ agents/
                 <span className="text-xs text-[#6B7A94]">{item.date}</span>
               </div>
             ))}
-          </CCCard>
-        </div>
+          </div></CCCard></div>
 
         {/* 19. Backend Deployment Checklist */}
         <section id="backend-checklist" className="mb-8">
