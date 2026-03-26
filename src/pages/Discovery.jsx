@@ -213,28 +213,28 @@ export default function Discovery() {
     const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
     
     if (isSaved) {
-    // Unsave directly
-    unsaveFromFavoritesMutation.mutate(profile.user_id);
+      // Unsave directly
+      unsaveFromFavoritesMutation.mutate(profile.user_id);
     } else {
-    setSelectedProfile(profile);
-    if (favorites.length === 0) {
-      // No lists — create default via protected backend (ban-enforced)
-      revalidateBanStatus(user?.email).then(banStatus => {
-        if (!banStatus.allowed) {
-          toast.error('Your account is blocked.');
-          return;
-        }
-        base44.functions.invoke('protectedActions', {
-          name: 'My Favorites',
-          items: [{ user_id: profile.user_id, added_at: new Date().toISOString() }]
-        }, { queryParams: { action: 'create_favorite_list' } }).then(() => {
-          queryClient.invalidateQueries({ queryKey: ['myFavorites'] });
-          toast.success('Saved to favorites');
+      setSelectedProfile(profile);
+      if (favorites.length === 0) {
+        // No lists — create default via protected backend (ban-enforced)
+        revalidateBanStatus(user?.email).then(banStatus => {
+          if (!banStatus.allowed) {
+            toast.error('Your account is blocked.');
+            return;
+          }
+          base44.functions.invoke('protectedActions', {
+            name: 'My Favorites',
+            items: [{ user_id: profile.user_id, added_at: new Date().toISOString() }]
+          }, { queryParams: { action: 'create_favorite_list' } }).then(() => {
+            queryClient.invalidateQueries({ queryKey: ['myFavorites'] });
+            toast.success('Saved to favorites');
+          });
         });
-      });
-    } else {
-      setShowSaveModal(true);
-    }
+      } else {
+        setShowSaveModal(true);
+      }
     }
   };
 
@@ -487,7 +487,7 @@ export default function Discovery() {
         <div className="max-w-6xl mx-auto px-4 py-4">
           {/* Centered Title */}
           <div className="text-center mb-4">
-            <h1 className="text-xl font-semibold text-[#E8EEF9]">Discovery</h1>
+            <h1 className="text-xl font-semibold text-[#E8EEF9]">Discover</h1>
             <p className="text-xs text-[#6B7A94]">Find your next collaboration</p>
           </div>
           
@@ -517,98 +517,121 @@ export default function Discovery() {
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 py-6">
 
-        {/* Travel Sync + Top Trusted Members — always stacked full width */}
-        <div className="flex flex-col gap-4 mb-4 md:max-w-xl lg:max-w-2xl">
-          <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
-          <div className="border border-[#263248] rounded-xl p-4 bg-[#0D1117]">
-            <TopCreators userId={user?.email} limit={4} title="Top Trusted Members" />
+        {/* Travel Sync + Top Trusted Members — centered on desktop */}
+        <div className="flex justify-center mb-4">
+          <div className="flex flex-col gap-4 w-full md:max-w-xl lg:max-w-2xl">
+            <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
+            <div className="border border-[#263248] rounded-xl p-4 bg-[#0D1117]">
+              <TopCreators userId={user?.email} limit={4} title="Top Trusted Members" />
+            </div>
           </div>
         </div>
 
         {/* Profile Cards section */}
         <div className="space-y-4">
-          {/* Section header: title left, filters+see all right */}
+          {/* Section header: title left, filters+see all directly beside it */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#FF2DAA]" />
-              <h2 className="text-lg font-medium text-[#E8EEF9]">Near You</h2>
-            </div>
-            <div className="flex items-center gap-3">
-              <ProfileFilters
-                filters={filters}
-                onChange={setFilters}
-                onReset={() => { setFilters({ roleTypes: [], orientations: [], sceneTypes: [], tags: [], compensation: [], nearMe: false, travelAvailable: false, verifiedOnly: true, testingRequired: false, recentlyActive: false, sortBy: 'distance', country: '', state: '', city: '' }); setSelectedRole(''); }}
-              />
-              <Link to={createPageUrl('Search')} className="text-sm text-[#4F8CFF] flex items-center gap-1">
-                See all <ChevronRight className="w-4 h-4" />
-              </Link>
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-[#FF2DAA]" />
+                <h2 className="text-lg font-medium text-[#E8EEF9]">Near You</h2>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <ProfileFilters
+                  filters={filters}
+                  onChange={setFilters}
+                  onReset={() => {
+                    setFilters({
+                      roleTypes: [],
+                      orientations: [],
+                      sceneTypes: [],
+                      tags: [],
+                      compensation: [],
+                      nearMe: false,
+                      travelAvailable: false,
+                      verifiedOnly: true,
+                      testingRequired: false,
+                      recentlyActive: false,
+                      sortBy: 'distance',
+                      country: '',
+                      state: '',
+                      city: ''
+                    });
+                    setSelectedRole('');
+                  }}
+                />
+                <Link to={createPageUrl('Search')} className="text-sm text-[#4F8CFF] flex items-center gap-1">
+                  See all <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
             </div>
           </div>
 
-              {profilesLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 justify-items-center sm:justify-items-start">
-                  {[1, 2, 3, 4, 5, 6].map(i => (
-                    <CCProfileCardSkeleton key={i} />
-                  ))}
-                </div>
-              ) : profiles.length === 0 ? (
-                <CCEmpty
-                  icon={Compass}
-                  title="No profiles found"
-                  description="Try adjusting your filters or expanding your search radius."
-                />
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center sm:justify-items-start">
-                  {profiles.map((profile) => {
-                    const details = creatorDetails.find(d => d.user_id === profile.user_id);
-                    const verification = allVerifications.find(v => v.user_id === profile.user_id);
-                    const isVerified = verification?.status === 'approved';
-                    const reputationScore = reputationScores.find(r => r.user_id === profile.user_id);
-                    const isRepresented = profile.role_type === 'creator' && (
-                      allAgentReps.some(r => r.creator_user_id === profile.user_id) ||
-                      allStudioRosters.some(r => r.creator_user_id === profile.user_id)
-                    );
-                    const myRepWithThisAgent = myCreatorReps.find(r => r.agent_user_id === profile.user_id);
-                    const myLocation = myProfile?.[0]?.base_location;
-                    const distance = myLocation?.lat && myLocation?.lng && profile.base_location?.lat && profile.base_location?.lng
-                      ? calculateDistance(myLocation.lat, myLocation.lng, profile.base_location.lat, profile.base_location.lng)
-                      : undefined;
-                    const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
+          {profilesLoading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 justify-items-center sm:justify-items-start">
+              {[1, 2, 3, 4, 5, 6].map(i => (
+                <CCProfileCardSkeleton key={i} />
+              ))}
+            </div>
+          ) : profiles.length === 0 ? (
+            <CCEmpty
+              icon={Compass}
+              title="No profiles found"
+              description="Try adjusting your filters or expanding your search radius."
+            />
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center sm:justify-items-start">
+              {profiles.map((profile) => {
+                const details = creatorDetails.find(d => d.user_id === profile.user_id);
+                const verification = allVerifications.find(v => v.user_id === profile.user_id);
+                const isVerified = verification?.status === 'approved';
+                const reputationScore = reputationScores.find(r => r.user_id === profile.user_id);
+                const isRepresented = profile.role_type === 'creator' && (
+                  allAgentReps.some(r => r.creator_user_id === profile.user_id) ||
+                  allStudioRosters.some(r => r.creator_user_id === profile.user_id)
+                );
+                const myRepWithThisAgent = myCreatorReps.find(r => r.agent_user_id === profile.user_id);
+                const myLocation = myProfile?.[0]?.base_location;
+                const distance = myLocation?.lat && myLocation?.lng && profile.base_location?.lat && profile.base_location?.lng
+                  ? calculateDistance(myLocation.lat, myLocation.lng, profile.base_location.lat, profile.base_location.lng)
+                  : undefined;
+                const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
 
-                    if (profile.role_type === 'agent' && myProfile?.[0]?.role_type === 'creator') {
-                      const agentDetails = allAgentDetails.find(d => d.user_id === profile.user_id);
-                      return (
-                        <AgentMarketplaceCard
-                          key={profile.id}
-                          agentProfile={{...profile, verified: isVerified}}
-                          agentDetails={agentDetails}
-                          representationStatus={myRepWithThisAgent}
-                          reputationScore={reputationScore}
-                          onRequestRepresentation={(agentId) => {
-                            setSelectedProfile(profile);
-                            handleAgentRepresentationRequest(profile.user_id);
-                          }}
-                        />
-                      );
-                    }
+                if (profile.role_type === 'agent' && myProfile?.[0]?.role_type === 'creator') {
+                  const agentDetails = allAgentDetails.find(d => d.user_id === profile.user_id);
+                  return (
+                    <AgentMarketplaceCard
+                      key={profile.id}
+                      agentProfile={{...profile, verified: isVerified}}
+                      agentDetails={agentDetails}
+                      representationStatus={myRepWithThisAgent}
+                      reputationScore={reputationScore}
+                      onRequestRepresentation={(agentId) => {
+                        setSelectedProfile(profile);
+                        handleAgentRepresentationRequest(profile.user_id);
+                      }}
+                    />
+                  );
+                }
 
-                    return (
-                      <ProfileCard
-                        key={profile.id}
-                        profile={{...profile, verified: isVerified}}
-                        creatorDetails={details}
-                        distance={distance}
-                        isRepresented={isRepresented}
-                        isSaved={isSaved}
-                        reputationScore={reputationScore}
-                        onFavorite={handleFavorite}
-                        onBlock={handleBlock}
-                        onReport={handleReport}
-                      />
-                    );
-                  })}
-                </div>
-              )}
+                return (
+                  <ProfileCard
+                    key={profile.id}
+                    profile={{...profile, verified: isVerified}}
+                    creatorDetails={details}
+                    distance={distance}
+                    isRepresented={isRepresented}
+                    isSaved={isSaved}
+                    reputationScore={reputationScore}
+                    onFavorite={handleFavorite}
+                    onBlock={handleBlock}
+                    onReport={handleReport}
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Save to Favorites Modal */}
