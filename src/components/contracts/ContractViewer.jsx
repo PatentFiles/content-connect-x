@@ -126,6 +126,41 @@ export default function ContractViewer({ contractId }) {
     },
   });
 
+  // Check for active consent revocation
+  const { data: revocations = [] } = useQuery({
+    queryKey: ['consentRevocations', contract?.collaboration_id],
+    queryFn: () => base44.entities.ConsentRevocation.filter({ 
+      collaboration_id: contract.collaboration_id,
+      status: 'active'
+    }),
+    enabled: !!contract?.collaboration_id,
+  });
+
+  // Check if user is RepObserver
+  const { data: participantRoles = [] } = useQuery({
+    queryKey: ['participantRoles', contract?.collaboration_id],
+    queryFn: () => base44.entities.CollaborationParticipantRole.filter({
+      collaboration_id: contract.collaboration_id,
+      user_id: user?.email
+    }),
+    enabled: !!contract?.collaboration_id && !!user?.email,
+  });
+
+  const userRole = participantRoles[0];
+  const isRepObserver = userRole?.role === 'RepObserver';
+
+  // Log RepObserver access
+  React.useEffect(() => {
+    if (isRepObserver && contract?.id) {
+      logRepObserverAccess(
+        contract.collaboration_id,
+        user?.email,
+        'VIEW_CONTRACT',
+        { contract_id: contract.id }
+      );
+    }
+  }, [isRepObserver, contract?.id, user?.email]);
+
   if (isLoading || verificationChecking) {
     return <CCLoadingScreen message="Loading contract..." />;
   }
@@ -149,43 +184,8 @@ export default function ContractViewer({ contractId }) {
     );
   }
 
-  // Check for active consent revocation
-  const { data: revocations = [] } = useQuery({
-    queryKey: ['consentRevocations', contract.collaboration_id],
-    queryFn: () => base44.entities.ConsentRevocation.filter({ 
-      collaboration_id: contract.collaboration_id,
-      status: 'active'
-    }),
-    enabled: !!contract.collaboration_id,
-  });
-
   const hasActiveRevocation = revocations.length > 0;
   const isContractLocked = hasActiveRevocation || contract.status === 'disputed';
-
-  // Check if user is RepObserver
-  const { data: participantRoles = [] } = useQuery({
-    queryKey: ['participantRoles', contract.collaboration_id],
-    queryFn: () => base44.entities.CollaborationParticipantRole.filter({
-      collaboration_id: contract.collaboration_id,
-      user_id: user?.email
-    }),
-    enabled: !!contract?.collaboration_id && !!user?.email,
-  });
-
-  const userRole = participantRoles[0];
-  const isRepObserver = userRole?.role === 'RepObserver';
-
-  // Log RepObserver access
-  React.useEffect(() => {
-    if (isRepObserver && contract?.id) {
-      logRepObserverAccess(
-        contract.collaboration_id,
-        user?.email,
-        'VIEW_CONTRACT',
-        { contract_id: contract.id }
-      );
-    }
-  }, [isRepObserver, contract?.id, user?.email]);
 
   const userHasSigned = signatures.some(s => s.signer_id === user?.email);
   const isSignatory = contract.signatories?.some(s => s.user_id === user?.email);

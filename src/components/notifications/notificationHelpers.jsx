@@ -38,7 +38,7 @@ async function sendBrandedEmail({ toEmail, subject, headline, bodyText, ctaLabel
         <!-- Footer -->
         <tr>
           <td style="padding:20px 32px;border-top:1px solid #263248;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#6B7A94;">You're receiving this because you have email notifications enabled. <br/>Manage preferences in your <a href="/Settings" style="color:${APP_COLOR_PRIMARY};">Settings</a>.</p>
+            <p style="margin:0;font-size:12px;color:#6B7A94;">You are receiving this because you have email notifications enabled. <br/>Manage preferences in your <a href="/Settings" style="color:${APP_COLOR_PRIMARY};">Settings</a>.</p>
           </td>
         </tr>
       </table>
@@ -155,7 +155,7 @@ export async function notifyCollaborationInvite(inviteeId, collaboration, invite
       await sendBrandedEmail({
         toEmail: email,
         subject: `New Collaboration Invite – ${collaboration.collaboration_name}`,
-        headline: 'You've been invited to collaborate!',
+        headline: "You've been invited to collaborate!",
         bodyText: `${inviterProfile?.display_name || 'Someone'} has invited you to join <strong style="color:#E8EEF9;">${collaboration.collaboration_name}</strong>. Log in to review the details and accept or decline the invite.`,
         ctaLabel: 'View Collaboration',
         ctaUrl: `${window.location.origin}/CollaborationDetail?id=${collaboration.id}`,

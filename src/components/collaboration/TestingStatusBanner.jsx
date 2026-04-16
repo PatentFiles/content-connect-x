@@ -30,11 +30,6 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
 
   const policy = policies[0];
 
-  // Don't show if testing not required
-  if (!testingReq || !testingReq.is_required) {
-    return null;
-  }
-
   // Fetch all testing credentials
   const { data: allCredentials = [] } = useQuery({
     queryKey: ['testingCredentials'],
@@ -47,6 +42,11 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
     queryFn: () => base44.entities.CreatorDetails.list(),
     enabled: !!policy,
   });
+
+  // Don't show if testing not required
+  if (!testingReq || !testingReq.is_required) {
+    return null;
+  }
 
   // Check satisfaction for each participant
   const participantIds = collaboration.participant_ids || [];
