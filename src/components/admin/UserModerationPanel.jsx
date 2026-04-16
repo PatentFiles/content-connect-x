@@ -51,7 +51,14 @@ export default function UserModerationPanel({ currentAdmin }) {
 
   const adminActionMutation = useMutation({
     mutationFn: async ({ action, userId, reason, notes, updateData }) => {
-      // Log the action
+      // Apply profile update FIRST (so the UI state is correct)
+      if (updateData) {
+        const profile = profiles.find(p => p.user_id === userId);
+        if (profile) {
+          await base44.entities.UserProfile.update(profile.id, updateData);
+        }
+      }
+      // Then log the action
       await base44.entities.AdminActionLog.create({
         admin_user_id: currentAdmin.email,
         target_type: 'User',
@@ -61,14 +68,6 @@ export default function UserModerationPanel({ currentAdmin }) {
         notes,
         metadata_json: { timestamp: new Date().toISOString() }
       });
-
-      // If there's update data, apply it to the profile
-      if (updateData) {
-        const profile = profiles.find(p => p.user_id === userId);
-        if (profile) {
-          await base44.entities.UserProfile.update(profile.id, updateData);
-        }
-      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allProfiles'] });
@@ -84,6 +83,48 @@ export default function UserModerationPanel({ currentAdmin }) {
       toast.error('Failed to complete action');
       console.error(error);
     }
+  });
+
+  const deleteAccountMutation = useMutation({
+    mutationFn: async (userId) => {
+      const profile = profiles.find(p => p.user_id === userId);
+      if (!profile) throw new Error('Profile not found');
+      const now = new Date().toISOString();
+      // Anonymize and deactivate
+      await base44.entities.UserProfile.update(profile.id, {
+        display_name: '[Deleted User]',
+        real_name: null,
+        bio: null,
+        avatar_url: null,
+        cover_url: null,
+        base_location: null,
+        travel_enabled: false,
+        profile_complete: false,
+        account_deactivated: true,
+        deleted_at: now,
+        deletion_status: 'anonymized',
+        banned: false,
+        suspended: false,
+      });
+      await base44.entities.AdminActionLog.create({
+        admin_user_id: currentAdmin.email,
+        target_type: 'User',
+        target_id: userId,
+        action: 'delete_account',
+        reason: actionReason || 'Admin-initiated account deletion',
+        notes: `Account deleted by admin at ${now}`,
+        metadata_json: { timestamp: now }
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allProfiles'] });
+      toast.success('Account deleted successfully');
+      setActionModalOpen(false);
+      setSelectedUser(null);
+      setActionReason('');
+      setActionNotes('');
+    },
+    onError: () => toast.error('Failed to delete account'),
   });
 
   const resetVerificationMutation = useMutation({
@@ -146,8 +187,13 @@ export default function UserModerationPanel({ currentAdmin }) {
   };
 
   const confirmAction = () => {
-    if (!actionReason.trim()) {
+    if (actionType !== 'delete_account' && !actionReason.trim()) {
       toast.error('Reason is required');
+      return;
+    }
+
+    if (actionType === 'delete_account') {
+      deleteAccountMutation.mutate(selectedUser.user_id);
       return;
     }
 
@@ -286,7 +332,9 @@ export default function UserModerationPanel({ currentAdmin }) {
                       <p className="text-sm font-medium text-[#E8EEF9]">{profile.display_name}</p>
                       {profile.is_admin && <CCBadge variant="warning" size="sm" icon={Shield}>Admin</CCBadge>}
                       {isVerified && <CCBadge variant="success" size="sm">Verified</CCBadge>}
-                      <CCBadge variant="outline" size="sm">{profile.role_type}</CCBadge>
+                      {profile.role_type && profile.role_type !== 'admin' && (
+                        <CCBadge variant="outline" size="sm">{profile.role_type}</CCBadge>
+                      )}
                       {userSubscription?.status === 'active' && (
                         <CCBadge variant="primary" size="sm">{userSubscription.plan_id}</CCBadge>
                       )}
@@ -436,6 +484,15 @@ export default function UserModerationPanel({ currentAdmin }) {
                         >
                           {profile.is_admin ? 'Remove Admin' : 'Make Admin'}
                         </CCButton>
+                        {!profile.is_admin && (
+                          <CCButton
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleAction('delete_account', profile)}
+                          >
+                            Delete Account
+                          </CCButton>
+                        )}
                       </div>
                     </div>
                   </motion.div>
@@ -450,27 +507,35 @@ export default function UserModerationPanel({ currentAdmin }) {
       <CCModal
         isOpen={actionModalOpen}
         onClose={() => setActionModalOpen(false)}
-        title={`${actionType.replace(/_/g, ' ')} - ${selectedUser?.display_name}`}
-        description="Provide a reason for this administrative action"
+        title={`${actionType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())} — ${selectedUser?.display_name}`}
+        description={actionType === 'delete_account' ? 'This will permanently deactivate and anonymize the account.' : 'Provide a reason for this administrative action'}
       >
         <div className="space-y-4">
-          <CCInput
-            label="Reason *"
-            placeholder="Why is this action being taken?"
-            value={actionReason}
-            onChange={(e) => setActionReason(e.target.value)}
-            required
-          />
-          <div>
-            <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Internal Notes</label>
-            <textarea
-              value={actionNotes}
-              onChange={(e) => setActionNotes(e.target.value)}
-              placeholder="Additional context (visible to admins only)"
-              rows={3}
-              className="w-full bg-[#151D2B] border border-[#263248] rounded-lg px-4 py-2 text-sm text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-            />
-          </div>
+          {actionType === 'delete_account' ? (
+            <div className="p-4 bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-lg text-sm text-[#EF4444]">
+              Are you sure you want to delete <strong>{selectedUser?.display_name}</strong>'s account? This will anonymize their profile, remove their personal data, and deactivate their account. Safety records and collaboration history will be preserved.
+            </div>
+          ) : (
+            <>
+              <CCInput
+                label="Reason *"
+                placeholder="Why is this action being taken?"
+                value={actionReason}
+                onChange={(e) => setActionReason(e.target.value)}
+                required
+              />
+              <div>
+                <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Internal Notes</label>
+                <textarea
+                  value={actionNotes}
+                  onChange={(e) => setActionNotes(e.target.value)}
+                  placeholder="Additional context (visible to admins only)"
+                  rows={3}
+                  className="w-full bg-[#151D2B] border border-[#263248] rounded-lg px-4 py-2 text-sm text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                />
+              </div>
+            </>
+          )}
           <div className="flex gap-3 justify-end">
             <CCButton variant="outline" onClick={() => setActionModalOpen(false)}>
               Cancel
@@ -478,9 +543,9 @@ export default function UserModerationPanel({ currentAdmin }) {
             <CCButton 
               variant="danger" 
               onClick={confirmAction}
-              loading={adminActionMutation.isPending}
+              loading={adminActionMutation.isPending || deleteAccountMutation.isPending}
             >
-              Confirm Action
+              {actionType === 'delete_account' ? 'Delete Account' : 'Confirm Action'}
             </CCButton>
           </div>
         </div>

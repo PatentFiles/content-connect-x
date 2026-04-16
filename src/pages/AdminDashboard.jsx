@@ -155,7 +155,7 @@ function UserManagement({ currentUser }) {
                         {user.role === 'admin' && (
                           <CCBadge variant="warning" size="sm">Admin</CCBadge>
                         )}
-                        {profile?.role_type && (
+                        {profile?.role_type && profile.role_type !== 'admin' && (
                           <CCBadge 
                             variant={
                               profile.role_type === 'creator' ? 'primary' :
