@@ -159,17 +159,10 @@ export default function UserModerationPanel({ currentAdmin }) {
     mutationFn: async ({ userId, isAdmin }) => {
       const profile = profiles.find(p => p.user_id === userId);
       if (!profile) throw new Error('Profile not found');
-      // Update profile is_admin flag
       await base44.entities.UserProfile.update(profile.id, { 
-        is_admin: !isAdmin 
+        is_admin: !isAdmin,
+        role_type: !isAdmin ? 'admin' : profile.role_type === 'admin' ? 'creator' : profile.role_type
       });
-      // Also update the User entity role so platform auth reflects the change
-      const users = await base44.entities.User.filter({ id: userId });
-      if (users[0]) {
-        await base44.entities.User.update(users[0].id, {
-          role: isAdmin ? 'user' : 'admin'
-        });
-      }
       await base44.entities.AdminActionLog.create({
         admin_user_id: currentAdmin.email,
         target_type: 'User',
@@ -184,7 +177,10 @@ export default function UserModerationPanel({ currentAdmin }) {
       queryClient.invalidateQueries({ queryKey: ['recentAdminActions'] });
       toast.success('Admin status updated');
     },
-    onError: () => toast.error('Failed to update admin status')
+    onError: (err) => {
+      console.error('toggleAdmin error:', err);
+      toast.error('Failed to update admin status');
+    }
   });
 
   const handleAction = (action, user) => {
@@ -405,7 +401,7 @@ export default function UserModerationPanel({ currentAdmin }) {
                             <p className="text-[#E8EEF9] capitalize">{userVerification.status}</p>
                           </div>
                         )}
-                        {userSubscription && (
+                        {userSubscription && userSubscription.plan_id !== 'admin_access' && (
                           <div>
                             <p className="text-[#6B7A94] mb-1">Subscription</p>
                             <p className="text-[#E8EEF9] capitalize">{userSubscription.status} - {userSubscription.plan_id}</p>
