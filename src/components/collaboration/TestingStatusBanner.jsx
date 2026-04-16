@@ -19,6 +19,7 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
   });
 
   const testingReq = testingReqs[0];
+  const isRequired = !!(testingReq && testingReq.is_required);
 
   // Fetch collaboration testing policy
   const { data: policies = [] } = useQuery({
@@ -30,27 +31,23 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
 
   const policy = policies[0];
 
-  // Fetch all testing credentials
+  // Fetch all testing credentials — only needed when testing is required
   const { data: allCredentials = [] } = useQuery({
     queryKey: ['testingCredentials'],
     queryFn: () => base44.entities.TestingCredential.filter({}),
+    enabled: isRequired,
   });
 
   // Fetch creator details for policy enforcement
   const { data: allCreatorDetails = [] } = useQuery({
     queryKey: ['allCreatorDetails'],
     queryFn: () => base44.entities.CreatorDetails.list(),
-    enabled: !!policy,
+    enabled: isRequired && !!policy,
   });
 
-  // Don't show if testing not required
-  if (!testingReq || !testingReq.is_required) {
-    return null;
-  }
-
-  // Check satisfaction for each participant
+  // Check satisfaction for each participant (safe even when testingReq is undefined)
   const participantIds = collaboration.participant_ids || [];
-  const satisfactionResults = participantIds.map(participantId => {
+  const satisfactionResults = isRequired ? participantIds.map(participantId => {
     const participantCredentials = allCredentials.filter(c => c.user_id === participantId);
     const creatorDetails = allCreatorDetails.find(d => d.user_id === participantId);
     
@@ -76,13 +73,11 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
     if (policy && satisfied && creatorDetails?.health_testing) {
       const testing = creatorDetails.health_testing;
 
-      // Check verified testing requirement
       if (policy.require_verified_testing && testing.testing_provider_type === 'self_reported' && !policy.allow_self_reported) {
         satisfied = false;
         policyViolations.push('Self-reported testing not allowed');
       }
 
-      // Check recency requirement
       if (policy.require_full_panel_within_days) {
         const recencyMap = {
           'within_14_days': 14,
@@ -98,7 +93,6 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
         }
       }
 
-      // Check HIV requirements
       if (policy.require_hiv_negative_only && testing.hiv_status !== 'hiv_negative') {
         satisfied = false;
         policyViolations.push('HIV negative status required');
@@ -107,7 +101,6 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
         policyViolations.push('HIV undetectable (U=U) not allowed by policy');
       }
 
-      // Check STI panel
       if (testing.sti_panel_status === 'expired' || testing.sti_panel_status === 'not_tested') {
         satisfied = false;
         policyViolations.push('Valid STI panel required');
@@ -115,12 +108,12 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
     }
 
     return { participantId, satisfied, policyViolations };
-  });
+  }) : [];
 
-  const allSatisfied = satisfactionResults.every(r => r.satisfied);
+  const allSatisfied = isRequired && satisfactionResults.length > 0 && satisfactionResults.every(r => r.satisfied);
   const currentUserSatisfied = satisfactionResults.find(r => r.participantId === currentUserId)?.satisfied;
 
-  // Mark as satisfied when all complete
+  // Mark as satisfied when all complete — always declared, guarded inside
   const markSatisfiedMutation = useMutation({
     mutationFn: async () => {
       await base44.functions.invoke('markTestingRequirementSatisfied', {
@@ -135,18 +128,21 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
     }
   });
 
-  // Auto-mark when satisfied
+  // Auto-mark when satisfied — always declared, guarded inside
   useEffect(() => {
+    if (!isRequired || !testingReq) return;
     if (allSatisfied && !testingReq.satisfied_at && testingReq.status !== 'FAILED') {
       markSatisfiedMutation.mutate();
     }
-  }, [allSatisfied, testingReq.satisfied_at, testingReq.status]);
+  }, [isRequired, allSatisfied, testingReq?.satisfied_at, testingReq?.status]);
+
+  // Don't render if testing not required
+  if (!isRequired) return null;
 
   // Prefer stored satisfied state
   const isMarkedSatisfied = !!testingReq.satisfied_at;
   const effectivelySatisfied = isMarkedSatisfied || allSatisfied;
 
-  // Determine banner state
   const now = new Date();
   const deadline = testingReq.deadline_at ? new Date(testingReq.deadline_at) : null;
   const hoursUntilDeadline = deadline ? (deadline - now) / (1000 * 60 * 60) : null;
@@ -189,12 +185,6 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
     title = 'Testing Deadline Approaching';
     subtitle = `One or more participants have not completed required testing. ${Math.max(0, Math.floor(hoursUntilDeadline))} hours remaining.`;
   } else {
-    bannerState = 'pending';
-    icon = Clock;
-    bgColor = 'bg-yellow-500/10';
-    borderColor = 'border-yellow-500/30';
-    iconColor = 'text-yellow-500';
-    title = 'Testing Required';
     subtitle = deadline 
       ? `Testing required by ${format(deadline, 'PPp')}`
       : 'Waiting on required participants';
@@ -209,7 +199,6 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
     'VERIFIED_COLLABORATORS': 'Verified Collaborators'
   };
 
-  // Show policy violations if any
   const hasViolations = satisfactionResults.some(r => r.policyViolations?.length > 0);
   const violationDetails = satisfactionResults.filter(r => r.policyViolations?.length > 0);
 
@@ -261,7 +250,6 @@ export default function TestingStatusBanner({ collaboration, currentUserId }) {
                 variant="primary"
                 size="sm"
                 onClick={() => {
-                  // Navigate to settings or testing upload
                   window.location.href = '/pages/Settings?tab=testing';
                 }}
               >
