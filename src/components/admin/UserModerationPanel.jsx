@@ -158,9 +158,16 @@ export default function UserModerationPanel({ currentAdmin }) {
   const toggleAdminMutation = useMutation({
     mutationFn: async ({ userId, isAdmin }) => {
       const profile = profiles.find(p => p.user_id === userId);
-      if (profile) {
-        await base44.entities.UserProfile.update(profile.id, { 
-          is_admin: !isAdmin 
+      if (!profile) throw new Error('Profile not found');
+      // Update profile is_admin flag
+      await base44.entities.UserProfile.update(profile.id, { 
+        is_admin: !isAdmin 
+      });
+      // Also update the User entity role so platform auth reflects the change
+      const users = await base44.entities.User.filter({ id: userId });
+      if (users[0]) {
+        await base44.entities.User.update(users[0].id, {
+          role: isAdmin ? 'user' : 'admin'
         });
       }
       await base44.entities.AdminActionLog.create({
@@ -335,7 +342,7 @@ export default function UserModerationPanel({ currentAdmin }) {
                       {profile.role_type && profile.role_type !== 'admin' && (
                         <CCBadge variant="outline" size="sm">{profile.role_type}</CCBadge>
                       )}
-                      {userSubscription?.status === 'active' && (
+                      {userSubscription?.status === 'active' && userSubscription.plan_id !== 'admin_access' && (
                         <CCBadge variant="primary" size="sm">{userSubscription.plan_id}</CCBadge>
                       )}
                       {profile.banned && <CCBadge variant="danger" size="sm">BANNED</CCBadge>}
