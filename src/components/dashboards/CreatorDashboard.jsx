@@ -371,7 +371,7 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
           </div>
 
           {/* Right Column */}
-          <div className="space-y-6 flex flex-col">
+          <div className="flex flex-col gap-6">
             {/* Tasks */}
             <CCCard padding="lg">
               <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">My Tasks</h2>
@@ -446,75 +446,77 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
               </div>
             </CCCard>
 
-            {/* Favorites */}
-            <CCCard padding="lg" className="flex-1">
+            {/* Favorites — stretches to fill remaining height */}
+            <CCCard padding="lg" className="flex-1 flex flex-col">
               <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Favorites</h2>
               <div className="flex items-center gap-2 mb-3">
                 <Heart className="w-4 h-4 text-[#FF2DAA]" />
                 <p className="text-2xl font-bold text-[#E8EEF9]">{favorites.length}</p>
                 <p className="text-sm text-[#6B7A94]">saved</p>
               </div>
-              <Link to={createPageUrl('Favorites')}>
-                <CCButton variant="outline" size="sm" fullWidth>
-                  View All
-                </CCButton>
-              </Link>
-            </CCCard>
-
-            {/* Reputation Score */}
-            {myReputationScore && (
-              <CCCard padding="lg">
-                <h2 className="text-sm font-semibold text-[#E8EEF9] mb-3 text-center">Trust Standing</h2>
-                <ReputationScoreBarWithFlags score={myReputationScore} onFlagsClick={() => setShowFlagsModal(true)} />
-              </CCCard>
-            )}
-
-            {/* Earnings */}
-            <CCCard padding="lg">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-sm font-semibold text-[#E8EEF9]">Earnings</h2>
-                <CCButton variant="ghost" size="sm" onClick={() => setShowEarnings(true)}>View</CCButton>
+              <div className="mt-auto">
+                <Link to={createPageUrl('Favorites')}>
+                  <CCButton variant="outline" size="sm" fullWidth>
+                    View All
+                  </CCButton>
+                </Link>
               </div>
-              <p className="text-xs text-[#6B7A94]">Track projected and confirmed collaboration earnings (private)</p>
             </CCCard>
           </div>
         </div>
 
-        {/* Activity Feed + Travel Sync */}
+        {/* Bottom row: Travel Sync + Contract Status side by side, Trust Standing + Earnings below */}
         <div className="grid md:grid-cols-2 gap-6 mt-6">
-          <CollaborationFeed userId={user?.email} />
           <TravelSync userId={user?.email} myProfile={profile} />
-        </div>
-
-        {/* Top Creators */}
-        <div className="mt-6">
-          <TopCreators userId={user?.email} title="Trusted Creators Near You" limit={5} />
-        </div>
-
-        {/* Contracts Status */}
-        {contracts.length > 0 && (
-          <CCCard padding="lg" className="mt-6">
+          <CCCard padding="lg">
             <div className="flex flex-col items-center mb-4">
               <h2 className="text-lg font-semibold text-[#E8EEF9] mb-2">Contract Status</h2>
               <Link to={createPageUrl('Contracts')}>
                 <CCButton variant="ghost" size="sm">View All</CCButton>
               </Link>
             </div>
-            <div className="grid md:grid-cols-4 gap-3">
-              {pendingContracts.slice(0, 4).map(contract => (
-                <div key={contract.id} className="flex flex-col justify-between p-3 bg-[#151D2B] rounded-lg">
-                  <div>
-                    <p className="text-sm font-medium text-[#E8EEF9] mb-1">{contract.title}</p>
-                    <p className="text-xs text-[#6B7A94]">Waiting for signature</p>
+            {contracts.length === 0 ? (
+              <p className="text-xs text-[#6B7A94] text-center">No contracts yet.</p>
+            ) : (
+              <div className="space-y-2">
+                {pendingContracts.slice(0, 4).map(contract => (
+                  <div key={contract.id} className="flex items-center justify-between p-3 bg-[#151D2B] rounded-lg">
+                    <div>
+                      <p className="text-sm font-medium text-[#E8EEF9]">{contract.title}</p>
+                      <p className="text-xs text-[#6B7A94]">Waiting for signature</p>
+                    </div>
+                    <CCBadge variant="warning" size="sm" icon={Clock}>Pending</CCBadge>
                   </div>
-                  <CCBadge variant="warning" size="sm" icon={Clock} className="mt-2 self-start">
-                    Pending
-                  </CCBadge>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CCCard>
-        )}
+        </div>
+
+        {/* Trust Standing + Earnings row */}
+        <div className="grid md:grid-cols-2 gap-6 mt-6">
+          {myReputationScore ? (
+            <CCCard padding="lg">
+              <h2 className="text-sm font-semibold text-[#E8EEF9] mb-3 text-center">Trust Standing</h2>
+              <ReputationScoreBarWithFlags score={myReputationScore} onFlagsClick={() => setShowFlagsModal(true)} />
+            </CCCard>
+          ) : <div />}
+          <CCCard padding="lg">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold text-[#E8EEF9]">Earnings</h2>
+              <CCButton variant="ghost" size="sm" onClick={() => setShowEarnings(true)}>View</CCButton>
+            </div>
+            <p className="text-xs text-[#6B7A94]">Track projected and confirmed collaboration earnings (private)</p>
+          </CCCard>
+        </div>
+
+        {/* Activity Feed + Top Creators */}
+        <div className="mt-6">
+          <CollaborationFeed userId={user?.email} />
+        </div>
+        <div className="mt-6">
+          <TopCreators userId={user?.email} title="Trusted Creators Near You" limit={5} />
+        </div>
       </div>
 
       {/* Modals */}
