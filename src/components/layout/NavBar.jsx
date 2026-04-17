@@ -28,9 +28,11 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
       <div className="w-full px-4 h-16 flex items-center justify-between">
         {/* Left — Logo */}
         <Link to={createPageUrl('Landing')} className="flex items-center gap-2 flex-shrink-0">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4F8CFF] to-[#FF2DAA] flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-xs">OCX</span>
-          </div>
+          <img 
+            src="https://media.base44.com/images/public/69495df631e52046b1356040/4607f2f69_OFXLogo.jpg"
+            alt="OFX Logo"
+            className="w-8 h-8 rounded-lg flex-shrink-0"
+          />
           <span className="text-[#E8EEF9] font-semibold text-lg hidden sm:block">Only Collabs X</span>
         </Link>
 
