@@ -41,10 +41,21 @@ export default function Portfolio() {
     location_state: '',
     custom_tags: [],
     media_type: 'image',
+    worked_with: [],
   });
   const [videoFile, setVideoFile] = useState(null);
   const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [showWorkedWithModal, setShowWorkedWithModal] = useState(false);
+  const [workedWithSearch, setWorkedWithSearch] = useState('');
+  const [workedWithType, setWorkedWithType] = useState('name'); // 'profile', 'name'
+  const [workedWithName, setWorkedWithName] = useState('');
   const queryClient = useQueryClient();
+
+  const { data: allProfiles = [] } = useQuery({
+    queryKey: ['allProfilesForWorkedWith'],
+    queryFn: () => base44.entities.UserProfile.filter({ profile_complete: true }),
+    enabled: !!user?.email,
+  });
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -107,6 +118,7 @@ export default function Portfolio() {
         creator_types: [],
         location_city: '',
         location_state: '',
+        worked_with: [],
       });
     },
   });
@@ -228,7 +240,7 @@ export default function Portfolio() {
   }
 
   // Allow admins to view this page regardless of role
-  if (!profile?.is_admin && !['photographer', 'videographer'].includes(profile?.role_type)) {
+  if (!profile?.is_admin && !['photographer', 'videographer', 'video_editor'].includes(profile?.role_type)) {
     return <AccessGate type="both" />;
   }
 
@@ -402,29 +414,41 @@ export default function Portfolio() {
                               )}
                               
                               <div className="flex gap-2">
-                                <CCButton 
-                                  variant="outline" 
-                                  size="sm" 
-                                  icon={Star}
-                                  onClick={() => toggleFeaturedMutation.mutate({ id: item.id, is_featured: !item.is_featured })}
-                                >
-                                  {item.is_featured ? 'Unfeature' : 'Feature'}
-                                </CCButton>
-                                <CCButton 
-                                  variant="outline" 
-                                  size="sm" 
-                                  icon={Tag}
-                                  onClick={() => setEditingTags(editingTags === item.id ? null : item.id)}
-                                >
-                                  Tags
-                                </CCButton>
-                                <CCButton 
-                                  variant="danger" 
-                                  size="sm" 
-                                  icon={Trash2}
-                                  onClick={() => deleteItemMutation.mutate(item.id)}
-                                />
-                              </div>
+                                                    <CCButton 
+                                                      variant="outline" 
+                                                      size="sm" 
+                                                      icon={Star}
+                                                      onClick={() => toggleFeaturedMutation.mutate({ id: item.id, is_featured: !item.is_featured })}
+                                                    >
+                                                      {item.is_featured ? 'Unfeature' : 'Feature'}
+                                                    </CCButton>
+                                                    <CCButton 
+                                                      variant="outline" 
+                                                      size="sm" 
+                                                      icon={Tag}
+                                                      onClick={() => setEditingTags(editingTags === item.id ? null : item.id)}
+                                                    >
+                                                      Tags
+                                                    </CCButton>
+                                                    {['photographer', 'videographer', 'video_editor'].includes(profile?.role_type) && (
+                                                      <CCButton 
+                                                        variant="outline" 
+                                                        size="sm"
+                                                        onClick={() => {
+                                                          setNewItem({ ...newItem, worked_with: item.worked_with || [] });
+                                                          setShowWorkedWithModal(true);
+                                                        }}
+                                                      >
+                                                        Worked With ({(item.worked_with || []).length})
+                                                      </CCButton>
+                                                    )}
+                                                    <CCButton 
+                                                      variant="danger" 
+                                                      size="sm" 
+                                                      icon={Trash2}
+                                                      onClick={() => deleteItemMutation.mutate(item.id)}
+                                                    />
+                                                  </div>
                             </div>
                           </CCCard>
                         </div>
@@ -557,20 +581,165 @@ export default function Portfolio() {
           </div>
 
           <div className="flex justify-end gap-3 pt-4">
-            <CCButton variant="outline" onClick={() => setShowAddModal(false)}>
-              Cancel
-            </CCButton>
-            <CCButton 
-              variant="primary"
-              onClick={() => addItemMutation.mutate(newItem)}
-              loading={addItemMutation.isPending}
-              disabled={!newItem.media_url || !newItem.title}
-            >
-              Add to Portfolio
-            </CCButton>
+           <CCButton variant="outline" onClick={() => setShowAddModal(false)}>
+             Cancel
+           </CCButton>
+           <CCButton 
+             variant="primary"
+             onClick={() => addItemMutation.mutate(newItem)}
+             loading={addItemMutation.isPending}
+             disabled={!newItem.media_url || !newItem.title}
+           >
+             Add to Portfolio
+           </CCButton>
           </div>
-        </div>
-      </CCModal>
-    </div>
-  );
-}
+          </div>
+          </CCModal>
+
+          {/* Worked With Modal */}
+          <CCModal
+          isOpen={showWorkedWithModal}
+          onClose={() => {
+          setShowWorkedWithModal(false);
+          setWorkedWithSearch('');
+          setWorkedWithType('name');
+          setWorkedWithName('');
+          }}
+          title="Add Talent You've Worked With"
+          size="lg"
+          >
+          <div className="space-y-4">
+          <div>
+           <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Search Type</label>
+           <div className="flex gap-2">
+             <button
+               onClick={() => setWorkedWithType('profile')}
+               className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
+                 workedWithType === 'profile'
+                   ? 'bg-[#4F8CFF] text-white'
+                   : 'bg-[#151D2B] border border-[#263248] text-[#E8EEF9]'
+               }`}
+             >
+               Find on Site
+             </button>
+             <button
+               onClick={() => setWorkedWithType('name')}
+               className={`flex-1 py-2 rounded-lg font-medium transition-colors ${
+                 workedWithType === 'name'
+                   ? 'bg-[#4F8CFF] text-white'
+                   : 'bg-[#151D2B] border border-[#263248] text-[#E8EEF9]'
+               }`}
+             >
+               Add Name
+             </button>
+           </div>
+          </div>
+
+          {workedWithType === 'profile' ? (
+           <div>
+             <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Search Talent, Photographer, Videographer, Agent, or Studio</label>
+             <input
+               type="text"
+               value={workedWithSearch}
+               onChange={(e) => setWorkedWithSearch(e.target.value)}
+               placeholder="Search by name..."
+               className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+             />
+             <div className="mt-3 max-h-60 overflow-y-auto space-y-2">
+               {allProfiles
+                 .filter(p =>
+                   p.display_name?.toLowerCase().includes(workedWithSearch.toLowerCase()) &&
+                   p.user_id !== user?.email
+                 )
+                 .slice(0, 10)
+                 .map(profile => (
+                   <button
+                     key={profile.id}
+                     onClick={() => {
+                       const newWorkedWith = newItem.worked_with || [];
+                       if (!newWorkedWith.some(w => w.profile_id === profile.id)) {
+                         setNewItem({
+                           ...newItem,
+                           worked_with: [
+                             ...newWorkedWith,
+                             { profile_id: profile.id, display_name: profile.display_name, role_type: profile.role_type, verified: false }
+                           ]
+                         });
+                       }
+                       setWorkedWithSearch('');
+                     }}
+                     className="w-full text-left p-2 bg-[#151D2B] border border-[#263248] rounded-lg hover:border-[#4F8CFF] transition-colors"
+                   >
+                     <div className="text-sm font-medium text-[#E8EEF9]">{profile.display_name}</div>
+                     <div className="text-xs text-[#6B7A94]">{profile.role_type}</div>
+                   </button>
+                 ))}
+             </div>
+           </div>
+          ) : (
+           <div>
+             <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Name</label>
+             <input
+               type="text"
+               value={workedWithName}
+               onChange={(e) => setWorkedWithName(e.target.value)}
+               placeholder="Enter talent/crew name..."
+               className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+             />
+             <button
+               onClick={() => {
+                 if (workedWithName.trim()) {
+                   const newWorkedWith = newItem.worked_with || [];
+                   setNewItem({
+                     ...newItem,
+                     worked_with: [...newWorkedWith, { display_name: workedWithName.trim(), profile_id: null, verified: false }]
+                   });
+                   setWorkedWithName('');
+                 }
+               }}
+               className="mt-2 w-full py-2 bg-[#4F8CFF] hover:bg-[#3A7AEE] text-white rounded-lg font-medium transition-colors"
+             >
+               Add
+             </button>
+           </div>
+          )}
+
+          {newItem.worked_with && newItem.worked_with.length > 0 && (
+           <div>
+             <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Added Talent ({newItem.worked_with.length})</label>
+             <div className="space-y-2">
+               {newItem.worked_with.map((person, idx) => (
+                 <div key={idx} className="flex items-center justify-between p-2 bg-[#151D2B] border border-[#263248] rounded-lg">
+                   <div className="text-sm text-[#E8EEF9]">
+                     {person.display_name}
+                     {person.profile_id && !person.verified && (
+                       <span className="text-xs text-[#F59E0B] ml-1">(awaiting verification)</span>
+                     )}
+                   </div>
+                   <button
+                     onClick={() => {
+                       setNewItem({
+                         ...newItem,
+                         worked_with: newItem.worked_with.filter((_, i) => i !== idx)
+                       });
+                     }}
+                     className="text-[#9AA6BC] hover:text-[#E8EEF9]"
+                   >
+                     Remove
+                   </button>
+                 </div>
+               ))}
+             </div>
+           </div>
+          )}
+
+          <div className="flex justify-end gap-3 pt-4">
+           <CCButton variant="outline" onClick={() => setShowWorkedWithModal(false)}>
+             Done
+           </CCButton>
+          </div>
+          </div>
+          </CCModal>
+          </div>
+          );
+          }
