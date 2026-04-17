@@ -516,7 +516,7 @@ export default function UserModerationPanel({ currentAdmin }) {
                         >
                           {profile.is_admin ? 'Remove Admin' : 'Make Admin'}
                         </CCButton>
-                        {!profile.is_admin && (
+                        {!profile.is_admin && !isDeleted(profile) && (
                           <CCButton
                             variant="danger"
                             size="sm"
