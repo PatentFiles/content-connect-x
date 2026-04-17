@@ -18,7 +18,7 @@ const Connections          = lazy(() => import('./pages/Connections'));
 const Contracts            = lazy(() => import('./pages/Contracts'));
 const CreateCollaboration  = lazy(() => import('./pages/CreateCollaboration'));
 const Dashboard            = lazy(() => import('./pages/Dashboard'));
-const Discovery            = lazy(() => import('./pages/Discovery.jsx'));
+const Discovery            = lazy(() => import('./pages/Discovery'));
 const FAQ                  = lazy(() => import('./pages/FAQ'));
 const Favorites            = lazy(() => import('./pages/Favorites'));
 const HowItWorks           = lazy(() => import('./pages/HowItWorks'));
