@@ -181,11 +181,11 @@ export default function ProfileWizard({ user, profile, onComplete, onSkip }) {
   const StepIcon = currentStepData.icon;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-start justify-center p-4 pt-20">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-2xl max-h-[90vh] flex flex-col"
+        className="w-full max-w-2xl max-h-[85vh] flex flex-col"
       >
         <CCCard padding="none" className="flex flex-col overflow-hidden">
           {/* ── Header ── */}
