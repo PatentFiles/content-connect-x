@@ -436,11 +436,6 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
                         Complete Profile
                       </CCButton>
                     </Link>
-                    {onOpenWizard && (
-                      <CCButton variant="ghost" size="sm" fullWidth onClick={onOpenWizard}>
-                        Re-open Setup Wizard
-                      </CCButton>
-                    )}
                   </div>
                 )}
               </div>

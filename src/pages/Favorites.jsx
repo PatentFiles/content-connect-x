@@ -71,7 +71,27 @@ export default function Favorites() {
     queryFn: async () => {
       if (allFavoriteUserIds.length === 0) return [];
       const allProfiles = await base44.entities.UserProfile.list();
-      return allProfiles.filter(p => allFavoriteUserIds.includes(p.user_id));
+      const activeProfiles = allProfiles.filter(p =>
+        allFavoriteUserIds.includes(p.user_id) &&
+        !p.banned &&
+        !p.account_deactivated &&
+        p.deletion_status !== 'anonymized' &&
+        p.deletion_status !== 'completed'
+      );
+      // Auto-clean deleted profiles from favorite lists
+      const activeIds = new Set(activeProfiles.map(p => p.user_id));
+      const deletedIds = allFavoriteUserIds.filter(id => !activeIds.has(id));
+      if (deletedIds.length > 0) {
+        favorites.forEach(list => {
+          const hasDeleted = list.items?.some(i => deletedIds.includes(i.user_id));
+          if (hasDeleted) {
+            base44.entities.Favorite.update(list.id, {
+              items: list.items.filter(i => !deletedIds.includes(i.user_id))
+            });
+          }
+        });
+      }
+      return activeProfiles;
     },
     enabled: allFavoriteUserIds.length > 0,
   });
