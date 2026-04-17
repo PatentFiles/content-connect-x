@@ -340,7 +340,6 @@ export default function Discovery() {
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
-      {/* Header */}
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="text-center mb-4">
@@ -367,7 +366,6 @@ export default function Discovery() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="flex justify-center mb-4">
           <div className="flex flex-col gap-4 w-full md:max-w-xl lg:max-w-2xl">
