@@ -138,38 +138,45 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
   });
   const myReputationScore = reputationScores[0];
 
-  // Fetch favorites + validate against active profiles, auto-clean deleted
+  // Fetch favorites
   const { data: favorites = [] } = useQuery({
     queryKey: ['myFavorites', user?.email],
     queryFn: () => base44.entities.Favorite.filter({ owner_id: user?.email }),
     enabled: !!user?.email,
   });
 
-  const { data: activeFavCount = 0 } = useQuery({
-    queryKey: ['myFavoritesCount', user?.email, favorites.map(f => f.id).join(',')],
-    queryFn: async () => {
-      const allFavUserIds = [...new Set(favorites.flatMap(f => f.items?.map(i => i.user_id) || []))];
-      if (allFavUserIds.length === 0) return 0;
-      const allProfiles = await base44.entities.UserProfile.list();
-      const activeIds = new Set(
-        allProfiles
-          .filter(p => !p.banned && !p.account_deactivated && p.deletion_status !== 'anonymized' && p.deletion_status !== 'completed')
-          .map(p => p.user_id)
-      );
-      const deletedIds = allFavUserIds.filter(id => !activeIds.has(id));
-      if (deletedIds.length > 0) {
-        favorites.forEach(list => {
-          if (list.items?.some(i => deletedIds.includes(i.user_id))) {
-            base44.entities.Favorite.update(list.id, {
-              items: list.items.filter(i => !deletedIds.includes(i.user_id))
-            });
-          }
-        });
-      }
-      return allFavUserIds.filter(id => activeIds.has(id)).length;
-    },
-    enabled: favorites.length > 0,
+  // Validate favorites against active profiles, auto-clean deleted ones
+  const allFavUserIds = [...new Set(favorites.flatMap(f => f.items?.map(i => i.user_id) || []))];
+  const { data: allFavProfiles = [] } = useQuery({
+    queryKey: ['favProfilesValidation', allFavUserIds.join(',')],
+    queryFn: () => base44.entities.UserProfile.list(),
+    enabled: allFavUserIds.length > 0,
+    staleTime: 5 * 60 * 1000,
   });
+
+  const activeIds = React.useMemo(() => new Set(
+    allFavProfiles
+      .filter(p => !p.banned && !p.account_deactivated && p.deletion_status !== 'anonymized' && p.deletion_status !== 'completed')
+      .map(p => p.user_id)
+  ), [allFavProfiles]);
+
+  const activeFavCount = allFavUserIds.filter(id => activeIds.has(id)).length;
+
+  // Auto-clean deleted/banned profiles from favorite lists
+  const cleanedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!user?.email || !favorites.length || !allFavProfiles.length || cleanedRef.current) return;
+    const deletedIds = allFavUserIds.filter(id => !activeIds.has(id));
+    if (deletedIds.length === 0) return;
+    cleanedRef.current = true;
+    favorites.forEach(list => {
+      if (list.items?.some(i => deletedIds.includes(i.user_id))) {
+        base44.entities.Favorite.update(list.id, {
+          items: list.items.filter(i => !deletedIds.includes(i.user_id))
+        }).catch(() => {});
+      }
+    });
+  }, [user?.email, favorites, allFavProfiles, activeIds]);
 
   const createTaskMutation = useMutation({
     mutationFn: (title) => base44.entities.QuickTask.create({
