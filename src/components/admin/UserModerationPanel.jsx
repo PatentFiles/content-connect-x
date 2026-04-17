@@ -438,25 +438,6 @@ export default function UserModerationPanel({ currentAdmin }) {
                         >
                           View Profile
                         </CCButton>
-                        {profile.suspended && !profile.banned ? (
-                          <CCButton
-                            variant="outline"
-                            size="sm"
-                            icon={UserCheck}
-                            onClick={() => handleAction('unsuspend_account', profile)}
-                          >
-                            Unsuspend
-                          </CCButton>
-                        ) : !profile.banned ? (
-                          <CCButton
-                            variant="outline"
-                            size="sm"
-                            icon={UserX}
-                            onClick={() => handleAction('suspend_account', profile)}
-                          >
-                            Suspend
-                          </CCButton>
-                        ) : null}
                         {profile.banned ? (
                           <CCButton
                             variant="success"
