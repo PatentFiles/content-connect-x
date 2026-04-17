@@ -59,6 +59,14 @@ const WIZARD_STEPS = {
     { id: 'verification', title: 'Verification', icon: Shield },
     { id: 'tour',     title: 'Platform Tour', icon: Globe },
   ],
+  video_editor: [
+    { id: 'welcome',  title: 'Welcome',      icon: Sparkles },
+    { id: 'basic',    title: 'Your Profile', icon: User },
+    { id: 'location', title: 'Location',     icon: MapPin },
+    { id: 'services', title: 'Services',     icon: Camera },
+    { id: 'verification', title: 'Verification', icon: Shield },
+    { id: 'tour',     title: 'Platform Tour', icon: Globe },
+  ],
 };
 
 const SCENE_PAIRINGS = [

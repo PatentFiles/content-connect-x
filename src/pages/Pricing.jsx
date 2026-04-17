@@ -16,6 +16,7 @@ const roleLabels = {
   creator: 'Creator',
   photographer: 'Photographer',
   videographer: 'Videographer',
+  video_editor: 'Video Editor',
   agent: 'Agent',
   studio: 'Studio',
 };
@@ -152,6 +153,7 @@ export default function Pricing() {
     creator:      allTiers.filter(t => t.role_type === 'creator').sort(sortByPrice),
     photographer: allTiers.filter(t => t.role_type === 'photographer').sort(sortByPrice),
     videographer: allTiers.filter(t => t.role_type === 'videographer').sort(sortByPrice),
+    video_editor: allTiers.filter(t => t.role_type === 'video_editor').sort(sortByPrice),
     agent:        allTiers.filter(t => t.role_type === 'agent').sort(sortByPrice),
     studio:       allTiers.filter(t => t.role_type === 'studio').sort(sortByPrice),
   };

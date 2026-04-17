@@ -14,7 +14,8 @@ import {
   Settings,
   Bot,
   UserPlus,
-  Cross
+  Cross,
+  Film
 } from 'lucide-react';
 
 export const roleNavigation = {
@@ -76,6 +77,19 @@ export const roleNavigation = {
     { path: 'Connections', label: 'Friends', icon: UserPlus },
     { path: 'Messages', label: 'Messages', icon: MessageCircle },
     { path: 'Portfolio', label: 'Reels/Portfolio', icon: Video },
+    { path: 'Collaborations', label: 'Collaborations', icon: Briefcase },
+    { path: 'Contracts', label: 'Contracts', icon: FileText },
+    { path: 'Verification', label: 'Verification', icon: Shield },
+  ],
+  video_editor: [
+    { path: 'Dashboard', label: 'Dashboard', icon: Home },
+    { path: 'Testing', label: 'Testing', icon: Cross },
+    { path: 'Discovery', label: 'Discover', icon: Compass },
+    { path: 'Search', label: 'Search', icon: Search },
+    { path: 'Favorites', label: 'Favorites', icon: Heart },
+    { path: 'Connections', label: 'Friends', icon: UserPlus },
+    { path: 'Messages', label: 'Messages', icon: MessageCircle },
+    { path: 'Portfolio', label: 'Portfolio', icon: Film },
     { path: 'Collaborations', label: 'Collaborations', icon: Briefcase },
     { path: 'Contracts', label: 'Contracts', icon: FileText },
     { path: 'Verification', label: 'Verification', icon: Shield },

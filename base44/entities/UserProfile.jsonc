@@ -32,6 +32,7 @@
         "creator",
         "photographer",
         "videographer",
+        "video_editor",
         "agent",
         "studio",
         "admin"

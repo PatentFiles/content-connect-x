@@ -14,6 +14,7 @@ const roleOptions = [
   { value: 'creator', label: 'Creator' },
   { value: 'photographer', label: 'Photographer' },
   { value: 'videographer', label: 'Videographer' },
+  { value: 'video_editor', label: 'Video Editor' },
   { value: 'agent', label: 'Agent' },
   { value: 'studio', label: 'Studio' },
 ];

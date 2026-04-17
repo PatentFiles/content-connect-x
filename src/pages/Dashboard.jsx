@@ -7,6 +7,7 @@ import AgentDashboard from '../components/dashboards/AgentDashboard';
 import StudioDashboard from '../components/dashboards/StudioDashboard';
 import PhotographerDashboard from '../components/dashboards/PhotographerDashboard';
 import VideographerDashboard from '../components/dashboards/VideographerDashboard';
+import VideoEditorDashboard from '../components/dashboards/VideoEditorDashboard';
 import ProfileWizard from '../components/profile/ProfileWizard';
 import OnboardingChecklist from '../components/onboarding/OnboardingChecklist';
 import PullToRefresh from '../components/ui-custom/PullToRefresh';
@@ -44,6 +45,7 @@ export default function Dashboard() {
     studio:       <StudioDashboard user={user} profile={profile} />,
     photographer: <PhotographerDashboard user={user} profile={profile} />,
     videographer: <VideographerDashboard user={user} profile={profile} />,
+    video_editor: <VideoEditorDashboard user={user} profile={profile} />,
   };
 
   const handleRefresh = async () => {

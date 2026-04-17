@@ -104,7 +104,7 @@ export default function Landing() {
             </h1>
             
             <p className="text-lg md:text-xl text-[#9AA6BC] max-w-3xl mx-auto mb-10">
-              Connect with verified creators, photographers, videographers, agents, and studios. 
+              Connect with verified creators, photographers, videographers, video editors, agents, and studios. 
               Build collaborations with built-in contracts and consent management.
             </p>
 

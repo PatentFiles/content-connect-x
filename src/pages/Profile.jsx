@@ -590,6 +590,7 @@ export default function Profile() {
                         { value: 'studio', label: 'Studio' },
                         { value: 'photographer', label: 'Photographer' },
                         { value: 'videographer', label: 'Videographer' },
+                        { value: 'video_editor', label: 'Video Editor' },
                       ]}
                       value={editData.role_type || profile?.role_type || ''}
                       onChange={(e) => setEditData({...editData, role_type: e.target.value})}

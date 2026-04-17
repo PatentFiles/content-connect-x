@@ -10,6 +10,7 @@ const roleOptions = [
   { value: 'studio', label: 'Studio', icon: Building2, color: 'bg-[#22C55E]/20 text-[#22C55E]' },
   { value: 'photographer', label: 'Photographer', icon: Camera, color: 'bg-[#F59E0B]/20 text-[#F59E0B]' },
   { value: 'videographer', label: 'Videographer', icon: Video, color: 'bg-[#A855F7]/20 text-[#A855F7]' },
+  { value: 'video_editor', label: 'Video Editor', icon: Video, color: 'bg-[#EC4899]/20 text-[#EC4899]' },
 ];
 
 export default function AdminRoleViewSwitcher({ currentView, onViewChange }) {
