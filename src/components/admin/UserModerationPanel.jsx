@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, UserX, UserCheck, Flag, StickyNote, Eye, ChevronDown, ChevronUp, Shield, ShieldOff, RefreshCw, Ban, MapPin, Calendar } from 'lucide-react';
+import { Search, UserX, UserCheck, Eye, ChevronDown, ChevronUp, Shield, ShieldOff, RefreshCw, Ban, MapPin } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
@@ -9,6 +9,15 @@ import CCModal from '@/components/ui-custom/CCModal';
 import CCInput from '@/components/ui-custom/CCInput';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// ─── Helper: call the secure server-side moderation function ─────────────────
+async function callModerationAction({ action, targetUserId, reason }) {
+  const res = await base44.functions.invoke('adminModerationAction', { action, targetUserId, reason });
+  if (!res.data?.success) {
+    throw new Error(res.data?.error || 'Action failed');
+  }
+  return res.data;
+}
 
 export default function UserModerationPanel({ currentAdmin }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -24,6 +33,20 @@ export default function UserModerationPanel({ currentAdmin }) {
   const [actionNotes, setActionNotes] = useState('');
   const queryClient = useQueryClient();
 
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ['allProfiles'] });
+    queryClient.invalidateQueries({ queryKey: ['allVerifications'] });
+    queryClient.invalidateQueries({ queryKey: ['recentAdminActions'] });
+  };
+
+  const closeModal = () => {
+    setActionModalOpen(false);
+    setSelectedUser(null);
+    setActionReason('');
+    setActionNotes('');
+  };
+
+  // ── Data queries ────────────────────────────────────────────────────────────
   const { data: profiles = [] } = useQuery({
     queryKey: ['allProfiles'],
     queryFn: () => base44.entities.UserProfile.list(),
@@ -49,48 +72,72 @@ export default function UserModerationPanel({ currentAdmin }) {
     queryFn: () => base44.entities.StudioRepresentation.list(),
   });
 
-  const adminActionMutation = useMutation({
-    mutationFn: async ({ action, userId, reason, notes, updateData }) => {
-      // Apply profile update FIRST (so the UI state is correct)
-      if (updateData) {
-        const profile = profiles.find(p => p.user_id === userId);
-        if (profile) {
-          await base44.entities.UserProfile.update(profile.id, updateData);
-        }
+  // ── Secure moderation mutation (routes through backend function) ─────────────
+  const moderationMutation = useMutation({
+    mutationFn: callModerationAction,
+    onSuccess: () => {
+      invalidateAll();
+      toast.success('Action completed successfully');
+      closeModal();
+    },
+    onError: (err) => {
+      toast.error(err.message || 'Failed to complete action');
+      console.error('Moderation error:', err);
+    },
+  });
+
+  // ── Toggle admin via secure backend ─────────────────────────────────────────
+  const toggleAdminMutation = useMutation({
+    mutationFn: ({ userId, isAdmin }) =>
+      callModerationAction({
+        action: isAdmin ? 'remove_admin' : 'make_admin',
+        targetUserId: userId,
+        reason: isAdmin ? 'Removed admin privileges' : 'Granted admin privileges',
+      }),
+    onSuccess: () => {
+      invalidateAll();
+      toast.success('Admin status updated');
+    },
+    onError: (err) => {
+      toast.error(err.message || 'Failed to update admin status');
+      console.error('toggleAdmin error:', err);
+    },
+  });
+
+  // ── Reset verification (VerificationRecord — admin can update own RLS allows admin role) ─
+  const resetVerificationMutation = useMutation({
+    mutationFn: async (userId) => {
+      const verification = verifications.find(v => v.user_id === userId);
+      if (verification) {
+        await base44.entities.VerificationRecord.update(verification.id, {
+          status: 'pending',
+          verified_at: null,
+          expires_at: null,
+          rejection_reason: null,
+        });
       }
-      // Then log the action
       await base44.entities.AdminActionLog.create({
         admin_user_id: currentAdmin.email,
         target_type: 'User',
         target_id: userId,
-        action,
-        reason,
-        notes,
-        metadata_json: { timestamp: new Date().toISOString() }
+        action: 'reset_verification',
+        reason: 'Manual reset by admin',
+        metadata_json: { timestamp: new Date().toISOString() },
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allProfiles'] });
-      queryClient.invalidateQueries({ queryKey: ['allVerifications'] });
-      queryClient.invalidateQueries({ queryKey: ['recentAdminActions'] });
-      toast.success('Action completed successfully');
-      setActionModalOpen(false);
-      setSelectedUser(null);
-      setActionReason('');
-      setActionNotes('');
+      invalidateAll();
+      toast.success('Verification reset to pending');
     },
-    onError: (error) => {
-      toast.error('Failed to complete action');
-      console.error(error);
-    }
+    onError: () => toast.error('Failed to reset verification'),
   });
 
+  // ── Delete account — direct service-role–backed entity writes (admin-only entity RLS) ──
   const deleteAccountMutation = useMutation({
     mutationFn: async (userId) => {
       const profile = profiles.find(p => p.user_id === userId);
       if (!profile) throw new Error('Profile not found');
       const now = new Date().toISOString();
-      // Anonymize and deactivate
       await base44.entities.UserProfile.update(profile.id, {
         display_name: '[Deleted User]',
         real_name: null,
@@ -113,76 +160,18 @@ export default function UserModerationPanel({ currentAdmin }) {
         action: 'delete_account',
         reason: actionReason || 'Admin-initiated account deletion',
         notes: `Account deleted by admin at ${now}`,
-        metadata_json: { timestamp: now }
+        metadata_json: { timestamp: now },
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allProfiles'] });
       toast.success('Account deleted successfully');
-      setActionModalOpen(false);
-      setSelectedUser(null);
-      setActionReason('');
-      setActionNotes('');
+      closeModal();
     },
-    onError: () => toast.error('Failed to delete account'),
+    onError: (err) => toast.error(err.message || 'Failed to delete account'),
   });
 
-  const resetVerificationMutation = useMutation({
-    mutationFn: async (userId) => {
-      const verification = verifications.find(v => v.user_id === userId);
-      if (verification) {
-        await base44.entities.VerificationRecord.update(verification.id, {
-          status: 'pending',
-          verified_at: null,
-          expires_at: null,
-          rejection_reason: null
-        });
-      }
-      await base44.entities.AdminActionLog.create({
-        admin_user_id: currentAdmin.email,
-        target_type: 'User',
-        target_id: userId,
-        action: 'reset_verification',
-        reason: 'Manual reset by admin',
-        metadata_json: { timestamp: new Date().toISOString() }
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allVerifications'] });
-      queryClient.invalidateQueries({ queryKey: ['recentAdminActions'] });
-      toast.success('Verification reset to pending');
-    },
-    onError: () => toast.error('Failed to reset verification')
-  });
-
-  const toggleAdminMutation = useMutation({
-    mutationFn: async ({ userId, isAdmin }) => {
-      const profile = profiles.find(p => p.user_id === userId);
-      if (!profile) throw new Error('Profile not found');
-      await base44.entities.UserProfile.update(profile.id, { 
-        is_admin: !isAdmin,
-        role_type: !isAdmin ? 'admin' : profile.role_type === 'admin' ? 'creator' : profile.role_type
-      });
-      await base44.entities.AdminActionLog.create({
-        admin_user_id: currentAdmin.email,
-        target_type: 'User',
-        target_id: userId,
-        action: isAdmin ? 'demote_admin' : 'promote_admin',
-        reason: isAdmin ? 'Removed admin privileges' : 'Granted admin privileges',
-        metadata_json: { timestamp: new Date().toISOString() }
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['allProfiles'] });
-      queryClient.invalidateQueries({ queryKey: ['recentAdminActions'] });
-      toast.success('Admin status updated');
-    },
-    onError: (err) => {
-      console.error('toggleAdmin error:', err);
-      toast.error('Failed to update admin status');
-    }
-  });
-
+  // ── Action handlers ──────────────────────────────────────────────────────────
   const handleAction = (action, user) => {
     setActionType(action);
     setSelectedUser(user);
@@ -190,59 +179,66 @@ export default function UserModerationPanel({ currentAdmin }) {
   };
 
   const confirmAction = () => {
-    if (actionType !== 'delete_account' && !actionReason.trim()) {
-      toast.error('Reason is required');
-      return;
-    }
-
     if (actionType === 'delete_account') {
       deleteAccountMutation.mutate(selectedUser.user_id);
       return;
     }
 
-    // Determine profile update based on action
-    let updateData = null;
-    if (actionType === 'ban_account') {
-      updateData = { banned: true, suspended: false, suspension_reason: actionReason };
-    } else if (actionType === 'suspend_account') {
-      updateData = { suspended: true, banned: false, suspension_reason: actionReason };
-    } else if (actionType === 'unsuspend_account') {
-      updateData = { suspended: false, banned: false, suspension_reason: null };
+    if (!actionReason.trim()) {
+      toast.error('Reason is required');
+      return;
     }
 
-    adminActionMutation.mutate({
-      action: actionType,
-      userId: selectedUser.user_id,
+    // Map modal action types to backend function action names
+    const actionMap = {
+      ban_account: 'ban',
+      suspend_account: 'ban',       // treat suspend as a soft-ban via the backend
+      unsuspend_account: 'unban',
+    };
+
+    const mappedAction = actionMap[actionType];
+    if (!mappedAction) {
+      toast.error(`Unknown action: ${actionType}`);
+      return;
+    }
+
+    moderationMutation.mutate({
+      action: mappedAction,
+      targetUserId: selectedUser.user_id,
       reason: actionReason,
-      notes: actionNotes,
-      updateData
     });
   };
 
+  // ── Filter logic ─────────────────────────────────────────────────────────────
   const filteredProfiles = profiles.filter(profile => {
-    const matchesSearch = searchTerm === '' || 
+    const matchesSearch =
+      searchTerm === '' ||
       profile.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       profile.user_id?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+
     const matchesRole = roleFilter === 'all' || profile.role_type === roleFilter;
-    
+
     const userVerification = verifications.find(v => v.user_id === profile.user_id);
-    const matchesVerification = verificationFilter === 'all' || 
+    const matchesVerification =
+      verificationFilter === 'all' ||
       (verificationFilter === 'verified' && userVerification?.status === 'approved') ||
       (verificationFilter === 'pending' && userVerification?.status === 'pending') ||
       (verificationFilter === 'unverified' && !userVerification);
 
     const userSubscription = subscriptions.find(s => s.user_id === profile.user_id);
-    const matchesSubscription = subscriptionFilter === 'all' ||
+    const matchesSubscription =
+      subscriptionFilter === 'all' ||
       (subscriptionFilter === 'active' && userSubscription?.status === 'active') ||
       (subscriptionFilter === 'trial' && userSubscription?.status === 'trial') ||
       (subscriptionFilter === 'none' && !userSubscription);
 
     const locationString = `${profile.base_location?.city || ''} ${profile.base_location?.state || ''} ${profile.base_location?.country || ''}`.toLowerCase();
     const matchesLocation = locationFilter === '' || locationString.includes(locationFilter.toLowerCase());
-    
+
     return matchesSearch && matchesRole && matchesVerification && matchesSubscription && matchesLocation;
   });
+
+  const isPending = moderationMutation.isPending || deleteAccountMutation.isPending;
 
   return (
     <div className="space-y-6">
@@ -318,12 +314,12 @@ export default function UserModerationPanel({ currentAdmin }) {
           const userStudioRep = studioReps.find(r => r.creator_id === profile.user_id);
           const isVerified = userVerification?.status === 'approved';
           const isExpanded = expandedUserId === profile.user_id;
-          
+
           return (
             <CCCard key={profile.user_id} padding="lg" hover>
               {/* Collapsed View */}
               <div className="flex items-center justify-between">
-                <div 
+                <div
                   className="flex items-center gap-4 flex-1 cursor-pointer"
                   onClick={() => setExpandedUserId(isExpanded ? null : profile.user_id)}
                 >
@@ -346,11 +342,10 @@ export default function UserModerationPanel({ currentAdmin }) {
                     </div>
                     <p className="text-xs text-[#6B7A94]">{profile.user_id}</p>
                   </div>
-                  <motion.div
-                    animate={{ rotate: isExpanded ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    {isExpanded ? <ChevronUp className="w-5 h-5 text-[#6B7A94]" /> : <ChevronDown className="w-5 h-5 text-[#6B7A94]" />}
+                  <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                    {isExpanded
+                      ? <ChevronUp className="w-5 h-5 text-[#6B7A94]" />
+                      : <ChevronDown className="w-5 h-5 text-[#6B7A94]" />}
                   </motion.div>
                 </div>
               </div>
@@ -366,7 +361,7 @@ export default function UserModerationPanel({ currentAdmin }) {
                     className="mt-4 pt-4 border-t border-[#263248]"
                   >
                     <div className="space-y-4">
-                      {/* Full Profile Info */}
+                      {/* Profile Info */}
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                         {profile.real_name && (
                           <div>
@@ -430,7 +425,7 @@ export default function UserModerationPanel({ currentAdmin }) {
                         </div>
                       )}
 
-                      {/* Admin Actions */}
+                      {/* Admin Action Buttons */}
                       <div className="flex gap-2 flex-wrap pt-3 border-t border-[#263248]">
                         <CCButton
                           variant="ghost"
@@ -479,9 +474,9 @@ export default function UserModerationPanel({ currentAdmin }) {
                           variant={profile.is_admin ? 'warning' : 'primary'}
                           size="sm"
                           icon={profile.is_admin ? ShieldOff : Shield}
-                          onClick={() => toggleAdminMutation.mutate({ 
-                            userId: profile.user_id, 
-                            isAdmin: profile.is_admin 
+                          onClick={() => toggleAdminMutation.mutate({
+                            userId: profile.user_id,
+                            isAdmin: profile.is_admin,
                           })}
                           loading={toggleAdminMutation.isPending}
                         >
@@ -506,17 +501,23 @@ export default function UserModerationPanel({ currentAdmin }) {
         })}
       </div>
 
-      {/* Action Modal */}
+      {/* Action Confirmation Modal */}
       <CCModal
         isOpen={actionModalOpen}
-        onClose={() => setActionModalOpen(false)}
+        onClose={closeModal}
         title={`${actionType.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())} — ${selectedUser?.display_name}`}
-        description={actionType === 'delete_account' ? 'This will permanently deactivate and anonymize the account.' : 'Provide a reason for this administrative action'}
+        description={
+          actionType === 'delete_account'
+            ? 'This will permanently deactivate and anonymize the account.'
+            : 'Provide a reason for this administrative action'
+        }
       >
         <div className="space-y-4">
           {actionType === 'delete_account' ? (
             <div className="p-4 bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-lg text-sm text-[#EF4444]">
-              Are you sure you want to delete <strong>{selectedUser?.display_name}</strong>'s account? This will anonymize their profile, remove their personal data, and deactivate their account. Safety records and collaboration history will be preserved.
+              Are you sure you want to delete <strong>{selectedUser?.display_name}</strong>'s account? This will
+              anonymize their profile, remove their personal data, and deactivate their account. Safety records and
+              collaboration history will be preserved.
             </div>
           ) : (
             <>
@@ -540,13 +541,13 @@ export default function UserModerationPanel({ currentAdmin }) {
             </>
           )}
           <div className="flex gap-3 justify-end">
-            <CCButton variant="outline" onClick={() => setActionModalOpen(false)}>
+            <CCButton variant="outline" onClick={closeModal}>
               Cancel
             </CCButton>
-            <CCButton 
-              variant="danger" 
+            <CCButton
+              variant="danger"
               onClick={confirmAction}
-              loading={adminActionMutation.isPending || deleteAccountMutation.isPending}
+              loading={isPending}
             >
               {actionType === 'delete_account' ? 'Delete Account' : 'Confirm Action'}
             </CCButton>
