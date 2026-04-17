@@ -54,15 +54,15 @@ export default function AgentManagement() {
     <div className="min-h-screen bg-[#0B0F14] pb-24">
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-[#E8EEF9] mb-2">Agent Management</h1>
-          <p className="text-[#9AA6BC]">
+        <div className="text-center">
+          <h1 className="text-xl font-semibold text-[#E8EEF9] mb-1">Agent Management</h1>
+          <p className="text-xs text-[#6B7A94]">
             Manage AI agents, permissions, runs, flags, and risk scores
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex flex-wrap gap-2 mb-6 justify-center">
           {[
             { value: 'agents', label: 'Agents', icon: Shield },
             { value: 'permissions', label: 'Permissions', icon: Settings },

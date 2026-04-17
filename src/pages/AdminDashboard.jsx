@@ -450,7 +450,7 @@ export default function AdminDashboard() {
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="text-center">
-            <h1 className="text-xl font-semibold text-[#E8EEF9]">Moderation Overview</h1>
+            <h1 className="text-xl font-semibold text-[#E8EEF9]">Admin Management</h1>
             <p className="text-xs text-[#6B7A94]">Platform-wide moderation metrics and recent actions</p>
           </div>
         </div>

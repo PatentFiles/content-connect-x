@@ -493,7 +493,7 @@ export default function UserModerationPanel({ currentAdmin }) {
                             Ban
                           </CCButton>
                         )}
-                        {userVerification && (
+                        {!isDeleted(profile) && userVerification && (
                           <CCButton
                             variant="outline"
                             size="sm"
@@ -504,18 +504,20 @@ export default function UserModerationPanel({ currentAdmin }) {
                             Reset Verification
                           </CCButton>
                         )}
-                        <CCButton
-                          variant={profile.is_admin ? 'warning' : 'primary'}
-                          size="sm"
-                          icon={profile.is_admin ? ShieldOff : Shield}
-                          onClick={() => toggleAdminMutation.mutate({
-                            userId: profile.user_id,
-                            isAdmin: profile.is_admin,
-                          })}
-                          loading={toggleAdminMutation.isPending}
-                        >
-                          {profile.is_admin ? 'Remove Admin' : 'Make Admin'}
-                        </CCButton>
+                        {!isDeleted(profile) && (
+                          <CCButton
+                            variant={profile.is_admin ? 'warning' : 'primary'}
+                            size="sm"
+                            icon={profile.is_admin ? ShieldOff : Shield}
+                            onClick={() => toggleAdminMutation.mutate({
+                              userId: profile.user_id,
+                              isAdmin: profile.is_admin,
+                            })}
+                            loading={toggleAdminMutation.isPending}
+                          >
+                            {profile.is_admin ? 'Remove Admin' : 'Make Admin'}
+                          </CCButton>
+                        )}
                         {!profile.is_admin && !isDeleted(profile) && (
                           <CCButton
                             variant="danger"
