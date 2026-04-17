@@ -1,4 +1,4 @@
-import { createClientFromRequest, createClient } from 'npm:@base44/sdk@0.8.25';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -8,14 +8,13 @@ Deno.serve(async (req) => {
   let action, targetUserId, currentUser;
 
   try {
-    // userClient: only used for auth (respects request token)
-    const userClient = createClientFromRequest(req);
+    const base44 = createClientFromRequest(req);
 
-    // adminClient: elevated client that bypasses RLS
-    const adminClient = createClient({ useAdmin: true });
+    // adminClient: service role — bypasses ALL RLS for every DB call
+    const adminClient = base44.asServiceRole;
 
-    // 1. Authenticate caller
-    const user = await userClient.auth.me();
+    // 1. Authenticate caller (auth.me uses request token — correct, not service role)
+    const user = await base44.auth.me();
     currentUser = user?.email;
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
@@ -36,7 +35,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Invalid action: ${action}. Must be one of: ${validActions.join(', ')}` }, { status: 400 });
     }
 
-    // 3. Verify caller is admin — using adminClient to bypass RLS
+    // 3. Verify caller is admin — adminClient bypasses RLS
     const callerProfiles = await adminClient.entities.UserProfile.filter({ user_id: user.email });
     const callerProfile = callerProfiles[0];
 
@@ -44,7 +43,7 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized: Admin privileges required' }, { status: 403 });
     }
 
-    // 4. Fetch target profile — using adminClient to bypass RLS
+    // 4. Fetch target profile — adminClient bypasses RLS
     const targetProfiles = await adminClient.entities.UserProfile.filter({ user_id: targetUserId });
     const targetProfile = targetProfiles[0];
 
