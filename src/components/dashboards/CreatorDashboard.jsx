@@ -16,7 +16,9 @@ import {
   Calendar,
   TrendingUp,
   AlertCircle,
-  Handshake
+  Handshake,
+  Flag,
+  X
 } from 'lucide-react';
 import CCCard from '../ui-custom/CCCard';
 import CCButton from '../ui-custom/CCButton';
@@ -31,14 +33,60 @@ import CollaborationFeed from '@/components/discovery/CollaborationFeed';
 import TopCreators from '@/components/discovery/TopCreators';
 import TravelSync from '@/components/discovery/TravelSync';
 import EarningsTracker from '@/components/earnings/EarningsTracker';
-import { ReputationScoreBar } from '@/components/trust/ReputationBadge';
+import ReputationBadge, { ReputationScoreBar } from '@/components/trust/ReputationBadge';
 import CCModal from '../ui-custom/CCModal';
+
+function ReputationScoreBarWithFlags({ score, onFlagsClick }) {
+  if (!score) return null;
+  const pct = Math.round(score.score);
+  const flags = score.factors?.moderation_flags || 0;
+  const barColor = pct >= 80 ? '#4F8CFF' : pct >= 60 ? '#22C55E' : pct >= 40 ? '#34D399' : '#6B7A94';
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <ReputationBadge score={score} size="md" showScore />
+        <span className="text-xs text-[#6B7A94]">
+          +{score.factors?.positive_points || 0} / -{score.factors?.negative_points || 0}
+        </span>
+      </div>
+      <div className="w-full h-1.5 bg-[#1A2438] rounded-full overflow-hidden">
+        <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: barColor }} />
+      </div>
+      {score.factors && (
+        <div className="grid grid-cols-2 gap-1 text-xs text-[#6B7A94] mt-1">
+          {score.factors.completed_collabs !== undefined && (
+            <span>✓ {score.factors.completed_collabs} completed</span>
+          )}
+          {score.factors.cancelled_collabs > 0 && (
+            <span className="text-[#EF4444]">✗ {score.factors.cancelled_collabs} cancelled</span>
+          )}
+          {score.factors.verification_status === 'approved' && (
+            <span>✓ Identity verified</span>
+          )}
+          {score.factors.testing_compliance === 'valid' && (
+            <span>✓ Testing current</span>
+          )}
+          {flags > 0 && (
+            <button
+              onClick={onFlagsClick}
+              className="text-[#F59E0B] hover:text-[#FCD34D] flex items-center gap-1 transition-colors text-left col-span-2"
+            >
+              <Flag className="w-3 h-3 flex-shrink-0" />
+              ⚠ {flags} flag{flags > 1 ? 's' : ''} — tap to view
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function CreatorDashboard({ user, profile, onboardingChecklist, onOpenWizard }) {
   const [newTask, setNewTask] = useState('');
   const [showAvailability, setShowAvailability] = useState(false);
   const [showTravelDate, setShowTravelDate] = useState(false);
   const [showEarnings, setShowEarnings] = useState(false);
+  const [showFlagsModal, setShowFlagsModal] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch active collaborations (draft/negotiating/agreed)
@@ -148,66 +196,70 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
         {/* Booking Requests Inbox */}
         <BookingRequestsInbox userId={user?.email} />
 
-        {/* Quick Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <CCCard padding="md">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#4F8CFF]/20 flex items-center justify-center">
-                <MessageCircle className="w-5 h-5 text-[#4F8CFF]" />
+        {/* Quick Stats — 3 top row, 2 bottom row centered */}
+        <div className="mb-6 space-y-3">
+          <div className="grid grid-cols-3 gap-3">
+            <CCCard padding="md">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-[#4F8CFF]/20 flex items-center justify-center flex-shrink-0">
+                  <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#4F8CFF]" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xl sm:text-2xl font-bold text-[#E8EEF9]">0</p>
+                  <p className="text-[10px] sm:text-xs text-[#6B7A94] leading-tight">New Messages</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-[#E8EEF9]">0</p>
-                <p className="text-xs text-[#6B7A94]">New Messages</p>
+            </CCCard>
+            <CCCard padding="md">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-[#FF2DAA]/20 flex items-center justify-center flex-shrink-0">
+                  <Briefcase className="w-4 h-4 sm:w-5 sm:h-5 text-[#FF2DAA]" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xl sm:text-2xl font-bold text-[#E8EEF9]">{collaborations.length}</p>
+                  <p className="text-[10px] sm:text-xs text-[#6B7A94] leading-tight">Active Collabs</p>
+                </div>
               </div>
-            </div>
-          </CCCard>
-          <CCCard padding="md">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#FF2DAA]/20 flex items-center justify-center">
-                <Briefcase className="w-5 h-5 text-[#FF2DAA]" />
+            </CCCard>
+            <CCCard padding="md">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-[#F59E0B]/20 flex items-center justify-center flex-shrink-0">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-[#F59E0B]" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xl sm:text-2xl font-bold text-[#E8EEF9]">{pendingContracts.length}</p>
+                  <p className="text-[10px] sm:text-xs text-[#6B7A94] leading-tight">Pending Sigs</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-[#E8EEF9]">{collaborations.length}</p>
-                <p className="text-xs text-[#6B7A94]">Active Collaborations</p>
-              </div>
-            </div>
-          </CCCard>
-          <CCCard padding="md">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#F59E0B]/20 flex items-center justify-center">
-                <FileText className="w-5 h-5 text-[#F59E0B]" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-[#E8EEF9]">{pendingContracts.length}</p>
-                <p className="text-xs text-[#6B7A94]">Pending Signatures</p>
-              </div>
-            </div>
-          </CCCard>
-          <CCCard padding="md">
-           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-lg bg-[#22C55E]/20 flex items-center justify-center">
-               <TrendingUp className="w-5 h-5 text-[#22C55E]" />
-             </div>
-             <div>
-               <p className="text-2xl font-bold text-[#E8EEF9]">{completedCollabs}</p>
-               <p className="text-xs text-[#6B7A94]">Completed</p>
-             </div>
-           </div>
-          </CCCard>
-          <CCCard padding="md">
-           <div className="flex items-center gap-3">
-             <div className="w-10 h-10 rounded-lg bg-[#F59E0B]/20 flex items-center justify-center">
-               <CheckCircle className="w-5 h-5 text-[#F59E0B]" />
-             </div>
-             <div>
-               <p className="text-2xl font-bold text-[#E8EEF9]">{awaitingCompletionCollabs.length}</p>
-               <p className="text-xs text-[#6B7A94]">Awaiting Completion</p>
-             </div>
-           </div>
-          </CCCard>
+            </CCCard>
           </div>
+          <div className="grid grid-cols-2 gap-3 max-w-md mx-auto w-full">
+            <CCCard padding="md">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-[#22C55E]/20 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-[#22C55E]" />
+                </div>
+                <div>
+                  <p className="text-xl sm:text-2xl font-bold text-[#E8EEF9]">{completedCollabs}</p>
+                  <p className="text-[10px] sm:text-xs text-[#6B7A94] leading-tight">Completed</p>
+                </div>
+              </div>
+            </CCCard>
+            <CCCard padding="md">
+              <div className="flex items-center gap-2 sm:gap-3">
+                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-[#F59E0B]/20 flex items-center justify-center flex-shrink-0">
+                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-[#F59E0B]" />
+                </div>
+                <div>
+                  <p className="text-xl sm:text-2xl font-bold text-[#E8EEF9]">{awaitingCompletionCollabs.length}</p>
+                  <p className="text-[10px] sm:text-xs text-[#6B7A94] leading-tight">Awaiting Completion</p>
+                </div>
+              </div>
+            </CCCard>
+          </div>
+        </div>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {/* Left Column */}
           <div className="md:col-span-2 space-y-6">
             {/* Quick Actions */}
@@ -413,7 +465,7 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
             {myReputationScore && (
               <CCCard padding="lg">
                 <h2 className="text-sm font-semibold text-[#E8EEF9] mb-3 text-center">Trust Standing</h2>
-                <ReputationScoreBar score={myReputationScore} showFactors />
+                <ReputationScoreBarWithFlags score={myReputationScore} onFlagsClick={() => setShowFlagsModal(true)} />
               </CCCard>
             )}
 
@@ -481,6 +533,43 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
 
       <CCModal isOpen={showEarnings} onClose={() => setShowEarnings(false)} title="Earnings Tracker" size="lg">
         <EarningsTracker userId={user?.email} />
+      </CCModal>
+
+      {/* Flags Modal */}
+      <CCModal
+        isOpen={showFlagsModal}
+        onClose={() => setShowFlagsModal(false)}
+        title="Moderation Flags"
+        description="These flags affect your trust standing score."
+      >
+        <div className="space-y-3">
+          <div className="p-3 bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-xl">
+            <p className="text-sm text-[#E8EEF9] font-medium mb-1 flex items-center gap-2">
+              <Flag className="w-4 h-4 text-[#F59E0B]" />
+              {myReputationScore?.factors?.moderation_flags || 0} Active Flag{(myReputationScore?.factors?.moderation_flags || 0) !== 1 ? 's' : ''}
+            </p>
+            <p className="text-xs text-[#9AA6BC]">
+              Flags are issued by the platform moderation team based on reports or policy violations. 
+              They are not associated with any specific user.
+            </p>
+          </div>
+          <div className="space-y-2">
+            {Array.from({ length: myReputationScore?.factors?.moderation_flags || 0 }).map((_, i) => (
+              <div key={i} className="flex items-start gap-3 p-3 bg-[#151D2B] border border-[#263248] rounded-xl">
+                <div className="w-7 h-7 rounded-full bg-[#F59E0B]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Flag className="w-3.5 h-3.5 text-[#F59E0B]" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-[#E8EEF9]">Platform Moderation Flag</p>
+                  <p className="text-xs text-[#6B7A94] mt-0.5">Issued by platform moderation team · Details are private</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-[#6B7A94] text-center pt-1">
+            To appeal a flag, contact support through the Help section.
+          </p>
+        </div>
       </CCModal>
     </div>
   );
