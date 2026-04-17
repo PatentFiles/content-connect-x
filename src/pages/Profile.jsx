@@ -700,7 +700,7 @@ export default function Profile() {
             </CCCard>
 
             {/* Creator Sections - EDIT MODE */}
-            {(profile?.role_type === 'creator' || profile?.is_admin) && isEditing && (
+            {(profile?.role_type === 'creator') && isEditing && (
               <>
                 {/* Scene Pairings */}
                 <CCCard padding="lg">
@@ -1227,7 +1227,7 @@ export default function Profile() {
             )}
 
             {/* Creator Sections - VIEW MODE */}
-            {(profile?.role_type === 'creator' || profile?.is_admin) && !isEditing && (
+            {(profile?.role_type === 'creator') && !isEditing && (
               <>
                 {/* Scene Pairings */}
                 {details?.scene_pairings && details.scene_pairings.length > 0 && (
@@ -1390,10 +1390,11 @@ export default function Profile() {
               </>
             )}
 
-            {/* Availability and Travel */}
-            <CCCard padding="lg">
-              <div className="space-y-4">
-                <AvailabilityTravelSection user={user} profile={profile} />
+            {/* Availability and Travel — Creators only */}
+            {profile?.role_type === 'creator' && (
+              <CCCard padding="lg">
+                <div className="space-y-4">
+                  <AvailabilityTravelSection user={user} profile={profile} />
                 {!isEditing && (
                   <div className="flex gap-3 pt-4 border-t border-[#263248]">
                     <Link to={createPageUrl('AvailabilitySchedule')} className="flex-1">
@@ -1408,8 +1409,9 @@ export default function Profile() {
                     </Link>
                   </div>
                 )}
-              </div>
-            </CCCard>
+                </div>
+              </CCCard>
+            )}
 
             {/* AI Bio Generator - At the very bottom */}
             {isEditing && (
