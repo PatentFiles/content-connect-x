@@ -5,11 +5,14 @@ Deno.serve(async (req) => {
     return Response.json({ error: 'Method not allowed' }, { status: 405 });
   }
 
+  let action, targetUserId, currentUser;
+
   try {
     const base44 = createClientFromRequest(req);
 
     // 1. Authenticate caller
     const user = await base44.auth.me();
+    currentUser = user?.email;
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
@@ -24,11 +27,15 @@ Deno.serve(async (req) => {
     }
 
     // 3. Parse input
-    const { action, targetUserId, reason } = await req.json();
+    const body = await req.json();
+    action = body.action;
+    targetUserId = body.targetUserId;
+    const { reason } = body;
 
     if (!action || !targetUserId) {
       return Response.json({ error: 'action and targetUserId are required' }, { status: 400 });
     }
+
 
     const validActions = ['make_admin', 'remove_admin', 'ban', 'unban'];
     if (!validActions.includes(action)) {
@@ -101,7 +108,13 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('adminModerationAction error:', error);
+    console.error('ADMIN ACTION ERROR:', {
+      error: error.message,
+      stack: error.stack,
+      action,
+      targetUserId,
+      currentUser,
+    });
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
