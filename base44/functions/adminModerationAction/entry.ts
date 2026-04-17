@@ -108,13 +108,17 @@ Deno.serve(async (req) => {
     });
 
   } catch (error) {
-    console.error('ADMIN ACTION ERROR:', {
-      error: error.message,
-      stack: error.stack,
+    console.error('ADMIN ACTION ERROR', {
+      message: error?.message,
+      stack: error?.stack,
       action,
       targetUserId,
       currentUser,
     });
-    return Response.json({ error: error.message }, { status: 500 });
+
+    return Response.json({
+      success: false,
+      error: error?.message || 'Unknown error',
+    });
   }
 });

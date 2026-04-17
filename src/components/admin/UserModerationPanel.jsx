@@ -13,8 +13,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 // ─── Helper: call the secure server-side moderation function ─────────────────
 async function callModerationAction({ action, targetUserId, reason }) {
   const res = await base44.functions.invoke('adminModerationAction', { action, targetUserId, reason });
-  if (!res.data?.success) {
-    throw new Error(res.data?.error || 'Action failed');
+
+  console.log('ADMIN RESPONSE:', res);
+
+  if (!res.data || res.data.success === false) {
+    throw new Error(res.data?.error || 'Admin action failed');
   }
   return res.data;
 }
