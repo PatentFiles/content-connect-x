@@ -100,7 +100,7 @@ const faqs = [
   },
   {
     q: 'How do payments work?',
-    a: 'Content Connect does not process collaboration payments. All compensation terms are recorded in contracts, but payments are handled externally between parties.',
+    a: 'Only Collabs X does not process collaboration payments. All compensation terms are recorded in contracts, but payments are handled externally between parties.',
   },
 ];
 
@@ -114,7 +114,7 @@ export default function HowItWorks() {
           animate={{ opacity: 1, y: 0 }}
         >
           <h1 className="text-4xl md:text-5xl font-bold text-[#E8EEF9] mb-4">
-            How Content Connect Works
+          How Only Collabs X Works
           </h1>
           <p className="text-lg text-[#9AA6BC] max-w-2xl mx-auto">
             Our five-step process ensures safe, professional collaborations from start to finish.

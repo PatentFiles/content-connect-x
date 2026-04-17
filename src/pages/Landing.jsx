@@ -278,9 +278,9 @@ export default function Landing() {
             <div className="text-center md:text-left">
               <div className="flex items-center gap-2 mb-4 justify-center md:justify-start">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4F8CFF] to-[#FF2DAA] flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">CC</span>
+                  <span className="text-white font-bold text-sm">OCX</span>
                 </div>
-                <span className="text-[#E8EEF9] font-semibold">Content Connect</span>
+                <span className="text-[#E8EEF9] font-semibold">Only Collabs X</span>
               </div>
               <p className="text-sm text-[#6B7A94]">
                 The verified collaboration network for professional content creators.
@@ -304,12 +304,12 @@ export default function Landing() {
             <div className="text-center md:text-left">
               <h4 className="font-semibold text-[#E8EEF9] mb-4">Support</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="mailto:support@contentconnect.com" className="text-[#9AA6BC] hover:text-[#E8EEF9]">Contact Us</a></li>
+                <li><a href="mailto:support@onlycollabsx.com" className="text-[#9AA6BC] hover:text-[#E8EEF9]">Contact Us</a></li>
               </ul>
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-[#263248] text-center text-sm text-[#6B7A94]">
-            © {new Date().getFullYear()} Content Connect. All rights reserved.
+            © {new Date().getFullYear()} Only Collabs X. All rights reserved.
           </div>
         </div>
       </footer>

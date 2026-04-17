@@ -28,12 +28,10 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
       <div className="w-full px-4 h-16 flex items-center justify-between">
         {/* Left — Logo */}
         <Link to={createPageUrl('Landing')} className="flex items-center gap-2 flex-shrink-0">
-          <img 
-            src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69495df631e52046b1356040/51f211167_image.png"
-            alt="Content Connect"
-            className="w-8 h-8 rounded-lg object-contain"
-          />
-          <span className="text-[#E8EEF9] font-semibold text-lg hidden sm:block">Content Connect</span>
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4F8CFF] to-[#FF2DAA] flex items-center justify-center flex-shrink-0">
+            <span className="text-white font-bold text-xs">OCX</span>
+          </div>
+          <span className="text-[#E8EEF9] font-semibold text-lg hidden sm:block">Only Collabs X</span>
         </Link>
 
         {/* Center — Desktop public nav */}
