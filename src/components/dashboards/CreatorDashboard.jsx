@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -36,7 +37,8 @@ import EarningsTracker from '@/components/earnings/EarningsTracker';
 import ReputationBadge, { ReputationScoreBar } from '@/components/trust/ReputationBadge';
 import CCModal from '../ui-custom/CCModal';
 
-function ReputationScoreBarWithFlags({ score, onFlagsClick }) {
+function ReputationScoreBarWithFlags({ score }) {
+  const navigate = useNavigate();
   if (!score) return null;
   const pct = Math.round(score.score);
   const flags = score.factors?.moderation_flags || 0;
@@ -68,7 +70,7 @@ function ReputationScoreBarWithFlags({ score, onFlagsClick }) {
           )}
           {flags > 0 && (
             <button
-              onClick={onFlagsClick}
+              onClick={() => navigate('/ModerationFlags')}
               className="text-[#F59E0B] hover:text-[#FCD34D] flex items-center gap-1 transition-colors text-left col-span-2"
             >
               <Flag className="w-3 h-3 flex-shrink-0" />
@@ -86,8 +88,8 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
   const [showAvailability, setShowAvailability] = useState(false);
   const [showTravelDate, setShowTravelDate] = useState(false);
   const [showEarnings, setShowEarnings] = useState(false);
-  const [showFlagsModal, setShowFlagsModal] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   // Fetch active collaborations (draft/negotiating/agreed)
   const { data: collaborations = [] } = useQuery({
@@ -526,7 +528,7 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
           {myReputationScore ? (
             <CCCard padding="lg">
               <h2 className="text-sm font-semibold text-[#E8EEF9] mb-3 text-center">Trust Standing</h2>
-              <ReputationScoreBarWithFlags score={myReputationScore} onFlagsClick={() => setShowFlagsModal(true)} />
+              <ReputationScoreBarWithFlags score={myReputationScore} />
             </CCCard>
           ) : <div />}
           <CCCard padding="lg">
@@ -565,42 +567,7 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
         <EarningsTracker userId={user?.email} />
       </CCModal>
 
-      {/* Flags Modal */}
-      <CCModal
-        isOpen={showFlagsModal}
-        onClose={() => setShowFlagsModal(false)}
-        title="Moderation Flags"
-        description="These flags affect your trust standing score."
-      >
-        <div className="space-y-3">
-          <div className="p-3 bg-[#F59E0B]/10 border border-[#F59E0B]/30 rounded-xl">
-            <p className="text-sm text-[#E8EEF9] font-medium mb-1 flex items-center gap-2">
-              <Flag className="w-4 h-4 text-[#F59E0B]" />
-              {myReputationScore?.factors?.moderation_flags || 0} Active Flag{(myReputationScore?.factors?.moderation_flags || 0) !== 1 ? 's' : ''}
-            </p>
-            <p className="text-xs text-[#9AA6BC]">
-              Flags are issued by the platform moderation team based on reports or policy violations. 
-              They are not associated with any specific user.
-            </p>
-          </div>
-          <div className="space-y-2">
-            {Array.from({ length: myReputationScore?.factors?.moderation_flags || 0 }).map((_, i) => (
-              <div key={i} className="flex items-start gap-3 p-3 bg-[#151D2B] border border-[#263248] rounded-xl">
-                <div className="w-7 h-7 rounded-full bg-[#F59E0B]/20 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <Flag className="w-3.5 h-3.5 text-[#F59E0B]" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-[#E8EEF9]">Platform Moderation Flag</p>
-                  <p className="text-xs text-[#6B7A94] mt-0.5">Issued by platform moderation team · Details are private</p>
-                </div>
-              </div>
-            ))}
-          </div>
-          <p className="text-xs text-[#6B7A94] text-center pt-1">
-            To appeal a flag, contact support through the Help section.
-          </p>
-        </div>
-      </CCModal>
+
     </div>
   );
 }

@@ -1,0 +1,79 @@
+{
+  "name": "FlagAppeal",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "User who submitted the appeal"
+    },
+    "flag_index": {
+      "type": "number",
+      "description": "Which flag number is being appealed (1-based)"
+    },
+    "appeal_message": {
+      "type": "string",
+      "description": "User's appeal explanation"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "reviewed",
+        "upheld",
+        "cleared"
+      ],
+      "default": "pending",
+      "description": "Appeal review status"
+    },
+    "admin_response": {
+      "type": "string",
+      "description": "Admin's detailed response to the appeal"
+    },
+    "reviewed_by": {
+      "type": "string",
+      "description": "Admin user ID who reviewed"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "user_id",
+    "appeal_message"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

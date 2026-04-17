@@ -40,6 +40,7 @@ const Verification         = lazy(() => import('./pages/Verification'));
 const ViewContract         = lazy(() => import('./pages/ViewContract'));
 const ViewProfile          = lazy(() => import('./pages/ViewProfile'));
 const DeveloperReadMe      = lazy(() => import('./pages/DeveloperReadMe'));
+const ModerationFlags      = lazy(() => import('./pages/ModerationFlags'));
 
 // Fullscreen spinner shown while a lazy chunk loads
 function PageLoader() {
@@ -94,6 +95,7 @@ export const PAGES = {
   ViewContract:         withSuspense(ViewContract),
   ViewProfile:          withSuspense(ViewProfile),
   DeveloperReadMe:      withSuspense(DeveloperReadMe),
+  ModerationFlags:      withSuspense(ModerationFlags),
 };
 
 export const pagesConfig = {
