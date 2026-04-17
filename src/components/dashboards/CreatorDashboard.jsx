@@ -138,11 +138,37 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
   });
   const myReputationScore = reputationScores[0];
 
-  // Fetch favorites
+  // Fetch favorites + validate against active profiles, auto-clean deleted
   const { data: favorites = [] } = useQuery({
     queryKey: ['myFavorites', user?.email],
     queryFn: () => base44.entities.Favorite.filter({ owner_id: user?.email }),
     enabled: !!user?.email,
+  });
+
+  const { data: activeFavCount = 0 } = useQuery({
+    queryKey: ['myFavoritesCount', user?.email, favorites.map(f => f.id).join(',')],
+    queryFn: async () => {
+      const allFavUserIds = [...new Set(favorites.flatMap(f => f.items?.map(i => i.user_id) || []))];
+      if (allFavUserIds.length === 0) return 0;
+      const allProfiles = await base44.entities.UserProfile.list();
+      const activeIds = new Set(
+        allProfiles
+          .filter(p => !p.banned && !p.account_deactivated && p.deletion_status !== 'anonymized' && p.deletion_status !== 'completed')
+          .map(p => p.user_id)
+      );
+      const deletedIds = allFavUserIds.filter(id => !activeIds.has(id));
+      if (deletedIds.length > 0) {
+        favorites.forEach(list => {
+          if (list.items?.some(i => deletedIds.includes(i.user_id))) {
+            base44.entities.Favorite.update(list.id, {
+              items: list.items.filter(i => !deletedIds.includes(i.user_id))
+            });
+          }
+        });
+      }
+      return allFavUserIds.filter(id => activeIds.has(id)).length;
+    },
+    enabled: favorites.length > 0,
   });
 
   const createTaskMutation = useMutation({
@@ -446,7 +472,7 @@ export default function CreatorDashboard({ user, profile, onboardingChecklist, o
               <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4 text-center">Favorites</h2>
               <div className="flex items-center gap-2 mb-3">
                 <Heart className="w-4 h-4 text-[#FF2DAA]" />
-                <p className="text-2xl font-bold text-[#E8EEF9]">{favorites.length}</p>
+                <p className="text-2xl font-bold text-[#E8EEF9]">{activeFavCount}</p>
                 <p className="text-sm text-[#6B7A94]">saved</p>
               </div>
               <div className="mt-auto">
