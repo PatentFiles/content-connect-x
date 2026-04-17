@@ -133,21 +133,19 @@ export default function ModerationFlags() {
               return (
                 <motion.div key={flagNum} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
                   <CCCard padding="lg">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-[#F59E0B]/20 flex items-center justify-center">
-                          <Flag className="w-4 h-4 text-[#F59E0B]" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-semibold text-[#E8EEF9]">Moderation Flag #{flagNum}</p>
-                          <p className="text-xs text-[#6B7A94]">Issued by platform moderation team · Details are private</p>
-                        </div>
+                    <div className="text-center mb-3">
+                      <div className="w-8 h-8 rounded-full bg-[#F59E0B]/20 flex items-center justify-center mx-auto mb-2">
+                        <Flag className="w-4 h-4 text-[#F59E0B]" />
                       </div>
+                      <p className="text-sm font-semibold text-[#E8EEF9]">Moderation Flag #{flagNum}</p>
+                      <p className="text-xs text-[#6B7A94]">Issued by platform moderation team · Details are private</p>
                       {statusCfg && (
-                        <CCBadge variant={statusCfg.variant} size="sm">
-                          {StatusIcon && <StatusIcon className="w-3 h-3 mr-1 inline" />}
-                          {statusCfg.label}
-                        </CCBadge>
+                        <div className="flex justify-center mt-2">
+                          <CCBadge variant={statusCfg.variant} size="sm">
+                            {StatusIcon && <StatusIcon className="w-3 h-3 mr-1 inline" />}
+                            {statusCfg.label}
+                          </CCBadge>
+                        </div>
                       )}
                     </div>
 
@@ -197,9 +195,11 @@ export default function ModerationFlags() {
                             </div>
                           </div>
                         ) : (
-                          <CCButton variant="outline" size="sm" onClick={() => setAppealingIndex(flagNum)}>
-                            Appeal This Flag
-                          </CCButton>
+                          <div className="text-center">
+                            <CCButton variant="outline" size="sm" onClick={() => setAppealingIndex(flagNum)}>
+                              Appeal This Flag
+                            </CCButton>
+                          </div>
                         )}
                       </>
                     )}
