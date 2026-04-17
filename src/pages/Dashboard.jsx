@@ -14,6 +14,7 @@ import PullToRefresh from '../components/ui-custom/PullToRefresh';
 export default function Dashboard() {
   const [showWizard, setShowWizard] = useState(false);
   const [wizardDismissed, setWizardDismissed] = useState(false);
+  const [manualWizard, setManualWizard] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: user, isLoading: userLoading } = useQuery({
@@ -58,17 +59,25 @@ export default function Dashboard() {
   return (
     <PullToRefresh onRefresh={handleRefresh} className="min-h-screen" scrollable={false}>
       {/* Onboarding checklist — rendered inside dashboards below */}
-      {(autoShowWizard || showWizard) && (
+      {autoShowWizard && !manualWizard && (
         <ProfileWizard
           user={user}
           profile={profile}
-          onComplete={() => { setShowWizard(false); setWizardDismissed(true); }}
-          onSkip={() => { setShowWizard(false); setWizardDismissed(true); }}
+          onComplete={() => { setWizardDismissed(true); }}
+          onSkip={() => { setWizardDismissed(true); }}
+        />
+      )}
+      {manualWizard && (
+        <ProfileWizard
+          user={user}
+          profile={profile}
+          onComplete={() => { setManualWizard(false); setWizardDismissed(true); }}
+          onSkip={() => setManualWizard(false)}
         />
       )}
       {React.cloneElement(dashboards[roleType] || dashboards.creator, {
         onboardingChecklist: <OnboardingChecklist user={user} profile={profile} />,
-        onOpenWizard: () => setShowWizard(true),
+        onOpenWizard: () => setManualWizard(true),
       })}
     </PullToRefresh>
   );
