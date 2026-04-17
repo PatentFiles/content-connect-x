@@ -133,7 +133,15 @@ export default function Discovery() {
     queryKey: ['allProfiles'],
     queryFn: async () => {
       let profiles = await base44.entities.UserProfile.list();
-      return profiles.filter(p => p.user_id !== user?.email && p.role_type !== 'admin' && p.profile_complete);
+      return profiles.filter(p =>
+        p.user_id !== user?.email &&
+        p.role_type !== 'admin' &&
+        p.profile_complete &&
+        !p.banned &&
+        !p.account_deactivated &&
+        p.deletion_status !== 'anonymized' &&
+        p.deletion_status !== 'completed'
+      );
     },
     enabled: !!user && isVerified && isSubscribed,
     staleTime: 5 * 60 * 1000,

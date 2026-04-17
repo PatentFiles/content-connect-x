@@ -62,44 +62,29 @@ export default function AgentManagement() {
         </div>
 
         {/* Tabs */}
-        <CCTabs value={activeTab} onValueChange={setActiveTab}>
-          <CCTabsList>
+        <div className="flex flex-wrap gap-2 mb-6">
+          {[
+            { value: 'agents', label: 'Agents', icon: Shield },
+            { value: 'permissions', label: 'Permissions', icon: Settings },
+            { value: 'runs', label: 'Runs', icon: Clock },
+            { value: 'flags', label: 'Flags', icon: Flag },
+            { value: 'risk_scores', label: 'Risk Scores', icon: TrendingUp },
+          ].map(({ value, label, icon: Icon }) => (
             <button
-              onClick={() => setActiveTab('agents')}
-              className={activeTab === 'agents' ? 'active' : ''}
+              key={value}
+              onClick={() => setActiveTab(value)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                activeTab === value
+                  ? 'bg-[#4F8CFF] text-white'
+                  : 'bg-[#151D2B] border border-[#263248] text-[#9AA6BC] hover:text-[#E8EEF9] hover:bg-[#1A2438]'
+              }`}
             >
-              <Shield className="w-4 h-4" />
-              Agents
+              <Icon className="w-4 h-4" />
+              {label}
             </button>
-            <button
-              onClick={() => setActiveTab('permissions')}
-              className={activeTab === 'permissions' ? 'active' : ''}
-            >
-              <Settings className="w-4 h-4" />
-              Permissions
-            </button>
-            <button
-              onClick={() => setActiveTab('runs')}
-              className={activeTab === 'runs' ? 'active' : ''}
-            >
-              <Clock className="w-4 h-4" />
-              Runs
-            </button>
-            <button
-              onClick={() => setActiveTab('flags')}
-              className={activeTab === 'flags' ? 'active' : ''}
-            >
-              <Flag className="w-4 h-4" />
-              Flags
-            </button>
-            <button
-              onClick={() => setActiveTab('risk_scores')}
-              className={activeTab === 'risk_scores' ? 'active' : ''}
-            >
-              <TrendingUp className="w-4 h-4" />
-              Risk Scores
-            </button>
-          </CCTabsList>
+          ))}
+        </div>
+        <div>
 
           <CCTabsContent value="agents" activeTab={activeTab}>
             <AgentsList currentAdmin={user} />
@@ -120,7 +105,7 @@ export default function AgentManagement() {
           <CCTabsContent value="risk_scores" activeTab={activeTab}>
             <AgentRiskScores />
           </CCTabsContent>
-        </CCTabs>
+        </div>
       </div>
     </div>
   );

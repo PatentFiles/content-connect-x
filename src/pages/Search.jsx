@@ -96,7 +96,15 @@ export default function Search() {
     queryKey: ['searchProfiles'],
     queryFn: async () => {
       let profiles = await base44.entities.UserProfile.list('-updated_date', 1000);
-      return profiles.filter(p => p.user_id !== user?.email && !p.is_admin && p.profile_complete);
+      return profiles.filter(p =>
+        p.user_id !== user?.email &&
+        !p.is_admin &&
+        p.profile_complete &&
+        !p.banned &&
+        !p.account_deactivated &&
+        p.deletion_status !== 'anonymized' &&
+        p.deletion_status !== 'completed'
+      );
     },
     enabled: !!user && isVerified && isSubscribed,
     staleTime: 5 * 60 * 1000,

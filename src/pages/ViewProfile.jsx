@@ -411,6 +411,22 @@ export default function ViewProfile() {
     );
   }
 
+  // Block access for deleted or banned profiles (non-admins only)
+  const profileIsDeleted = profile.account_deactivated || profile.deletion_status === 'anonymized' || profile.deletion_status === 'completed';
+  const profileIsBanned = profile.banned;
+  if ((profileIsDeleted || profileIsBanned) && !isAdmin) {
+    return (
+      <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center">
+        <CCEmpty
+          title="User not available"
+          description="This account is no longer accessible."
+          action={() => window.history.back()}
+          actionLabel="Go Back"
+        />
+      </div>
+    );
+  }
+
   const creator = creatorDetails[0];
   const agent = agentDetails[0];
   const service = serviceDetails[0];

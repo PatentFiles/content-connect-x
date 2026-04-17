@@ -23,6 +23,7 @@ async function callModerationAction({ action, targetUserId, reason }) {
 }
 
 export default function UserModerationPanel({ currentAdmin }) {
+  const [activeTab, setActiveTab] = useState('active'); // 'active' | 'deleted'
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [verificationFilter, setVerificationFilter] = useState('all');
@@ -213,7 +214,13 @@ export default function UserModerationPanel({ currentAdmin }) {
   };
 
   // ── Filter logic ─────────────────────────────────────────────────────────────
+  const isDeleted = (p) => p.account_deactivated || p.deletion_status === 'anonymized' || p.deletion_status === 'completed';
+
   const filteredProfiles = profiles.filter(profile => {
+    // Tab segregation
+    if (activeTab === 'deleted' && !isDeleted(profile)) return false;
+    if (activeTab === 'active' && isDeleted(profile)) return false;
+
     const matchesSearch =
       searchTerm === '' ||
       profile.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -243,11 +250,40 @@ export default function UserModerationPanel({ currentAdmin }) {
 
   const isPending = moderationMutation.isPending || deleteAccountMutation.isPending;
 
+  const deletedCount = profiles.filter(isDeleted).length;
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold text-[#E8EEF9] mb-2">User Moderation</h2>
         <p className="text-sm text-[#6B7A94]">Search, filter, and moderate user accounts</p>
+      </div>
+
+      {/* Tab switcher */}
+      <div className="flex gap-2">
+        <button
+          onClick={() => setActiveTab('active')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            activeTab === 'active'
+              ? 'bg-[#4F8CFF] text-white'
+              : 'bg-[#151D2B] border border-[#263248] text-[#9AA6BC] hover:text-[#E8EEF9]'
+          }`}
+        >
+          Active Users
+        </button>
+        <button
+          onClick={() => setActiveTab('deleted')}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
+            activeTab === 'deleted'
+              ? 'bg-[#6B7A94] text-white'
+              : 'bg-[#151D2B] border border-[#263248] text-[#9AA6BC] hover:text-[#E8EEF9]'
+          }`}
+        >
+          Deleted Accounts
+          {deletedCount > 0 && (
+            <span className="bg-[#263248] text-[#9AA6BC] text-xs px-1.5 py-0.5 rounded-full">{deletedCount}</span>
+          )}
+        </button>
       </div>
 
       {/* Filters */}
@@ -340,8 +376,8 @@ export default function UserModerationPanel({ currentAdmin }) {
                       {userSubscription?.status === 'active' && userSubscription.plan_id !== 'admin_access' && (
                         <CCBadge variant="primary" size="sm">{userSubscription.plan_id}</CCBadge>
                       )}
-                      {profile.banned && <CCBadge variant="danger" size="sm">BANNED</CCBadge>}
-                      {profile.suspended && !profile.banned && <CCBadge variant="warning" size="sm">SUSPENDED</CCBadge>}
+                      {isDeleted(profile) && <CCBadge variant="default" size="sm">Deleted</CCBadge>}
+                      {profile.banned && !isDeleted(profile) && <CCBadge variant="danger" size="sm">Banned</CCBadge>}
                     </div>
                     <p className="text-xs text-[#6B7A94]">{profile.user_id}</p>
                   </div>
