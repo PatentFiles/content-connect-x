@@ -1,11 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Compass, MapPin, Filter, ChevronRight, Users, Camera, Video, Briefcase, Building } from 'lucide-react';
-import { revalidateBanStatus } from '@/hooks/useProtectedMutation';
+import { Compass, MapPin, ChevronRight, Users, Camera, Video, Briefcase, Building } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import { CCLoadingScreen, CCProfileCardSkeleton } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
@@ -16,7 +15,6 @@ import SaveToFavoritesModal from '@/components/profiles/SaveToFavoritesModal';
 import ReportModal from '@/components/moderation/ReportModal';
 import AgentRepresentationRequestModal from '@/components/representation/AgentRepresentationRequestModal';
 import TopCreators from '@/components/discovery/TopCreators';
-import CollaborationFeed from '@/components/discovery/CollaborationFeed';
 import TravelSync from '@/components/discovery/TravelSync';
 import AgentMarketplaceCard from '@/components/marketplace/AgentMarketplaceCard';
 
@@ -71,7 +69,7 @@ export default function Discovery() {
     availableDates: [],
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (roleParam) setSelectedRole(roleParam);
   }, []);
 
