@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+import { createClientFromRequest, createClient } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {
@@ -8,27 +8,20 @@ Deno.serve(async (req) => {
   let action, targetUserId, currentUser;
 
   try {
-    const base44 = createClientFromRequest(req);
+    // userClient: only used for auth (respects request token)
+    const userClient = createClientFromRequest(req);
 
-    // Elevated client — ALL database operations go through this
-    const adminClient = base44.asServiceRole;
+    // adminClient: elevated client that bypasses RLS
+    const adminClient = createClient({ useAdmin: true });
 
-    // 1. Authenticate caller (auth.me uses the request token, not service role — correct)
-    const user = await base44.auth.me();
+    // 1. Authenticate caller
+    const user = await userClient.auth.me();
     currentUser = user?.email;
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 2. Verify caller is admin — service role bypasses RLS
-    const callerProfiles = await adminClient.entities.UserProfile.filter({ user_id: user.email });
-    const callerProfile = callerProfiles[0];
-
-    if (!callerProfile || callerProfile.role_type !== 'admin' || callerProfile.is_admin !== true) {
-      return Response.json({ error: 'Unauthorized: Admin privileges required' }, { status: 403 });
-    }
-
-    // 3. Parse input
+    // 2. Parse input
     const body = await req.json();
     action = body.action;
     targetUserId = body.targetUserId;
@@ -43,7 +36,15 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Invalid action: ${action}. Must be one of: ${validActions.join(', ')}` }, { status: 400 });
     }
 
-    // 4. Fetch target profile — service role bypasses RLS
+    // 3. Verify caller is admin — using adminClient to bypass RLS
+    const callerProfiles = await adminClient.entities.UserProfile.filter({ user_id: user.email });
+    const callerProfile = callerProfiles[0];
+
+    if (!callerProfile || callerProfile.role_type !== 'admin' || callerProfile.is_admin !== true) {
+      return Response.json({ error: 'Unauthorized: Admin privileges required' }, { status: 403 });
+    }
+
+    // 4. Fetch target profile — using adminClient to bypass RLS
     const targetProfiles = await adminClient.entities.UserProfile.filter({ user_id: targetUserId });
     const targetProfile = targetProfiles[0];
 
@@ -54,33 +55,28 @@ Deno.serve(async (req) => {
     // 5. Build update payload
     let updateData = {};
 
-    switch (action) {
-      case 'make_admin':
-        updateData = { is_admin: true, role_type: 'admin' };
-        break;
-      case 'remove_admin':
-        updateData = { is_admin: false, role_type: 'creator' };
-        break;
-      case 'ban':
-        updateData = {
-          banned: true,
-          suspended: true,
-          suspension_reason: reason || 'Violation of platform policies',
-        };
-        break;
-      case 'unban':
-        updateData = {
-          banned: false,
-          suspended: false,
-          suspension_reason: null,
-        };
-        break;
+    if (action === 'make_admin') {
+      updateData = { is_admin: true, role_type: 'admin' };
+    } else if (action === 'remove_admin') {
+      updateData = { is_admin: false, role_type: 'creator' };
+    } else if (action === 'ban') {
+      updateData = {
+        banned: true,
+        suspended: true,
+        suspension_reason: reason || 'Violation of platform policies',
+      };
+    } else if (action === 'unban') {
+      updateData = {
+        banned: false,
+        suspended: false,
+        suspension_reason: null,
+      };
     }
 
-    // 6. Update UserProfile — service role bypasses RLS
+    // 6. Update UserProfile — adminClient bypasses RLS
     await adminClient.entities.UserProfile.update(targetProfile.id, updateData);
 
-    // 7. Log the action — service role bypasses RLS
+    // 7. Log the action — adminClient bypasses RLS
     await adminClient.entities.AdminActionLog.create({
       admin_user_id: user.email,
       target_type: 'User',
