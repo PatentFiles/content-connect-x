@@ -22,7 +22,7 @@ import CollaborationFeed from '@/components/discovery/CollaborationFeed';
 import TravelSync from '@/components/discovery/TravelSync';
 import AgentMarketplaceCard from '@/components/marketplace/AgentMarketplaceCard';
 
-// Calculate distance between two coordinates in miles
+// Calculates distance between two coordinates in miles
 function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 3959; // Radius of Earth in miles
   const dLat = (lat2 - lat1) * Math.PI / 180;
