@@ -438,30 +438,44 @@ export default function UserModerationPanel({ currentAdmin }) {
                         >
                           View Profile
                         </CCButton>
-                        <CCButton
-                          variant="outline"
-                          size="sm"
-                          icon={UserX}
-                          onClick={() => handleAction('suspend_account', profile)}
-                        >
-                          Suspend
-                        </CCButton>
-                        <CCButton
-                          variant="outline"
-                          size="sm"
-                          icon={UserCheck}
-                          onClick={() => handleAction('unsuspend_account', profile)}
-                        >
-                          Unsuspend
-                        </CCButton>
-                        <CCButton
-                          variant="danger"
-                          size="sm"
-                          icon={Ban}
-                          onClick={() => handleAction('ban_account', profile)}
-                        >
-                          Ban
-                        </CCButton>
+                        {profile.suspended && !profile.banned ? (
+                          <CCButton
+                            variant="outline"
+                            size="sm"
+                            icon={UserCheck}
+                            onClick={() => handleAction('unsuspend_account', profile)}
+                          >
+                            Unsuspend
+                          </CCButton>
+                        ) : !profile.banned ? (
+                          <CCButton
+                            variant="outline"
+                            size="sm"
+                            icon={UserX}
+                            onClick={() => handleAction('suspend_account', profile)}
+                          >
+                            Suspend
+                          </CCButton>
+                        ) : null}
+                        {profile.banned ? (
+                          <CCButton
+                            variant="success"
+                            size="sm"
+                            icon={UserCheck}
+                            onClick={() => handleAction('unsuspend_account', profile)}
+                          >
+                            Unban
+                          </CCButton>
+                        ) : (
+                          <CCButton
+                            variant="danger"
+                            size="sm"
+                            icon={Ban}
+                            onClick={() => handleAction('ban_account', profile)}
+                          >
+                            Ban
+                          </CCButton>
+                        )}
                         {userVerification && (
                           <CCButton
                             variant="outline"
