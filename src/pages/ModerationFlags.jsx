@@ -93,15 +93,12 @@ export default function ModerationFlags() {
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Header */}
-        <div className="flex items-center gap-3 mb-6">
+        <div className="mb-6">
           <Link to={createPageUrl('Dashboard')}>
             <CCButton variant="ghost" size="sm" icon={ChevronLeft}>Back</CCButton>
           </Link>
-          <div>
-            <h1 className="text-xl font-bold text-[#E8EEF9] flex items-center gap-2">
-              <Flag className="w-5 h-5 text-[#F59E0B]" />
-              Moderation Flags
-            </h1>
+          <div className="text-center mt-2">
+            <h1 className="text-xl font-semibold text-[#E8EEF9]">Moderation Flags</h1>
             <p className="text-xs text-[#6B7A94] mt-0.5">View and appeal flags on your account</p>
           </div>
         </div>
