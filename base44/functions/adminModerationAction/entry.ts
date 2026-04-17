@@ -10,16 +10,18 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
-    // 1. Authenticate caller
+    // Elevated client — ALL database operations go through this
+    const adminClient = base44.asServiceRole;
+
+    // 1. Authenticate caller (auth.me uses the request token, not service role — correct)
     const user = await base44.auth.me();
     currentUser = user?.email;
     if (!user) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // 2. Verify caller is an admin via service role (bypasses RLS)
-    const svc = base44.asServiceRole;
-    const callerProfiles = await svc.entities.UserProfile.filter({ user_id: user.email });
+    // 2. Verify caller is admin — service role bypasses RLS
+    const callerProfiles = await adminClient.entities.UserProfile.filter({ user_id: user.email });
     const callerProfile = callerProfiles[0];
 
     if (!callerProfile || callerProfile.role_type !== 'admin' || callerProfile.is_admin !== true) {
@@ -36,33 +38,29 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'action and targetUserId are required' }, { status: 400 });
     }
 
-
     const validActions = ['make_admin', 'remove_admin', 'ban', 'unban'];
     if (!validActions.includes(action)) {
       return Response.json({ error: `Invalid action: ${action}. Must be one of: ${validActions.join(', ')}` }, { status: 400 });
     }
 
-    // 4. Fetch target profile via service role (bypasses RLS)
-    const targetProfiles = await svc.entities.UserProfile.filter({ user_id: targetUserId });
+    // 4. Fetch target profile — service role bypasses RLS
+    const targetProfiles = await adminClient.entities.UserProfile.filter({ user_id: targetUserId });
     const targetProfile = targetProfiles[0];
 
     if (!targetProfile) {
       return Response.json({ error: `Target user not found: ${targetUserId}` }, { status: 404 });
     }
 
-    // 5. Execute action with elevated (service role) access
+    // 5. Build update payload
     let updateData = {};
-    let logAction = action;
 
     switch (action) {
       case 'make_admin':
         updateData = { is_admin: true, role_type: 'admin' };
         break;
-
       case 'remove_admin':
         updateData = { is_admin: false, role_type: 'creator' };
         break;
-
       case 'ban':
         updateData = {
           banned: true,
@@ -70,7 +68,6 @@ Deno.serve(async (req) => {
           suspension_reason: reason || 'Violation of platform policies',
         };
         break;
-
       case 'unban':
         updateData = {
           banned: false,
@@ -80,15 +77,15 @@ Deno.serve(async (req) => {
         break;
     }
 
-    // Perform the update via service role — bypasses all RLS
-    await svc.entities.UserProfile.update(targetProfile.id, updateData);
+    // 6. Update UserProfile — service role bypasses RLS
+    await adminClient.entities.UserProfile.update(targetProfile.id, updateData);
 
-    // 6. Log the admin action
-    await svc.entities.AdminActionLog.create({
+    // 7. Log the action — service role bypasses RLS
+    await adminClient.entities.AdminActionLog.create({
       admin_user_id: user.email,
       target_type: 'User',
       target_id: targetUserId,
-      action: logAction,
+      action,
       reason: reason || `Admin action: ${action}`,
       notes: `Performed by ${user.email} on ${targetUserId} at ${new Date().toISOString()}`,
       metadata_json: {
