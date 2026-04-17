@@ -36,7 +36,7 @@ export default function Terms() {
         <div className="flex gap-3 bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-xl p-4 mb-10">
           <AlertTriangle className="w-5 h-5 text-[#EF4444] flex-shrink-0 mt-0.5" />
           <p className="text-sm text-[#E8EEF9]">
-            <strong>Important:</strong> Content Connect is a professional creator collaboration
+            <strong>Important:</strong> Only Collabs X is a professional creator collaboration
             platform exclusively. Use of this platform for any form of solicitation, escorting,
             prostitution, sex trafficking, or exploitation is strictly prohibited and may result
             in immediate account termination, evidence preservation, and referral to law enforcement.
@@ -45,12 +45,12 @@ export default function Terms() {
 
         <Section number="1" title="Acceptance of Terms">
           <p>
-            By accessing or using Content Connect ("the Platform"), you agree to be bound by
+            By accessing or using Only Collabs X ("the Platform"), you agree to be bound by
             these Terms of Service and all applicable laws and regulations. If you do not agree
             with any of these terms, you are prohibited from using this Platform.
           </p>
           <p>
-            These Terms constitute a legally binding agreement between you and Content Connect.
+            These Terms constitute a legally binding agreement between you and Only Collabs X.
             Your continued use of the Platform after any update to these Terms constitutes
             acceptance of the revised Terms.
           </p>
@@ -58,7 +58,7 @@ export default function Terms() {
 
         <Section number="2" title="Eligibility">
           <p>
-            You must be at least 18 years of age to use Content Connect. By registering, you
+            You must be at least 18 years of age to use Only Collabs X. By registering, you
             represent and warrant that:
           </p>
           <Ul items={[
@@ -76,7 +76,7 @@ export default function Terms() {
 
         <Section number="3" title="Platform Purpose and Permitted Use">
           <p>
-            Content Connect is designed exclusively as a professional collaboration and safety
+            Only Collabs X is designed exclusively as a professional collaboration and safety
             infrastructure platform for adult content creators, photographers, videographers,
             talent agents, and studios. Its purpose is to:
           </p>
@@ -143,7 +143,7 @@ export default function Terms() {
 
         <Section number="5" title="Content Moderation and Automated Enforcement">
           <p>
-            Content Connect employs real-time, server-side content moderation on messages,
+            Only Collabs X employs real-time, server-side content moderation on messages,
             collaboration details, profile text, and other user-generated content. You acknowledge
             and consent to this monitoring as a condition of Platform use.
           </p>
@@ -214,7 +214,7 @@ export default function Terms() {
 
         <Section number="9" title="Contracts and Agreements">
           <p>
-            Content Connect provides tools for creating professional contracts between users.
+            Only Collabs X provides tools for creating professional contracts between users.
             We are not a party to any agreements made between users. Users are solely responsible
             for ensuring their agreements comply with all applicable laws and regulations.
           </p>
@@ -232,16 +232,16 @@ export default function Terms() {
             partial periods.
           </p>
           <p>
-            Content Connect does not process payments for collaborations between users. All
+            Only Collabs X does not process payments for collaborations between users. All
             compensation arrangements are made directly between parties outside the Platform.
-            Content Connect has no liability for any payment disputes between users.
+            Only Collabs X has no liability for any payment disputes between users.
           </p>
         </Section>
 
         <Section number="11" title="Content Ownership and License">
           <p>
             Users retain ownership of content they upload. By uploading content, you grant
-            Content Connect a limited, non-exclusive license to store, display, and distribute
+            Only Collabs X a limited, non-exclusive license to store, display, and distribute
             your content within the Platform solely for the purpose of operating the Platform.
           </p>
           <p>
@@ -281,7 +281,7 @@ export default function Terms() {
 
         <Section number="14" title="Limitation of Liability">
           <p>
-            Content Connect is provided "as is" without warranties of any kind. To the maximum
+            Only Collabs X is provided "as is" without warranties of any kind. To the maximum
             extent permitted by applicable law, we are not liable for any indirect, incidental,
             special, consequential, or punitive damages arising out of your use of the Platform,
             any disputes between users, or any outcomes of collaborations arranged through the Platform.
@@ -309,13 +309,13 @@ export default function Terms() {
           <p>
             For questions about these Terms, contact us at{' '}
             <a href="mailto:legal@contentconnect.com" className="text-[#4F8CFF] hover:underline">
-              legal@contentconnect.com
+              legal@onlycollabsx.com
             </a>
           </p>
           <p>
             To report suspected illegal activity, trafficking, or underage content, contact{' '}
             <a href="mailto:safety@contentconnect.com" className="text-[#EF4444] hover:underline">
-              safety@contentconnect.com
+              safety@onlycollabsx.com
             </a>
             {' '}or call the National Human Trafficking Hotline: 1-888-373-7888.
           </p>

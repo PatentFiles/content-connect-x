@@ -11,12 +11,12 @@ const faqCategories = [
     name: 'Getting Started',
     faqs: [
       {
-        q: 'What is Content Connect?',
-        a: 'Content Connect is a verified, subscription-only professional collaboration platform for adult content professionals. We connect creators, photographers, videographers, agents, and studios in a safe, structured environment with built-in consent documentation, contracts, and safety tools. The platform is strictly for professional content creation partnerships — it is not a hookup, escort, or personal services platform.',
+        q: 'What is Only Collabs X?',
+        a: 'Only Collabs X is a verified, subscription-only professional collaboration platform for adult content professionals. We connect creators, photographers, videographers, agents, and studios in a safe, structured environment with built-in consent documentation, contracts, and safety tools. The platform is strictly for professional content creation partnerships — it is not a hookup, escort, or personal services platform.',
       },
       {
-        q: 'Who can join Content Connect?',
-        a: 'Content Connect is for adult content professionals including creators/performers, photographers, videographers, talent agents, and studios. All members must be 18 or older and complete identity verification before accessing any platform features. Use of the platform by minors is strictly prohibited.',
+        q: 'Who can join Only Collabs X?',
+        a: 'Only Collabs X is for adult content professionals including creators/performers, photographers, videographers, talent agents, and studios. All members must be 18 or older and complete identity verification before accessing any platform features. Use of the platform by minors is strictly prohibited.',
       },
       {
         q: 'How do I sign up?',
@@ -33,10 +33,10 @@ const faqCategories = [
     faqs: [
       {
         q: 'What is this platform NOT for?',
-        a: 'Content Connect is strictly for professional content collaboration. The following uses are explicitly prohibited and will result in immediate account termination: soliciting or offering payment for sexual acts or escorts; arranging in-person prostitution or escorting; sex trafficking or any facilitation thereof; coercion, exploitation, or threatening any person; any activity involving minors; non-consensual content or threats to distribute intimate images. Violations may also be reported to law enforcement.',
+        a: 'Only Collabs X is strictly for professional content collaboration. The following uses are explicitly prohibited and will result in immediate account termination: soliciting or offering payment for sexual acts or escorts; arranging in-person prostitution or escorting; sex trafficking or any facilitation thereof; coercion, exploitation, or threatening any person; any activity involving minors; non-consensual content or threats to distribute intimate images. Violations may also be reported to law enforcement.',
       },
       {
-        q: 'Does Content Connect allow escort or "GFE" arrangements?',
+        q: 'Does Only Collabs X allow escort or "GFE" arrangements?',
         a: 'No. Absolutely not. Any use of the platform to solicit, offer, or arrange escorting, in-person sexual services, or any form of prostitution is a severe violation of our Terms of Service. Such use results in immediate account suspension, evidence preservation, and may be referred to law enforcement. Coded language (e.g., "roses," "donations," "GFE," "p4p," "incall," "outcall") used to solicit or offer these services is also prohibited.',
       },
       {
@@ -111,8 +111,8 @@ const faqCategories = [
         a: "You can cancel at any time from your Settings page. Your access continues until the end of your current billing period. We don't offer prorated refunds.",
       },
       {
-        q: 'Does Content Connect process collaboration payments?',
-        a: 'No. Content Connect records compensation terms in contracts but does not process payments between members. All collaboration payments are handled externally between parties. Content Connect has no liability for payment disputes between users.',
+        q: 'Does Only Collabs X process collaboration payments?',
+        a: 'No. Only Collabs X records compensation terms in contracts but does not process payments between members. All collaboration payments are handled externally between parties. Content Connect has no liability for payment disputes between users.',
       },
     ],
   },
@@ -159,7 +159,7 @@ const faqCategories = [
     faqs: [
       {
         q: 'How does content moderation work?',
-        a: "Content Connect uses real-time, server-side content moderation that scans messages, collaboration details, and profile text before they are saved. This system runs on our backend — it cannot be bypassed from the frontend. Content that violates our policies is blocked before being stored or sent. Severe violations (such as underage references, solicitation, or trafficking language) trigger automatic account suspension and a mandatory safety review.",
+        a: "Only Collabs X uses real-time, server-side content moderation that scans messages, collaboration details, and profile text before they are saved. This system runs on our backend — it cannot be bypassed from the frontend. Content that violates our policies is blocked before being stored or sent. Severe violations (such as underage references, solicitation, or trafficking language) trigger automatic account suspension and a mandatory safety review.",
       },
       {
         q: 'What happens when content is flagged?',
@@ -212,7 +212,7 @@ export default function FAQ() {
             Frequently Asked Questions
           </h1>
           <p className="text-lg text-[#9AA6BC] max-w-2xl mx-auto mb-8">
-            Everything you need to know about Content Connect
+            Everything you need to know about Only Collabs X
           </p>
           <div className="max-w-md mx-auto">
             <CCInput
@@ -288,7 +288,7 @@ export default function FAQ() {
           </p>
           <p className="text-xs text-[#6B7A94] mb-6">
             To report urgent safety concerns — suspected trafficking, underage activity, or coercion —
-            email <a href="mailto:safety@contentconnect.com" className="text-[#EF4444] hover:underline">safety@contentconnect.com</a> directly.
+            email <a href="mailto:safety@onlycollabsx.com" className="text-[#EF4444] hover:underline">safety@onlycollabsx.com</a> directly.
           </p>
           <CCButton variant="primary" iconRight={ArrowRight}>
             Contact Support
