@@ -422,7 +422,7 @@ export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, h
                 )}
 
                 {/* Platform fee breakdown */}
-                {pricingEnabled && (totalFromSnapshot > 0 || parseFloat(form.amount) > 0) && (
+                {pricingEnabled && ((enrichedSnapshot?.grand_total > 0) || (bookingSnapshot?.pricing_breakdown?.grand_total > 0) || parseFloat(form.amount) > 0) && (
                   <PricingBreakdown
                     snapshot={enrichedSnapshot || (bookingSnapshot?.pricing_breakdown ? { ...bookingSnapshot.pricing_breakdown, platform_fee_pct: pricingConfig.bookingFeePct, platform_fee_amount: 0, host_payout: bookingSnapshot.pricing_breakdown.grand_total, grand_total: bookingSnapshot.pricing_breakdown.grand_total } : null)}
                     isProHost={hostIsProHost}
