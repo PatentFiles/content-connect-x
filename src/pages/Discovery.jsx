@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Compass, MapPin, ChevronRight, Users, Camera, Video, Briefcase, Building, Film, Home } from 'lucide-react';
+import { Compass, MapPin, ChevronRight, Users, Camera, Video, Briefcase, Building, Film, Home, Search as SearchIcon, X } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import { CCLoadingScreen, CCProfileCardSkeleton } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
@@ -43,6 +43,7 @@ const roleOptions = [
 
 export default function Discovery() {
   const [selectedRole, setSelectedRole] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -245,6 +246,15 @@ export default function Discovery() {
     if (!allProfiles.length) return [];
     let filtered = [...allProfiles];
 
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(p =>
+        p.display_name?.toLowerCase().includes(q) ||
+        p.bio?.toLowerCase().includes(q) ||
+        p.base_location?.city?.toLowerCase().includes(q)
+      );
+    }
+
     if (selectedRole) {
       filtered = filtered.filter(p => p.role_type === selectedRole);
     } else if (filters.roleTypes?.length > 0) {
@@ -325,7 +335,7 @@ export default function Discovery() {
     }
 
     return filtered.slice(0, 20);
-  }, [allProfiles, filters, selectedRole, allVerifications, allCreatorDetails, allTestingCredentials, myProfile]);
+  }, [allProfiles, filters, selectedRole, searchQuery, allVerifications, allCreatorDetails, allTestingCredentials, myProfile]);
 
   const { data: creatorDetails = [] } = useQuery({
     queryKey: ['creatorDetails', profiles.map(p => p.user_id)],
@@ -350,8 +360,23 @@ export default function Discovery() {
             <h1 className="text-xl font-semibold text-[#E8EEF9]">Discover</h1>
             <p className="text-xs text-[#6B7A94]">Find your next collaboration</p>
           </div>
-          {/* Filters button row — matches Search layout */}
-          <div className="flex justify-end mb-3">
+          {/* Search bar + Filters */}
+          <div className="flex gap-3 mb-4">
+            <div className="flex-1 relative">
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7A94]" />
+              <input
+                type="text"
+                placeholder="Search by name, location, or keywords..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-[#121824] border border-[#263248] rounded-lg pl-10 pr-10 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7A94] hover:text-[#E8EEF9]">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
             <ProfileFilters
               filters={filters}
               onChange={setFilters}
@@ -366,6 +391,7 @@ export default function Discovery() {
               }}
             />
           </div>
+          {/* Role pills */}
           <div className="flex flex-wrap gap-2 pb-1 justify-center">
             <CCButton variant={!selectedRole ? 'primary' : 'outline'} size="sm" onClick={() => setSelectedRole('')} className="flex-shrink-0">
               All
