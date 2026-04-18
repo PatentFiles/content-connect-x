@@ -22,7 +22,6 @@ import { useFeatureFlag } from '@/lib/featureFlags';
 import PropertyBookingAddons from '@/components/hosting/PropertyBookingAddons';
 import LocationContractClauses from '@/components/hosting/LocationContractClauses';
 import { logAgreementAcceptance } from '@/lib/agreementLogger';
-import { useFeatureFlag } from '@/lib/featureFlags';
 
 const SESSION_TYPES = [
   { value: 'solo_session', label: 'Solo Session', description: 'Book space for personal/creative use' },

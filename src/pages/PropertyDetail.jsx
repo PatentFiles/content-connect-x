@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { MapPin, Users, Clock, DollarSign, ChevronLeft, Star, Shield, CheckCircle, Calendar, AlertTriangle } from 'lucide-react';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
