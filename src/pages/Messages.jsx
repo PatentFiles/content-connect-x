@@ -34,6 +34,8 @@ import CCEmpty from '@/components/ui-custom/CCEmpty';
 import AccessGate from '@/components/auth/AccessGate';
 import { useVerificationCheck } from '@/components/auth/useVerificationCheck';
 import VerificationRequired from '@/components/auth/VerificationRequired';
+import CommFilterWarning from '@/components/messaging/CommFilterWarning';
+import { detectCommViolation, getEscalationLevel, COMM_FILTER_ENABLED } from '@/lib/commFilter';
 
 export default function Messages() {
   const [selectedConversation, setSelectedConversation] = useState(null);
@@ -44,10 +46,19 @@ export default function Messages() {
   const [uploadingFile, setUploadingFile] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportTargetUserId, setReportTargetUserId] = useState(null);
+  // Comm filter state
+  const [commViolation, setCommViolation] = useState(null); // { type } | null
+  const [commViolationCount, setCommViolationCount] = useState(0);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const longPressTimer = useRef(null);
   const queryClient = useQueryClient();
+
+  // Reset comm filter warning when conversation changes
+  useEffect(() => {
+    setCommViolation(null);
+    setCommViolationCount(0);
+  }, [selectedConversation?.id]);
 
   // Real-time message subscription
   useEffect(() => {
@@ -332,6 +343,20 @@ export default function Messages() {
 
   const handleSendMessage = () => {
     if (!newMessage.trim() || !selectedConversation) return;
+
+    // Client-side comm filter pre-check
+    if (COMM_FILTER_ENABLED) {
+      const violation = detectCommViolation(newMessage.trim());
+      if (violation) {
+        const newCount = commViolationCount + 1;
+        setCommViolationCount(newCount);
+        setCommViolation(violation);
+        return; // Block send — server will also enforce
+      }
+    }
+
+    // Clear any prior warning on successful send attempt
+    setCommViolation(null);
 
     sendMessageMutation.mutate({
       conversation_id: selectedConversation.id,
@@ -693,6 +718,11 @@ export default function Messages() {
 
               {/* Message Input */}
               <div className="p-4 border-t border-[#263248]">
+                <CommFilterWarning
+                  violation={commViolation}
+                  level={getEscalationLevel(commViolationCount - 1)}
+                  onDismiss={() => setCommViolation(null)}
+                />
                 <div className="flex gap-2">
                   <input
                     ref={fileInputRef}
@@ -713,7 +743,11 @@ export default function Messages() {
                   <input
                     type="text"
                     value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
+                    onChange={(e) => {
+                      setNewMessage(e.target.value);
+                      // Clear warning as user edits
+                      if (commViolation) setCommViolation(null);
+                    }}
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                     placeholder="Type a message..."
                     className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"

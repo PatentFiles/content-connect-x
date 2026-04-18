@@ -63,6 +63,18 @@ export function RecentChangesSection() {
       'Contract.template_type: creator_to_creator/studio_contract/photographer/videographer/agent_managed',
       'ContractVersion entity tracks all edits; ContractAuditLog ensures immutable history',
     ]},
+    { date: 'April 2026', title: 'Communication Filter — Off-Platform Sharing Prevention', items: [
+      'CommunicationViolation entity added: tracks user_id, conversation_id, violation_type, message_snippet (redacted), attempt_count, escalation_level, admin_reviewed',
+      'lib/commFilter.js: pure detection logic for phone numbers, email addresses, external links, and obfuscated variants (dot/at encoding, social platform redirects)',
+      'COMM_FILTER_ENABLED feature flag in lib/commFilter.js — default true, disable for phased rollout without code change',
+      'Escalation levels: warn (1st attempt) → restrict (2nd-3rd) → flag_admin (4th+)',
+      'Client-side pre-check in pages/Messages blocks send before server round-trip; warning clears on message edit',
+      'CommFilterWarning component: reusable, level-aware inline warning rendered above message input',
+      'Server-side enforcement in protectedActions send_message: returns comm_filter_blocked with violation_type and escalation_level',
+      'Every violation writes to AdminActionLog (SYSTEM_COMM_FILTER) and CommunicationViolation — no separate audit system created',
+      'flag_admin level also creates a Report (reporter: SYSTEM_COMM_FILTER) surfaced in existing Reports Queue / Safety Alerts',
+      'No new moderation queue created — violations feed into existing Report + AdminActionLog architecture',
+    ]},
     { date: 'April 2026', title: 'Timed Suspension Lifecycle + Banned Re-entry Dispute Flow', items: [
       'UserProfile extended with: suspension_start_at, suspension_end_at, suspension_category, reinstated_at, reinstated_by_admin_id, on_probation, probation_restrictions',
       'adminModerationAction now supports: suspend (7d/30d/6mo/1yr/custom), unsuspend, convert_to_ban, set_probation — all with immutable audit log writes',
