@@ -56,6 +56,7 @@ const FeatureFlagsPanel = lazy(() => import('@/components/admin/FeatureFlagsPane
 const PropertyIncidentsPanel = lazy(() => import('@/components/admin/PropertyIncidentsPanel'));
 const HostingPricingPanel = lazy(() => import('@/components/admin/HostingPricingPanel'));
 const SearchRankingConfigPanel = lazy(() => import('@/components/admin/SearchRankingConfigPanel'));
+const SuspiciousReviewsPanel = lazy(() => import('@/components/admin/SuspiciousReviewsPanel'));
 
 const TabSuspense = ({ children }) => (
   <Suspense fallback={<div className="p-4 text-[#6B7A94]">Loading...</div>}>
@@ -259,6 +260,7 @@ function UserManagement({ currentUser }) {
                         <option value="studio">Studio</option>
                         <option value="photographer">Photographer</option>
                         <option value="videographer">Videographer</option>
+                        <option value="video_editor">Video Editor</option>
                       </select>
                       {!isCurrentUser && (
                         <CCButton
@@ -451,6 +453,7 @@ export default function AdminDashboard() {
     { value: 'property_incidents', label: 'Property Incidents' },
     { value: 'hosting_pricing', label: 'Hosting Pricing' },
     { value: 'search_ranking', label: 'Search Ranking Config' },
+    { value: 'suspicious_reviews', label: 'Suspicious Reviews' },
     { value: 'feature_flags', label: 'Feature Flags' },
   ];
 
@@ -839,6 +842,13 @@ export default function AdminDashboard() {
           <TabSuspense>
             <SearchRankingConfigPanel />
           </TabSuspense>
+         </CCTabsContent>
+
+         {/* Suspicious Reviews Tab */}
+         <CCTabsContent value="suspicious_reviews" activeTab={activeTab}>
+           <TabSuspense>
+             <SuspiciousReviewsPanel />
+           </TabSuspense>
          </CCTabsContent>
 
          {/* Feature Flags Tab */}

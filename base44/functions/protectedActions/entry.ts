@@ -16,11 +16,11 @@
  * - update_profile
  */
 
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 // ─── COMM FILTER (inlined — no cross-file imports in Deno deploy) ────────────
-
-const COMM_FILTER_ENABLED = true;
+// Value loaded from DB flag at runtime; defaults to true for safety if unreadable.
+let _commFilterEnabled = true; // module-level cache, refreshed per request below
 
 const COMM_PHONE_PATTERNS = [
   /\b(\+?1[\s.\-]?)?\(?\d{3}\)?[\s.\-]?\d{3}[\s.\-]?\d{4}\b/,
@@ -42,8 +42,8 @@ const COMM_LINK_PATTERNS = [
   /\b(find|add|message|dm|text|reach|contact|hit)\s+(me\s+)?(on|at|via|through)\s+(instagram|ig|snap|snapchat|telegram|signal|whatsapp|discord|twitter|tiktok|onlyfans|fansly)\b/i,
 ];
 
-function detectCommViolationInline(text) {
-  if (!COMM_FILTER_ENABLED || !text) return null;
+function detectCommViolationInline(text, commFilterEnabled) {
+  if (!commFilterEnabled || !text) return null;
   for (const p of COMM_PHONE_PATTERNS) { if (p.test(text)) return 'phone_number'; }
   for (const p of COMM_EMAIL_PATTERNS) { if (p.test(text)) return 'email_address'; }
   for (const p of COMM_LINK_PATTERNS) { if (p.test(text)) return 'external_link'; }
@@ -294,6 +294,16 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Load comm_filter flag from DB (defaults true if unreadable)
+    let commFilterEnabled = true;
+    try {
+      const flagRecords = await base44.asServiceRole.entities.PlatformFeatureFlag.list();
+      const commFlag = flagRecords.find(f => f.flag_key === 'comm_filter');
+      if (commFlag && commFlag.value_type === 'boolean') {
+        commFilterEnabled = commFlag.bool_value !== false;
+      }
+    } catch { /* fail safe — keep true */ }
+
     const body = await req.json();
 
     switch (action) {
@@ -320,7 +330,7 @@ Deno.serve(async (req) => {
         // ─────────────────────────────────────────────────────────────────────
 
         // ── COMM FILTER (off-platform sharing) ───────────────────────────────
-        const commViolationType = detectCommViolationInline(messageBody);
+        const commViolationType = detectCommViolationInline(messageBody, commFilterEnabled);
         if (commViolationType) {
           const svc = base44.asServiceRole;
           const snippet = messageBody.substring(0, 150).replace(/\S+@\S+/g, '[redacted]');

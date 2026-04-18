@@ -31,6 +31,7 @@ export default function SoloSessionsInbox({ user, asHost = false }) {
   const [actionLoading, setActionLoading] = useState(null);
   const [attestationSession, setAttestationSession] = useState(null);
   const [reviewSession, setReviewSession] = useState(null);
+  const [reviewedSessionIds, setReviewedSessionIds] = useState(new Set());
 
   const { data: sessions = [], isLoading } = useQuery({
     queryKey: ['soloSessions', user?.email, asHost ? 'host' : 'guest'],
@@ -39,6 +40,20 @@ export default function SoloSessionsInbox({ user, asHost = false }) {
       return base44.entities.SoloSession.filter(filter, '-created_date', 20);
     },
     enabled: !!user?.email && soloSessionsEnabled,
+  });
+
+  // Load existing reviews by this user so we can hide the review prompt if already submitted
+  const completedSessionIds = sessions.filter(s => s.status === 'completed').map(s => s.id);
+  useQuery({
+    queryKey: ['myExistingReviews', user?.email, completedSessionIds],
+    queryFn: async () => {
+      if (!completedSessionIds.length) return [];
+      const myReviews = await base44.entities.PropertyReview.filter({ reviewer_user_id: user.email });
+      const reviewedIds = new Set(myReviews.map(r => r.session_id).filter(Boolean));
+      setReviewedSessionIds(reviewedIds);
+      return myReviews;
+    },
+    enabled: !!user?.email && reviewsEnabled && completedSessionIds.length > 0,
   });
 
   // Fetch profiles for display
@@ -181,8 +196,10 @@ export default function SoloSessionsInbox({ user, asHost = false }) {
                 {contentUsageEnabled && session.status === 'completed' && (
                   <ContentUsageWidget session={session} currentUser={user} />
                 )}
-                {/* Review prompt for location bookings after completion */}
-                {reviewsEnabled && !asHost && session.status === 'completed' && session.session_type === 'location_booking' && session.property_id && (
+                {/* Review prompt: any completed session with a property_id (top-level or in booking_snapshot) */}
+                {reviewsEnabled && !asHost && session.status === 'completed' &&
+                  (session.property_id || session.booking_snapshot?.property_id) &&
+                  !reviewedSessionIds.has(session.id) && (
                   <CCButton
                     variant="primary"
                     size="sm"
@@ -209,13 +226,18 @@ export default function SoloSessionsInbox({ user, asHost = false }) {
 
       {/* Property review prompt */}
       {reviewSession && (
-        <PropertyReviewPromptModal
-          isOpen={!!reviewSession}
-          onClose={() => setReviewSession(null)}
-          sessionId={reviewSession.id}
-          propertyId={reviewSession.property_id}
-          propertyTitle={reviewSession.property_title || 'Property'}
-        />
+      <PropertyReviewPromptModal
+      isOpen={!!reviewSession}
+      onClose={() => {
+        setReviewSession(null);
+        // Mark as reviewed locally so button hides immediately
+        setReviewedSessionIds(prev => new Set([...prev, reviewSession.id]));
+        queryClient.invalidateQueries({ queryKey: ['myExistingReviews'] });
+      }}
+      sessionId={reviewSession.id}
+      propertyId={reviewSession.property_id || reviewSession.booking_snapshot?.property_id}
+      propertyTitle={reviewSession.property_title || 'Property'}
+      />
       )}
       </div>
       );

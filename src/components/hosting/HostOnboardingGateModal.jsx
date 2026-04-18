@@ -24,10 +24,9 @@ export default function HostOnboardingGateModal({ profile, onClose, onCompleted 
     }
     setActivating(true);
     try {
-      await base44.entities.UserProfile.update(profile.id, {
-        host_account_active: true,
-        host_terms_accepted_at: new Date().toISOString(),
-      });
+      // Use backend function — validates server-side, prevents frontend bypass
+      const res = await base44.functions.invoke('activateHostAccount', { terms_accepted: true });
+      if (res?.data?.error) throw new Error(res.data.error);
       toast.success('Your host account is now active!');
       onCompleted();
     } catch (err) {
