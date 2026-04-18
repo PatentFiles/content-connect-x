@@ -120,20 +120,10 @@ export default function Discovery() {
     enabled: !!user && filters.testingRequired,
   });
 
-  const { data: allProfiles = [], isLoading: profilesLoading } = useQuery({
-    queryKey: ['allProfiles'],
-    queryFn: async () => {
-      let profiles = await base44.entities.UserProfile.list();
-      return profiles.filter(p =>
-        p.user_id !== user?.email &&
-        p.role_type !== 'admin' &&
-        p.profile_complete &&
-        !p.banned &&
-        !p.account_deactivated &&
-        p.deletion_status !== 'anonymized' &&
-        p.deletion_status !== 'completed'
-      );
-    },
+  // Use unified search (same as Search page)
+  const { data: unifiedResults = [], isLoading: resultsLoading } = useQuery({
+    queryKey: ['extendedSearch', searchQuery],
+    queryFn: () => base44.functions.invoke('extendedSearch', { query: searchQuery, limit: 100 }),
     enabled: !!user && isVerified && isSubscribed,
     staleTime: 5 * 60 * 1000,
   });
@@ -244,38 +234,53 @@ export default function Discovery() {
     setShowReportModal(true);
   };
 
-  const profiles = useMemo(() => {
-    if (!allProfiles.length) return [];
-    let filtered = [...allProfiles];
+  // Filter unified results by type (already ranked by backend)
+  const filteredResults = useMemo(() => {
+    if (!unifiedResults.length) return [];
+    let filtered = [...unifiedResults];
 
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(p =>
-        p.display_name?.toLowerCase().includes(q) ||
-        p.bio?.toLowerCase().includes(q) ||
-        p.base_location?.city?.toLowerCase().includes(q)
-      );
-    }
+    // Profile-only filters
+    const profileFiltered = filtered.filter(r => {
+      if (r.type !== 'profile') return true;
+      const p = r;
+      if (p.user_id === user?.email || p.is_admin) return false;
 
-    if (selectedRole) {
-      filtered = filtered.filter(p => p.role_type === selectedRole);
-    } else if (filters.roleTypes?.length > 0) {
-      filtered = filtered.filter(p => filters.roleTypes.includes(p.role_type));
-    }
+      // Role filter
+      if (selectedRole && p.role_type !== selectedRole) return false;
+      if (filters.roleTypes?.length > 0 && !filters.roleTypes.includes(p.role_type)) return false;
 
-    if (filters.orientations?.length > 0) {
-      filtered = filtered.filter(p => {
+      // Location filters
+      if (filters.country && !p.base_location?.country?.toLowerCase().includes(filters.country.toLowerCase())) return false;
+      if (filters.state && !p.base_location?.state?.toLowerCase().includes(filters.state.toLowerCase())) return false;
+      if (filters.city && !p.base_location?.city?.toLowerCase().includes(filters.city.toLowerCase())) return false;
+
+      // Travel
+      if (filters.travelAvailable && !p.travel_enabled) return false;
+
+      // Recently active
+      if (filters.recentlyActive) {
+        const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+        if (!p.last_active_at || new Date(p.last_active_at) < threeDaysAgo) return false;
+      }
+
+      return true;
+    });
+
+    // Creator-specific filters
+    const finalFiltered = profileFiltered.filter(r => {
+      if (r.type !== 'profile') return true;
+      const p = r;
+
+      if (filters.orientations?.length > 0) {
         if (p.role_type !== 'creator') return true;
         const details = allCreatorDetails.find(d => d.user_id === p.user_id);
         if (!details?.orientation_category) return false;
         return Array.isArray(details.orientation_category)
           ? details.orientation_category.some(o => filters.orientations.includes(o))
           : filters.orientations.includes(details.orientation_category);
-      });
-    }
+      }
 
-    if (filters.sceneTypes?.length > 0) {
-      filtered = filtered.filter(p => {
+      if (filters.sceneTypes?.length > 0) {
         if (p.role_type !== 'creator') return true;
         const details = allCreatorDetails.find(d => d.user_id === p.user_id);
         if (!details) return true;
@@ -285,92 +290,45 @@ export default function Discovery() {
           if (st === 'kink_edge') return details.kink_edge_acts?.length > 0;
           return false;
         });
-      });
-    }
+      }
 
-    if (filters.compensation?.length > 0) {
-      filtered = filtered.filter(p => {
+      if (filters.compensation?.length > 0) {
         if (p.role_type !== 'creator') return true;
         const details = allCreatorDetails.find(d => d.user_id === p.user_id);
         if (!details) return true;
         const prefs = details.compensation_preferences || [];
         return prefs.length === 0 || filters.compensation.some(c => prefs.includes(c));
-      });
-    }
+      }
 
-    if (filters.travelAvailable) filtered = filtered.filter(p => p.travel_enabled);
+      return true;
+    });
 
-    if (filters.verifiedOnly) {
+    // Verified filter (profile only)
+    const verifiedFiltered = finalFiltered.filter(r => {
+      if (r.type !== 'profile') return true;
+      if (!filters.verifiedOnly) return true;
       const verifiedIds = allVerifications.filter(v => v.status === 'approved').map(v => v.user_id);
-      filtered = filtered.filter(p => verifiedIds.includes(p.user_id));
-    }
+      return verifiedIds.includes(r.user_id);
+    });
 
-    if (filters.testingRequired) {
+    // Testing filter (profile only)
+    const testingFiltered = verifiedFiltered.filter(r => {
+      if (r.type !== 'profile') return true;
+      if (!filters.testingRequired) return true;
       const now = new Date();
       const validIds = allTestingCredentials
         .filter(tc => tc.status_badge === 'valid' && !(tc.expires_at && new Date(tc.expires_at) < now))
         .map(tc => tc.user_id);
-      filtered = filtered.filter(p => validIds.includes(p.user_id));
-    }
+      return validIds.includes(r.user_id);
+    });
 
-    if (filters.recentlyActive) {
-      const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
-      filtered = filtered.filter(p => p.last_active_at && new Date(p.last_active_at) > threeDaysAgo);
-    }
+    return testingFiltered.slice(0, 50);
+  }, [unifiedResults, selectedRole, filters, allVerifications, allCreatorDetails, allTestingCredentials, user?.email]);
 
-    if (filters.country) filtered = filtered.filter(p => p.base_location?.country?.toLowerCase().includes(filters.country.toLowerCase()));
-    if (filters.state) filtered = filtered.filter(p => p.base_location?.state?.toLowerCase().includes(filters.state.toLowerCase()));
-    if (filters.city) filtered = filtered.filter(p => p.base_location?.city?.toLowerCase().includes(filters.city.toLowerCase()));
+  const profiles = useMemo(() => filteredResults.filter(r => r.type === 'profile'), [filteredResults]);
+  const properties = useMemo(() => filteredResults.filter(r => r.type === 'property'), [filteredResults]);
 
-    const myLocation = myProfile?.[0]?.base_location;
 
-    if (filters.sortBy === 'distance' && myLocation?.lat && myLocation?.lng) {
-      filtered.sort((a, b) => {
-        const dA = a.base_location?.lat ? calculateDistance(myLocation.lat, myLocation.lng, a.base_location.lat, a.base_location.lng) : 999999;
-        const dB = b.base_location?.lat ? calculateDistance(myLocation.lat, myLocation.lng, b.base_location.lat, b.base_location.lng) : 999999;
-        return dA - dB;
-      });
-    } else if (filters.sortBy === 'recently_active') {
-      filtered.sort((a, b) => new Date(b.last_active_at || 0) - new Date(a.last_active_at || 0));
-    } else if (filters.sortBy === 'response_time') {
-      filtered.sort((a, b) => (a.response_time_hours || 999) - (b.response_time_hours || 999));
-    }
-
-    return filtered.slice(0, 20);
-  }, [allProfiles, filters, selectedRole, searchQuery, allVerifications, allCreatorDetails, allTestingCredentials, myProfile]);
-
-  // Fetch properties for Host Properties tab
-  const { data: allProperties = [], isLoading: propertiesLoading } = useQuery({
-    queryKey: ['discoveryProperties'],
-    queryFn: async () => {
-      let props = await base44.entities.Property.list('-updated_date', 100);
-      return props.filter(p => p.status === 'active');
-    },
-    enabled: !!user && isVerified && isSubscribed,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  // Filter properties based on search and city
-  const properties = useMemo(() => {
-    if (!allProperties.length) return [];
-    let filtered = [...allProperties];
-
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(p =>
-        p.title?.toLowerCase().includes(q) ||
-        p.city?.toLowerCase().includes(q) ||
-        p.property_type?.toLowerCase().includes(q) ||
-        p.description?.toLowerCase().includes(q)
-      );
-    }
-
-    if (filters.city) {
-      filtered = filtered.filter(p => p.city?.toLowerCase().includes(filters.city.toLowerCase()));
-    }
-
-    return filtered.slice(0, 20);
-  }, [allProperties, searchQuery, filters.city]);
 
   const { data: creatorDetails = [] } = useQuery({
     queryKey: ['creatorDetails', profiles.map(p => p.user_id)],
@@ -493,12 +451,12 @@ export default function Discovery() {
                 </Link>
               </div>
 
-              {profilesLoading ? (
+              {resultsLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[1,2,3,4,5,6].map(i => <CCProfileCardSkeleton key={i} />)}
                 </div>
               ) : profiles.length === 0 ? (
-                <CCEmpty icon={Compass} title="No profiles found" description="Try adjusting your filters or expanding your search radius." />
+                <CCEmpty icon={Compass} title="No profiles found" description="Try adjusting your filters or search query." />
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {profiles.map((profile) => {
@@ -559,12 +517,12 @@ export default function Discovery() {
                 <h2 className="text-lg font-medium text-[#E8EEF9]">Available Host Properties</h2>
               </div>
 
-              {propertiesLoading ? (
+              {resultsLoading ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {[1,2,3,4,5,6].map(i => <CCProfileCardSkeleton key={i} />)}
                 </div>
               ) : properties.length === 0 ? (
-                <CCEmpty icon={Building} title="No properties found" description="Try adjusting your location filter or searching different keywords." />
+                <CCEmpty icon={Building} title="No properties found" description="Try adjusting your search query or filters." />
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {properties.map((property) => (
