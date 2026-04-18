@@ -238,6 +238,12 @@ export default function Favorites() {
     },
   });
 
+  // Role-filtered profiles for active tab — must be before early returns
+  const filteredProfiles = useMemo(() => {
+    if (activeTab === 'all' || activeTab === 'properties') return profiles;
+    return profiles.filter(p => p.role_type === activeTab);
+  }, [profiles, activeTab]);
+
   if (userLoading) {
     return <CCLoadingScreen message="Loading..." />;
   }
@@ -259,12 +265,6 @@ export default function Favorites() {
   };
 
   const hasLists = favorites.length > 0;
-
-  // Role-filtered profiles for active tab
-  const filteredProfiles = useMemo(() => {
-    if (activeTab === 'all' || activeTab === 'properties') return profiles;
-    return profiles.filter(p => p.role_type === activeTab);
-  }, [profiles, activeTab]);
 
   const removePropertyFromFavorites = async (propertyId) => {
     for (const fav of favorites) {
