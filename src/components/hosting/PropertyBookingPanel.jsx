@@ -5,7 +5,7 @@
  */
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { DollarSign, Clock, Shield, Info, Pencil } from 'lucide-react';
+import { DollarSign, Clock, Shield, Info, Pencil, Sparkles, Wrench } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import SoloSessionBookingModal from '@/components/sessions/SoloSessionBookingModal';
@@ -65,8 +65,39 @@ export default function PropertyBookingPanel({ property, currentUser, isOwner })
         )}
       </div>
 
+      {pricing.cleaning_fee_enabled && pricing.cleaning_fee_amount && (
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-[#9AA6BC]">Cleaning fee</span>
+          <span className="font-semibold text-[#E8EEF9]">${pricing.cleaning_fee_amount}</span>
+        </div>
+      )}
+
       {pricing.pricing_notes && (
         <p className="text-xs text-[#6B7A94] border-t border-[#263248] pt-3">{pricing.pricing_notes}</p>
+      )}
+
+      {/* Buffer info */}
+      {(property.buffers?.setup_buffer_hours > 0 || property.buffers?.teardown_buffer_hours > 0 || property.buffers?.cleaning_buffer_hours > 0) && (
+        <div className="text-xs text-[#6B7A94] border-t border-[#263248] pt-2 space-y-0.5">
+          <p className="font-medium text-[#9AA6BC]">Turnover time included:</p>
+          {property.buffers.setup_buffer_hours > 0 && <p>• {property.buffers.setup_buffer_hours}h setup before your booking</p>}
+          {property.buffers.teardown_buffer_hours > 0 && <p>• {property.buffers.teardown_buffer_hours}h teardown after</p>}
+          {property.buffers.cleaning_buffer_hours > 0 && <p>• {property.buffers.cleaning_buffer_hours}h cleaning after</p>}
+        </div>
+      )}
+
+      {/* Equipment/bundle summary */}
+      {property.equipment?.filter(e => e.included).length > 0 && (
+        <div className="border-t border-[#263248] pt-2">
+          <p className="text-xs font-medium text-[#9AA6BC] mb-1 flex items-center gap-1"><Wrench className="w-3 h-3" /> Included Equipment</p>
+          <p className="text-xs text-[#6B7A94]">{property.equipment.filter(e => e.included).map(e => e.name || e.category).join(', ')}</p>
+        </div>
+      )}
+      {property.equipment?.filter(e => e.rentable && !e.included).length > 0 && (
+        <div className="border-t border-[#263248] pt-2">
+          <p className="text-xs font-medium text-[#9AA6BC] mb-1 flex items-center gap-1"><Sparkles className="w-3 h-3 text-[#4F8CFF]" /> Add-ons available</p>
+          <p className="text-xs text-[#6B7A94]">{property.equipment.filter(e => e.rentable && !e.included).map(e => e.name || e.category).join(', ')}</p>
+        </div>
       )}
 
       {/* Trust indicators */}
@@ -115,6 +146,7 @@ export default function PropertyBookingPanel({ property, currentUser, isOwner })
         onClose={handleBooked}
         hostUserId={property.owner_user_id}
         hostProfile={null}
+        property={property}
         hostScheduleEntry={{
           location_city: property.city,
           location_name: property.title,

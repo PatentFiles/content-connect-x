@@ -10,6 +10,9 @@ import { X, Plus, Building2 } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';
 import PropertyRulesManager from './PropertyRulesManager';
+import PropertyEquipmentManager from './PropertyEquipmentManager';
+import PropertyBundleManager from './PropertyBundleManager';
+import { useFeatureFlag } from '@/lib/featureFlags';
 
 const PROPERTY_TYPES = [
   'studio', 'loft', 'house', 'apartment', 'studio_set', 'dungeon',
@@ -35,6 +38,9 @@ export default function PropertyForm({ property, ownerUserId, onSaved, onCancel 
   const isEdit = !!property?.id;
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const equipmentEnabled = useFeatureFlag('equipment_rentals');
+  const bundlesEnabled = useFeatureFlag('bundle_templates');
+  const cleaningFeeEnabled = useFeatureFlag('cleaning_fee');
 
   const [form, setForm] = useState({
     title: property?.title || '',
@@ -48,7 +54,10 @@ export default function PropertyForm({ property, ownerUserId, onSaved, onCancel 
     media: property?.media || [],
     capacity: property?.capacity || {},
     pricing: property?.pricing || { currency: 'USD' },
+    buffers: property?.buffers || { setup_buffer_hours: 0, teardown_buffer_hours: 0, cleaning_buffer_hours: 0 },
     rules: property?.rules || { verified_only: true, no_smoking: true },
+    equipment: property?.equipment || [],
+    bundles: property?.bundles || [],
     instant_book: property?.instant_book || false,
     onboarding_checklist: property?.onboarding_checklist || {},
   });
@@ -133,6 +142,10 @@ export default function PropertyForm({ property, ownerUserId, onSaved, onCancel 
         owner_user_id: ownerUserId,
         status,
         onboarding_checklist: checklist,
+        // Ensure arrays always present
+        equipment: form.equipment || [],
+        bundles: form.bundles || [],
+        buffers: form.buffers || {},
       };
 
       if (isEdit) {
@@ -233,6 +246,34 @@ export default function PropertyForm({ property, ownerUserId, onSaved, onCancel 
           {field('Deposit Amount', <input type="number" value={form.pricing.deposit_amount || ''} onChange={e => set('pricing.deposit_amount', parseFloat(e.target.value) || undefined)} placeholder="0" className={INPUT} />)}
         </div>
         {field('Pricing Notes', <input value={form.pricing.pricing_notes || ''} onChange={e => set('pricing.pricing_notes', e.target.value)} placeholder="e.g. Weekend rates may vary" className={INPUT} />)}
+
+        {/* Cleaning Fee */}
+        {cleaningFeeEnabled && (
+          <div className="border-t border-[#263248] pt-3 space-y-2">
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input type="checkbox" checked={form.pricing.cleaning_fee_enabled || false} onChange={e => set('pricing.cleaning_fee_enabled', e.target.checked)} />
+              <span className="text-sm font-medium text-[#E8EEF9]">Charge a cleaning fee</span>
+            </label>
+            {form.pricing.cleaning_fee_enabled && (
+              <div className="flex items-center gap-3 pl-6">
+                <span className="text-sm text-[#9AA6BC]">$</span>
+                <input type="number" value={form.pricing.cleaning_fee_amount || ''} onChange={e => set('pricing.cleaning_fee_amount', parseFloat(e.target.value) || undefined)} placeholder="e.g. 75" className={INPUT + ' w-32'} />
+                <span className="text-xs text-[#6B7A94]">flat fee added to every booking</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Turnover Buffers */}
+        <div className="border-t border-[#263248] pt-3">
+          <p className="text-sm font-medium text-[#E8EEF9] mb-2">Turnover Buffers</p>
+          <p className="text-xs text-[#6B7A94] mb-3">Blocks availability before/after each booking to prevent overlap during setup, teardown, and cleaning.</p>
+          <div className="grid grid-cols-3 gap-3">
+            {field('Setup (hrs)', <input type="number" min={0} step={0.5} value={form.buffers.setup_buffer_hours || ''} onChange={e => setForm(p => ({ ...p, buffers: { ...p.buffers, setup_buffer_hours: parseFloat(e.target.value) || 0 } }))} placeholder="0" className={INPUT} />)}
+            {field('Teardown (hrs)', <input type="number" min={0} step={0.5} value={form.buffers.teardown_buffer_hours || ''} onChange={e => setForm(p => ({ ...p, buffers: { ...p.buffers, teardown_buffer_hours: parseFloat(e.target.value) || 0 } }))} placeholder="0" className={INPUT} />)}
+            {field('Cleaning (hrs)', <input type="number" min={0} step={0.5} value={form.buffers.cleaning_buffer_hours || ''} onChange={e => setForm(p => ({ ...p, buffers: { ...p.buffers, cleaning_buffer_hours: parseFloat(e.target.value) || 0 } }))} placeholder="0" className={INPUT} />)}
+          </div>
+        </div>
       </div>
 
       {/* Amenities */}
@@ -253,6 +294,23 @@ export default function PropertyForm({ property, ownerUserId, onSaved, onCancel 
             </button>
           ))}
         </div>
+      )}
+
+      {/* Equipment */}
+      {equipmentEnabled && (
+        <PropertyEquipmentManager
+          equipment={form.equipment}
+          onChange={(eq) => setForm(prev => ({ ...prev, equipment: eq }))}
+        />
+      )}
+
+      {/* Bundles */}
+      {bundlesEnabled && (
+        <PropertyBundleManager
+          bundles={form.bundles}
+          equipment={form.equipment}
+          onChange={(b) => setForm(prev => ({ ...prev, bundles: b }))}
+        />
       )}
 
       {/* Rules — structured via PropertyRulesManager */}

@@ -53,7 +53,9 @@ export const DEFAULT_FLAGS = {
   gps_checkin:             { value: false, value_type: 'boolean', label: 'GPS Check-In',          category: 'marketplace',  affects_nav: false },
   smart_lock:              { value: false, value_type: 'boolean', label: 'Smart Lock Integration',category: 'marketplace',  affects_nav: false },
   pro_host_tier:           { value: false, value_type: 'boolean', label: 'Pro Host Tier',         category: 'marketplace',  affects_nav: false },
-  equipment_rentals:       { value: false, value_type: 'boolean', label: 'Equipment Rentals',     category: 'marketplace',  affects_nav: false },
+  equipment_rentals:       { value: false, value_type: 'boolean', label: 'Equipment Rentals (host inventory + guest add-ons)', category: 'marketplace', affects_nav: false },
+  bundle_templates:        { value: false, value_type: 'boolean', label: 'Bundle Templates (space/production packages)',        category: 'marketplace', affects_nav: false },
+  cleaning_fee:            { value: false, value_type: 'boolean', label: 'Cleaning Fee (host-controlled, shown in breakdown)',  category: 'marketplace', affects_nav: false },
   damage_deposits:         { value: false, value_type: 'boolean', label: 'Damage Deposits',       category: 'marketplace',  affects_nav: false },
   favorites_by_type:       { value: false, value_type: 'boolean', label: 'Favorites by Type',     category: 'experimental', affects_nav: false },
 

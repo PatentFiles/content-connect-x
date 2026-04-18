@@ -9,8 +9,7 @@
         "service_booking",
         "location_booking"
       ],
-      "default": "solo_session",
-      "description": "Sub-type of this standalone session"
+      "default": "solo_session"
     },
     "booking_mode": {
       "type": "string",
@@ -18,8 +17,7 @@
         "solo",
         "collaboration"
       ],
-      "default": "solo",
-      "description": "solo = single user booking a space/service; collaboration = multi-user (use Collaboration entity instead)"
+      "default": "solo"
     },
     "participant_mode": {
       "type": "string",
@@ -28,16 +26,13 @@
         "external",
         "mixed"
       ],
-      "default": "on_platform",
-      "description": "Whether all session participants are platform users, external, or mixed"
+      "default": "on_platform"
     },
     "host_user_id": {
-      "type": "string",
-      "description": "The property/service owner being booked"
+      "type": "string"
     },
     "guest_user_id": {
-      "type": "string",
-      "description": "The platform user booking the session"
+      "type": "string"
     },
     "external_participants": {
       "type": "array",
@@ -51,12 +46,10 @@
             "type": "string"
           },
           "contact": {
-            "type": "string",
-            "description": "Optional contact info for record-keeping"
+            "type": "string"
           }
         }
-      },
-      "description": "Non-platform participants (when participant_mode=external or mixed)"
+      }
     },
     "status": {
       "type": "string",
@@ -71,12 +64,10 @@
         "cancelled",
         "disputed"
       ],
-      "default": "draft",
-      "description": "Session lifecycle status"
+      "default": "draft"
     },
     "session_name": {
-      "type": "string",
-      "description": "Optional display name for this session"
+      "type": "string"
     },
     "schedule": {
       "type": "object",
@@ -152,30 +143,140 @@
         }
       }
     },
+    "booking_snapshot": {
+      "type": "object",
+      "description": "Immutable snapshot of add-ons, bundle, and pricing captured at booking time. Never mutated after creation.",
+      "properties": {
+        "property_id": {
+          "type": "string"
+        },
+        "bundle_id": {
+          "type": "string",
+          "description": "Selected bundle ID from property.bundles[]"
+        },
+        "bundle_name": {
+          "type": "string",
+          "description": "Bundle name at time of booking"
+        },
+        "selected_equipment": {
+          "type": "array",
+          "description": "Rentable equipment items the guest selected",
+          "items": {
+            "type": "object",
+            "properties": {
+              "equipment_id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "quantity": {
+                "type": "number"
+              },
+              "rental_price": {
+                "type": "number"
+              },
+              "deposit_amount": {
+                "type": "number"
+              },
+              "liability_ack": {
+                "type": "boolean",
+                "default": false
+              }
+            }
+          }
+        },
+        "pricing_breakdown": {
+          "type": "object",
+          "description": "Line-item pricing snapshot for audit/contract display",
+          "properties": {
+            "base_rate": {
+              "type": "number"
+            },
+            "base_rate_type": {
+              "type": "string"
+            },
+            "hours": {
+              "type": "number"
+            },
+            "bundle_modifier": {
+              "type": "number"
+            },
+            "equipment_total": {
+              "type": "number"
+            },
+            "cleaning_fee": {
+              "type": "number"
+            },
+            "deposit_total": {
+              "type": "number"
+            },
+            "grand_total": {
+              "type": "number"
+            },
+            "currency": {
+              "type": "string",
+              "default": "USD"
+            }
+          }
+        },
+        "liability_acks": {
+          "type": "array",
+          "description": "Each liability acknowledgment the guest accepted at booking",
+          "items": {
+            "type": "object",
+            "properties": {
+              "item_id": {
+                "type": "string"
+              },
+              "item_name": {
+                "type": "string"
+              },
+              "liability_text": {
+                "type": "string"
+              },
+              "accepted_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        "buffers": {
+          "type": "object",
+          "description": "Buffer hours snapshotted at booking time",
+          "properties": {
+            "setup_buffer_hours": {
+              "type": "number"
+            },
+            "teardown_buffer_hours": {
+              "type": "number"
+            },
+            "cleaning_buffer_hours": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    },
     "contract_id": {
-      "type": "string",
-      "description": "Contract record backing this session \u2014 same Contract entity as collaborations"
+      "type": "string"
     },
     "booking_request_id": {
-      "type": "string",
-      "description": "Originating BookingRequest if created from booking flow"
+      "type": "string"
     },
     "schedule_entry_id": {
-      "type": "string",
-      "description": "Host ScheduleEntry that was reserved"
+      "type": "string"
     },
     "collaboration_id": {
-      "type": "string",
-      "description": "Set when this session is upgraded/converted to a full Collaboration"
+      "type": "string"
     },
     "upgraded_to_collaboration": {
       "type": "boolean",
-      "default": false,
-      "description": "True if this session has been upgraded to a Collaboration"
+      "default": false
     },
     "internal_notes": {
-      "type": "string",
-      "description": "Admin-visible notes"
+      "type": "string"
     },
     "tags": {
       "type": "array",
@@ -184,17 +285,14 @@
       }
     },
     "safety_checkin_id": {
-      "type": "string",
-      "description": "SafetyCheckIn record for this session"
+      "type": "string"
     },
     "agreement_accepted_at": {
       "type": "string",
-      "format": "date-time",
-      "description": "When the guest accepted the host's terms/agreement"
+      "format": "date-time"
     },
     "agreement_text_snapshot": {
-      "type": "string",
-      "description": "Snapshot of the agreement terms accepted at booking time (immutable audit record)"
+      "type": "string"
     }
   },
   "required": [

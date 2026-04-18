@@ -19,6 +19,7 @@ import { X, Calendar, Clock, MapPin, DollarSign, Users, User, AlertTriangle, Plu
 import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { useFeatureFlag } from '@/lib/featureFlags';
+import PropertyBookingAddons from '@/components/hosting/PropertyBookingAddons';
 
 const SESSION_TYPES = [
   { value: 'solo_session', label: 'Solo Session', description: 'Book space for personal/creative use' },
@@ -38,13 +39,23 @@ const HOST_AGREEMENT_TEMPLATE = `By confirming this booking you agree to:
 3. Not share access credentials with unauthorised persons.
 4. Notify the host immediately of any damage or safety concerns.`;
 
-export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, hostProfile, hostScheduleEntry }) {
+export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, hostProfile, hostScheduleEntry, property }) {
   const soloSessionsEnabled = useFeatureFlag('solo_sessions');
+  const equipmentEnabled = useFeatureFlag('equipment_rentals');
+  const bundlesEnabled = useFeatureFlag('bundle_templates');
+  const cleaningFeeEnabled = useFeatureFlag('cleaning_fee');
+  const hasAddons = property && (equipmentEnabled || bundlesEnabled || cleaningFeeEnabled);
+
+  // Steps: 1=type/participants, 2=schedule/rate, [3=add-ons if location+property], last=agreement
+  const totalSteps = hasAddons && (property?.equipment?.length > 0 || property?.bundles?.length > 0 || property?.pricing?.cleaning_fee_enabled) ? 4 : 3;
+  const addonsStep = hasAddons ? 3 : null;
+  const agreementStep = totalSteps;
 
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [bookingSnapshot, setBookingSnapshot] = useState(null);
   const [form, setForm] = useState({
-    session_type: 'solo_session',
+    session_type: property ? 'location_booking' : 'solo_session',
     participant_mode: 'on_platform',
     confirmed_date: '',
     start_time: '',
@@ -87,6 +98,8 @@ export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, h
     if (!form.agreement_accepted) { toast.error('You must accept the host agreement to continue'); return; }
 
     setLoading(true);
+    // Use pricing breakdown total from snapshot if available
+    const totalFromSnapshot = bookingSnapshot?.pricing_breakdown?.grand_total;
     try {
       const res = await base44.functions.invoke('manageSoloSession', {
         action: 'create',
@@ -101,20 +114,22 @@ export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, h
         },
         location: {
           type: hostScheduleEntry?.location_type?.toLowerCase() || 'studio',
-          name: hostScheduleEntry?.location_name || hostProfile?.display_name || '',
-          city: form.city || hostScheduleEntry?.location_city || '',
+          name: hostScheduleEntry?.location_name || property?.title || hostProfile?.display_name || '',
+          city: form.city || hostScheduleEntry?.location_city || property?.city || '',
           notes: form.location_notes || hostScheduleEntry?.booking_notes || '',
         },
-        compensation: form.amount ? {
-          amount: parseFloat(form.amount),
+        compensation: (form.amount || totalFromSnapshot) ? {
+          amount: totalFromSnapshot || parseFloat(form.amount),
           currency: 'USD',
           payment_type: form.payment_type,
+          notes: totalFromSnapshot ? 'Calculated from booking add-ons' : undefined,
         } : null,
         external_participants: ['external', 'mixed'].includes(form.participant_mode)
           ? form.external_participants.filter(p => p.name)
           : [],
         schedule_entry_id: hostScheduleEntry?.id || null,
         agreement_text_snapshot: HOST_AGREEMENT_TEMPLATE,
+        booking_snapshot: bookingSnapshot || null,
       });
 
       toast.success('Session booking request sent!');
@@ -149,7 +164,7 @@ export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, h
             <div>
               <h2 className="text-lg font-semibold text-[#E8EEF9]">Book a Session</h2>
               <p className="text-xs text-[#9AA6BC] mt-0.5">
-                with {hostProfile?.display_name || 'Host'} · Step {step} of 3
+                with {hostProfile?.display_name || property?.title || 'Host'} · Step {step} of {totalSteps}
               </p>
             </div>
             <button onClick={() => onClose()} className="p-2 text-[#6B7A94] hover:text-[#E8EEF9] transition-colors">
@@ -332,8 +347,25 @@ export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, h
               </>
             )}
 
-            {/* Step 3: Agreement */}
-            {step === 3 && (
+            {/* Step 3: Add-ons (location bookings with property only) */}
+            {step === 3 && addonsStep === 3 && property && (
+              <PropertyBookingAddons
+                property={property}
+                hours={(() => {
+                  if (form.start_time && form.end_time) {
+                    const [sh, sm] = form.start_time.split(':').map(Number);
+                    const [eh, em] = form.end_time.split(':').map(Number);
+                    const diff = (eh * 60 + em - sh * 60 - sm) / 60;
+                    return diff > 0 ? diff : 1;
+                  }
+                  return 1;
+                })()}
+                onUpdate={(snap) => setBookingSnapshot(snap)}
+              />
+            )}
+
+            {/* Step 3/4: Agreement */}
+            {step === agreementStep && (
               <>
                 <div className="bg-[#0B0F14] rounded-lg p-4 border border-[#263248]">
                   <h3 className="text-sm font-semibold text-[#E8EEF9] mb-2 flex items-center gap-2">
@@ -349,7 +381,12 @@ export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, h
                   <p><strong className="text-[#E8EEF9]">Session:</strong> {SESSION_TYPES.find(t => t.value === form.session_type)?.label}</p>
                   <p><strong className="text-[#E8EEF9]">Date:</strong> {form.confirmed_date || 'TBD'}</p>
                   {form.start_time && <p><strong className="text-[#E8EEF9]">Time:</strong> {form.start_time}{form.end_time ? ` – ${form.end_time}` : ''}</p>}
-                  {form.amount && <p><strong className="text-[#E8EEF9]">Rate:</strong> ${form.amount} ({form.payment_type})</p>}
+                  {bookingSnapshot?.pricing_breakdown?.grand_total
+                    ? <p><strong className="text-[#E8EEF9]">Total:</strong> ${bookingSnapshot.pricing_breakdown.grand_total.toFixed(2)} (incl. add-ons)</p>
+                    : form.amount && <p><strong className="text-[#E8EEF9]">Rate:</strong> ${form.amount} ({form.payment_type})</p>
+                  }
+                  {bookingSnapshot?.bundle_name && <p><strong className="text-[#E8EEF9]">Package:</strong> {bookingSnapshot.bundle_name}</p>}
+                  {bookingSnapshot?.selected_equipment?.length > 0 && <p><strong className="text-[#E8EEF9]">Equipment:</strong> {bookingSnapshot.selected_equipment.map(e => e.name).join(', ')}</p>}
                   <p><strong className="text-[#E8EEF9]">Participants:</strong> {form.participant_mode}</p>
                 </div>
 
@@ -376,7 +413,7 @@ export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, h
                 Back
               </CCButton>
             )}
-            {step < 3 ? (
+            {step < agreementStep ? (
               <CCButton
                 variant="primary"
                 onClick={() => setStep(s => s + 1)}
