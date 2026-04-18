@@ -38,7 +38,6 @@ const roleOptions = [
   { value: 'video_editor', label: 'Video Editors', icon: Film },
   { value: 'agent', label: 'Talent Agents', icon: Briefcase },
   { value: 'studio', label: 'Studios', icon: Building },
-  { value: 'host', label: 'Hosts', icon: Home },
 ];
 
 // Note: Video editors role_type is already in UserProfile enum; discovery includes them automatically.
