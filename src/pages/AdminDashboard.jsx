@@ -55,6 +55,7 @@ const BannedReentryDisputePanel = lazy(() => import('@/components/admin/BannedRe
 const FeatureFlagsPanel = lazy(() => import('@/components/admin/FeatureFlagsPanel'));
 const PropertyIncidentsPanel = lazy(() => import('@/components/admin/PropertyIncidentsPanel'));
 const HostingPricingPanel = lazy(() => import('@/components/admin/HostingPricingPanel'));
+const SearchRankingConfigPanel = lazy(() => import('@/components/admin/SearchRankingConfigPanel'));
 
 const TabSuspense = ({ children }) => (
   <Suspense fallback={<div className="p-4 text-[#6B7A94]">Loading...</div>}>
@@ -449,6 +450,7 @@ export default function AdminDashboard() {
     { value: 'reentry_disputes', label: 'Re-entry Disputes' },
     { value: 'property_incidents', label: 'Property Incidents' },
     { value: 'hosting_pricing', label: 'Hosting Pricing' },
+    { value: 'search_ranking', label: 'Search Ranking Config' },
     { value: 'feature_flags', label: 'Feature Flags' },
   ];
 
@@ -826,14 +828,21 @@ export default function AdminDashboard() {
         </CCTabsContent>
 
         {/* Hosting Pricing Tab */}
-        <CCTabsContent value="hosting_pricing" activeTab={activeTab}>
-         <TabSuspense>
-           <HostingPricingPanel />
-         </TabSuspense>
-        </CCTabsContent>
+         <CCTabsContent value="hosting_pricing" activeTab={activeTab}>
+          <TabSuspense>
+            <HostingPricingPanel />
+          </TabSuspense>
+         </CCTabsContent>
 
-        {/* Feature Flags Tab */}
-        <CCTabsContent value="feature_flags" activeTab={activeTab}>
+         {/* Search Ranking Config Tab */}
+         <CCTabsContent value="search_ranking" activeTab={activeTab}>
+          <TabSuspense>
+            <SearchRankingConfigPanel />
+          </TabSuspense>
+         </CCTabsContent>
+
+         {/* Feature Flags Tab */}
+         <CCTabsContent value="feature_flags" activeTab={activeTab}>
          <TabSuspense>
            <FeatureFlagsPanel />
          </TabSuspense>

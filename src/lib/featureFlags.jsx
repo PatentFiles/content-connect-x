@@ -84,9 +84,26 @@ export const DEFAULT_FLAGS = {
   external_participant_attestation: { value: false, value_type: 'boolean', label: 'External Participant Attestation (age/ID/consent attestation for off-platform talent — studios/productions)', category: 'safety', affects_nav: false },
   content_usage_tracking:  { value: false, value_type: 'boolean', label: 'Content Usage Tracking (log publish events, unauthorized use, takedown requests per session/collaboration)', category: 'compliance', affects_nav: false },
 
+  // ── Search & reviews ──
+  search_ranking_enabled:  { value: false, value_type: 'boolean', label: 'Search Ranking Config (admin-configurable weights for title, city, description, role, boosts)', category: 'marketplace', affects_nav: false },
+  property_reviews_enabled: { value: false, value_type: 'boolean', label: 'Property Reviews (verified reviews from completed bookings, rating aggregation, ranking signals)', category: 'marketplace', affects_nav: false },
+
   // ── Numeric / text config ──
   max_messages_per_day:    { value: 100,   value_type: 'number',  label: 'Max Messages Per Day',  category: 'safety' },
   platform_policy_version: { value: '1.0', value_type: 'text',    label: 'Platform Policy Version', category: 'compliance' },
+  
+  // ── Search ranking weights (numeric) ──
+  search_ranking_title_weight: { value: 5,   value_type: 'number', label: 'Title Match Weight', category: 'marketplace' },
+  search_ranking_city_weight: { value: 2,   value_type: 'number', label: 'City Match Weight', category: 'marketplace' },
+  search_ranking_description_weight: { value: 1, value_type: 'number', label: 'Description Match Weight', category: 'marketplace' },
+  search_ranking_role_weight: { value: 2,   value_type: 'number', label: 'Role Weight', category: 'marketplace' },
+  search_ranking_exact_match_boost: { value: 5, value_type: 'number', label: 'Exact Match Boost', category: 'marketplace' },
+  search_ranking_property_boost: { value: 0, value_type: 'number', label: 'Property Type Boost', category: 'marketplace' },
+  search_ranking_profile_boost: { value: 0, value_type: 'number', label: 'Profile Type Boost', category: 'marketplace' },
+  search_ranking_pro_host_boost: { value: 2, value_type: 'number', label: 'Pro Host Boost', category: 'marketplace' },
+  search_ranking_high_reputation_boost: { value: 2, value_type: 'number', label: 'High Reputation Boost (4.5+)', category: 'marketplace' },
+  search_ranking_rating_weight: { value: 1, value_type: 'number', label: 'Average Rating Weight', category: 'marketplace' },
+  search_ranking_review_volume_weight: { value: 0.5, value_type: 'number', label: 'Review Volume Weight', category: 'marketplace' },
 };
 
 // ─── Context ───────────────────────────────────────────────────────────────────

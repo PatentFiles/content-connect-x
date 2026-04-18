@@ -20,14 +20,17 @@ import BookingAccessWidget from '@/components/hosting/BookingAccessWidget';
 import PropertyIncidentWidget from '@/components/hosting/PropertyIncidentWidget';
 import ContentUsageWidget from '@/components/compliance/ContentUsageWidget';
 import ExternalParticipantAttestationModal from './ExternalParticipantAttestationModal';
+import PropertyReviewPromptModal from '@/components/property/PropertyReviewPromptModal';
 
 export default function SoloSessionsInbox({ user, asHost = false }) {
   const soloSessionsEnabled = useFeatureFlag('solo_sessions');
   const attestationEnabled = useFeatureFlag('external_participant_attestation');
   const contentUsageEnabled = useFeatureFlag('content_usage_tracking');
+  const reviewsEnabled = useFeatureFlag('property_reviews_enabled');
   const queryClient = useQueryClient();
   const [actionLoading, setActionLoading] = useState(null);
   const [attestationSession, setAttestationSession] = useState(null);
+  const [reviewSession, setReviewSession] = useState(null);
 
   const { data: sessions = [], isLoading } = useQuery({
     queryKey: ['soloSessions', user?.email, asHost ? 'host' : 'guest'],
@@ -178,6 +181,16 @@ export default function SoloSessionsInbox({ user, asHost = false }) {
                 {contentUsageEnabled && session.status === 'completed' && (
                   <ContentUsageWidget session={session} currentUser={user} />
                 )}
+                {/* Review prompt for location bookings after completion */}
+                {reviewsEnabled && !asHost && session.status === 'completed' && session.session_type === 'location_booking' && session.property_id && (
+                  <CCButton
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setReviewSession(session)}
+                  >
+                    Leave a Review
+                  </CCButton>
+                )}
               </div>
             ))}
           </div>
@@ -193,6 +206,17 @@ export default function SoloSessionsInbox({ user, asHost = false }) {
           currentUser={user}
         />
       )}
-    </div>
-  );
-}
+
+      {/* Property review prompt */}
+      {reviewSession && (
+        <PropertyReviewPromptModal
+          isOpen={!!reviewSession}
+          onClose={() => setReviewSession(null)}
+          sessionId={reviewSession.id}
+          propertyId={reviewSession.property_id}
+          propertyTitle={reviewSession.property_title || 'Property'}
+        />
+      )}
+      </div>
+      );
+      }

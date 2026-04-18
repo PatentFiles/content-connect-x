@@ -11,6 +11,7 @@ import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import PropertyGallery from '@/components/hosting/PropertyGallery';
 import PropertyBookingPanel from '@/components/hosting/PropertyBookingPanel';
 import LocationContractClauses from '@/components/hosting/LocationContractClauses';
+import PropertyReviewsSection from '@/components/property/PropertyReviewsSection';
 import { useFeatureFlag } from '@/lib/featureFlags';
 
 export default function PropertyDetail() {
@@ -46,6 +47,7 @@ export default function PropertyDetail() {
   const isOwner = user?.email === property?.owner_user_id;
   const locationClausesEnabled = useFeatureFlag('location_contract_clauses');
   const cancellationPoliciesEnabled = useFeatureFlag('cancellation_policies');
+  const reviewsEnabled = useFeatureFlag('property_reviews_enabled');
 
   const { data: cancellationPolicies = [] } = useQuery({
     queryKey: ['cancellationPolicy', property?.id],
@@ -182,6 +184,14 @@ export default function PropertyDetail() {
             {/* Location contract clauses preview */}
             {locationClausesEnabled && (
               <LocationContractClauses property={property} cancellationPolicy={cancellationPolicy} />
+            )}
+
+            {/* Reviews section */}
+            {reviewsEnabled && (
+              <CCCard padding="lg">
+                <h3 className="text-base font-semibold text-[#E8EEF9] mb-4">Guest Reviews</h3>
+                <PropertyReviewsSection propertyId={property.id} />
+              </CCCard>
             )}
 
             {/* Host profile card */}
