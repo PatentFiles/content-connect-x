@@ -83,7 +83,7 @@ export default function PropertyDetail() {
                   <p className="text-[#9AA6BC] flex items-center gap-1 mt-1">
                     <MapPin className="w-4 h-4" />
                     {property.city}{property.state && `, ${property.state}`}
-                    <span className="text-[#6B7A94] text-xs ml-2">(Exact address shared after booking)</span>
+                    <span className="text-[#6B7A94] text-xs ml-2">· Exact address shared after confirmed booking</span>
                   </p>
                 </div>
                 <div className="flex flex-col gap-1 items-end">

@@ -50,8 +50,9 @@ export const DEFAULT_FLAGS = {
   // ── Marketplace / upcoming features ──
   hosting_marketplace:     { value: false, value_type: 'boolean', label: 'Hosting Marketplace',   category: 'marketplace',  affects_nav: true,  nav_pages: ['HostingMarketplace', 'PropertyDetail', 'HostDashboard'] },
   solo_sessions:           { value: false, value_type: 'boolean', label: 'Solo Sessions',         category: 'marketplace',  affects_nav: true,  nav_pages: ['SoloSessionDetail'] },
-  gps_checkin:             { value: false, value_type: 'boolean', label: 'GPS Check-In',          category: 'marketplace',  affects_nav: false },
-  smart_lock:              { value: false, value_type: 'boolean', label: 'Smart Lock Integration',category: 'marketplace',  affects_nav: false },
+  gps_checkin:             { value: false, value_type: 'boolean', label: 'GPS Check-In (property-level toggle, geofence enforcement)', category: 'safety', affects_nav: false },
+  smart_lock_enabled:      { value: false, value_type: 'boolean', label: 'Smart Lock Integration (provider config + API-ready architecture)', category: 'marketplace', affects_nav: false },
+  checkout_evidence_enabled: { value: false, value_type: 'boolean', label: 'Checkout Evidence (photo/video upload at checkout)', category: 'safety', affects_nav: false },
   pro_host_tier:           { value: false, value_type: 'boolean', label: 'Pro Host Tier',         category: 'marketplace',  affects_nav: false },
   equipment_rentals:       { value: false, value_type: 'boolean', label: 'Equipment Rentals (host inventory + guest add-ons)', category: 'marketplace', affects_nav: false },
   bundle_templates:        { value: false, value_type: 'boolean', label: 'Bundle Templates (space/production packages)',        category: 'marketplace', affects_nav: false },

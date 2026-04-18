@@ -69,10 +69,12 @@
       "description": "PRIVATE. Only revealed after confirmed booking."
     },
     "lat": {
-      "type": "number"
+      "type": "number",
+      "description": "PRIVATE. Used for geofence/GPS check-in only."
     },
     "lng": {
-      "type": "number"
+      "type": "number",
+      "description": "PRIVATE. Used for geofence/GPS check-in only."
     },
     "media": {
       "type": "array",
@@ -151,41 +153,100 @@
           "default": false
         },
         "cleaning_fee_amount": {
-          "type": "number",
-          "description": "Flat cleaning fee added to every booking total"
+          "type": "number"
         }
       }
     },
     "buffers": {
       "type": "object",
-      "description": "Turnover buffers that block the schedule around every confirmed booking",
       "properties": {
         "setup_buffer_hours": {
           "type": "number",
-          "default": 0,
-          "description": "Hours blocked before booking start time"
+          "default": 0
         },
         "teardown_buffer_hours": {
           "type": "number",
-          "default": 0,
-          "description": "Hours blocked after booking end time"
+          "default": 0
         },
         "cleaning_buffer_hours": {
           "type": "number",
-          "default": 0,
-          "description": "Additional hours blocked after teardown for cleaning"
+          "default": 0
+        }
+      }
+    },
+    "access_settings": {
+      "type": "object",
+      "description": "Host-configured access and check-in preferences for this property",
+      "properties": {
+        "gps_checkin_required": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether GPS check-in is required at this property (only active when global gps_checkin flag is on)"
+        },
+        "gps_geofence_radius_meters": {
+          "type": "number",
+          "default": 200,
+          "description": "Radius from property lat/lng that counts as 'on-site'. Default 200m."
+        },
+        "access_code_window_minutes_before": {
+          "type": "number",
+          "default": 30,
+          "description": "How many minutes before booking start the access code becomes active"
+        },
+        "access_code_window_minutes_after": {
+          "type": "number",
+          "default": 15,
+          "description": "How many minutes after booking end the code remains valid (grace period)"
+        },
+        "smart_lock_enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this property has a smart/API-connected lock configured"
+        },
+        "smart_lock_provider": {
+          "type": "string",
+          "enum": [
+            "manual",
+            "august",
+            "schlage",
+            "yale",
+            "nuki",
+            "igloohome",
+            "remotelock",
+            "other"
+          ],
+          "default": "manual",
+          "description": "Lock provider for API integration. 'manual' = host sets code manually."
+        },
+        "smart_lock_config": {
+          "type": "object",
+          "description": "Provider-specific config (account IDs, device IDs). PRIVATE \u2014 admin/host only.",
+          "properties": {
+            "device_id": {
+              "type": "string"
+            },
+            "account_ref": {
+              "type": "string"
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "checkout_evidence_required": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether checkout evidence upload is requested from guest/host"
         }
       }
     },
     "equipment": {
       "type": "array",
-      "description": "Per-property equipment inventory. Each item can be included, rentable, or both.",
       "items": {
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "description": "Client-generated UUID for item identity"
+            "type": "string"
           },
           "name": {
             "type": "string"
@@ -210,17 +271,14 @@
           },
           "included": {
             "type": "boolean",
-            "default": true,
-            "description": "Available at no extra cost with every booking"
+            "default": true
           },
           "rentable": {
             "type": "boolean",
-            "default": false,
-            "description": "Can be added as a paid add-on"
+            "default": false
           },
           "rental_price": {
-            "type": "number",
-            "description": "Per-booking rental price (ignored when included=true)"
+            "type": "number"
           },
           "deposit_required": {
             "type": "boolean",
@@ -231,12 +289,10 @@
           },
           "requires_liability_ack": {
             "type": "boolean",
-            "default": false,
-            "description": "Guest must explicitly acknowledge liability before renting"
+            "default": false
           },
           "liability_text": {
-            "type": "string",
-            "description": "Liability disclosure shown to guest at booking"
+            "type": "string"
           },
           "notes": {
             "type": "string"
@@ -246,7 +302,6 @@
     },
     "bundles": {
       "type": "array",
-      "description": "Package templates the host offers. Guest picks one bundle at booking time.",
       "items": {
         "type": "object",
         "properties": {
@@ -254,8 +309,7 @@
             "type": "string"
           },
           "name": {
-            "type": "string",
-            "description": "e.g. Space Only, Production-Ready, Dungeon Package"
+            "type": "string"
           },
           "description": {
             "type": "string"
@@ -264,13 +318,11 @@
             "type": "array",
             "items": {
               "type": "string"
-            },
-            "description": "IDs from equipment[] that are included in this bundle"
+            }
           },
           "price_modifier": {
             "type": "number",
-            "default": 0,
-            "description": "Flat amount added on top of base space rate. Negative = discount."
+            "default": 0
           },
           "price_modifier_type": {
             "type": "string",
@@ -282,8 +334,7 @@
           },
           "is_default": {
             "type": "boolean",
-            "default": false,
-            "description": "Pre-selected for new bookings"
+            "default": false
           },
           "requires_liability_ack": {
             "type": "boolean",

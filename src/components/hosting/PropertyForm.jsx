@@ -12,6 +12,7 @@ import CCButton from '@/components/ui-custom/CCButton';
 import PropertyRulesManager from './PropertyRulesManager';
 import PropertyEquipmentManager from './PropertyEquipmentManager';
 import PropertyBundleManager from './PropertyBundleManager';
+import PropertyAccessSettings from './PropertyAccessSettings';
 import { useFeatureFlag } from '@/lib/featureFlags';
 
 const PROPERTY_TYPES = [
@@ -58,6 +59,7 @@ export default function PropertyForm({ property, ownerUserId, onSaved, onCancel 
     rules: property?.rules || { verified_only: true, no_smoking: true },
     equipment: property?.equipment || [],
     bundles: property?.bundles || [],
+    access_settings: property?.access_settings || {},
     instant_book: property?.instant_book || false,
     onboarding_checklist: property?.onboarding_checklist || {},
   });
@@ -146,6 +148,7 @@ export default function PropertyForm({ property, ownerUserId, onSaved, onCancel 
         equipment: form.equipment || [],
         bundles: form.bundles || [],
         buffers: form.buffers || {},
+        access_settings: form.access_settings || {},
       };
 
       if (isEdit) {
@@ -312,6 +315,12 @@ export default function PropertyForm({ property, ownerUserId, onSaved, onCancel 
           onChange={(b) => setForm(prev => ({ ...prev, bundles: b }))}
         />
       )}
+
+      {/* Access & Check-In Settings */}
+      <PropertyAccessSettings
+        settings={form.access_settings}
+        onChange={(s) => setForm(prev => ({ ...prev, access_settings: s }))}
+      />
 
       {/* Rules — structured via PropertyRulesManager */}
       <PropertyRulesManager

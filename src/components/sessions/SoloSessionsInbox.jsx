@@ -16,6 +16,7 @@ import CCEmpty from '@/components/ui-custom/CCEmpty';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import SoloSessionCard from './SoloSessionCard';
 import { useFeatureFlag } from '@/lib/featureFlags';
+import BookingAccessWidget from '@/components/hosting/BookingAccessWidget';
 
 export default function SoloSessionsInbox({ user, asHost = false }) {
   const soloSessionsEnabled = useFeatureFlag('solo_sessions');
@@ -117,15 +118,20 @@ export default function SoloSessionsInbox({ user, asHost = false }) {
             <CalendarClock className="w-4 h-4 text-[#4F8CFF]" />
             Upcoming Sessions
           </h3>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {upcoming.map(session => (
-              <SoloSessionCard
-                key={session.id}
-                session={session}
-                showHost={!asHost}
-                guestProfile={getProfile(session.guest_user_id)}
-                hostProfile={getProfile(session.host_user_id)}
-              />
+              <div key={session.id} className="space-y-2">
+                <SoloSessionCard
+                  session={session}
+                  showHost={!asHost}
+                  guestProfile={getProfile(session.guest_user_id)}
+                  hostProfile={getProfile(session.host_user_id)}
+                />
+                {/* Access widget — shown for location bookings */}
+                {session.session_type === 'location_booking' && (
+                  <BookingAccessWidget session={session} currentUser={user} />
+                )}
+              </div>
             ))}
           </div>
         </div>

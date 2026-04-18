@@ -1,0 +1,137 @@
+{
+  "name": "BookingAccessEvent",
+  "type": "object",
+  "description": "Immutable audit log of all access/check-in/checkout events for a booking session. Admin and parties only.",
+  "properties": {
+    "session_id": {
+      "type": "string",
+      "description": "SoloSession ID this event belongs to"
+    },
+    "property_id": {
+      "type": "string"
+    },
+    "actor_user_id": {
+      "type": "string",
+      "description": "User who triggered the event"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "access_code_issued",
+        "access_code_reset",
+        "access_code_expired",
+        "checkin_gps",
+        "checkin_manual",
+        "checkin_issue_reported",
+        "checkout_completed",
+        "checkout_evidence_uploaded",
+        "smart_lock_unlocked",
+        "smart_lock_locked",
+        "smart_lock_error",
+        "address_revealed"
+      ],
+      "description": "Type of access event"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "gps_lat": {
+      "type": "number",
+      "description": "Device GPS lat at event time. PRIVATE \u2014 never shown publicly."
+    },
+    "gps_lng": {
+      "type": "number",
+      "description": "Device GPS lng at event time. PRIVATE \u2014 never shown publicly."
+    },
+    "gps_accuracy_meters": {
+      "type": "number",
+      "description": "Device-reported GPS accuracy"
+    },
+    "distance_from_property_meters": {
+      "type": "number",
+      "description": "Calculated distance from property coords at check-in"
+    },
+    "within_geofence": {
+      "type": "boolean",
+      "description": "Whether device was within the property geofence at check-in time"
+    },
+    "access_code_hash": {
+      "type": "string",
+      "description": "SHA-256 of the issued/reset code \u2014 never stores plaintext"
+    },
+    "code_issued_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "code_expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reset_reason": {
+      "type": "string",
+      "description": "Reason provided for a code reset"
+    },
+    "evidence_urls": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Uploaded photo/video URLs for checkout evidence or access issue documentation"
+    },
+    "condition_notes": {
+      "type": "string",
+      "description": "Host/guest condition notes at checkout"
+    },
+    "device_info": {
+      "type": "string",
+      "description": "Minimal device/browser info at event time (OS, browser only)"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Catch-all for provider-specific or future event metadata"
+    }
+  },
+  "required": [
+    "session_id",
+    "actor_user_id",
+    "event_type",
+    "timestamp"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.actor_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.actor_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
