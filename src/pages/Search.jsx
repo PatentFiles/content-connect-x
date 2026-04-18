@@ -340,8 +340,13 @@ export default function Search() {
       {/* Search Header */}
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-6xl mx-auto px-4 py-4">
-          {/* Search Input */}
-          <div className="flex gap-3 mb-4">
+          {/* Title */}
+          <div className="text-center mb-4">
+            <h1 className="text-xl font-semibold text-[#E8EEF9]">Search</h1>
+            <p className="text-xs text-[#6B7A94]">Find your next collaboration</p>
+          </div>
+          {/* Search Input — centered with max width */}
+          <div className="flex gap-3 mb-4 max-w-2xl mx-auto">
             <div className="flex-1 relative">
               <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7A94]" />
               <input
@@ -360,6 +365,30 @@ export default function Search() {
                 </button>
               )}
             </div>
+          </div>
+
+          {/* Role Quick Filters + Filters button */}
+          <div className="flex flex-wrap gap-2 justify-center pb-2 overflow-x-auto">
+            <CCButton
+              variant={!selectedRole ? 'primary' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedRole('')}
+              className="flex-shrink-0"
+            >
+              All
+            </CCButton>
+            {roleOptions.map((role) => (
+              <CCButton
+                key={role.value}
+                variant={selectedRole === role.value ? 'primary' : 'outline'}
+                size="sm"
+                onClick={() => setSelectedRole(role.value)}
+                className="flex-shrink-0"
+              >
+                <span className="hidden sm:inline mr-1.5"><role.icon className="w-4 h-4" /></span>
+                {role.label}
+              </CCButton>
+            ))}
             <ProfileFilters
               filters={filters}
               onChange={setFilters}
@@ -383,30 +412,6 @@ export default function Search() {
                 setSelectedRole('');
               }}
             />
-          </div>
-
-          {/* Role Quick Filters */}
-          <div className="flex flex-wrap gap-2 justify-center pb-2 overflow-x-auto">
-            <CCButton
-              variant={!selectedRole ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setSelectedRole('')}
-              className="flex-shrink-0"
-            >
-              All
-            </CCButton>
-            {roleOptions.map((role) => (
-              <CCButton
-                key={role.value}
-                variant={selectedRole === role.value ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedRole(role.value)}
-                className="flex-shrink-0"
-              >
-                <span className="hidden sm:inline mr-1.5"><role.icon className="w-4 h-4" /></span>
-                {role.label}
-              </CCButton>
-            ))}
           </div>
         </div>
       </div>

@@ -360,8 +360,8 @@ export default function Discovery() {
             <h1 className="text-xl font-semibold text-[#E8EEF9]">Discover</h1>
             <p className="text-xs text-[#6B7A94]">Find your next collaboration</p>
           </div>
-          {/* Search bar + Filters */}
-          <div className="flex gap-3 mb-4">
+          {/* Search bar — centered with max width */}
+          <div className="flex gap-3 mb-4 max-w-2xl mx-auto">
             <div className="flex-1 relative">
               <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7A94]" />
               <input
@@ -377,21 +377,8 @@ export default function Discovery() {
                 </button>
               )}
             </div>
-            <ProfileFilters
-              filters={filters}
-              onChange={setFilters}
-              onReset={() => {
-                setFilters({
-                  roleTypes: [], orientations: [], sceneTypes: [], tags: [],
-                  compensation: [], nearMe: false, travelAvailable: false,
-                  verifiedOnly: true, testingRequired: false, recentlyActive: false,
-                  sortBy: 'distance', country: '', state: '', city: ''
-                });
-                setSelectedRole('');
-              }}
-            />
           </div>
-          {/* Role pills */}
+          {/* Role pills + Filters button */}
           <div className="flex flex-wrap gap-2 pb-1 justify-center">
             <CCButton variant={!selectedRole ? 'primary' : 'outline'} size="sm" onClick={() => setSelectedRole('')} className="flex-shrink-0">
               All
@@ -408,6 +395,19 @@ export default function Discovery() {
                 {role.label}
               </CCButton>
             ))}
+            <ProfileFilters
+              filters={filters}
+              onChange={setFilters}
+              onReset={() => {
+                setFilters({
+                  roleTypes: [], orientations: [], sceneTypes: [], tags: [],
+                  compensation: [], nearMe: false, travelAvailable: false,
+                  verifiedOnly: true, testingRequired: false, recentlyActive: false,
+                  sortBy: 'distance', country: '', state: '', city: ''
+                });
+                setSelectedRole('');
+              }}
+            />
           </div>
         </div>
       </div>
