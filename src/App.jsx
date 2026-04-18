@@ -35,6 +35,7 @@ const AuthenticatedApp = () => {
       <AccountBlockedScreen
         blockReason={blockStatus.reason}
         suspensionReason={blockStatus.suspensionReason}
+        suspensionEndAt={blockStatus.suspensionEndAt}
       />
     );
   }

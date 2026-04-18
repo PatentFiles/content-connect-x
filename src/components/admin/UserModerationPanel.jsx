@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Search, UserX, UserCheck, Eye, ChevronDown, ChevronUp, Shield, ShieldOff, RefreshCw, Ban, MapPin } from 'lucide-react';
+import { SuspensionStatusBadge, SuspensionActionButtons } from '@/components/admin/SuspensionManager';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
@@ -196,7 +197,6 @@ export default function UserModerationPanel({ currentAdmin }) {
     // Map modal action types to backend function action names
     const actionMap = {
       ban_account: 'ban',
-      suspend_account: 'ban',       // treat suspend as a soft-ban via the backend
       unsuspend_account: 'unban',
     };
 
@@ -310,6 +310,7 @@ export default function UserModerationPanel({ currentAdmin }) {
             <option value="studio">Studio</option>
             <option value="photographer">Photographer</option>
             <option value="videographer">Videographer</option>
+            <option value="video_editor">Video Editor</option>
           </select>
           <select
             value={verificationFilter}
@@ -377,7 +378,7 @@ export default function UserModerationPanel({ currentAdmin }) {
                         <CCBadge variant="primary" size="sm">{userSubscription.plan_id}</CCBadge>
                       )}
                       {isDeleted(profile) && <CCBadge variant="default" size="sm">Deleted</CCBadge>}
-                      {profile.banned && !isDeleted(profile) && <CCBadge variant="danger" size="sm">Banned</CCBadge>}
+                      {!isDeleted(profile) && <SuspensionStatusBadge profile={profile} />}
                     </div>
                     <p className="text-xs text-[#6B7A94]">{profile.user_id}</p>
                   </div>
@@ -474,7 +475,20 @@ export default function UserModerationPanel({ currentAdmin }) {
                         >
                           View Profile
                         </CCButton>
-                        {profile.banned ? (
+                        {/* Suspension / Ban controls via SuspensionActionButtons */}
+                        <SuspensionActionButtons profile={profile} onActionComplete={invalidateAll} />
+                        {/* Permanent ban (separate from suspension) */}
+                        {!profile.banned && !profile.suspended && (
+                          <CCButton
+                            variant="danger"
+                            size="sm"
+                            icon={Ban}
+                            onClick={() => handleAction('ban_account', profile)}
+                          >
+                            Perm Ban
+                          </CCButton>
+                        )}
+                        {profile.banned && (
                           <CCButton
                             variant="success"
                             size="sm"
@@ -482,15 +496,6 @@ export default function UserModerationPanel({ currentAdmin }) {
                             onClick={() => handleAction('unsuspend_account', profile)}
                           >
                             Unban
-                          </CCButton>
-                        ) : (
-                          <CCButton
-                            variant="danger"
-                            size="sm"
-                            icon={Ban}
-                            onClick={() => handleAction('ban_account', profile)}
-                          >
-                            Ban
                           </CCButton>
                         )}
                         {!isDeleted(profile) && userVerification && (

@@ -51,6 +51,7 @@ const IdentityConsistencyPanel = lazy(() => import('@/components/admin/IdentityC
 const TemplateManager = lazy(() => import('@/components/admin/TemplateManager'));
 const EarningsAdminPanel = lazy(() => import('@/components/admin/EarningsAdminPanel'));
 const FlagAppealsPanel = lazy(() => import('@/components/admin/FlagAppealsPanel'));
+const BannedReentryDisputePanel = lazy(() => import('@/components/admin/BannedReentryDisputePanel'));
 
 const TabSuspense = ({ children }) => (
   <Suspense fallback={<div className="p-4 text-[#6B7A94]">Loading...</div>}>
@@ -442,6 +443,7 @@ export default function AdminDashboard() {
     { value: 'templates', label: 'Deal Templates' },
     { value: 'earnings', label: 'Earnings' },
     { value: 'flag_appeals', label: 'Flag Appeals' },
+    { value: 'reentry_disputes', label: 'Re-entry Disputes' },
   ];
 
   const getProfileForVerification = (v) => userProfiles.find(p => p.user_id === v.user_id);
@@ -800,6 +802,13 @@ export default function AdminDashboard() {
         <CCTabsContent value="flag_appeals" activeTab={activeTab}>
          <TabSuspense>
            <FlagAppealsPanel />
+         </TabSuspense>
+        </CCTabsContent>
+
+        {/* Banned Re-entry Disputes Tab */}
+        <CCTabsContent value="reentry_disputes" activeTab={activeTab}>
+         <TabSuspense>
+           <BannedReentryDisputePanel />
          </TabSuspense>
         </CCTabsContent>
         </div>

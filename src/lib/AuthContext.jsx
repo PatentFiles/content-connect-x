@@ -35,8 +35,15 @@ export const AuthProvider = ({ children }) => {
           setBlockStatus({ reason: 'banned', suspensionReason: null });
           setIsAuthenticated(false);
         } else if (profile?.suspended === true) {
-          setBlockStatus({ reason: 'suspended', suspensionReason: profile?.suspension_reason });
-          setIsAuthenticated(false);
+          // Auto-expire check: if suspension_end_at is in the past, treat as cleared
+          const endAt = profile.suspension_end_at ? new Date(profile.suspension_end_at) : null;
+          if (endAt && new Date() > endAt) {
+            // Expired — allow access; backend will clean up on next API call
+            setBlockStatus(null);
+          } else {
+            setBlockStatus({ reason: 'suspended', suspensionReason: profile?.suspension_reason, suspensionEndAt: profile?.suspension_end_at });
+            setIsAuthenticated(false);
+          }
         }
       } catch (e) {
         // Silently ignore poll errors — don't disrupt the session
@@ -136,10 +143,16 @@ export const AuthProvider = ({ children }) => {
         }
         
         if (profile?.suspended) {
-          setBlockStatus({ reason: 'suspended', suspensionReason: profile?.suspension_reason });
-          setIsAuthenticated(false);
-          setIsLoadingAuth(false);
-          return;
+          // Auto-expire check
+          const endAt = profile.suspension_end_at ? new Date(profile.suspension_end_at) : null;
+          if (endAt && new Date() > endAt) {
+            // Expired — allow through; backend will clean on next call
+          } else {
+            setBlockStatus({ reason: 'suspended', suspensionReason: profile?.suspension_reason, suspensionEndAt: profile?.suspension_end_at });
+            setIsAuthenticated(false);
+            setIsLoadingAuth(false);
+            return;
+          }
         }
       } catch (profileError) {
         console.error('Failed to fetch user profile:', profileError);

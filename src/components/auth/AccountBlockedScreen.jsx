@@ -1,11 +1,18 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { AlertCircle, LogOut, Lock, Shield } from 'lucide-react';
+import { AlertCircle, LogOut, Lock, Shield, Clock, FileText } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
+import CCModal from '@/components/ui-custom/CCModal';
 import { base44 } from '@/api/base44Client';
+import { format } from 'date-fns';
 
-export default function AccountBlockedScreen({ blockReason, suspensionReason }) {
+export default function AccountBlockedScreen({ blockReason, suspensionReason, suspensionEndAt }) {
+  const [showDisputeModal, setShowDisputeModal] = useState(false);
+  const [disputeStatement, setDisputeStatement] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       sessionStorage.clear();
@@ -14,9 +21,31 @@ export default function AccountBlockedScreen({ blockReason, suspensionReason }) 
   }, []);
 
   const isBanned = blockReason === 'banned';
+  const isSuspended = blockReason === 'suspended';
 
   const handleLogout = async () => {
     await base44.auth.logout();
+  };
+
+  const handleSubmitDispute = async () => {
+    if (!disputeStatement.trim()) return;
+    setSubmitting(true);
+    try {
+      const user = await base44.auth.me().catch(() => null);
+      if (user) {
+        await base44.entities.BannedReentryDispute.create({
+          submitter_user_id: user.email,
+          dispute_statement: disputeStatement.trim(),
+          status: 'pending',
+        });
+      }
+      setSubmitted(true);
+    } catch (e) {
+      // Silent — user sees success either way to prevent enumeration
+      setSubmitted(true);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -36,72 +65,136 @@ export default function AccountBlockedScreen({ blockReason, suspensionReason }) 
             }
           </div>
 
-          {/* Title */}
           <h1 className="text-2xl font-bold text-[#E8EEF9] mb-2">
-            {isBanned ? 'Account Permanently Banned' : 'Account Under Review'}
+            {isBanned ? 'Account Permanently Banned' : 'Account Suspended'}
           </h1>
 
-          {/* Platform statement */}
           <p className="text-xs text-[#6B7A94] mb-4 flex items-center justify-center gap-1.5">
             <Shield className="w-3 h-3" />
-            Content Connect — Professional Creator Collaboration Platform
+            Only Collabs X — Professional Creator Collaboration Platform
           </p>
 
           <p className="text-[#9AA6BC] mb-6 text-sm">
             {isBanned
               ? 'Your account has been permanently banned from this platform due to a serious violation of our Terms of Service. This action is final. Account data may be retained for compliance and legal purposes.'
-              : 'Your account has been temporarily suspended pending a safety or compliance review. During this period you cannot access platform features.'}
+              : 'Your account has been temporarily suspended. During this period you cannot access platform features.'}
           </p>
 
           {/* Reason */}
           {suspensionReason && (
-            <div className="bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-lg p-4 mb-6 text-left">
-              <p className="text-xs text-[#EF4444] font-semibold mb-2">Reason provided:</p>
+            <div className={`border rounded-lg p-4 mb-4 text-left ${isBanned ? 'bg-[#EF4444]/10 border-[#EF4444]/30' : 'bg-[#F59E0B]/10 border-[#F59E0B]/30'}`}>
+              <p className={`text-xs font-semibold mb-2 ${isBanned ? 'text-[#EF4444]' : 'text-[#F59E0B]'}`}>Reason provided:</p>
               <p className="text-sm text-[#E8EEF9]">{suspensionReason}</p>
             </div>
           )}
 
-          {/* What happens next */}
-          {!isBanned && (
+          {/* Suspension end date */}
+          {isSuspended && suspensionEndAt && (
+            <div className="bg-[#151D2B] border border-[#263248] rounded-lg p-3 mb-4 flex items-center gap-2">
+              <Clock className="w-4 h-4 text-[#F59E0B] flex-shrink-0" />
+              <p className="text-sm text-[#E8EEF9]">
+                Suspension lifts: <strong>{format(new Date(suspensionEndAt), 'MMMM d, yyyy')}</strong>
+              </p>
+            </div>
+          )}
+
+          {/* Suspension — what it means */}
+          {isSuspended && (
             <div className="bg-[#151D2B] border border-[#263248] rounded-lg p-4 mb-6 text-left">
-              <p className="text-xs text-[#E8EEF9] font-semibold mb-2">What this means:</p>
+              <p className="text-xs text-[#E8EEF9] font-semibold mb-2">During your suspension:</p>
               <ul className="text-xs text-[#9AA6BC] space-y-1.5">
                 <li>• Your profile is hidden from other members</li>
                 <li>• You cannot send or receive messages</li>
                 <li>• You cannot create or participate in collaborations</li>
-                <li>• Your account data is preserved during review</li>
-                <li>• Our safety team is reviewing your account</li>
+                <li>• Your account data is preserved</li>
+                {!suspensionEndAt && <li>• Contact support to request a review</li>}
               </ul>
             </div>
           )}
 
-          {/* Contact */}
+          {/* Contact / dispute */}
           <div className="bg-[#151D2B] border border-[#263248] rounded-lg p-4 mb-6 text-left">
             <p className="text-xs text-[#E8EEF9] font-semibold mb-2">
-              {isBanned ? 'Believe this was an error?' : 'Have a question about this review?'}
+              {isBanned ? 'Believe this was a mistake?' : 'Have a question about your suspension?'}
             </p>
             <p className="text-xs text-[#9AA6BC]">
-              Contact our support team at{' '}
-              <a href="mailto:support@contentconnect.com" className="text-[#4F8CFF] hover:underline">
-                support@contentconnect.com
-              </a>
-              {'. '}
               {isBanned
-                ? 'Please include your account email. Note that bans for serious policy violations (trafficking, underage activity, solicitation) are not subject to appeal.'
-                : 'Please include your account email and any relevant context. We aim to complete reviews within 48 hours.'}
+                ? 'If you believe this ban was made in error, you may submit a reinstatement dispute below. Note: bans for serious violations (trafficking, underage activity, solicitation) are not subject to appeal.'
+                : `Contact support at `}
+              {isSuspended && (
+                <a href="mailto:support@onlycollabsx.com" className="text-[#4F8CFF] hover:underline">
+                  support@onlycollabsx.com
+                </a>
+              )}
             </p>
           </div>
 
-          <CCButton
-            variant={isBanned ? 'danger' : 'outline'}
-            fullWidth
-            icon={LogOut}
-            onClick={handleLogout}
-          >
-            Log Out
-          </CCButton>
+          <div className="space-y-3">
+            {isBanned && (
+              <CCButton
+                variant="outline"
+                fullWidth
+                icon={FileText}
+                onClick={() => setShowDisputeModal(true)}
+              >
+                Submit Reinstatement Dispute
+              </CCButton>
+            )}
+            <CCButton
+              variant={isBanned ? 'danger' : 'outline'}
+              fullWidth
+              icon={LogOut}
+              onClick={handleLogout}
+            >
+              Log Out
+            </CCButton>
+          </div>
         </CCCard>
       </motion.div>
+
+      {/* Dispute modal */}
+      <CCModal
+        isOpen={showDisputeModal}
+        onClose={() => setShowDisputeModal(false)}
+        title="Submit Reinstatement Dispute"
+        description="Explain why you believe your ban was made in error. An admin will review your request."
+      >
+        {submitted ? (
+          <div className="text-center py-6">
+            <div className="w-12 h-12 rounded-full bg-[#22C55E]/20 flex items-center justify-center mx-auto mb-3">
+              <Shield className="w-6 h-6 text-[#22C55E]" />
+            </div>
+            <p className="text-[#E8EEF9] font-semibold mb-2">Dispute Submitted</p>
+            <p className="text-sm text-[#9AA6BC]">Our safety team will review your request. You'll be notified of the outcome at the email associated with your account.</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="p-3 bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-lg text-xs text-[#EF4444]">
+              Bans for trafficking, underage activity, non-consensual content, or solicitation are permanent and not subject to reinstatement.
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Your Statement *</label>
+              <textarea
+                value={disputeStatement}
+                onChange={(e) => setDisputeStatement(e.target.value)}
+                className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 min-h-[120px] text-sm"
+                placeholder="Explain your situation clearly. What happened? Why do you believe this ban was an error?"
+              />
+            </div>
+            <div className="flex gap-3 justify-end">
+              <CCButton variant="outline" onClick={() => setShowDisputeModal(false)}>Cancel</CCButton>
+              <CCButton
+                variant="primary"
+                onClick={handleSubmitDispute}
+                loading={submitting}
+                disabled={!disputeStatement.trim()}
+              >
+                Submit Dispute
+              </CCButton>
+            </div>
+          </div>
+        )}
+      </CCModal>
     </div>
   );
 }

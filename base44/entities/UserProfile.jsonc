@@ -199,6 +199,72 @@
       "type": "string",
       "description": "Reason for suspension (visible to user)"
     },
+    "suspension_category": {
+      "type": "string",
+      "enum": [
+        "policy_violation",
+        "safety_review",
+        "identity_review",
+        "content_violation",
+        "solicitation",
+        "spam",
+        "other"
+      ],
+      "description": "Category of suspension reason"
+    },
+    "suspension_start_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When suspension started"
+    },
+    "suspension_end_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When suspension expires (null = indefinite)"
+    },
+    "reinstated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When account was reinstated from suspension"
+    },
+    "reinstated_by_admin_id": {
+      "type": "string",
+      "description": "Admin who reinstated the account"
+    },
+    "on_probation": {
+      "type": "boolean",
+      "default": false,
+      "description": "Account reinstated but under probation restrictions"
+    },
+    "probation_restrictions": {
+      "type": "object",
+      "description": "Feature flags for probation mode",
+      "properties": {
+        "restricted_messaging": {
+          "type": "boolean",
+          "default": false
+        },
+        "no_hosting": {
+          "type": "boolean",
+          "default": false
+        },
+        "no_accelerated_payouts": {
+          "type": "boolean",
+          "default": false
+        },
+        "elevated_moderation": {
+          "type": "boolean",
+          "default": false
+        },
+        "probation_end_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "probation_notes": {
+          "type": "string"
+        }
+      }
+    },
     "legal_hold": {
       "type": "boolean",
       "default": false,
