@@ -85,13 +85,22 @@ export const DEFAULT_FLAGS = {
   content_usage_tracking:  { value: false, value_type: 'boolean', label: 'Content Usage Tracking (log publish events, unauthorized use, takedown requests per session/collaboration)', category: 'compliance', affects_nav: false },
 
   // ── Search & reviews ──
-   search_ranking_enabled:  { value: false, value_type: 'boolean', label: 'Search Ranking Config (admin-configurable weights for title, city, description, role, boosts)', category: 'marketplace', affects_nav: false },
-   property_reviews_enabled: { value: false, value_type: 'boolean', label: 'Property Reviews (verified reviews from completed bookings, rating aggregation, ranking signals)', category: 'marketplace', affects_nav: false },
-   review_recency_enabled:  { value: false, value_type: 'boolean', label: 'Review Recency Weighting (recent reviews ranked higher in scoring)', category: 'marketplace', affects_nav: false },
-   review_integrity_enabled: { value: false, value_type: 'boolean', label: 'Review Integrity Checks (detect + filter spam, weight by integrity score)', category: 'safety', affects_nav: false },
-   ranking_boosts_enabled: { value: false, value_type: 'boolean', label: 'Ranking Monetization Boosts (featured, verified property boosts)', category: 'marketplace', affects_nav: false },
+  search_ranking_enabled:  { value: false, value_type: 'boolean', label: 'Search Ranking Config (admin-configurable weights for title, city, description, role, boosts)', category: 'marketplace', affects_nav: false },
+  property_reviews_enabled: { value: false, value_type: 'boolean', label: 'Property Reviews (verified reviews from completed bookings, rating aggregation, ranking signals)', category: 'marketplace', affects_nav: false },
+  review_recency_enabled:  { value: false, value_type: 'boolean', label: 'Review Recency Weighting (recent reviews ranked higher in scoring)', category: 'marketplace', affects_nav: false },
+  review_integrity_enabled: { value: false, value_type: 'boolean', label: 'Review Integrity Checks (detect + filter spam, weight by integrity score)', category: 'safety', affects_nav: false },
+  ranking_boosts_enabled: { value: false, value_type: 'boolean', label: 'Ranking Monetization Boosts (featured, verified property boosts)', category: 'marketplace', affects_nav: false },
+  review_rate_limit_enabled: { value: false, value_type: 'boolean', label: 'Review Rate Limiting (max submissions per 24h)', category: 'safety', affects_nav: false },
 
-   // ── Numeric / text config ──
+  // ── Review config ──
+  review_max_submissions_per_24h: { value: 5, value_type: 'number', label: 'Max Reviews Per 24h', category: 'safety' },
+  review_edit_window_hours: { value: 24, value_type: 'number', label: 'Review Edit Window (hours after creation)', category: 'marketplace' },
+  recency_weight_7_days: { value: 1.5, value_type: 'number', label: 'Recency Multiplier: ≤7 days', category: 'marketplace' },
+  recency_weight_30_days: { value: 1.2, value_type: 'number', label: 'Recency Multiplier: ≤30 days', category: 'marketplace' },
+  recency_weight_90_days: { value: 1.0, value_type: 'number', label: 'Recency Multiplier: ≤90 days', category: 'marketplace' },
+  recency_weight_default: { value: 0.7, value_type: 'number', label: 'Recency Multiplier: default (>90 days)', category: 'marketplace' },
+
+  // ── Numeric / text config ──
   max_messages_per_day:    { value: 100,   value_type: 'number',  label: 'Max Messages Per Day',  category: 'safety' },
   platform_policy_version: { value: '1.0', value_type: 'text',    label: 'Platform Policy Version', category: 'compliance' },
   
@@ -111,6 +120,9 @@ export const DEFAULT_FLAGS = {
   // ── Monetization hooks ──
   search_ranking_featured_property_boost: { value: 5, value_type: 'number', label: 'Featured Property Boost (monetization hook)', category: 'marketplace' },
   search_ranking_verified_property_boost: { value: 3, value_type: 'number', label: 'Verified Property Boost (4.5+ rating, monetization hook)', category: 'marketplace' },
+  search_ranking_freshness_boost: { value: 2, value_type: 'number', label: 'Freshness Boost (recent reviews, ≤30 days)', category: 'marketplace' },
+  search_ranking_max_rating_score: { value: 10, value_type: 'number', label: 'Max Rating Contribution (cap)', category: 'marketplace' },
+  search_ranking_max_volume_score: { value: 8, value_type: 'number', label: 'Max Volume Contribution (cap)', category: 'marketplace' },
   };
 
 // ─── Context ───────────────────────────────────────────────────────────────────

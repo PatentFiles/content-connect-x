@@ -18,6 +18,18 @@ async function loadRankingConfig(base44) {
     high_reputation_boost: 2,
     rating_weight: 1,
     review_volume_weight: 0.5,
+    featured_property_boost: 5,
+    verified_property_boost: 3,
+    freshness_boost: 2,
+    max_rating_score: 10,
+    max_volume_score: 8,
+    review_recency_enabled: false,
+    review_integrity_enabled: false,
+    ranking_boosts_enabled: false,
+    recency_weight_7_days: 1.5,
+    recency_weight_30_days: 1.2,
+    recency_weight_90_days: 1.0,
+    recency_weight_default: 0.7,
   };
 
   try {
@@ -27,13 +39,30 @@ async function loadRankingConfig(base44) {
     Object.keys(defaults).forEach(key => {
       const flagKey = `search_ranking_${key}`;
       const flag = flags.find(f => f.flag_key === flagKey);
-      config[key] = flag?.number_value ?? defaults[key];
+      if (flag?.bool_value !== undefined) {
+        config[key] = flag.bool_value;
+      } else if (flag?.number_value !== undefined) {
+        config[key] = flag.number_value;
+      } else {
+        config[key] = defaults[key];
+      }
     });
 
     return config;
   } catch {
     return defaults;
   }
+}
+
+function getRecencyMultiplier(createdAt, recencyConfig) {
+  if (!createdAt) return 1.0;
+  const ageMs = Date.now() - new Date(createdAt).getTime();
+  const ageDays = ageMs / (24 * 60 * 60 * 1000);
+  
+  if (ageDays <= 7) return recencyConfig.recency_weight_7_days || 1.5;
+  if (ageDays <= 30) return recencyConfig.recency_weight_30_days || 1.2;
+  if (ageDays <= 90) return recencyConfig.recency_weight_90_days || 1.0;
+  return recencyConfig.recency_weight_default || 0.7;
 }
 
 function scoreResult(item, query, type, rankingConfig, reviews = {}) {
@@ -75,28 +104,47 @@ function scoreResult(item, query, type, rankingConfig, reviews = {}) {
   score += type === 'property' ? rankingConfig.property_boost : rankingConfig.profile_boost;
 
   // Pro host boost
-  if (type === 'property' && item.pro_host) {
+  if (type === 'property' && item.pro_host && rankingConfig.ranking_boosts_enabled) {
     score += rankingConfig.pro_host_boost;
   }
 
-  // High reputation boost
-  if (item.average_rating && item.average_rating >= 4.5) {
-    score += rankingConfig.high_reputation_boost;
+  // Featured property boost (monetization hook)
+  if (type === 'property' && item.is_featured && rankingConfig.ranking_boosts_enabled) {
+    score += rankingConfig.featured_property_boost;
+  }
+
+  // Verified/high-rating property boost (monetization hook)
+  if (type === 'property' && item.average_rating && item.average_rating >= 4.5 && rankingConfig.ranking_boosts_enabled) {
+    score += rankingConfig.verified_property_boost;
   }
 
   // Review signals with CAPPED scoring (prevent review spam dominance)
   if (type === 'property' && reviews && reviews[item.id]) {
-    const { average_rating, total_reviews } = reviews[item.id];
-    const MAX_RATING_SCORE = 10;   // Cap rating contribution
-    const MAX_VOLUME_SCORE = 8;    // Cap volume contribution
+    const { average_rating, total_reviews, last_review_at } = reviews[item.id];
+    const MAX_RATING_SCORE = rankingConfig.max_rating_score || 10;
+    const MAX_VOLUME_SCORE = rankingConfig.max_volume_score || 8;
+    
+    // Apply recency multiplier to rating score
+    let recencyMult = 1.0;
+    if (rankingConfig.review_recency_enabled && last_review_at) {
+      recencyMult = getRecencyMultiplier(last_review_at, rankingConfig);
+    }
     
     if (average_rating) {
-      const ratingScore = Math.min(average_rating * rankingConfig.rating_weight, MAX_RATING_SCORE);
+      const ratingScore = Math.min(average_rating * rankingConfig.rating_weight, MAX_RATING_SCORE) * recencyMult;
       score += ratingScore;
     }
     if (total_reviews) {
       const volumeScore = Math.min(Math.log(total_reviews + 1) * rankingConfig.review_volume_weight, MAX_VOLUME_SCORE);
       score += volumeScore;
+    }
+  }
+
+  // Freshness boost: recent reviews signal active property
+  if (type === 'property' && reviews && reviews[item.id]?.last_review_at) {
+    const daysSinceReview = (Date.now() - new Date(reviews[item.id].last_review_at).getTime()) / (24 * 60 * 60 * 1000);
+    if (daysSinceReview <= 30) {
+      score += rankingConfig.freshness_boost || 2;
     }
   }
 
