@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Compass, MapPin, ChevronRight, Users, Camera, Video, Briefcase, Building } from 'lucide-react';
+import { Compass, MapPin, ChevronRight, Users, Camera, Video, Briefcase, Building, Film, Home } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import { CCLoadingScreen, CCProfileCardSkeleton } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
@@ -35,8 +35,10 @@ const roleOptions = [
   { value: 'creator', label: 'Creators', icon: Users },
   { value: 'photographer', label: 'Photographers', icon: Camera },
   { value: 'videographer', label: 'Videographers', icon: Video },
+  { value: 'video_editor', label: 'Video Editors', icon: Film },
   { value: 'agent', label: 'Talent Agents', icon: Briefcase },
   { value: 'studio', label: 'Studios', icon: Building },
+  { value: 'host', label: 'Hosts', icon: Home },
 ];
 
 export default function Discovery() {
@@ -348,6 +350,22 @@ export default function Discovery() {
             <h1 className="text-xl font-semibold text-[#E8EEF9]">Discover</h1>
             <p className="text-xs text-[#6B7A94]">Find your next collaboration</p>
           </div>
+          {/* Filters button row — matches Search layout */}
+          <div className="flex justify-end mb-3">
+            <ProfileFilters
+              filters={filters}
+              onChange={setFilters}
+              onReset={() => {
+                setFilters({
+                  roleTypes: [], orientations: [], sceneTypes: [], tags: [],
+                  compensation: [], nearMe: false, travelAvailable: false,
+                  verifiedOnly: true, testingRequired: false, recentlyActive: false,
+                  sortBy: 'distance', country: '', state: '', city: ''
+                });
+                setSelectedRole('');
+              }}
+            />
+          </div>
           <div className="flex flex-wrap gap-2 pb-1 justify-center">
             <CCButton variant={!selectedRole ? 'primary' : 'outline'} size="sm" onClick={() => setSelectedRole('')} className="flex-shrink-0">
               All
@@ -380,30 +398,13 @@ export default function Discovery() {
 
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 flex-wrap">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-[#FF2DAA]" />
-                <h2 className="text-lg font-medium text-[#E8EEF9]">Near You</h2>
-              </div>
-              <div className="flex items-center gap-3">
-                <ProfileFilters
-                  filters={filters}
-                  onChange={setFilters}
-                  onReset={() => {
-                    setFilters({
-                      roleTypes: [], orientations: [], sceneTypes: [], tags: [],
-                      compensation: [], nearMe: false, travelAvailable: false,
-                      verifiedOnly: true, testingRequired: false, recentlyActive: false,
-                      sortBy: 'distance', country: '', state: '', city: ''
-                    });
-                    setSelectedRole('');
-                  }}
-                />
-                <Link to={createPageUrl('Search')} className="text-sm text-[#4F8CFF] flex items-center gap-1">
-                  See all <ChevronRight className="w-4 h-4" />
-                </Link>
-              </div>
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-[#FF2DAA]" />
+              <h2 className="text-lg font-medium text-[#E8EEF9]">Near You</h2>
             </div>
+            <Link to={createPageUrl('Search')} className="text-sm text-[#4F8CFF] flex items-center gap-1">
+              See all <ChevronRight className="w-4 h-4" />
+            </Link>
           </div>
 
           {profilesLoading ? (

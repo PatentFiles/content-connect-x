@@ -3,7 +3,8 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import { Search as SearchIcon, X, Filter, Users, Camera, Video, Briefcase, Building } from 'lucide-react';
+import { Search as SearchIcon, X, Filter, Users, Camera, Video, Briefcase, Building, Film, Home } from 'lucide-react';
+import TravelSync from '@/components/discovery/TravelSync';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCLoadingScreen, CCProfileCardSkeleton } from '@/components/ui-custom/CCLoading';
@@ -19,8 +20,10 @@ const roleOptions = [
   { value: 'creator', label: 'Creators', icon: Users },
   { value: 'photographer', label: 'Photographers', icon: Camera },
   { value: 'videographer', label: 'Videographers', icon: Video },
+  { value: 'video_editor', label: 'Video Editors', icon: Film },
   { value: 'agent', label: 'Agents', icon: Briefcase },
   { value: 'studio', label: 'Studios', icon: Building },
+  { value: 'host', label: 'Hosts', icon: Home },
 ];
 
 export default function Search() {
@@ -410,6 +413,10 @@ export default function Search() {
 
       {/* Results */}
       <div className="max-w-6xl mx-auto px-4 py-6">
+        {/* Travel Sync */}
+        <div className="mb-6">
+          <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
+        </div>
         {/* Results count */}
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-[#9AA6BC]">
@@ -444,6 +451,12 @@ export default function Search() {
               <CCProfileCardSkeleton key={i} />
             ))}
           </div>
+        ) : profiles.length === 0 && !searchQuery && !selectedRole && filters.roleTypes.length === 0 ? (
+          <CCEmpty
+            icon={SearchIcon}
+            title="Search for members"
+            description="Enter a name, location, or keyword above to find creators, photographers, hosts, and more."
+          />
         ) : profiles.length === 0 ? (
           <CCEmpty
             icon={SearchIcon}
