@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { Search as SearchIcon, X, Filter, Users, Camera, Video, Briefcase, Building, Film, Home } from 'lucide-react';
@@ -104,29 +106,30 @@ export default function Search() {
     staleTime: 10 * 60 * 1000,
   });
 
-  // Fetch all profiles (raw) with limits
-  const { data: allProfiles = [], isLoading: profilesLoading } = useQuery({
-    queryKey: ['searchProfiles'],
-    queryFn: async () => {
-      let profiles = await base44.entities.UserProfile.list('-updated_date', 1000);
-      return profiles.filter(p =>
-        p.user_id !== user?.email &&
-        !p.is_admin &&
-        p.profile_complete &&
-        !p.banned &&
-        !p.account_deactivated &&
-        p.deletion_status !== 'anonymized' &&
-        p.deletion_status !== 'completed'
-      );
-    },
+  // Fetch unified search results (profiles + properties)
+  const { data: searchResults = [], isLoading: profilesLoading } = useQuery({
+    queryKey: ['extendedSearch', searchQuery],
+    queryFn: () => base44.functions.invoke('extendedSearch', { query: searchQuery, limit: 100 }),
     enabled: !!user && isVerified && isSubscribed,
     staleTime: 5 * 60 * 1000,
   });
 
+  // Parse results into profiles and properties
+  const allProfiles = searchResults?.data?.results?.filter(r => r.type === 'profile') || [];
+  const allProperties = searchResults?.data?.results?.filter(r => r.type === 'property') || [];
+
   // Filter + sort client-side (same pattern as Discovery to avoid stale closure issues)
   const profiles = useMemo(() => {
     if (!allProfiles.length) return [];
-    let filtered = [...allProfiles];
+    let filtered = [...allProfiles].filter(p =>
+      p.user_id !== user?.email &&
+      !p.is_admin &&
+      p.profile_complete &&
+      !p.banned &&
+      !p.account_deactivated &&
+      p.deletion_status !== 'anonymized' &&
+      p.deletion_status !== 'completed'
+    );
 
     // Search filter
     if (searchQuery) {
@@ -429,7 +432,7 @@ export default function Search() {
         {/* Results count */}
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-[#9AA6BC]">
-            {profiles.length} {profiles.length === 1 ? 'result' : 'results'} found
+            {profiles.length + allProperties.length} {(profiles.length + allProperties.length) === 1 ? 'result' : 'results'} found
           </p>
           {(searchQuery || selectedRole || filters.roleTypes.length > 0) && (
             <div className="flex gap-2 flex-wrap">
@@ -460,13 +463,13 @@ export default function Search() {
               <CCProfileCardSkeleton key={i} />
             ))}
           </div>
-        ) : profiles.length === 0 && !searchQuery && !selectedRole && filters.roleTypes.length === 0 ? (
+        ) : profiles.length === 0 && allProperties.length === 0 && !searchQuery && !selectedRole && filters.roleTypes.length === 0 ? (
           <CCEmpty
             icon={SearchIcon}
-            title="Search for members"
-            description="Enter a name, location, or keyword above to find creators, photographers, hosts, and more."
+            title="Search for members & properties"
+            description="Enter a name, location, or keyword above to find creators, photographers, hosts, properties, and more."
           />
-        ) : profiles.length === 0 ? (
+        ) : profiles.length === 0 && allProperties.length === 0 ? (
           <CCEmpty
             icon={SearchIcon}
             title="No results found"
@@ -478,22 +481,53 @@ export default function Search() {
             actionLabel="Clear search"
           />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center">
-            {profiles.map((profile) => {
-              const details = creatorDetails.find(d => d.user_id === profile.user_id);
-              const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
-              return (
-                <ProfileCard
-                  key={profile.id}
-                  profile={profile}
-                  creatorDetails={details}
-                  isSaved={isSaved}
-                  onFavorite={handleFavorite}
-                  onBlock={handleBlock}
-                  onReport={handleReport}
-                />
-              );
-            })}
+          <div className="space-y-6">
+            {profiles.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-[#E8EEF9] mb-3">Profiles ({profiles.length})</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center">
+                  {profiles.map((profile) => {
+                    const details = creatorDetails.find(d => d.user_id === profile.user_id);
+                    const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
+                    return (
+                      <ProfileCard
+                        key={profile.id}
+                        profile={profile}
+                        creatorDetails={details}
+                        isSaved={isSaved}
+                        onFavorite={handleFavorite}
+                        onBlock={handleBlock}
+                        onReport={handleReport}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {allProperties.length > 0 && (
+              <div>
+                <h3 className="text-sm font-semibold text-[#E8EEF9] mb-3">Properties ({allProperties.length})</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {allProperties.map((property) => (
+                    <Link key={property.id} to={`/PropertyDetail?id=${property.id}`}>
+                      <div className="bg-[#151D2B] border border-[#263248] rounded-xl overflow-hidden hover:border-[#4F8CFF] transition-colors">
+                        {property.media?.[0]?.url && (
+                          <img src={property.media[0].url} alt={property.title} className="w-full h-40 object-cover" />
+                        )}
+                        <div className="p-4">
+                          <p className="font-medium text-[#E8EEF9] truncate">{property.title}</p>
+                          <p className="text-xs text-[#9AA6BC] mt-1">{property.city}{property.state && `, ${property.state}`}</p>
+                          <p className="text-xs text-[#6B7A94] mt-1 capitalize">{property.property_type}</p>
+                          {property.pricing?.hourly_rate && (
+                            <p className="text-xs text-[#4F8CFF] font-semibold mt-2">${property.pricing.hourly_rate}/hr</p>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
