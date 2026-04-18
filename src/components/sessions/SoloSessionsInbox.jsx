@@ -18,11 +18,16 @@ import SoloSessionCard from './SoloSessionCard';
 import { useFeatureFlag } from '@/lib/featureFlags';
 import BookingAccessWidget from '@/components/hosting/BookingAccessWidget';
 import PropertyIncidentWidget from '@/components/hosting/PropertyIncidentWidget';
+import ContentUsageWidget from '@/components/compliance/ContentUsageWidget';
+import ExternalParticipantAttestationModal from './ExternalParticipantAttestationModal';
 
 export default function SoloSessionsInbox({ user, asHost = false }) {
   const soloSessionsEnabled = useFeatureFlag('solo_sessions');
+  const attestationEnabled = useFeatureFlag('external_participant_attestation');
+  const contentUsageEnabled = useFeatureFlag('content_usage_tracking');
   const queryClient = useQueryClient();
   const [actionLoading, setActionLoading] = useState(null);
+  const [attestationSession, setAttestationSession] = useState(null);
 
   const { data: sessions = [], isLoading } = useQuery({
     queryKey: ['soloSessions', user?.email, asHost ? 'host' : 'guest'],
@@ -135,6 +140,12 @@ export default function SoloSessionsInbox({ user, asHost = false }) {
                 {session.session_type === 'location_booking' && (
                   <PropertyIncidentWidget session={session} currentUser={user} />
                 )}
+                {/* External participant attestation */}
+                {attestationEnabled && ['external', 'mixed'].includes(session.participant_mode) && (
+                  <CCButton variant="warning" size="sm" onClick={() => setAttestationSession(session)}>
+                    Submit Participant Attestation
+                  </CCButton>
+                )}
               </div>
             ))}
           </div>
@@ -156,16 +167,31 @@ export default function SoloSessionsInbox({ user, asHost = false }) {
           <h3 className="text-sm font-semibold text-[#9AA6BC] mb-3 text-sm">Past Sessions</h3>
           <div className="space-y-2">
             {past.slice(0, 5).map(session => (
-              <SoloSessionCard
-                key={session.id}
-                session={session}
-                showHost={!asHost}
-                guestProfile={getProfile(session.guest_user_id)}
-                hostProfile={getProfile(session.host_user_id)}
-              />
+              <div key={session.id} className="space-y-2">
+                <SoloSessionCard
+                  session={session}
+                  showHost={!asHost}
+                  guestProfile={getProfile(session.guest_user_id)}
+                  hostProfile={getProfile(session.host_user_id)}
+                />
+                {/* Content usage tracking for completed sessions */}
+                {contentUsageEnabled && session.status === 'completed' && (
+                  <ContentUsageWidget session={session} currentUser={user} />
+                )}
+              </div>
             ))}
           </div>
         </div>
+      )}
+
+      {/* External participant attestation modal */}
+      {attestationSession && (
+        <ExternalParticipantAttestationModal
+          isOpen={!!attestationSession}
+          onClose={() => setAttestationSession(null)}
+          session={attestationSession}
+          currentUser={user}
+        />
       )}
     </div>
   );

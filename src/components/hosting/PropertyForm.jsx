@@ -14,6 +14,7 @@ import PropertyEquipmentManager from './PropertyEquipmentManager';
 import PropertyBundleManager from './PropertyBundleManager';
 import PropertyAccessSettings from './PropertyAccessSettings';
 import PropertyDamageDepositSection from './PropertyDamageDepositSection';
+import CancellationPolicySelector from './CancellationPolicySelector';
 import { useFeatureFlag } from '@/lib/featureFlags';
 
 const PROPERTY_TYPES = [
@@ -43,6 +44,7 @@ export default function PropertyForm({ property, ownerUserId, onSaved, onCancel 
   const equipmentEnabled = useFeatureFlag('equipment_rentals');
   const bundlesEnabled = useFeatureFlag('bundle_templates');
   const cleaningFeeEnabled = useFeatureFlag('cleaning_fee');
+  const cancellationPoliciesEnabled = useFeatureFlag('cancellation_policies');
 
   const [form, setForm] = useState({
     title: property?.title || '',
@@ -324,6 +326,18 @@ export default function PropertyForm({ property, ownerUserId, onSaved, onCancel 
         deposit={form.damage_deposit}
         onChange={(d) => setForm(prev => ({ ...prev, damage_deposit: d }))}
       />
+
+      {/* Cancellation Policy */}
+      {cancellationPoliciesEnabled && (
+        <div className="border-t border-[#263248] pt-4">
+          <h3 className="text-sm font-semibold text-[#E8EEF9] mb-3">Cancellation Policy</h3>
+          <CancellationPolicySelector
+            ownerUserId={ownerUserId}
+            propertyId={property?.id}
+            onChange={() => {}}
+          />
+        </div>
+      )}
 
       {/* Access & Check-In Settings */}
       <PropertyAccessSettings

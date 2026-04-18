@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -10,6 +11,8 @@ import CCButton from '@/components/ui-custom/CCButton';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import PropertyGallery from '@/components/hosting/PropertyGallery';
 import PropertyBookingPanel from '@/components/hosting/PropertyBookingPanel';
+import LocationContractClauses from '@/components/hosting/LocationContractClauses';
+import { useFeatureFlag } from '@/lib/featureFlags';
 
 export default function PropertyDetail() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -42,6 +45,15 @@ export default function PropertyDetail() {
   });
   const isOwnerVerified = ownerVerifications[0]?.status === 'approved';
   const isOwner = user?.email === property?.owner_user_id;
+  const locationClausesEnabled = useFeatureFlag('location_contract_clauses');
+  const cancellationPoliciesEnabled = useFeatureFlag('cancellation_policies');
+
+  const { data: cancellationPolicies = [] } = useQuery({
+    queryKey: ['cancellationPolicy', property?.id],
+    queryFn: () => base44.entities.CancellationPolicy.filter({ property_id: property.id }),
+    enabled: !!property?.id && cancellationPoliciesEnabled,
+  });
+  const cancellationPolicy = cancellationPolicies[0];
 
   if (isLoading) return <CCLoadingScreen message="Loading property..." />;
   if (!property) return (
@@ -157,6 +169,20 @@ export default function PropertyDetail() {
                   {property.rules.custom_rules && <p className="mt-2 border-t border-[#263248] pt-2">{property.rules.custom_rules}</p>}
                 </div>
               </CCCard>
+            )}
+
+            {/* Cancellation policy */}
+            {cancellationPoliciesEnabled && cancellationPolicy && (
+              <CCCard padding="lg">
+                <h3 className="text-base font-semibold text-[#E8EEF9] mb-2">Cancellation Policy</h3>
+                <CCBadge variant="warning" size="sm" className="capitalize mb-2">{cancellationPolicy.preset}</CCBadge>
+                <p className="text-sm text-[#9AA6BC]">{cancellationPolicy.description || cancellationPolicy.label}</p>
+              </CCCard>
+            )}
+
+            {/* Location contract clauses preview */}
+            {locationClausesEnabled && (
+              <LocationContractClauses property={property} cancellationPolicy={cancellationPolicy} />
             )}
 
             {/* Host profile card */}

@@ -62,6 +62,11 @@ export const DEFAULT_FLAGS = {
   geo_risk_tagging:        { value: false, value_type: 'boolean', label: 'Geo Risk Tagging (admin-only: risk level, reserve %, ranking penalty)', category: 'safety', affects_nav: false },
   host_insurance_verification: { value: false, value_type: 'boolean', label: 'Host Insurance Verification (admin review + trust badge)', category: 'compliance', affects_nav: false },
   favorites_by_type:       { value: false, value_type: 'boolean', label: 'Favorites by Type',     category: 'experimental', affects_nav: false },
+  cancellation_policies:   { value: false, value_type: 'boolean', label: 'Cancellation Policies (host presets: flexible/moderate/strict/custom, refund windows, credit, no-show, deposit linkage)', category: 'marketplace', affects_nav: false },
+  location_contract_clauses: { value: false, value_type: 'boolean', label: 'Location Contract Clauses (property rules, access, liability, damage deposit, cancellation injected at booking)', category: 'compliance', affects_nav: false },
+  agreement_acceptance_log: { value: true,  value_type: 'boolean', label: 'Agreement Acceptance Log (immutable log of every acceptance event — sessions, bookings, property, collaborations)', category: 'compliance', affects_nav: false },
+  external_participant_attestation: { value: false, value_type: 'boolean', label: 'External Participant Attestation (age/ID/consent attestation for off-platform talent — studios/productions)', category: 'safety', affects_nav: false },
+  content_usage_tracking:  { value: false, value_type: 'boolean', label: 'Content Usage Tracking (log publish events, unauthorized use, takedown requests per session/collaboration)', category: 'compliance', affects_nav: false },
 
   // ── Numeric / text config ──
   max_messages_per_day:    { value: 100,   value_type: 'number',  label: 'Max Messages Per Day',  category: 'safety' },

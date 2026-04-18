@@ -1,0 +1,116 @@
+{
+  "name": "AgreementAcceptanceLog",
+  "type": "object",
+  "description": "Immutable log of every agreement/disclosure acceptance event. Captures user, version, timestamp, IP, user-agent, payload, and context. Used for host listing terms, property bookings, solo sessions, collaboration agreements, and external participant attestations.",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "Platform user who accepted (email)"
+    },
+    "agreement_type": {
+      "type": "string",
+      "enum": [
+        "host_listing_terms",
+        "property_booking",
+        "solo_session",
+        "collaboration",
+        "location_agreement",
+        "external_participant_attestation",
+        "cancellation_policy",
+        "content_usage_policy",
+        "platform_terms"
+      ],
+      "description": "What agreement was accepted"
+    },
+    "agreement_version": {
+      "type": "string",
+      "description": "Version string of the agreement text at acceptance time (e.g. '1.0', '2025-04-01')"
+    },
+    "agreement_text_snapshot": {
+      "type": "string",
+      "description": "Full text of the agreement at acceptance time \u2014 immutable record"
+    },
+    "accepted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "UTC timestamp of acceptance"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "Client IP at time of acceptance (collected server-side where possible)"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Browser/device user-agent string"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Related SoloSession ID (if applicable)"
+    },
+    "collaboration_id": {
+      "type": "string",
+      "description": "Related Collaboration ID (if applicable)"
+    },
+    "property_id": {
+      "type": "string",
+      "description": "Related Property ID (if applicable)"
+    },
+    "contract_id": {
+      "type": "string",
+      "description": "Related Contract ID (if applicable)"
+    },
+    "checkbox_payload": {
+      "type": "object",
+      "description": "Key-value map of every checkbox/disclosure the user explicitly checked at acceptance time. E.g. { 'no_smoking': true, 'liability_ack': true }"
+    },
+    "external_participant_name": {
+      "type": "string",
+      "description": "For external_participant_attestation: name of the off-platform person being attested"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Catch-all for future context fields"
+    }
+  },
+  "required": [
+    "user_id",
+    "agreement_type",
+    "accepted_at"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

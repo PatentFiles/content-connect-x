@@ -20,6 +20,9 @@ import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { useFeatureFlag } from '@/lib/featureFlags';
 import PropertyBookingAddons from '@/components/hosting/PropertyBookingAddons';
+import LocationContractClauses from '@/components/hosting/LocationContractClauses';
+import { logAgreementAcceptance } from '@/lib/agreementLogger';
+import { useFeatureFlag } from '@/lib/featureFlags';
 
 const SESSION_TYPES = [
   { value: 'solo_session', label: 'Solo Session', description: 'Book space for personal/creative use' },
@@ -44,6 +47,8 @@ export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, h
   const equipmentEnabled = useFeatureFlag('equipment_rentals');
   const bundlesEnabled = useFeatureFlag('bundle_templates');
   const cleaningFeeEnabled = useFeatureFlag('cleaning_fee');
+  const locationClausesEnabled = useFeatureFlag('location_contract_clauses');
+  const cancellationPoliciesEnabled = useFeatureFlag('cancellation_policies');
   const hasAddons = property && (equipmentEnabled || bundlesEnabled || cleaningFeeEnabled);
 
   // Steps: 1=type/participants, 2=schedule/rate, [3=add-ons if location+property], last=agreement
@@ -101,6 +106,19 @@ export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, h
     // Use pricing breakdown total from snapshot if available
     const totalFromSnapshot = bookingSnapshot?.pricing_breakdown?.grand_total;
     try {
+      // Log agreement acceptance immutably
+      const currentUser = await base44.auth.me().catch(() => null);
+      if (currentUser) {
+        await logAgreementAcceptance({
+          userId: currentUser.email,
+          agreementType: property ? 'property_booking' : 'solo_session',
+          agreementVersion: '1.0',
+          agreementTextSnapshot: HOST_AGREEMENT_TEMPLATE,
+          checkboxPayload: { agreement_accepted: true },
+          propertyId: property?.id || null,
+        });
+      }
+
       const res = await base44.functions.invoke('manageSoloSession', {
         action: 'create',
         host_user_id: hostUserId,
@@ -376,6 +394,11 @@ export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, h
                     {HOST_AGREEMENT_TEMPLATE}
                   </pre>
                 </div>
+
+                {/* Location contract clauses if applicable */}
+                {locationClausesEnabled && property && (
+                  <LocationContractClauses property={property} compact />
+                )}
 
                 <div className="bg-[#1A2438] rounded-lg p-3 border border-[#263248] text-xs text-[#9AA6BC] space-y-1">
                   <p><strong className="text-[#E8EEF9]">Session:</strong> {SESSION_TYPES.find(t => t.value === form.session_type)?.label}</p>
