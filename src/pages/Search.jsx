@@ -26,6 +26,8 @@ const roleOptions = [
   { value: 'host', label: 'Hosts', icon: Home },
 ];
 
+// Note: Video editors role_type is already in UserProfile enum; search includes them automatically.
+
 export default function Search() {
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);

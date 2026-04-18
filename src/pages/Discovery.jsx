@@ -41,6 +41,8 @@ const roleOptions = [
   { value: 'host', label: 'Hosts', icon: Home },
 ];
 
+// Note: Video editors role_type is already in UserProfile enum; discovery includes them automatically.
+
 export default function Discovery() {
   const [selectedRole, setSelectedRole] = useState('');
   const [searchQuery, setSearchQuery] = useState('');

@@ -200,6 +200,16 @@
       "format": "date-time",
       "description": "When Pro Host subscription expires (null = active indefinitely / managed externally)"
     },
+    "host_account_active": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this user has completed host onboarding and is eligible to create/publish properties"
+    },
+    "host_terms_accepted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the user accepted host terms and platform policies"
+    },
     "banned": {
       "type": "boolean",
       "default": false,

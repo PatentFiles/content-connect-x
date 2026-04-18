@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import FeatureGate from '@/components/feature/FeatureGate';
 import PropertyForm from '@/components/hosting/PropertyForm';
 import HostOnboardingChecklist from '@/components/hosting/HostOnboardingChecklist';
+import HostOnboardingGateModal from '@/components/hosting/HostOnboardingGateModal';
 import SoloSessionsInbox from '@/components/sessions/SoloSessionsInbox';
 import ProHostSubscriptionPanel from '@/components/hosting/ProHostSubscriptionPanel';
 import HostPricingSettings from '@/components/hosting/HostPricingSettings';
@@ -25,9 +26,12 @@ const STATUS_VARIANTS = {
   archived: 'default',
 };
 
+import { useState } from 'react';
+
 export default function HostDashboard() {
   const [showForm, setShowForm] = useState(false);
   const [editingProperty, setEditingProperty] = useState(null);
+  const [showHostOnboardingModal, setShowHostOnboardingModal] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
@@ -49,6 +53,17 @@ export default function HostDashboard() {
     },
     enabled: !!user?.email,
   });
+
+  // Gate: require host_account_active before property creation
+  const canCreateProperty = profile?.host_account_active === true;
+  const handleAddProperty = () => {
+    if (!canCreateProperty) {
+      setShowHostOnboardingModal(true);
+      return;
+    }
+    setEditingProperty(null);
+    setShowForm(true);
+  };
 
   const toggleStatus = async (property) => {
     const newStatus = property.status === 'active' ? 'paused' : 'active';
@@ -90,11 +105,25 @@ export default function HostDashboard() {
             <CCButton
               variant="primary"
               icon={Plus}
-              onClick={() => { setEditingProperty(null); setShowForm(true); }}
+              onClick={handleAddProperty}
+              disabled={!canCreateProperty}
+              title={canCreateProperty ? '' : 'Complete host onboarding first'}
             >
               Add Property
             </CCButton>
           </div>
+
+          {/* Host onboarding modal gate */}
+          {showHostOnboardingModal && (
+            <HostOnboardingGateModal
+              profile={profile}
+              onClose={() => setShowHostOnboardingModal(false)}
+              onCompleted={() => {
+                setShowHostOnboardingModal(false);
+                queryClient.invalidateQueries(['myProfile', user?.email]);
+              }}
+            />
+          )}
 
           {/* Property form */}
           {showForm && (
@@ -131,7 +160,7 @@ export default function HostDashboard() {
               icon={Building2}
               title="No properties yet"
               description="List your first property to start accepting bookings."
-              action={() => { setEditingProperty(null); setShowForm(true); }}
+              action={handleAddProperty}
               actionLabel="Add Property"
             />
           ) : (
