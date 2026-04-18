@@ -174,6 +174,9 @@ export default function PropertyDetail() {
                       {isOwnerVerified && (
                         <CCBadge variant="success" size="sm" icon={Shield}>Verified</CCBadge>
                       )}
+                      {property.insurance?.insurance_verified && (
+                        <CCBadge variant="success" size="sm">🛡 Insured</CCBadge>
+                      )}
                     </div>
                     {ownerProfile.bio && (
                       <p className="text-xs text-[#9AA6BC] mt-1 line-clamp-2"

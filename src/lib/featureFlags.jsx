@@ -57,7 +57,10 @@ export const DEFAULT_FLAGS = {
   equipment_rentals:       { value: false, value_type: 'boolean', label: 'Equipment Rentals (host inventory + guest add-ons)', category: 'marketplace', affects_nav: false },
   bundle_templates:        { value: false, value_type: 'boolean', label: 'Bundle Templates (space/production packages)',        category: 'marketplace', affects_nav: false },
   cleaning_fee:            { value: false, value_type: 'boolean', label: 'Cleaning Fee (host-controlled, shown in breakdown)',  category: 'marketplace', affects_nav: false },
-  damage_deposits:         { value: false, value_type: 'boolean', label: 'Damage Deposits',       category: 'marketplace',  affects_nav: false },
+  damage_deposits:         { value: false, value_type: 'boolean', label: 'Damage Deposits (host-configured, shown in pricing + booking flow)', category: 'marketplace', affects_nav: false },
+  property_incidents:      { value: true,  value_type: 'boolean', label: 'Property Incidents (damage, no-show, safety — filed by host/guest)', category: 'safety', affects_nav: false },
+  geo_risk_tagging:        { value: false, value_type: 'boolean', label: 'Geo Risk Tagging (admin-only: risk level, reserve %, ranking penalty)', category: 'safety', affects_nav: false },
+  host_insurance_verification: { value: false, value_type: 'boolean', label: 'Host Insurance Verification (admin review + trust badge)', category: 'compliance', affects_nav: false },
   favorites_by_type:       { value: false, value_type: 'boolean', label: 'Favorites by Type',     category: 'experimental', affects_nav: false },
 
   // ── Numeric / text config ──

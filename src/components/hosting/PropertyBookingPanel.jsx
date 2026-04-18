@@ -76,6 +76,19 @@ export default function PropertyBookingPanel({ property, currentUser, isOwner })
         <p className="text-xs text-[#6B7A94] border-t border-[#263248] pt-3">{pricing.pricing_notes}</p>
       )}
 
+      {/* Damage deposit disclosure */}
+      {property.damage_deposit?.enabled && property.damage_deposit?.amount && (
+        <div className="flex items-start gap-1.5 text-xs text-[#F59E0B] border-t border-[#263248] pt-3">
+          <span className="mt-0.5">⚠️</span>
+          <span>
+            <strong>${property.damage_deposit.amount}</strong> damage deposit required. Refunded within {property.damage_deposit.refund_window_days || 7} days of checkout, subject to property condition review.
+            {property.damage_deposit.policy_notes && (
+              <span className="block text-[#9AA6BC] mt-0.5">{property.damage_deposit.policy_notes}</span>
+            )}
+          </span>
+        </div>
+      )}
+
       {/* Buffer info */}
       {(property.buffers?.setup_buffer_hours > 0 || property.buffers?.teardown_buffer_hours > 0 || property.buffers?.cleaning_buffer_hours > 0) && (
         <div className="text-xs text-[#6B7A94] border-t border-[#263248] pt-2 space-y-0.5">

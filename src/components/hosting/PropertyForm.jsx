@@ -13,6 +13,7 @@ import PropertyRulesManager from './PropertyRulesManager';
 import PropertyEquipmentManager from './PropertyEquipmentManager';
 import PropertyBundleManager from './PropertyBundleManager';
 import PropertyAccessSettings from './PropertyAccessSettings';
+import PropertyDamageDepositSection from './PropertyDamageDepositSection';
 import { useFeatureFlag } from '@/lib/featureFlags';
 
 const PROPERTY_TYPES = [
@@ -60,6 +61,7 @@ export default function PropertyForm({ property, ownerUserId, onSaved, onCancel 
     equipment: property?.equipment || [],
     bundles: property?.bundles || [],
     access_settings: property?.access_settings || {},
+    damage_deposit: property?.damage_deposit || {},
     instant_book: property?.instant_book || false,
     onboarding_checklist: property?.onboarding_checklist || {},
   });
@@ -149,6 +151,7 @@ export default function PropertyForm({ property, ownerUserId, onSaved, onCancel 
         bundles: form.bundles || [],
         buffers: form.buffers || {},
         access_settings: form.access_settings || {},
+        damage_deposit: form.damage_deposit || {},
       };
 
       if (isEdit) {
@@ -315,6 +318,12 @@ export default function PropertyForm({ property, ownerUserId, onSaved, onCancel 
           onChange={(b) => setForm(prev => ({ ...prev, bundles: b }))}
         />
       )}
+
+      {/* Damage Deposit */}
+      <PropertyDamageDepositSection
+        deposit={form.damage_deposit}
+        onChange={(d) => setForm(prev => ({ ...prev, damage_deposit: d }))}
+      />
 
       {/* Access & Check-In Settings */}
       <PropertyAccessSettings

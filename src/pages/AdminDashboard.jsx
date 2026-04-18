@@ -53,6 +53,7 @@ const EarningsAdminPanel = lazy(() => import('@/components/admin/EarningsAdminPa
 const FlagAppealsPanel = lazy(() => import('@/components/admin/FlagAppealsPanel'));
 const BannedReentryDisputePanel = lazy(() => import('@/components/admin/BannedReentryDisputePanel'));
 const FeatureFlagsPanel = lazy(() => import('@/components/admin/FeatureFlagsPanel'));
+const PropertyIncidentsPanel = lazy(() => import('@/components/admin/PropertyIncidentsPanel'));
 
 const TabSuspense = ({ children }) => (
   <Suspense fallback={<div className="p-4 text-[#6B7A94]">Loading...</div>}>
@@ -445,6 +446,7 @@ export default function AdminDashboard() {
     { value: 'earnings', label: 'Earnings' },
     { value: 'flag_appeals', label: 'Flag Appeals' },
     { value: 'reentry_disputes', label: 'Re-entry Disputes' },
+    { value: 'property_incidents', label: 'Property Incidents' },
     { value: 'feature_flags', label: 'Feature Flags' },
   ];
 
@@ -811,6 +813,13 @@ export default function AdminDashboard() {
         <CCTabsContent value="reentry_disputes" activeTab={activeTab}>
          <TabSuspense>
            <BannedReentryDisputePanel />
+         </TabSuspense>
+        </CCTabsContent>
+
+        {/* Property Incidents Tab */}
+        <CCTabsContent value="property_incidents" activeTab={activeTab}>
+         <TabSuspense>
+           <PropertyIncidentsPanel currentAdmin={user} />
          </TabSuspense>
         </CCTabsContent>
 

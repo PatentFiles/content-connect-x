@@ -17,6 +17,7 @@ import CCBadge from '@/components/ui-custom/CCBadge';
 import SoloSessionCard from './SoloSessionCard';
 import { useFeatureFlag } from '@/lib/featureFlags';
 import BookingAccessWidget from '@/components/hosting/BookingAccessWidget';
+import PropertyIncidentWidget from '@/components/hosting/PropertyIncidentWidget';
 
 export default function SoloSessionsInbox({ user, asHost = false }) {
   const soloSessionsEnabled = useFeatureFlag('solo_sessions');
@@ -130,6 +131,9 @@ export default function SoloSessionsInbox({ user, asHost = false }) {
                 {/* Access widget — shown for location bookings */}
                 {session.session_type === 'location_booking' && (
                   <BookingAccessWidget session={session} currentUser={user} />
+                )}
+                {session.session_type === 'location_booking' && (
+                  <PropertyIncidentWidget session={session} currentUser={user} />
                 )}
               </div>
             ))}

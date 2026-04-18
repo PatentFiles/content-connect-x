@@ -418,6 +418,92 @@ Deno.serve(async (req) => {
       return Response.json({ events: sanitized });
     }
 
+    // ─── HOST_NO_SHOW / HOST_CANCELLED / FAILED_ACCESS ────────────────────────
+    // These enforcement-state transitions write a PropertyIncident + AdminActionLog,
+    // increment counters on Property.host_enforcement, and notify both parties.
+    // Only guests (for no_show/failed_access) or hosts (for host_cancelled) can trigger.
+    if (action === 'report_host_enforcement') {
+      const { enforcement_type, description, evidence_urls = [] } = body;
+      const validTypes = ['host_no_show', 'host_cancelled', 'failed_access'];
+      if (!validTypes.includes(enforcement_type)) {
+        return Response.json({ error: `enforcement_type must be one of: ${validTypes.join(', ')}` }, { status: 400 });
+      }
+
+      // Only guest can report host no-show / failed access; either party can report host_cancelled
+      if (enforcement_type !== 'host_cancelled' && !isGuest && !isAdmin) {
+        return Response.json({ error: 'Only the guest can report this enforcement type' }, { status: 403 });
+      }
+
+      // Create PropertyIncident
+      const incidentPayload = {
+        session_id,
+        property_id: propertyId || '',
+        reporter_user_id: user.email,
+        reporter_role: isHost ? 'host' : 'guest',
+        incident_type: enforcement_type,
+        title: enforcement_type.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()),
+        description: description || `${enforcement_type} reported for session ${session_id}`,
+        evidence_urls,
+        status: 'open',
+      };
+      const incident = await svc.entities.PropertyIncident.create(incidentPayload).catch(() => null);
+
+      // Log to AdminActionLog
+      await svc.entities.AdminActionLog.create({
+        admin_user_id: 'SYSTEM_ACCESS',
+        target_type: 'SoloSession',
+        target_id: session_id,
+        action: enforcement_type,
+        reason: description || `${enforcement_type} reported by ${user.email}`,
+        metadata_json: {
+          session_id,
+          property_id: propertyId,
+          actor: user.email,
+          enforcement_type,
+          incident_id: incident?.id || null,
+          timestamp: now,
+        },
+      }).catch(() => {});
+
+      // Increment enforcement counter on Property
+      if (propertyId) {
+        const counterKey = {
+          host_no_show: 'no_show_count',
+          host_cancelled: 'cancellation_count',
+          failed_access: 'failed_access_count',
+        }[enforcement_type];
+
+        const currentProps = await svc.entities.Property.filter({ id: propertyId }).catch(() => []);
+        const prop = currentProps[0];
+        if (prop && counterKey) {
+          const currentEnforcement = prop.host_enforcement || {};
+          await svc.entities.Property.update(propertyId, {
+            host_enforcement: {
+              ...currentEnforcement,
+              [counterKey]: (currentEnforcement[counterKey] || 0) + 1,
+              last_enforcement_action: enforcement_type,
+              enforcement_updated_at: now,
+            },
+          }).catch(() => {});
+        }
+      }
+
+      // Notify host
+      if (session.host_user_id) {
+        await svc.entities.Notification.create({
+          user_id: session.host_user_id,
+          type: 'messages',
+          actor_user_id: user.email,
+          title: enforcement_type === 'host_cancelled' ? 'Cancellation Logged' : 'Enforcement Incident Reported',
+          body: `An incident (${enforcement_type.replace(/_/g, ' ')}) has been reported for session on ${session.schedule?.confirmed_date || 'TBD'}. Our team will review.`,
+          related_entity_type: 'SoloSession',
+          related_entity_id: session_id,
+        }).catch(() => {});
+      }
+
+      return Response.json({ success: true, incident_id: incident?.id || null });
+    }
+
     return Response.json({ error: `Unknown action: ${action}` }, { status: 400 });
 
   } catch (error) {

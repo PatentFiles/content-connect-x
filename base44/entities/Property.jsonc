@@ -157,6 +157,40 @@
         }
       }
     },
+    "damage_deposit": {
+      "type": "object",
+      "description": "Host-configured damage deposit. Feature-gated by damage_deposits flag.",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether a damage deposit is required for this property"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Damage deposit amount in USD"
+        },
+        "refund_window_days": {
+          "type": "number",
+          "default": 7,
+          "description": "Days after checkout within which the deposit must be refunded or disputed"
+        },
+        "policy_notes": {
+          "type": "string",
+          "description": "Host-written deposit policy shown to guests before booking"
+        },
+        "collection_method": {
+          "type": "string",
+          "enum": [
+            "platform",
+            "direct",
+            "credit_card_hold"
+          ],
+          "default": "platform",
+          "description": "How the deposit is collected. 'platform' = future payment integration; 'direct' = host collects separately."
+        }
+      }
+    },
     "buffers": {
       "type": "object",
       "properties": {
@@ -237,6 +271,132 @@
           "type": "boolean",
           "default": false,
           "description": "Whether checkout evidence upload is requested from guest/host"
+        }
+      }
+    },
+    "geo_risk": {
+      "type": "object",
+      "description": "Admin-set geographic and contextual risk metadata. Used to influence moderation review strictness, reserve %, ranking, and trust signals. Never shown to guests directly.",
+      "properties": {
+        "risk_level": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "flagged"
+          ],
+          "default": "low",
+          "description": "Overall risk classification for this property"
+        },
+        "jurisdiction_notes": {
+          "type": "string",
+          "description": "Admin notes on local laws, permit requirements, or zoning constraints"
+        },
+        "requires_manual_review": {
+          "type": "boolean",
+          "default": false,
+          "description": "If true, all bookings at this property require admin pre-approval"
+        },
+        "reserve_pct_override": {
+          "type": "number",
+          "description": "Override the payout reserve % for this property (e.g. 10 = 10%). Null = use platform default."
+        },
+        "ranking_penalty": {
+          "type": "number",
+          "default": 0,
+          "description": "Points subtracted from discovery ranking score (0 = no penalty)"
+        },
+        "risk_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Admin-assigned risk signal tags, e.g. ['no_permit', 'prior_incidents', 'jurisdiction_restricted']"
+        },
+        "last_reviewed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "When admin last reviewed geo risk for this property"
+        },
+        "reviewed_by_admin_id": {
+          "type": "string"
+        }
+      }
+    },
+    "insurance": {
+      "type": "object",
+      "description": "Host insurance verification and coverage metadata. Feeds trust badge and ranking hooks.",
+      "properties": {
+        "insurance_verified": {
+          "type": "boolean",
+          "default": false,
+          "description": "Admin-verified: host has provided proof of valid property insurance"
+        },
+        "insurance_document_url": {
+          "type": "string",
+          "description": "PRIVATE \u2014 admin/host only. URL to uploaded proof-of-insurance document."
+        },
+        "coverage_notes": {
+          "type": "string",
+          "description": "Summary of coverage (e.g. 'General liability $1M, filming permitted')"
+        },
+        "policy_expiry_date": {
+          "type": "string",
+          "format": "date",
+          "description": "When the insurance policy expires \u2014 used to flag re-verification need"
+        },
+        "verified_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "verified_by_admin_id": {
+          "type": "string"
+        }
+      }
+    },
+    "host_enforcement": {
+      "type": "object",
+      "description": "Platform-set enforcement state for this property/host. Written by admins or backend functions only. Never editable by the host.",
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "none",
+            "warning",
+            "probation",
+            "suspended",
+            "banned"
+          ],
+          "default": "none",
+          "description": "Current enforcement state for this property's host"
+        },
+        "no_show_count": {
+          "type": "number",
+          "default": 0,
+          "description": "Number of confirmed host_no_show incidents"
+        },
+        "cancellation_count": {
+          "type": "number",
+          "default": 0,
+          "description": "Number of host_cancelled incidents (after confirmation)"
+        },
+        "failed_access_count": {
+          "type": "number",
+          "default": 0,
+          "description": "Number of confirmed failed_access incidents"
+        },
+        "last_enforcement_action": {
+          "type": "string",
+          "description": "Last action taken (e.g. 'warning', 'suspended')"
+        },
+        "enforcement_notes": {
+          "type": "string",
+          "description": "Admin notes on enforcement history"
+        },
+        "enforcement_updated_at": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     },
