@@ -156,13 +156,18 @@ export default function PropertyForm({ property, ownerUserId, onSaved, onCancel 
         damage_deposit: form.damage_deposit || {},
       };
 
-      if (isEdit) {
-        await base44.entities.Property.update(property.id, payload);
-        toast.success('Property updated');
-      } else {
-        await base44.entities.Property.create(payload);
-        toast.success('Property created');
+      // Call backend function for host eligibility enforcement
+      const response = await base44.functions.invoke('manageProperty', {
+        action: isEdit ? 'update' : 'create',
+        property: isEdit ? { ...payload, id: property.id } : payload,
+      });
+
+      if (response?.data?.error) {
+        toast.error(response.data.error);
+        return;
       }
+
+      toast.success(isEdit ? 'Property updated' : 'Property created');
       onSaved();
     } catch (err) {
       toast.error(err.message || 'Save failed');

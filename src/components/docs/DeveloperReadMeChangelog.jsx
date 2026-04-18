@@ -248,16 +248,16 @@ export function RecentChangesSection() {
       '30-day cooldown after DECLINED enforced via decline_cooldown_until',
       'FriendGateWarning shown in CreateCollaboration if target requires friends',
     ]},
-    { date: 'April 2026', title: 'Host Eligibility & Onboarding Enforcement', items: [
+    { date: 'April 2026', title: 'Host Eligibility & Onboarding Enforcement + Extended Search', items: [
       'UserProfile extended with host_account_active (boolean, default false) and host_terms_accepted_at (date-time) fields to gate property creation',
-      'Property creation now gated behind host_account_active === true. Users without host eligibility see HostOnboardingGateModal instead of property form',
+      'manageProperty backend function: enforces host eligibility server-side on all property mutations (create, update). Validates host_account_active === true AND host_terms_accepted_at IS NOT NULL. Returns 403 "Host onboarding required" if not eligible. Defense in depth — frontend + backend gating.',
+      'PropertyForm refactored to call manageProperty backend function instead of direct entity mutations. Host eligibility errors bubble up to UI toast notifications.',
       'HostOnboardingGateModal component: enforces host terms acceptance + fee acknowledgement before host_account_active is set. Updates UserProfile with host_terms_accepted_at timestamp',
       'HostDashboard: "Add Property" button disabled and shows tooltip if !canCreateProperty. Clicking redirects to onboarding gate modal instead of form',
-      'PropertyForm RLS comment updated to document host eligibility check (backend RLS cannot yet block, but frontend enforces it strictly)',
-      'Video editors (video_editor role) already included in UserProfile enum and search/discovery role filters — no new role system created',
-      'Property search backend live in HostingMarketplace: filters by city, property_type, price, amenities. Separate from profile search to avoid duplication',
-      'PropertySearchIntegration documentation module notes the design: profiles + properties are searched separately; unified results kept separate by page/type',
-      'Architecture: host eligibility uses existing feature flags (hosting_marketplace) and audit logging (AgreementAcceptanceLog can future-track host terms)',
+      'extendedSearch backend function: unified search endpoint that returns both profiles AND properties. Output includes type field ("profile" | "property") for frontend routing. Searches profile fields (display_name, bio, city) and property fields (title, city, property_type, description). Queries are separate internally but results merged in output.',
+      'Video editors (video_editor role) fully integrated: confirmed in UserProfile enum, included in all profile queries (search, discovery). No filtering. Appears in role-based filtering in Discovery page.',
+      'Property search scope: extendedSearch returns active properties only. HostingMarketplace continues to use direct Property queries with its own filters (price, amenities, etc.).',
+      'Architecture: host eligibility enforced at backend via manageProperty. Extended search merges two entity types without duplication. Video editor role consistently included across all backend searches.',
     ]},
   ];
 
