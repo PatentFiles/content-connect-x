@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
@@ -25,8 +26,6 @@ const STATUS_VARIANTS = {
   suspended: 'danger',
   archived: 'default',
 };
-
-import { useState } from 'react';
 
 export default function HostDashboard() {
   const [showForm, setShowForm] = useState(false);
