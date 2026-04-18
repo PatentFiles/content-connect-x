@@ -1,10 +1,10 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Users, DollarSign, Shield, Zap } from 'lucide-react';
-import CCBadge from '@/components/ui-custom/CCBadge';
+import { MapPin, Users, Zap } from 'lucide-react';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
+import SavePropertyToFavoritesButton from './SavePropertyToFavoritesButton';
 
-export default function PropertyCard({ property, ownerProfile }) {
+export default function PropertyCard({ property, ownerProfile, currentUserEmail }) {
   const cover = property.media?.find(m => m.is_cover) || property.media?.[0];
   const pricing = property.pricing || {};
 
@@ -24,6 +24,12 @@ export default function PropertyCard({ property, ownerProfile }) {
               <svg className="w-12 h-12" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 16H6c-.55 0-1-.45-1-1V6c0-.55.45-1 1-1h12c.55 0 1 .45 1 1v12c0 .55-.45 1-1 1z"/>
               </svg>
+            </div>
+          )}
+          {/* Favorite button */}
+          {currentUserEmail && (
+            <div className="absolute top-2 right-2">
+              <SavePropertyToFavoritesButton propertyId={property.id} userEmail={currentUserEmail} />
             </div>
           )}
           {/* Badges overlay */}

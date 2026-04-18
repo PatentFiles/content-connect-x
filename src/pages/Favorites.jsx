@@ -1,18 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { 
-  Heart, 
-  Plus, 
-  Edit2, 
-  Trash2, 
-  MoreVertical,
-  FolderHeart,
-  Users,
-  List
+  Heart, Plus, Trash2, FolderHeart, Users, List, Building2, MapPin
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
@@ -25,6 +18,18 @@ import { CCLoadingScreen, CCSkeletonLoader } from '@/components/ui-custom/CCLoad
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import AccessGate from '@/components/auth/AccessGate';
 import ProfileCard from '@/components/profiles/ProfileCard';
+import { useFeatureFlag } from '@/lib/featureFlags';
+
+// Role tabs for filtering saved profiles
+const PROFILE_TABS = [
+  { key: 'all', label: 'All' },
+  { key: 'creator', label: 'Creators' },
+  { key: 'studio', label: 'Studios' },
+  { key: 'agent', label: 'Agents' },
+  { key: 'photographer', label: 'Photographers' },
+  { key: 'videographer', label: 'Videographers' },
+  { key: 'video_editor', label: 'Editors' },
+];
 
 export default function Favorites() {
   const [isCreating, setIsCreating] = useState(false);
@@ -33,7 +38,9 @@ export default function Favorites() {
   const [showListView, setShowListView] = useState(false);
   const [addingToList, setAddingToList] = useState(null);
   const [selectedListForAdd, setSelectedListForAdd] = useState('');
+  const [activeTab, setActiveTab] = useState('all'); // 'all' | role | 'properties'
   const queryClient = useQueryClient();
+  const hostingEnabled = useFeatureFlag('hosting_marketplace');
 
   // Check auth and access
   const { data: user, isLoading: userLoading } = useQuery({
@@ -106,6 +113,30 @@ export default function Favorites() {
     },
     enabled: allFavoriteUserIds.length > 0 && profiles.length > 0,
   });
+
+  // Fetch favorited properties (from property_items across all lists)
+  const allFavPropertyIds = useMemo(() =>
+    [...new Set(favorites.flatMap(f => f.property_items?.map(p => p.property_id) || []))]
+  , [favorites]);
+
+  const { data: favProperties = [] } = useQuery({
+    queryKey: ['favoriteProperties', user?.email],
+    queryFn: async () => {
+      if (allFavPropertyIds.length === 0) return [];
+      const all = await base44.entities.Property.list();
+      return all.filter(p => allFavPropertyIds.includes(p.id));
+    },
+    enabled: allFavPropertyIds.length > 0,
+  });
+
+  // Build property availability map: propertyId → available
+  const propertyAvailMap = useMemo(() => {
+    const map = {};
+    favorites.forEach(f => {
+      (f.property_items || []).forEach(p => { map[p.property_id] = p.available !== false; });
+    });
+    return map;
+  }, [favorites]);
 
   const favQueryKey = ['favorites', user?.email];
 
@@ -227,11 +258,25 @@ export default function Favorites() {
     return list.items?.map(item => profiles.find(p => p.user_id === item.user_id)).filter(Boolean) || [];
   };
 
-  // Get profiles not in any list
-  const profilesInLists = new Set(favorites.flatMap(f => f.items?.map(i => i.user_id) || []));
-  const unlistedProfiles = profiles;
-
   const hasLists = favorites.length > 0;
+
+  // Role-filtered profiles for active tab
+  const filteredProfiles = useMemo(() => {
+    if (activeTab === 'all' || activeTab === 'properties') return profiles;
+    return profiles.filter(p => p.role_type === activeTab);
+  }, [profiles, activeTab]);
+
+  const removePropertyFromFavorites = async (propertyId) => {
+    for (const fav of favorites) {
+      if (fav.property_items?.some(p => p.property_id === propertyId)) {
+        await base44.entities.Favorite.update(fav.id, {
+          property_items: fav.property_items.filter(p => p.property_id !== propertyId),
+        });
+      }
+    }
+    queryClient.invalidateQueries({ queryKey: ['favorites', user?.email] });
+    queryClient.invalidateQueries({ queryKey: ['favoriteProperties', user?.email] });
+  };
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
@@ -266,9 +311,97 @@ export default function Favorites() {
         </div>
       </div>
 
+      {/* Tab bar */}
+      <div className="max-w-6xl mx-auto px-4 pt-4">
+        <div className="flex gap-1 overflow-x-auto scrollbar-hide pb-1">
+          {PROFILE_TABS.map(tab => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                activeTab === tab.key
+                  ? 'bg-[#4F8CFF] text-white'
+                  : 'bg-[#121824] border border-[#263248] text-[#9AA6BC] hover:border-[#3A4A6B]'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+          {hostingEnabled && (
+            <button
+              onClick={() => setActiveTab('properties')}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1 ${
+                activeTab === 'properties'
+                  ? 'bg-[#FF2DAA] text-white'
+                  : 'bg-[#121824] border border-[#263248] text-[#9AA6BC] hover:border-[#3A4A6B]'
+              }`}
+            >
+              <Building2 className="w-3 h-3" /> Host Properties
+              {allFavPropertyIds.length > 0 && (
+                <span className="ml-0.5 bg-white/20 rounded-full px-1">{allFavPropertyIds.length}</span>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Content */}
       <div className="max-w-6xl mx-auto px-4 py-6">
-        {favoritesLoading ? (
+        {/* Host Properties Tab */}
+        {activeTab === 'properties' ? (
+          favProperties.length === 0 ? (
+            <CCEmpty
+              icon={Building2}
+              title="No saved properties"
+              description="Heart any property listing to save it here."
+            />
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {favProperties.map(prop => {
+                const isAvail = propertyAvailMap[prop.id] !== false;
+                const cover = prop.media?.find(m => m.is_cover) || prop.media?.[0];
+                return (
+                  <div key={prop.id} className={`relative ${!isAvail ? 'opacity-60' : ''}`}>
+                    <Link to={`/PropertyDetail?id=${prop.id}`} className="block group">
+                      <div className="bg-[#151D2B] border border-[#263248] rounded-xl overflow-hidden hover:border-[#3A4A6B] transition-all">
+                        <div className="relative aspect-[4/3] bg-[#0B0F14]">
+                          {cover ? (
+                            <img src={cover.url} alt={prop.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <Building2 className="w-10 h-10 text-[#263248]" />
+                            </div>
+                          )}
+                          {!isAvail && (
+                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                              <span className="text-xs text-white bg-[#EF4444]/80 px-2 py-1 rounded">Unavailable</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-3">
+                          <p className="font-medium text-[#E8EEF9] text-sm truncate">{prop.title}</p>
+                          <p className="text-xs text-[#9AA6BC] flex items-center gap-1 mt-1">
+                            <MapPin className="w-3 h-3" />{prop.city}{prop.state && `, ${prop.state}`}
+                          </p>
+                          {prop.pricing?.hourly_rate && (
+                            <p className="text-xs text-[#E8EEF9] mt-1 font-semibold">${prop.pricing.hourly_rate}<span className="font-normal text-[#9AA6BC]">/hr</span></p>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                    <button
+                      onClick={() => removePropertyFromFavorites(prop.id)}
+                      className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-[#EF4444]/80 text-white rounded-full transition-colors"
+                      title="Remove from favorites"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )
+        ) : favoritesLoading ? (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {[1, 2, 3, 4].map(i => (
               <CCCard key={i} padding="lg">
@@ -279,7 +412,7 @@ export default function Favorites() {
               </CCCard>
             ))}
           </div>
-        ) : profiles.length === 0 ? (
+        ) : filteredProfiles.length === 0 ? (
           <CCEmpty
             icon={FolderHeart}
             title="No favorites yet"
@@ -344,7 +477,7 @@ export default function Favorites() {
         ) : (
           // Profile Cards View
           <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {unlistedProfiles.map((profile) => {
+            {filteredProfiles.map((profile) => {
               const details = creatorDetails.find(d => d.user_id === profile.user_id);
               return (
                 <div key={profile.user_id} className="relative">
@@ -385,7 +518,7 @@ export default function Favorites() {
               );
             })}
           </div>
-        )}
+        ) }
       </div>
 
       {/* Create List Modal */}

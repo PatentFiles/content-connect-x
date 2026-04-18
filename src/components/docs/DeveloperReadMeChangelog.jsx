@@ -63,6 +63,18 @@ export function RecentChangesSection() {
       'Contract.template_type: creator_to_creator/studio_contract/photographer/videographer/agent_managed',
       'ContractVersion entity tracks all edits; ContractAuditLog ensures immutable history',
     ]},
+    { date: 'April 2026', title: 'Property Rules, Types, Studio Hosting & Favorites Extension', items: [
+      'Property.property_type expanded: house, apartment, studio_set, dungeon, warehouse, hotel_suite, dedicated_content_house, commercial_space, rooftop, outdoor, office, studio, loft, other',
+      'Property.rules expanded with full structured fields: max_people, quiet_hours_start/end, music_allowed, no_smoking, no_alcohol, no_outside_filming_equipment, no_window_visibility (public visibility prohibited), no_overnight, furniture_movement_allowed, cleanup_required, parking_available/notes, security_cameras_present/notes (disclosure), equipment_use_allowed/notes, restricted_content[] (per-act prohibitions), special_restrictions, custom_rules (catch-all)',
+      'PropertyRulesManager component: structured checkbox grid + advanced collapsible section for restricted content/special rules. Preset system: applyPreset() loads sensible defaults per property_type (studio, house, dungeon, dedicated_content_house, hotel_suite, etc.)',
+      'PropertyForm updated to use PropertyRulesManager in place of basic rules checkboxes. Rules preset auto-loaded on type selection.',
+      'Studio-as-host: owner_type includes studio/agency/production_company — no separate hosting app. Studios set owner_user_id to their platform user_id and use the same Property/HostDashboard flow as individual hosts.',
+      'Favorite entity extended with property_items[] array: { property_id, added_at, available (bool), unavailable_reason }. Existing items[] (user profiles) is completely untouched.',
+      'Unavailability tracking: when a property is deleted/suspended/archived, the favorite record is kept with available=false and unavailable_reason set. Records are never hard-deleted. Unavailable properties are shown with "Unavailable" overlay in the favorites UI.',
+      'SavePropertyToFavoritesButton component: heart toggle button for PropertyCard and PropertyDetail. Saves to default/first Favorite list. Auto-creates "Saved Properties" list if none exists.',
+      'Favorites page: role-based tab bar (All / Creators / Studios / Agents / Photographers / Videographers / Editors) + "Host Properties" tab (feature-gated behind hosting_marketplace flag). Properties tab shows property cards with MapPin, pricing, unavailability overlay, and remove button.',
+      'All changes are additive — existing favorites, profiles, and list management are fully backward compatible.',
+    ]},
     { date: 'April 2026', title: 'Hosting Marketplace — Property Discovery, Host Dashboard & Booking Integration', items: [
       'Property entity: owner_user_id, owner_type (individual/studio/agency/production_company), property_type, city/state (public), exact_address (private — revealed after booking only), media[], capacity, pricing (hourly/half-day/full-day/deposit), amenities[], rules, instant_book, onboarding_checklist, host_doc_uri, tags, flagged',
       'RLS: active properties are readable by all; exact_address is stored on the record but only served via confirmed booking context — public UI never displays it',

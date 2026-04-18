@@ -15,7 +15,7 @@
         "production_company"
       ],
       "default": "individual",
-      "description": "Type of property owner"
+      "description": "Type of property owner. Studios and agencies are valid hosts \u2014 no separate system needed."
     },
     "property_type": {
       "type": "string",
@@ -23,14 +23,20 @@
         "studio",
         "loft",
         "house",
+        "apartment",
+        "studio_set",
+        "dungeon",
+        "warehouse",
+        "hotel_suite",
+        "dedicated_content_house",
+        "commercial_space",
         "rooftop",
         "outdoor",
-        "warehouse",
         "office",
         "other"
       ],
       "default": "studio",
-      "description": "Category of property"
+      "description": "Category of property \u2014 drives rule presets and discovery filtering"
     },
     "title": {
       "type": "string",
@@ -70,12 +76,10 @@
       "description": "Full address \u2014 PRIVATE. Only revealed after confirmed booking."
     },
     "lat": {
-      "type": "number",
-      "description": "Approximate lat (used for distance, never shown raw)"
+      "type": "number"
     },
     "lng": {
-      "type": "number",
-      "description": "Approximate lng"
+      "type": "number"
     },
     "media": {
       "type": "array",
@@ -103,8 +107,7 @@
             "type": "number"
           }
         }
-      },
-      "description": "Photos and videos of the property"
+      }
     },
     "capacity": {
       "type": "object",
@@ -156,12 +159,20 @@
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "e.g. WiFi, Parking, Lighting Rig, Backdrop, Green Room"
+      }
     },
     "rules": {
       "type": "object",
+      "description": "Structured property rules \u2014 preset by property_type, fully customizable by host",
       "properties": {
+        "max_people": {
+          "type": "number",
+          "description": "Hard cap on simultaneous occupants"
+        },
+        "verified_only": {
+          "type": "boolean",
+          "default": true
+        },
         "no_smoking": {
           "type": "boolean",
           "default": true
@@ -170,31 +181,98 @@
           "type": "boolean",
           "default": false
         },
+        "music_allowed": {
+          "type": "boolean",
+          "default": true
+        },
+        "quiet_hours_start": {
+          "type": "string",
+          "description": "HH:MM \u2014 start of quiet period"
+        },
+        "quiet_hours_end": {
+          "type": "string",
+          "description": "HH:MM \u2014 end of quiet period"
+        },
         "no_outside_vendors": {
           "type": "boolean",
           "default": false
         },
-        "verified_only": {
+        "no_outside_filming_equipment": {
           "type": "boolean",
-          "default": true
+          "default": false,
+          "description": "Outside filming equipment prohibited"
+        },
+        "no_window_visibility": {
+          "type": "boolean",
+          "default": false,
+          "description": "No content near windows/public visibility"
+        },
+        "no_overnight": {
+          "type": "boolean",
+          "default": true,
+          "description": "Overnight stays prohibited"
+        },
+        "furniture_movement_allowed": {
+          "type": "boolean",
+          "default": false,
+          "description": "Guests may move furniture"
+        },
+        "cleanup_required": {
+          "type": "boolean",
+          "default": true,
+          "description": "Guests responsible for cleanup"
+        },
+        "parking_available": {
+          "type": "boolean",
+          "default": false
+        },
+        "parking_notes": {
+          "type": "string"
+        },
+        "security_cameras_present": {
+          "type": "boolean",
+          "default": false,
+          "description": "Security cameras are present on premises (disclosure)"
+        },
+        "security_camera_notes": {
+          "type": "string",
+          "description": "Location/scope of cameras if present"
+        },
+        "equipment_use_allowed": {
+          "type": "boolean",
+          "default": true,
+          "description": "Guests may use in-house equipment"
+        },
+        "equipment_use_notes": {
+          "type": "string",
+          "description": "Specific restrictions on equipment use"
+        },
+        "restricted_content": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Content types/acts not permitted on premises"
+        },
+        "special_restrictions": {
+          "type": "string",
+          "description": "Free-text additional restrictions"
         },
         "custom_rules": {
-          "type": "string"
+          "type": "string",
+          "description": "Catch-all free-text for anything not covered above"
         }
       }
     },
     "availability_notes": {
-      "type": "string",
-      "description": "Free-text availability notes"
+      "type": "string"
     },
     "instant_book": {
       "type": "boolean",
-      "default": false,
-      "description": "If true, booking is auto-confirmed without host approval"
+      "default": false
     },
     "onboarding_checklist": {
       "type": "object",
-      "description": "Tracks which onboarding steps the host has completed",
       "properties": {
         "photos_uploaded": {
           "type": "boolean",
@@ -223,21 +301,18 @@
       }
     },
     "host_doc_uri": {
-      "type": "string",
-      "description": "Private file URI for host compliance document (insurance, title, etc.)"
+      "type": "string"
     },
     "agreement_accepted_at": {
       "type": "string",
-      "format": "date-time",
-      "description": "When the host accepted platform hosting terms"
+      "format": "date-time"
     },
     "total_bookings": {
       "type": "number",
       "default": 0
     },
     "average_rating": {
-      "type": "number",
-      "description": "Computed average star rating (future feature hook)"
+      "type": "number"
     },
     "tags": {
       "type": "array",
@@ -246,13 +321,11 @@
       }
     },
     "internal_notes": {
-      "type": "string",
-      "description": "Admin-only notes"
+      "type": "string"
     },
     "flagged": {
       "type": "boolean",
-      "default": false,
-      "description": "Admin flagged for review"
+      "default": false
     }
   },
   "required": [

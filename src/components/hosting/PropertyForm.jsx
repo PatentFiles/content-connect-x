@@ -6,11 +6,16 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
-import { Upload, X, Plus, Building2 } from 'lucide-react';
+import { X, Plus, Building2 } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';
+import PropertyRulesManager from './PropertyRulesManager';
 
-const PROPERTY_TYPES = ['studio', 'loft', 'house', 'rooftop', 'outdoor', 'warehouse', 'office', 'other'];
+const PROPERTY_TYPES = [
+  'studio', 'loft', 'house', 'apartment', 'studio_set', 'dungeon',
+  'warehouse', 'hotel_suite', 'dedicated_content_house', 'commercial_space',
+  'rooftop', 'outdoor', 'office', 'other'
+];
 const OWNER_TYPES = ['individual', 'studio', 'agency', 'production_company'];
 const COMMON_AMENITIES = ['WiFi', 'Parking', 'Lighting Rig', 'Backdrop', 'Green Room', 'Kitchen', 'AC', 'Bathroom', '4K Camera', 'Audio', 'Makeup Station', 'Wardrobe'];
 
@@ -250,30 +255,12 @@ export default function PropertyForm({ property, ownerUserId, onSaved, onCancel 
         </div>
       )}
 
-      {/* Rules */}
-      <div>
-        <h3 className="text-sm font-semibold text-[#E8EEF9] mb-3">House Rules</h3>
-        <div className="space-y-2">
-          {[
-            ['no_smoking', 'No smoking'],
-            ['no_alcohol', 'No alcohol'],
-            ['no_outside_vendors', 'No outside vendors'],
-            ['verified_only', 'Verified users only'],
-          ].map(([key, label]) => (
-            <label key={key} className="flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={form.rules[key] || false}
-                onChange={e => set(`rules.${key}`, e.target.checked)}
-              />
-              <span className="text-sm text-[#E8EEF9]">{label}</span>
-            </label>
-          ))}
-        </div>
-        {field('Custom Rules',
-          <textarea value={form.rules.custom_rules || ''} onChange={e => set('rules.custom_rules', e.target.value)} rows={2} placeholder="Any additional rules or requirements..." className={INPUT + ' resize-none'} />
-        )}
-      </div>
+      {/* Rules — structured via PropertyRulesManager */}
+      <PropertyRulesManager
+        rules={form.rules}
+        onChange={(updatedRules) => setForm(prev => ({ ...prev, rules: updatedRules }))}
+        propertyType={form.property_type}
+      />
 
       {/* Instant book */}
       <label className="flex items-center gap-3 cursor-pointer">
