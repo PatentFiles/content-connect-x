@@ -84,14 +84,19 @@ function scoreResult(item, query, type, rankingConfig, reviews = {}) {
     score += rankingConfig.high_reputation_boost;
   }
 
-  // Review signals (if property_reviews_enabled)
+  // Review signals with CAPPED scoring (prevent review spam dominance)
   if (type === 'property' && reviews && reviews[item.id]) {
     const { average_rating, total_reviews } = reviews[item.id];
+    const MAX_RATING_SCORE = 10;   // Cap rating contribution
+    const MAX_VOLUME_SCORE = 8;    // Cap volume contribution
+    
     if (average_rating) {
-      score += average_rating * rankingConfig.rating_weight;
+      const ratingScore = Math.min(average_rating * rankingConfig.rating_weight, MAX_RATING_SCORE);
+      score += ratingScore;
     }
     if (total_reviews) {
-      score += Math.log(total_reviews + 1) * rankingConfig.review_volume_weight;
+      const volumeScore = Math.min(Math.log(total_reviews + 1) * rankingConfig.review_volume_weight, MAX_VOLUME_SCORE);
+      score += volumeScore;
     }
   }
 

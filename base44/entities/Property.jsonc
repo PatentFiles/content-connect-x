@@ -647,7 +647,13 @@
       "default": 0
     },
     "average_rating": {
-      "type": "number"
+      "type": "number",
+      "description": "Aggregated from active PropertyReview records"
+    },
+    "total_reviews": {
+      "type": "number",
+      "default": 0,
+      "description": "Count of active PropertyReview records. Source of truth for review aggregation."
     },
     "tags": {
       "type": "array",
