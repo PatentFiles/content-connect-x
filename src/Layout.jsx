@@ -55,7 +55,10 @@ const appPages = [
   'AvailabilitySchedule',
   'TravelSchedule',
   'Notifications',
-  'ModerationFlags'
+  'ModerationFlags',
+  'HostingMarketplace',
+  'PropertyDetail',
+  'HostDashboard',
 ];
 
 export default function Layout({ children, currentPageName }) {

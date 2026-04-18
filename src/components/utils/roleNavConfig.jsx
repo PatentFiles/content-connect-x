@@ -15,7 +15,8 @@ import {
   Bot,
   UserPlus,
   Cross,
-  Film
+  Film,
+  Building2
 } from 'lucide-react';
 
 export const roleNavigation = {
@@ -86,6 +87,8 @@ export const roleNavigation = {
     { path: 'Verification', label: 'Verification', icon: Shield },
   ],
 };
+
+export const hostingNavItem = { path: 'HostingMarketplace', label: 'Hosting', icon: Building2 };
 
 export const commonNavItems = [
   { path: 'Profile', label: 'My Profile', icon: User },

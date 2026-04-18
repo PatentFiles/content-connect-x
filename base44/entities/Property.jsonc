@@ -1,0 +1,318 @@
+{
+  "name": "Property",
+  "type": "object",
+  "properties": {
+    "owner_user_id": {
+      "type": "string",
+      "description": "Platform user who owns/hosts this property"
+    },
+    "owner_type": {
+      "type": "string",
+      "enum": [
+        "individual",
+        "studio",
+        "agency",
+        "production_company"
+      ],
+      "default": "individual",
+      "description": "Type of property owner"
+    },
+    "property_type": {
+      "type": "string",
+      "enum": [
+        "studio",
+        "loft",
+        "house",
+        "rooftop",
+        "outdoor",
+        "warehouse",
+        "office",
+        "other"
+      ],
+      "default": "studio",
+      "description": "Category of property"
+    },
+    "title": {
+      "type": "string",
+      "description": "Public display title"
+    },
+    "description": {
+      "type": "string",
+      "description": "Public description (may contain HTML)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "pending_review",
+        "active",
+        "paused",
+        "suspended",
+        "archived"
+      ],
+      "default": "draft",
+      "description": "Listing lifecycle status"
+    },
+    "city": {
+      "type": "string",
+      "description": "Public city \u2014 shown to all verified users"
+    },
+    "state": {
+      "type": "string",
+      "description": "Public state/region"
+    },
+    "country": {
+      "type": "string",
+      "default": "US"
+    },
+    "exact_address": {
+      "type": "string",
+      "description": "Full address \u2014 PRIVATE. Only revealed after confirmed booking."
+    },
+    "lat": {
+      "type": "number",
+      "description": "Approximate lat (used for distance, never shown raw)"
+    },
+    "lng": {
+      "type": "number",
+      "description": "Approximate lng"
+    },
+    "media": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "image",
+              "video"
+            ]
+          },
+          "caption": {
+            "type": "string"
+          },
+          "is_cover": {
+            "type": "boolean",
+            "default": false
+          },
+          "order": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Photos and videos of the property"
+    },
+    "capacity": {
+      "type": "object",
+      "properties": {
+        "max_people": {
+          "type": "number"
+        },
+        "rooms": {
+          "type": "number"
+        },
+        "sq_ft": {
+          "type": "number"
+        }
+      }
+    },
+    "pricing": {
+      "type": "object",
+      "properties": {
+        "hourly_rate": {
+          "type": "number"
+        },
+        "half_day_rate": {
+          "type": "number"
+        },
+        "full_day_rate": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string",
+          "default": "USD"
+        },
+        "minimum_hours": {
+          "type": "number",
+          "default": 1
+        },
+        "deposit_required": {
+          "type": "boolean",
+          "default": false
+        },
+        "deposit_amount": {
+          "type": "number"
+        },
+        "pricing_notes": {
+          "type": "string"
+        }
+      }
+    },
+    "amenities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "e.g. WiFi, Parking, Lighting Rig, Backdrop, Green Room"
+    },
+    "rules": {
+      "type": "object",
+      "properties": {
+        "no_smoking": {
+          "type": "boolean",
+          "default": true
+        },
+        "no_alcohol": {
+          "type": "boolean",
+          "default": false
+        },
+        "no_outside_vendors": {
+          "type": "boolean",
+          "default": false
+        },
+        "verified_only": {
+          "type": "boolean",
+          "default": true
+        },
+        "custom_rules": {
+          "type": "string"
+        }
+      }
+    },
+    "availability_notes": {
+      "type": "string",
+      "description": "Free-text availability notes"
+    },
+    "instant_book": {
+      "type": "boolean",
+      "default": false,
+      "description": "If true, booking is auto-confirmed without host approval"
+    },
+    "onboarding_checklist": {
+      "type": "object",
+      "description": "Tracks which onboarding steps the host has completed",
+      "properties": {
+        "photos_uploaded": {
+          "type": "boolean",
+          "default": false
+        },
+        "pricing_set": {
+          "type": "boolean",
+          "default": false
+        },
+        "rules_set": {
+          "type": "boolean",
+          "default": false
+        },
+        "address_verified": {
+          "type": "boolean",
+          "default": false
+        },
+        "agreement_accepted": {
+          "type": "boolean",
+          "default": false
+        },
+        "host_doc_uploaded": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "host_doc_uri": {
+      "type": "string",
+      "description": "Private file URI for host compliance document (insurance, title, etc.)"
+    },
+    "agreement_accepted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the host accepted platform hosting terms"
+    },
+    "total_bookings": {
+      "type": "number",
+      "default": 0
+    },
+    "average_rating": {
+      "type": "number",
+      "description": "Computed average star rating (future feature hook)"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "internal_notes": {
+      "type": "string",
+      "description": "Admin-only notes"
+    },
+    "flagged": {
+      "type": "boolean",
+      "default": false,
+      "description": "Admin flagged for review"
+    }
+  },
+  "required": [
+    "owner_user_id",
+    "property_type",
+    "title",
+    "city",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "$and": [
+        {
+          "data.owner_user_id": "{{user.email}}"
+        },
+        {
+          "not": {
+            "has_banned_or_suspended": true
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.email}}"
+        },
+        {
+          "data.status": "active"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.owner_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

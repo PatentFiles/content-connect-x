@@ -48,7 +48,7 @@ export const DEFAULT_FLAGS = {
   moderation_flags:        { value: true,  value_type: 'boolean', label: 'Moderation Flags Page', category: 'compliance',   affects_nav: true,  nav_pages: ['ModerationFlags'] },
 
   // ── Marketplace / upcoming features ──
-  hosting_marketplace:     { value: false, value_type: 'boolean', label: 'Hosting Marketplace',   category: 'marketplace',  affects_nav: false },
+  hosting_marketplace:     { value: false, value_type: 'boolean', label: 'Hosting Marketplace',   category: 'marketplace',  affects_nav: true,  nav_pages: ['HostingMarketplace', 'PropertyDetail', 'HostDashboard'] },
   solo_sessions:           { value: false, value_type: 'boolean', label: 'Solo Sessions',         category: 'marketplace',  affects_nav: true,  nav_pages: ['SoloSessionDetail'] },
   gps_checkin:             { value: false, value_type: 'boolean', label: 'GPS Check-In',          category: 'marketplace',  affects_nav: false },
   smart_lock:              { value: false, value_type: 'boolean', label: 'Smart Lock Integration',category: 'marketplace',  affects_nav: false },

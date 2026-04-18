@@ -41,6 +41,9 @@ const ViewContract         = lazy(() => import('./pages/ViewContract'));
 const ViewProfile          = lazy(() => import('./pages/ViewProfile'));
 const DeveloperReadMe      = lazy(() => import('./pages/DeveloperReadMe'));
 const ModerationFlags      = lazy(() => import('./pages/ModerationFlags'));
+const HostingMarketplace   = lazy(() => import('./pages/HostingMarketplace'));
+const PropertyDetail       = lazy(() => import('./pages/PropertyDetail'));
+const HostDashboard        = lazy(() => import('./pages/HostDashboard'));
 
 // Fullscreen spinner shown while a lazy chunk loads
 function PageLoader() {
@@ -96,6 +99,9 @@ export const PAGES = {
   ViewProfile:          withSuspense(ViewProfile),
   DeveloperReadMe:      withSuspense(DeveloperReadMe),
   ModerationFlags:      withSuspense(ModerationFlags),
+  HostingMarketplace:   withSuspense(HostingMarketplace),
+  PropertyDetail:       withSuspense(PropertyDetail),
+  HostDashboard:        withSuspense(HostDashboard),
 };
 
 export const pagesConfig = {
