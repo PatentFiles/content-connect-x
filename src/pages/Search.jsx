@@ -419,8 +419,10 @@ export default function Search() {
       {/* Results */}
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Travel Sync */}
-        <div className="mb-6">
-          <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
+        <div className="flex justify-center mb-6">
+          <div className="w-full md:max-w-xl lg:max-w-2xl">
+            <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
+          </div>
         </div>
         {/* Results count */}
         <div className="flex items-center justify-between mb-4">

@@ -10,7 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { MapPin, Calendar, Plane } from 'lucide-react';
+import { MapPin, Calendar } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
 import CCBadge from '@/components/ui-custom/CCBadge';
@@ -103,11 +103,10 @@ export default function TravelSync({ userId, myProfile }) {
   if (travelMatches.length === 0) {
     return (
       <CCCard padding="md">
-        <div className="flex items-center gap-2 mb-2">
-          <Plane className="w-4 h-4 text-[#4F8CFF]" />
+        <div className="text-center mb-2">
           <h3 className="text-sm font-semibold text-[#E8EEF9]">Travel Sync</h3>
         </div>
-        <p className="text-xs text-[#6B7A94]">
+        <p className="text-xs text-[#6B7A94] text-center">
           No overlapping travel found. Add travel dates to find matches in your destination cities.
         </p>
       </CCCard>
@@ -116,12 +115,9 @@ export default function TravelSync({ userId, myProfile }) {
 
   return (
     <CCCard padding="md">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-[#E8EEF9] flex items-center gap-2">
-          <Plane className="w-4 h-4 text-[#4F8CFF]" />
-          Travel Sync
-        </h3>
-        <CCBadge variant="primary" size="sm">{travelMatches.length} match{travelMatches.length !== 1 ? 'es' : ''}</CCBadge>
+      <div className="text-center mb-3">
+        <h3 className="text-sm font-semibold text-[#E8EEF9]">Travel Sync</h3>
+        <CCBadge variant="primary" size="sm" className="mt-1 inline-block">{travelMatches.length} match{travelMatches.length !== 1 ? 'es' : ''}</CCBadge>
       </div>
 
       <div className="space-y-2">
