@@ -1,6 +1,7 @@
 import React from 'react';
-import { Eye, Shield, User, Briefcase, Building2, Camera, Video } from 'lucide-react';
+import { Eye, Shield, User, Briefcase, Building2, Camera, Video, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useFeatureFlag } from '@/lib/featureFlags';
 import CCBadge from '../ui-custom/CCBadge';
 
 const roleOptions = [
@@ -11,9 +12,12 @@ const roleOptions = [
   { value: 'photographer', label: 'Photographer', icon: Camera, color: 'bg-[#F59E0B]/20 text-[#F59E0B]' },
   { value: 'videographer', label: 'Videographer', icon: Video, color: 'bg-[#A855F7]/20 text-[#A855F7]' },
   { value: 'video_editor', label: 'Video Editor', icon: Video, color: 'bg-[#EC4899]/20 text-[#EC4899]' },
+  { value: 'host', label: 'Host', icon: Home, color: 'bg-[#06B6D4]/20 text-[#06B6D4]' },
 ];
 
 export default function AdminRoleViewSwitcher({ currentView, onViewChange }) {
+  const hostingEnabled = useFeatureFlag('hosting_marketplace');
+  const visibleRoles = hostingEnabled ? roleOptions : roleOptions.filter(r => r.value !== 'host');
   return (
     <div className="p-4 border-b border-[#263248]">
       <div className="flex items-center gap-2 mb-3">
@@ -21,7 +25,7 @@ export default function AdminRoleViewSwitcher({ currentView, onViewChange }) {
         <p className="text-xs font-medium text-[#6B7A94] uppercase tracking-wider">View As</p>
       </div>
       <div className="grid grid-cols-2 gap-2">
-        {roleOptions.map((role) => {
+        {visibleRoles.map((role) => {
           const isActive = currentView === role.value;
           const Icon = role.icon;
           

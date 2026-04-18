@@ -16,7 +16,8 @@ import {
   UserPlus,
   Cross,
   Film,
-  Building2
+  Building2,
+  BarChart3
 } from 'lucide-react';
 
 export const roleNavigation = {
@@ -77,16 +78,24 @@ export const roleNavigation = {
     { path: 'Verification', label: 'Verification', icon: Shield },
   ],
   video_editor: [
-    { path: 'Dashboard', label: 'Dashboard', icon: Home },
-    { path: 'Discovery', label: 'Discover', icon: Compass },
-    { path: 'Search', label: 'Search', icon: Search },
-    { path: 'Favorites', label: 'Favorites', icon: Heart },
-    { path: 'Connections', label: 'Friends', icon: UserPlus },
-    { path: 'Messages', label: 'Messages', icon: MessageCircle },
-    { path: 'Portfolio', label: 'Portfolio', icon: Film },
-    { path: 'Verification', label: 'Verification', icon: Shield },
+   { path: 'Dashboard', label: 'Dashboard', icon: Home },
+   { path: 'Discovery', label: 'Discover', icon: Compass },
+   { path: 'Search', label: 'Search', icon: Search },
+   { path: 'Favorites', label: 'Favorites', icon: Heart },
+   { path: 'Connections', label: 'Friends', icon: UserPlus },
+   { path: 'Messages', label: 'Messages', icon: MessageCircle },
+   { path: 'Portfolio', label: 'Portfolio', icon: Film },
+   { path: 'Verification', label: 'Verification', icon: Shield },
   ],
-};
+  host: [
+   { path: 'Dashboard', label: 'Dashboard', icon: Home },
+   { path: 'HostDashboard', label: 'Host Dashboard', icon: BarChart3 },
+   { path: 'HostingMarketplace', label: 'Hosting', icon: Building2 },
+   { path: 'Messages', label: 'Messages', icon: MessageCircle },
+   { path: 'Contracts', label: 'Contracts', icon: FileText },
+   { path: 'Verification', label: 'Verification', icon: Shield },
+  ],
+  };
 
 export const hostingNavItem = { path: 'HostingMarketplace', label: 'Hosting', icon: Building2 };
 

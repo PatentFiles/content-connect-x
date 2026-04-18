@@ -12,6 +12,8 @@ const roleLabels = {
   studio: 'Studio',
   photographer: 'Photographer',
   videographer: 'Videographer',
+  video_editor: 'Video Editor',
+  host: 'Host',
 };
 
 export default function AdminContextBanner({ currentView, onReturnToAdmin }) {
