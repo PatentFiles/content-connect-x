@@ -44,6 +44,7 @@ const roleOptions = [
 // Note: Video editors role_type is already in UserProfile enum; discovery includes them automatically.
 
 export default function Discovery() {
+  const [activeTab, setActiveTab] = useState('profiles'); // 'profiles' or 'properties'
   const [selectedRole, setSelectedRole] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showSaveModal, setShowSaveModal] = useState(false);
@@ -339,6 +340,39 @@ export default function Discovery() {
     return filtered.slice(0, 20);
   }, [allProfiles, filters, selectedRole, searchQuery, allVerifications, allCreatorDetails, allTestingCredentials, myProfile]);
 
+  // Fetch properties for Host Properties tab
+  const { data: allProperties = [], isLoading: propertiesLoading } = useQuery({
+    queryKey: ['discoveryProperties'],
+    queryFn: async () => {
+      let props = await base44.entities.Property.list('-updated_date', 100);
+      return props.filter(p => p.status === 'active');
+    },
+    enabled: !!user && isVerified && isSubscribed,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Filter properties based on search and city
+  const properties = useMemo(() => {
+    if (!allProperties.length) return [];
+    let filtered = [...allProperties];
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      filtered = filtered.filter(p =>
+        p.title?.toLowerCase().includes(q) ||
+        p.city?.toLowerCase().includes(q) ||
+        p.property_type?.toLowerCase().includes(q) ||
+        p.description?.toLowerCase().includes(q)
+      );
+    }
+
+    if (filters.city) {
+      filtered = filtered.filter(p => p.city?.toLowerCase().includes(filters.city.toLowerCase()));
+    }
+
+    return filtered.slice(0, 20);
+  }, [allProperties, searchQuery, filters.city]);
+
   const { data: creatorDetails = [] } = useQuery({
     queryKey: ['creatorDetails', profiles.map(p => p.user_id)],
     queryFn: async () => {
@@ -380,118 +414,180 @@ export default function Discovery() {
               )}
             </div>
           </div>
-          {/* Role pills + Filters button */}
-          <div className="flex flex-wrap gap-2 pb-1 justify-center">
-            <CCButton variant={!selectedRole ? 'primary' : 'outline'} size="sm" onClick={() => setSelectedRole('')} className="flex-shrink-0">
-              All
+          {/* Tabs */}
+          <div className="flex gap-2 justify-center mb-4">
+            <CCButton
+              variant={activeTab === 'profiles' ? 'primary' : 'outline'}
+              size="sm"
+              onClick={() => setActiveTab('profiles')}
+            >
+              Collaborators
             </CCButton>
-            {roleOptions.map((role) => (
-              <CCButton
-                key={role.value}
-                variant={selectedRole === role.value ? 'primary' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedRole(role.value)}
-                className="flex-shrink-0"
-              >
-                <role.icon className="w-4 h-4 mr-1" />
-                {role.label}
-              </CCButton>
-            ))}
-            <ProfileFilters
-              filters={filters}
-              onChange={setFilters}
-              onReset={() => {
-                setFilters({
-                  roleTypes: [], orientations: [], sceneTypes: [], tags: [],
-                  compensation: [], nearMe: false, travelAvailable: false,
-                  verifiedOnly: true, testingRequired: false, recentlyActive: false,
-                  sortBy: 'distance', country: '', state: '', city: ''
-                });
-                setSelectedRole('');
-              }}
-            />
+            <CCButton
+              variant={activeTab === 'properties' ? 'primary' : 'outline'}
+              size="sm"
+              onClick={() => setActiveTab('properties')}
+            >
+              <Home className="w-4 h-4 mr-1" />
+              Host Properties
+            </CCButton>
           </div>
+
+          {/* Role pills + Filters button — only show on Collaborators tab */}
+          {activeTab === 'profiles' && (
+            <div className="flex flex-wrap gap-2 pb-1 justify-center">
+              <CCButton variant={!selectedRole ? 'primary' : 'outline'} size="sm" onClick={() => setSelectedRole('')} className="flex-shrink-0">
+                All
+              </CCButton>
+              {roleOptions.map((role) => (
+                <CCButton
+                  key={role.value}
+                  variant={selectedRole === role.value ? 'primary' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedRole(role.value)}
+                  className="flex-shrink-0"
+                >
+                  <role.icon className="w-4 h-4 mr-1" />
+                  {role.label}
+                </CCButton>
+              ))}
+              <ProfileFilters
+                filters={filters}
+                onChange={setFilters}
+                onReset={() => {
+                  setFilters({
+                    roleTypes: [], orientations: [], sceneTypes: [], tags: [],
+                    compensation: [], nearMe: false, travelAvailable: false,
+                    verifiedOnly: true, testingRequired: false, recentlyActive: false,
+                    sortBy: 'distance', country: '', state: '', city: ''
+                  });
+                  setSelectedRole('');
+                }}
+              />
+            </div>
+          )}
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-6">
-        <div className="flex justify-center mb-4">
-          <div className="flex flex-col gap-4 w-full md:max-w-xl lg:max-w-2xl">
-            <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
-            <div className="border border-[#263248] rounded-xl p-4 bg-[#0D1117]">
-              <TopCreators userId={user?.email} limit={4} title="Top Trusted Members" />
+        {activeTab === 'profiles' && (
+          <div className="flex justify-center mb-4">
+            <div className="flex flex-col gap-4 w-full md:max-w-xl lg:max-w-2xl">
+              <TravelSync userId={user?.email} myProfile={myProfile?.[0]} />
+              <div className="border border-[#263248] rounded-xl p-4 bg-[#0D1117]">
+                <TopCreators userId={user?.email} limit={4} title="Top Trusted Members" />
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <MapPin className="w-4 h-4 text-[#FF2DAA]" />
-              <h2 className="text-lg font-medium text-[#E8EEF9]">Near You</h2>
-            </div>
-            <Link to={createPageUrl('Search')} className="text-sm text-[#4F8CFF] flex items-center gap-1">
-              See all <ChevronRight className="w-4 h-4" />
-            </Link>
-          </div>
+          {activeTab === 'profiles' ? (
+            <>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#FF2DAA]" />
+                  <h2 className="text-lg font-medium text-[#E8EEF9]">Near You</h2>
+                </div>
+                <Link to={createPageUrl('Search')} className="text-sm text-[#4F8CFF] flex items-center gap-1">
+                  See all <ChevronRight className="w-4 h-4" />
+                </Link>
+              </div>
 
-          {profilesLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {[1,2,3,4,5,6].map(i => <CCProfileCardSkeleton key={i} />)}
-            </div>
-          ) : profiles.length === 0 ? (
-            <CCEmpty icon={Compass} title="No profiles found" description="Try adjusting your filters or expanding your search radius." />
+              {profilesLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {[1,2,3,4,5,6].map(i => <CCProfileCardSkeleton key={i} />)}
+                </div>
+              ) : profiles.length === 0 ? (
+                <CCEmpty icon={Compass} title="No profiles found" description="Try adjusting your filters or expanding your search radius." />
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {profiles.map((profile) => {
+                    const details = creatorDetails.find(d => d.user_id === profile.user_id);
+                    const verif = allVerifications.find(v => v.user_id === profile.user_id);
+                    const reputationScore = reputationScores.find(r => r.user_id === profile.user_id);
+                    const isRepresented = profile.role_type === 'creator' && (
+                      allAgentReps.some(r => r.creator_user_id === profile.user_id) ||
+                      allStudioRosters.some(r => r.creator_user_id === profile.user_id)
+                    );
+                    const myRepWithThisAgent = myCreatorReps.find(r => r.agent_user_id === profile.user_id);
+                    const myLocation = myProfile?.[0]?.base_location;
+                    const distance = myLocation?.lat && profile.base_location?.lat
+                      ? calculateDistance(myLocation.lat, myLocation.lng, profile.base_location.lat, profile.base_location.lng)
+                      : undefined;
+                    const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
+
+                    if (profile.role_type === 'agent' && myProfile?.[0]?.role_type === 'creator') {
+                      const agentDet = allAgentDetails.find(d => d.user_id === profile.user_id);
+                      return (
+                        <AgentMarketplaceCard
+                          key={profile.id}
+                          agentProfile={{...profile, verified: verif?.status === 'approved'}}
+                          agentDetails={agentDet}
+                          representationStatus={myRepWithThisAgent}
+                          reputationScore={reputationScore}
+                          onRequestRepresentation={() => {
+                            setSelectedProfile(profile);
+                            setSelectedAgentUserId(profile.user_id);
+                            setShowAgentRepModal(true);
+                          }}
+                        />
+                      );
+                    }
+
+                    return (
+                      <ProfileCard
+                        key={profile.id}
+                        profile={{...profile, verified: verif?.status === 'approved'}}
+                        creatorDetails={details}
+                        distance={distance}
+                        isRepresented={isRepresented}
+                        isSaved={isSaved}
+                        reputationScore={reputationScore}
+                        onFavorite={handleFavorite}
+                        onBlock={handleBlock}
+                        onReport={handleReport}
+                      />
+                    );
+                  })}
+                </div>
+              )}
+            </>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {profiles.map((profile) => {
-                const details = creatorDetails.find(d => d.user_id === profile.user_id);
-                const verif = allVerifications.find(v => v.user_id === profile.user_id);
-                const reputationScore = reputationScores.find(r => r.user_id === profile.user_id);
-                const isRepresented = profile.role_type === 'creator' && (
-                  allAgentReps.some(r => r.creator_user_id === profile.user_id) ||
-                  allStudioRosters.some(r => r.creator_user_id === profile.user_id)
-                );
-                const myRepWithThisAgent = myCreatorReps.find(r => r.agent_user_id === profile.user_id);
-                const myLocation = myProfile?.[0]?.base_location;
-                const distance = myLocation?.lat && profile.base_location?.lat
-                  ? calculateDistance(myLocation.lat, myLocation.lng, profile.base_location.lat, profile.base_location.lng)
-                  : undefined;
-                const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
+            <>
+              <div className="flex items-center gap-2">
+                <Home className="w-4 h-4 text-[#FF2DAA]" />
+                <h2 className="text-lg font-medium text-[#E8EEF9]">Available Host Properties</h2>
+              </div>
 
-                if (profile.role_type === 'agent' && myProfile?.[0]?.role_type === 'creator') {
-                  const agentDet = allAgentDetails.find(d => d.user_id === profile.user_id);
-                  return (
-                    <AgentMarketplaceCard
-                      key={profile.id}
-                      agentProfile={{...profile, verified: verif?.status === 'approved'}}
-                      agentDetails={agentDet}
-                      representationStatus={myRepWithThisAgent}
-                      reputationScore={reputationScore}
-                      onRequestRepresentation={() => {
-                        setSelectedProfile(profile);
-                        setSelectedAgentUserId(profile.user_id);
-                        setShowAgentRepModal(true);
-                      }}
-                    />
-                  );
-                }
-
-                return (
-                  <ProfileCard
-                    key={profile.id}
-                    profile={{...profile, verified: verif?.status === 'approved'}}
-                    creatorDetails={details}
-                    distance={distance}
-                    isRepresented={isRepresented}
-                    isSaved={isSaved}
-                    reputationScore={reputationScore}
-                    onFavorite={handleFavorite}
-                    onBlock={handleBlock}
-                    onReport={handleReport}
-                  />
-                );
-              })}
-            </div>
+              {propertiesLoading ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[1,2,3,4,5,6].map(i => <CCProfileCardSkeleton key={i} />)}
+                </div>
+              ) : properties.length === 0 ? (
+                <CCEmpty icon={Building} title="No properties found" description="Try adjusting your location filter or searching different keywords." />
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {properties.map((property) => (
+                    <Link key={property.id} to={`/PropertyDetail?id=${property.id}`}>
+                      <div className="bg-[#151D2B] border border-[#263248] rounded-xl overflow-hidden hover:border-[#4F8CFF] transition-colors h-full">
+                        {property.media?.[0]?.url && (
+                          <img src={property.media[0].url} alt={property.title} className="w-full h-40 object-cover" />
+                        )}
+                        <div className="p-4">
+                          <p className="font-medium text-[#E8EEF9] truncate">{property.title}</p>
+                          <p className="text-xs text-[#9AA6BC] mt-1">{property.city}{property.state && `, ${property.state}`}</p>
+                          <p className="text-xs text-[#6B7A94] mt-1 capitalize">{property.property_type}</p>
+                          {property.pricing?.hourly_rate && (
+                            <p className="text-xs text-[#4F8CFF] font-semibold mt-2">${property.pricing.hourly_rate}/hr</p>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
 

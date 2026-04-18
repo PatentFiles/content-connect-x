@@ -113,131 +113,102 @@ export default function Search() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Parse results into profiles and properties
-  const allProfiles = searchResults?.data?.results?.filter(r => r.type === 'profile') || [];
-  const allProperties = searchResults?.data?.results?.filter(r => r.type === 'property') || [];
+  // Unified results — already sorted by relevance from backend
+  const unifiedResults = searchResults?.data?.results || [];
 
-  // Filter + sort client-side (same pattern as Discovery to avoid stale closure issues)
-  const profiles = useMemo(() => {
-    if (!allProfiles.length) return [];
-    let filtered = [...allProfiles].filter(p =>
-      p.user_id !== user?.email &&
-      !p.is_admin &&
-      p.profile_complete &&
-      !p.banned &&
-      !p.account_deactivated &&
-      p.deletion_status !== 'anonymized' &&
-      p.deletion_status !== 'completed'
-    );
+  // Filter unified results (already ranked by backend)
+  const filteredResults = useMemo(() => {
+    if (!unifiedResults.length) return [];
+    let filtered = [...unifiedResults];
 
-    // Search filter
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(p =>
-        p.display_name?.toLowerCase().includes(q) ||
-        p.bio?.toLowerCase().includes(q) ||
-        p.base_location?.city?.toLowerCase().includes(q)
-      );
-    }
+    // Profile-only filters
+    const profileFiltered = filtered.filter(r => {
+      if (r.type !== 'profile') return true; // Keep properties as-is
+      const p = r;
+      if (p.user_id === user?.email || p.is_admin) return false;
+      
+      // Role filter
+      if (selectedRole && p.role_type !== selectedRole) return false;
+      if (filters.roleTypes?.length > 0 && !filters.roleTypes.includes(p.role_type)) return false;
 
-    // Role filter — quick button takes precedence, then filter panel
-    if (selectedRole) {
-      filtered = filtered.filter(p => p.role_type === selectedRole);
-    } else if (filters.roleTypes?.length > 0) {
-      filtered = filtered.filter(p => filters.roleTypes.includes(p.role_type));
-    }
+      // Location filters
+      if (filters.country && !p.base_location?.country?.toLowerCase().includes(filters.country.toLowerCase())) return false;
+      if (filters.state && !p.base_location?.state?.toLowerCase().includes(filters.state.toLowerCase())) return false;
+      if (filters.city && !p.base_location?.city?.toLowerCase().includes(filters.city.toLowerCase())) return false;
 
-    // Orientation filter (creators only)
-    if (filters.orientations?.length > 0) {
-      filtered = filtered.filter(p => {
+      // Travel
+      if (filters.travelAvailable && !p.travel_enabled) return false;
+
+      // Recently active
+      if (filters.recentlyActive) {
+        const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+        if (!p.last_active_at || new Date(p.last_active_at) < threeDaysAgo) return false;
+      }
+
+      return true;
+    });
+
+    // Creator-specific filters (need allCreatorDetails)
+    const finalFiltered = profileFiltered.filter(r => {
+      if (r.type !== 'profile') return true;
+      const p = r;
+
+      if (filters.orientations?.length > 0) {
         if (p.role_type !== 'creator') return true;
         const details = allCreatorDetails.find(d => d.user_id === p.user_id);
-        if (!details || !details.orientation_category) return false;
+        if (!details?.orientation_category) return false;
         return Array.isArray(details.orientation_category)
           ? details.orientation_category.some(o => filters.orientations.includes(o))
           : filters.orientations.includes(details.orientation_category);
-      });
-    }
+      }
 
-    // Scene type filter
-    if (filters.sceneTypes?.length > 0) {
-      filtered = filtered.filter(p => {
+      if (filters.sceneTypes?.length > 0) {
         if (p.role_type !== 'creator') return true;
         const details = allCreatorDetails.find(d => d.user_id === p.user_id);
         if (!details) return true;
-        const hasAnyActs = (details.standard_acts?.length > 0) || (details.fetish_acts?.length > 0) || (details.kink_edge_acts?.length > 0);
-        if (!hasAnyActs) return true;
-        return filters.sceneTypes.some(sceneType => {
-          if (sceneType === 'standard') return details.standard_acts?.length > 0;
-          if (sceneType === 'fetish') return details.fetish_acts?.length > 0;
-          if (sceneType === 'kink_edge') return details.kink_edge_acts?.length > 0;
+        return filters.sceneTypes.some(st => {
+          if (st === 'standard') return details.standard_acts?.length > 0;
+          if (st === 'fetish') return details.fetish_acts?.length > 0;
+          if (st === 'kink_edge') return details.kink_edge_acts?.length > 0;
           return false;
         });
-      });
-    }
+      }
 
-    // Compensation — creators only
-    if (filters.compensation?.length > 0) {
-      filtered = filtered.filter(p => {
+      if (filters.compensation?.length > 0) {
         if (p.role_type !== 'creator') return true;
         const details = allCreatorDetails.find(d => d.user_id === p.user_id);
         if (!details) return true;
         const prefs = details.compensation_preferences || [];
-        if (prefs.length === 0) return true;
-        return filters.compensation.some(comp => prefs.includes(comp));
-      });
-    }
+        return prefs.length === 0 || filters.compensation.some(c => prefs.includes(c));
+      }
 
-    // Travel & Location
-    if (filters.travelAvailable) filtered = filtered.filter(p => p.travel_enabled);
+      return true;
+    });
 
-    if (filters.country) {
-      filtered = filtered.filter(p =>
-        p.base_location?.country?.toLowerCase().includes(filters.country.toLowerCase())
-      );
-    }
-    if (filters.state) {
-      filtered = filtered.filter(p =>
-        p.base_location?.state?.toLowerCase().includes(filters.state.toLowerCase())
-      );
-    }
-    if (filters.city) {
-      filtered = filtered.filter(p =>
-        p.base_location?.city?.toLowerCase().includes(filters.city.toLowerCase())
-      );
-    }
-
-    // Verified only
-    if (filters.verifiedOnly) {
+    // Verified filter (profile only)
+    const verifiedFiltered = finalFiltered.filter(r => {
+      if (r.type !== 'profile') return true;
+      if (!filters.verifiedOnly) return true;
       const verifiedIds = allVerifications.filter(v => v.status === 'approved').map(v => v.user_id);
-      filtered = filtered.filter(p => verifiedIds.includes(p.user_id));
-    }
+      return verifiedIds.includes(r.user_id);
+    });
 
-    // Testing required
-    if (filters.testingRequired) {
+    // Testing filter (profile only)
+    const testingFiltered = verifiedFiltered.filter(r => {
+      if (r.type !== 'profile') return true;
+      if (!filters.testingRequired) return true;
       const now = new Date();
       const validIds = allTestingCredentials
         .filter(tc => tc.status_badge === 'valid' && !(tc.expires_at && new Date(tc.expires_at) < now))
         .map(tc => tc.user_id);
-      filtered = filtered.filter(p => validIds.includes(p.user_id));
-    }
+      return validIds.includes(r.user_id);
+    });
 
-    // Recently active
-    if (filters.recentlyActive) {
-      const threeDaysAgo = new Date();
-      threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
-      filtered = filtered.filter(p => p.last_active_at && new Date(p.last_active_at) > threeDaysAgo);
-    }
+    return testingFiltered.slice(0, 50);
+  }, [unifiedResults, selectedRole, filters, allVerifications, allCreatorDetails, allTestingCredentials, user?.email]);
 
-    // Sort
-    if (filters.sortBy === 'recently_active') {
-      filtered.sort((a, b) => new Date(b.last_active_at || 0) - new Date(a.last_active_at || 0));
-    } else if (filters.sortBy === 'response_time') {
-      filtered.sort((a, b) => (a.response_time_hours || 999) - (b.response_time_hours || 999));
-    }
-
-    return filtered.slice(0, 50);
-  }, [allProfiles, searchQuery, selectedRole, filters, allVerifications, allCreatorDetails, allTestingCredentials]);
+  const profiles = useMemo(() => filteredResults.filter(r => r.type === 'profile'), [filteredResults]);
+  const properties = useMemo(() => filteredResults.filter(r => r.type === 'property'), [filteredResults]);
 
   // Fetch creator details
   const { data: creatorDetails = [] } = useQuery({
@@ -431,7 +402,7 @@ export default function Search() {
         {/* Results count */}
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-[#9AA6BC]">
-            {profiles.length + allProperties.length} {(profiles.length + allProperties.length) === 1 ? 'result' : 'results'} found
+            {filteredResults.length} {filteredResults.length === 1 ? 'result' : 'results'} found
           </p>
           {(searchQuery || selectedRole || filters.roleTypes.length > 0) && (
             <div className="flex gap-2 flex-wrap">
@@ -455,20 +426,20 @@ export default function Search() {
           )}
         </div>
 
-        {/* Grid */}
+        {/* Unified Grid — sorted by relevance */}
         {profilesLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3, 4, 5, 6].map(i => (
               <CCProfileCardSkeleton key={i} />
             ))}
           </div>
-        ) : profiles.length === 0 && allProperties.length === 0 && !searchQuery && !selectedRole && filters.roleTypes.length === 0 ? (
+        ) : filteredResults.length === 0 && !searchQuery && !selectedRole && filters.roleTypes.length === 0 ? (
           <CCEmpty
             icon={SearchIcon}
             title="Search for members & properties"
             description="Enter a name, location, or keyword above to find creators, photographers, hosts, properties, and more."
           />
-        ) : profiles.length === 0 && allProperties.length === 0 ? (
+        ) : filteredResults.length === 0 ? (
           <CCEmpty
             icon={SearchIcon}
             title="No results found"
@@ -480,53 +451,43 @@ export default function Search() {
             actionLabel="Clear search"
           />
         ) : (
-          <div className="space-y-6">
-            {profiles.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-[#E8EEF9] mb-3">Profiles ({profiles.length})</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center">
-                  {profiles.map((profile) => {
-                    const details = creatorDetails.find(d => d.user_id === profile.user_id);
-                    const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
-                    return (
-                      <ProfileCard
-                        key={profile.id}
-                        profile={profile}
-                        creatorDetails={details}
-                        isSaved={isSaved}
-                        onFavorite={handleFavorite}
-                        onBlock={handleBlock}
-                        onReport={handleReport}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-            {allProperties.length > 0 && (
-              <div>
-                <h3 className="text-sm font-semibold text-[#E8EEF9] mb-3">Properties ({allProperties.length})</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {allProperties.map((property) => (
-                    <Link key={property.id} to={`/PropertyDetail?id=${property.id}`}>
-                      <div className="bg-[#151D2B] border border-[#263248] rounded-xl overflow-hidden hover:border-[#4F8CFF] transition-colors">
-                        {property.media?.[0]?.url && (
-                          <img src={property.media[0].url} alt={property.title} className="w-full h-40 object-cover" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredResults.map((result) => {
+              if (result.type === 'property') {
+                return (
+                  <Link key={result.id} to={`/PropertyDetail?id=${result.id}`}>
+                    <div className="bg-[#151D2B] border border-[#263248] rounded-xl overflow-hidden hover:border-[#4F8CFF] transition-colors h-full">
+                      {result.media?.[0]?.url && (
+                        <img src={result.media[0].url} alt={result.title} className="w-full h-40 object-cover" />
+                      )}
+                      <div className="p-4">
+                        <p className="font-medium text-[#E8EEF9] truncate">{result.title}</p>
+                        <p className="text-xs text-[#9AA6BC] mt-1">{result.city}{result.state && `, ${result.state}`}</p>
+                        <p className="text-xs text-[#6B7A94] mt-1 capitalize">{result.property_type}</p>
+                        {result.pricing?.hourly_rate && (
+                          <p className="text-xs text-[#4F8CFF] font-semibold mt-2">${result.pricing.hourly_rate}/hr</p>
                         )}
-                        <div className="p-4">
-                          <p className="font-medium text-[#E8EEF9] truncate">{property.title}</p>
-                          <p className="text-xs text-[#9AA6BC] mt-1">{property.city}{property.state && `, ${property.state}`}</p>
-                          <p className="text-xs text-[#6B7A94] mt-1 capitalize">{property.property_type}</p>
-                          {property.pricing?.hourly_rate && (
-                            <p className="text-xs text-[#4F8CFF] font-semibold mt-2">${property.pricing.hourly_rate}/hr</p>
-                          )}
-                        </div>
                       </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
+                    </div>
+                  </Link>
+                );
+              } else {
+                const profile = result;
+                const details = creatorDetails.find(d => d.user_id === profile.user_id);
+                const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
+                return (
+                  <ProfileCard
+                    key={profile.id}
+                    profile={profile}
+                    creatorDetails={details}
+                    isSaved={isSaved}
+                    onFavorite={handleFavorite}
+                    onBlock={handleBlock}
+                    onReport={handleReport}
+                  />
+                );
+              }
+            })}
           </div>
         )}
       </div>

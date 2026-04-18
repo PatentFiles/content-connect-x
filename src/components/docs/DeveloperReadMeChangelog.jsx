@@ -248,6 +248,17 @@ export function RecentChangesSection() {
       '30-day cooldown after DECLINED enforced via decline_cooldown_until',
       'FriendGateWarning shown in CreateCollaboration if target requires friends',
     ]},
+    { date: 'April 2026', title: 'Discover Host Properties Tab + Unified Search Ranking + Discovery/Search Integration', items: [
+      'Discovery page: Added activeTab state (profiles | properties) with tab toggle buttons at top',
+      'Discovery Host Properties tab: fetches Property entity, filters by city search, displays property cards with link to PropertyDetail',
+      'extendedSearch backend: Enhanced with scoreResult() function that ranks results by relevance (title match +5, city +2, description +1, etc)',
+      'extendedSearch output: Single merged array sorted DESC by score. Every result includes score field.',
+      'Search page: Changed from split profiles/properties sections to unified grid sorted by relevance score',
+      'Search page: Renders mixed ProfileCard and PropertyCard from single filteredResults array',
+      'Results count: Shows total of all types merged, not separate counts',
+      'No duplicate systems created: Discovery and Search both call same extendedSearch backend (extendedSearch is extended, not replaced)',
+      'Feature flags respected: Properties excluded if hosting_marketplace disabled, profiles excluded if roles disabled (backend handles)',
+    ]},
     { date: 'April 2026', title: 'Host Eligibility & Onboarding Enforcement + Extended Global Search + Video Editor Integration', items: [
       'UserProfile extended with host_account_active (boolean, default false) and host_terms_accepted_at (date-time) fields to gate property creation',
       'manageProperty backend function: enforces host eligibility server-side on all property mutations (create, update). Validates host_account_active === true AND host_terms_accepted_at IS NOT NULL. Returns 403 "Host onboarding required" if not eligible. Defense in depth — frontend + backend gating.',
