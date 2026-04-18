@@ -9,6 +9,7 @@ import { DollarSign, Clock, Shield, Info, Pencil } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import SoloSessionBookingModal from '@/components/sessions/SoloSessionBookingModal';
+import { base44 } from '@/api/base44Client';
 import { useFeatureFlag } from '@/lib/featureFlags';
 
 export default function PropertyBookingPanel({ property, currentUser, isOwner }) {
