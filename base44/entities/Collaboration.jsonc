@@ -1,0 +1,362 @@
+{
+  "name": "Collaboration",
+  "type": "object",
+  "properties": {
+    "collaboration_name": {
+      "type": "string",
+      "description": "Custom name for the collaboration"
+    },
+    "participant_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "creator_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "agent_id": {
+      "type": "string"
+    },
+    "studio_id": {
+      "type": "string"
+    },
+    "photographer_id": {
+      "type": "string"
+    },
+    "videographer_id": {
+      "type": "string"
+    },
+    "scene_type": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "fetish",
+        "kink_edge"
+      ]
+    },
+    "scene_selected": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "acts_selected": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "acts_other_text": {
+      "type": "string"
+    },
+    "boundaries": {
+      "type": "object",
+      "properties": {
+        "hard_no": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "soft_limits": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "aftercare_required": {
+          "type": "boolean"
+        },
+        "aftercare_notes": {
+          "type": "string"
+        }
+      }
+    },
+    "compensation_type": {
+      "type": "string",
+      "enum": [
+        "paid",
+        "trade",
+        "free",
+        "rev_share_external"
+      ]
+    },
+    "compensation_details": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "split_details": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "schedule": {
+      "type": "object",
+      "properties": {
+        "proposed_dates": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "confirmed_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "start_time": {
+          "type": "string"
+        },
+        "end_time": {
+          "type": "string"
+        },
+        "duration_hours": {
+          "type": "number"
+        }
+      }
+    },
+    "location": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "studio",
+            "private",
+            "outdoor",
+            "travel"
+          ]
+        },
+        "address": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "deliverables": {
+      "type": "object",
+      "properties": {
+        "photo": {
+          "type": "boolean"
+        },
+        "video": {
+          "type": "boolean"
+        },
+        "raw_files": {
+          "type": "boolean"
+        },
+        "editing_included": {
+          "type": "boolean"
+        },
+        "delivery_timeline_days": {
+          "type": "number"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "usage_rights": {
+      "type": "object",
+      "properties": {
+        "platforms": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "other_platforms": {
+          "type": "string"
+        },
+        "exclusivity": {
+          "type": "boolean"
+        },
+        "exclusivity_period_days": {
+          "type": "number"
+        },
+        "resale_allowed": {
+          "type": "boolean"
+        },
+        "credit_required": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "testing_share_rules": {
+      "type": "object",
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+        "share_with_participants": {
+          "type": "boolean"
+        },
+        "max_days_old": {
+          "type": "number"
+        }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "pending_approval",
+        "active",
+        "negotiating",
+        "agreed",
+        "contract_pending",
+        "contract_sent",
+        "signed",
+        "completed",
+        "cancelled",
+        "disputed"
+      ],
+      "default": "draft"
+    },
+    "created_by_role": {
+      "type": "string",
+      "enum": [
+        "creator",
+        "agent",
+        "studio",
+        "photographer",
+        "videographer"
+      ],
+      "description": "Role of user who created the collaboration"
+    },
+    "created_by_user_id": {
+      "type": "string",
+      "description": "User ID of creator (for agent attribution)"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tags for search and categorization"
+    },
+    "internal_notes": {
+      "type": "string",
+      "description": "Private notes visible to admins only"
+    },
+    "conversation_id": {
+      "type": "string"
+    },
+    "session_origin": {
+      "type": "string",
+      "enum": [
+        "direct",
+        "from_booking",
+        "upgraded_from_solo_session"
+      ],
+      "default": "direct",
+      "description": "How this collaboration was created"
+    },
+    "solo_session_id": {
+      "type": "string",
+      "description": "Source SoloSession if this collaboration was upgraded from one"
+    },
+    "booking_mode": {
+      "type": "string",
+      "enum": [
+        "collaboration",
+        "solo"
+      ],
+      "default": "collaboration",
+      "description": "Inherited booking mode for audit trail"
+    },
+    "participant_mode": {
+      "type": "string",
+      "enum": [
+        "on_platform",
+        "external",
+        "mixed"
+      ],
+      "default": "on_platform",
+      "description": "Inherited participant mode for audit trail"
+    }
+  },
+  "required": [
+    "participant_ids",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "$and": [
+        {
+          "$or": [
+            {
+              "data.participant_ids": "{{user.email}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            }
+          ]
+        },
+        {
+          "not": {
+            "has_banned_or_suspended": true
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.participant_ids": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$and": [
+        {
+          "data.participant_ids": "{{user.email}}"
+        },
+        {
+          "not": {
+            "has_banned_or_suspended": true
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$and": [
+        {
+          "data.created_by_user_id": "{{user.email}}"
+        },
+        {
+          "not": {
+            "has_banned_or_suspended": true
+          }
+        }
+      ]
+    }
+  }
+}

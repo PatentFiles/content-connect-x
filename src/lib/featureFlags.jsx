@@ -49,7 +49,7 @@ export const DEFAULT_FLAGS = {
 
   // ── Marketplace / upcoming features ──
   hosting_marketplace:     { value: false, value_type: 'boolean', label: 'Hosting Marketplace',   category: 'marketplace',  affects_nav: false },
-  solo_sessions:           { value: false, value_type: 'boolean', label: 'Solo Sessions',         category: 'marketplace',  affects_nav: false },
+  solo_sessions:           { value: false, value_type: 'boolean', label: 'Solo Sessions',         category: 'marketplace',  affects_nav: true,  nav_pages: ['SoloSessionDetail'] },
   gps_checkin:             { value: false, value_type: 'boolean', label: 'GPS Check-In',          category: 'marketplace',  affects_nav: false },
   smart_lock:              { value: false, value_type: 'boolean', label: 'Smart Lock Integration',category: 'marketplace',  affects_nav: false },
   pro_host_tier:           { value: false, value_type: 'boolean', label: 'Pro Host Tier',         category: 'marketplace',  affects_nav: false },

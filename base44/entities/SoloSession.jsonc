@@ -1,0 +1,265 @@
+{
+  "name": "SoloSession",
+  "type": "object",
+  "properties": {
+    "session_type": {
+      "type": "string",
+      "enum": [
+        "solo_session",
+        "service_booking",
+        "location_booking"
+      ],
+      "default": "solo_session",
+      "description": "Sub-type of this standalone session"
+    },
+    "booking_mode": {
+      "type": "string",
+      "enum": [
+        "solo",
+        "collaboration"
+      ],
+      "default": "solo",
+      "description": "solo = single user booking a space/service; collaboration = multi-user (use Collaboration entity instead)"
+    },
+    "participant_mode": {
+      "type": "string",
+      "enum": [
+        "on_platform",
+        "external",
+        "mixed"
+      ],
+      "default": "on_platform",
+      "description": "Whether all session participants are platform users, external, or mixed"
+    },
+    "host_user_id": {
+      "type": "string",
+      "description": "The property/service owner being booked"
+    },
+    "guest_user_id": {
+      "type": "string",
+      "description": "The platform user booking the session"
+    },
+    "external_participants": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "contact": {
+            "type": "string",
+            "description": "Optional contact info for record-keeping"
+          }
+        }
+      },
+      "description": "Non-platform participants (when participant_mode=external or mixed)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "pending_host",
+        "confirmed",
+        "contract_pending",
+        "contract_signed",
+        "active",
+        "completed",
+        "cancelled",
+        "disputed"
+      ],
+      "default": "draft",
+      "description": "Session lifecycle status"
+    },
+    "session_name": {
+      "type": "string",
+      "description": "Optional display name for this session"
+    },
+    "schedule": {
+      "type": "object",
+      "properties": {
+        "confirmed_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "start_time": {
+          "type": "string"
+        },
+        "end_time": {
+          "type": "string"
+        },
+        "duration_hours": {
+          "type": "number"
+        },
+        "timezone": {
+          "type": "string"
+        }
+      }
+    },
+    "location": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "studio",
+            "private",
+            "outdoor",
+            "travel"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "compensation": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string",
+          "default": "USD"
+        },
+        "payment_type": {
+          "type": "string",
+          "enum": [
+            "fixed",
+            "hourly",
+            "deposit_only",
+            "free"
+          ]
+        },
+        "deposit_amount": {
+          "type": "number"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "contract_id": {
+      "type": "string",
+      "description": "Contract record backing this session \u2014 same Contract entity as collaborations"
+    },
+    "booking_request_id": {
+      "type": "string",
+      "description": "Originating BookingRequest if created from booking flow"
+    },
+    "schedule_entry_id": {
+      "type": "string",
+      "description": "Host ScheduleEntry that was reserved"
+    },
+    "collaboration_id": {
+      "type": "string",
+      "description": "Set when this session is upgraded/converted to a full Collaboration"
+    },
+    "upgraded_to_collaboration": {
+      "type": "boolean",
+      "default": false,
+      "description": "True if this session has been upgraded to a Collaboration"
+    },
+    "internal_notes": {
+      "type": "string",
+      "description": "Admin-visible notes"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "safety_checkin_id": {
+      "type": "string",
+      "description": "SafetyCheckIn record for this session"
+    },
+    "agreement_accepted_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the guest accepted the host's terms/agreement"
+    },
+    "agreement_text_snapshot": {
+      "type": "string",
+      "description": "Snapshot of the agreement terms accepted at booking time (immutable audit record)"
+    }
+  },
+  "required": [
+    "session_type",
+    "booking_mode",
+    "host_user_id",
+    "guest_user_id",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "$and": [
+        {
+          "$or": [
+            {
+              "data.guest_user_id": "{{user.email}}"
+            },
+            {
+              "user_condition": {
+                "role": "admin"
+              }
+            }
+          ]
+        },
+        {
+          "not": {
+            "has_banned_or_suspended": true
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.guest_user_id": "{{user.email}}"
+        },
+        {
+          "data.host_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.guest_user_id": "{{user.email}}"
+        },
+        {
+          "data.host_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -44,6 +44,8 @@ Deno.serve(async (req) => {
     const isStudioBooking = booking.booking_type === 'studio';
     const isPhotographerBooking = booking.booking_type === 'photographer';
     const isVideographerBooking = booking.booking_type === 'videographer';
+    // Solo booking mode — route to SoloSession instead of Collaboration
+    const isSoloMode = booking.booking_mode === 'solo';
 
     // ─── ACCEPT ────────────────────────────────────────────────────────────────
     if (action === 'accept') {
@@ -60,6 +62,87 @@ Deno.serve(async (req) => {
       const requesterProfile = requesterProfiles[0];
       if (requesterProfile?.banned || requesterProfile?.suspended) {
         return Response.json({ error: 'Requester account is restricted — cannot accept' }, { status: 403 });
+      }
+
+      // ── SOLO BOOKING: create SoloSession instead of Collaboration ─────────────
+      if (isSoloMode) {
+        const sessionType = booking.session_type || (isStudioBooking ? 'location_booking' : 'solo_session');
+        const sessionName = isStudioBooking
+          ? `Location Booking: ${booking.studio_location_name || profile?.display_name || 'Studio'} — ${booking.requested_date}`
+          : `Solo Session: ${booking.requested_date}`;
+
+        const soloSession = await svc.entities.SoloSession.create({
+          session_type: sessionType,
+          booking_mode: 'solo',
+          participant_mode: booking.participant_mode || 'on_platform',
+          host_user_id: booking.recipient_user_id,
+          guest_user_id: booking.requester_user_id,
+          status: 'confirmed',
+          session_name: sessionName,
+          schedule: {
+            confirmed_date: booking.requested_date,
+            start_time: booking.requested_time || null,
+            end_time: booking.requested_end_time || null,
+          },
+          location: isStudioBooking ? {
+            type: 'studio',
+            name: booking.studio_location_name || null,
+            notes: booking.studio_notes || null,
+          } : {},
+          booking_request_id: booking_id,
+          schedule_entry_id: booking.schedule_entry_id || null,
+          tags: ['from_booking', sessionType],
+          internal_notes: `Created from BookingRequest ${booking_id}`,
+        });
+
+        if (booking.schedule_entry_id) {
+          await svc.entities.ScheduleEntry.update(booking.schedule_entry_id, {
+            status: 'BOOKED',
+            collaboration_id: soloSession.id,
+          }).catch(() => {});
+        }
+
+        await svc.entities.BookingRequest.update(booking_id, {
+          status: 'accepted',
+          responded_at: new Date().toISOString(),
+          response_message: response_message || null,
+          solo_session_id: soloSession.id,
+        });
+
+        await svc.entities.Notification.create({
+          user_id: booking.requester_user_id,
+          type: 'collaboration_invites',
+          actor_user_id: user.email,
+          title: 'Solo Session Confirmed!',
+          body: `Your session booking for ${booking.requested_date} was confirmed.`,
+          related_entity_type: 'SoloSession',
+          related_entity_id: soloSession.id,
+          action_url: `/SoloSessionDetail?id=${soloSession.id}`,
+        }).catch(() => {});
+
+        await svc.entities.AdminActionLog.create({
+          admin_user_id: 'SYSTEM_BOOKING',
+          target_type: 'BookingRequest',
+          target_id: booking_id,
+          action: 'solo_booking_accepted',
+          reason: 'Recipient accepted solo booking request',
+          metadata_json: {
+            booking_id,
+            session_type: sessionType,
+            solo_session_id: soloSession.id,
+            requester: booking.requester_user_id,
+            recipient: booking.recipient_user_id,
+            date: booking.requested_date,
+            timestamp: new Date().toISOString(),
+          },
+        }).catch(() => {});
+
+        return Response.json({
+          success: true,
+          status: 'accepted',
+          solo_session_id: soloSession.id,
+          solo_session: soloSession,
+        });
       }
 
       // Build collaboration name
