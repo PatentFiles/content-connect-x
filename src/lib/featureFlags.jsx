@@ -85,10 +85,13 @@ export const DEFAULT_FLAGS = {
   content_usage_tracking:  { value: false, value_type: 'boolean', label: 'Content Usage Tracking (log publish events, unauthorized use, takedown requests per session/collaboration)', category: 'compliance', affects_nav: false },
 
   // ── Search & reviews ──
-  search_ranking_enabled:  { value: false, value_type: 'boolean', label: 'Search Ranking Config (admin-configurable weights for title, city, description, role, boosts)', category: 'marketplace', affects_nav: false },
-  property_reviews_enabled: { value: false, value_type: 'boolean', label: 'Property Reviews (verified reviews from completed bookings, rating aggregation, ranking signals)', category: 'marketplace', affects_nav: false },
+   search_ranking_enabled:  { value: false, value_type: 'boolean', label: 'Search Ranking Config (admin-configurable weights for title, city, description, role, boosts)', category: 'marketplace', affects_nav: false },
+   property_reviews_enabled: { value: false, value_type: 'boolean', label: 'Property Reviews (verified reviews from completed bookings, rating aggregation, ranking signals)', category: 'marketplace', affects_nav: false },
+   review_recency_enabled:  { value: false, value_type: 'boolean', label: 'Review Recency Weighting (recent reviews ranked higher in scoring)', category: 'marketplace', affects_nav: false },
+   review_integrity_enabled: { value: false, value_type: 'boolean', label: 'Review Integrity Checks (detect + filter spam, weight by integrity score)', category: 'safety', affects_nav: false },
+   ranking_boosts_enabled: { value: false, value_type: 'boolean', label: 'Ranking Monetization Boosts (featured, verified property boosts)', category: 'marketplace', affects_nav: false },
 
-  // ── Numeric / text config ──
+   // ── Numeric / text config ──
   max_messages_per_day:    { value: 100,   value_type: 'number',  label: 'Max Messages Per Day',  category: 'safety' },
   platform_policy_version: { value: '1.0', value_type: 'text',    label: 'Platform Policy Version', category: 'compliance' },
   
@@ -104,7 +107,11 @@ export const DEFAULT_FLAGS = {
   search_ranking_high_reputation_boost: { value: 2, value_type: 'number', label: 'High Reputation Boost (4.5+)', category: 'marketplace' },
   search_ranking_rating_weight: { value: 1, value_type: 'number', label: 'Average Rating Weight', category: 'marketplace' },
   search_ranking_review_volume_weight: { value: 0.5, value_type: 'number', label: 'Review Volume Weight', category: 'marketplace' },
-};
+
+  // ── Monetization hooks ──
+  search_ranking_featured_property_boost: { value: 5, value_type: 'number', label: 'Featured Property Boost (monetization hook)', category: 'marketplace' },
+  search_ranking_verified_property_boost: { value: 3, value_type: 'number', label: 'Verified Property Boost (4.5+ rating, monetization hook)', category: 'marketplace' },
+  };
 
 // ─── Context ───────────────────────────────────────────────────────────────────
 

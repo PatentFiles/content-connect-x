@@ -655,6 +655,16 @@
       "default": 0,
       "description": "Count of active PropertyReview records. Source of truth for review aggregation."
     },
+    "recent_review_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Count of active reviews within last 30 days"
+    },
+    "last_review_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp of most recent review (for freshness signal)"
+    },
     "tags": {
       "type": "array",
       "items": {

@@ -1,7 +1,7 @@
 {
   "name": "PropertyReview",
   "type": "object",
-  "description": "Review of a property by a verified guest who completed a booking/session. Strictly tied to completed bookings.",
+  "description": "Review of a property by a verified guest who completed a booking/session. Strictly tied to completed bookings. Includes recency and integrity tracking.",
   "properties": {
     "property_id": {
       "type": "string",
@@ -9,11 +9,24 @@
     },
     "session_id": {
       "type": "string",
-      "description": "Completed SoloSession that qualifies the review"
+      "description": "Completed session that qualifies the review"
     },
     "reviewer_user_id": {
       "type": "string",
       "description": "User who completed the booking and is reviewing"
+    },
+    "reviewer_role_type": {
+      "type": "string",
+      "enum": [
+        "creator",
+        "photographer",
+        "videographer",
+        "video_editor",
+        "agent",
+        "studio",
+        "admin"
+      ],
+      "description": "Role type of reviewer (cached from UserProfile for badge display)"
     },
     "rating": {
       "type": "number",
@@ -39,6 +52,25 @@
       "type": "boolean",
       "default": true,
       "description": "Always true if created through eligibility check (immutable)"
+    },
+    "review_integrity_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 1.0,
+      "description": "Integrity score 0-1: 1.0=trusted, 0.5=suspicious, 0.0=ignore in ranking. Admin-set or auto-computed."
+    },
+    "integrity_flags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Auto-detected flags: rapid_review_burst, abnormal_rating_pattern, user_review_velocity. Used for integrity audit."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Immutable creation timestamp for recency weighting"
     }
   },
   "required": [

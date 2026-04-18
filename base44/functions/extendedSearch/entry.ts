@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
     // Load ranking config
     const rankingConfig = await loadRankingConfig(base44);
 
-    // Load reviews if property_reviews_enabled
+    // Load reviews with integrity filtering
     let reviewsMap = {};
     try {
       const reviews = await base44.asServiceRole.entities.PropertyReview.list('-created_date', 1000);
@@ -126,17 +126,36 @@ Deno.serve(async (req) => {
       
       activeReviews.forEach(review => {
         if (!reviewsMap[review.property_id]) {
-          reviewsMap[review.property_id] = { ratings: [], count: 0 };
+          reviewsMap[review.property_id] = { ratings: [], count: 0, lastReview: null };
         }
-        reviewsMap[review.property_id].ratings.push(review.rating);
+        
+        // Apply integrity score if review_integrity_enabled (filter low-integrity reviews from ranking)
+        const integrityScore = review.review_integrity_score || 1.0;
+        if (rankingConfig.review_integrity_enabled && integrityScore < 0.1) {
+          // Skip this review (flagged as spam)
+          return;
+        }
+        
+        // Weight review by integrity score
+        const weightedRating = review.rating * integrityScore;
+        reviewsMap[review.property_id].ratings.push(weightedRating);
         reviewsMap[review.property_id].count += 1;
+        
+        // Track most recent review
+        if (!reviewsMap[review.property_id].lastReview || 
+            new Date(review.created_at) > new Date(reviewsMap[review.property_id].lastReview)) {
+          reviewsMap[review.property_id].lastReview = review.created_at;
+        }
       });
 
-      // Calculate average ratings
+      // Calculate average ratings (weighted by integrity) and capture last_review_at
       Object.keys(reviewsMap).forEach(propertyId => {
         const data = reviewsMap[propertyId];
-        data.average_rating = data.ratings.reduce((a, b) => a + b, 0) / data.ratings.length;
+        data.average_rating = data.ratings.length > 0 
+          ? data.ratings.reduce((a, b) => a + b, 0) / data.ratings.length 
+          : 0;
         data.total_reviews = data.count;
+        data.last_review_at = data.lastReview;
       });
     } catch {
       // Reviews not available, continue without them

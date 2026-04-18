@@ -8,7 +8,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
  */
 
 /**
- * Aggregate reviews for a property and update Property.average_rating + Property.total_reviews
+ * Aggregate reviews for a property and update Property.average_rating, total_reviews, recent_review_count, last_review_at
  */
 async function updatePropertyReviewStats(base44, propertyId) {
   const reviews = await base44.entities.PropertyReview.filter({
@@ -21,9 +21,21 @@ async function updatePropertyReviewStats(base44, propertyId) {
     ? reviews.reduce((sum, r) => sum + r.rating, 0) / totalReviews
     : 0;
 
+  // Count recent reviews (within last 30 days)
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const recentReviews = reviews.filter(r => r.created_at > thirtyDaysAgo);
+  const recentReviewCount = recentReviews.length;
+
+  // Get last review date
+  const lastReviewAt = reviews.length > 0
+    ? reviews.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0].created_at
+    : null;
+
   await base44.entities.Property.update(propertyId, {
     average_rating: Math.round(averageRating * 100) / 100,
     total_reviews: totalReviews,
+    recent_review_count: recentReviewCount,
+    last_review_at: lastReviewAt,
   });
 }
 
@@ -101,15 +113,36 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Already reviewed this booking' }, { status: 409 });
       }
 
+      // Get reviewer's role type for badge display
+      const reviewer = await base44.entities.UserProfile.filter({ user_id: user.email });
+      const reviewerRoleType = reviewer[0]?.role_type || 'creator';
+
+      // Detect integrity flags (lightweight check for manipulation)
+      const integrityFlags = [];
+      const userRecentReviews = await base44.entities.PropertyReview.filter({
+        reviewer_user_id: user.email,
+      }, '-created_date', 100);
+      
+      // Check for rapid review velocity (multiple reviews within 1 hour)
+      const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const recentReviews = userRecentReviews.filter(r => r.created_at > oneHourAgo);
+      if (recentReviews.length >= 2) {
+        integrityFlags.push('user_review_velocity');
+      }
+
       // Create review with verified=true (immutable, trusted source)
       const review = await base44.entities.PropertyReview.create({
         property_id,
         session_id,
         reviewer_user_id: user.email,
+        reviewer_role_type: reviewerRoleType,
         rating: Math.min(Math.max(rating, 1), 5),
         review_text: review_text?.trim() || '',
         verified: true,
         status: 'active',
+        review_integrity_score: integrityFlags.length > 0 ? 0.5 : 1.0,
+        integrity_flags: integrityFlags,
+        created_at: new Date().toISOString(),
       });
 
       // Update Property.average_rating and Property.total_reviews
