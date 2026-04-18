@@ -185,6 +185,21 @@
       "default": true,
       "description": "Whether to allow direct contact from others while represented"
     },
+    "pro_host": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether this user has an active Pro Host subscription. Set by admin or payment webhook."
+    },
+    "pro_host_since": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When Pro Host subscription was activated"
+    },
+    "pro_host_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When Pro Host subscription expires (null = active indefinitely / managed externally)"
+    },
     "banned": {
       "type": "boolean",
       "default": false,

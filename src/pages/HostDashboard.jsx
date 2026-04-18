@@ -13,6 +13,8 @@ import FeatureGate from '@/components/feature/FeatureGate';
 import PropertyForm from '@/components/hosting/PropertyForm';
 import HostOnboardingChecklist from '@/components/hosting/HostOnboardingChecklist';
 import SoloSessionsInbox from '@/components/sessions/SoloSessionsInbox';
+import ProHostSubscriptionPanel from '@/components/hosting/ProHostSubscriptionPanel';
+import HostPricingSettings from '@/components/hosting/HostPricingSettings';
 
 const STATUS_VARIANTS = {
   draft: 'outline',
@@ -195,6 +197,12 @@ export default function HostDashboard() {
               })}
             </div>
           )}
+
+          {/* Pricing settings */}
+          <HostPricingSettings user={user} />
+
+          {/* Pro Host */}
+          <ProHostSubscriptionPanel user={user} />
 
           {/* Booking inbox */}
           <div>

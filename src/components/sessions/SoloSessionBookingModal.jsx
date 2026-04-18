@@ -22,6 +22,9 @@ import { useFeatureFlag } from '@/lib/featureFlags';
 import PropertyBookingAddons from '@/components/hosting/PropertyBookingAddons';
 import LocationContractClauses from '@/components/hosting/LocationContractClauses';
 import { logAgreementAcceptance } from '@/lib/agreementLogger';
+import { useFeatureFlags } from '@/lib/featureFlags';
+import { resolvePricingConfig, buildPricingSnapshot } from '@/lib/hostingPricing';
+import PricingBreakdown from '@/components/hosting/PricingBreakdown';
 
 const SESSION_TYPES = [
   { value: 'solo_session', label: 'Solo Session', description: 'Book space for personal/creative use' },
@@ -41,13 +44,16 @@ const HOST_AGREEMENT_TEMPLATE = `By confirming this booking you agree to:
 3. Not share access credentials with unauthorised persons.
 4. Notify the host immediately of any damage or safety concerns.`;
 
-export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, hostProfile, hostScheduleEntry, property }) {
+export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, hostProfile, hostScheduleEntry, property, hostIsProHost = false }) {
   const soloSessionsEnabled = useFeatureFlag('solo_sessions');
   const equipmentEnabled = useFeatureFlag('equipment_rentals');
   const bundlesEnabled = useFeatureFlag('bundle_templates');
   const cleaningFeeEnabled = useFeatureFlag('cleaning_fee');
   const locationClausesEnabled = useFeatureFlag('location_contract_clauses');
   const cancellationPoliciesEnabled = useFeatureFlag('cancellation_policies');
+  const pricingEnabled = useFeatureFlag('hosting_pricing_enabled');
+  const flags = useFeatureFlags();
+  const pricingConfig = resolvePricingConfig(flags);
   const hasAddons = property && (equipmentEnabled || bundlesEnabled || cleaningFeeEnabled);
 
   // Steps: 1=type/participants, 2=schedule/rate, [3=add-ons if location+property], last=agreement
@@ -102,8 +108,20 @@ export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, h
     if (!form.agreement_accepted) { toast.error('You must accept the host agreement to continue'); return; }
 
     setLoading(true);
-    // Use pricing breakdown total from snapshot if available
-    const totalFromSnapshot = bookingSnapshot?.pricing_breakdown?.grand_total;
+    // Build enriched pricing snapshot with platform fee
+    const addonSubtotal = bookingSnapshot?.pricing_breakdown?.grand_total || parseFloat(form.amount || 0);
+    const enrichedSnapshot = pricingEnabled && addonSubtotal > 0
+      ? buildPricingSnapshot({
+          basePropertyCost: bookingSnapshot?.pricing_breakdown?.base_rate ?? addonSubtotal,
+          equipmentTotal:   bookingSnapshot?.pricing_breakdown?.equipment_total ?? 0,
+          bundleModifier:   bookingSnapshot?.pricing_breakdown?.bundle_modifier ?? 0,
+          cleaningFee:      bookingSnapshot?.pricing_breakdown?.cleaning_fee ?? 0,
+          isProHost:        hostIsProHost,
+          pricingConfig,
+          property,
+        })
+      : null;
+    const totalFromSnapshot = enrichedSnapshot?.grand_total || bookingSnapshot?.pricing_breakdown?.grand_total;
     try {
       // Log agreement acceptance immutably
       const currentUser = await base44.auth.me().catch(() => null);
@@ -146,7 +164,9 @@ export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, h
           : [],
         schedule_entry_id: hostScheduleEntry?.id || null,
         agreement_text_snapshot: HOST_AGREEMENT_TEMPLATE,
-        booking_snapshot: bookingSnapshot || null,
+        booking_snapshot: enrichedSnapshot
+          ? { ...(bookingSnapshot || {}), pricing_snapshot: enrichedSnapshot }
+          : (bookingSnapshot || null),
       });
 
       toast.success('Session booking request sent!');
@@ -397,6 +417,14 @@ export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, h
                 {/* Location contract clauses if applicable */}
                 {locationClausesEnabled && property && (
                   <LocationContractClauses property={property} compact />
+                )}
+
+                {/* Platform fee breakdown */}
+                {pricingEnabled && (totalFromSnapshot > 0 || parseFloat(form.amount) > 0) && (
+                  <PricingBreakdown
+                    snapshot={enrichedSnapshot || (bookingSnapshot?.pricing_breakdown ? { ...bookingSnapshot.pricing_breakdown, platform_fee_pct: pricingConfig.bookingFeePct, platform_fee_amount: 0, host_payout: bookingSnapshot.pricing_breakdown.grand_total, grand_total: bookingSnapshot.pricing_breakdown.grand_total } : null)}
+                    isProHost={hostIsProHost}
+                  />
                 )}
 
                 <div className="bg-[#1A2438] rounded-lg p-3 border border-[#263248] text-xs text-[#9AA6BC] space-y-1">

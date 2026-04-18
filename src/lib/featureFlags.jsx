@@ -62,6 +62,22 @@ export const DEFAULT_FLAGS = {
   geo_risk_tagging:        { value: false, value_type: 'boolean', label: 'Geo Risk Tagging (admin-only: risk level, reserve %, ranking penalty)', category: 'safety', affects_nav: false },
   host_insurance_verification: { value: false, value_type: 'boolean', label: 'Host Insurance Verification (admin review + trust badge)', category: 'compliance', affects_nav: false },
   favorites_by_type:       { value: false, value_type: 'boolean', label: 'Favorites by Type',     category: 'experimental', affects_nav: false },
+  // ── Hosting pricing system ──
+  hosting_pricing_enabled: { value: true,  value_type: 'boolean', label: 'Hosting Pricing (fee disclosures + breakdowns)', category: 'marketplace', affects_nav: false },
+  pro_host_enabled:        { value: false, value_type: 'boolean', label: 'Pro Host Tier (reduced fees, faster payouts, badge)', category: 'marketplace', affects_nav: false },
+  reserve_system_enabled:  { value: false, value_type: 'boolean', label: 'Reserve System (hold % of payout for dispute protection)', category: 'marketplace', affects_nav: false },
+  dynamic_payout_enabled:  { value: false, value_type: 'boolean', label: 'Dynamic Payout Timing (configurable delay per tier)', category: 'marketplace', affects_nav: false },
+
+  // ── Hosting pricing numeric config ──
+  hosting_booking_fee_pct:     { value: 20,  value_type: 'number', label: 'Standard Booking Fee %',       category: 'marketplace' },
+  pro_host_booking_fee_pct:    { value: 12,  value_type: 'number', label: 'Pro Host Booking Fee %',        category: 'marketplace' },
+  pro_host_subscription_price: { value: 25,  value_type: 'number', label: 'Pro Host Subscription $/mo',   category: 'marketplace' },
+  reserve_pct_default:         { value: 10,  value_type: 'number', label: 'Default Reserve %',            category: 'marketplace' },
+  reserve_pct_pro_host:        { value: 5,   value_type: 'number', label: 'Pro Host Reserve %',           category: 'marketplace' },
+  payout_delay_hours_default:  { value: 24,  value_type: 'number', label: 'Default Payout Delay (hrs)',   category: 'marketplace' },
+  payout_delay_hours_pro_host: { value: 12,  value_type: 'number', label: 'Pro Host Payout Delay (hrs)',  category: 'marketplace' },
+  access_issue_sla_minutes:    { value: 30,  value_type: 'number', label: 'Access Issue SLA (min)',        category: 'marketplace' },
+
   cancellation_policies:   { value: false, value_type: 'boolean', label: 'Cancellation Policies (host presets: flexible/moderate/strict/custom, refund windows, credit, no-show, deposit linkage)', category: 'marketplace', affects_nav: false },
   location_contract_clauses: { value: false, value_type: 'boolean', label: 'Location Contract Clauses (property rules, access, liability, damage deposit, cancellation injected at booking)', category: 'compliance', affects_nav: false },
   agreement_acceptance_log: { value: true,  value_type: 'boolean', label: 'Agreement Acceptance Log (immutable log of every acceptance event — sessions, bookings, property, collaborations)', category: 'compliance', affects_nav: false },
