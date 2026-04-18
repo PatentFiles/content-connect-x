@@ -64,6 +64,7 @@ export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, h
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [bookingSnapshot, setBookingSnapshot] = useState(null);
+  const [enrichedSnapshot, setEnrichedSnapshot] = useState(null);
   const [form, setForm] = useState({
     session_type: property ? 'location_booking' : 'solo_session',
     participant_mode: 'on_platform',
@@ -110,7 +111,7 @@ export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, h
     setLoading(true);
     // Build enriched pricing snapshot with platform fee
     const addonSubtotal = bookingSnapshot?.pricing_breakdown?.grand_total || parseFloat(form.amount || 0);
-    const enrichedSnapshot = pricingEnabled && addonSubtotal > 0
+    const newEnrichedSnapshot = pricingEnabled && addonSubtotal > 0
       ? buildPricingSnapshot({
           basePropertyCost: bookingSnapshot?.pricing_breakdown?.base_rate ?? addonSubtotal,
           equipmentTotal:   bookingSnapshot?.pricing_breakdown?.equipment_total ?? 0,
@@ -121,7 +122,8 @@ export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, h
           property,
         })
       : null;
-    const totalFromSnapshot = enrichedSnapshot?.grand_total || bookingSnapshot?.pricing_breakdown?.grand_total;
+    setEnrichedSnapshot(newEnrichedSnapshot);
+    const totalFromSnapshot = newEnrichedSnapshot?.grand_total || bookingSnapshot?.pricing_breakdown?.grand_total;
     try {
       // Log agreement acceptance immutably
       const currentUser = await base44.auth.me().catch(() => null);
@@ -164,8 +166,8 @@ export default function SoloSessionBookingModal({ isOpen, onClose, hostUserId, h
           : [],
         schedule_entry_id: hostScheduleEntry?.id || null,
         agreement_text_snapshot: HOST_AGREEMENT_TEMPLATE,
-        booking_snapshot: enrichedSnapshot
-          ? { ...(bookingSnapshot || {}), pricing_snapshot: enrichedSnapshot }
+        booking_snapshot: newEnrichedSnapshot
+          ? { ...(bookingSnapshot || {}), pricing_snapshot: newEnrichedSnapshot }
           : (bookingSnapshot || null),
       });
 
