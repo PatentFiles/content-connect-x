@@ -6,6 +6,7 @@ import { pagesConfig } from './pages.config.jsx'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { FeatureFlagProvider } from '@/lib/featureFlags';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AccountBlockedScreen from '@/components/auth/AccountBlockedScreen';
 
@@ -81,11 +82,13 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
+        <FeatureFlagProvider>
         <Router>
           <NavigationTracker />
           <AuthenticatedApp />
         </Router>
         <Toaster />
+        </FeatureFlagProvider>
       </QueryClientProvider>
     </AuthProvider>
   )

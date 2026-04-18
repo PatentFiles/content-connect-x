@@ -63,6 +63,17 @@ export function RecentChangesSection() {
       'Contract.template_type: creator_to_creator/studio_contract/photographer/videographer/agent_managed',
       'ContractVersion entity tracks all edits; ContractAuditLog ensures immutable history',
     ]},
+    { date: 'April 2026', title: 'Feature Flag Architecture — Platform-Wide Module Rollout System', items: [
+      'PlatformFeatureFlag entity: flag_key, label, category (core/safety/compliance/marketplace/experimental), value_type (boolean/number/text), bool_value/number_value/text_value, affects_nav, nav_pages, is_system',
+      'lib/featureFlags.jsx: DEFAULT_FLAGS defines all known flags with in-code defaults. FeatureFlagProvider wraps App.jsx, fetches DB overrides every 2 min. DB always wins over defaults.',
+      'Hooks: useFeatureFlag(key) → scalar value; useFeatureFlags() → full map; useFilteredNav(navItems) → nav array filtered by disabled flags.',
+      'components/feature/FeatureGate.jsx: <FeatureGate flag="key"> hides children when flag is off. Supports fallback= and invert= props.',
+      'Sidebar and BottomNav now use useFilteredNav() — disabling a flag with affects_nav=true auto-hides pages from both nav surfaces.',
+      'AdminDashboard "Feature Flags" tab: FeatureFlagsPanel renders all flags grouped by category with live toggles, number inputs, and text inputs.',
+      '24 initial flags seeded covering: messaging, discovery, collaborations, contracts, favorites, connections, portfolio, representations, verification, testing, search, comm_filter, safety_checkin, compliance_portal, hosting_marketplace (off), solo_sessions (off), gps_checkin (off), smart_lock (off), pro_host_tier (off), equipment_rentals (off), damage_deposits (off), favorites_by_type (off), max_messages_per_day=100, platform_policy_version=1.0',
+      'pages/Messages comm_filter check now reads from useFeatureFlag("comm_filter") instead of static COMM_FILTER_ENABLED constant — flag toggleable live from admin panel without deploy.',
+      'To add a new flag: add entry to DEFAULT_FLAGS in lib/featureFlags.jsx — it appears immediately in the admin panel and can be toggled without code changes.',
+    ]},
     { date: 'April 2026', title: 'Communication Filter — Off-Platform Sharing Prevention', items: [
       'CommunicationViolation entity added: tracks user_id, conversation_id, violation_type, message_snippet (redacted), attempt_count, escalation_level, admin_reviewed',
       'lib/commFilter.js: pure detection logic for phone numbers, email addresses, external links, and obfuscated variants (dot/at encoding, social platform redirects)',

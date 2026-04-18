@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { getNavigationForRole } from '../utils/roleNavConfig';
+import { useFilteredNav } from '@/lib/featureFlags';
 import { useTabNavigator } from './TabNavigator';
 import { useNavigate } from 'react-router-dom';
 
@@ -26,7 +27,8 @@ export default function BottomNav({ currentPage }) {
   const profile = profiles[0];
   const roleType = profile?.role_type || 'creator';
   const allNavItems = getNavigationForRole(roleType);
-  const navItems = allNavItems.slice(0, 5);
+  const filteredNavItems = useFilteredNav(allNavItems);
+  const navItems = filteredNavItems.slice(0, 5);
 
   const handleTabPress = (path) => {
     const tabPath = `/${path}`;

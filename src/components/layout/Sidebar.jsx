@@ -15,6 +15,7 @@ import {
 import CCAvatar from '../ui-custom/CCAvatars';
 import CCBadge from '../ui-custom/CCBadge';
 import { getNavigationForRole } from '../utils/roleNavConfig';
+import { useFilteredNav } from '@/lib/featureFlags';
 import AdminRoleViewSwitcher from '../admin/AdminRoleViewSwitcher';
 
 const adminNavItems = [
@@ -33,7 +34,8 @@ export default function Sidebar({ currentPage, profile, onLogout, adminRoleView,
   const effectiveRoleView = isAdmin && adminRoleView ? adminRoleView : (profile?.role_type || 'creator');
   const showAdminNav = isAdmin && effectiveRoleView === 'admin';
   const roleType = showAdminNav ? 'creator' : effectiveRoleView;
-  const navItems = getNavigationForRole(roleType);
+  const rawNavItems = getNavigationForRole(roleType);
+  const navItems = useFilteredNav(rawNavItems);
 
   // Fetch unread message count
   const { data: conversations = [] } = useQuery({

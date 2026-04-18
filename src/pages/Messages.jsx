@@ -35,7 +35,8 @@ import AccessGate from '@/components/auth/AccessGate';
 import { useVerificationCheck } from '@/components/auth/useVerificationCheck';
 import VerificationRequired from '@/components/auth/VerificationRequired';
 import CommFilterWarning from '@/components/messaging/CommFilterWarning';
-import { detectCommViolation, getEscalationLevel, COMM_FILTER_ENABLED } from '@/lib/commFilter';
+import { detectCommViolation, getEscalationLevel } from '@/lib/commFilter';
+import { useFeatureFlag } from '@/lib/featureFlags';
 
 export default function Messages() {
   const [selectedConversation, setSelectedConversation] = useState(null);
@@ -79,6 +80,7 @@ export default function Messages() {
     return unsubscribe;
   }, [user?.email]);
   
+  const commFilterEnabled = useFeatureFlag('comm_filter');
   const { checking: verificationChecking, blocked: verificationBlocked } = useVerificationCheck('send_message');
   const { protectedMutate } = useProtectedMutation();
 
@@ -345,7 +347,7 @@ export default function Messages() {
     if (!newMessage.trim() || !selectedConversation) return;
 
     // Client-side comm filter pre-check
-    if (COMM_FILTER_ENABLED) {
+    if (commFilterEnabled) {
       const violation = detectCommViolation(newMessage.trim());
       if (violation) {
         const newCount = commViolationCount + 1;

@@ -10,6 +10,12 @@
  *   - External links (http/https/www, common shorteners, obfuscated)
  */
 
+/**
+ * Static fallback — the live value is driven by the PlatformFeatureFlag DB record
+ * with flag_key='comm_filter'. This constant is only used as a code-level default
+ * when the FeatureFlagProvider has not yet resolved (e.g. server-side enforcement
+ * in backend functions that import this file directly).
+ */
 export const COMM_FILTER_ENABLED = true;
 
 // ─── Detection Patterns ───────────────────────────────────────────────────────
