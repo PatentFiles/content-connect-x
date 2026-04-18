@@ -30,6 +30,7 @@ import { CCLoadingScreen, CCSkeletonLoader } from '@/components/ui-custom/CCLoad
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import AccessGate from '@/components/auth/AccessGate';
 import CCModal from '@/components/ui-custom/CCModal';
+import { useFeatureFlag } from '@/lib/featureFlags';
 import { logCollaborationActivity } from '@/components/collaboration/activityLogHelpers';
 import PullToRefresh from '@/components/ui-custom/PullToRefresh';
 import BottomSheetSelect from '@/components/ui-custom/BottomSheetSelect';
@@ -77,8 +78,15 @@ export default function Collaborations() {
     enabled: !!user?.email,
   });
 
-  const isVerified = verification?.[0]?.status === 'approved';
-  const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
+  const verificationEnabled = useFeatureFlag('verification');
+  const { data: myProfile = [] } = useQuery({
+    queryKey: ['myProfile', user?.email],
+    queryFn: () => base44.entities.UserProfile.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+  const isAdmin = myProfile?.[0]?.is_admin || user?.role === 'admin';
+  const isVerified = !verificationEnabled || isAdmin || verification?.[0]?.status === 'approved';
+  const isSubscribed = isAdmin || subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
   // Fetch collaborations - only for current user
   const { data: collaborations = [], isLoading: collaborationsLoading } = useQuery({
@@ -151,11 +159,11 @@ export default function Collaborations() {
     return <AccessGate type="both" />;
   }
 
-  if (!isVerified) {
+  if (!isAdmin && !isVerified) {
     return <AccessGate type="verification" />;
   }
 
-  if (!isSubscribed) {
+  if (!isAdmin && !isSubscribed) {
     return <AccessGate type="subscription" />;
   }
 

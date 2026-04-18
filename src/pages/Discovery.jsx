@@ -12,6 +12,7 @@ import ProfileCard from '@/components/profiles/ProfileCard';
 import ProfileFilters from '@/components/profiles/ProfileFilters';
 import AccessGate from '@/components/auth/AccessGate';
 import SaveToFavoritesModal from '@/components/profiles/SaveToFavoritesModal';
+import { useFeatureFlag } from '@/lib/featureFlags';
 import ReportModal from '@/components/moderation/ReportModal';
 import AgentRepresentationRequestModal from '@/components/representation/AgentRepresentationRequestModal';
 import TopCreators from '@/components/discovery/TopCreators';
@@ -96,8 +97,9 @@ export default function Discovery() {
     enabled: !!user?.email,
   });
 
+  const verificationEnabled = useFeatureFlag('verification');
   const isAdmin = myProfile?.[0]?.is_admin || user?.role === 'admin';
-  const isVerified = isAdmin || verification?.[0]?.status === 'approved';
+  const isVerified = !verificationEnabled || isAdmin || verification?.[0]?.status === 'approved';
   const isSubscribed = isAdmin || subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
   const { data: allVerifications = [] } = useQuery({

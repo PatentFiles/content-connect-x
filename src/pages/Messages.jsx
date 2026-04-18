@@ -111,9 +111,10 @@ export default function Messages() {
     enabled: !!user?.email,
   });
 
+  const verificationEnabled = useFeatureFlag('verification');
   const isAdmin = profile?.is_admin;
-  const isVerified = verification?.[0]?.status === 'approved' || isAdmin;
-  const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial' || isAdmin;
+  const isVerified = !verificationEnabled || isAdmin || verification?.[0]?.status === 'approved';
+  const isSubscribed = isAdmin || subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
   // Fetch conversations
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery({
@@ -432,10 +433,6 @@ export default function Messages() {
 
   if (!user) {
     return <AccessGate type="both" />;
-  }
-
-  if (!isAdmin && verificationBlocked) {
-    return <VerificationRequired action="send messages" />;
   }
 
   if (!isAdmin && !isVerified) {

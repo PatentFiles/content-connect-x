@@ -1,7 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
+import { useFeatureFlag } from '@/lib/featureFlags';
 
 export function useVerificationCheck(action) {
+  const verificationEnabled = useFeatureFlag('verification');
+
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
@@ -23,7 +26,8 @@ export function useVerificationCheck(action) {
   const isAdmin = profile?.is_admin;
   const isBanned = profile?.banned === true;
   const isSuspended = profile?.suspended === true;
-  const isVerified = isAdmin || verifications.some(v => v.status === 'approved');
+  // If verification feature flag is OFF, treat everyone as verified
+  const isVerified = !verificationEnabled || isAdmin || verifications.some(v => v.status === 'approved');
   const checking = isLoading;
   const blocked = !isVerified || isBanned || isSuspended;
   const blockReason = isBanned ? 'banned' : isSuspended ? 'suspended' : null;
