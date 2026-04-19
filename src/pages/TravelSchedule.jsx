@@ -253,7 +253,6 @@ END:VCALENDAR`;
         />
       )}
       </div>
-      </div>
     </FeatureRouteGuard>
   );
 }

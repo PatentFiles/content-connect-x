@@ -213,7 +213,6 @@ export default function ModerationFlags() {
         )}
       </div>
       </div>
-      </div>
     </FeatureRouteGuard>
   );
 }

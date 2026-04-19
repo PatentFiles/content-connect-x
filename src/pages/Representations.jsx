@@ -549,7 +549,6 @@ export default function Representations() {
         </div>
       </CCModal>
       </div>
-      </div>
     </FeatureRouteGuard>
   );
 }

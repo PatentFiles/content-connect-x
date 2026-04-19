@@ -529,7 +529,6 @@ END:VCALENDAR`;
         </div>
       </CCModal>
       </div>
-      </div>
     </FeatureRouteGuard>
   );
 }

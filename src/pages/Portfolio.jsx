@@ -735,8 +735,7 @@ export default function Portfolio() {
           </div>
           </div>
           </CCModal>
-          </div>
       </div>
     </FeatureRouteGuard>
-          );
-          }
+  );
+}

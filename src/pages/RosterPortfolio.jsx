@@ -257,7 +257,6 @@ export default function RosterPortfolio() {
         </div>
       </CCModal>
       </div>
-      </div>
     </FeatureRouteGuard>
   );
 }

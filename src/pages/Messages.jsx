@@ -35,7 +35,6 @@ import CCEmpty from '@/components/ui-custom/CCEmpty';
 import CommFilterWarning from '@/components/messaging/CommFilterWarning';
 import { detectCommViolation, getEscalationLevel } from '@/lib/commFilter';
 import { useFeatureFlag } from '@/lib/featureFlags';
-import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 
 export default function Messages() {
   const [selectedConversation, setSelectedConversation] = useState(null);
