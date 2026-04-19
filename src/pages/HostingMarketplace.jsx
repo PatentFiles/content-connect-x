@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import FeatureGate from '@/components/feature/FeatureGate';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard';
 import PropertyCard from '@/components/hosting/PropertyCard';
 import PropertyFilters from '@/components/hosting/PropertyFilters';
 
@@ -58,15 +59,7 @@ export default function HostingMarketplace() {
   if (isLoading) return <CCLoadingScreen message="Loading properties..." />;
 
   return (
-    <FeatureGate flag="hosting_marketplace" fallback={
-      <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center p-8">
-        <div className="text-center">
-          <Building2 className="w-16 h-16 text-[#6B7A94] mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-[#E8EEF9] mb-2">Hosting Marketplace</h2>
-          <p className="text-[#9AA6BC]">Coming soon — this feature is not yet enabled.</p>
-        </div>
-      </div>
-    }>
+    <FeatureRouteGuard flag="hosting_marketplace">
       <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
         {/* Header */}
         <div className="sticky top-16 z-20 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248] px-4 py-3">
@@ -157,6 +150,6 @@ export default function HostingMarketplace() {
           )}
         </div>
       </div>
-    </FeatureGate>
+    </FeatureRouteGuard>
   );
 }

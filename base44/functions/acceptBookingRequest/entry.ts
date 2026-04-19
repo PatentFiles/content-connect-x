@@ -10,7 +10,7 @@
  * studio_notes, and wire studio_id into the created Collaboration.
  * All actions enforce ban/suspension checks.
  */
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') {

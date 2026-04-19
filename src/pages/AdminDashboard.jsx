@@ -57,6 +57,7 @@ const PropertyIncidentsPanel = lazy(() => import('@/components/admin/PropertyInc
 const HostingPricingPanel = lazy(() => import('@/components/admin/HostingPricingPanel'));
 const SearchRankingConfigPanel = lazy(() => import('@/components/admin/SearchRankingConfigPanel'));
 const SuspiciousReviewsPanel = lazy(() => import('@/components/admin/SuspiciousReviewsPanel'));
+const PaymentProvidersPanel = lazy(() => import('@/components/admin/PaymentProvidersPanel'));
 
 const TabSuspense = ({ children }) => (
   <Suspense fallback={<div className="p-4 text-[#6B7A94]">Loading...</div>}>
@@ -455,6 +456,7 @@ export default function AdminDashboard() {
     { value: 'search_ranking', label: 'Search Ranking Config' },
     { value: 'suspicious_reviews', label: 'Suspicious Reviews' },
     { value: 'feature_flags', label: 'Feature Flags' },
+    { value: 'payment_providers', label: 'Payment Providers' },
   ];
 
   const getProfileForVerification = (v) => userProfiles.find(p => p.user_id === v.user_id);
@@ -857,6 +859,13 @@ export default function AdminDashboard() {
            <FeatureFlagsPanel />
          </TabSuspense>
         </CCTabsContent>
+
+         {/* Payment Providers Tab */}
+         <CCTabsContent value="payment_providers" activeTab={activeTab}>
+           <TabSuspense>
+             <PaymentProvidersPanel />
+           </TabSuspense>
+         </CCTabsContent>
         </div>
       </div>
 

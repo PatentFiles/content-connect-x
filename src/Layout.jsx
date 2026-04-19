@@ -61,6 +61,7 @@ const appPages = [
   'HostDashboard',
   'HostProfile',
   'HostSettings',
+  'SoloSessionDetail',
 ];
 
 export default function Layout({ children, currentPageName }) {

@@ -4,6 +4,8 @@ import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config.jsx'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+const SoloSessionDetail = lazy(() => import('./pages/SoloSessionDetail'));
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { FeatureFlagProvider } from '@/lib/featureFlags';
@@ -71,6 +73,17 @@ const AuthenticatedApp = () => {
           }
         />
       ))}
+      {/* Explicit route for SoloSessionDetail — not in pagesConfig loop because it needs layout wrapping */}
+      <Route
+        path="/SoloSessionDetail"
+        element={
+          <LayoutWrapper currentPageName="SoloSessionDetail">
+            <Suspense fallback={<div className="fixed inset-0 flex items-center justify-center bg-[#0B0F14]"><div className="w-8 h-8 border-4 border-[#263248] border-t-[#4F8CFF] rounded-full animate-spin" /></div>}>
+              <SoloSessionDetail />
+            </Suspense>
+          </LayoutWrapper>
+        }
+      />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );

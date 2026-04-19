@@ -203,16 +203,26 @@ export default function PropertyAccessSettings({ settings = {}, onChange }) {
                   {settings.smart_lock_provider !== 'manual' && (
                     <>
                       <div>
-                        <label className="block text-xs text-[#9AA6BC] mb-1">Device/Lock ID</label>
+                        <label className="block text-xs text-[#9AA6BC] mb-1">Device / Lock ID</label>
                         <input
                           value={settings.smart_lock_config?.device_id || ''}
                           onChange={e => setConfig('device_id', e.target.value)}
-                          placeholder="From your lock app/dashboard"
+                          placeholder="From your lock provider dashboard"
                           className={INPUT + ' w-full'}
                         />
                       </div>
                       <div>
-                        <label className="block text-xs text-[#9AA6BC] mb-1">Account Reference</label>
+                        <label className="block text-xs text-[#9AA6BC] mb-1">API Key / Access Token</label>
+                        <input
+                          type="password"
+                          value={settings.smart_lock_config?.api_key || ''}
+                          onChange={e => setConfig('api_key', e.target.value)}
+                          placeholder="From your lock provider developer portal"
+                          className={INPUT + ' w-full'}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs text-[#9AA6BC] mb-1">Account Reference (optional)</label>
                         <input
                           value={settings.smart_lock_config?.account_ref || ''}
                           onChange={e => setConfig('account_ref', e.target.value)}

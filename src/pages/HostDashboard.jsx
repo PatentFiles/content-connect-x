@@ -10,6 +10,7 @@ import CCEmpty from '@/components/ui-custom/CCEmpty';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import { toast } from 'sonner';
 import FeatureGate from '@/components/feature/FeatureGate';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard';
 import PropertyForm from '@/components/hosting/PropertyForm';
 import HostOnboardingChecklist from '@/components/hosting/HostOnboardingChecklist';
 import HostOnboardingGateModal from '@/components/hosting/HostOnboardingGateModal';
@@ -83,15 +84,7 @@ export default function HostDashboard() {
   const draftCount = properties.filter(p => p.status === 'draft').length;
 
   return (
-    <FeatureGate flag="hosting_marketplace" fallback={
-      <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center p-8">
-        <div className="text-center">
-          <Building2 className="w-16 h-16 text-[#6B7A94] mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-[#E8EEF9] mb-2">Hosting</h2>
-          <p className="text-[#9AA6BC]">The hosting marketplace is not yet enabled.</p>
-        </div>
-      </div>
-    }>
+    <FeatureRouteGuard flag="hosting_marketplace">
       <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
 
@@ -253,6 +246,6 @@ export default function HostDashboard() {
           </div>
         </div>
       </div>
-    </FeatureGate>
+    </FeatureRouteGuard>
   );
 }

@@ -49,7 +49,8 @@ export const DEFAULT_FLAGS = {
 
   // ── Marketplace / upcoming features ──
   hosting_marketplace:     { value: false, value_type: 'boolean', label: 'Hosting Marketplace',   category: 'marketplace',  affects_nav: true,  nav_pages: ['HostingMarketplace', 'PropertyDetail', 'HostDashboard', 'HostProfile', 'HostSettings'] },
-  solo_sessions:           { value: false, value_type: 'boolean', label: 'Solo Sessions',         category: 'marketplace',  affects_nav: true,  nav_pages: ['SoloSessionDetail'] },
+  solo_sessions:           { value: false, value_type: 'boolean', label: 'Solo Sessions (booking sessions for location/service)', category: 'marketplace', affects_nav: true, nav_pages: ['SoloSessionDetail'] },
+  payment_processing:      { value: false, value_type: 'boolean', label: 'Payment Processing (CCBill / provider integration)', category: 'marketplace', affects_nav: false },
   gps_checkin:             { value: false, value_type: 'boolean', label: 'GPS Check-In (property-level toggle, geofence enforcement)', category: 'safety', affects_nav: false },
   smart_lock_enabled:      { value: false, value_type: 'boolean', label: 'Smart Lock Integration (provider config + API-ready architecture)', category: 'marketplace', affects_nav: false },
   checkout_evidence_enabled: { value: false, value_type: 'boolean', label: 'Checkout Evidence (photo/video upload at checkout)', category: 'safety', affects_nav: false },

@@ -46,6 +46,7 @@ const PropertyDetail       = lazy(() => import('./pages/PropertyDetail'));
 const HostDashboard        = lazy(() => import('./pages/HostDashboard'));
 const HostProfile          = lazy(() => import('./pages/HostProfile'));
 const HostSettings         = lazy(() => import('./pages/HostSettings'));
+const SoloSessionDetail    = lazy(() => import('./pages/SoloSessionDetail'));
 
 // Fullscreen spinner shown while a lazy chunk loads
 function PageLoader() {
@@ -106,6 +107,7 @@ export const PAGES = {
   HostDashboard:        withSuspense(HostDashboard),
   HostProfile:          withSuspense(HostProfile),
   HostSettings:         withSuspense(HostSettings),
+  SoloSessionDetail:    withSuspense(SoloSessionDetail),
 };
 
 export const pagesConfig = {

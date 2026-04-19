@@ -1,13 +1,166 @@
-import React from 'react';
-import { FileText, AlertTriangle, Database, Shield, Users, Network, Calendar, FileCheck, Lock, Activity, DollarSign, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { base44 } from '@/api/base44Client';
+import { useQuery } from '@tanstack/react-query';
+import { FileText, AlertTriangle, Database, Shield, Users, Network, Calendar, FileCheck, Lock, Activity, DollarSign, CheckCircle, Copy, Share2, Loader2, CheckCircle2 } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
+import CCButton from '@/components/ui-custom/CCButton';
 import EntityReferenceSection from '@/components/docs/EntityReference';
 import ChangeGovernanceSection from '@/components/docs/ChangeGovernance';
 import { BookingSystemSection, EarningsSection, CompletionSection, IdentitySafetySection } from '@/components/docs/DeveloperReadMeExtended';
 import { AutomationsSection } from '@/components/docs/DeveloperReadMeAutomations';
 import { RecentChangesSection } from '@/components/docs/DeveloperReadMeChangelog';
+import { toast } from 'sonner';
+
+// ─── Token Validation ──────────────────────────────────────────────────────────
+
+function useReadMeAccess() {
+  const [tokenState, setTokenState] = useState({ checked: false, valid: false, reason: null });
+
+  const { data: user, isLoading: userLoading } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: () => base44.auth.me().catch(() => null),
+  });
+
+  const { data: profiles = [], isLoading: profileLoading } = useQuery({
+    queryKey: ['myProfile', user?.email],
+    queryFn: () => base44.entities.UserProfile.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+
+  const isAdmin = profiles[0]?.is_admin || user?.role === 'admin';
+  const isLoading = userLoading || profileLoading || !tokenState.checked;
+
+  useEffect(() => {
+    async function check() {
+      // If admin — always allow
+      if (!userLoading && !profileLoading) {
+        if (isAdmin) {
+          setTokenState({ checked: true, valid: true, reason: null });
+          return;
+        }
+        // Check URL for access token
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('access_token');
+        if (!token) {
+          setTokenState({ checked: true, valid: false, reason: 'no_token' });
+          return;
+        }
+        // Validate token via backend
+        try {
+          const res = await base44.functions.invoke('validateReadMeToken', { token });
+          if (res?.data?.valid) {
+            setTokenState({ checked: true, valid: true, reason: null });
+          } else {
+            setTokenState({ checked: true, valid: false, reason: res?.data?.reason || 'invalid_token' });
+          }
+        } catch {
+          setTokenState({ checked: true, valid: false, reason: 'validation_error' });
+        }
+      }
+    }
+    check();
+  }, [isAdmin, userLoading, profileLoading]);
+
+  return { isLoading: userLoading || profileLoading || !tokenState.checked, isAllowed: tokenState.valid, isAdmin, reason: tokenState.reason };
+}
+
+// ─── Token Generator (admin only) ─────────────────────────────────────────────
+
+function TokenGenerator() {
+  const [generating, setGenerating] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+
+  const generate = async () => {
+    setGenerating(true);
+    try {
+      const res = await base44.functions.invoke('generateReadMeToken', {});
+      if (res?.data?.share_url) {
+        setShareUrl(res.data.share_url);
+        toast.success('Share token generated — valid for 24 hours');
+      } else {
+        toast.error(res?.data?.error || 'Failed to generate token');
+      }
+    } catch (e) {
+      toast.error(e.message || 'Failed to generate token');
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  return (
+    <div className="bg-[#0D1520] border border-[#263248] rounded-xl p-4 mb-6">
+      <div className="flex items-center gap-2 mb-2">
+        <Share2 className="w-4 h-4 text-[#4F8CFF]" />
+        <span className="text-sm font-semibold text-[#E8EEF9]">Share ReadMe Access</span>
+      </div>
+      <p className="text-xs text-[#9AA6BC] mb-3">Generate a 24-hour shareable link for non-admin developers.</p>
+      {!shareUrl ? (
+        <CCButton variant="outline" size="sm" loading={generating} icon={Share2} onClick={generate}>
+          Generate Share Link
+        </CCButton>
+      ) : (
+        <div className="flex gap-2 items-center">
+          <input
+            value={shareUrl}
+            readOnly
+            className="flex-1 text-xs bg-[#121824] border border-[#263248] rounded px-3 py-2 text-[#9AA6BC] font-mono"
+          />
+          <CCButton
+            variant="primary"
+            size="sm"
+            icon={Copy}
+            onClick={() => { navigator.clipboard.writeText(shareUrl); toast.success('Link copied!'); }}
+          >
+            Copy
+          </CCButton>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Blocked Screen ────────────────────────────────────────────────────────────
+
+function ReadMeBlocked({ reason }) {
+  const messages = {
+    no_token: 'This page is restricted to admin users. If you have a shared access link, please use it.',
+    invalid_token: 'Your access token is invalid. Please request a new link from an admin.',
+    expired: 'Your access token has expired. Please request a new link from an admin.',
+    validation_error: 'Could not validate your access token. Please try again.',
+  };
+  return (
+    <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center p-4">
+      <div className="w-full max-w-md text-center">
+        <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#EF4444]/10 flex items-center justify-center">
+          <Lock className="w-8 h-8 text-[#EF4444]" />
+        </div>
+        <h1 className="text-2xl font-bold text-[#E8EEF9] mb-3">Access Restricted</h1>
+        <p className="text-[#9AA6BC] mb-6">{messages[reason] || messages.no_token}</p>
+        <a href="/Dashboard" className="inline-flex items-center gap-2 px-6 py-3 bg-[#4F8CFF] hover:bg-[#3A7AEE] text-white rounded-lg font-medium transition-colors">
+          ← Back to Dashboard
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Component ────────────────────────────────────────────────────────────
 
 export default function DeveloperReadMe() {
+  const { isLoading, isAllowed, isAdmin, reason } = useReadMeAccess();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-[#4F8CFF]" />
+      </div>
+    );
+  }
+
+  if (!isAllowed) {
+    return <ReadMeBlocked reason={reason} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-24 md:pb-8">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -32,6 +185,9 @@ export default function DeveloperReadMe() {
             </div>
           </div>
         </div>
+
+        {/* Admin-only: Token Generator */}
+        {isAdmin && <TokenGenerator />}
 
         {/* Table of Contents */}
         <CCCard className="mb-8">
@@ -86,7 +242,6 @@ export default function DeveloperReadMe() {
                 collaboration arrangements in the adult content industry.
               </p>
             </div>
-
             <div>
               <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Core Problems Solved</h3>
               <ul className="list-disc list-inside space-y-2 text-[#9AA6BC]">
@@ -98,31 +253,15 @@ export default function DeveloperReadMe() {
                 <li><strong>Post-Scene Disputes:</strong> Consent revocation and dispute resolution are built-in</li>
               </ul>
             </div>
-
             <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Core Guarantees</h3>
+              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Core Architecture Principles</h3>
               <ul className="list-disc list-inside space-y-2 text-[#9AA6BC]">
-                <li><strong>Consent:</strong> All contracts require explicit signatures with timestamps</li>
-                <li><strong>Auditability:</strong> All state changes are logged (AdminActionLog, CollaborationActivityLog, ContractAuditLog)</li>
-                <li><strong>Verification:</strong> Messaging and collaboration features gate on verification status</li>
-                <li><strong>Testing Enforcement:</strong> Testing requirements can block contract initiation and schedule locking</li>
-                <li><strong>Immutability:</strong> Contract snapshots and audit logs cannot be edited after creation</li>
-                <li><strong>Revocation:</strong> Creators can revoke consent post-scene, triggering takedown obligations</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Why Enforcement Exists</h3>
-              <p className="text-[#9AA6BC] mb-2">
-                The platform's enforcement rules are designed to prevent legal liability, protect participants, 
-                and create an auditable trail for disputes. Key enforcement areas:
-              </p>
-              <ul className="list-disc list-inside space-y-2 text-[#9AA6BC]">
-                <li><strong>Verification Gates:</strong> Prevent unverified users from messaging or collaborating</li>
-                <li><strong>Testing Gates:</strong> Block contracts if testing requirements aren't satisfied</li>
-                <li><strong>Representation Enforcement:</strong> Ensure agents/studios have proper permissions</li>
-                <li><strong>Contract Versioning:</strong> Prevent backdating or unauthorized changes</li>
-                <li><strong>Friend Gating:</strong> Optionally require friendship before direct collaboration</li>
+                <li><strong>Feature Flags = Single Source of Truth:</strong> All feature gating is controlled by PlatformFeatureFlag DB records, not hardcoded logic</li>
+                <li><strong>Centralized Guards:</strong> FeatureGate, VerificationGate, AccessGate — no scattered inline enforcement</li>
+                <li><strong>Ban/Suspension Enforced Everywhere:</strong> Every backend function checks banned/suspended before executing</li>
+                <li><strong>Immutable Audit Logs:</strong> AdminActionLog, CollaborationActivityLog, ContractAuditLog — cannot be deleted</li>
+                <li><strong>Smart Lock Adapter Pattern:</strong> Provider-agnostic architecture supports August, Yale, Schlage, Nuki, RemoteLock, igloohome via lib/smartLockAdapters/</li>
+                <li><strong>Payment Provider Registry:</strong> Modular payment system via lib/payments/ — CCBill-ready, provider-swappable</li>
               </ul>
             </div>
           </CCCard>
@@ -132,114 +271,24 @@ export default function DeveloperReadMe() {
         <section id="roles" className="mb-8">
           <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
             <Users className="w-6 h-6 text-[#4F8CFF]" />
-            2. Role System (Complete)
+            2. Role System
           </h2>
-          <CCCard className="space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Creator</h3>
-              <p className="text-[#9AA6BC] mb-2"><strong>Primary Role:</strong> Adult content performer</p>
-              <ul className="list-disc list-inside space-y-1 text-[#9AA6BC] text-sm">
-                <li>Can create collaborations, negotiate terms, and sign contracts</li>
-                <li>Can upload testing credentials (TestingCredential, TestingDocument)</li>
-                <li>Can set representation (agent or studio) via AgentRepresentation or StudioRepresentation</li>
-                <li>Can optionally delegate contract signing to agent (if agent has can_sign_contracts permission)</li>
-                <li>Can revoke consent post-scene via ConsentRevocation</li>
-                <li>Subject to friend gating policies for direct collaboration invites</li>
-                <li>Can manage availability/travel dates via ScheduleEntry</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Agent</h3>
-              <p className="text-[#9AA6BC] mb-2"><strong>Primary Role:</strong> Represents creators in negotiations</p>
-              <ul className="list-disc list-inside space-y-1 text-[#9AA6BC] text-sm">
-                <li>Can represent multiple creators via AgentRepresentation</li>
-                <li>Permissions per representation: can_negotiate, can_sign_contracts, can_message, can_view_private_gallery</li>
-                <li>Can create collaborations on behalf of represented creators</li>
-                <li>Can negotiate terms and handle messaging (if permissions allow)</li>
-                <li>Cannot override creator consent revocation</li>
-                <li>Revenue splits are enforced via Contract.post_scene_rules.revenue_split</li>
-                <li>Audit logs capture all agent actions via AdminActionLog and CollaborationActivityLog</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Studio</h3>
-              <p className="text-[#9AA6BC] mb-2"><strong>Primary Role:</strong> Produces content, manages contracts and spaces</p>
-              <ul className="list-disc list-inside space-y-1 text-[#9AA6BC] text-sm">
-                <li>Can represent multiple creators via StudioRepresentation</li>
-                <li>Automatically added as RepObserver to collaborations involving represented creators</li>
-                <li>Can view (but not edit) contracts and schedules of represented creators</li>
-                <li>Can enforce revenue splits and location provisions in contracts</li>
-                <li>Can manage staff via StudioDetails.staff_seats (if implemented)</li>
-                <li>Studio contracts require explicit revenue split terms</li>
-                <li>Cannot override creator consent revocation</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Photographer</h3>
-              <p className="text-[#9AA6BC] mb-2"><strong>Primary Role:</strong> Captures still images for collaborations</p>
-              <ul className="list-disc list-inside space-y-1 text-[#9AA6BC] text-sm">
-                <li>Can be invited to collaborations as service provider</li>
-                <li>Maintains rates/packages in ServiceDetails</li>
-                <li>Can maintain public/private portfolios via ServicePortfolioItem</li>
-                <li>Deliverable terms are captured in Collaboration.deliverables</li>
-                <li>Usage rights are captured in Collaboration.usage_rights</li>
-                <li>Can travel or work locally based on ServiceDetails.availability_type</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Videographer</h3>
-              <p className="text-[#9AA6BC] mb-2"><strong>Primary Role:</strong> Captures video content for collaborations</p>
-              <ul className="list-disc list-inside space-y-1 text-[#9AA6BC] text-sm">
-                <li>Same permissions and structure as Photographer</li>
-                <li>Deliverable terms include editing scope and timeline</li>
-                <li>Raw files and editing rights are negotiated in Collaboration.deliverables</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Admin</h3>
-              <p className="text-[#9AA6BC] mb-2"><strong>Primary Role:</strong> Platform governance and safety</p>
-              <ul className="list-disc list-inside space-y-1 text-[#9AA6BC] text-sm">
-                <li>Has UserProfile.is_admin = true</li>
-                <li>Can review verification records (VerificationRecord status approval)</li>
-                <li>Can moderate catalog submissions (ContentCatalogItem, CustomValueSubmission)</li>
-                <li>Can view all reports (Report entity) and take action</li>
-                <li>Can view session history (SessionHistory) for fraud detection</li>
-                <li>Can manage agent/studio representations (AgentRepresentation, StudioRepresentation)</li>
-                <li>Can review disputes (CollaborationDispute, ArbitrationCase)</li>
-                <li>Cannot edit immutable audit logs (AdminActionLog, ContractAuditLog, CollaborationActivityLog)</li>
-                <li>All admin actions are logged for accountability</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">RepObserver (Derived Role)</h3>
-              <p className="text-[#9AA6BC] mb-2"><strong>Primary Role:</strong> Read-only observer for studio/agent contracts</p>
-              <ul className="list-disc list-inside space-y-1 text-[#9AA6BC] text-sm">
-                <li>Not a standalone role type, derived from StudioRepresentation or AgentRepresentation</li>
-                <li>Auto-added to collaborations via backend function (autoAddStudioObserver)</li>
-                <li>Can view contracts, schedules, and documents</li>
-                <li>Cannot edit or sign contracts</li>
-                <li>Cannot message participants directly (unless also granted message permission)</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">System Agents (AI)</h3>
-              <p className="text-[#9AA6BC] mb-2"><strong>Primary Role:</strong> Automated analysis and flagging</p>
-              <ul className="list-disc list-inside space-y-1 text-[#9AA6BC] text-sm">
-                <li>Compliance & Safety Review Agent (agents/compliance_safety_agent)</li>
-                <li>Discovery & Matching Optimization Agent (if present)</li>
-                <li>Cannot write to entities (read-only)</li>
-                <li>Can create AgentFlag records for admin review</li>
-                <li>Can create AIRiskPrediction and AIMatchSuggestion records</li>
-                <li>Execution tracked via AgentRun entity</li>
-              </ul>
-            </div>
+          <CCCard className="space-y-4">
+            {[
+              { role: 'Creator', desc: 'Adult content performer. Can create collabs, upload testing, set representation, revoke consent.' },
+              { role: 'Agent', desc: 'Represents creators. Permissions: can_negotiate, can_sign_contracts, can_message, can_view_private_gallery.' },
+              { role: 'Studio', desc: 'Produces content. Auto-added as RepObserver to collaborations. Can enforce revenue splits.' },
+              { role: 'Photographer', desc: 'Captures images. Maintains rates/packages in ServiceDetails. Can list properties.' },
+              { role: 'Videographer', desc: 'Captures video. Same structure as Photographer.' },
+              { role: 'Video Editor', desc: 'Post-production. Same structure as Photographer.' },
+              { role: 'Admin', desc: 'Platform governance. is_admin=true. All admin actions logged in AdminActionLog.' },
+              { role: 'Host (Nav View)', desc: 'NOT a UserProfile.role_type value. host_account_active + host_terms_accepted_at determine host eligibility.' },
+            ].map(({ role, desc }) => (
+              <div key={role}>
+                <h3 className="text-sm font-semibold text-[#E8EEF9] mb-1">{role}</h3>
+                <p className="text-sm text-[#9AA6BC]">{desc}</p>
+              </div>
+            ))}
           </CCCard>
         </section>
 
@@ -247,304 +296,55 @@ export default function DeveloperReadMe() {
         <section id="directory" className="mb-8">
           <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
             <FileText className="w-6 h-6 text-[#4F8CFF]" />
-            3. Directory Tree (Full & Exhaustive)
+            3. Directory Tree
           </h2>
           <CCCard>
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Frontend Architecture</h3>
-                <pre className="bg-[#0B0F14] p-4 rounded-lg text-xs text-[#9AA6BC] overflow-x-auto">
+                <h3 className="text-sm font-semibold text-[#E8EEF9] mb-2">New Systems (Added in Hardening Pass)</h3>
+                <pre className="bg-[#0B0F14] p-4 rounded-lg text-xs text-[#9AA6BC] overflow-x-auto whitespace-pre-wrap">
 {`pages/
-├── Landing.js                   - Public marketing page with stats
-├── HowItWorks.js                - Feature explanation (public)
-├── Pricing.js                   - Subscription plans (public)
-├── FAQ.js                       - Common questions (public)
-├── Terms.js                     - Terms of Service (public)
-├── Privacy.js                   - Privacy Policy (public)
-├── Dashboard.js                 - Main dashboard (role-specific)
-├── Discovery.js                 - Profile discovery with filters
-├── Search.js                    - Advanced search with AI
-├── Testing.js                   - Testing credential management
-├── Messages.js                  - Real-time messaging interface
-├── Connections.js               - Friends list & requests
-├── Collaborations.js            - Active/past collaborations list
-├── CreateCollaboration.js       - Collaboration creation wizard
-├── CollaborationDetail.js       - Single collaboration detail view
-├── ViewProfile.js               - Public profile view
-├── Profile.js                   - Own profile editor
-├── Settings.js                  - User settings & preferences
-├── Verification.js              - Identity verification flow
-├── Favorites.js                 - Saved profiles
-├── Contracts.js                 - Contract list view
-├── ViewContract.js              - Single contract viewer
-├── AdminDashboard.js            - Admin overview
-├── CompliancePortal.js          - Admin compliance dashboard
-├── RosterPortfolio.js           - Agent/studio roster view
-├── Representations.js           - Manage agent/studio relationships
-├── Portfolio.js                 - Service provider portfolio
-├── AgentManagement.js           - System agents dashboard
-├── AvailabilitySchedule.js      - Calendar availability manager
-├── TravelSchedule.js            - Travel dates manager
-├── Notifications.js             - Notification center
-└── DeveloperReadMe.js           - This documentation (admin-only)
+├── SoloSessionDetail.jsx          - Session management (fixes broken notification links)
 
 components/
-├── layout/
-│   ├── Layout.js                - Main app wrapper (auto-applied)
-│   ├── NavBar.js                - Top navigation bar
-│   ├── Sidebar.js               - Left sidebar navigation
-│   ├── BottomNav.js             - Mobile bottom navigation
-│   ├── MobileNavMenu.js         - Mobile hamburger menu
-│   └── NotificationsDropdown.js - Notification popover
-├── ui-custom/
-│   ├── CCButton.js              - Custom button component
-│   ├── CCCard.js                - Card components (+ Header/Content/Footer)
-│   ├── CCInput.js               - Input with label/error/hint
-│   ├── CCSelect.js              - Select dropdown
-│   ├── CCModal.js               - Modal dialog
-│   ├── CCBadge.js               - Badge component (status, role, etc)
-│   ├── CCLoading.js             - Loading spinner + skeletons
-│   ├── CCEmpty.js               - Empty state component
-│   ├── CCAvatars.js             - Avatar (+ group, online status)
-│   ├── CCTabs.js                - Tab navigation component
-│   └── CCErrorModal.js          - Error display modal
-├── auth/
-│   ├── AccessGate.js            - Verification/subscription gate
-│   ├── VerificationRequired.js  - Verification prompt
-│   └── useVerificationCheck.js  - Verification hook
-├── profiles/
-│   ├── ProfileCard.js           - Profile grid card
-│   ├── ProfileFilters.js        - Discovery filter controls
-│   ├── SaveToFavoritesModal.js  - Save profile to list
-│   └── ScenePairingFilter.js    - Scene pairing selector
-├── friends/
-│   ├── FriendRequestButton.js   - Send/cancel friend request
-│   ├── FriendRequestsList.js    - Incoming requests list
-│   ├── FriendsList.js           - Accepted friends list
-│   └── FriendGateWarning.js     - Collaboration friend gate UI
-├── messages/
-│   └── (Integrated into Messages.js)
-├── collaboration/
-│   ├── ActivityFeed.js          - Collaboration activity log UI
-│   ├── AvailabilityCalendar.js  - Date picker with availability
-│   ├── CalendarView.js          - Month/week calendar view
-│   ├── CollaborativeEditor.js   - Shared document editor (if present)
-│   ├── CollaborationCalendar.js - Schedule view for collaboration
-│   ├── CollaborationMessaging.js- In-collab messaging
-│   ├── CollaborationPacketExporter.js - Export collab documents
-│   ├── ConfirmationManager.js   - Confirmation requests UI
-│   ├── ContractManager.js       - Contract UI within collab
-│   ├── ConsentRevocationBanner.js - UI for revoked consent
-│   ├── ConsentRevocationManager.js - Revocation form
-│   ├── DisputeManager.js        - Dispute filing UI
-│   ├── DocumentRepository.js    - Collab document storage
-│   ├── ExportManager.js         - Export collaboration data
-│   ├── RepObserverAccessControl.js - RepObserver permission UI
-│   ├── RequirementsManager.js   - Manage collaboration requirements
-│   ├── RoleManager.js           - Assign collab roles
-│   ├── RolePermissions.js       - Role permission display
-│   ├── SuggestedDates.js        - AI date suggestions
-│   ├── TaskBoard.js             - Task kanban board
-│   ├── TaskManager.js           - Task list manager
-│   ├── TestingPolicyManager.js  - Testing policy configurator
-│   ├── TestingStatusBanner.js   - Testing status UI
-│   └── availabilityHelpers.js   - Date/availability utilities
-├── contracts/
-│   ├── ContractViewer.js        - Display signed contract
-│   ├── ContractGenerator.js     - Generate contract from template
-│   ├── TemplateContractGenerator.js - Template picker
-│   ├── ContractAuditLog.js      - View contract history
-│   └── ContractVersionHistory.js - Version diff viewer
-├── admin/
-│   ├── AdminContextBanner.js    - "Viewing as..." banner
-│   ├── AdminRoleViewSwitcher.js - Role view switcher
-│   ├── AgentAlertsCard.js       - Agent flag summary
-│   ├── AIRiskPrediction.js      - Display AI risk scores
-│   ├── ArbitrationCaseManager.js- Arbitration case UI
-│   ├── CatalogModeration.js     - Review custom values
-│   ├── CollaborationAnalytics.js- Collab metrics dashboard
-│   ├── CollaborationModerationPanel.js - Review collabs
-│   ├── ComplianceAgent.js       - Compliance agent UI
-│   ├── ComplianceDashboard.js   - Overall compliance metrics
-│   ├── CompliancePortal.js      - Compliance portal page
-│   ├── CouponManager.js         - Manage promo codes
-│   ├── DisputeSimulator.js      - Test dispute workflows
-│   ├── InsuranceManager.js      - Insurance records
-│   ├── JurisdictionManager.js   - Jurisdiction rules
-│   ├── ModerationOverview.js    - Moderation stats
-│   ├── PricingManager.js        - Manage pricing tiers
-│   ├── RepresentationManager.js - Manage agent/studio reps
-│   ├── ReportsQueue.js          - User reports review
-│   ├── RiskScoringEngine.js     - Risk score calculator
-│   ├── SessionHistoryViewer.js  - View user sessions
-│   ├── UserManager.js           - User CRUD & permissions
-│   ├── UserModerationPanel.js   - User moderation actions
-│   └── VerificationReviewQueue.js - Approve verifications
-├── agents/
-│   ├── AgentsList.js            - System agents list
-│   ├── AgentRunsList.js         - Agent execution history
-│   ├── AgentFlagsList.js        - Review AI flags
-│   ├── AgentPermissionsEditor.js- Configure agent permissions
-│   └── AgentRiskScores.js       - View risk predictions
-├── dashboards/
-│   ├── CreatorDashboard.js      - Creator-specific dashboard
-│   ├── AgentDashboard.js        - Agent-specific dashboard
-│   ├── StudioDashboard.js       - Studio-specific dashboard
-│   ├── PhotographerDashboard.js - Photographer dashboard
-│   └── VideographerDashboard.js - Videographer dashboard
-├── matching/
-│   └── MatchSuggestions.js      - AI match recommendations
-├── moderation/
-│   └── ReportModal.js           - Report user/content modal
-├── notifications/
-│   ├── NotificationBell.js      - Notification icon + count
-│   └── notificationHelpers.js   - Notification utilities
-├── portfolio/
-│   └── VideoPlayer.js           - Video playback component
-├── profile/
-│   ├── AvailabilityManager.js   - Manage availability dates
-│   ├── BioGenerator.js          - AI bio generator
-│   ├── ProfileWizard.js         - Onboarding wizard
-│   ├── RepresentationManager.js - Manage agent/studio
-│   ├── SkillsManager.js         - Manage skills/acts
-│   ├── TravelDateManager.js     - Manage travel dates
-│   └── TravelDestinationForm.js - Add travel location
-├── schedule/
-│   ├── ScheduleEntryCard.js     - Single schedule entry
-│   └── ScheduleEntryEditor.js   - Edit schedule entry
-├── settings/
-│   ├── FriendSettingsCard.js    - Friend request policy
-│   └── NotificationPreferences.js - Notification settings
-├── socials/
-│   ├── SocialLinksDisplay.js    - Display social links
-│   ├── SocialLinksManager.js    - Manage social links
-│   └── VerificationModal.js     - Verify social link
-├── studio/
-│   └── StudioEarningsDashboard.js - Studio revenue dashboard
-├── theme/
-│   └── tokens.js                - Design tokens (colors, spacing)
-├── utils/
-│   ├── roleNavConfig.js         - Navigation per role
-│   └── UserNotRegisteredError.js - Error component
-└── Layout.js                     - (Root layout file)
+├── feature/
+│   └── FeatureRouteGuard.jsx      - Route-level feature flag gate
+├── payments/
+│   └── ResubscribeModal.jsx       - Subscription expired modal
 
-globals.css                       - Global styles + theme variables`}
-                </pre>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Backend Architecture</h3>
-                <pre className="bg-[#0B0F14] p-4 rounded-lg text-xs text-[#9AA6BC] overflow-x-auto">
-{`entities/
-├── User.json                    - Built-in (email, full_name, role)
-├── UserProfile.json             - Extended profile data
-├── CreatorDetails.json          - Creator-specific fields
-├── AgentDetails.json            - Agent-specific fields
-├── StudioDetails.json           - Studio-specific fields
-├── ServiceDetails.json          - Photographer/videographer fields
-├── Collaboration.json           - Collaboration entity
-├── CollaborationRequirement.json- Collaboration requirements
-├── CollaborationActivityLog.json- Immutable activity log
-├── CollaborationTask.json       - Task within collaboration
-├── CollaborationDocument.json   - Document within collaboration
-├── CollaborationMessage.json    - Collab-specific messages
-├── CollaborationDispute.json    - Dispute records
-├── CollaborationConfirmation.json- Confirmation requests
-├── CollaborationEvent.json      - Calendar events
-├── CollaborationRole.json       - Role assignments
-├── CollaborationParticipantRole.json - Participant roles
-├── CollaborationRiskScore.json  - Risk scoring
-├── CollaborationTestingPolicy.json- Testing policy per collab
-├── CollaborationPacketItem.json - Packet export items
-├── CollaborationFile.json       - File attachments
-├── CollaborationInsurance.json  - Insurance records
-├── Contract.json                - Contract entity
-├── ContractTemplate.json        - Contract templates
-├── ContractVersion.json         - Contract versions
-├── ContractSignature.json       - Signature records
-├── ContractAuditLog.json        - Immutable contract history
-├── ContractReminder.json        - Reminder events
-├── Conversation.json            - Message threads
-├── Message.json                 - Messages
-├── Friendship.json              - Friend relationships
-├── FriendSettings.json          - Friend policies per user
-├── FriendActivityLog.json       - Friend activity history
-├── Notification.json            - Notifications
-├── NotificationPreference.json  - Notification settings
-├── TestingCredential.json       - Testing credentials
-├── TestingDocument.json         - Testing documents
-├── TestingRequirement.json      - Testing requirements
-├── ConsentRevocation.json       - Consent revocations
-├── VerificationRecord.json      - Identity verification
-├── AgentRepresentation.json     - Agent-creator relationship
-├── StudioRepresentation.json    - Studio-creator relationship
-├── StudioRoster.json            - Studio rosters
-├── StudioCollaborationObserver.json - Studio observer records
-├── Report.json                  - User/content reports
-├── BlockedUser.json             - Blocked user records
-├── Subscription.json            - Subscription records
-├── PricingTier.json             - Pricing plans
-├── Coupon.json                  - Promo codes
-├── CouponRedemption.json        - Redemption records
-├── Gallery.json                 - Gallery entities
-├── GalleryPermission.json       - Gallery access control
-├── Favorite.json                - Saved profiles
-├── Tag.json                     - Tags
-├── UserSettings.json            - User settings
-├── SocialPlatform.json          - Social platforms
-├── SocialLink.json              - Social links
-├── SocialLinkVerification.json  - Social verification
-├── ScheduleEntry.json           - Availability/travel dates
-├── SessionHistory.json          - Login sessions
-├── AdminActionLog.json          - Immutable admin log
-├── ComplianceRecord.json        - Compliance records
-├── ComplianceScoreEvent.json    - Compliance score changes
-├── CompliancePortalAccess.json  - Portal access log
-├── ArbitrationCase.json         - Arbitration cases
-├── JurisdictionRule.json        - Jurisdiction-specific rules
-├── DisputeSimulation.json       - Dispute test scenarios
-├── ContentCatalogItem.json      - Content catalog items
-├── CustomValueSubmission.json   - User-submitted values
-├── CustomCity.json              - Custom city submissions
-├── ProfileSkill.json            - User skills
-├── ServicePortfolioItem.json    - Service portfolio
-├── AIMatchSuggestion.json       - AI match suggestions
-├── AIRiskPrediction.json        - AI risk predictions
-├── AgentProfile.json            - System agent profiles
-├── AgentPermissionPolicy.json   - Agent permissions
-├── AgentRun.json                - Agent execution log
-├── AgentFlag.json               - Agent-flagged items
-└── QuickTask.json               - Quick tasks
+lib/
+├── smartLockAdapters/
+│   ├── genericAdapter.js          - Base interface + ManualCodeAdapter + getSmartLockAdapter factory
+│   ├── augustAdapter.js           - August API adapter
+│   ├── nukiAdapter.js             - Nuki Web API adapter
+│   ├── remoteLockAdapter.js       - RemoteLock API adapter
+│   ├── yaleAdapter.js             - Yale adapter (B2B required)
+│   ├── schlageAdapter.js          - Schlage adapter (Allegion required)
+│   └── igloohomeAdapter.js        - igloohome Bridge API adapter
+└── payments/
+    ├── paymentProvider.js         - Base interface + constants
+    ├── ccbillProvider.js          - CCBill payment implementation
+    └── providerRegistry.js        - Multi-provider registry
 
 functions/
-├── startConversation.js         - Create conversation
-├── sendFriendRequest.js         - Send friend request
-├── respondToFriendRequest.js    - Accept/decline friend request
-├── cancelFriendRequest.js       - Cancel friend request
-├── isFriends.js                 - Check friendship status
-├── validateFriendRequestEligibility.js - Check friend request rules
-├── validateCollaborationFriendGate.js - Check collab friend gate
-├── validateVerificationStatus.js- Check verification for action
-├── logVerificationBlock.js      - Log blocked actions
-├── validateContractInitiation.js- Check contract preconditions
-├── validateContractStudioSplit.js - Validate studio splits
-├── validateTestingRequirements.js - Check testing satisfaction
-├── checkTestingDeadlines.js     - Check testing expiry
-├── checkTestingDeadlineWarnings.js - Send testing warnings
-├── sendTestingNotification.js   - Send testing reminders
-├── markTestingRequirementSatisfied.js - Mark testing satisfied
-├── lockCollaborationBooking.js  - Lock schedule dates
-├── releaseCollaborationBooking.js - Release schedule dates
-├── createContractSnapshot.js    - Create immutable snapshot
-├── triggerConsentRevocation.js  - Process consent revocation
-├── autoAddStudioObserver.js     - Add studio as observer
-├── executeAgentScan.js          - Run compliance agent
-├── generateMatches.js           - Generate AI matches
-├── saveContractToGoogleDrive.js - Google Drive export
-└── (other custom functions)
+├── paymentWebhookHandler.js       - CCBill + generic payment webhook handler
+├── generateReadMeToken.js         - Admin-only: generate 24h shared README token
+├── validateReadMeToken.js         - Validate README access token (HMAC-SHA256)`}
+                </pre>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-[#E8EEF9] mb-2">SDK Version Standardization</h3>
+                <pre className="bg-[#0B0F14] p-4 rounded-lg text-xs text-[#9AA6BC] overflow-x-auto">
+{`All backend functions now use: npm:@base44/sdk@0.8.25
 
-agents/
-└── compliance_safety_agent.json - Compliance agent config`}
+Updated:
+- logVerificationBlock.js (was 0.8.6)
+- protectedProfileActions.js (was 0.8.23)
+- acceptBookingRequest.js (was 0.8.23)
+- protectedMutations.js (deprecated stub — returns 410)
+
+Deprecated:
+- protectedMutations → All mutations use protectedActions`}
                 </pre>
               </div>
             </div>
@@ -552,1358 +352,152 @@ agents/
         </section>
 
         <EntityReferenceSection />
-
-        {/* 5b-5e. Extended Systems (Booking, Earnings, Completion, Identity/Safety) */}
         <BookingSystemSection />
         <EarningsSection />
         <CompletionSection />
         <IdentitySafetySection />
 
-        {/* 4b. Backend Functions Reference */}
-        <section id="functions" className="mb-8">
-          <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
-            <Database className="w-6 h-6 text-[#4F8CFF]" />
-            4b. Critical Backend Functions
-          </h2>
-          <CCCard className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Friend System Functions</h3>
-              <ul className="list-disc list-inside space-y-2 text-sm text-[#9AA6BC]">
-                <li><strong>sendFriendRequest:</strong> Creates Friendship record, validates eligibility (MESSAGE_FIRST policy), enforces daily limits. Logs FriendActivityLog.</li>
-                <li><strong>respondToFriendRequest:</strong> Accepts/declines friend request. Sets decline_cooldown_until if declined. Logs FriendActivityLog.</li>
-                <li><strong>cancelFriendRequest:</strong> Requester cancels pending request. Logs FriendActivityLog.</li>
-                <li><strong>validateFriendRequestEligibility:</strong> Checks target's FriendSettings policy, rate limits, cooldown, MESSAGE_FIRST requirement.</li>
-                <li><strong>validateCollaborationFriendGate:</strong> Checks if target allows collaboration invites from non-friends.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Conversation & Messaging</h3>
-              <ul className="list-disc list-inside space-y-2 text-sm text-[#9AA6BC]">
-                <li><strong>startConversation:</strong> Creates Conversation entity, initializes empty messages list, returns ID for frontend to use.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Contract & Signing</h3>
-              <ul className="list-disc list-inside space-y-2 text-sm text-[#9AA6BC]">
-                <li><strong>validateContractInitiation:</strong> Checks collaboration.status="agreed", testing requirements satisfied, all participants verified. Fires before contract generation.</li>
-                <li><strong>validateTestingRequirements:</strong> Evaluates CollaborationTestingPolicy against each participant's TestingCredential. Returns true/false + blocking reason.</li>
-                <li><strong>createContractSnapshot:</strong> CRITICAL. Fires when Contract.status → "signed". Creates ContractVersion, generates PDF, sets signed_version_hash. Immutable after creation.</li>
-                <li><strong>validateContractStudioSplit:</strong> If StudioRepresentation exists, verifies revenue_split percentages sum to 100% including studio/agent cuts.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Testing & Compliance</h3>
-              <ul className="list-disc list-inside space-y-2 text-sm text-[#9AA6BC]">
-                <li><strong>checkTestingDeadlines:</strong> Scans TestingCredential.expires_at, marks expired credentials (status="expired"). Run daily.</li>
-                <li><strong>checkTestingDeadlineWarnings:</strong> Sends notifications 7 days before expiry. Run daily.</li>
-                <li><strong>sendTestingNotification:</strong> Generic notification sender for testing events.</li>
-                <li><strong>markTestingRequirementSatisfied:</strong> Updates TestingRequirement.satisfied=true after admin verification.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Schedule & Booking</h3>
-              <ul className="list-disc list-inside space-y-2 text-sm text-[#9AA6BC]">
-                <li><strong>lockCollaborationBooking:</strong> Creates ScheduleEntry with entry_type="booked", locked=true for all participants on confirmed date.</li>
-                <li><strong>releaseCollaborationBooking:</strong> Deletes booked ScheduleEntry records when collaboration cancelled/disputed.</li>
-                <li><strong>acceptBookingRequest:</strong> Accepts studio/photographer/videographer booking request. Creates Collaboration if booking_type allows. Updates ScheduleEntry.current_booking_count.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Consent & Revocation</h3>
-              <ul className="list-disc list-inside space-y-2 text-sm text-[#9AA6BC]">
-                <li><strong>triggerConsentRevocation:</strong> CRITICAL. Creates ConsentRevocation record (immutable), sets Contract.post_scene_rules.takedown_deadline, notifies all parties. Idempotent—safe to call multiple times.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Representation & Observation</h3>
-              <ul className="list-disc list-inside space-y-2 text-sm text-[#9AA6BC]">
-                <li><strong>autoAddStudioObserver:</strong> Auto-fires when collaboration created with studio-represented creator. Adds StudioCollaborationObserver record with read-only access.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Earnings Automation</h3>
-              <ul className="list-disc list-inside space-y-2 text-sm text-[#9AA6BC]">
-                <li><strong>autoCreateEarnings:</strong> Fires when Collaboration.status → "completed". Creates EarningsRecord entries for each creator/agent/studio based on Contract.post_scene_rules.revenue_split. Sets settlement_status="projected".</li>
-                <li><strong>updateEarningsSettlement:</strong> Admin function. Marks EarningsRecord.settlement_status="settled", sets settled_at timestamp. Logs AdminActionLog.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Compliance & AI</h3>
-              <ul className="list-disc list-inside space-y-2 text-sm text-[#9AA6BC]">
-                <li><strong>executeAgentScan:</strong> Runs compliance_safety_agent. Analyzes profiles, collabs, contracts. Creates AgentFlag + AIRiskPrediction records. Logs AgentRun. Schedule: weekly off-peak.</li>
-                <li><strong>generateMatches:</strong> Runs match suggestion agent. Creates AIMatchSuggestion records. Can be triggered on-demand or scheduled daily.</li>
-                <li><strong>checkIdentityConsistency:</strong> Runs after VerificationRecord approval. Compares IdentityFingerprint against existing users. If match found, creates IdentityConsistencyFlag for admin review.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Admin & Security</h3>
-              <ul className="list-disc list-inside space-y-2 text-sm text-[#9AA6BC]">
-                <li><strong>checkUserAccessStatus:</strong> Checks if user banned/suspended. Returns &#123;banned: bool, suspended: bool, reason: string&#125;.</li>
-                <li><strong>logVerificationBlock:</strong> Logs blocked actions to AdminActionLog (for forensics/audit trail).</li>
-                <li><strong>getSecureDocumentUrl:</strong> Returns signed URL for private TestingDocument/VerificationRecord files. Expires in 5-15min.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Data Protection & Deletion</h3>
-              <ul className="list-disc list-inside space-y-2 text-sm text-[#9AA6BC]">
-                <li><strong>deleteUserAccount:</strong> Initiates GDPR deletion flow. Sets UserProfile.deleted_at, anonymizes personal data, preserves audit/contract records (legal hold).</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Protected Actions (High-Risk)</h3>
-              <ul className="list-disc list-inside space-y-2 text-sm text-[#9AA6BC]">
-                <li><strong>protectedActions:</strong> Generic endpoint for admin-only operations (ban, suspend, verify, force-complete collaboration). All require explicit admin auth check.</li>
-                <li><strong>protectedProfileActions:</strong> High-risk profile mutations (update profile, creator details, galleries). Validates ban status before executing.</li>
-                <li><strong>protectedMutations:</strong> Wrapper for risky entity updates (collaboration status, contract edits). Enforces RLS + audit logging.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-3">Integrations & Export</h3>
-              <ul className="list-disc list-inside space-y-2 text-sm text-[#9AA6BC]">
-                <li><strong>saveContractToGoogleDrive:</strong> Exports signed PDF to creator's Google Drive folder. Requires Google Drive OAuth authorization (Builder+ connector).</li>
-                <li><strong>moderateContent:</strong> Reports queue handler. Admin can flag/resolve content violations.</li>
-              </ul>
-            </div>
-          </CCCard>
-        </section>
-
-        <AutomationsSection />
-
-        {/* 5. Enforcement Matrix */}
+        {/* Enforcement Matrix */}
         <section id="enforcement" className="mb-8">
           <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
             <Shield className="w-6 h-6 text-[#4F8CFF]" />
-            5. Enforcement Matrix (Critical Section)
+            5. Enforcement Matrix
           </h2>
           <CCCard>
+            <div className="mb-4 p-3 bg-[#4F8CFF]/10 border border-[#4F8CFF]/30 rounded-lg">
+              <p className="text-sm text-[#4F8CFF] font-semibold">⚠ Post-Hardening Changes</p>
+              <ul className="text-xs text-[#9AA6BC] mt-1 list-disc ml-4 space-y-1">
+                <li><strong>Send Message</strong>: No longer requires verification. Only requires <code>messaging</code> flag=ON + no ban/suspension.</li>
+                <li><strong>All verification gates</strong>: Only enforced when <code>verification</code> flag=ON. When flag=OFF, all users pass through.</li>
+                <li><strong>Feature flags are single source of truth</strong>: Disabling a flag blocks the feature globally in both frontend and backend.</li>
+                <li><strong>DeveloperReadMe</strong>: Now requires admin OR valid 24h signed token. No direct URL bypass.</li>
+              </ul>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="border-b border-[#263248]">
                   <tr className="text-left text-[#E8EEF9]">
                     <th className="p-2">Action</th>
-                    <th className="p-2">Preconditions</th>
-                    <th className="p-2">Validation Functions</th>
-                    <th className="p-2">What Blocks</th>
-                    <th className="p-2">UI State</th>
-                    <th className="p-2">Logs Written</th>
+                    <th className="p-2">Guard</th>
+                    <th className="p-2">Function</th>
+                    <th className="p-2">Flag Condition</th>
                   </tr>
                 </thead>
                 <tbody className="text-[#9AA6BC]">
-                  <tr className="border-b border-[#263248]">
-                    <td className="p-2 font-medium">View Profile</td>
-                    <td className="p-2">Must be verified</td>
-                    <td className="p-2">validateVerificationStatus</td>
-                    <td className="p-2">VerificationRecord.status != "approved"</td>
-                    <td className="p-2">VerificationRequired component</td>
-                    <td className="p-2">logVerificationBlock</td>
-                  </tr>
-                  <tr className="border-b border-[#263248]">
-                    <td className="p-2 font-medium">Send Message</td>
-                    <td className="p-2">Must be verified + subscribed</td>
-                    <td className="p-2">validateVerificationStatus, startConversation</td>
-                    <td className="p-2">Verification missing OR subscription expired</td>
-                    <td className="p-2">AccessGate component (type="both")</td>
-                    <td className="p-2">logVerificationBlock, Conversation creation</td>
-                  </tr>
-                  <tr className="border-b border-[#263248]">
-                    <td className="p-2 font-medium">Send Friend Request</td>
-                    <td className="p-2">Target's policy allows + not blocked + within rate limit + no cooldown</td>
-                    <td className="p-2">validateFriendRequestEligibility</td>
-                    <td className="p-2">FriendSettings.friend_request_policy="NO_ONE" OR MESSAGE_FIRST without prior message OR daily limit exceeded OR decline cooldown active</td>
-                    <td className="p-2">CCErrorModal with reason</td>
-                    <td className="p-2">FriendActivityLog</td>
-                  </tr>
-                  <tr className="border-b border-[#263248]">
-                    <td className="p-2 font-medium">Accept Friend Request</td>
-                    <td className="p-2">Friendship.status="PENDING" + user is addressee</td>
-                    <td className="p-2">respondToFriendRequest</td>
-                    <td className="p-2">Request not pending OR user not addressee</td>
-                    <td className="p-2">Accept button disabled</td>
-                    <td className="p-2">FriendActivityLog (REQUEST_ACCEPTED)</td>
-                  </tr>
-                  <tr className="border-b border-[#263248]">
-                    <td className="p-2 font-medium">Create Collaboration</td>
-                    <td className="p-2">Verified + subscribed + optionally friends (if target requires)</td>
-                    <td className="p-2">validateCollaborationFriendGate</td>
-                    <td className="p-2">FriendSettings.allow_collaboration_invites_non_friends=false AND not friends</td>
-                    <td className="p-2">FriendGateWarning component</td>
-                    <td className="p-2">CollaborationActivityLog (CREATED)</td>
-                  </tr>
-                  <tr className="border-b border-[#263248]">
-                    <td className="p-2 font-medium">Join Collaboration</td>
-                    <td className="p-2">Invited + verified + subscribed</td>
-                    <td className="p-2">validateCollaborationFriendGate (if applicable)</td>
-                    <td className="p-2">Not invited OR verification/subscription missing</td>
-                    <td className="p-2">Invitation button disabled</td>
-                    <td className="p-2">CollaborationActivityLog (JOINED)</td>
-                  </tr>
-                  <tr className="border-b border-[#263248]">
-                    <td className="p-2 font-medium">Upload Testing</td>
-                    <td className="p-2">Is creator + verified</td>
-                    <td className="p-2">None</td>
-                    <td className="p-2">Not creator role</td>
-                    <td className="p-2">Upload form hidden</td>
-                    <td className="p-2">TestingCredential created, AdminActionLog (if admin approves)</td>
-                  </tr>
-                  <tr className="border-b border-[#263248]">
-                    <td className="p-2 font-medium">Initiate Contract</td>
-                    <td className="p-2">Collaboration.status="agreed" + testing requirements satisfied</td>
-                    <td className="p-2">validateContractInitiation, validateTestingRequirements</td>
-                    <td className="p-2">Collaboration not agreed OR TestingRequirement.satisfied=false for any participant</td>
-                    <td className="p-2">TestingStatusBanner, contract button disabled</td>
-                    <td className="p-2">ContractAuditLog (INITIATED), CollaborationActivityLog (CONTRACT_INITIATED)</td>
-                  </tr>
-                  <tr className="border-b border-[#263248]">
-                    <td className="p-2 font-medium">Sign Contract</td>
-                    <td className="p-2">Contract.status="sent" + user is signatory + agent permissions allow (if agent signing)</td>
-                    <td className="p-2">None (permissions checked in UI)</td>
-                    <td className="p-2">Contract not sent OR user not signatory OR agent lacks can_sign_contracts</td>
-                    <td className="p-2">Sign button disabled</td>
-                    <td className="p-2">ContractSignature created, ContractAuditLog (SIGNED), Contract snapshot created if all signed</td>
-                  </tr>
-                  <tr className="border-b border-[#263248]">
-                    <td className="p-2 font-medium">Revoke Consent</td>
-                    <td className="p-2">Creator + Contract signed</td>
-                    <td className="p-2">triggerConsentRevocation</td>
-                    <td className="p-2">Not creator OR not signed</td>
-                    <td className="p-2">Revoke button hidden</td>
-                    <td className="p-2">ConsentRevocation, AdminActionLog, CollaborationActivityLog, Notifications</td>
-                  </tr>
-                  <tr className="border-b border-[#263248]">
-                    <td className="p-2 font-medium">Send Booking Request</td>
-                    <td className="p-2">Verified + subscribed</td>
-                    <td className="p-2">checkUserAccessStatus</td>
-                    <td className="p-2">User banned/suspended</td>
-                    <td className="p-2">BookingRequestModal (ViewProfile)</td>
-                    <td className="p-2">BookingRequest created, Notification to recipient</td>
-                  </tr>
-                  <tr className="border-b border-[#263248]">
-                    <td className="p-2 font-medium">Accept Booking</td>
-                    <td className="p-2">Request pending + user is recipient</td>
-                    <td className="p-2">acceptBookingRequest</td>
-                    <td className="p-2">Not pending OR max_bookings reached</td>
-                    <td className="p-2">BookingRequestsInbox</td>
-                    <td className="p-2">Collaboration created, ScheduleEntry updated, Notification</td>
-                  </tr>
-                  <tr className="border-b border-[#263248]">
-                    <td className="p-2 font-medium">Mark Complete</td>
-                    <td className="p-2">Collaboration signed + Admin/Member</td>
-                    <td className="p-2">completeCollaboration</td>
-                    <td className="p-2">Not signed OR RepObserver</td>
-                    <td className="p-2">CompletionBanner + Manager</td>
-                    <td className="p-2">status="completed", EarningsRecords auto-created, ActivityLog</td>
-                  </tr>
-                  <tr className="border-b border-[#263248]">
-                    <td className="p-2 font-medium">Safety Check-In</td>
-                    <td className="p-2">Active/signed collab + participant</td>
-                    <td className="p-2">safetyCheckIn</td>
-                    <td className="p-2">Not participant</td>
-                    <td className="p-2">SafetyCheckInWidget</td>
-                    <td className="p-2">SafetyCheckIn created, admin notified if escalated</td>
-                  </tr>
+                  {[
+                    ['Send Message', 'Ban check only', 'protectedActions.send_message', 'messaging=ON'],
+                    ['View Profile', 'VerificationGate (when flag=ON)', 'validateVerificationStatus', 'verification=ON'],
+                    ['Create Collaboration', 'VerificationGate + FriendGate', 'validateCollaborationFriendGate', 'collaborations=ON'],
+                    ['Initiate Contract', 'Testing requirements', 'validateContractInitiation', 'contracts=ON'],
+                    ['Book Property', 'Host eligibility', 'manageSoloSession', 'hosting_marketplace=ON'],
+                    ['Access Code', 'Within booking window', 'manageBookingAccess', 'hosting_marketplace=ON'],
+                    ['GPS Check-In', 'Within geofence', 'manageBookingAccess', 'gps_checkin=ON'],
+                    ['Review Property', 'Session completed', 'managePropertyReview', 'property_reviews_enabled=ON'],
+                    ['DeveloperReadMe', 'Admin OR signed token', 'validateReadMeToken', 'Always enforced'],
+                    ['Upgrade Collaboration', 'Participant only', 'manageSoloSession', 'solo_sessions=ON'],
+                  ].map(([action, guard, fn, flag]) => (
+                    <tr key={action} className="border-b border-[#263248]">
+                      <td className="p-2 font-medium">{action}</td>
+                      <td className="p-2">{guard}</td>
+                      <td className="p-2 font-mono text-xs">{fn}</td>
+                      <td className="p-2"><code className="text-xs bg-[#0B0F14] px-1 py-0.5 rounded">{flag}</code></td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
           </CCCard>
         </section>
 
-        {/* 6. Collaboration Lifecycle */}
-        <section id="collaboration" className="mb-8">
-          <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
-            <Activity className="w-6 h-6 text-[#4F8CFF]" />
-            6. Collaboration Lifecycle (End-to-End)
-          </h2>
-          <CCCard className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">State Transitions</h3>
-              <div className="space-y-3 text-sm text-[#9AA6BC]">
-                <div className="border-l-2 border-[#4F8CFF] pl-4">
-                  <strong>1. Draft</strong>
-                  <p>Initial state. Creator filling out collaboration form. Not visible to other participants yet.</p>
-                  <p className="text-xs text-[#6B7A94] mt-1">Triggers: None. Logs: None.</p>
-                </div>
+        <AutomationsSection />
 
-                <div className="border-l-2 border-[#4F8CFF] pl-4">
-                  <strong>2. Pending Approval (Multi-party)</strong>
-                  <p>If multiple participants invited, each must approve before becoming "active".</p>
-                  <p className="text-xs text-[#6B7A94] mt-1">Triggers: Invitation notifications sent. Logs: CollaborationActivityLog (INVITED).</p>
-                </div>
-
-                <div className="border-l-2 border-[#4F8CFF] pl-4">
-                  <strong>3. Active</strong>
-                  <p>All participants have accepted invitation. Scene negotiation begins.</p>
-                  <p className="text-xs text-[#6B7A94] mt-1">Triggers: Conversation created/linked. Logs: CollaborationActivityLog (ACTIVATED).</p>
-                </div>
-
-                <div className="border-l-2 border-[#4F8CFF] pl-4">
-                  <strong>4. Negotiating</strong>
-                  <p>Participants discussing scene details, acts, boundaries, compensation, schedule, location.</p>
-                  <p className="text-xs text-[#6B7A94] mt-1">Triggers: CollaborationMessaging updates. Logs: CollaborationActivityLog (SCENE_UPDATED, SCHEDULE_PROPOSED).</p>
-                </div>
-
-                <div className="border-l-2 border-[#4F8CFF] pl-4">
-                  <strong>5. Agreed</strong>
-                  <p>All terms finalized. Ready for contract generation.</p>
-                  <p className="text-xs text-[#6B7A94] mt-1">Triggers: Testing deadlines checked. Logs: CollaborationActivityLog (TERMS_AGREED).</p>
-                </div>
-
-                <div className="border-l-2 border-[#4F8CFF] pl-4">
-                  <strong>6. Contract Pending</strong>
-                  <p>Contract being generated from template. Testing requirements checked.</p>
-                  <p className="text-xs text-[#6B7A94] mt-1">Triggers: validateTestingRequirements run. Logs: ContractAuditLog (GENERATED).</p>
-                </div>
-
-                <div className="border-l-2 border-[#4F8CFF] pl-4">
-                  <strong>7. Contract Sent</strong>
-                  <p>Contract sent to all signatories. Awaiting signatures.</p>
-                  <p className="text-xs text-[#6B7A94] mt-1">Triggers: ContractReminder notifications. Logs: ContractAuditLog (SENT), Notification to signatories.</p>
-                </div>
-
-                <div className="border-l-2 border-[#4F8CFF] pl-4">
-                  <strong>8. Signed</strong>
-                  <p>All signatures collected. Schedule locked via lockCollaborationBooking.</p>
-                  <p className="text-xs text-[#6B7A94] mt-1">Triggers: Contract snapshot created (createContractSnapshot). ScheduleEntry.locked=true. Logs: ContractAuditLog (ALL_SIGNED), CollaborationActivityLog (CONTRACT_SIGNED).</p>
-                </div>
-
-                <div className="border-l-2 border-[#22C55E] pl-4">
-                  <strong>9. Completed</strong>
-                  <p>Scene filmed. Post-scene obligations in effect (posting rules, embargo, crediting).</p>
-                  <p className="text-xs text-[#6B7A94] mt-1">Triggers: None. Logs: CollaborationActivityLog (COMPLETED).</p>
-                </div>
-
-                <div className="border-l-2 border-[#EF4444] pl-4">
-                  <strong>10. Cancelled</strong>
-                  <p>Collaboration cancelled by participant. Schedule released via releaseCollaborationBooking.</p>
-                  <p className="text-xs text-[#6B7A94] mt-1">Triggers: Cancellation notifications. Logs: CollaborationActivityLog (CANCELLED).</p>
-                </div>
-
-                <div className="border-l-2 border-[#EF4444] pl-4">
-                  <strong>11. Disputed</strong>
-                  <p>Dispute filed. Admin review via CollaborationDispute.</p>
-                  <p className="text-xs text-[#6B7A94] mt-1">Triggers: Notification to admin and parties. Logs: CollaborationActivityLog (DISPUTED), AdminActionLog.</p>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Scene Selection & Act Filtering</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                When creating a collaboration, the scene selection determines available acts:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>scene_type:</strong> standard | fetish | kink_edge</li>
-                <li><strong>scene_selected[]:</strong> e.g., boy_girl, girl_girl, boy_boy (from ContentCatalogItem category=scene_pairing)</li>
-                <li><strong>acts_selected[]:</strong> Filtered based on scene_type:
-                  <ul className="list-disc list-inside ml-6 mt-1">
-                    <li>If scene_type="standard": acts from CreatorDetails.standard_acts</li>
-                    <li>If scene_type="fetish": acts from CreatorDetails.fetish_acts</li>
-                    <li>If scene_type="kink_edge": acts from CreatorDetails.kink_edge_acts</li>
-                  </ul>
-                </li>
-                <li><strong>acts_other_text:</strong> Free-form for acts not in catalog</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Auto-Cancellations & Auto-Pauses</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Collaborations can be auto-cancelled or paused under certain conditions:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>Testing Expiry:</strong> If TestingCredential.expires_at passes before contract signed, collaboration auto-paused. Notification sent via sendTestingNotification.</li>
-                <li><strong>Verification Revoked:</strong> If VerificationRecord.status changes to "expired" or "rejected", all active collaborations auto-paused.</li>
-                <li><strong>Subscription Lapse:</strong> If Subscription.status != "active" | "trial", collaborations paused until reactivated.</li>
-                <li><strong>User Blocked:</strong> If Report results in admin blocking user, all collaborations cancelled.</li>
-              </ul>
-            </div>
-          </CCCard>
-        </section>
-
-        {/* 7. Scheduling & Availability */}
-        <section id="scheduling" className="mb-8">
-          <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-[#4F8CFF]" />
-            7. Scheduling & Availability System
-          </h2>
-          <CCCard className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">ScheduleEntry</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Central entity for all calendar events:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>entry_type:</strong> "availability" (user available), "travel" (traveling), "booked" (locked for collaboration)</li>
-                <li><strong>date:</strong> ISO date</li>
-                <li><strong>start_time, end_time:</strong> Optional time range</li>
-                <li><strong>location:</strong> For travel entries, the destination</li>
-                <li><strong>collaboration_id:</strong> For booked entries, the collaboration</li>
-                <li><strong>locked:</strong> Boolean. If true, cannot be double-booked.</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Booking Locks</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                When a contract is fully signed:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>lockCollaborationBooking function called</li>
-                <li>Creates ScheduleEntry with entry_type="booked", locked=true</li>
-                <li>All participants have date locked</li>
-                <li>SuggestedDates filters out locked dates</li>
-                <li>If collaboration cancelled, releaseCollaborationBooking deletes locked entries</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Conflict Resolution</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Conflicts are checked before scheduling:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>UI checks existing ScheduleEntry records for date + user_id</li>
-                <li>If locked=true entry exists, date unavailable</li>
-                <li>If availability entry exists, date available</li>
-                <li>If travel entry exists, location shown</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Lazy-Loading Calendar</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Calendar views paginate by month/year:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>AvailabilityCalendar loads 1 month at a time</li>
-                <li>Query: ScheduleEntry.filter(user_id=user.id, date &gt;= start_of_month, date &lt;= end_of_month)</li>
-                <li>Previous/next month buttons trigger new queries</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">External Calendar Export</h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>ICS file export of ScheduleEntry records — implemented in AvailabilitySchedule + TravelSchedule pages</li>
-                <li>Google Calendar link generation — available via both schedule pages</li>
-                <li>saveContractToGoogleDrive backend function for contract export (requires Google Drive connector)</li>
-              </ul>
-            </div>
-          </CCCard>
-        </section>
-
-        {/* 8. Health, Testing & Compliance */}
-        <section id="testing" className="mb-8">
-          <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
-            <FileCheck className="w-6 h-6 text-[#4F8CFF]" />
-            8. Health, Testing & Compliance
-          </h2>
-          <CCCard className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Testing Statuses</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                TestingCredential.status_badge values:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>valid:</strong> Admin verified, not expired</li>
-                <li><strong>expired:</strong> Past expires_at date</li>
-                <li><strong>pending_review:</strong> Uploaded, awaiting admin verification</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Visibility Levels</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                CreatorDetails.health_testing.testing_visibility:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>private:</strong> Only visible to creator</li>
-                <li><strong>collaboration_room_only:</strong> Shared with collaboration participants</li>
-                <li><strong>verified_collaborators:</strong> Shared with verified users in active collaborations</li>
-                <li><strong>public:</strong> Badge visible on profile (document not shared)</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Upload Handling</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                TestingDocument entity:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>file_type:</strong> pdf | png | jpg | jpeg | heic</li>
-                <li><strong>file_url:</strong> Private storage URL</li>
-                <li><strong>status:</strong> pending | verified | rejected</li>
-                <li><strong>collaboration_id:</strong> Optional, if uploaded for specific collab</li>
-                <li>Admin reviews via VerificationReviewQueue</li>
-                <li>On verification, TestingCredential created with tested_at, expires_at</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Testing Requirements in Collaborations</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                CollaborationTestingPolicy entity configures per-collaboration rules:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>require_verified_testing:</strong> Only admin-verified credentials allowed</li>
-                <li><strong>require_full_panel_within_days:</strong> 14 | 30 | 60 | null</li>
-                <li><strong>require_hiv_negative_only:</strong> Block if HIV positive (detectable)</li>
-                <li><strong>allow_hiv_undetectable:</strong> Allow HIV positive undetectable (U=U)</li>
-                <li><strong>allow_self_reported:</strong> Allow self-reported testing</li>
-                <li><strong>require_testing_before_contract:</strong> Block contract initiation if not satisfied</li>
-                <li><strong>require_testing_before_schedule_lock:</strong> Block schedule lock if not satisfied</li>
-              </ul>
-              <p className="text-sm text-[#9AA6BC] mt-2">
-                Validation via validateTestingRequirements function. If not satisfied, contract button disabled + TestingStatusBanner shown.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Deadline Enforcement</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Backend functions:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>checkTestingDeadlines:</strong> Checks expires_at, sets status="expired"</li>
-                <li><strong>checkTestingDeadlineWarnings:</strong> Sends warnings 7 days before expiry</li>
-                <li><strong>sendTestingNotification:</strong> Sends notification to user</li>
-                <li>Run via cron/scheduler (if implemented) or on-demand</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Auto-Cancellation Logic</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                If testing expires before contract signed:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Collaboration.status → "cancelled" (or paused, if implemented)</li>
-                <li>Notification sent to all participants</li>
-                <li>Schedule locks released via releaseCollaborationBooking</li>
-                <li>Logged in CollaborationActivityLog</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Compliance Scoring</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                ComplianceScoreEvent entity (if implemented):
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Tracks user compliance score changes</li>
-                <li>Factors: testing uploads, timely renewals, verification maintenance</li>
-                <li>Used for risk scoring and admin prioritization</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Backend Reports Inclusion</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Testing credentials included in CollaborationPacketExporter:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>CollaborationPacketItem.item_type = "testing_document"</li>
-                <li>References TestingDocument.file_url</li>
-                <li>Exported for legal compliance packets</li>
-              </ul>
-            </div>
-          </CCCard>
-        </section>
-
-        {/* 9. Representation & Exclusivity */}
-        <section id="representation" className="mb-8">
-          <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
-            <Users className="w-6 h-6 text-[#4F8CFF]" />
-            9. Representation & Exclusivity
-          </h2>
-          <CCCard className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">AgentRepresentation</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Agent-creator relationships:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>permissions.can_negotiate:</strong> Agent can handle negotiation messages</li>
-                <li><strong>permissions.can_sign_contracts:</strong> Agent can sign on behalf of creator</li>
-                <li><strong>permissions.can_message:</strong> Agent can send/receive messages for creator</li>
-                <li><strong>permissions.can_view_private_gallery:</strong> Agent can view creator's private portfolio</li>
-                <li><strong>commission_rate:</strong> Percentage of revenue (enforced in Contract.post_scene_rules.revenue_split)</li>
-                <li><strong>exclusive:</strong> If true, only one agent can have active representation</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">StudioRepresentation</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Studio-creator relationships:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>revenue_split:</strong> Studio's percentage of revenue (enforced in Contract.post_scene_rules.revenue_split)</li>
-                <li><strong>exclusive:</strong> If true, only one studio can have active representation</li>
-                <li><strong>Auto RepObserver:</strong> Studio automatically added to collaborations via autoAddStudioObserver</li>
-                <li>Studio can view contracts and schedules but cannot edit or sign (read-only)</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Revenue Split Enforcement</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Contract.post_scene_rules.revenue_split must include:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Each creator's percentage</li>
-                <li>Agent commission (if AgentRepresentation.exclusive = true)</li>
-                <li>Studio split (if StudioRepresentation.exclusive = true)</li>
-                <li>Validated via validateContractStudioSplit function</li>
-                <li>If percentages don't sum to 100%, contract generation blocked</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Admin Overrides</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Admins can:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Terminate representations via RepresentationManager</li>
-                <li>Override exclusive flag (e.g., for multi-agency creators)</li>
-                <li>Adjust commission rates (logged in AdminActionLog)</li>
-                <li>Remove RepObserver access (via StudioCollaborationObserver deletion)</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Audit Logging</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                All representation actions logged:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>AgentRepresentation creation → AdminActionLog (if admin-created) or CollaborationActivityLog</li>
-                <li>Permission changes → AdminActionLog</li>
-                <li>Revenue split updates → ContractAuditLog</li>
-                <li>Representation termination → AdminActionLog</li>
-              </ul>
-            </div>
-          </CCCard>
-        </section>
-
-        {/* 10. Friends & Trust System */}
-        <section id="friends" className="mb-8">
-          <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
-            <Users className="w-6 h-6 text-[#4F8CFF]" />
-            10. Friends & Trust System
-          </h2>
-          <CCCard className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Message-First Gating</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                FriendSettings.friend_request_policy = "MESSAGE_FIRST":
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>User cannot send friend request until they've had a conversation</li>
-                <li>Conversation.participants_who_replied[] must include requester</li>
-                <li>Validated via validateFriendRequestEligibility</li>
-                <li>If not met, CCErrorModal shows "You must message first before sending a friend request"</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Friend Request Lifecycle</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Friendship entity states:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>PENDING:</strong> Request sent, awaiting response</li>
-                <li><strong>ACCEPTED:</strong> Both users are friends</li>
-                <li><strong>DECLINED:</strong> Request rejected, cooldown applied</li>
-                <li><strong>CANCELLED:</strong> Requester cancelled before response</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Cooldowns & Rate Limits</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Friendship.decline_cooldown_until:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Set to 30 days after DECLINED status</li>
-                <li>Requester cannot send another request until cooldown expires</li>
-                <li>FriendSettings.friend_request_daily_limit enforces max requests per day</li>
-                <li>Tracked via FriendActivityLog count for today</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Privacy Settings</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                FriendSettings.friend_count_visibility:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>PUBLIC:</strong> Friend count visible to all</li>
-                <li><strong>VERIFIED_ONLY:</strong> Visible to verified users only</li>
-                <li><strong>PRIVATE:</strong> Only visible to user</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Collaboration Trust Enforcement</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                FriendSettings.allow_collaboration_invites_non_friends:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>If false, only friends can invite user to collaborations</li>
-                <li>Checked via validateCollaborationFriendGate</li>
-                <li>If blocked, FriendGateWarning component shown</li>
-                <li>User must send friend request first, wait for acceptance</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Admin Moderation Hooks</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Admins can:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>View FriendActivityLog for abuse patterns</li>
-                <li>Override cooldowns (via direct Friendship update)</li>
-                <li>Block friend requests between specific users (via BlockedUser entity)</li>
-                <li>All overrides logged in AdminActionLog</li>
-              </ul>
-            </div>
-          </CCCard>
-        </section>
-
-        {/* 11. Discovery & Matching */}
-        <section id="discovery" className="mb-8">
-          <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
-            <Network className="w-6 h-6 text-[#4F8CFF]" />
-            11. Discovery & Matching
-          </h2>
-          <CCCard className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">AIMatchSuggestion</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                AI-generated match recommendations:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>match_score:</strong> 0-100, higher is better match</li>
-                <li><strong>reasons[]:</strong> Explainability (e.g., "Similar content types", "Nearby location")</li>
-                <li><strong>dismissed:</strong> User dismissed suggestion</li>
-                <li><strong>clicked:</strong> User clicked to view profile</li>
-                <li>Generated by generateMatches backend function</li>
-                <li>Displayed in MatchSuggestions component on Discovery page</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Match Scoring Logic</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Factors considered (high level, actual implementation may vary):
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>Content Type Overlap:</strong> Creator's scene_selected[] vs viewer's scene_selected[]</li>
-                <li><strong>Geographic Proximity:</strong> Distance between base_location coordinates</li>
-                <li><strong>Travel Overlap:</strong> Viewer's travel_dates intersect with creator's availability_dates</li>
-                <li><strong>Role Compatibility:</strong> Creator looking_for_genders matches viewer's gender_identity</li>
-                <li><strong>Acts Overlap:</strong> Creator's acts match viewer's acts preferences</li>
-                <li><strong>Response Time:</strong> Lower response_time_hours = higher score</li>
-                <li><strong>Verification Status:</strong> Verified users ranked higher</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Hard Gates vs Soft Signals</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Discovery filtering:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>Hard Gates (block visibility):</strong>
-                  <ul className="list-disc list-inside ml-6">
-                    <li>Verification status (only show verified to verified)</li>
-                    <li>Subscription status (only show active to active)</li>
-                    <li>Blocked users (BlockedUser records hide profiles)</li>
-                  </ul>
-                </li>
-                <li><strong>Soft Signals (ranking/filtering):</strong>
-                  <ul className="list-disc list-inside ml-6">
-                    <li>Scene type preferences (filter, don't hide)</li>
-                    <li>Location distance (show all, rank by proximity)</li>
-                    <li>Friend status (show friends first)</li>
-                  </ul>
-                </li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Explainability Rules</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                AIMatchSuggestion.reasons[] examples:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>"Both interested in boy/girl content"</li>
-                <li>"Within 50 miles of your location"</li>
-                <li>"Available during your travel dates"</li>
-                <li>"High response rate (avg 2 hours)"</li>
-                <li>"Verified and highly rated"</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Admin Discovery Insights</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Admins can view:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Match suggestion click-through rates</li>
-                <li>Most commonly dismissed suggestions (improve algo)</li>
-                <li>Profile view analytics (via CollaborationAnalytics)</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Creator-Facing KPIs</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Displayed on Dashboard:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Profile views (last 7 days)</li>
-                <li>Collaboration invites received</li>
-                <li>Response time (calculated from message timestamps)</li>
-                <li>Friend requests received</li>
-              </ul>
-            </div>
-          </CCCard>
-        </section>
-
-        {/* 12. Notifications System */}
-        <section id="notifications" className="mb-8">
-          <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
-            <Activity className="w-6 h-6 text-[#4F8CFF]" />
-            12. Notifications System
-          </h2>
-          <CCCard className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Notification Types</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                NotificationPreference.notification_type values:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>messages:</strong> New message received</li>
-                <li><strong>collaboration_invites:</strong> Invited to collaboration</li>
-                <li><strong>role_changes:</strong> Role updated (e.g., agent permission change)</li>
-                <li><strong>contract_updates:</strong> Contract signed, updated, or voided</li>
-                <li><strong>testing_deadlines:</strong> Testing expiring soon or expired</li>
-                <li><strong>dispute_updates:</strong> Dispute status changed</li>
-                <li><strong>representation_actions:</strong> Agent/studio representation changes</li>
-                <li><strong>verification_status:</strong> Verification approved/rejected</li>
-                <li><strong>system_announcements:</strong> Platform-wide announcements</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Triggers</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Notifications created by:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Backend functions (e.g., sendTestingNotification)</li>
-                <li>Entity state changes (e.g., Collaboration status update)</li>
-                <li>Admin actions (e.g., verification approval)</li>
-                <li>Helper functions in notificationHelpers.js</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Preferences</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                NotificationPreference.channels:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>in_app:</strong> Show in NotificationBell + Notifications page</li>
-                <li><strong>email:</strong> Send email (if email integration active)</li>
-                <li>Users can disable per-type via NotificationPreferences component (Settings page)</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">UI Flow</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Notification display:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>NotificationBell component shows unread count</li>
-                <li>NotificationsDropdown shows recent notifications</li>
-                <li>Clicking notification marks as read (Notification.read_at set)</li>
-                <li>action_url navigates to related entity (e.g., collaboration, contract)</li>
-                <li>Notifications page shows full history</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Unread Logic</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Unread count calculation:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Query: Notification.filter(user_id=user.id, read_at=null).count()</li>
-                <li>Real-time polling (refetchInterval: 30s)</li>
-                <li>Badge color: red for unread, gray for read</li>
-              </ul>
-            </div>
-          </CCCard>
-        </section>
-
-        {/* 13. Admin Systems */}
-        <section id="admin" className="mb-8">
-          <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
-            <Shield className="w-6 h-6 text-[#4F8CFF]" />
-            13. Admin Systems
-          </h2>
-          <CCCard className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">User Moderation</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                UserManager + UserModerationPanel:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>View all users (UserProfile + User entities)</li>
-                <li>Edit user roles, verification status, subscription status</li>
-                <li>Block/unblock users (creates BlockedUser record)</li>
-                <li>View session history (SessionHistory)</li>
-                <li>All actions logged in AdminActionLog</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Verification Queue</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                VerificationReviewQueue:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Lists VerificationRecord.status="pending"</li>
-                <li>Shows submitted documents (VerificationRecord.documents_submitted[])</li>
-                <li>Admin can approve (status="approved") or reject (status="rejected", set rejection_reason)</li>
-                <li>Approval triggers notification to user</li>
-                <li>Logged in AdminActionLog</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Catalog Moderation</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                CatalogModeration:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Lists CustomValueSubmission.status="pending"</li>
-                <li>Admin can approve (creates ContentCatalogItem) or reject (sets rejection_reason)</li>
-                <li>Approved values become available in dropdowns (CreateCollaboration, ProfileWizard)</li>
-                <li>Logged in AdminActionLog</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Reports Queue</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                ReportsQueue:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Lists Report.status="pending"</li>
-                <li>Shows reporter, target, reason, details</li>
-                <li>Admin can investigate (status="investigating"), resolve (status="resolved"), or dismiss (status="dismissed")</li>
-                <li>Resolution actions: warn user, block user, delete content</li>
-                <li>All actions logged in AdminActionLog</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Session History</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                SessionHistoryViewer:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Shows SessionHistory records per user</li>
-                <li>Displays IP address, user agent, login/logout times</li>
-                <li>Flags suspicious activity (e.g., multiple IPs in short time)</li>
-                <li>Used for fraud detection and security audits</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Representation Management</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                RepresentationManager (admin view):
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>View all AgentRepresentation and StudioRepresentation records</li>
-                <li>Terminate representations</li>
-                <li>Override exclusive flags</li>
-                <li>Adjust commission rates</li>
-                <li>All changes logged in AdminActionLog</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Export Capabilities</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Admin exports:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>User data exports (CSV, JSON)</li>
-                <li>Collaboration reports (via CollaborationAnalytics)</li>
-                <li>Contract exports (PDF batch download)</li>
-                <li>Audit log exports (AdminActionLog, ContractAuditLog)</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Safety & Trust Admin Tools</h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>RiskScoringEngine — calculate user/collab risk scores (CollaborationRiskScore entity)</li>
-                <li>AIRiskPrediction — review AI-flagged risk predictions (AIRiskPrediction entity)</li>
-                <li>DisputeSimulator — test dispute workflows before production</li>
-                <li>ComplianceAgent — run compliance_safety_agent on-demand (AgentRun + AgentFlag)</li>
-                <li>IdentityConsistencyPanel — review IdentityConsistencyFlag duplicate detections</li>
-                <li>EarningsAdminPanel — view/settle EarningsRecord entries per user/collaboration</li>
-                <li>SecurityDashboard — aggregate security events and session anomalies</li>
-                <li>SafetyAlertsQueue — escalated SafetyCheckIn records requiring admin attention</li>
-              </ul>
-            </div>
-          </CCCard>
-        </section>
-
-        {/* 14. Audit & Legal Defensibility */}
-        <section id="audit" className="mb-8">
+        {/* Smart Lock System */}
+        <section id="smart-lock" className="mb-8">
           <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
             <Lock className="w-6 h-6 text-[#4F8CFF]" />
-            14. Audit & Legal Defensibility
+            Smart Lock Architecture
           </h2>
           <CCCard className="space-y-4">
+            <p className="text-sm text-[#9AA6BC]">Provider-agnostic adapter pattern. New providers can be added by implementing the SmartLockAdapter base class in lib/smartLockAdapters/.</p>
             <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Immutable Logs</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Three core immutable log entities:
-              </p>
+              <h3 className="text-sm font-semibold text-[#E8EEF9] mb-2">Implemented Adapters</h3>
               <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>AdminActionLog:</strong> All admin actions (user edits, verification approvals, report resolutions)</li>
-                <li><strong>CollaborationActivityLog:</strong> All collaboration state changes (created, negotiated, signed, completed, disputed)</li>
-                <li><strong>ContractAuditLog:</strong> All contract changes (generated, edited, signed, voided)</li>
-                <li>Cannot be edited or deleted after creation</li>
-                <li>Include timestamps, actor IDs, before/after state, IP addresses</li>
+                <li><strong>Manual/Code:</strong> Default — no API, uses generated 6-digit code</li>
+                <li><strong>August:</strong> August Connect API (device_id + access_token)</li>
+                <li><strong>Nuki:</strong> Nuki Web API Bearer token</li>
+                <li><strong>RemoteLock:</strong> RemoteLock REST API OAuth</li>
+                <li><strong>igloohome:</strong> igloohome Bridge API (generates pin codes)</li>
+                <li><strong>Yale:</strong> Architecture ready — requires Yale B2B partner access</li>
+                <li><strong>Schlage:</strong> Architecture ready — requires Allegion developer credentials</li>
               </ul>
             </div>
-
             <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Snapshot Guarantees</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Contract snapshots:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Created via createContractSnapshot function when Contract.status → "signed"</li>
-                <li>Stored as ContractVersion entity with version hash (signed_version_hash)</li>
-                <li>Includes full contract terms, all parties, signatures, timestamps</li>
-                <li>PDF generated and stored (Contract.pdf_url)</li>
-                <li>Cannot be modified after creation</li>
-                <li>Used for legal disputes and compliance audits</li>
-              </ul>
-            </div>
+              <h3 className="text-sm font-semibold text-[#E8EEF9] mb-2">Usage Pattern</h3>
+              <pre className="bg-[#0B0F14] p-3 rounded-lg text-xs text-[#9AA6BC] overflow-x-auto">
+{`import { getSmartLockAdapter } from '@/lib/smartLockAdapters/genericAdapter';
 
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Contract Defensibility</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Features ensuring contract validity:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>Versioning:</strong> ContractVersion tracks all edits before signing</li>
-                <li><strong>Signatures:</strong> ContractSignature records IP, timestamp, signed_version_hash</li>
-                <li><strong>E-signature legality:</strong> Meets ESIGN Act requirements (intent, consent, record retention)</li>
-                <li><strong>Immutable snapshot:</strong> signed_version_hash prevents backdating</li>
-                <li><strong>Audit trail:</strong> ContractAuditLog shows all changes</li>
-              </ul>
-            </div>
+const adapter = await getSmartLockAdapter(
+  property.access_settings.smart_lock_provider,  // e.g. 'august'
+  property.access_settings.smart_lock_config      // { device_id, api_key, account_ref }
+);
 
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Consent Revocation Impact</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                When ConsentRevocation created:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Immutable record with timestamp, revoking user, reason</li>
-                <li>Contract.post_scene_rules.takedown_policy activated</li>
-                <li>All parties notified with takedown_deadline</li>
-                <li>Admin reviews via CompliancePortal</li>
-                <li>takedown_completed_at marks when content removed</li>
-                <li>Logged in AdminActionLog and CollaborationActivityLog</li>
-                <li>Does NOT delete contract or collaboration (legal record preserved)</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Dispute Handling</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                CollaborationDispute workflow:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Filed by participant via DisputeManager</li>
-                <li>Evidence uploaded (evidence_urls[]) - immutable after upload</li>
-                <li>Admin reviews via CompliancePortal or ArbitrationCaseManager</li>
-                <li>Status progression: filed → investigating → mediation → arbitration → resolved</li>
-                <li>Resolution notes and outcome logged in AdminActionLog</li>
-                <li>Contract snapshot used as evidence</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Evidence Preservation</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Data preserved for legal defense:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>All contracts (signed PDFs + snapshots)</li>
-                <li>All audit logs (admin, collaboration, contract)</li>
-                <li>All messages (Conversation + Message entities)</li>
-                <li>Testing credentials (TestingDocument files)</li>
-                <li>Verification records (VerificationRecord.documents_submitted)</li>
-                <li>Session history (SessionHistory for fraud detection)</li>
-                <li>Exported via CollaborationPacketExporter for legal packets</li>
-              </ul>
+const result = await adapter.unlock();
+// { success: true, message: '...', provider: 'august' }`}
+              </pre>
             </div>
           </CCCard>
         </section>
 
-        {/* 15. System Agents */}
-        <section id="agents" className="mb-8">
+        {/* Payment System */}
+        <section id="payments" className="mb-8">
           <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
-            <Activity className="w-6 h-6 text-[#4F8CFF]" />
-            15. System Agents (AI)
+            <DollarSign className="w-6 h-6 text-[#4F8CFF]" />
+            Payment System Architecture
           </h2>
           <CCCard className="space-y-4">
+            <p className="text-sm text-[#9AA6BC]">Modular payment provider system in lib/payments/. CCBill is the primary provider (adult content industry standard).</p>
             <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Compliance & Safety Review Agent</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                agents/compliance_safety_agent.json:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>Purpose:</strong> Automated safety and compliance checks</li>
-                <li><strong>Read-only access:</strong> Cannot write to entities</li>
-                <li><strong>Analyzes:</strong> User profiles, collaborations, contracts, messages</li>
-                <li><strong>Flags:</strong> Creates AgentFlag records for admin review (e.g., "Profile contains suspicious keywords")</li>
-                <li><strong>Risk scoring:</strong> Creates AIRiskPrediction records</li>
-                <li><strong>Execution:</strong> Triggered via executeAgentScan function (scheduled or on-demand)</li>
-                <li><strong>Logs:</strong> AgentRun entity tracks execution time, entities scanned, flags created</li>
+              <h3 className="text-sm font-semibold text-[#E8EEF9] mb-2">Provider Registry</h3>
+              <pre className="bg-[#0B0F14] p-3 rounded-lg text-xs text-[#9AA6BC] overflow-x-auto">
+{`import { registerProvider, getProvider } from '@/lib/payments/providerRegistry';
+
+// Register CCBill (from admin config)
+registerProvider('ccbill', {
+  merchantId: '...',
+  subAccountId: '...',
+  flexFormId: '...',
+  dataLinkUsername: '...',
+  dataLinkPassword: '...',
+});
+
+const ccbill = getProvider('ccbill');
+const url = ccbill.getSubscriptionUrl({ pricePoint: '9.99', customerId: user.email });`}
+              </pre>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-[#E8EEF9] mb-2">Webhook Handler</h3>
+              <ul className="list-disc list-inside text-sm text-[#9AA6BC] space-y-1">
+                <li>Function: <code className="text-xs">paymentWebhookHandler</code></li>
+                <li>Handles CCBill URLEncoded form-data webhooks</li>
+                <li>Maps events → Subscription.status updates</li>
+                <li>Sends in-app notifications on status changes</li>
+                <li>Creates AdminActionLog entries for audit trail</li>
+                <li>Returns 200 even on error (prevents retry loops)</li>
               </ul>
             </div>
-
             <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Discovery & Matching Optimization Agent</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                (If implemented):
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>Purpose:</strong> Generate AI match suggestions</li>
-                <li><strong>Analyzes:</strong> User profiles, collaboration history, message patterns</li>
-                <li><strong>Creates:</strong> AIMatchSuggestion records</li>
-                <li><strong>Execution:</strong> Triggered via generateMatches function</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">What They Cannot Do</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Critical constraints:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Cannot edit user profiles</li>
-                <li>Cannot create or modify collaborations</li>
-                <li>Cannot sign contracts</li>
-                <li>Cannot send messages</li>
-                <li>Cannot block users</li>
-                <li>Cannot delete data</li>
-                <li>Can only CREATE: AgentFlag, AIRiskPrediction, AIMatchSuggestion</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">How Admins Use Them</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                Admin workflow:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Review AgentFlagsList (AgentManagement page)</li>
-                <li>Sort by severity (low/medium/high/critical)</li>
-                <li>Click flag to view flagged entity (profile, collab, contract)</li>
-                <li>Take action (warn, block, approve, dismiss)</li>
-                <li>Mark flag as reviewed</li>
-                <li>Action logged in AdminActionLog</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Agent Configuration</h3>
-              <p className="text-sm text-[#9AA6BC] mb-2">
-                AgentProfile + AgentPermissionPolicy:
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>AgentProfile.enabled: Admins can enable/disable agents</li>
-                <li>AgentPermissionPolicy: Defines read access scope (e.g., "can_read_profiles", "can_read_contracts")</li>
-                <li>Configured via AgentPermissionsEditor (AgentManagement page)</li>
-              </ul>
-            </div>
-          </CCCard>
-        </section>
-
-        {/* 16. Deployment & Production */}
-        <section id="deployment" className="mb-8">
-          <h2 className="text-2xl font-bold text-[#E8EEF9] mb-4 flex items-center gap-2">
-            <Database className="w-6 h-6 text-[#4F8CFF]" />
-            16. Deployment & Production Notes
-          </h2>
-          <CCCard className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Required APIs</h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>Base44 SDK:</strong> @base44/sdk for backend functions and API calls</li>
-                <li><strong>Storage:</strong> File uploads via Base44 storage (UploadFile integration)</li>
-                <li><strong>Email:</strong> SendEmail integration for notifications</li>
-                <li><strong>LLM:</strong> InvokeLLM integration for AI agents and bio generation</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Verification Providers</h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>Yoti:</strong> Primary identity verification provider (API integration required)</li>
-                <li><strong>Passbase:</strong> Alternative verification provider</li>
-                <li><strong>Manual:</strong> Admin manual review for edge cases</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Testing Providers</h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Talent Testing Service (TTS)</li>
-                <li>Private labs (user-uploaded PDFs)</li>
-                <li>Clinic/doctor reports</li>
-                <li>Self-reported (if allowed by CollaborationTestingPolicy)</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">File Storage Assumptions</h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Public files: Avatars, cover images, portfolio items (via UploadFile integration)</li>
-                <li>Private files: Testing documents, verification documents (via UploadPrivateFile + CreateFileSignedUrl)</li>
-                <li>Contract PDFs: Signed contracts stored as private files, accessed via signed URLs</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Security Boundaries</h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>Row-level security:</strong> Entity queries filtered by user permissions (Base44 platform handles)</li>
-                <li><strong>Verification gating:</strong> Most features require VerificationRecord.status="approved"</li>
-                <li><strong>Subscription gating:</strong> Features require Subscription.status="active" | "trial"</li>
-                <li><strong>Admin actions:</strong> All logged in AdminActionLog for accountability</li>
-                <li><strong>API rate limiting:</strong> Base44 platform handles (no custom implementation needed)</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Scaling Considerations</h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li><strong>Message polling:</strong> 30s refetch interval may need optimization for large user base (consider websockets)</li>
-                <li><strong>Notification polling:</strong> 30s refetch interval (same consideration)</li>
-                <li><strong>Calendar queries:</strong> Lazy-loading by month reduces load</li>
-                <li><strong>Discovery filtering:</strong> Client-side filtering may need server-side pagination at scale</li>
-                <li><strong>AI agent execution:</strong> Schedule during off-peak hours to reduce load</li>
-              </ul>
-            </div>
-
-            <div>
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">Known Limitations</h3>
-              <ul className="list-disc list-inside space-y-1 text-sm text-[#9AA6BC]">
-                <li>Real-time messaging not implemented (polling-based)</li>
-                <li>Video calls not implemented (external tools required)</li>
-                <li>Payment processing not implemented (external Stripe/PayPal integration needed)</li>
-                <li>Analytics dashboards limited (basic metrics only)</li>
-                <li>Multi-language support not implemented (English only)</li>
-              </ul>
-            </div>
-          </CCCard>
-        </section>
-
-        {/* 17. Change Governance */}
-        <ChangeGovernanceSection />
-
-        {/* 18. Recent Changes & Updates */}
-        <RecentChangesSection />
-
-        <div style={{display:'none'}}><CCCard><div className="text-xs">
-            {[{ date: 'March 2026', title: 'Discovery & Search — Client-Side Filtering Unified', items: [
-                'Both Discovery and Search now use useMemo-based client-side filtering (avoids stale closure bugs)',
-                'Role quick-filter buttons added to Discovery (matching Search layout)',
-                'selectedRole state added to Discovery; takes precedence over filters.roleTypes',
-                'Filter reset on Discovery now clears selectedRole',
-                'Search queryKey simplified to [\'searchProfiles\'] — all filtering in useMemo',
-              ]},
-              { date: 'March 2026', title: 'Filter Logic — Consistent Creator-Aware Rules', items: [
-                'Scene type filter: non-creators always pass; creators without acts data pass (not hidden prematurely)',
-                'Compensation filter: non-creators always pass; creators with no prefs set pass',
-                'country field added to Discovery filter state (was missing)',
-                'Filter reset state aligned between Discovery and Search',
-              ]},
-              { date: 'Ongoing', title: 'Galleries — GalleryComment & ProfileView', items: [
-                'GalleryComment entity: users can comment on gallery items',
-                'Comment policy enforced via UserSettings.privacy.gallery_comment_policy (everyone/friends_only/no_one)',
-                'ProfileView entity tracks profile and gallery views (once per day per user)',
-                'GalleryLightbox integrates GalleryComments with policy enforcement',
-              ]},
-              { date: 'Ongoing', title: 'ViewProfile — Booking & Private Gallery Access', items: [
-                'BookingRequest entity + BookingRequestModal added to ViewProfile',
-                'Accepted bookings send Notification to recipient',
-                'Private gallery access request sends Notification to profile owner',
-                'GalleryPermission.status="granted" checked to show/hide private gallery content',
-                'Profile theme banners rendered from PROFILE_THEMES when no cover image',
-              ]},
-              { date: 'Ongoing', title: 'AvailabilitySchedule & TravelSchedule — ICS + Google Calendar Export', items: [
-                'ICS file export implemented for both schedules',
-                'Google Calendar link generation implemented',
-                'Lazy-loading by month confirmed working',
-              ]},
-              { date: 'Ongoing', title: 'Profile — AI Bio Generator, Analytics, Gallery Grid', items: [
-                'BioGenerator uses InvokeLLM to generate 3 bio suggestions from profile data',
-                'ProfileAnalytics shows profile/gallery views per week via recharts',
-                'GalleryGrid supports drag-and-drop reordering via @hello-pangea/dnd',
-                'GalleryLightbox integrated into Profile page for preview',
-              ]},
-              { date: 'Ongoing', title: 'Social Links — SocialLink Entity + Verification', items: [
-                'SocialLink and SocialLinkVerification entities support multiple platforms',
-                'SocialLinksManager: add, edit, delete social links',
-                'SocialLinksDisplay respects visibility settings and verification badges',
-              ]},
-              { date: 'Ongoing', title: 'Friends & Connections — Complete Friend System', items: [
-                'Friendship lifecycle: PENDING → ACCEPTED / DECLINED / CANCELLED',
-                'MESSAGE_FIRST gating: checks Conversation.participants_who_replied[] before request',
-                '30-day cooldown after DECLINED enforced via decline_cooldown_until',
-                'Friend count visibility enforced via FriendSettings.friend_count_visibility',
-                'FriendGateWarning shown in CreateCollaboration if target requires friends',
-              ]},
-            ].map((item, i) => (
-              <div key={i} className="border-l-2 border-[#263248] pl-4">
-                <span className="text-xs text-[#6B7A94]">{item.date}</span>
+              <h3 className="text-sm font-semibold text-[#E8EEF9] mb-2">Subscription States</h3>
+              <div className="flex flex-wrap gap-2">
+                {['active', 'past_due', 'cancelled', 'expired', 'trial'].map(s => (
+                  <code key={s} className="text-xs bg-[#0B0F14] border border-[#263248] px-2 py-1 rounded text-[#9AA6BC]">{s}</code>
+                ))}
               </div>
-            ))}
-          </div></CCCard></div>
+            </div>
+          </CCCard>
+        </section>
+
+        <ChangeGovernanceSection />
+        <RecentChangesSection />
 
         {/* 19. Backend Deployment Checklist */}
         <section id="backend-checklist" className="mb-8">
@@ -1911,65 +505,47 @@ agents/
             <Database className="w-6 h-6 text-[#4F8CFF]" />
             19. Backend Deployment Checklist
           </h2>
-          <div className="p-4 bg-[#FF2DAA]/10 border border-[#FF2DAA]/30 rounded-lg mb-4">
-            <p className="text-sm text-[#FF2DAA]">
-              <strong>Action Required:</strong> Upgrade to <strong>Builder+</strong> on Base44 to enable backend functions. All 23 functions are already written — they just need the plan activated.
-            </p>
-          </div>
           <CCCard className="space-y-5">
             {[
-              { step: 1, color: 'bg-[#EF4444]', title: 'Upgrade to Builder+', items: [
-                'Go to base44.com → Account Settings → Upgrade to Builder+',
-                'Unlocks backend functions, scheduled automations, and OAuth app connectors',
+              { step: 1, color: 'bg-[#EF4444]', title: 'Upgrade to Builder+', items: ['Go to base44.com → Account Settings → Upgrade to Builder+'] },
+              { step: 2, color: 'bg-[#F59E0B]', title: 'Critical Backend Functions', items: [
+                'startConversation, sendFriendRequest, respondToFriendRequest, cancelFriendRequest',
+                'validateContractInitiation + validateTestingRequirements',
+                'createContractSnapshot (CRITICAL — fires on all-signed)',
+                'triggerConsentRevocation (immutable, idempotent)',
+                'autoAddStudioObserver, lockCollaborationBooking, releaseCollaborationBooking',
+                'manageSoloSession, manageBookingAccess, manageProperty, activateHostAccount',
+                'managePropertyReview, extendedSearch, adminModerationAction',
+                'generateReadMeToken, validateReadMeToken (README access control)',
+                'paymentWebhookHandler (CCBill subscription lifecycle)',
               ]},
-              { step: 2, color: 'bg-[#F59E0B]', title: 'Verify Critical Backend Functions', items: [
-                'startConversation — fires on every Message button click',
-                'sendFriendRequest / respondToFriendRequest / cancelFriendRequest',
-                'validateFriendRequestEligibility — MESSAGE_FIRST gating',
-                'validateContractInitiation + validateTestingRequirements — contract gate',
-                'createContractSnapshot — CRITICAL: must fire on all-signed contracts',
-                'triggerConsentRevocation — immutable, must be idempotent',
-                'autoAddStudioObserver — auto-fires when collaboration involves studio creator',
-                'lockCollaborationBooking / releaseCollaborationBooking',
+              { step: 3, color: 'bg-[#F59E0B]', title: 'Scheduled Automations', items: [
+                'checkTestingDeadlines → Daily 6am UTC',
+                'checkTestingDeadlineWarnings → Daily 7am UTC',
+                'executeAgentScan → Weekly off-peak',
+                'generateMatches → Daily or on-demand',
               ]},
-              { step: 3, color: 'bg-[#F59E0B]', title: 'Set Up Scheduled Automations', items: [
-                'checkTestingDeadlines → Daily at 6am UTC (marks expired credentials)',
-                'checkTestingDeadlineWarnings → Daily at 7am UTC (7-day expiry warnings)',
-                'executeAgentScan → Weekly off-peak (AI compliance + risk scoring)',
-                'generateMatches → Daily or on-demand (AI match suggestions)',
+              { step: 4, color: 'bg-[#22C55E]', title: 'CCBill Payment Setup', items: [
+                'Register at CCBill merchant portal',
+                'Create FlexForm for subscription checkout',
+                'Set webhook URL to /paymentWebhookHandler',
+                'Test: NewSaleSuccess → Subscription.status="active"',
+                'Test: Cancellation → Subscription.status="cancelled"',
               ]},
-              { step: 4, color: 'bg-[#22C55E]', title: 'Configure Stripe (Subscriptions)', items: [
-                'Create Stripe products for each PricingTier (role × basic/pro/elite)',
-                'Add Payment Link URLs to PricingTier.stripe_payment_link_monthly/yearly',
-                'Set up Stripe webhook → create/update Subscription record on payment events',
-                'Test: payment success → Subscription.status="active"',
-                'Test: payment failure → Subscription.status="past_due"',
+              { step: 5, color: 'bg-[#22C55E]', title: 'Smart Lock Config (Optional)', items: [
+                'August: Get API key from August developer portal',
+                'Nuki: Get Bearer token from Nuki Web',
+                'RemoteLock: OAuth token from RemoteLock API',
+                'Yale: Register at developer.allegion.com',
+                'igloohome: API key from developer.igloohome.co',
+                'Store credentials in Property.access_settings.smart_lock_config (PRIVATE)',
               ]},
-              { step: 5, color: 'bg-[#22C55E]', title: 'Configure Identity Verification', items: [
-                'Choose Yoti (primary) or Passbase (alternative) or manual admin review',
-                'Integrate provider webhook → create VerificationRecord.status="approved" on success',
-                'VerificationReviewQueue already exists for manual admin flow if needed',
-              ]},
-              { step: 6, color: 'bg-[#22C55E]', title: 'Seed Initial Data', items: [
-                'Create PricingTier records (use PricingManager in AdminDashboard)',
-                'Seed ContentCatalogItem records (scene_pairings, standard_acts, fetish_acts, kink_edge_acts, platforms)',
-                'Set at least one admin user: UserProfile.is_admin = true',
-                'Create SocialPlatform records (OnlyFans, Fansly, Twitter/X, Instagram, etc.)',
-              ]},
-              { step: 7, color: 'bg-[#4F8CFF]', title: 'Pre-Launch Security Checks', items: [
-                'AccessGate blocks unverified/unsubscribed users from Discovery, Search, Messages, Collaborations',
-                'Admin-only pages hidden from non-admin users (AdminDashboard, CompliancePortal, DeveloperReadMe)',
-                'Private files (testing docs, verification docs) use signed URLs — not public URLs',
-                'createContractSnapshot fires correctly (test with a dummy collaboration)',
-                'ConsentRevocation is immutable once created',
-                'BlockedUser records prevent profile visibility and messaging',
-                'Test friend gating: MESSAGE_FIRST requires prior message before friend request',
-              ]},
-              { step: 8, color: 'bg-[#4F8CFF]', title: 'Optional Enhancements', items: [
-                'Connect Google Drive connector for saveContractToGoogleDrive (Builder+ OAuth)',
-                'Configure Base44 SendEmail integration for notification emails',
-                'Set up custom domain in Base44 dashboard',
-                'Enable Base44 real-time subscriptions for Messages and Notifications pages',
+              { step: 6, color: 'bg-[#4F8CFF]', title: 'Security Verification', items: [
+                'DeveloperReadMe blocked for non-admins without token',
+                'SoloSessionDetail notification links resolve correctly',
+                'Feature flag route guards block all flagged pages',
+                'protectedMutations returns 410 (no legacy callers)',
+                'All backend functions use sdk@0.8.25',
               ]},
             ].map(({ step, color, title, items }) => (
               <div key={step}>
@@ -1985,13 +561,9 @@ agents/
           </CCCard>
         </section>
 
-        {/* Footer */}
         <div className="mt-8 p-4 bg-[#151D2B] border border-[#263248] rounded-lg text-center text-sm text-[#6B7A94]">
           <p>Last Updated: {new Date().toLocaleDateString()}</p>
-          <p className="mt-2">
-            This documentation is the canonical source of truth for Content Connect's architecture. 
-            Consult it before making architectural changes or debugging enforcement issues.
-          </p>
+          <p className="mt-2">This documentation is the canonical source of truth for Content Connect's architecture.</p>
         </div>
       </div>
     </div>

@@ -15,6 +15,69 @@
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+// ─── Smart Lock Adapter (inlined — no cross-file imports in Deno deploy) ──────
+
+async function smartLockRequest(provider, config, action) {
+  if (!provider || provider === 'manual') return null; // fallback to code-based
+
+  const AUGUST_BASE = 'https://api-production.august.com';
+  const NUKI_BASE = 'https://api.nuki.io';
+  const RL_BASE = 'https://api.remotelock.com/v1';
+  const IGLOO_BASE = 'https://api.igloodeveloper.co/igloohome/v1';
+
+  const deviceId = config?.device_id;
+  const apiKey = config?.api_key || config?.account_ref;
+  const isUnlock = action === 'unlock';
+
+  try {
+    if (provider === 'august') {
+      const endpoint = isUnlock
+        ? `${AUGUST_BASE}/remoteoperate/${deviceId}/unlock`
+        : `${AUGUST_BASE}/remoteoperate/${deviceId}/lock`;
+      const res = await fetch(endpoint, {
+        method: 'PUT',
+        headers: { 'x-august-api-key': apiKey, 'x-august-access-token': apiKey, 'Accept-Version': '0.0.1' },
+      });
+      return { success: res.ok, provider: 'august', status: res.status };
+    }
+    if (provider === 'nuki') {
+      const nukiAction = isUnlock ? 1 : 2;
+      const res = await fetch(`${NUKI_BASE}/smartlock/${deviceId}/action`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: nukiAction }),
+      });
+      return { success: res.ok, provider: 'nuki', status: res.status };
+    }
+    if (provider === 'remotelock') {
+      const state = isUnlock ? 'unlock' : 'lock';
+      const res = await fetch(`${RL_BASE}/devices/${deviceId}/lock_state`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ attributes: { lock_state: state } }),
+      });
+      return { success: res.ok, provider: 'remotelock', status: res.status };
+    }
+    if (provider === 'igloohome') {
+      // igloohome generates pin codes rather than direct unlock
+      const res = await fetch(`${IGLOO_BASE}/devices/${deviceId}/pincode`, {
+        method: 'POST',
+        headers: { 'x-igloohome-apikey': apiKey, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'pincode', duration: 1440 }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return { success: true, provider: 'igloohome', code: data?.pincode };
+      }
+      return { success: false, provider: 'igloohome', status: res.status };
+    }
+    // yale / schlage — require B2B credentials, fallback to manual
+    return null;
+  } catch (e) {
+    return { success: false, error: e.message, provider };
+  }
+}
+
 // Simple deterministic code from session ID + timestamp seed + salt
 // NOT cryptographically strong — this is a convenience code, not a security secret.
 // For smart lock integrations, the provider API handles actual security.
@@ -502,6 +565,70 @@ Deno.serve(async (req) => {
       }
 
       return Response.json({ success: true, incident_id: incident?.id || null });
+    }
+
+    // ─── SMART_LOCK_UNLOCK / SMART_LOCK_LOCK ──────────────────────────────────
+    if (action === 'smart_lock_unlock' || action === 'smart_lock_lock') {
+      if (!isGuest && !isHost && !isAdmin) return Response.json({ error: 'Forbidden' }, { status: 403 });
+      if (!isWithinBookingWindow(session, property) && !isAdmin) {
+        return Response.json({ error: 'Smart lock is only available during your booking window.' }, { status: 403 });
+      }
+
+      const lockAction = action === 'smart_lock_unlock' ? 'unlock' : 'lock';
+      const smartLockProvider = property?.access_settings?.smart_lock_provider || 'manual';
+      const smartLockConfig = property?.access_settings?.smart_lock_config || {};
+
+      // Attempt provider API call
+      const lockResult = await smartLockRequest(smartLockProvider, smartLockConfig, lockAction);
+
+      const eventType = lockResult?.success
+        ? (action === 'smart_lock_unlock' ? 'smart_lock_unlocked' : 'smart_lock_locked')
+        : 'smart_lock_error';
+
+      await svc.entities.BookingAccessEvent.create({
+        session_id,
+        property_id: propertyId || null,
+        actor_user_id: user.email,
+        event_type: eventType,
+        timestamp: now,
+        metadata: {
+          role: isHost ? 'host' : 'guest',
+          provider: smartLockProvider,
+          success: lockResult?.success ?? false,
+          error: lockResult?.error || null,
+          api_code: lockResult?.code || null,
+        },
+      }).catch(() => {});
+
+      await svc.entities.AdminActionLog.create({
+        admin_user_id: 'SYSTEM_ACCESS',
+        target_type: 'SoloSession',
+        target_id: session_id,
+        action: eventType,
+        reason: `Smart lock ${lockAction} by ${user.email} via ${smartLockProvider}`,
+        metadata_json: { session_id, actor: user.email, provider: smartLockProvider, success: lockResult?.success, timestamp: now },
+      }).catch(() => {});
+
+      if (!lockResult || lockResult.provider === 'manual' || !lockResult.success) {
+        // Fallback: issue access code
+        const seed = `${session.schedule?.confirmed_date || 'default'}-lock-${Date.now()}`;
+        const code = generateCode(session_id, seed);
+        return Response.json({
+          success: true,
+          method: 'access_code',
+          code,
+          message: lockResult?.success === false ? `Smart lock error (${lockResult.error || lockResult.status}). Use access code instead.` : 'Manual code access',
+          provider: smartLockProvider,
+        });
+      }
+
+      return Response.json({
+        success: true,
+        method: 'smart_lock',
+        provider: smartLockProvider,
+        code: lockResult.code || null,
+        message: `Smart lock ${lockAction} via ${smartLockProvider}`,
+      });
     }
 
     return Response.json({ error: `Unknown action: ${action}` }, { status: 400 });
