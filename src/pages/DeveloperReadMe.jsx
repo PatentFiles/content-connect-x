@@ -922,7 +922,7 @@ export default function DeveloperReadMe() {
               <ul className="list-disc list-inside space-y-1 text-xs text-[#9AA6BC]">
                 <li><code>generateReadMeToken()</code> — Admin function, returns 24h signed JWT</li>
                 <li>Signature: HMAC-SHA256 with <code>README_TOKEN_SECRET</code> env var (required)</li>
-                <li>Claim: <code>{{ exp: timestamp + 86400 }}</code></li>
+                <li>Claim: exp set to current time + 86400 seconds (24 hours)</li>
               </ul>
             </div>
             <div>
