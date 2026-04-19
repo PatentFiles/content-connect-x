@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { Plus, Building2, Eye, Pencil, ToggleLeft, ToggleRight, AlertTriangle } from 'lucide-react';
+import { Plus, Building2, Eye, Pencil, ToggleLeft, ToggleRight } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import CCButton from '@/components/ui-custom/CCButton';
@@ -16,6 +16,7 @@ import HostOnboardingGateModal from '@/components/hosting/HostOnboardingGateModa
 import SoloSessionsInbox from '@/components/sessions/SoloSessionsInbox';
 import ProHostSubscriptionPanel from '@/components/hosting/ProHostSubscriptionPanel';
 import HostPricingSettings from '@/components/hosting/HostPricingSettings';
+import { canCreateProperty } from '@/lib/hostReadiness';
 
 const STATUS_VARIANTS = {
   draft: 'outline',
@@ -52,10 +53,10 @@ export default function HostDashboard() {
     enabled: !!user?.email,
   });
 
-  // Gate: require host_account_active before property creation
-  const canCreateProperty = profile?.host_account_active === true;
+  const hostReady = canCreateProperty(profile);
+
   const handleAddProperty = () => {
-    if (!canCreateProperty) {
+    if (!hostReady) {
       setShowHostOnboardingModal(true);
       return;
     }
@@ -100,15 +101,23 @@ export default function HostDashboard() {
               <h1 className="text-2xl font-bold text-[#E8EEF9]">My Properties</h1>
               <p className="text-sm text-[#9AA6BC] mt-1">{activeCount} active · {draftCount} draft</p>
             </div>
-            <CCButton
-              variant="primary"
-              icon={Plus}
-              onClick={handleAddProperty}
-              disabled={!canCreateProperty}
-              title={canCreateProperty ? '' : 'Complete host onboarding first'}
-            >
-              Add Property
-            </CCButton>
+            <div className="relative group">
+              <CCButton
+                variant="primary"
+                icon={Plus}
+                onClick={handleAddProperty}
+                className={!hostReady ? 'opacity-50' : ''}
+              >
+                Add Property
+              </CCButton>
+              {!hostReady && (
+                <div className="absolute right-0 top-full mt-1.5 z-10 hidden group-hover:block">
+                  <div className="bg-[#1A2438] border border-[#263248] rounded-lg px-3 py-2 text-xs text-[#9AA6BC] whitespace-nowrap shadow-lg">
+                    Complete host setup to add a property
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Host onboarding modal gate */}
@@ -118,7 +127,7 @@ export default function HostDashboard() {
               onClose={() => setShowHostOnboardingModal(false)}
               onCompleted={() => {
                 setShowHostOnboardingModal(false);
-                queryClient.invalidateQueries(['myProfile', user?.email]);
+                queryClient.invalidateQueries({ queryKey: ['myProfile', user?.email] });
               }}
             />
           )}
@@ -149,7 +158,11 @@ export default function HostDashboard() {
 
           {/* Onboarding checklist — shown when user has no active listings */}
           {activeCount === 0 && (
-            <HostOnboardingChecklist properties={properties} />
+            <HostOnboardingChecklist
+              properties={properties}
+              profile={profile}
+              onAddProperty={hostReady ? handleAddProperty : null}
+            />
           )}
 
           {/* Property list */}
@@ -157,9 +170,11 @@ export default function HostDashboard() {
             <CCEmpty
               icon={Building2}
               title="No properties yet"
-              description="List your first property to start accepting bookings."
+              description={hostReady
+                ? "List your first property to start accepting bookings."
+                : "Complete your host setup to start listing properties."}
               action={handleAddProperty}
-              actionLabel="Add Property"
+              actionLabel={hostReady ? "Add Property" : "Complete Setup"}
             />
           ) : (
             <div className="space-y-3">
