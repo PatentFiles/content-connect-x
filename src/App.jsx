@@ -46,7 +46,7 @@ const AuthenticatedApp = () => {
 
   // Handle global subscription block — blocks entire app except Settings/Pricing
   // ADMIN BYPASS: admins are never subscription blocked
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || user?.role_type === 'admin';
   if (isAuthenticated && subscriptionBlocked && !isAdmin) {
     // Only allow access to Settings and Pricing pages for resubscription
     const allowedRoutes = ['/Settings', '/Pricing', '/Billing'];

@@ -106,7 +106,7 @@ export default function Layout({ children, currentPageName }) {
   const profile = profiles[0];
   const isVerified = verifications[0]?.status === 'approved';
   const isAuthenticated = !!user;
-  const isAdmin = profile?.is_admin;
+  const isAdmin = user?.role === 'admin' || user?.role_type === 'admin';
 
   // Update last_active_at once per session per day
   useEffect(() => {
@@ -216,6 +216,7 @@ export default function Layout({ children, currentPageName }) {
             <Sidebar 
               currentPage={currentPageName}
               profile={{...profile, verified: isVerified}}
+              user={user}
               onLogout={handleLogout}
               adminRoleView={adminRoleView}
               onAdminRoleViewChange={setAdminRoleView}

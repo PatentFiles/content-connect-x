@@ -19,7 +19,7 @@ export default function FeatureRouteGuard({
   const enabled = useFeatureFlag(flag);
   
   // Admin bypass: allow all routes
-  const isAdmin = user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || user?.role_type === 'admin';
   if (isAdmin) {
     return <>{children}</>;
   }

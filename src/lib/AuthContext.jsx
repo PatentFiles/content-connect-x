@@ -168,7 +168,7 @@ export const AuthProvider = ({ children }) => {
         
         // Determine if subscription blocks access
         // ADMIN BYPASS: admins are never blocked by subscription
-        const isAdmin = currentUser.role === 'admin';
+        const isAdmin = currentUser?.role === 'admin' || currentUser?.role_type === 'admin';
         const isActive = sub?.status === 'active' || sub?.status === 'trial';
         setSubscriptionBlocked(!isAdmin && !isActive);
       } catch (subError) {

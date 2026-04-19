@@ -27,7 +27,7 @@ function useReadMeAccess() {
     enabled: !!user?.email,
   });
 
-  const isAdmin = profiles[0]?.is_admin || user?.role === 'admin';
+  const isAdmin = user?.role === 'admin' || user?.role_type === 'admin';
   const isLoading = userLoading || profileLoading || !tokenState.checked;
 
   useEffect(() => {

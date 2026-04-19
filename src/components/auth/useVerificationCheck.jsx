@@ -23,7 +23,7 @@ export function useVerificationCheck(action) {
   });
 
   const profile = profiles[0];
-  const isAdmin = profile?.is_admin;
+  const isAdmin = user?.role === 'admin' || user?.role_type === 'admin';
   const isBanned = profile?.banned === true;
   const isSuspended = profile?.suspended === true;
   // If verification feature flag is OFF, treat everyone as verified

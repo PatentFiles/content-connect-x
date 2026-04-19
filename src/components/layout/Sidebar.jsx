@@ -28,9 +28,9 @@ const adminNavItems = [
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 
-export default function Sidebar({ currentPage, profile, onLogout, adminRoleView, onAdminRoleViewChange }) {
+export default function Sidebar({ currentPage, profile, user, onLogout, adminRoleView, onAdminRoleViewChange }) {
   // Determine which role's navigation to show
-  const isAdmin = profile?.is_admin;
+  const isAdmin = user?.role === 'admin' || user?.role_type === 'admin';
   const effectiveRoleView = isAdmin && adminRoleView ? adminRoleView : (profile?.role_type || 'creator');
   const showAdminNav = isAdmin && effectiveRoleView === 'admin';
   const roleType = showAdminNav ? 'creator' : effectiveRoleView;

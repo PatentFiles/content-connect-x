@@ -16,14 +16,17 @@
 import { useFeatureFlag } from '@/lib/featureFlags';
 import AccessGate from '@/components/auth/AccessGate';
 
-export default function VerificationGate({ isVerified, isAdmin = false, fallback, children }) {
+export default function VerificationGate({ isVerified, isAdmin = false, user, fallback, children }) {
   const verificationEnabled = useFeatureFlag('verification');
+  
+  // Standard admin check: both role and role_type
+  const adminCheck = isAdmin || user?.role === 'admin' || user?.role_type === 'admin';
 
   // If verification flag is OFF, everyone passes
   if (!verificationEnabled) return <>{children}</>;
 
   // Admins always pass
-  if (isAdmin) return <>{children}</>;
+  if (adminCheck) return <>{children}</>;
 
   // Verified users pass
   if (isVerified) return <>{children}</>;
