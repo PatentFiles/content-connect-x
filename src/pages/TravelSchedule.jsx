@@ -80,13 +80,6 @@ export default function TravelSchedule() {
   if (isLoading) return <CCLoadingScreen message="Loading travel schedule..." />;
 
   const profile = profiles[0];
-    if (confirm('Are you sure you want to delete this travel entry?')) {
-      base44.entities.ScheduleEntry.delete(id).then(() => {
-        queryClient.invalidateQueries({ queryKey: ['travelEntries'] });
-        toast.success('Travel entry deleted');
-      });
-    }
-  };
 
   const exportToCalendar = (entry, type) => {
     const location = entry.location_city || entry.title || 'Destination';
@@ -124,7 +117,7 @@ END:VCALENDAR`;
   };
 
   return (
-    <FeatureRouteGuard flag="travel_schedule" requiresSubscription={true}>
+    <FeatureRouteGuard flag="travel_schedule">
       <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         {/* Header */}
