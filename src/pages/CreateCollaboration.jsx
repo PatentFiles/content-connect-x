@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 import { motion } from 'framer-motion';
 import { 
   Briefcase, 
@@ -1806,5 +1807,6 @@ export default function CreateCollaboration() {
         </div>
       </div>
     </div>
+    </FeatureRouteGuard>
   );
 }

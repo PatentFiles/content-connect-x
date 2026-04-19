@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 import { motion } from 'framer-motion';
 import { 
   ShieldCheck, 
@@ -361,5 +362,6 @@ export default function Verification() {
         </div>
       </div>
     </div>
+    </FeatureRouteGuard>
   );
 }

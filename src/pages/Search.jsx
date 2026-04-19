@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 import { motion } from 'framer-motion';
 import { Search as SearchIcon, X, Filter, Users, Camera, Video, Briefcase, Building, Film, Home } from 'lucide-react';
 import TravelSync from '@/components/discovery/TravelSync';

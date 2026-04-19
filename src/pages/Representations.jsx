@@ -298,9 +298,10 @@ export default function Representations() {
             </CCCard>
           )}
         </div>
-      </div>
-    );
-  }
+        </div>
+        </FeatureRouteGuard>
+        );
+        }
 
   // ── AGENT VIEW (original, enhanced) ──────────────────────────────
   const activeReps = agentReps.filter(r => r.status === 'ACTIVE');

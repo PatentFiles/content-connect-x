@@ -417,5 +417,6 @@ export default function CollaborationDetail() {
         </div>
       </div>
     </div>
+    </FeatureRouteGuard>
   );
 }

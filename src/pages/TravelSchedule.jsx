@@ -7,6 +7,7 @@ import { MapPin, Trash2, Plus, Download, Calendar, ChevronLeft, ChevronRight } f
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 import TravelDateManager from '@/components/profile/TravelDateManager';
 
 export default function TravelSchedule() {
@@ -116,6 +117,7 @@ END:VCALENDAR`;
   };
 
   return (
+    <FeatureRouteGuard flag="core">
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         {/* Header */}
@@ -244,5 +246,6 @@ END:VCALENDAR`;
         />
       )}
     </div>
+    </FeatureRouteGuard>
   );
 }
