@@ -10,13 +10,25 @@ Deno.serve(async (req) => {
     }
 
     const payload = await req.json();
-    const { action, property } = payload;
+     const { action, property } = payload;
 
-    // Fetch user profile
-    const profiles = await base44.entities.UserProfile.filter({ user_id: user.email });
-    const profile = profiles[0];
+     // Fetch user profile
+     const profiles = await base44.entities.UserProfile.filter({ user_id: user.email });
+     const profile = profiles[0];
 
-    const isAdmin = profile?.is_admin === true || user?.role === 'admin';
+     const isAdmin = profile?.is_admin === true || user?.role === 'admin' || user?.role_type === 'admin';
+
+     // HARD ENFORCEMENT: Age verification + subscription
+     if (!isAdmin) {
+       if (profile?.age_verified !== true) {
+         return Response.json({ error: 'Age verification required' }, { status: 403 });
+       }
+       const subs = await base44.entities.Subscription.filter({ user_id: user.email }).catch(() => []);
+       const sub = subs[0];
+       if (!sub || !['active', 'trial'].includes(sub.status)) {
+         return Response.json({ error: 'Active subscription required' }, { status: 403 });
+       }
+     }
 
     // Host eligibility check — admins bypass this
     if (!isAdmin) {

@@ -129,15 +129,30 @@ async function verifySessionEligibility(base44, sessionId, userEmail, propertyId
 }
 
 Deno.serve(async (req) => {
-  try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+   try {
+     const base44 = createClientFromRequest(req);
+     const user = await base44.auth.me();
+     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const payload = await req.json();
-    const { action, review_id, property_id, session_id, rating, review_text } = payload;
+     const payload = await req.json();
+     const { action, review_id, property_id, session_id, rating, review_text } = payload;
 
-    if (action === 'create') {
+     // HARD ENFORCEMENT: Age verification + subscription
+     const userProfile = await base44.entities.UserProfile.filter({ user_id: user.email }).catch(() => []);
+     const profile = userProfile[0];
+     const isAdminEarly = user?.role === 'admin' || user?.role_type === 'admin' || profile?.is_admin === true;
+     if (!isAdminEarly) {
+       if (profile?.age_verified !== true) {
+         return Response.json({ error: 'Age verification required' }, { status: 403 });
+       }
+       const subs = await base44.entities.Subscription.filter({ user_id: user.email }).catch(() => []);
+       const sub = subs[0];
+       if (!sub || !['active', 'trial'].includes(sub.status)) {
+         return Response.json({ error: 'Active subscription required' }, { status: 403 });
+       }
+     }
+
+     if (action === 'create') {
       const eligibility = await verifySessionEligibility(base44, session_id, user.email, property_id);
       if (!eligibility.valid) {
         return Response.json({ error: eligibility.error }, { status: 403 });

@@ -150,7 +150,20 @@ Deno.serve(async (req) => {
 
     // Fetch profile for admin check
     const profiles = await svc.entities.UserProfile.filter({ user_id: user.email }).catch(() => []);
-    const isAdmin = profiles[0]?.is_admin || profiles[0]?.role_type === 'admin';
+    const profile = profiles[0];
+    const isAdmin = profile?.is_admin || profile?.role_type === 'admin' || user?.role === 'admin';
+
+    // HARD ENFORCEMENT: Age verification + subscription
+    if (!isAdmin) {
+      if (profile?.age_verified !== true) {
+        return Response.json({ error: 'Age verification required' }, { status: 403 });
+      }
+      const subs = await svc.entities.Subscription.filter({ user_id: user.email }).catch(() => []);
+      const sub = subs[0];
+      if (!sub || !['active', 'trial'].includes(sub.status)) {
+        return Response.json({ error: 'Active subscription required' }, { status: 403 });
+      }
+    }
 
     if (!isHost && !isGuest && !isAdmin) return Response.json({ error: 'Forbidden' }, { status: 403 });
 

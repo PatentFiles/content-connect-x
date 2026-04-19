@@ -31,28 +31,29 @@ const AuthenticatedApp = () => {
   const verificationEnabled = useFeatureFlag('verification');
 
   // Check verification status on auth change
-  useEffect(() => {
-    const checkVerification = async () => {
-      if (!isAuthenticated || !user?.email) {
-        setIsVerified(false);
-        setVerificationLoading(false);
-        return;
-      }
+   useEffect(() => {
+     const checkVerification = async () => {
+       if (!isAuthenticated || !user?.email) {
+         setIsVerified(false);
+         setVerificationLoading(false);
+         return;
+       }
 
-      try {
-        const profiles = await base44.entities.UserProfile.filter({ user_id: user.email });
-        const profile = profiles[0];
-        setIsVerified(profile?.verification_status === 'approved');
-      } catch (error) {
-        console.error('Failed to check verification:', error);
-        setIsVerified(false);
-      } finally {
-        setVerificationLoading(false);
-      }
-    };
+       try {
+         const profiles = await base44.entities.UserProfile.filter({ user_id: user.email });
+         const profile = profiles[0];
+         // SINGLE SOURCE OF TRUTH: age_verified
+         setIsVerified(profile?.age_verified === true);
+       } catch (error) {
+         console.error('Failed to check verification:', error);
+         setIsVerified(false);
+       } finally {
+         setVerificationLoading(false);
+       }
+     };
 
-    checkVerification();
-  }, [isAuthenticated, user?.email]);
+     checkVerification();
+   }, [isAuthenticated, user?.email]);
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth || verificationLoading) {

@@ -19,18 +19,32 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+     const base44 = createClientFromRequest(req);
+     const user = await base44.auth.me();
+     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const svc = base44.asServiceRole;
+     const svc = base44.asServiceRole;
 
-    // Ban/suspension check
-    const profiles = await svc.entities.UserProfile.filter({ user_id: user.email }).catch(() => []);
-    const profile = profiles[0];
-    if (profile?.banned || profile?.suspended) {
-      return Response.json({ error: 'Account restricted' }, { status: 403 });
-    }
+     // Ban/suspension check
+     const profiles = await svc.entities.UserProfile.filter({ user_id: user.email }).catch(() => []);
+     const profile = profiles[0];
+     if (profile?.banned || profile?.suspended) {
+       return Response.json({ error: 'Account restricted' }, { status: 403 });
+     }
+
+     // HARD ENFORCEMENT: Age verification + subscription
+     const isAdminEarly = user?.role === 'admin' || user?.role_type === 'admin';
+     if (!isAdminEarly) {
+       if (profile?.age_verified !== true) {
+         return Response.json({ error: 'Age verification required', code: 'VERIFICATION_REQUIRED' }, { status: 403 });
+       }
+       // Fetch subscription status
+       const subs = await svc.entities.Subscription.filter({ user_id: user.email }).catch(() => []);
+       const sub = subs[0];
+       if (!sub || !['active', 'trial'].includes(sub.status)) {
+         return Response.json({ error: 'Active subscription required', code: 'SUBSCRIPTION_REQUIRED' }, { status: 403 });
+       }
+     }
 
     const body = await req.json();
     const { action } = body;
