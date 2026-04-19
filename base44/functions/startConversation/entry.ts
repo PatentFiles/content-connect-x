@@ -10,11 +10,12 @@ Deno.serve(async (req) => {
     }
 
     // CHECK BAN STATUS - Block banned/suspended users
+    let profile;
     try {
       const profiles = await base44.asServiceRole.entities.UserProfile.filter({
         user_id: user.email
       });
-      const profile = profiles[0];
+      profile = profiles[0];
 
       if (profile?.banned === true) {
         await logBlockedAction(base44, user.email, 'start_conversation', 'banned');
@@ -38,6 +39,37 @@ Deno.serve(async (req) => {
         { status: 403 }
       );
     }
+
+    // ── VERIFICATION ENFORCEMENT ──────────────────────────────────────────
+    // All non-admin users MUST be verified to start conversations
+    const isAdmin = profile?.is_admin === true;
+    if (!isAdmin) {
+      let verificationEnabled = true;
+      try {
+        const flagRecords = await base44.asServiceRole.entities.PlatformFeatureFlag.list();
+        const verFlag = flagRecords.find(f => f.flag_key === 'verification');
+        if (verFlag && verFlag.value_type === 'boolean') {
+          verificationEnabled = verFlag.bool_value !== false;
+        }
+      } catch { /* fail safe */ }
+
+      if (verificationEnabled) {
+        const verifications = await base44.asServiceRole.entities.VerificationRecord.filter({
+          user_id: user.email
+        });
+        const isVerified = verifications.some(v => v.status === 'approved');
+        
+        if (!isVerified) {
+          await logBlockedAction(base44, user.email, 'start_conversation', 'verification_required');
+          return Response.json({
+            error: 'Verification required to start conversations',
+            code: 'verification_required',
+            blocked: true
+          }, { status: 403 });
+        }
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────
 
     const { recipient_id } = await req.json();
 

@@ -25,12 +25,15 @@ export default function VerificationGate({ isVerified, isAdmin = false, user, fa
   // If verification flag is OFF, everyone passes
   if (!verificationEnabled) return <>{children}</>;
 
-  // Admins always pass
+  // GLOBAL VERIFICATION ENFORCEMENT:
+  // Admins always bypass verification
   if (adminCheck) return <>{children}</>;
 
-  // Verified users pass
-  if (isVerified) return <>{children}</>;
+  // Non-admins MUST be verified when flag is ON
+  if (!isVerified) {
+    return fallback ? <>{fallback}</> : <AccessGate type="verification" user={user} />;
+  }
 
-  // Blocked — show fallback or default AccessGate
-  return fallback ? <>{fallback}</> : <AccessGate type="verification" />;
+  // User is verified — grant access
+  return <>{children}</>;
 }

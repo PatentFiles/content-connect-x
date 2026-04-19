@@ -6,10 +6,16 @@ import CCButton from '../ui-custom/CCButton';
 import CCCard from '../ui-custom/CCCard';
 import { useFeatureFlag } from '@/lib/featureFlags';
 
-export default function AccessGate({ type = 'verification', profile, children }) {
+export default function AccessGate({ type = 'verification', profile, children, user }) {
   const verificationEnabled = useFeatureFlag('verification');
 
-  // If verification flag is OFF and this is a verification gate, pass through
+  // Admin bypass — always pass for admins
+  const isAdmin = user?.role === 'admin' || user?.role_type === 'admin';
+  if (isAdmin) {
+    return <>{children}</>;
+  }
+
+  // If verification flag is OFF, verification gate doesn't apply
   if (type === 'verification' && !verificationEnabled) {
     return children ? <>{children}</> : null;
   }

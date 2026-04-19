@@ -26,17 +26,23 @@ export function useVerificationCheck(action) {
   const isAdmin = user?.role === 'admin' || user?.role_type === 'admin';
   const isBanned = profile?.banned === true;
   const isSuspended = profile?.suspended === true;
-  // If verification feature flag is OFF, treat everyone as verified
-  const isVerified = !verificationEnabled || isAdmin || verifications.some(v => v.status === 'approved');
+  
+  // GLOBAL VERIFICATION ENFORCEMENT:
+  // - Admins bypass verification
+  // - If verification flag OFF, everyone passes
+  // - Otherwise, must have approved verification
+  const isVerified = isAdmin || !verificationEnabled || verifications.some(v => v.status === 'approved');
   const checking = isLoading;
   const blocked = !isVerified || isBanned || isSuspended;
-  const blockReason = isBanned ? 'banned' : isSuspended ? 'suspended' : null;
+  const blockReason = isBanned ? 'banned' : isSuspended ? 'suspended' : !isVerified ? 'verification_required' : null;
 
   return {
     checking,
     blocked,
     blockReason,
     suspensionReason: profile?.suspension_reason,
+    isVerified,
+    isAdmin,
     verificationStatus: { blocked, is_admin: isAdmin, banned: isBanned, suspended: isSuspended }
   };
 }

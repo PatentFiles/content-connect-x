@@ -35,6 +35,8 @@ import CCEmpty from '@/components/ui-custom/CCEmpty';
 import CommFilterWarning from '@/components/messaging/CommFilterWarning';
 import { detectCommViolation, getEscalationLevel } from '@/lib/commFilter';
 import { useFeatureFlag } from '@/lib/featureFlags';
+import VerificationGate from '@/components/auth/VerificationGate';
+import AccessGate from '@/components/auth/AccessGate';
 
 export default function Messages() {
   const [selectedConversation, setSelectedConversation] = useState(null);
@@ -70,6 +72,7 @@ export default function Messages() {
   }, [selectedConversation?.id]);
 
   const commFilterEnabled = useFeatureFlag('comm_filter');
+  const verificationEnabled = useFeatureFlag('verification');
   const { protectedMutate } = useProtectedMutation();
 
   // Check auth and access
@@ -77,6 +80,16 @@ export default function Messages() {
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
+
+  // Check verification status
+  const { data: verifications = [] } = useQuery({
+    queryKey: ['myVerification', user?.email],
+    queryFn: () => base44.entities.VerificationRecord.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
+  });
+  
+  const isVerified = verifications.some(v => v.status === 'approved');
+  const isAdmin = user?.role === 'admin' || user?.role_type === 'admin';
 
   // Real-time conversation list subscription
   useEffect(() => {
@@ -96,7 +109,7 @@ export default function Messages() {
     enabled: !!user?.email,
   });
 
-  const isAdmin = profile?.is_admin;
+  const isAdmin = user?.role === 'admin' || user?.role_type === 'admin';
 
   // Fetch conversations
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery({
@@ -411,6 +424,11 @@ export default function Messages() {
 
   if (userLoading) {
     return <CCLoadingScreen message="Loading..." />;
+  }
+
+  // Verification gate for messaging
+  if (verificationEnabled && !isAdmin && !isVerified) {
+    return <AccessGate type="verification" user={user} />;
   }
 
   return (

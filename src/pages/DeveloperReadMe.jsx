@@ -773,12 +773,13 @@ export default function DeveloperReadMe() {
           </h2>
           <CCCard>
             <div className="mb-4 p-3 bg-[#4F8CFF]/10 border border-[#4F8CFF]/30 rounded-lg">
-              <p className="text-sm text-[#4F8CFF] font-semibold">⚠ Post-Hardening Changes</p>
+              <p className="text-sm text-[#4F8CFF] font-semibold">⚠ GLOBAL VERIFICATION ENFORCEMENT (HARD LOCK)</p>
               <ul className="text-xs text-[#9AA6BC] mt-1 list-disc ml-4 space-y-1">
-                <li><strong>Send Message</strong>: No longer requires verification. Only requires <code>messaging</code> flag=ON + no ban/suspension.</li>
-                <li><strong>All verification gates</strong>: Only enforced when <code>verification</code> flag=ON. When flag=OFF, all users pass through.</li>
-                <li><strong>Feature flags are single source of truth</strong>: Disabling a flag blocks the feature globally in both frontend and backend.</li>
-                <li><strong>DeveloperReadMe</strong>: Now requires admin OR valid 24h signed token. No direct URL bypass.</li>
+                <li><strong>All Features Require Verification</strong>: When <code>verification</code> flag=ON, ALL non-admin users MUST be verified. No exceptions.</li>
+                <li><strong>Messaging Locked</strong>: <code>send_message</code> + <code>start_conversation</code> now enforce verification (backend + frontend).</li>
+                <li><strong>Admin Bypass</strong>: <code>user?.role === 'admin' || user?.role_type === 'admin'</code> bypasses verification, subscription, and all feature flags.</li>
+                <li><strong>Backend Enforcement</strong>: <code>protectedActions.send_message</code>, <code>startConversation</code>, and all mutations check verification status.</li>
+                <li><strong>Frontend Gates</strong>: VerificationGate + AccessGate enforce verification globally before any feature access.</li>
               </ul>
             </div>
             <div className="overflow-x-auto">
@@ -793,16 +794,16 @@ export default function DeveloperReadMe() {
                 </thead>
                 <tbody className="text-[#9AA6BC]">
                   {[
-                    ['Send Message', 'Ban check only', 'protectedActions.send_message', 'messaging=ON'],
-                    ['View Profile', 'VerificationGate (when flag=ON)', 'validateVerificationStatus', 'verification=ON'],
-                    ['Create Collaboration', 'VerificationGate + FriendGate', 'validateCollaborationFriendGate', 'collaborations=ON'],
-                    ['Initiate Contract', 'Testing requirements', 'validateContractInitiation', 'contracts=ON'],
-                    ['Book Property', 'Host eligibility', 'manageSoloSession', 'hosting_marketplace=ON'],
+                    ['Send Message', 'Verification + Ban check', 'protectedActions.send_message', 'messaging=ON + verification=ON'],
+                    ['Start Conversation', 'Verification + Ban check', 'startConversation', 'verification=ON'],
+                    ['Create Collaboration', 'Verification + Friend gate', 'validateCollaborationFriendGate', 'collaborations=ON + verification=ON'],
+                    ['Submit Report', 'Verification + Ban check', 'protectedActions.submit_report', 'verification=ON'],
+                    ['View Profile', 'VerificationGate', 'validateVerificationStatus', 'verification=ON'],
+                    ['Book Property', 'Verification', 'manageSoloSession', 'hosting_marketplace=ON + verification=ON'],
                     ['Access Code', 'Within booking window', 'manageBookingAccess', 'hosting_marketplace=ON'],
                     ['GPS Check-In', 'Within geofence', 'manageBookingAccess', 'gps_checkin=ON'],
-                    ['Review Property', 'Session completed', 'managePropertyReview', 'property_reviews_enabled=ON'],
+                    ['Admin Dashboard', 'Admin only (bypass all)', 'adminModerationAction', 'Always enforced'],
                     ['DeveloperReadMe', 'Admin OR signed token', 'validateReadMeToken', 'Always enforced'],
-                    ['Upgrade Collaboration', 'Participant only', 'manageSoloSession', 'solo_sessions=ON'],
                   ].map(([action, guard, fn, flag]) => (
                     <tr key={action} className="border-b border-[#263248]">
                       <td className="p-2 font-medium">{action}</td>

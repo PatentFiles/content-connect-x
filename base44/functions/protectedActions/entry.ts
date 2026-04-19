@@ -315,6 +315,34 @@ Deno.serve(async (req) => {
           return Response.json({ error: 'Missing required fields' }, { status: 400 });
         }
 
+        // ── VERIFICATION ENFORCEMENT ──────────────────────────────────────────
+        // All non-admin users MUST be verified to send messages
+        let verificationEnabled = true;
+        try {
+          const flagRecords = await base44.asServiceRole.entities.PlatformFeatureFlag.list();
+          const verFlag = flagRecords.find(f => f.flag_key === 'verification');
+          if (verFlag && verFlag.value_type === 'boolean') {
+            verificationEnabled = verFlag.bool_value !== false;
+          }
+        } catch { /* fail safe — assume verification required */ }
+
+        if (verificationEnabled && !banResult.profile?.is_admin) {
+          const verifications = await base44.asServiceRole.entities.VerificationRecord.filter({
+            user_id: user.email
+          });
+          const isVerified = verifications.some(v => v.status === 'approved');
+          
+          if (!isVerified) {
+            await logBlockedAction(base44, user.email, 'send_message', 'verification_required');
+            return Response.json({
+              error: 'Verification required',
+              code: 'verification_required',
+              blocked: true
+            }, { status: 403 });
+          }
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         // ── MODERATION CHECK ──────────────────────────────────────────────────
         const msgModeration = await enforceModerationInline(base44, user.email, messageBody, 'message');
         if (msgModeration && (msgModeration.severity === 'critical' || msgModeration.severity === 'high')) {
@@ -480,6 +508,24 @@ Deno.serve(async (req) => {
 
       // ──────────────── COLLABORATIONS ────────────────
       case 'create_collaboration': {
+        // ── VERIFICATION ENFORCEMENT ──────────────────────────────────────────
+        if (verificationEnabled && !banResult.profile?.is_admin) {
+          const verifications = await base44.asServiceRole.entities.VerificationRecord.filter({
+            user_id: user.email
+          });
+          const isVerified = verifications.some(v => v.status === 'approved');
+          
+          if (!isVerified) {
+            await logBlockedAction(base44, user.email, 'create_collaboration', 'verification_required');
+            return Response.json({
+              error: 'Verification required',
+              code: 'verification_required',
+              blocked: true
+            }, { status: 403 });
+          }
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         const collabData = body;
 
         // ── MODERATION: scan all free-text fields ─────────────────────────────
@@ -566,6 +612,24 @@ Deno.serve(async (req) => {
 
       // ──────────────── REPORTS ────────────────
       case 'submit_report': {
+        // ── VERIFICATION ENFORCEMENT ──────────────────────────────────────────
+        if (verificationEnabled && !banResult.profile?.is_admin) {
+          const verifications = await base44.asServiceRole.entities.VerificationRecord.filter({
+            user_id: user.email
+          });
+          const isVerified = verifications.some(v => v.status === 'approved');
+          
+          if (!isVerified) {
+            await logBlockedAction(base44, user.email, 'submit_report', 'verification_required');
+            return Response.json({
+              error: 'Verification required',
+              code: 'verification_required',
+              blocked: true
+            }, { status: 403 });
+          }
+        }
+        // ─────────────────────────────────────────────────────────────────────
+
         const { target_user_id, reason, details, target_content_type, target_content_id } = body;
         if (!target_user_id || !reason) {
           return Response.json({ error: 'target_user_id and reason required' }, { status: 400 });
