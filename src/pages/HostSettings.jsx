@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Settings as SettingsIcon, LogOut, User, Bell, Shield, CreditCard } from 'lucide-react';
+import { Settings as SettingsIcon, LogOut, User, Bell, Shield, CreditCard, Trash2, Lock } from 'lucide-react';
 import { CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';
@@ -11,7 +12,6 @@ import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import NotificationPreferences from '@/components/settings/NotificationPreferences';
 import DeleteAccountFlow from '@/components/settings/DeleteAccountFlow';
 import HostPricingSettings from '@/components/hosting/HostPricingSettings';
-import { Trash2, Lock } from 'lucide-react';
 
 export default function HostSettings() {
   const [activeTab, setActiveTab] = useState('account');
