@@ -14,7 +14,6 @@ import ProfileCard from '@/components/profiles/ProfileCard';
 import ProfileFilters from '@/components/profiles/ProfileFilters';
 import AccessGate from '@/components/auth/AccessGate';
 import SaveToFavoritesModal from '@/components/profiles/SaveToFavoritesModal';
-import { useFeatureFlag } from '@/lib/featureFlags';
 import ReportModal from '@/components/moderation/ReportModal';
 
 const roleOptions = [
@@ -60,26 +59,18 @@ export default function Search() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: verification } = useQuery({
-    queryKey: ['verification', user?.email],
-    queryFn: () => base44.entities.VerificationRecord.filter({ user_id: user?.email }),
-    enabled: !!user?.email,
-  });
-
   const { data: subscription } = useQuery({
     queryKey: ['subscription', user?.email],
     queryFn: () => base44.entities.Subscription.filter({ user_id: user?.email }),
     enabled: !!user?.email,
   });
 
-  const verificationEnabled = useFeatureFlag('verification');
   const { data: myProfile = [] } = useQuery({
     queryKey: ['myProfile', user?.email],
     queryFn: () => base44.entities.UserProfile.filter({ user_id: user?.email }),
     enabled: !!user?.email,
   });
   const isAdmin = myProfile?.[0]?.is_admin || user?.role === 'admin';
-  const isVerified = !verificationEnabled || isAdmin || verification?.[0]?.status === 'approved';
   const isSubscribed = isAdmin || subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
   // Fetch all creator details and verifications with staleTime and limits

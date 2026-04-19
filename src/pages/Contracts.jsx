@@ -99,7 +99,7 @@ export default function Contracts() {
         c.signatories?.some(s => s.user_id === user?.email)
       );
     },
-    enabled: !!user && isSubscribed,
+    enabled: !!user,
   });
 
   // Fetch collaborations for contract creation
@@ -109,7 +109,7 @@ export default function Contracts() {
       const allCollab = await base44.entities.Collaboration.list('-created_date');
       return allCollab.filter(r => r.participant_ids?.includes(user?.email));
     },
-    enabled: !!user && isSubscribed,
+    enabled: !!user,
   });
 
   // Fetch contract templates

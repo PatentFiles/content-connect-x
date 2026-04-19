@@ -69,7 +69,7 @@ export default function Favorites() {
   const { data: favorites = [], isLoading: favoritesLoading } = useQuery({
     queryKey: ['favorites', user?.email],
     queryFn: () => base44.entities.Favorite.filter({ owner_id: user?.email }),
-    enabled: !!user && isSubscribed,
+    enabled: !!user?.email,
   });
 
   // Fetch all profiles for favorites items
