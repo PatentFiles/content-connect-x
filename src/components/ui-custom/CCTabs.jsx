@@ -2,6 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
+// CCTabs — tab container, list, and content components
 export function CCTabs({ children, className }) {
   return (
     <div className={cn('space-y-4', className)}>
