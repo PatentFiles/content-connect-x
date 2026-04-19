@@ -17,7 +17,6 @@ import {
   Unlock
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { useState } from 'react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';

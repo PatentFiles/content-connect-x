@@ -7,7 +7,6 @@ import { MapPin, Trash2, Plus, Download, Calendar, ChevronLeft, ChevronRight } f
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
-import { useState } from 'react';
 import TravelDateManager from '@/components/profile/TravelDateManager';
 
 export default function TravelSchedule() {

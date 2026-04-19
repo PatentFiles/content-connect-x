@@ -6,10 +6,18 @@ import { useFeatureFlag } from '@/lib/featureFlags';
 import { MARKETING_FEATURES } from '@/lib/marketingFeatureMap';
 import { motion } from 'framer-motion';
 
-export default function MarketingFeatureShowcase({ onlyPage = null }) {
-  const allFlags = Object.fromEntries(
-    Object.entries(MARKETING_FEATURES).map(([key, feature]) => [feature.flag, useFeatureFlag(feature.flag)])
+// Call all hooks at top level — one per known flag key
+function useAllFeatureFlags() {
+  return Object.fromEntries(
+    Object.entries(MARKETING_FEATURES).map(([key, feature]) => {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      return [feature.flag, useFeatureFlag(feature.flag)];
+    })
   );
+}
+
+export default function MarketingFeatureShowcase({ onlyPage = null }) {
+  const allFlags = useAllFeatureFlags();
 
   const features = Object.entries(MARKETING_FEATURES)
     .filter(([key, feature]) => {
