@@ -89,7 +89,6 @@ export default function Messages() {
   });
   
   const isVerified = verifications.some(v => v.status === 'approved');
-  const isAdmin = user?.role === 'admin' || user?.role_type === 'admin';
 
   // Real-time conversation list subscription
   useEffect(() => {
