@@ -6,6 +6,7 @@
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+// Uses BASE44_APP_ID as default (always available). Optionally set README_TOKEN_SECRET for added security.
 const TOKEN_SECRET = Deno.env.get('README_TOKEN_SECRET') || Deno.env.get('BASE44_APP_ID') || 'cc-readme-default-secret';
 
 async function hmacVerify(data, signature, secret) {

@@ -11,6 +11,7 @@ import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import NotificationPreferences from '@/components/settings/NotificationPreferences';
 import DeleteAccountFlow from '@/components/settings/DeleteAccountFlow';
 import HostPricingSettings from '@/components/hosting/HostPricingSettings';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 
 export default function HostSettings() {
   const [activeTab, setActiveTab] = useState('account');
@@ -65,6 +66,7 @@ export default function HostSettings() {
   ];
 
   return (
+    <FeatureRouteGuard flag="hosting_marketplace">
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Header */}
       <div
@@ -196,5 +198,6 @@ export default function HostSettings() {
 
       <DeleteAccountFlow isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} userEmail={user?.email} />
     </div>
+    </FeatureRouteGuard>
   );
 }
