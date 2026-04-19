@@ -98,8 +98,6 @@ export const roleNavigation = {
     { path: 'HostDashboard', label: 'My Properties', icon: BarChart3 },
     { path: 'HostingMarketplace', label: 'Host Properties', icon: Building2 },
     { path: 'Messages', label: 'Messages', icon: MessageCircle },
-    { path: 'Contracts', label: 'Contracts', icon: FileText },
-    { path: 'Verification', label: 'Verification', icon: Shield },
   ],
 };
 
