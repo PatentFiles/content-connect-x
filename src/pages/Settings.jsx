@@ -33,6 +33,7 @@ import CCModal from '@/components/ui-custom/CCModal';
 import DeleteAccountFlow from '@/components/settings/DeleteAccountFlow';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 
+// Settings page
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('account');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
