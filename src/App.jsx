@@ -11,6 +11,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { FeatureFlagProvider } from '@/lib/featureFlags';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AccountBlockedScreen from '@/components/auth/AccountBlockedScreen';
+import SubscriptionBlockedScreen from '@/components/auth/SubscriptionBlockedScreen';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -21,7 +22,7 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   : <>{children}</>;
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, blockStatus, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, blockStatus, subscriptionBlocked, isAuthenticated, navigateToLogin } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -41,6 +42,17 @@ const AuthenticatedApp = () => {
         suspensionEndAt={blockStatus.suspensionEndAt}
       />
     );
+  }
+
+  // Handle global subscription block — blocks entire app except Settings/Pricing
+  if (isAuthenticated && subscriptionBlocked) {
+    // Only allow access to Settings and Pricing pages for resubscription
+    const allowedRoutes = ['/Settings', '/Pricing', '/Billing'];
+    const currentPath = window.location.pathname;
+    
+    if (!allowedRoutes.some(route => currentPath.startsWith(route))) {
+      return <SubscriptionBlockedScreen reason="subscription_inactive" />;
+    }
   }
 
   // Handle authentication errors

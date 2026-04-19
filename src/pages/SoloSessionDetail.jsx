@@ -121,9 +121,6 @@ export default function SoloSessionDetail() {
     onError: (err) => toast.error(err.message || 'Action failed'),
   });
 
-  // Wrap entire page in route guard — requires hosting_marketplace flag
-  // (SoloSessions are part of the hosting marketplace feature set)
-
   if (!sessionId) return (
     <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center">
       <div className="text-center">
@@ -150,7 +147,7 @@ export default function SoloSessionDetail() {
   const currentStep = statusConf.step;
 
   return (
-    <FeatureRouteGuard flag="hosting_marketplace">
+    <FeatureRouteGuard flag="solo_sessions">
     <div className="min-h-screen bg-[#0B0F14] pb-24 md:pb-8">
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Back */}
