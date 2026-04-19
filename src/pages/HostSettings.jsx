@@ -67,7 +67,7 @@ export default function HostSettings() {
 
   return (
     <FeatureRouteGuard flag="hosting_marketplace">
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Header */}
       <div
         className="sticky z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]"
@@ -197,7 +197,7 @@ export default function HostSettings() {
       </CCModal>
 
       <DeleteAccountFlow isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} userEmail={user?.email} />
-    </div>
+      </div>
     </FeatureRouteGuard>
   );
 }

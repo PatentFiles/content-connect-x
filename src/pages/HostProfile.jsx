@@ -61,7 +61,7 @@ export default function HostProfile() {
 
   return (
     <FeatureRouteGuard flag="hosting_marketplace">
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
 
         {/* Header */}
@@ -191,7 +191,7 @@ export default function HostProfile() {
           </CCCard>
         )}
       </div>
-    </div>
+      </div>
     </FeatureRouteGuard>
   );
 }
