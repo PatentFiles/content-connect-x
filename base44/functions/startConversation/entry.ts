@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   try {
@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
 
     // ── VERIFICATION ENFORCEMENT ──────────────────────────────────────────
     // All non-admin users MUST be verified to start conversations
-    const isAdmin = profile?.is_admin === true;
+    const isAdmin = profile?.is_admin === true || user?.role === 'admin' || user?.role_type === 'admin';
     if (!isAdmin) {
       let verificationEnabled = true;
       try {
@@ -64,6 +64,35 @@ Deno.serve(async (req) => {
           return Response.json({
             error: 'Verification required to start conversations',
             code: 'verification_required',
+            blocked: true
+          }, { status: 403 });
+        }
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────
+
+    // ── SUBSCRIPTION ENFORCEMENT ──────────────────────────────────────────
+    // All non-admin users MUST have active subscription
+    if (!isAdmin) {
+      let subscriptionEnabled = true;
+      try {
+        const flagRecords = await base44.asServiceRole.entities.PlatformFeatureFlag.list();
+        const subFlag = flagRecords.find(f => f.flag_key === 'subscription');
+        if (subFlag && subFlag.value_type === 'boolean') {
+          subscriptionEnabled = subFlag.bool_value !== false;
+        }
+      } catch { /* fail safe */ }
+
+      if (subscriptionEnabled) {
+        const subs = await base44.asServiceRole.entities.Subscription.filter({ user_id: user.email });
+        const sub = subs[0];
+        const isSubscriptionActive = sub?.status === 'active' || sub?.status === 'trial';
+        
+        if (!isSubscriptionActive) {
+          await logBlockedAction(base44, user.email, 'start_conversation', 'subscription_required');
+          return Response.json({
+            error: 'Active subscription required',
+            code: 'subscription_required',
             blocked: true
           }, { status: 403 });
         }

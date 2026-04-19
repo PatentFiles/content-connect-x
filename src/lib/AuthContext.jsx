@@ -15,6 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [blockStatus, setBlockStatus] = useState(null); // { reason: 'banned'|'suspended', suspensionReason: string }
   const [subscription, setSubscription] = useState(null);
   const [subscriptionBlocked, setSubscriptionBlocked] = useState(false);
+  const [verification, setVerification] = useState(null);
 
   useEffect(() => {
     checkAppState();
@@ -165,7 +166,7 @@ export const AuthProvider = ({ children }) => {
         const subs = await base44.entities.Subscription.filter({ user_id: currentUser.email });
         const sub = subs[0] || null;
         setSubscription(sub);
-        
+
         // Determine if subscription blocks access
         // ADMIN BYPASS: admins are never blocked by subscription
         const isAdmin = currentUser?.role === 'admin' || currentUser?.role_type === 'admin';
@@ -176,6 +177,16 @@ export const AuthProvider = ({ children }) => {
         setSubscription(null);
         // Assume not admin if we can't fetch; safer default
         setSubscriptionBlocked(true);
+      }
+
+      // Fetch verification status
+      try {
+        const verifications = await base44.entities.VerificationRecord.filter({ user_id: currentUser.email });
+        const ver = verifications[0] || null;
+        setVerification(ver);
+      } catch (verError) {
+        console.error('Failed to fetch verification:', verError);
+        setVerification(null);
       }
       
       setBlockStatus(null);
@@ -225,6 +236,7 @@ export const AuthProvider = ({ children }) => {
       appPublicSettings,
       subscription,
       subscriptionBlocked,
+      verification,
       logout,
       navigateToLogin,
       checkAppState

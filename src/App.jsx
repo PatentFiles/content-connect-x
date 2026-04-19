@@ -4,7 +4,7 @@ import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config.jsx'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 const SoloSessionDetail = lazy(() => import('./pages/SoloSessionDetail'));
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
@@ -12,6 +12,9 @@ import { FeatureFlagProvider } from '@/lib/featureFlags';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import AccountBlockedScreen from '@/components/auth/AccountBlockedScreen';
 import SubscriptionBlockedScreen from '@/components/auth/SubscriptionBlockedScreen';
+import VerificationRequiredScreen from '@/components/auth/VerificationRequiredScreen';
+import { useFeatureFlag } from '@/lib/featureFlags';
+import { base44 } from '@/api/base44Client';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -23,9 +26,36 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
 
 const AuthenticatedApp = () => {
   const { user, isLoadingAuth, isLoadingPublicSettings, authError, blockStatus, subscriptionBlocked, isAuthenticated, navigateToLogin } = useAuth();
+  const [isVerified, setIsVerified] = useState(false);
+  const [verificationLoading, setVerificationLoading] = useState(true);
+  const verificationEnabled = useFeatureFlag('verification');
+
+  // Check verification status on auth change
+  useEffect(() => {
+    const checkVerification = async () => {
+      if (!isAuthenticated || !user?.email) {
+        setIsVerified(false);
+        setVerificationLoading(false);
+        return;
+      }
+
+      try {
+        const profiles = await base44.entities.UserProfile.filter({ user_id: user.email });
+        const profile = profiles[0];
+        setIsVerified(profile?.verification_status === 'approved');
+      } catch (error) {
+        console.error('Failed to check verification:', error);
+        setIsVerified(false);
+      } finally {
+        setVerificationLoading(false);
+      }
+    };
+
+    checkVerification();
+  }, [isAuthenticated, user?.email]);
 
   // Show loading spinner while checking app public settings or auth
-  if (isLoadingPublicSettings || isLoadingAuth) {
+  if (isLoadingPublicSettings || isLoadingAuth || verificationLoading) {
     return (
       <div className="fixed inset-0 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
@@ -44,9 +74,15 @@ const AuthenticatedApp = () => {
     );
   }
 
-  // Handle global subscription block — blocks entire app except Settings/Pricing
-  // ADMIN BYPASS: admins are never subscription blocked
+  // CRITICAL GATE 1: Verification Required (BEFORE subscription check)
+  // When verification flag is ON, ALL non-admin users must be verified
   const isAdmin = user?.role === 'admin' || user?.role_type === 'admin';
+  if (isAuthenticated && verificationEnabled && !isAdmin && !isVerified) {
+    return <VerificationRequiredScreen />;
+  }
+
+  // CRITICAL GATE 2: Subscription Required (AFTER verification)
+  // When authenticated and not admin, check subscription
   if (isAuthenticated && subscriptionBlocked && !isAdmin) {
     // Only allow access to Settings and Pricing pages for resubscription
     const allowedRoutes = ['/Settings', '/Pricing', '/Billing'];

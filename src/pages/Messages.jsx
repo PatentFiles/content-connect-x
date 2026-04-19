@@ -425,13 +425,8 @@ export default function Messages() {
     return <CCLoadingScreen message="Loading..." />;
   }
 
-  // Verification gate for messaging
-  if (verificationEnabled && !isAdmin && !isVerified) {
-    return <AccessGate type="verification" user={user} />;
-  }
-
   return (
-    <FeatureRouteGuard flag="messaging" requiresSubscription={true}>
+    <FeatureRouteGuard flag="messaging">
       <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-0">
       <div className="max-w-6xl mx-auto h-[calc(100vh-4rem)] md:h-[calc(100vh-4rem)] flex">
         {/* Conversation List */}

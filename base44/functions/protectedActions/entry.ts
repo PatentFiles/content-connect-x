@@ -285,6 +285,33 @@ Deno.serve(async (req) => {
       return banResult.response;
     }
 
+    // ── SUBSCRIPTION ENFORCEMENT ──────────────────────────────────────────────
+    // All non-admin users MUST have active subscription for user-triggered actions
+    let subscriptionEnabled = true;
+    try {
+      const flagRecords = await base44.asServiceRole.entities.PlatformFeatureFlag.list();
+      const subFlag = flagRecords.find(f => f.flag_key === 'subscription');
+      if (subFlag && subFlag.value_type === 'boolean') {
+        subscriptionEnabled = subFlag.bool_value !== false;
+      }
+    } catch { /* fail safe */ }
+
+    if (subscriptionEnabled && !banResult.profile?.is_admin) {
+      const subs = await base44.asServiceRole.entities.Subscription.filter({ user_id: user.email });
+      const sub = subs[0];
+      const isSubscriptionActive = sub?.status === 'active' || sub?.status === 'trial';
+      
+      if (!isSubscriptionActive) {
+        await logBlockedAction(base44, user.email, action || 'unknown', 'subscription_required');
+        return Response.json({
+          error: 'Active subscription required',
+          code: 'subscription_required',
+          blocked: true
+        }, { status: 403 });
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     // Check rate limit for applicable actions
     const RATE_LIMITED_ACTIONS = ['send_message', 'submit_report', 'create_collaboration', 'update_profile'];
     if (RATE_LIMITED_ACTIONS.includes(action)) {
@@ -446,6 +473,24 @@ Deno.serve(async (req) => {
         if (!recipient_id) {
           return Response.json({ error: 'recipient_id required' }, { status: 400 });
         }
+
+        // ── VERIFICATION ENFORCEMENT ──────────────────────────────────────────
+        if (verificationEnabled && !banResult.profile?.is_admin) {
+          const verifications = await base44.asServiceRole.entities.VerificationRecord.filter({
+            user_id: user.email
+          });
+          const isVerified = verifications.some(v => v.status === 'approved');
+
+          if (!isVerified) {
+            await logBlockedAction(base44, user.email, 'start_conversation', 'verification_required');
+            return Response.json({
+              error: 'Verification required',
+              code: 'verification_required',
+              blocked: true
+            }, { status: 403 });
+          }
+        }
+        // ─────────────────────────────────────────────────────────────────────
 
         const existingConvs = await base44.entities.Conversation.list();
         const existing = existingConvs.find(c =>
