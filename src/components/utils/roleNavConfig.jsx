@@ -32,7 +32,7 @@ export const roleNavigation = {
     { path: 'Collaborations', label: 'Collaborations', icon: Briefcase },
     { path: 'Contracts', label: 'Contracts', icon: FileText },
     { path: 'Verification', label: 'Verification', icon: Shield },
-    { path: 'HostingMarketplace', label: 'Hosting', icon: Building2 },
+    { path: 'HostingMarketplace', label: 'Host Properties', icon: Building2 },
   ],
   agent: [
     { path: 'Dashboard', label: 'Dashboard', icon: Home },
@@ -45,7 +45,7 @@ export const roleNavigation = {
     { path: 'Collaborations', label: 'Collaborations', icon: Briefcase },
     { path: 'Representations', label: 'Representations', icon: Users },
     { path: 'Contracts', label: 'Contracts', icon: FileText },
-    { path: 'HostingMarketplace', label: 'Hosting', icon: Building2 },
+    { path: 'HostingMarketplace', label: 'Host Properties', icon: Building2 },
   ],
   studio: [
     { path: 'Dashboard', label: 'Dashboard', icon: Home },
@@ -58,7 +58,7 @@ export const roleNavigation = {
     { path: 'RosterPortfolio', label: 'Roster & Portfolio', icon: Users },
     { path: 'Collaborations', label: 'Collaborations', icon: Briefcase },
     { path: 'Contracts', label: 'Contracts', icon: FileText },
-    { path: 'HostingMarketplace', label: 'Hosting', icon: Building2 },
+    { path: 'HostingMarketplace', label: 'Host Properties', icon: Building2 },
   ],
   photographer: [
     { path: 'Dashboard', label: 'Dashboard', icon: Home },
@@ -69,7 +69,7 @@ export const roleNavigation = {
     { path: 'Messages', label: 'Messages', icon: MessageCircle },
     { path: 'Portfolio', label: 'Portfolio', icon: Camera },
     { path: 'Verification', label: 'Verification', icon: Shield },
-    { path: 'HostingMarketplace', label: 'Hosting', icon: Building2 },
+    { path: 'HostingMarketplace', label: 'Host Properties', icon: Building2 },
   ],
   videographer: [
     { path: 'Dashboard', label: 'Dashboard', icon: Home },
@@ -80,7 +80,7 @@ export const roleNavigation = {
     { path: 'Messages', label: 'Messages', icon: MessageCircle },
     { path: 'Portfolio', label: 'Reels/Portfolio', icon: Video },
     { path: 'Verification', label: 'Verification', icon: Shield },
-    { path: 'HostingMarketplace', label: 'Hosting', icon: Building2 },
+    { path: 'HostingMarketplace', label: 'Host Properties', icon: Building2 },
   ],
   video_editor: [
     { path: 'Dashboard', label: 'Dashboard', icon: Home },
@@ -91,12 +91,12 @@ export const roleNavigation = {
     { path: 'Messages', label: 'Messages', icon: MessageCircle },
     { path: 'Portfolio', label: 'Portfolio', icon: Film },
     { path: 'Verification', label: 'Verification', icon: Shield },
-    { path: 'HostingMarketplace', label: 'Hosting', icon: Building2 },
+    { path: 'HostingMarketplace', label: 'Host Properties', icon: Building2 },
   ],
   host: [
     { path: 'Dashboard', label: 'Dashboard', icon: Home },
-    { path: 'HostDashboard', label: 'Host Dashboard', icon: BarChart3 },
-    { path: 'HostingMarketplace', label: 'Hosting', icon: Building2 },
+    { path: 'HostDashboard', label: 'My Properties', icon: BarChart3 },
+    { path: 'HostingMarketplace', label: 'Host Properties', icon: Building2 },
     { path: 'Messages', label: 'Messages', icon: MessageCircle },
     { path: 'Contracts', label: 'Contracts', icon: FileText },
     { path: 'Verification', label: 'Verification', icon: Shield },
