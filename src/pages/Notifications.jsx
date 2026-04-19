@@ -16,8 +16,8 @@ import {
   CheckCircle,
   Unlock
 } from 'lucide-react';
-import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 import { motion } from 'framer-motion';
+import { useState } from 'react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
@@ -180,7 +180,6 @@ export default function Notifications() {
   }
 
   return (
-    <FeatureRouteGuard flag="core">
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Header */}
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
@@ -354,6 +353,5 @@ export default function Notifications() {
       </div>
       </PullToRefresh>
     </div>
-    </FeatureRouteGuard>
   );
 }

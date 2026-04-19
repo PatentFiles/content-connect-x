@@ -1,7 +1,6 @@
 import React, { useState, lazy, Suspense } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 import { motion } from 'framer-motion';
 import { 
   Shield, 
@@ -462,6 +461,7 @@ export default function AdminDashboard() {
 
   const getProfileForVerification = (v) => userProfiles.find(p => p.user_id === v.user_id);
 
+  return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Header */}
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">

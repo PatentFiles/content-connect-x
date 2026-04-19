@@ -563,6 +563,5 @@ export default function Discovery() {
         />
       </div>
     </div>
-    </FeatureRouteGuard>
   );
 }

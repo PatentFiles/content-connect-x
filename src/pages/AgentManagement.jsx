@@ -108,6 +108,5 @@ export default function AgentManagement() {
         </div>
       </div>
     </div>
-    </FeatureRouteGuard>
   );
 }

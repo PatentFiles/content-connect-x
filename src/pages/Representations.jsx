@@ -299,9 +299,7 @@ export default function Representations() {
           )}
         </div>
         </div>
-        </FeatureRouteGuard>
         );
-        }
 
   // ── AGENT VIEW (original, enhanced) ──────────────────────────────
   const activeReps = agentReps.filter(r => r.status === 'ACTIVE');

@@ -245,7 +245,6 @@ END:VCALENDAR`;
   };
 
   return (
-    <FeatureRouteGuard flag="core">
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         {/* Header */}
@@ -528,6 +527,5 @@ END:VCALENDAR`;
         </div>
       </CCModal>
     </div>
-    </FeatureRouteGuard>
   );
 }

@@ -63,6 +63,5 @@ export default function Connections() {
         </CCTabsContent>
       </div>
     </div>
-    </FeatureRouteGuard>
   );
 }

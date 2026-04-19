@@ -7,10 +7,14 @@ import { MARKETING_FEATURES } from '@/lib/marketingFeatureMap';
 import { motion } from 'framer-motion';
 
 export default function MarketingFeatureShowcase({ onlyPage = null }) {
+  const allFlags = Object.fromEntries(
+    Object.entries(MARKETING_FEATURES).map(([key, feature]) => [feature.flag, useFeatureFlag(feature.flag)])
+  );
+
   const features = Object.entries(MARKETING_FEATURES)
     .filter(([key, feature]) => {
       if (onlyPage && !feature.sections.includes(onlyPage)) return false;
-      return useFeatureFlag(feature.flag);
+      return allFlags[feature.flag];
     })
     .map(([key, feature]) => feature);
 

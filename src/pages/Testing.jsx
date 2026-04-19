@@ -322,6 +322,5 @@ export default function Testing() {
       </div>
     </div>
     </VerificationGate>
-    </FeatureRouteGuard>
   );
 }

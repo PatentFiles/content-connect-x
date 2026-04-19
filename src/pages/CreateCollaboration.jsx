@@ -1807,6 +1807,5 @@ export default function CreateCollaboration() {
         </div>
       </div>
     </div>
-    </FeatureRouteGuard>
   );
 }

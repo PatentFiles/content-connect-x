@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 import { FileText, AlertTriangle, Database, Shield, Users, Network, Calendar, FileCheck, Lock, Activity, DollarSign, CheckCircle, Copy, Share2, Loader2, CheckCircle2 } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';
@@ -163,7 +162,6 @@ export default function DeveloperReadMe() {
   }
 
   return (
-    <FeatureRouteGuard flag="core" requiresSubscription={false}>
     <div className="min-h-screen bg-[#0B0F14] pb-24 md:pb-8">
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
@@ -569,6 +567,5 @@ const url = ccbill.getSubscriptionUrl({ pricePoint: '9.99', customerId: user.ema
         </div>
       </div>
     </div>
-    </FeatureRouteGuard>
   );
 }

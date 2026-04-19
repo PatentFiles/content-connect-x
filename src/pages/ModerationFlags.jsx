@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 import { motion } from 'framer-motion';
 import { Flag, Shield, CheckCircle, Clock, AlertCircle, ChevronLeft, Send } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -90,6 +89,7 @@ export default function ModerationFlags() {
   const flags = Array.from({ length: flagCount }, (_, i) => i + 1);
   const appealsByIndex = Object.fromEntries(appeals.map(a => [a.flag_index, a]));
 
+  return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Header */}
@@ -211,6 +211,5 @@ export default function ModerationFlags() {
         )}
       </div>
     </div>
-    </FeatureRouteGuard>
   );
 }
