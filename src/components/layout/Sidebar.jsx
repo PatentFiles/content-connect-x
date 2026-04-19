@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import CCAvatar from '../ui-custom/CCAvatars';
 import CCBadge from '../ui-custom/CCBadge';
-import { getNavigationForRole, hostingNavItem } from '../utils/roleNavConfig';
+import { getNavigationForRole } from '../utils/roleNavConfig';
 import { useFilteredNav, useFeatureFlag } from '@/lib/featureFlags';
 import AdminRoleViewSwitcher from '../admin/AdminRoleViewSwitcher';
 
@@ -34,11 +34,7 @@ export default function Sidebar({ currentPage, profile, onLogout, adminRoleView,
   const effectiveRoleView = isAdmin && adminRoleView ? adminRoleView : (profile?.role_type || 'creator');
   const showAdminNav = isAdmin && effectiveRoleView === 'admin';
   const roleType = showAdminNav ? 'creator' : effectiveRoleView;
-  const hostingEnabled = useFeatureFlag('hosting_marketplace');
-  const rawNavItems = [
-    ...getNavigationForRole(roleType),
-    ...(hostingEnabled ? [hostingNavItem] : []),
-  ];
+  const rawNavItems = getNavigationForRole(roleType);
   const navItems = useFilteredNav(rawNavItems);
 
   // Fetch unread message count
