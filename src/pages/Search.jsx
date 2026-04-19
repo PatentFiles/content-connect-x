@@ -86,21 +86,21 @@ export default function Search() {
   const { data: allVerifications = [] } = useQuery({
     queryKey: ['allVerifications'],
     queryFn: () => base44.entities.VerificationRecord.list('-created_date', 1000),
-    enabled: !!user && isVerified && isSubscribed,
+    enabled: !!user && isSubscribed,
     staleTime: 10 * 60 * 1000,
   });
 
   const { data: allTestingCredentials = [] } = useQuery({
     queryKey: ['allTestingCredentials'],
     queryFn: () => base44.entities.TestingCredential.list('-updated_date', 500),
-    enabled: !!user && isVerified && isSubscribed && filters.testingRequired,
+    enabled: !!user && isSubscribed && filters.testingRequired,
     staleTime: 10 * 60 * 1000,
   });
 
   const { data: allCreatorDetails = [] } = useQuery({
     queryKey: ['allCreatorDetails'],
     queryFn: () => base44.entities.CreatorDetails.list('-updated_date', 500),
-    enabled: !!user && isVerified && isSubscribed,
+    enabled: !!user && isSubscribed,
     staleTime: 10 * 60 * 1000,
   });
 
@@ -108,7 +108,7 @@ export default function Search() {
   const { data: searchResults = [], isLoading: profilesLoading } = useQuery({
     queryKey: ['extendedSearch', searchQuery],
     queryFn: () => base44.functions.invoke('extendedSearch', { query: searchQuery, limit: 100 }),
-    enabled: !!user && isVerified && isSubscribed,
+    enabled: !!user && isSubscribed,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -301,11 +301,7 @@ export default function Search() {
     return <AccessGate type="both" />;
   }
 
-  if (!isVerified) {
-    return <AccessGate type="verification" />;
-  }
-
-  if (!isSubscribed) {
+  if (!isAdmin && !isSubscribed) {
     return <AccessGate type="subscription" />;
   }
 

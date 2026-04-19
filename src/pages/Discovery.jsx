@@ -110,7 +110,7 @@ export default function Discovery() {
   const { data: allVerifications = [] } = useQuery({
     queryKey: ['allVerifications'],
     queryFn: () => base44.entities.VerificationRecord.list('-created_date', 1000),
-    enabled: !!user && isVerified && isSubscribed,
+    enabled: !!user && isSubscribed,
     staleTime: 10 * 60 * 1000,
   });
 
@@ -124,21 +124,21 @@ export default function Discovery() {
   const { data: unifiedResults = [], isLoading: resultsLoading } = useQuery({
     queryKey: ['extendedSearch', searchQuery],
     queryFn: () => base44.functions.invoke('extendedSearch', { query: searchQuery, limit: 100 }),
-    enabled: !!user && isVerified && isSubscribed,
+    enabled: !!user && isSubscribed,
     staleTime: 5 * 60 * 1000,
   });
 
   const { data: allCreatorDetails = [] } = useQuery({
     queryKey: ['allCreatorDetails'],
     queryFn: () => base44.entities.CreatorDetails.list('-updated_date', 500),
-    enabled: !!user && isVerified && isSubscribed,
+    enabled: !!user && isSubscribed,
     staleTime: 10 * 60 * 1000,
   });
 
   const { data: allAgentReps = [] } = useQuery({
     queryKey: ['allAgentReps'],
     queryFn: () => base44.entities.AgentRepresentation.filter({ status: 'ACTIVE' }),
-    enabled: !!user && isVerified && isSubscribed,
+    enabled: !!user && isSubscribed,
   });
 
   const { data: myCreatorReps = [] } = useQuery({
@@ -150,14 +150,14 @@ export default function Discovery() {
   const { data: allAgentDetails = [] } = useQuery({
     queryKey: ['allAgentDetails'],
     queryFn: () => base44.entities.AgentDetails.list('-updated_date', 200),
-    enabled: !!user && isVerified && isSubscribed && selectedRole === 'agent',
+    enabled: !!user && isSubscribed && selectedRole === 'agent',
     staleTime: 10 * 60 * 1000,
   });
 
   const { data: allStudioRosters = [] } = useQuery({
     queryKey: ['allStudioRosters'],
     queryFn: () => base44.entities.StudioRoster.filter({ status: 'ACTIVE' }, '-updated_date', 200),
-    enabled: !!user && isVerified && isSubscribed,
+    enabled: !!user && isSubscribed,
     staleTime: 10 * 60 * 1000,
   });
 
@@ -170,7 +170,7 @@ export default function Discovery() {
   const { data: reputationScores = [] } = useQuery({
     queryKey: ['discoveryReputationScores'],
     queryFn: () => base44.entities.ReputationScore.list('-score', 100),
-    enabled: !!user && isVerified && isSubscribed,
+    enabled: !!user && isSubscribed,
     staleTime: 10 * 60 * 1000,
   });
 
@@ -342,8 +342,7 @@ export default function Discovery() {
 
   if (userLoading) return <CCLoadingScreen message="Loading..." />;
   if (!user) return <AccessGate type="both" />;
-  if (!isVerified) return <AccessGate type="verification" />;
-  if (!isSubscribed) return <AccessGate type="subscription" />;
+  if (!isAdmin && !isSubscribed) return <AccessGate type="subscription" />;
 
   return (
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">

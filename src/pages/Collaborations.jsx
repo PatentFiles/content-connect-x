@@ -95,7 +95,7 @@ export default function Collaborations() {
       const allCollaborations = await base44.entities.Collaboration.list('-created_date', 100);
       return allCollaborations.filter(r => r.participant_ids?.includes(user?.email));
     },
-    enabled: !!user && isVerified && isSubscribed,
+    enabled: !!user && isSubscribed,
     staleTime: 30000,
   });
 
@@ -157,10 +157,6 @@ export default function Collaborations() {
 
   if (!user) {
     return <AccessGate type="both" />;
-  }
-
-  if (!isAdmin && !isVerified) {
-    return <AccessGate type="verification" />;
   }
 
   if (!isAdmin && !isSubscribed) {
