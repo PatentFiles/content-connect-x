@@ -3,12 +3,12 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
-import { 
-  Settings as SettingsIcon, 
-  User, 
-  Bell, 
-  Shield, 
-  CreditCard, 
+import {
+  Settings as SettingsIcon,
+  User,
+  Bell,
+  Shield,
+  CreditCard,
   LogOut,
   Globe,
   Lock,
@@ -28,12 +28,11 @@ import ProfileAnalytics from '@/components/profile/ProfileAnalytics';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
-import { CCTabs, CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs';
+import { CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs';
 import CCModal from '@/components/ui-custom/CCModal';
 import DeleteAccountFlow from '@/components/settings/DeleteAccountFlow';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 
-// Settings page
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('account');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -64,20 +63,24 @@ export default function Settings() {
     enabled: !!user?.email,
   });
 
+  const currentSubscription = subscription[0];
+  const currentProfile = profile[0];
+  const settings = userSettings[0];
+  const isAdmin = currentProfile?.is_admin || user?.role === 'admin';
+
   const updateNameMutation = useMutation({
     mutationFn: async (name) => {
       if (currentProfile) {
         return base44.entities.UserProfile.update(currentProfile.id, { display_name: name });
       } else {
-        return base44.entities.UserProfile.create({ 
-          user_id: user.email, 
+        return base44.entities.UserProfile.create({
+          user_id: user.email,
           display_name: name,
-          role_type: 'creator' 
+          role_type: 'creator'
         });
       }
     },
     onMutate: async (name) => {
-      // Optimistic update — immediately reflect new name in UI
       await queryClient.cancelQueries({ queryKey: ['myProfile', user?.email] });
       const previous = queryClient.getQueryData(['myProfile', user?.email]);
       queryClient.setQueryData(['myProfile', user?.email], (old) =>
@@ -100,11 +103,6 @@ export default function Settings() {
     base44.auth.logout();
   };
 
-  const currentSubscription = subscription[0];
-  const currentProfile = profile[0];
-  const settings = userSettings[0];
-  const isAdmin = currentProfile?.is_admin || user?.role === 'admin';
-
   const updateSettingsMutation = useMutation({
     mutationFn: async (data) => {
       if (settings) {
@@ -121,17 +119,6 @@ export default function Settings() {
       toast.error('Failed to save settings');
     },
   });
-
-  const updateSetting = (section, key, value) => {
-    const updated = {
-      ...settings,
-      [section]: {
-        ...settings?.[section],
-        [key]: value,
-      },
-    };
-    updateSettingsMutation.mutate(updated);
-  };
 
   if (isLoading) {
     return <CCLoadingScreen message="Loading settings..." />;
@@ -186,8 +173,8 @@ export default function Settings() {
                     <p className="text-sm text-[#6B7A94]">Display Name</p>
                     <p className="text-[#E8EEF9]">{currentProfile?.display_name || 'Not set'}</p>
                   </div>
-                  <CCButton 
-                    variant="outline" 
+                  <CCButton
+                    variant="outline"
                     size="sm"
                     onClick={() => {
                       setEditingName(currentProfile?.display_name || '');
@@ -247,9 +234,9 @@ export default function Settings() {
                     <p className="text-xs text-[#22C55E] mt-1">Account deactivation in progress.</p>
                   )}
                 </div>
-                <CCButton 
-                  variant="danger" 
-                  size="sm" 
+                <CCButton
+                  variant="danger"
+                  size="sm"
                   icon={Trash2}
                   onClick={() => setShowDeleteModal(true)}
                   disabled={currentProfile?.deletion_status === 'anonymized' || currentProfile?.deletion_status === 'completed'}
@@ -316,9 +303,9 @@ export default function Settings() {
 
         {/* Logout Button */}
         <div className="mt-8">
-          <CCButton 
-            variant="outline" 
-            fullWidth 
+          <CCButton
+            variant="outline"
+            fullWidth
             icon={LogOut}
             onClick={handleLogout}
             className="border-[#EF4444]/30 text-[#EF4444] hover:bg-[#EF4444]/10"
@@ -349,7 +336,7 @@ export default function Settings() {
             <CCButton variant="outline" onClick={() => setShowNameModal(false)}>
               Cancel
             </CCButton>
-            <CCButton 
+            <CCButton
               variant="primary"
               onClick={() => updateNameMutation.mutate(editingName)}
               loading={updateNameMutation.isPending}
