@@ -1,12 +1,19 @@
-import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
 import { ShieldAlert, CreditCard, Lock, ArrowRight } from 'lucide-react';
 import CCButton from '../ui-custom/CCButton';
 import CCCard from '../ui-custom/CCCard';
+import { useFeatureFlag } from '@/lib/featureFlags';
 
-export default function AccessGate({ type = 'verification', profile }) {
+export default function AccessGate({ type = 'verification', profile, children }) {
+  const verificationEnabled = useFeatureFlag('verification');
+
+  // If verification flag is OFF and this is a verification gate, pass through
+  if (type === 'verification' && !verificationEnabled) {
+    return children ? <>{children}</> : null;
+  }
+
   const gates = {
     verification: {
       icon: ShieldAlert,

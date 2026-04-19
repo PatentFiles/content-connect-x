@@ -72,9 +72,9 @@ export default function Contracts() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: verification } = useQuery({
-    queryKey: ['verification', user?.email],
-    queryFn: () => base44.entities.VerificationRecord.filter({ user_id: user?.email }),
+  const { data: profileData = [] } = useQuery({
+    queryKey: ['myProfile', user?.email],
+    queryFn: () => base44.entities.UserProfile.filter({ user_id: user?.email }),
     enabled: !!user?.email,
   });
 
@@ -84,7 +84,8 @@ export default function Contracts() {
     enabled: !!user?.email,
   });
 
-  const isVerified = verification?.[0]?.status === 'approved';
+  const currentProfile = profileData[0];
+  const isAdmin = currentProfile?.is_admin;
   const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
   // Fetch contracts
@@ -98,7 +99,7 @@ export default function Contracts() {
         c.signatories?.some(s => s.user_id === user?.email)
       );
     },
-    enabled: !!user && isVerified && isSubscribed,
+    enabled: !!user && isSubscribed,
   });
 
   // Fetch collaborations for contract creation
@@ -108,7 +109,7 @@ export default function Contracts() {
       const allCollab = await base44.entities.Collaboration.list('-created_date');
       return allCollab.filter(r => r.participant_ids?.includes(user?.email));
     },
-    enabled: !!user && isVerified && isSubscribed,
+    enabled: !!user && isSubscribed,
   });
 
   // Fetch contract templates
@@ -267,11 +268,7 @@ export default function Contracts() {
     return <AccessGate type="both" />;
   }
 
-  if (!isVerified) {
-    return <AccessGate type="verification" />;
-  }
-
-  if (!isSubscribed) {
+  if (!isAdmin && !isSubscribed) {
     return <AccessGate type="subscription" />;
   }
 

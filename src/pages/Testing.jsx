@@ -7,7 +7,8 @@ import CCCard, { CCCardHeader, CCCardTitle, CCCardDescription, CCCardContent } f
 import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import CCLoadingScreen from '@/components/ui-custom/CCLoading';
-import VerificationRequired from '@/components/auth/VerificationRequired';
+import VerificationGate from '@/components/auth/VerificationGate';
+import { useFeatureFlag } from '@/lib/featureFlags';
 import { format } from 'date-fns';
 
 export default function Testing() {
@@ -24,6 +25,12 @@ export default function Testing() {
       if (!isAuth) return null;
       return base44.auth.me();
     },
+  });
+
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['myProfile', user?.email],
+    queryFn: () => base44.entities.UserProfile.filter({ user_id: user?.email }),
+    enabled: !!user?.email,
   });
 
   const { data: verifications = [] } = useQuery({
@@ -44,6 +51,8 @@ export default function Testing() {
     enabled: !!user?.email,
   });
 
+  const currentProfile = profiles[0];
+  const isAdmin = currentProfile?.is_admin;
   const isVerified = verifications[0]?.status === 'approved';
   const activeCredential = testingCredentials.find(tc => tc.status_badge === 'valid');
 
@@ -152,11 +161,8 @@ export default function Testing() {
     return <CCLoadingScreen />;
   }
 
-  if (!isVerified) {
-    return <VerificationRequired />;
-  }
-
   return (
+    <VerificationGate isVerified={isVerified} isAdmin={isAdmin}>
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Header */}
@@ -316,5 +322,6 @@ export default function Testing() {
         </CCCard>
       </div>
     </div>
+    </VerificationGate>
   );
 }

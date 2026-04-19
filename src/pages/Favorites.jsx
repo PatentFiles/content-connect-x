@@ -19,6 +19,7 @@ import CCEmpty from '@/components/ui-custom/CCEmpty';
 import AccessGate from '@/components/auth/AccessGate';
 import ProfileCard from '@/components/profiles/ProfileCard';
 import { useFeatureFlag } from '@/lib/featureFlags';
+import VerificationGate from '@/components/auth/VerificationGate';
 
 // Role tabs for filtering saved profiles
 const PROFILE_TABS = [
@@ -48,9 +49,9 @@ export default function Favorites() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: verification } = useQuery({
-    queryKey: ['verification', user?.email],
-    queryFn: () => base44.entities.VerificationRecord.filter({ user_id: user?.email }),
+  const { data: profileData = [] } = useQuery({
+    queryKey: ['myProfile', user?.email],
+    queryFn: () => base44.entities.UserProfile.filter({ user_id: user?.email }),
     enabled: !!user?.email,
   });
 
@@ -60,14 +61,15 @@ export default function Favorites() {
     enabled: !!user?.email,
   });
 
-  const isVerified = verification?.[0]?.status === 'approved';
+  const currentProfile = profileData[0];
+  const isAdmin = currentProfile?.is_admin;
   const isSubscribed = subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
   // Fetch favorites
   const { data: favorites = [], isLoading: favoritesLoading } = useQuery({
     queryKey: ['favorites', user?.email],
     queryFn: () => base44.entities.Favorite.filter({ owner_id: user?.email }),
-    enabled: !!user && isVerified && isSubscribed,
+    enabled: !!user && isSubscribed,
   });
 
   // Fetch all profiles for favorites items
@@ -252,11 +254,7 @@ export default function Favorites() {
     return <AccessGate type="both" />;
   }
 
-  if (!isVerified) {
-    return <AccessGate type="verification" />;
-  }
-
-  if (!isSubscribed) {
+  if (!isAdmin && !isSubscribed) {
     return <AccessGate type="subscription" />;
   }
 
