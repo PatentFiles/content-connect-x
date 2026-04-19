@@ -1,4 +1,5 @@
 import { useFeatureFlag } from '@/lib/featureFlags';
+import { useAuth } from '@/lib/AuthContext';
 import { Link } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 
@@ -7,13 +8,21 @@ import { Lock } from 'lucide-react';
  * Blocks entire route access when:
  * - Feature flag is OFF
  * 
+ * ADMIN BYPASS: Admins can access all routes regardless of feature flags.
  * Subscription blocking is now handled globally via AuthContext.
  */
 export default function FeatureRouteGuard({ 
   flag,
   children 
 }) {
+  const { user } = useAuth();
   const enabled = useFeatureFlag(flag);
+  
+  // Admin bypass: allow all routes
+  const isAdmin = user?.role === 'admin';
+  if (isAdmin) {
+    return <>{children}</>;
+  }
 
   // Feature flag is OFF
   if (!enabled) {

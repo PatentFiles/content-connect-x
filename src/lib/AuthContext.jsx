@@ -167,12 +167,15 @@ export const AuthProvider = ({ children }) => {
         setSubscription(sub);
         
         // Determine if subscription blocks access
+        // ADMIN BYPASS: admins are never blocked by subscription
+        const isAdmin = currentUser.role === 'admin';
         const isActive = sub?.status === 'active' || sub?.status === 'trial';
-        setSubscriptionBlocked(!isActive);
+        setSubscriptionBlocked(!isAdmin && !isActive);
       } catch (subError) {
         console.error('Failed to fetch subscription:', subError);
         setSubscription(null);
-        setSubscriptionBlocked(true); // Block if we can't check subscription
+        // Assume not admin if we can't fetch; safer default
+        setSubscriptionBlocked(true);
       }
       
       setBlockStatus(null);

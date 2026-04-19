@@ -22,7 +22,7 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   : <>{children}</>;
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, blockStatus, subscriptionBlocked, isAuthenticated, navigateToLogin } = useAuth();
+  const { user, isLoadingAuth, isLoadingPublicSettings, authError, blockStatus, subscriptionBlocked, isAuthenticated, navigateToLogin } = useAuth();
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -45,7 +45,9 @@ const AuthenticatedApp = () => {
   }
 
   // Handle global subscription block — blocks entire app except Settings/Pricing
-  if (isAuthenticated && subscriptionBlocked) {
+  // ADMIN BYPASS: admins are never subscription blocked
+  const isAdmin = user?.role === 'admin';
+  if (isAuthenticated && subscriptionBlocked && !isAdmin) {
     // Only allow access to Settings and Pricing pages for resubscription
     const allowedRoutes = ['/Settings', '/Pricing', '/Billing'];
     const currentPath = window.location.pathname;
