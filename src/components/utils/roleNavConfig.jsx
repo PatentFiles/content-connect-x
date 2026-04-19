@@ -94,10 +94,11 @@ export const roleNavigation = {
     { path: 'HostingMarketplace', label: 'Host Properties', icon: Building2 },
   ],
   host: [
-    { path: 'Dashboard', label: 'Dashboard', icon: Home },
-    { path: 'HostDashboard', label: 'My Properties', icon: BarChart3 },
+    { path: 'HostDashboard', label: 'Dashboard', icon: Home },
     { path: 'HostingMarketplace', label: 'Host Properties', icon: Building2 },
     { path: 'Messages', label: 'Messages', icon: MessageCircle },
+    { path: 'HostProfile', label: 'My Profile', icon: User },
+    { path: 'HostSettings', label: 'Settings', icon: Settings },
   ],
 };
 
@@ -110,6 +111,8 @@ export const commonNavItems = [
 
 export function getNavigationForRole(roleType) {
   const roleNav = roleNavigation[roleType] || roleNavigation.creator;
+  // Host has its own profile/settings links in its nav array — skip commonNavItems
+  if (roleType === 'host') return roleNav;
   return [...roleNav, ...commonNavItems];
 }
 

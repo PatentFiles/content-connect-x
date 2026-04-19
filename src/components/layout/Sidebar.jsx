@@ -71,7 +71,7 @@ export default function Sidebar({ currentPage, profile, onLogout, adminRoleView,
       {/* Profile Section */}
       {profile && (
         <div className="p-4 border-b border-[#263248]">
-          <Link to={createPageUrl('Profile')} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#151D2B] transition-colors">
+          <Link to={createPageUrl(roleType === 'host' ? 'HostProfile' : 'Profile')} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#151D2B] transition-colors">
             <CCAvatar
               src={profile.avatar_url}
               alt={profile.display_name}

@@ -44,6 +44,8 @@ const ModerationFlags      = lazy(() => import('./pages/ModerationFlags'));
 const HostingMarketplace   = lazy(() => import('./pages/HostingMarketplace'));
 const PropertyDetail       = lazy(() => import('./pages/PropertyDetail'));
 const HostDashboard        = lazy(() => import('./pages/HostDashboard'));
+const HostProfile          = lazy(() => import('./pages/HostProfile'));
+const HostSettings         = lazy(() => import('./pages/HostSettings'));
 
 // Fullscreen spinner shown while a lazy chunk loads
 function PageLoader() {
@@ -102,6 +104,8 @@ export const PAGES = {
   HostingMarketplace:   withSuspense(HostingMarketplace),
   PropertyDetail:       withSuspense(PropertyDetail),
   HostDashboard:        withSuspense(HostDashboard),
+  HostProfile:          withSuspense(HostProfile),
+  HostSettings:         withSuspense(HostSettings),
 };
 
 export const pagesConfig = {

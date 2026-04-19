@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CreatorDashboard from '../components/dashboards/CreatorDashboard';
 import AgentDashboard from '../components/dashboards/AgentDashboard';
@@ -17,6 +18,7 @@ export default function Dashboard() {
   const [wizardDismissed, setWizardDismissed] = useState(false);
   const [manualWizard, setManualWizard] = useState(false);
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -35,6 +37,12 @@ export default function Dashboard() {
 
   const profile = profiles[0];
   const roleType = profile?.role_type || 'creator';
+
+  // Host role has its own dashboard — redirect immediately
+  if (roleType === 'host') {
+    navigate('/HostDashboard', { replace: true });
+    return null;
+  }
 
   const shouldShowWizard = profile && !profile.profile_complete && !showWizard;
   const autoShowWizard = shouldShowWizard && !wizardDismissed;

@@ -59,6 +59,8 @@ const appPages = [
   'HostingMarketplace',
   'PropertyDetail',
   'HostDashboard',
+  'HostProfile',
+  'HostSettings',
 ];
 
 export default function Layout({ children, currentPageName }) {
