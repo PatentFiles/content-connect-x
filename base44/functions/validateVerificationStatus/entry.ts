@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   try {
@@ -9,34 +9,44 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // BAN CHECK - banned/suspended users cannot query verification status for others
+    // Ban/suspension check — always enforced regardless of feature flags
+    const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: user.email });
+    const profile = profiles[0];
+    if (profile?.banned === true || profile?.suspended === true) {
+      return Response.json({ error: 'Account is blocked', code: profile?.banned ? 'banned' : 'suspended', blocked: true }, { status: 403 });
+    }
+
+    // Load verification feature flag — if OFF, bypass all verification enforcement
+    let verificationEnabled = true;
     try {
-      const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: user.email });
-      const profile = profiles[0];
-      if (profile?.banned === true || profile?.suspended === true) {
-        await base44.asServiceRole.entities.AdminActionLog.create({
-          admin_id: 'SYSTEM_BAN_ENFORCEMENT', action_type: 'blocked_action_attempt',
-          target_user_id: user.email,
-          details: { action_attempted: 'validate_verification_status', block_reason: profile?.banned ? 'banned' : 'suspended', timestamp: new Date().toISOString() },
-          reason: `Blocked ${profile?.banned ? 'banned' : 'suspended'} user from: validate_verification_status`
-        });
-        return Response.json({ error: 'Account is blocked', code: profile?.banned ? 'banned' : 'suspended', blocked: true }, { status: 403 });
+      const flags = await base44.asServiceRole.entities.PlatformFeatureFlag.list();
+      const vFlag = flags.find(f => f.flag_key === 'verification');
+      if (vFlag && vFlag.value_type === 'boolean') {
+        verificationEnabled = vFlag.bool_value !== false;
       }
-    } catch (e) { return Response.json({ error: 'Unable to verify account status', blocked: true }, { status: 403 }); }
+    } catch { /* fail safe — keep true */ }
 
     const { action, target_user_id } = await req.json();
 
+    // When verification is OFF — return pass-through for all actions
+    if (!verificationEnabled) {
+      return Response.json({
+        verified: true,
+        status: 'approved',
+        blocked: false,
+        flag_bypassed: true,
+      });
+    }
+
     // Get verification record for target user (or current user if not specified)
     const userId = target_user_id || user.email;
-    const verifications = await base44.entities.VerificationRecord.filter({ 
-      user_id: userId 
-    });
+    const verifications = await base44.entities.VerificationRecord.filter({ user_id: userId });
 
     if (verifications.length === 0) {
       return Response.json({
         verified: false,
         status: 'unverified',
-        message: 'No verification record found'
+        message: 'No verification record found',
       });
     }
 
@@ -45,40 +55,32 @@ Deno.serve(async (req) => {
 
     // Check if verification has expired
     if (verification.expires_at && new Date(verification.expires_at) < now) {
-      // Update status to expired if not already
       if (verification.status !== 'expired') {
         await base44.asServiceRole.entities.VerificationRecord.update(verification.id, {
-          status: 'expired'
+          status: 'expired',
         });
 
-        // Log the expiry
         await base44.asServiceRole.entities.AdminActionLog.create({
           admin_id: 'SYSTEM',
           action_type: 'verification_expired',
           target_user_id: userId,
           details: { verification_id: verification.id },
-          reason: 'Verification expired automatically'
+          reason: 'Verification expired automatically',
         });
 
-        // Pause active collaborations
+        // Only pause collaborations when verification enforcement is ON
         const activeCollabs = await base44.asServiceRole.entities.Collaboration.filter({
           participant_ids: userId,
-          status: 'active'
+          status: 'active',
         });
 
         for (const collab of activeCollabs) {
-          await base44.asServiceRole.entities.Collaboration.update(collab.id, {
-            status: 'paused'
-          });
-
+          await base44.asServiceRole.entities.Collaboration.update(collab.id, { status: 'paused' });
           await base44.asServiceRole.entities.CollaborationActivityLog.create({
             collaboration_id: collab.id,
             activity_type: 'VERIFICATION_EXPIRED',
             user_id: 'SYSTEM',
-            details: { 
-              affected_user: userId,
-              reason: 'Participant verification expired'
-            }
+            details: { affected_user: userId, reason: 'Participant verification expired' },
           });
         }
       }
@@ -87,21 +89,20 @@ Deno.serve(async (req) => {
         verified: false,
         status: 'expired',
         message: 'Verification has expired',
-        requires_reverification: true
+        requires_reverification: true,
       });
     }
 
-    // Check verification status
     const isVerified = verification.status === 'approved';
 
-    // Map actions to required verification
+    // Map actions to required verification — only enforced when flag is ON
     const requiresVerification = [
       'browse_profiles',
       'send_message',
       'join_collaboration',
       'sign_contract',
       'create_collaboration',
-      'view_profile'
+      'view_profile',
     ].includes(action);
 
     if (requiresVerification && !isVerified) {
@@ -109,7 +110,7 @@ Deno.serve(async (req) => {
         verified: false,
         status: verification.status,
         message: `Action '${action}' requires verified status. Current status: ${verification.status}`,
-        blocked: true
+        blocked: true,
       });
     }
 
@@ -118,7 +119,7 @@ Deno.serve(async (req) => {
       status: verification.status,
       expires_at: verification.expires_at,
       verified_at: verification.verified_at,
-      blocked: false
+      blocked: false,
     });
 
   } catch (error) {
