@@ -13,6 +13,8 @@ export const AuthProvider = ({ children }) => {
   const [authError, setAuthError] = useState(null);
   const [appPublicSettings, setAppPublicSettings] = useState(null); // Contains only { id, public_settings }
   const [blockStatus, setBlockStatus] = useState(null); // { reason: 'banned'|'suspended', suspensionReason: string }
+  const [subscription, setSubscription] = useState(null);
+  const [subscriptionBlocked, setSubscriptionBlocked] = useState(false);
 
   useEffect(() => {
     checkAppState();
@@ -158,6 +160,21 @@ export const AuthProvider = ({ children }) => {
         console.error('Failed to fetch user profile:', profileError);
       }
       
+      // Fetch subscription status
+      try {
+        const subs = await base44.entities.Subscription.filter({ user_id: currentUser.email });
+        const sub = subs[0] || null;
+        setSubscription(sub);
+        
+        // Determine if subscription blocks access
+        const isActive = sub?.status === 'active' || sub?.status === 'trial';
+        setSubscriptionBlocked(!isActive);
+      } catch (subError) {
+        console.error('Failed to fetch subscription:', subError);
+        setSubscription(null);
+        setSubscriptionBlocked(true); // Block if we can't check subscription
+      }
+      
       setBlockStatus(null);
       setIsAuthenticated(true);
       setIsLoadingAuth(false);
@@ -203,6 +220,8 @@ export const AuthProvider = ({ children }) => {
       authError,
       blockStatus,
       appPublicSettings,
+      subscription,
+      subscriptionBlocked,
       logout,
       navigateToLogin,
       checkAppState

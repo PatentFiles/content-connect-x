@@ -1,36 +1,19 @@
 import { useFeatureFlag } from '@/lib/featureFlags';
 import { Link } from 'react-router-dom';
 import { Lock } from 'lucide-react';
-import { useAuth } from '@/lib/AuthContext';
-import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
-import { isSubscriptionActive } from '@/lib/subscriptionGuard';
-import SubscriptionBlockedScreen from '@/components/auth/SubscriptionBlockedScreen';
 
 /**
- * FeatureRouteGuard — unified route guard for feature flags, subscription, and verification.
+ * FeatureRouteGuard — route guard for feature flags only.
  * Blocks entire route access when:
  * - Feature flag is OFF
- * - Subscription is inactive (for non-public pages)
+ * 
+ * Subscription blocking is now handled globally via AuthContext.
  */
 export default function FeatureRouteGuard({ 
-  flag, 
-  requiresSubscription = true,
+  flag,
   children 
 }) {
   const enabled = useFeatureFlag(flag);
-  const { user, isAuthenticated } = useAuth();
-
-  // Fetch subscription if authenticated
-  const { data: subscription } = useQuery({
-    queryKey: ['currentSubscription', user?.email],
-    queryFn: async () => {
-      if (!user?.email) return null;
-      const subs = await base44.entities.Subscription.filter({ user_id: user.email });
-      return subs[0] || null;
-    },
-    enabled: !!user?.email && isAuthenticated,
-  });
 
   // Feature flag is OFF
   if (!enabled) {
@@ -51,11 +34,6 @@ export default function FeatureRouteGuard({
         </div>
       </div>
     );
-  }
-
-  // Subscription is inactive (for authenticated users)
-  if (isAuthenticated && requiresSubscription && !isSubscriptionActive(subscription)) {
-    return <SubscriptionBlockedScreen reason={subscription?.status || 'no_subscription'} />;
   }
 
   return <>{children}</>;
