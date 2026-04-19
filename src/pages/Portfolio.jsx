@@ -24,8 +24,6 @@ import CCInput from '@/components/ui-custom/CCInput';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import CCModal from '@/components/ui-custom/CCModal';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
-import AccessGate from '@/components/auth/AccessGate';
-
 export default function Portfolio() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -240,16 +238,12 @@ export default function Portfolio() {
     return <CCLoadingScreen message="Loading portfolio..." />;
   }
 
-  // Allow admins to view this page regardless of role
-  if (!profile?.is_admin && !['photographer', 'videographer', 'video_editor'].includes(profile?.role_type)) {
-    return <AccessGate type="both" />;
-  }
-
   const isVideographer = profile?.role_type === 'videographer';
   const sortedItems = [...portfolioItems].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <FeatureRouteGuard flag="portfolio" requiresSubscription={true}>
+      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -742,5 +736,7 @@ export default function Portfolio() {
           </div>
           </CCModal>
           </div>
+      </div>
+    </FeatureRouteGuard>
           );
           }

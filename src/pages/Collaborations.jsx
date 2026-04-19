@@ -29,7 +29,6 @@ import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCAvatarGroup } from '@/components/ui-custom/CCAvatars';
 import { CCLoadingScreen, CCSkeletonLoader } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
-import AccessGate from '@/components/auth/AccessGate';
 import CCModal from '@/components/ui-custom/CCModal';
 import { logCollaborationActivity } from '@/components/collaboration/activityLogHelpers';
 import PullToRefresh from '@/components/ui-custom/PullToRefresh';
@@ -147,14 +146,6 @@ export default function Collaborations() {
     return <CCLoadingScreen message="Loading..." />;
   }
 
-  if (!user) {
-    return <AccessGate type="both" />;
-  }
-
-  if (!isAdmin && !isSubscribed) {
-    return <AccessGate type="subscription" />;
-  }
-
   // Filter and sort collaborations
   let filteredRooms = collaborations;
 
@@ -235,7 +226,8 @@ export default function Collaborations() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <FeatureRouteGuard flag="collaborations" requiresSubscription={true}>
+      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Header */}
       <div className="sticky z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]" style={{ top: 'calc(4rem + env(safe-area-inset-top, 0px))' }}>
         <div className="max-w-6xl mx-auto px-4 py-4">
@@ -533,6 +525,7 @@ export default function Collaborations() {
           </div>
         </div>
       </CCModal>
-    </div>
-  );
-}
+      </div>
+      </FeatureRouteGuard>
+      );
+      }

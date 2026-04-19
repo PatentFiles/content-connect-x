@@ -13,7 +13,6 @@ import { CCLoadingScreen, CCProfileCardSkeleton } from '@/components/ui-custom/C
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import ProfileCard from '@/components/profiles/ProfileCard';
 import ProfileFilters from '@/components/profiles/ProfileFilters';
-import AccessGate from '@/components/auth/AccessGate';
 import SaveToFavoritesModal from '@/components/profiles/SaveToFavoritesModal';
 import ReportModal from '@/components/moderation/ReportModal';
 
@@ -289,16 +288,9 @@ export default function Search() {
     return <CCLoadingScreen message="Loading..." />;
   }
 
-  if (!user) {
-    return <AccessGate type="both" />;
-  }
-
-  if (!isAdmin && !isSubscribed) {
-    return <AccessGate type="subscription" />;
-  }
-
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <FeatureRouteGuard flag="search" requiresSubscription={true}>
+      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Search Header */}
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-6xl mx-auto px-4 py-4">
@@ -502,6 +494,7 @@ export default function Search() {
         targetUserId={reportTargetUserId}
         targetContentType="profile"
       />
-    </div>
+      </div>
+    </FeatureRouteGuard>
   );
 }

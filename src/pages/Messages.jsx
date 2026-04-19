@@ -32,10 +32,10 @@ import CCBadge from '@/components/ui-custom/CCBadge';
 import CCCard from '@/components/ui-custom/CCCard';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
-import FeatureGate from '@/components/feature/FeatureGate';
 import CommFilterWarning from '@/components/messaging/CommFilterWarning';
 import { detectCommViolation, getEscalationLevel } from '@/lib/commFilter';
 import { useFeatureFlag } from '@/lib/featureFlags';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 
 export default function Messages() {
   const [selectedConversation, setSelectedConversation] = useState(null);
@@ -415,8 +415,8 @@ export default function Messages() {
   }
 
   return (
-    <FeatureGate flag="messaging">
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-0">
+    <FeatureRouteGuard flag="messaging" requiresSubscription={true}>
+      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-0">
       <div className="max-w-6xl mx-auto h-[calc(100vh-4rem)] md:h-[calc(100vh-4rem)] flex">
         {/* Conversation List */}
         <div className={`w-full md:w-80 lg:w-96 border-r border-[#263248] flex flex-col ${
@@ -783,7 +783,7 @@ export default function Messages() {
         targetContentType="message"
         targetContentId={selectedConversation?.id}
       />
-    </div>
-    </FeatureGate>
+      </div>
+    </FeatureRouteGuard>
   );
 }

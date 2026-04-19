@@ -8,6 +8,7 @@ import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import TravelDateManager from '@/components/profile/TravelDateManager';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 
 export default function TravelSchedule() {
   const [showManager, setShowManager] = useState(false);
@@ -79,8 +80,6 @@ export default function TravelSchedule() {
   if (isLoading) return <CCLoadingScreen message="Loading travel schedule..." />;
 
   const profile = profiles[0];
-
-  const deleteTravelEntry = (id) => {
     if (confirm('Are you sure you want to delete this travel entry?')) {
       base44.entities.ScheduleEntry.delete(id).then(() => {
         queryClient.invalidateQueries({ queryKey: ['travelEntries'] });
@@ -115,8 +114,18 @@ END:VCALENDAR`;
     }
   };
 
+  const deleteTravelEntry = (id) => {
+    if (confirm('Are you sure you want to delete this travel entry?')) {
+      base44.entities.ScheduleEntry.delete(id).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['travelEntries'] });
+        toast.success('Travel entry deleted');
+      });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <FeatureRouteGuard flag="travel_schedule" requiresSubscription={true}>
+      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="text-center mb-8">
@@ -243,6 +252,8 @@ END:VCALENDAR`;
           onClose={() => setShowManager(false)}
         />
       )}
-    </div>
+      </div>
+      </div>
+    </FeatureRouteGuard>
   );
 }

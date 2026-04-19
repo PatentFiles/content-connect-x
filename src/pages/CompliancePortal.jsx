@@ -3,6 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CompliancePortal from '@/components/admin/CompliancePortal';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 
 export default function CompliancePortalPage() {
   const { data: user, isLoading: userLoading } = useQuery({
@@ -14,5 +15,9 @@ export default function CompliancePortalPage() {
     return <CCLoadingScreen message="Loading compliance portal..." />;
   }
 
-  return <CompliancePortal currentUser={user} />;
+  return (
+    <FeatureRouteGuard flag="compliance_portal" requiresSubscription={false}>
+      <CompliancePortal currentUser={user} />
+    </FeatureRouteGuard>
+  );
 }

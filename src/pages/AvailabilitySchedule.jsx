@@ -11,6 +11,7 @@ import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import ScheduleEntryCard from '@/components/schedule/ScheduleEntryCard';
 import ScheduleEntryEditor from '@/components/schedule/ScheduleEntryEditor';
 import CCModal from '@/components/ui-custom/CCModal';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 
 export default function AvailabilitySchedule() {
   const [viewMonth, setViewMonth] = useState(new Date());
@@ -245,7 +246,8 @@ END:VCALENDAR`;
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <FeatureRouteGuard flag="availability_schedule" requiresSubscription={true}>
+      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="text-center mb-8">
@@ -526,6 +528,8 @@ END:VCALENDAR`;
           </div>
         </div>
       </CCModal>
-    </div>
+      </div>
+      </div>
+    </FeatureRouteGuard>
   );
 }

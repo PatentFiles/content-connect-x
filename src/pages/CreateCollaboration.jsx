@@ -30,7 +30,6 @@ import CCSelect from '@/components/ui-custom/CCSelect';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
-import AccessGate from '@/components/auth/AccessGate';
 import { useVerificationCheck } from '@/components/auth/useVerificationCheck';
 import VerificationRequired from '@/components/auth/VerificationRequired';
 import AvailabilityCalendar from '@/components/collaboration/AvailabilityCalendar';
@@ -609,10 +608,7 @@ export default function CreateCollaboration() {
     return <CCLoadingScreen message="Loading..." />;
   }
 
-  if (!user) return <AccessGate type="both" />;
   if (verificationBlocked) return <VerificationRequired action="create collaborations" />;
-  if (!isVerified) return <AccessGate type="verification" />;
-  if (!isSubscribed) return <AccessGate type="subscription" />;
 
   const totalSteps = 7;
 
@@ -638,7 +634,8 @@ export default function CreateCollaboration() {
   }) : scenePairings; // show all if no creator details loaded yet
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <FeatureRouteGuard flag="collaborations" requiresSubscription={true}>
+      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Header */}
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-3xl mx-auto px-4 py-4">
@@ -1806,6 +1803,7 @@ export default function CreateCollaboration() {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </FeatureRouteGuard>
   );
 }

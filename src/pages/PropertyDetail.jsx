@@ -13,6 +13,7 @@ import PropertyBookingPanel from '@/components/hosting/PropertyBookingPanel';
 import LocationContractClauses from '@/components/hosting/LocationContractClauses';
 import PropertyReviewsSection from '@/components/property/PropertyReviewsSection';
 import { useFeatureFlag } from '@/lib/featureFlags';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 
 export default function PropertyDetail() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -72,7 +73,8 @@ export default function PropertyDetail() {
   const pricing = property.pricing || {};
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <FeatureRouteGuard flag="hosting_marketplace" requiresSubscription={true}>
+      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Back nav */}
       <div className="max-w-5xl mx-auto px-4 pt-4">
         <Link to="/HostingMarketplace" className="inline-flex items-center gap-1 text-sm text-[#9AA6BC] hover:text-[#E8EEF9] transition-colors mb-4">
@@ -236,6 +238,7 @@ export default function PropertyDetail() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </FeatureRouteGuard>
   );
 }

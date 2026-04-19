@@ -10,8 +10,8 @@ import { CCLoadingScreen, CCProfileCardSkeleton } from '@/components/ui-custom/C
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import ProfileCard from '@/components/profiles/ProfileCard';
 import ProfileFilters from '@/components/profiles/ProfileFilters';
-import AccessGate from '@/components/auth/AccessGate';
 import SaveToFavoritesModal from '@/components/profiles/SaveToFavoritesModal';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 import ReportModal from '@/components/moderation/ReportModal';
 import AgentRepresentationRequestModal from '@/components/representation/AgentRepresentationRequestModal';
 import TopCreators from '@/components/discovery/TopCreators';
@@ -332,11 +332,10 @@ export default function Discovery() {
   });
 
   if (userLoading) return <CCLoadingScreen message="Loading..." />;
-  if (!user) return <AccessGate type="both" />;
-  if (!isAdmin && !isSubscribed) return <AccessGate type="subscription" />;
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <FeatureRouteGuard flag="discovery" requiresSubscription={true}>
+      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="text-center mb-4">
@@ -562,6 +561,7 @@ export default function Discovery() {
           onSuccess={() => queryClient.invalidateQueries({ queryKey: ['myCreatorReps'] })}
         />
       </div>
-    </div>
+      </div>
+    </FeatureRouteGuard>
   );
 }

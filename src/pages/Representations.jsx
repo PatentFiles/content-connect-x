@@ -22,6 +22,7 @@ import CCEmpty from '@/components/ui-custom/CCEmpty';
 import CCModal from '@/components/ui-custom/CCModal';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import AgentInviteInbox from '@/components/representation/AgentInviteInbox';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 
 export default function Representations() {
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -187,24 +188,14 @@ export default function Representations() {
     return <CCLoadingScreen message="Loading representations..." />;
   }
 
-  if (!isAgent && !isCreator && !isAdmin) {
-    return (
-      <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center">
-        <CCCard padding="xl" className="max-w-md text-center">
-          <Briefcase className="w-12 h-12 text-[#6B7A94] mx-auto mb-4" />
-          <p className="text-[#9AA6BC]">This page is for agents and creators only.</p>
-        </CCCard>
-      </div>
-    );
-  }
-
   // ── CREATOR VIEW ──────────────────────────────────────────────────
   if (isCreator && !isAgent) {
     const activeCreatorReps = creatorReps.filter(r => r.status === 'ACTIVE');
     const endedCreatorReps = creatorReps.filter(r => ['ENDED', 'DECLINED'].includes(r.status));
 
     return (
-      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+      <FeatureRouteGuard flag="representations" requiresSubscription={true}>
+        <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-[#E8EEF9] mb-1">My Representation</h1>
@@ -298,7 +289,8 @@ export default function Representations() {
             </CCCard>
           )}
         </div>
-      </div>
+        </div>
+        </FeatureRouteGuard>
     );
   }
 
@@ -308,7 +300,8 @@ export default function Representations() {
   const endedReps = agentReps.filter(r => ['ENDED', 'DECLINED'].includes(r.status));
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <FeatureRouteGuard flag="representations" requiresSubscription={true}>
+      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
@@ -555,6 +548,8 @@ export default function Representations() {
           </div>
         </div>
       </CCModal>
-    </div>
+      </div>
+      </div>
+    </FeatureRouteGuard>
   );
 }

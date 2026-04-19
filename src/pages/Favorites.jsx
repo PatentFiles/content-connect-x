@@ -17,7 +17,6 @@ import CCModal from '@/components/ui-custom/CCModal';
 import CCSelect from '@/components/ui-custom/CCSelect';
 import { CCLoadingScreen, CCSkeletonLoader } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
-import AccessGate from '@/components/auth/AccessGate';
 import ProfileCard from '@/components/profiles/ProfileCard';
 import { useFeatureFlag } from '@/lib/featureFlags';
 import VerificationGate from '@/components/auth/VerificationGate';
@@ -251,14 +250,6 @@ export default function Favorites() {
     return <CCLoadingScreen message="Loading..." />;
   }
 
-  if (!user) {
-    return <AccessGate type="both" />;
-  }
-
-  if (!isAdmin && !isSubscribed) {
-    return <AccessGate type="subscription" />;
-  }
-
   const getProfilesForList = (list) => {
     return list.items?.map(item => profiles.find(p => p.user_id === item.user_id)).filter(Boolean) || [];
   };
@@ -278,7 +269,8 @@ export default function Favorites() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <FeatureRouteGuard flag="favorites" requiresSubscription={true}>
+      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Header */}
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-6xl mx-auto px-4 py-4">
@@ -671,6 +663,7 @@ export default function Favorites() {
           </div>
         )}
       </CCModal>
-    </div>
+      </div>
+    </FeatureRouteGuard>
   );
 }

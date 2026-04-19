@@ -5,41 +5,14 @@ import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { 
-  ShieldCheck, 
-  Users, 
-  FileText, 
-  MessageCircle, 
   ArrowRight,
-  CheckCircle,
-  Zap,
   Lock,
-  Globe
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
+import MarketingFeatureShowcase from '@/components/marketing/MarketingFeatureShowcase';
 
-const features = [
-  {
-    icon: ShieldCheck,
-    title: 'Verified Members Only',
-    description: 'Every member is identity-verified. Collaborate with confidence knowing everyone is who they claim to be.'
-  },
-  {
-    icon: Users,
-    title: 'Smart Discovery',
-    description: 'Find the perfect collaborators based on your preferences, location, travel plans, and work style.'
-  },
-  {
-    icon: FileText,
-    title: 'Built-in Contracts',
-    description: 'Generate professional contracts with e-signatures. Version history and PDF export included.'
-  },
-  {
-    icon: MessageCircle,
-    title: 'Secure Messaging',
-    description: 'Communicate safely with verification gated messaging and permission-controlled attachments.'
-  }
-];
+// CCCard is used in the How It Works section steps below
 
 export default function Landing() {
   const { data: user } = useQuery({
@@ -144,7 +117,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Features Section — driven by live feature flags */}
       <section className="py-20 px-4 bg-[#121824]">
         <div className="max-w-6xl mx-auto">
           <motion.div
@@ -160,30 +133,7 @@ export default function Landing() {
               Built specifically for content professionals. Every feature designed with your safety and success in mind.
             </p>
           </motion.div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {features.map((feature, i) => (
-              <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <CCCard hover padding="lg" className="h-full">
-                  <div className="flex gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#4F8CFF]/20 to-[#FF2DAA]/20 flex items-center justify-center flex-shrink-0">
-                      <feature.icon className="w-6 h-6 text-[#4F8CFF]" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">{feature.title}</h3>
-                      <p className="text-[#9AA6BC] text-sm">{feature.description}</p>
-                    </div>
-                  </div>
-                </CCCard>
-              </motion.div>
-            ))}
-          </div>
+          <MarketingFeatureShowcase onlyPage="Landing" />
         </div>
       </section>
 

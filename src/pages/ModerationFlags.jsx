@@ -11,6 +11,7 @@ import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import { createNotification } from '@/components/notifications/notificationHelpers';
 import { toast } from 'sonner';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 
 const STATUS_CONFIG = {
   pending:  { label: 'Under Review', variant: 'warning', icon: Clock },
@@ -90,7 +91,8 @@ export default function ModerationFlags() {
   const appealsByIndex = Object.fromEntries(appeals.map(a => [a.flag_index, a]));
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <FeatureRouteGuard flag="moderation_flags" requiresSubscription={false}>
+      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="mb-6">
@@ -210,6 +212,8 @@ export default function ModerationFlags() {
           </div>
         )}
       </div>
-    </div>
+      </div>
+      </div>
+    </FeatureRouteGuard>
   );
 }

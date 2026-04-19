@@ -25,7 +25,6 @@ import CCBadge from '@/components/ui-custom/CCBadge';
 import CCInput from '@/components/ui-custom/CCInput';
 import { CCLoadingScreen, CCSkeletonLoader } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
-import AccessGate from '@/components/auth/AccessGate';
 import CCModal from '@/components/ui-custom/CCModal';
 import CCSelect from '@/components/ui-custom/CCSelect';
 
@@ -265,14 +264,6 @@ export default function Contracts() {
     return <CCLoadingScreen message="Loading..." />;
   }
 
-  if (!user) {
-    return <AccessGate type="both" />;
-  }
-
-  if (!isAdmin && !isSubscribed) {
-    return <AccessGate type="subscription" />;
-  }
-
   const filteredContracts = contracts.filter(c => {
     if (filter !== 'all' && c.status !== filter) return false;
     if (searchQuery) {
@@ -290,7 +281,8 @@ export default function Contracts() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <FeatureRouteGuard flag="contracts" requiresSubscription={true}>
+      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Header */}
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-6xl mx-auto px-4 py-4">
@@ -706,5 +698,6 @@ export default function Contracts() {
         </div>
       </CCModal>
     </div>
+    </FeatureRouteGuard>
   );
 }

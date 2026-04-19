@@ -8,6 +8,7 @@ import { CCTabs, CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import FriendRequestsList from '@/components/friends/FriendRequestsList';
 import FriendsList from '@/components/friends/FriendsList';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 
 export default function Connections() {
   const [activeTab, setActiveTab] = useState('friends');
@@ -36,7 +37,8 @@ export default function Connections() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <FeatureRouteGuard flag="connections" requiresSubscription={true}>
+      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
@@ -62,6 +64,7 @@ export default function Connections() {
           <FriendRequestsList userId={user?.email} />
         </CCTabsContent>
       </div>
-    </div>
+      </div>
+    </FeatureRouteGuard>
   );
 }

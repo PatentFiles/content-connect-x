@@ -18,6 +18,7 @@ import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 
 const steps = [
   { 
@@ -107,6 +108,7 @@ export default function Verification() {
   // Already verified
   if (isVerified) {
     return (
+      <FeatureRouteGuard flag="verification" requiresSubscription={false}>
       <div className="min-h-screen bg-[#0B0F14] pt-24 pb-12 px-4">
         <div className="max-w-lg mx-auto">
           <motion.div
@@ -133,12 +135,14 @@ export default function Verification() {
           </motion.div>
         </div>
       </div>
+      </FeatureRouteGuard>
     );
   }
 
   // Pending verification
   if (isPending) {
     return (
+      <FeatureRouteGuard flag="verification" requiresSubscription={false}>
       <div className="min-h-screen bg-[#0B0F14] pt-24 pb-12 px-4">
         <div className="max-w-lg mx-auto">
           <motion.div
@@ -163,10 +167,12 @@ export default function Verification() {
           </motion.div>
         </div>
       </div>
+      </FeatureRouteGuard>
     );
   }
 
   return (
+    <FeatureRouteGuard flag="verification" requiresSubscription={false}>
     <div className="min-h-screen bg-[#0B0F14] pt-24 pb-12 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
@@ -361,5 +367,6 @@ export default function Verification() {
         </div>
       </div>
     </div>
+    </FeatureRouteGuard>
   );
 }

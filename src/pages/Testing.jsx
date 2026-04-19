@@ -9,6 +9,7 @@ import CCBadge from '@/components/ui-custom/CCBadge';
 import CCLoadingScreen from '@/components/ui-custom/CCLoading';
 import VerificationGate from '@/components/auth/VerificationGate';
 import { format } from 'date-fns';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 
 export default function Testing() {
   const queryClient = useQueryClient();
@@ -161,6 +162,7 @@ export default function Testing() {
   }
 
   return (
+    <FeatureRouteGuard flag="testing" requiresSubscription={true}>
     <VerificationGate isVerified={isVerified} isAdmin={isAdmin}>
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
@@ -322,5 +324,6 @@ export default function Testing() {
       </div>
     </div>
     </VerificationGate>
+    </FeatureRouteGuard>
   );
 }

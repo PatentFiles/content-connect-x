@@ -25,6 +25,7 @@ import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import PullToRefresh from '@/components/ui-custom/PullToRefresh';
 import { toast } from 'sonner';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 
 export default function Notifications() {
   const [activeTab, setActiveTab] = useState('all');
@@ -179,7 +180,8 @@ export default function Notifications() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <FeatureRouteGuard flag="notifications" requiresSubscription={true}>
+      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Header */}
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-4xl mx-auto px-4 py-4">
@@ -351,6 +353,7 @@ export default function Notifications() {
         </CCTabsContent>
       </div>
       </PullToRefresh>
-    </div>
+      </div>
+    </FeatureRouteGuard>
   );
 }
