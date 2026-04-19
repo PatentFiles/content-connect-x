@@ -4,9 +4,16 @@ import { createPageUrl } from '@/utils';
 import { Shield, AlertCircle } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
+import { useFeatureFlag } from '@/lib/featureFlags';
 
-export default function VerificationRequired({ action, message }) {
+export default function VerificationRequired({ action, message, children }) {
   const navigate = useNavigate();
+  const verificationEnabled = useFeatureFlag('verification');
+
+  // If verification flag is OFF, render children (pass-through) or nothing
+  if (!verificationEnabled) {
+    return children ? <>{children}</> : null;
+  }
 
   return (
     <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center p-4">

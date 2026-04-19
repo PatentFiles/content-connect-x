@@ -31,9 +31,7 @@ import CCBadge from '@/components/ui-custom/CCBadge';
 import CCCard from '@/components/ui-custom/CCCard';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
-import AccessGate from '@/components/auth/AccessGate';
-import { useVerificationCheck } from '@/components/auth/useVerificationCheck';
-import VerificationRequired from '@/components/auth/VerificationRequired';
+import FeatureGate from '@/components/feature/FeatureGate';
 import CommFilterWarning from '@/components/messaging/CommFilterWarning';
 import { detectCommViolation, getEscalationLevel } from '@/lib/commFilter';
 import { useFeatureFlag } from '@/lib/featureFlags';
@@ -72,7 +70,6 @@ export default function Messages() {
   }, [selectedConversation?.id]);
 
   const commFilterEnabled = useFeatureFlag('comm_filter');
-  const { checking: verificationChecking, blocked: verificationBlocked } = useVerificationCheck('send_message');
   const { protectedMutate } = useProtectedMutation();
 
   // Check auth and access
@@ -99,22 +96,7 @@ export default function Messages() {
     enabled: !!user?.email,
   });
 
-  const { data: verification } = useQuery({
-    queryKey: ['verification', user?.email],
-    queryFn: () => base44.entities.VerificationRecord.filter({ user_id: user?.email }),
-    enabled: !!user?.email,
-  });
-
-  const { data: subscription } = useQuery({
-    queryKey: ['subscription', user?.email],
-    queryFn: () => base44.entities.Subscription.filter({ user_id: user?.email }),
-    enabled: !!user?.email,
-  });
-
-  const verificationEnabled = useFeatureFlag('verification');
   const isAdmin = profile?.is_admin;
-  const isVerified = !verificationEnabled || isAdmin || verification?.[0]?.status === 'approved';
-  const isSubscribed = isAdmin || subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
   // Fetch conversations
   const { data: conversations = [], isLoading: conversationsLoading } = useQuery({
@@ -123,7 +105,7 @@ export default function Messages() {
       const allConvs = await base44.entities.Conversation.list('-last_message_at');
       return allConvs.filter(c => c.participant_ids?.includes(user?.email));
     },
-    enabled: !!user && (isVerified || isAdmin) && (isSubscribed || isAdmin),
+    enabled: !!user,
   });
 
   // Check URL params for conversation ID
@@ -427,23 +409,12 @@ export default function Messages() {
     return other?.display_name?.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  if (userLoading || verificationChecking) {
+  if (userLoading) {
     return <CCLoadingScreen message="Loading..." />;
   }
 
-  if (!user) {
-    return <AccessGate type="both" />;
-  }
-
-  if (!isAdmin && !isVerified) {
-    return <AccessGate type="verification" />;
-  }
-
-  if (!isAdmin && !isSubscribed) {
-    return <AccessGate type="subscription" />;
-  }
-
   return (
+    <FeatureGate flag="messaging">
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-0">
       <div className="max-w-6xl mx-auto h-[calc(100vh-4rem)] md:h-[calc(100vh-4rem)] flex">
         {/* Conversation List */}
@@ -812,5 +783,6 @@ export default function Messages() {
         targetContentId={selectedConversation?.id}
       />
     </div>
+    </FeatureGate>
   );
 }

@@ -8,7 +8,6 @@ import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import CCLoadingScreen from '@/components/ui-custom/CCLoading';
 import VerificationGate from '@/components/auth/VerificationGate';
-import { useFeatureFlag } from '@/lib/featureFlags';
 import { format } from 'date-fns';
 
 export default function Testing() {
