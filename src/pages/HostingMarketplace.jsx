@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import FeatureGate from '@/components/feature/FeatureGate';
-import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 import PropertyCard from '@/components/hosting/PropertyCard';
 import PropertyFilters from '@/components/hosting/PropertyFilters';
 

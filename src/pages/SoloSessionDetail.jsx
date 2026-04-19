@@ -18,7 +18,7 @@ import CCCard from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
-import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard';
+import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 
 const STATUS_CONFIG = {
   draft:            { label: 'Draft',            color: 'default',  step: 0 },
