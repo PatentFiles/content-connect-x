@@ -71,15 +71,6 @@ export default function Messages() {
     return unsubscribe;
   }, [selectedConversation?.id]);
 
-  // Real-time conversation list subscription
-  useEffect(() => {
-    if (!user) return;
-    const unsubscribe = base44.entities.Conversation.subscribe(() => {
-      queryClient.invalidateQueries(['conversations', user.email]);
-    });
-    return unsubscribe;
-  }, [user?.email]);
-  
   const commFilterEnabled = useFeatureFlag('comm_filter');
   const { checking: verificationChecking, blocked: verificationBlocked } = useVerificationCheck('send_message');
   const { protectedMutate } = useProtectedMutation();
@@ -89,6 +80,15 @@ export default function Messages() {
     queryKey: ['currentUser'],
     queryFn: () => base44.auth.me(),
   });
+
+  // Real-time conversation list subscription
+  useEffect(() => {
+    if (!user) return;
+    const unsubscribe = base44.entities.Conversation.subscribe(() => {
+      queryClient.invalidateQueries(['conversations', user.email]);
+    });
+    return unsubscribe;
+  }, [user?.email]);
 
   const { data: profile } = useQuery({
     queryKey: ['profile', user?.email],
