@@ -275,7 +275,7 @@ export default function ProfileWizard({ user, profile, onComplete, onSkip }) {
                       <Sparkles className="w-10 h-10 text-[#4F8CFF]" />
                     </div>
                     <h3 className="text-2xl font-bold text-[#E8EEF9] mb-2">
-                      Welcome to Only Collabs X
+                      Welcome to Content Connect X
                     </h3>
                     <p className="text-[#9AA6BC] mb-6 max-w-md mx-auto leading-relaxed">
                       Let's take 3 minutes to set up your profile so you can start discovering
