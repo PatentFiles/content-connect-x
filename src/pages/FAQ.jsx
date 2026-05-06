@@ -11,12 +11,12 @@ const faqCategories = [
     name: 'Getting Started',
     faqs: [
       {
-        q: 'What is Only Collabs X?',
-        a: 'Only Collabs X is a verified, subscription-only professional collaboration platform for adult content professionals. We connect creators, photographers, videographers, agents, and studios in a safe, structured environment with built-in consent documentation, contracts, and safety tools. The platform is strictly for professional content creation partnerships — it is not a hookup, escort, or personal services platform.',
+        q: 'What is Content Connect X?',
+        a: 'Content Connect X is a verified, subscription-only professional collaboration platform for adult content professionals. We connect creators, photographers, videographers, agents, and studios in a safe, structured environment with built-in consent documentation, contracts, and safety tools. The platform is strictly for professional content creation partnerships — it is not a hookup, escort, or personal services platform.',
       },
       {
-        q: 'Who can join Only Collabs X?',
-        a: 'Only Collabs X is for adult content professionals including creators/performers, photographers, videographers, talent agents, and studios. All members must be 18 or older and complete identity verification before accessing any platform features. Use of the platform by minors is strictly prohibited.',
+        q: 'Who can join Content Connect X?',
+        a: 'Content Connect X is for adult content professionals including creators/performers, photographers, videographers, talent agents, and studios. All members must be 18 or older and complete identity verification before accessing any platform features. Use of the platform by minors is strictly prohibited.',
       },
       {
         q: 'How do I sign up?',
@@ -33,10 +33,10 @@ const faqCategories = [
     faqs: [
       {
         q: 'What is this platform NOT for?',
-        a: 'Only Collabs X is strictly for professional content collaboration. The following uses are explicitly prohibited and will result in immediate account termination: soliciting or offering payment for sexual acts or escorts; arranging in-person prostitution or escorting; sex trafficking or any facilitation thereof; coercion, exploitation, or threatening any person; any activity involving minors; non-consensual content or threats to distribute intimate images. Violations may also be reported to law enforcement.',
+        a: 'Content Connect X is strictly for professional content collaboration. The following uses are explicitly prohibited and will result in immediate account termination: soliciting or offering payment for sexual acts or escorts; arranging in-person prostitution or escorting; sex trafficking or any facilitation thereof; coercion, exploitation, or threatening any person; any activity involving minors; non-consensual content or threats to distribute intimate images. Violations may also be reported to law enforcement.',
       },
       {
-        q: 'Does Only Collabs X allow escort or "GFE" arrangements?',
+        q: 'Does Content Connect X allow escort or "GFE" arrangements?',
         a: 'No. Absolutely not. Any use of the platform to solicit, offer, or arrange escorting, in-person sexual services, or any form of prostitution is a severe violation of our Terms of Service. Such use results in immediate account suspension, evidence preservation, and may be referred to law enforcement. Coded language (e.g., "roses," "donations," "GFE," "p4p," "incall," "outcall") used to solicit or offer these services is also prohibited.',
       },
       {
@@ -159,7 +159,7 @@ const faqCategories = [
     faqs: [
       {
         q: 'How does content moderation work?',
-        a: "Only Collabs X uses real-time, server-side content moderation that scans messages, collaboration details, and profile text before they are saved. This system runs on our backend — it cannot be bypassed from the frontend. Content that violates our policies is blocked before being stored or sent. Severe violations (such as underage references, solicitation, or trafficking language) trigger automatic account suspension and a mandatory safety review.",
+        a: "Content Connect X uses real-time, server-side content moderation that scans messages, collaboration details, and profile text before they are saved. This system runs on our backend — it cannot be bypassed from the frontend. Content that violates our policies is blocked before being stored or sent. Severe violations (such as underage references, solicitation, or trafficking language) trigger automatic account suspension and a mandatory safety review.",
       },
       {
         q: 'What happens when content is flagged?',
@@ -212,7 +212,7 @@ export default function FAQ() {
             Frequently Asked Questions
           </h1>
           <p className="text-lg text-[#9AA6BC] max-w-2xl mx-auto mb-8">
-            Everything you need to know about Only Collabs X
+            Everything you need to know about Content Connect X
           </p>
           <div className="max-w-md mx-auto">
             <CCInput
