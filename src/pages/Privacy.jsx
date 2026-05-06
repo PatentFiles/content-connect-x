@@ -35,7 +35,7 @@ export default function Privacy() {
         <div className="flex gap-3 bg-[#4F8CFF]/10 border border-[#4F8CFF]/30 rounded-xl p-4 mb-10">
           <Lock className="w-5 h-5 text-[#4F8CFF] flex-shrink-0 mt-0.5" />
           <p className="text-sm text-[#E8EEF9]">
-            Only Collabs X collects and retains identity documents and health credentials
+            Content Connect X collects and retains identity documents and health credentials
             in secure private storage as part of our safety and compliance infrastructure.
             This policy accurately describes what we store, how it is protected, and how
             long it may be retained.
@@ -156,7 +156,7 @@ export default function Privacy() {
 
         <Section number="7" title="Content Moderation and Automated Processing">
           <p>
-            Only Collabs X employs automated, server-side content moderation systems that
+            Content Connect X employs automated, server-side content moderation systems that
             analyze messages, collaboration text, and profile content in real time. This
             processing occurs before content is saved or transmitted. By using the Platform,
             you consent to this automated processing as described in our Terms of Service.
@@ -217,7 +217,7 @@ export default function Privacy() {
 
         <Section number="11" title="Children's Privacy">
           <p>
-            Only Collabs X is strictly for users who are 18 years of age or older. We do not
+            Content Connect X is strictly for users who are 18 years of age or older. We do not
             knowingly collect information from anyone under 18. If we discover that a minor has
             accessed or registered on the Platform, their account will be immediately terminated,
             their data preserved as required by law, and the matter may be reported to appropriate
