@@ -33,7 +33,7 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
             alt="OFX Logo"
             className="w-8 h-8 rounded-lg flex-shrink-0"
           />
-          <span className="text-[#E8EEF9] font-semibold text-lg hidden sm:block">Only Collabs X</span>
+          <span className="text-[#E8EEF9] font-semibold text-lg hidden sm:block">Content Connect X</span>
         </Link>
 
         {/* Center — Desktop public nav */}
