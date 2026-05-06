@@ -71,7 +71,7 @@ export default function AccountBlockedScreen({ blockReason, suspensionReason, su
 
           <p className="text-xs text-[#6B7A94] mb-4 flex items-center justify-center gap-1.5">
             <Shield className="w-3 h-3" />
-            Only Collabs X — Professional Creator Collaboration Platform
+            Content Connect X — Professional Creator Collaboration Platform
           </p>
 
           <p className="text-[#9AA6BC] mb-6 text-sm">
@@ -122,8 +122,8 @@ export default function AccountBlockedScreen({ blockReason, suspensionReason, su
                 ? 'If you believe this ban was made in error, you may submit a reinstatement dispute below. Note: bans for serious violations (trafficking, underage activity, solicitation) are not subject to appeal.'
                 : `Contact support at `}
               {isSuspended && (
-                <a href="mailto:support@onlycollabsx.com" className="text-[#4F8CFF] hover:underline">
-                  support@onlycollabsx.com
+                <a href="mailto:support@contentconnectx.com" className="text-[#4F8CFF] hover:underline">
+                  support@contentconnectx.com
                 </a>
               )}
             </p>
