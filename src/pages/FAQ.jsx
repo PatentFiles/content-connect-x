@@ -111,8 +111,8 @@ const faqCategories = [
         a: "You can cancel at any time from your Settings page. Your access continues until the end of your current billing period. We don't offer prorated refunds.",
       },
       {
-        q: 'Does Only Collabs X process collaboration payments?',
-        a: 'No. Only Collabs X records compensation terms in contracts but does not process payments between members. All collaboration payments are handled externally between parties. Content Connect has no liability for payment disputes between users.',
+        q: 'Does Content Connect X process collaboration payments?',
+        a: 'No. Content Connect X records compensation terms in contracts but does not process payments between members. All collaboration payments are handled externally between parties. Content Connect has no liability for payment disputes between users.',
       },
     ],
   },
