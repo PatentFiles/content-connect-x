@@ -259,7 +259,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-[#263248] text-center text-sm text-[#6B7A94]">
-            © {new Date().getFullYear()} Only Collabs X. All rights reserved.
+            © {new Date().getFullYear()} Content Connect X. All rights reserved.
           </div>
         </div>
       </footer>
