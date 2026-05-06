@@ -230,7 +230,7 @@ export default function Landing() {
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4F8CFF] to-[#FF2DAA] flex items-center justify-center">
                   <span className="text-white font-bold text-sm">OCX</span>
                 </div>
-                <span className="text-[#E8EEF9] font-semibold">Only Collabs X</span>
+                <span className="text-[#E8EEF9] font-semibold">Content Connect X</span>
               </div>
               <p className="text-sm text-[#6B7A94]">
                 The verified collaboration network for professional content creators.
