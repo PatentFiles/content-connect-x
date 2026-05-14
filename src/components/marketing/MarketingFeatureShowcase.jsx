@@ -36,10 +36,10 @@ export default function MarketingFeatureShowcase({ onlyPage = null }) {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.1 }}
-          className="p-6 bg-[#151D2B] border border-[#263248] rounded-xl hover:border-[#4F8CFF]/50 transition-colors"
+          className="p-6 bg-cc-surface border border-cc-border rounded-xl hover:border-cc-blue/50 transition-colors"
         >
-          <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">{feature.label}</h3>
-          <p className="text-[#9AA6BC]">{feature.description}</p>
+          <h3 className="text-lg font-semibold cc-text-fix-primary mb-2">{feature.label}</h3>
+          <p className="cc-text-fix-secondary">{feature.description}</p>
         </motion.div>
       ))}
     </div>
