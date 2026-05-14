@@ -6,11 +6,16 @@ const PULL_THRESHOLD = 72;
 
 /**
  * Native-feeling pull-to-refresh wrapper.
- * - Rubber-band pull animation
- * - ARIA live region announces refresh state to screen readers
- * - Respects prefers-reduced-motion (no animation when user prefers none)
  *
- * Usage: <PullToRefresh onRefresh={async () => { ... }}>...</PullToRefresh>
+ * Two modes:
+ *   scrollable=true  → the motion div itself is the scroll container (overflow-y-auto).
+ *                      Use for panels/lists that live inside a fixed-height area (e.g. Messages sidebar).
+ *   scrollable=false → the page/document is the scroll container. Touch events are attached to the
+ *                      motion div but scroll-position is read from document.documentElement.
+ *                      Use for full-page layouts where body/document handles scrolling.
+ *
+ * The key fix: when scrollable=false, check document.documentElement.scrollTop (not el.scrollTop)
+ * to decide whether we're at the top of the page before allowing the pull gesture.
  */
 export default function PullToRefresh({ children, onRefresh, className = '', scrollable = true }) {
   const [refreshing, setRefreshing] = useState(false);
@@ -21,7 +26,6 @@ export default function PullToRefresh({ children, onRefresh, className = '', scr
   const containerRef = useRef(null);
   const statusId = useId();
 
-  // Check reduced-motion preference once
   const prefersReducedMotion =
     typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -31,22 +35,34 @@ export default function PullToRefresh({ children, onRefresh, className = '', scr
   const contentYMotion = useTransform(pullDistance, [0, PULL_THRESHOLD], [0, PULL_THRESHOLD]);
   const contentY = prefersReducedMotion ? 0 : contentYMotion;
 
+  /**
+   * Returns the current scroll position of whichever container owns the scrolling.
+   * scrollable=true  → the motion div itself scrolls
+   * scrollable=false → the document scrolls (body-scroll pages)
+   */
+  const getScrollTop = useCallback(() => {
+    if (scrollable) {
+      return containerRef.current?.scrollTop ?? 0;
+    }
+    // Body-scroll: document.documentElement.scrollTop is the correct value on iOS Safari
+    return document.documentElement.scrollTop || document.body.scrollTop || 0;
+  }, [scrollable]);
+
   const handleTouchStart = useCallback((e) => {
-    const el = containerRef.current;
-    if (!el) return;
-    if (el.scrollTop > 0) return;
+    if (getScrollTop() > 0) return;
     touchStartY.current = e.touches[0].clientY;
     setPulling(true);
     setStatusMsg('');
-  }, []);
+  }, [getScrollTop]);
 
   const handleTouchMove = useCallback((e) => {
     if (!pulling || refreshing) return;
-    const el = containerRef.current;
-    if (!el || el.scrollTop > 0) return;
+    if (getScrollTop() > 0) return;
 
     const delta = e.touches[0].clientY - touchStartY.current;
     if (delta > 0) {
+      // Prevent default only when we're pulling (not normal scroll)
+      // This is safe because scrollTop is 0 at this point
       pullDistance.set(Math.min(delta * 0.45, PULL_THRESHOLD + 20));
       if (pullDistance.get() >= PULL_THRESHOLD) {
         setStatusMsg('Release to refresh');
@@ -54,7 +70,7 @@ export default function PullToRefresh({ children, onRefresh, className = '', scr
         setStatusMsg('Pull down to refresh');
       }
     }
-  }, [pulling, refreshing, pullDistance]);
+  }, [pulling, refreshing, pullDistance, getScrollTop]);
 
   const handleTouchEnd = useCallback(async () => {
     if (!pulling) return;
@@ -71,7 +87,6 @@ export default function PullToRefresh({ children, onRefresh, className = '', scr
       } finally {
         setRefreshing(false);
         pullDistance.set(0);
-        // Clear the status message after a short delay so it's read once
         setTimeout(() => setStatusMsg(''), 1500);
       }
     } else {
@@ -81,8 +96,11 @@ export default function PullToRefresh({ children, onRefresh, className = '', scr
   }, [pulling, pullDistance, onRefresh]);
 
   return (
-    <div className={`relative ${className}`}>
-      {/* ARIA live region — announces refresh state to screen readers */}
+    <div
+      className={`relative ${className}`}
+      style={{ overscrollBehaviorY: scrollable ? 'contain' : 'auto' }}
+    >
+      {/* ARIA live region */}
       <span
         id={statusId}
         role="status"
@@ -93,7 +111,7 @@ export default function PullToRefresh({ children, onRefresh, className = '', scr
         {statusMsg}
       </span>
 
-      {/* Pull indicator */}
+      {/* Pull indicator — sits above content */}
       <motion.div
         style={{ opacity: iconOpacity }}
         className="absolute top-0 left-0 right-0 flex items-center justify-center z-10 pointer-events-none"
@@ -108,7 +126,7 @@ export default function PullToRefresh({ children, onRefresh, className = '', scr
         </div>
       </motion.div>
 
-      {/* Scrollable content */}
+      {/* Content */}
       <motion.div
         ref={containerRef}
         style={{ y: contentY }}
