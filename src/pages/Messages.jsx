@@ -427,15 +427,15 @@ export default function Messages() {
 
   return (
     <FeatureRouteGuard flag="messaging">
-      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-0">
+      <div className="min-h-screen pb-20 md:pb-0" style={{ backgroundColor: 'var(--cc-bg)' }}>
       <div className="max-w-6xl mx-auto h-[calc(100vh-4rem)] md:h-[calc(100vh-4rem)] flex">
         {/* Conversation List */}
-        <div className={`w-full md:w-80 lg:w-96 border-r border-[#263248] flex flex-col ${
+        <div className={`w-full md:w-80 lg:w-96 border-r flex flex-col ${
           selectedConversation ? 'hidden md:flex' : 'flex'
-        }`}>
+        }`} style={{ borderColor: 'var(--cc-border)' }}>
           {/* Header */}
-          <div className="p-4 border-b border-[#263248]">
-            <h1 className="text-xl font-semibold text-[#E8EEF9] mb-3">Messages</h1>
+          <div className="p-4 border-b" style={{ borderColor: 'var(--cc-border)' }}>
+            <h1 className="text-xl font-semibold mb-3" style={{ color: 'var(--cc-text-primary)' }}>Messages</h1>
             <CCInput
               placeholder="Search conversations..."
               icon={Search}
@@ -454,12 +454,12 @@ export default function Messages() {
               <div className="p-4 space-y-3">
                 {[1, 2, 3].map(i => (
                   <div key={i} className="animate-pulse flex gap-3">
-                    <div className="w-12 h-12 rounded-full bg-[#263248]" />
-                    <div className="flex-1">
-                      <div className="h-4 w-24 bg-[#263248] rounded mb-2" />
-                      <div className="h-3 w-32 bg-[#263248] rounded" />
-                    </div>
-                  </div>
+                     <div className="w-12 h-12 rounded-full" style={{ backgroundColor: 'var(--cc-border)' }} />
+                     <div className="flex-1">
+                       <div className="h-4 w-24 rounded mb-2" style={{ backgroundColor: 'var(--cc-border)' }} />
+                       <div className="h-3 w-32 rounded" style={{ backgroundColor: 'var(--cc-border)' }} />
+                     </div>
+                   </div>
                 ))}
               </div>
             ) : filteredConversations.length === 0 ? (
@@ -479,9 +479,10 @@ export default function Messages() {
                     <button
                       key={conv.id}
                       onClick={() => setSelectedConversation(conv)}
-                      className={`w-full p-4 flex gap-3 text-left transition-colors ${
-                        isSelected ? 'bg-[#151D2B]' : 'hover:bg-[#121824]'
-                      }`}
+                      className="w-full p-4 flex gap-3 text-left transition-colors"
+                      style={{ backgroundColor: isSelected ? 'var(--cc-surface-hover)' : 'transparent' }}
+                      onMouseEnter={e => { if (!isSelected) e.currentTarget.style.backgroundColor = 'var(--cc-surface-hover)'; }}
+                      onMouseLeave={e => { if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent'; }}
                     >
                       <CCAvatar
                         src={other?.avatar_url}
@@ -491,17 +492,17 @@ export default function Messages() {
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <p className="font-medium text-[#E8EEF9] truncate">
+                          <p className="font-medium truncate" style={{ color: 'var(--cc-text-primary)' }}>
                             {other?.display_name || 'Unknown'}
                           </p>
                           {conv.last_message_at && (
-                            <span className="text-xs text-[#6B7A94]">
+                            <span className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>
                               {new Date(conv.last_message_at).toLocaleDateString()}
                             </span>
                           )}
                         </div>
                         <div className="flex items-center justify-between">
-                          <p className="text-sm text-[#6B7A94] truncate">
+                          <p className="text-sm truncate" style={{ color: 'var(--cc-text-muted)' }}>
                             {conv.last_message_preview || 'No messages yet'}
                           </p>
                           {unreadCount > 0 && (
@@ -541,10 +542,11 @@ export default function Messages() {
           {selectedConversation ? (
             <>
               {/* Chat Header */}
-              <div className="p-4 border-b border-[#263248] flex items-center gap-3">
+              <div className="p-4 border-b flex items-center gap-3" style={{ borderColor: 'var(--cc-border)' }}>
                 <button
                   onClick={() => setSelectedConversation(null)}
-                  className="md:hidden p-2 text-[#9AA6BC] hover:text-[#E8EEF9]"
+                  className="md:hidden p-2 transition-colors"
+                  style={{ color: 'var(--cc-text-secondary)' }}
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -553,10 +555,10 @@ export default function Messages() {
                   size="sm"
                 />
                 <div className="flex-1">
-                  <p className="font-medium text-[#E8EEF9]">
+                  <p className="font-medium" style={{ color: 'var(--cc-text-primary)' }}>
                     {getOtherParticipant(selectedConversation)?.display_name || 'Unknown'}
                   </p>
-                  <p className="text-xs text-[#6B7A94] capitalize">{selectedConversation.type} chat</p>
+                  <p className="text-xs capitalize" style={{ color: 'var(--cc-text-muted)' }}>{selectedConversation.type} chat</p>
                 </div>
                 <div className="relative">
                   <CCButton 
@@ -567,12 +569,15 @@ export default function Messages() {
                     <MoreVertical className="w-5 h-5" />
                   </CCButton>
                   {showConversationMenu && (
-                    <div className="absolute right-0 top-full mt-2 w-52 bg-[#151D2B] border border-[#263248] rounded-lg shadow-xl z-50">
+                    <div className="absolute right-0 top-full mt-2 w-52 rounded-lg shadow-xl z-50 border" style={{ backgroundColor: 'var(--cc-surface)', borderColor: 'var(--cc-border)' }}>
                       <button
                         onClick={() => {
                           archiveConversationMutation.mutate(selectedConversation.id);
                         }}
-                        className="w-full px-4 py-3 text-left text-sm text-[#E8EEF9] hover:bg-[#1A2438] flex items-center gap-3 transition-colors"
+                        className="w-full px-4 py-3 text-left text-sm flex items-center gap-3 transition-colors rounded-t-lg"
+                        style={{ color: 'var(--cc-text-primary)' }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--cc-surface-hover)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                       >
                         <Archive className="w-4 h-4" />
                         Archive conversation
@@ -584,7 +589,9 @@ export default function Messages() {
                             blockUserMutation.mutate(otherUserId);
                           }
                         }}
-                        className="w-full px-4 py-3 text-left text-sm text-[#F59E0B] hover:bg-[#F59E0B]/10 flex items-center gap-3 transition-colors"
+                        className="w-full px-4 py-3 text-left text-sm flex items-center gap-3 transition-colors text-[#F59E0B]"
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(245,158,11,0.1)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                       >
                         <Ban className="w-4 h-4" />
                         Block user
@@ -596,7 +603,9 @@ export default function Messages() {
                           setShowReportModal(true);
                           setShowConversationMenu(false);
                         }}
-                        className="w-full px-4 py-3 text-left text-sm text-[#F59E0B] hover:bg-[#F59E0B]/10 flex items-center gap-3 transition-colors"
+                        className="w-full px-4 py-3 text-left text-sm flex items-center gap-3 transition-colors text-[#F59E0B]"
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(245,158,11,0.1)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                       >
                         <Flag className="w-4 h-4" />
                         Report user
@@ -607,7 +616,9 @@ export default function Messages() {
                             deleteConversationMutation.mutate(selectedConversation.id);
                           }
                         }}
-                        className="w-full px-4 py-3 text-left text-sm text-[#EF4444] hover:bg-[#EF4444]/10 flex items-center gap-3 transition-colors rounded-b-lg"
+                        className="w-full px-4 py-3 text-left text-sm flex items-center gap-3 transition-colors rounded-b-lg text-[#EF4444]"
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.1)'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
                       >
                         <Trash2 className="w-4 h-4" />
                         Delete conversation
@@ -620,10 +631,10 @@ export default function Messages() {
               {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messagesLoading ? (
-                  <div className="text-center text-[#6B7A94]">Loading messages...</div>
+                <div className="text-center" style={{ color: 'var(--cc-text-muted)' }}>Loading messages...</div>
                 ) : messages.length === 0 ? (
-                  <div className="text-center text-[#6B7A94] py-8">
-                    <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                <div className="text-center py-8" style={{ color: 'var(--cc-text-muted)' }}>
+                  <MessageCircle className="w-12 h-12 mx-auto mb-3 opacity-50" />
                     <p>No messages yet. Start the conversation!</p>
                   </div>
                 ) : (
@@ -634,7 +645,7 @@ export default function Messages() {
                     if (isSystemMessage) {
                       return (
                         <div key={msg.id} className="flex justify-center my-2">
-                          <p className="text-xs text-[#6B7A94] italic">{msg.body}</p>
+                          <p className="text-xs italic" style={{ color: 'var(--cc-text-muted)' }}>{msg.body}</p>
                         </div>
                       );
                     }
@@ -651,11 +662,12 @@ export default function Messages() {
                       >
                         <div className={`max-w-[75%] ${isMine ? 'order-1' : 'order-2'}`}>
                           <div
-                            className={`px-4 py-2 rounded-2xl ${
-                              isMine
-                                ? 'bg-[#4F8CFF] text-white rounded-br-md'
-                                : 'bg-[#151D2B] text-[#E8EEF9] rounded-bl-md'
-                            }`}
+                          className={`px-4 py-2 rounded-2xl ${isMine ? 'rounded-br-md' : 'rounded-bl-md'}`}
+                          style={{
+                            backgroundColor: isMine ? 'var(--cc-blue)' : 'var(--cc-surface)',
+                            color: isMine ? '#fff' : 'var(--cc-text-primary)',
+                            border: isMine ? 'none' : '1px solid var(--cc-border)',
+                          }}
                           >
                             {msg.attachments?.[0] ? (
                               <div>
@@ -678,18 +690,18 @@ export default function Messages() {
                               <p className="text-sm">{msg.body}</p>
                             )}
                           </div>
-                          <p className={`text-xs text-[#6B7A94] mt-1 ${isMine ? 'text-right' : ''}`}>
+                          <p className={`text-xs mt-1 ${isMine ? 'text-right' : ''}`} style={{ color: 'var(--cc-text-muted)' }}>
                             {new Date(msg.created_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </p>
                         </div>
                         <button
                           onClick={() => deleteMessageMutation.mutate(msg.id)}
-                          className={`hidden md:block opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-[#263248] rounded self-start ${
+                          className={`hidden md:block opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded self-start hover:bg-[rgba(0,0,0,0.1)] ${
                             isMine ? 'order-2' : 'order-1'
                           }`}
                           title="Delete message"
                         >
-                          <Trash2 className="w-4 h-4 text-[#6B7A94] hover:text-[#EF4444]" />
+                          <Trash2 className="w-4 h-4 text-[#EF4444]" />
                         </button>
                       </motion.div>
                     );
@@ -699,7 +711,7 @@ export default function Messages() {
               </div>
 
               {/* Message Input */}
-              <div className="p-4 border-t border-[#263248]">
+              <div className="p-4 border-t" style={{ borderColor: 'var(--cc-border)' }}>
                 <CommFilterWarning
                   violation={commViolation}
                   level={getEscalationLevel(commViolationCount - 1)}
@@ -727,12 +739,12 @@ export default function Messages() {
                     value={newMessage}
                     onChange={(e) => {
                       setNewMessage(e.target.value);
-                      // Clear warning as user edits
                       if (commViolation) setCommViolation(null);
                     }}
                     onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                     placeholder="Type a message..."
-                    className="flex-1 bg-[#121824] border border-[#263248] rounded-lg px-4 py-2 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                    className="flex-1 rounded-lg px-4 py-2 focus:outline-none focus:ring-2"
+                    style={{ backgroundColor: 'var(--cc-bg)', border: '1px solid var(--cc-border)', color: 'var(--cc-text-primary)' }}
                   />
                   <CCButton
                     variant="primary"
@@ -761,21 +773,23 @@ export default function Messages() {
       {/* Mobile Long Press Menu */}
       {longPressMessage && (
         <div 
-          className="fixed inset-0 bg-black/50 z-50 flex items-end md:hidden"
+          className="fixed inset-0 z-50 flex items-end md:hidden"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}
           onClick={() => setLongPressMessage(null)}
         >
-          <div className="w-full bg-[#151D2B] rounded-t-2xl p-4">
+          <div className="w-full rounded-t-2xl p-4" style={{ backgroundColor: 'var(--cc-surface)' }}>
             <button
               onClick={() => {
                 deleteMessageMutation.mutate(longPressMessage);
               }}
-              className="w-full py-4 text-[#EF4444] font-medium text-center"
+              className="w-full py-4 font-medium text-center text-[#EF4444]"
             >
               Delete Message
             </button>
             <button
               onClick={() => setLongPressMessage(null)}
-              className="w-full py-4 text-[#9AA6BC] font-medium text-center"
+              className="w-full py-4 font-medium text-center"
+              style={{ color: 'var(--cc-text-secondary)' }}
             >
               Cancel
             </button>

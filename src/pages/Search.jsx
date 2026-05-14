@@ -290,30 +290,32 @@ export default function Search() {
 
   return (
     <FeatureRouteGuard flag="search" requiresSubscription={true}>
-      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+      <div className="min-h-screen pb-20 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
       {/* Search Header */}
-      <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
+      <div className="sticky top-16 z-30 backdrop-blur-xl border-b" style={{ backgroundColor: 'color-mix(in srgb, var(--cc-bg) 95%, transparent)', borderColor: 'var(--cc-border)' }}>
         <div className="max-w-6xl mx-auto px-4 py-4">
           {/* Title */}
           <div className="text-center mb-4">
-            <h1 className="text-xl font-semibold text-[#E8EEF9]">Search</h1>
-            <p className="text-xs text-[#6B7A94]">Find your next collaboration</p>
+            <h1 className="text-xl font-semibold" style={{ color: 'var(--cc-text-primary)' }}>Search</h1>
+            <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>Find your next collaboration</p>
           </div>
           {/* Search Input — centered with max width */}
           <div className="flex gap-3 mb-4 max-w-2xl mx-auto">
             <div className="flex-1 relative">
-              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7A94]" />
+              <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--cc-text-muted)' }} />
               <input
                 type="text"
                 placeholder="Search by name, location, or keywords..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-[#121824] border border-[#263248] rounded-lg pl-10 pr-10 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+                className="w-full rounded-lg pl-10 pr-10 py-2.5 focus:outline-none focus:ring-2 transition-all duration-200"
+                style={{ backgroundColor: 'var(--cc-bg)', border: '1px solid var(--cc-border)', color: 'var(--cc-text-primary)' }}
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6B7A94] hover:text-[#E8EEF9]"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+                  style={{ color: 'var(--cc-text-muted)' }}
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -380,7 +382,7 @@ export default function Search() {
         </div>
         {/* Results count */}
         <div className="flex items-center justify-between mb-4">
-          <p className="text-sm text-[#9AA6BC]">
+          <p className="text-sm" style={{ color: 'var(--cc-text-secondary)' }}>
             {filteredResults.length} {filteredResults.length === 1 ? 'result' : 'results'} found
           </p>
           {(searchQuery || selectedRole || filters.roleTypes.length > 0) && (
@@ -435,16 +437,16 @@ export default function Search() {
               if (result.type === 'property') {
                 return (
                   <Link key={result.id} to={`/PropertyDetail?id=${result.id}`}>
-                    <div className="bg-[#151D2B] border border-[#263248] rounded-xl overflow-hidden hover:border-[#4F8CFF] transition-colors h-full">
+                    <div className="rounded-xl overflow-hidden transition-colors h-full border" style={{ backgroundColor: 'var(--cc-surface)', borderColor: 'var(--cc-border)' }}>
                       {result.media?.[0]?.url && (
                         <img src={result.media[0].url} alt={result.title} className="w-full h-40 object-cover" />
                       )}
                       <div className="p-4">
-                        <p className="font-medium text-[#E8EEF9] truncate">{result.title}</p>
-                        <p className="text-xs text-[#9AA6BC] mt-1">{result.city}{result.state && `, ${result.state}`}</p>
-                        <p className="text-xs text-[#6B7A94] mt-1 capitalize">{result.property_type}</p>
+                        <p className="font-medium truncate" style={{ color: 'var(--cc-text-primary)' }}>{result.title}</p>
+                        <p className="text-xs mt-1" style={{ color: 'var(--cc-text-secondary)' }}>{result.city}{result.state && `, ${result.state}`}</p>
+                        <p className="text-xs mt-1 capitalize" style={{ color: 'var(--cc-text-muted)' }}>{result.property_type}</p>
                         {result.pricing?.hourly_rate && (
-                          <p className="text-xs text-[#4F8CFF] font-semibold mt-2">${result.pricing.hourly_rate}/hr</p>
+                          <p className="text-xs font-semibold mt-2" style={{ color: 'var(--cc-blue)' }}>${result.pricing.hourly_rate}/hr</p>
                         )}
                       </div>
                     </div>

@@ -282,14 +282,14 @@ export default function Contracts() {
 
   return (
     <FeatureRouteGuard flag="contracts" requiresSubscription={true}>
-      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+      <div className="min-h-screen pb-20 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
       {/* Header */}
-      <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
+      <div className="sticky top-16 z-30 backdrop-blur-xl border-b" style={{ backgroundColor: 'color-mix(in srgb, var(--cc-bg) 95%, transparent)', borderColor: 'var(--cc-border)' }}>
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="mb-4">
             <div className="text-center mb-3">
-              <h1 className="text-xl font-semibold text-[#E8EEF9]">Contracts</h1>
-              <p className="text-xs text-[#6B7A94]">Manage collaboration agreements</p>
+              <h1 className="text-xl font-semibold" style={{ color: 'var(--cc-text-primary)' }}>Contracts</h1>
+              <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>Manage collaboration agreements</p>
             </div>
             <div className="flex gap-2 justify-center">
               <CCButton variant="outline" icon={BookTemplate} onClick={() => setTemplatesModalOpen(true)}>
@@ -366,10 +366,10 @@ export default function Contracts() {
                     <CCCard hover clickable padding="lg">
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h3 className="text-lg font-medium text-[#E8EEF9]">
+                          <h3 className="text-lg font-medium" style={{ color: 'var(--cc-text-primary)' }}>
                             {contract.content?.title || templateLabels[contract.template_type]}
                           </h3>
-                          <p className="text-sm text-[#6B7A94]">
+                          <p className="text-sm" style={{ color: 'var(--cc-text-muted)' }}>
                             {templateLabels[contract.template_type]} • Version {contract.version}
                           </p>
                         </div>
@@ -379,7 +379,7 @@ export default function Contracts() {
                       </div>
 
                       <div className="flex flex-wrap gap-4 text-sm">
-                        <span className="text-[#9AA6BC]">
+                        <span style={{ color: 'var(--cc-text-secondary)' }}>
                           Created: {new Date(contract.created_date).toLocaleDateString()}
                         </span>
                         {contract.signed_at && (
@@ -395,21 +395,20 @@ export default function Contracts() {
                       </div>
 
                       {/* Signature Progress */}
-                      <div className="mt-4 pt-3 border-t border-[#263248]">
+                      <div className="mt-4 pt-3 border-t" style={{ borderColor: 'var(--cc-border)' }}>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="text-sm text-[#9AA6BC]">Signatures:</span>
+                            <span className="text-sm" style={{ color: 'var(--cc-text-secondary)' }}>Signatures:</span>
                             <div className="flex items-center gap-1">
                               {Array(sigStatus.total).fill(0).map((_, i) => (
                                 <div
                                   key={i}
-                                  className={`w-2 h-2 rounded-full ${
-                                    i < sigStatus.signed ? 'bg-[#22C55E]' : 'bg-[#263248]'
-                                  }`}
+                                  className="w-2 h-2 rounded-full"
+                                  style={{ backgroundColor: i < sigStatus.signed ? '#22C55E' : 'var(--cc-border)' }}
                                 />
                               ))}
                             </div>
-                            <span className="text-sm text-[#9AA6BC]">
+                            <span className="text-sm" style={{ color: 'var(--cc-text-secondary)' }}>
                               {sigStatus.signed}/{sigStatus.total}
                             </span>
                           </div>
@@ -427,7 +426,7 @@ export default function Contracts() {
                                 PDF
                               </CCButton>
                             )}
-                            <span className="text-sm text-[#4F8CFF] flex items-center gap-1">
+                            <span className="text-sm flex items-center gap-1" style={{ color: 'var(--cc-blue)' }}>
                               View <ChevronRight className="w-4 h-4" />
                             </span>
                           </div>
@@ -459,13 +458,14 @@ export default function Contracts() {
           />
           
           <div>
-            <label className="block text-sm font-medium text-[#E8EEF9] mb-2">
-              Select Collaboration <span className="text-[#FF2DAA]">*</span>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--cc-text-primary)' }}>
+              Select Collaboration <span style={{ color: 'var(--cc-pink)' }}>*</span>
             </label>
             <select
               value={selectedCollaboration}
               onChange={(e) => setSelectedCollaboration(e.target.value)}
-              className="w-full bg-[#121824] border border-[#263248] rounded-lg text-[#E8EEF9] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+              className="w-full rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 transition-all duration-200"
+              style={{ backgroundColor: 'var(--cc-bg)', border: '1px solid var(--cc-border)', color: 'var(--cc-text-primary)' }}
             >
               <option value="">Choose a collaboration...</option>
               {collaborations.map(collab => (
@@ -477,26 +477,26 @@ export default function Contracts() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#E8EEF9] mb-2">
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--cc-text-primary)' }}>
               Contract Template
             </label>
             <div className="grid grid-cols-1 gap-2 max-h-48 overflow-y-auto">
               {templates.length === 0 ? (
-                <p className="text-sm text-[#6B7A94] py-2">No templates available</p>
+                <p className="text-sm py-2" style={{ color: 'var(--cc-text-muted)' }}>No templates available</p>
               ) : (
                 templates.map(template => (
                   <div
                     key={template.id}
                     onClick={() => setSelectedTemplate(template.id)}
-                    className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                      selectedTemplate === template.id
-                        ? 'border-[#4F8CFF] bg-[#4F8CFF]/10'
-                        : 'border-[#263248] hover:border-[#3A4A6B]'
-                    }`}
+                    className="p-3 rounded-lg cursor-pointer transition-all border"
+                    style={{
+                      borderColor: selectedTemplate === template.id ? 'var(--cc-blue)' : 'var(--cc-border)',
+                      backgroundColor: selectedTemplate === template.id ? 'color-mix(in srgb, var(--cc-blue) 10%, transparent)' : 'transparent'
+                    }}
                   >
-                    <p className="text-sm font-medium text-[#E8EEF9]">{template.name}</p>
+                    <p className="text-sm font-medium" style={{ color: 'var(--cc-text-primary)' }}>{template.name}</p>
                     {template.description && (
-                      <p className="text-xs text-[#6B7A94] mt-1">{template.description}</p>
+                      <p className="text-xs mt-1" style={{ color: 'var(--cc-text-muted)' }}>{template.description}</p>
                     )}
                     <CCBadge size="sm" className="mt-2">
                       {template.category.replace('_', ' ')}
@@ -508,9 +508,9 @@ export default function Contracts() {
           </div>
 
           {selectedCollaboration && (
-            <div className="bg-[#0B0F14] border border-[#263248] rounded-lg p-4">
-              <p className="text-xs text-[#6B7A94] mb-2">Contract will include:</p>
-              <ul className="text-sm text-[#E8EEF9] space-y-1">
+            <div className="rounded-lg p-4 border" style={{ backgroundColor: 'var(--cc-bg)', borderColor: 'var(--cc-border)' }}>
+              <p className="text-xs mb-2" style={{ color: 'var(--cc-text-muted)' }}>Contract will include:</p>
+              <ul className="text-sm space-y-1" style={{ color: 'var(--cc-text-primary)' }}>
                 {(() => {
                   const collab = collaborations.find(c => c.id === selectedCollaboration);
                   return (
@@ -575,9 +575,9 @@ export default function Contracts() {
                 <CCCard key={template.id} padding="md">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <h4 className="font-medium text-[#E8EEF9]">{template.name}</h4>
+                      <h4 className="font-medium" style={{ color: 'var(--cc-text-primary)' }}>{template.name}</h4>
                       {template.description && (
-                        <p className="text-sm text-[#6B7A94] mt-1">{template.description}</p>
+                        <p className="text-sm mt-1" style={{ color: 'var(--cc-text-muted)' }}>{template.description}</p>
                       )}
                       <div className="flex gap-2 mt-2">
                         <CCBadge size="sm" variant="outline">
@@ -644,13 +644,14 @@ export default function Contracts() {
           />
 
           <div>
-            <label className="block text-sm font-medium text-[#E8EEF9] mb-2">
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--cc-text-primary)' }}>
               Category
             </label>
             <select
               value={templateForm.category}
               onChange={(e) => setTemplateForm({ ...templateForm, category: e.target.value })}
-              className="w-full bg-[#121824] border border-[#263248] rounded-lg text-[#E8EEF9] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF] transition-all duration-200"
+              className="w-full rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 transition-all duration-200"
+              style={{ backgroundColor: 'var(--cc-bg)', border: '1px solid var(--cc-border)', color: 'var(--cc-text-primary)' }}
             >
               <option value="custom">Custom</option>
               <option value="creator_to_creator">Creator to Creator</option>
@@ -661,16 +662,17 @@ export default function Contracts() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-[#E8EEF9] mb-2">
-              Template Content <span className="text-[#FF2DAA]">*</span>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--cc-text-primary)' }}>
+              Template Content <span style={{ color: 'var(--cc-pink)' }}>*</span>
             </label>
             <textarea
               value={templateForm.content}
               onChange={(e) => setTemplateForm({ ...templateForm, content: e.target.value })}
               placeholder="Enter the contract template content here..."
-              className="w-full h-64 bg-[#121824] border border-[#263248] rounded-lg text-[#E8EEF9] placeholder-[#6B7A94] p-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:border-[#4F8CFF]"
+              className="w-full h-64 rounded-lg p-3 text-sm focus:outline-none focus:ring-2"
+              style={{ backgroundColor: 'var(--cc-bg)', border: '1px solid var(--cc-border)', color: 'var(--cc-text-primary)' }}
             />
-            <p className="text-xs text-[#6B7A94] mt-2">
+            <p className="text-xs mt-2" style={{ color: 'var(--cc-text-muted)' }}>
               Use placeholders like {`{collaboration_name}`}, {`{scene_type}`}, {`{compensation}`} to auto-fill from collaboration
             </p>
           </div>

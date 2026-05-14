@@ -33,7 +33,8 @@ export default function CCModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-[9998]"
+            className="fixed inset-0 backdrop-blur-sm z-[9998]"
+            style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
           />
           
           {/* Modal */}
@@ -44,20 +45,21 @@ export default function CCModal({
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2 }}
               className={cn(
-                'w-full bg-[#151D2B] border border-[#263248] rounded-2xl shadow-2xl my-8 max-h-[90vh] flex flex-col',
+                'w-full rounded-2xl shadow-2xl my-8 max-h-[90vh] flex flex-col border',
                 sizes[size],
                 className
               )}
+              style={{ backgroundColor: 'var(--cc-surface)', borderColor: 'var(--cc-border)' }}
             >
               {/* Header */}
               {(title || showClose) && (
-                <div className="flex items-start justify-between p-6 border-b border-[#263248]">
+                <div className="flex items-start justify-between p-6 border-b" style={{ borderColor: 'var(--cc-border)' }}>
                   <div>
                     {title && (
-                      <h2 className="text-xl font-semibold text-[#E8EEF9]">{title}</h2>
+                      <h2 className="text-xl font-semibold" style={{ color: 'var(--cc-text-primary)' }}>{title}</h2>
                     )}
                     {description && (
-                      <p className="mt-1 text-sm text-[#9AA6BC]">{description}</p>
+                      <p className="mt-1 text-sm" style={{ color: 'var(--cc-text-secondary)' }}>{description}</p>
                     )}
                   </div>
                   {showClose && (
@@ -65,7 +67,7 @@ export default function CCModal({
                       variant="ghost"
                       size="icon"
                       onClick={onClose}
-                      className="text-[#6B7A94] hover:text-[#E8EEF9] -mr-2 -mt-2"
+                      className="-mr-2 -mt-2"
                     >
                       <X className="w-5 h-5" />
                     </CCButton>
@@ -114,7 +116,8 @@ export function CCDrawer({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
+            className="fixed inset-0 backdrop-blur-sm z-50"
+            style={{ backgroundColor: 'rgba(0,0,0,0.7)' }}
           />
           
           <motion.div
@@ -123,22 +126,22 @@ export function CCDrawer({
             exit={animations[side]}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
             className={cn(
-              'fixed bg-[#151D2B] border border-[#263248] shadow-2xl z-50',
+              'fixed shadow-2xl z-50 border',
               side === 'bottom' ? 'max-w-lg mx-auto' : 'w-full max-w-md',
               sideStyles[side],
               className
             )}
+            style={{ backgroundColor: 'var(--cc-surface)', borderColor: 'var(--cc-border)' }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-[#263248]">
+            <div className="flex items-center justify-between p-4 border-b" style={{ borderColor: 'var(--cc-border)' }}>
               {title && (
-                <h2 className="text-lg font-semibold text-[#E8EEF9]">{title}</h2>
+                <h2 className="text-lg font-semibold" style={{ color: 'var(--cc-text-primary)' }}>{title}</h2>
               )}
               <CCButton
                 variant="ghost"
                 size="icon"
                 onClick={onClose}
-                className="text-[#6B7A94] hover:text-[#E8EEF9]"
               >
                 <X className="w-5 h-5" />
               </CCButton>

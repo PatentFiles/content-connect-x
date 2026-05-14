@@ -4,13 +4,13 @@ import { Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const variants = {
-  primary: 'bg-[#4F8CFF] hover:bg-[#3A7AEE] text-white shadow-lg hover:shadow-[0_0_20px_rgba(79,140,255,0.3)]',
-  accent: 'bg-[#FF2DAA] hover:bg-[#E6229A] text-white shadow-lg hover:shadow-[0_0_20px_rgba(255,45,170,0.3)]',
-  outline: 'border border-[#263248] bg-transparent hover:bg-[#151D2B] text-[#E8EEF9]',
-  ghost: 'bg-transparent hover:bg-[#151D2B] text-[#9AA6BC] hover:text-[#E8EEF9]',
+  primary: 'bg-[var(--cc-blue)] hover:opacity-90 text-white shadow-md',
+  accent: 'bg-[var(--cc-pink)] hover:opacity-90 text-white shadow-md',
+  outline: 'border border-[var(--cc-border)] bg-transparent hover:bg-[var(--cc-surface-hover)] text-[var(--cc-text-primary)]',
+  ghost: 'bg-transparent hover:bg-[var(--cc-surface-hover)] text-[var(--cc-text-secondary)] hover:text-[var(--cc-text-primary)]',
   success: 'bg-[#22C55E] hover:bg-[#1EA550] text-white',
   danger: 'bg-[#EF4444] hover:bg-[#DC2626] text-white',
-  warning: 'bg-[#F59E0B] hover:bg-[#D97706] text-black',
+  warning: 'bg-[#F59E0B] hover:bg-[#D97706] text-white',
 };
 
 const sizes = {

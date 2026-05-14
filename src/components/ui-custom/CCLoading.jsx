@@ -31,14 +31,14 @@ export default function CCLoading({ size = 'md', className, label = 'Loading…'
 
 export function CCLoadingScreen({ message = 'Loading…' }) {
   return (
-    <div className="min-h-screen bg-[var(--cc-bg)] flex flex-col items-center justify-center">
+    <div className="min-h-screen flex flex-col items-center justify-center" style={{ backgroundColor: 'var(--cc-bg)' }}>
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="text-center"
       >
         <CCLoading size="lg" className="mb-4" label={message} />
-        <p className="text-[var(--cc-text-secondary)] text-sm" aria-hidden="true">{message}</p>
+        <p className="text-sm" style={{ color: 'var(--cc-text-secondary)' }} aria-hidden="true">{message}</p>
       </motion.div>
     </div>
   );
@@ -49,7 +49,8 @@ export function CCSkeletonLoader({ className, ...props }) {
     <motion.div
       animate={{ opacity: [0.5, 1, 0.5] }}
       transition={{ duration: 1.5, repeat: Infinity }}
-      className={cn('bg-[var(--cc-border)] rounded-lg', className)}
+      className={cn('rounded-lg', className)}
+      style={{ backgroundColor: 'var(--cc-border)' }}
       aria-hidden="true"
       {...props}
     />
@@ -58,7 +59,8 @@ export function CCSkeletonLoader({ className, ...props }) {
 
 export function CCProfileCardSkeleton() {
   return (
-    <div className="bg-[#151D2B] border border-[#263248] rounded-xl p-4 space-y-3">
+    <div className="rounded-xl border p-4 space-y-3"
+      style={{ backgroundColor: 'var(--cc-surface)', borderColor: 'var(--cc-border)' }}>
       <div className="flex items-center gap-3">
         <CCSkeletonLoader className="w-12 h-12 rounded-full" />
         <div className="flex-1 space-y-2">

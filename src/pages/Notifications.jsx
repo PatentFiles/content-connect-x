@@ -181,18 +181,18 @@ export default function Notifications() {
 
   return (
     <FeatureRouteGuard flag="notifications" requiresSubscription={true}>
-      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+      <div className="min-h-screen pb-20 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
       {/* Header */}
-      <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
+      <div className="sticky top-16 z-30 backdrop-blur-xl border-b" style={{ backgroundColor: 'color-mix(in srgb, var(--cc-bg) 95%, transparent)', borderColor: 'var(--cc-border)' }}>
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4F8CFF]/20 to-[#FF2DAA]/20 flex items-center justify-center">
-                <Bell className="w-5 h-5 text-[#4F8CFF]" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--cc-blue)]/20 to-[var(--cc-pink)]/20 flex items-center justify-center">
+                <Bell className="w-5 h-5" style={{ color: 'var(--cc-blue)' }} />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-[#E8EEF9]">Notifications</h1>
-                <p className="text-xs text-[#6B7A94]">
+                <h1 className="text-xl font-semibold" style={{ color: 'var(--cc-text-primary)' }}>Notifications</h1>
+                <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>
                   {unreadCount} unread notification{unreadCount !== 1 ? 's' : ''}
                 </p>
               </div>
@@ -268,22 +268,22 @@ export default function Notifications() {
                     >
                       <div className="flex gap-4">
                         {/* Icon */}
-                        <div className={`w-10 h-10 rounded-lg bg-[#4F8CFF]/20 flex items-center justify-center flex-shrink-0`}>
-                          <Icon className="w-5 h-5 text-[#4F8CFF]" />
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0" style={{ backgroundColor: 'color-mix(in srgb, var(--cc-blue) 20%, transparent)' }}>
+                          <Icon className="w-5 h-5" style={{ color: 'var(--cc-blue)' }} />
                         </div>
 
                         {/* Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-start justify-between gap-3 mb-1">
-                            <p className={`text-sm font-medium ${isUnread ? 'text-[#E8EEF9]' : 'text-[#9AA6BC]'}`}>
+                            <p className="text-sm font-medium" style={{ color: isUnread ? 'var(--cc-text-primary)' : 'var(--cc-text-secondary)' }}>
                               {notification.title}
                             </p>
                             {isUnread && (
-                              <div className="w-2 h-2 rounded-full bg-[#4F8CFF] flex-shrink-0 mt-1" />
+                              <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ backgroundColor: 'var(--cc-blue)' }} />
                             )}
                           </div>
 
-                          <p className={`text-sm mb-2 ${isUnread ? 'text-[#9AA6BC]' : 'text-[#6B7A94]'}`}>
+                          <p className="text-sm mb-2" style={{ color: isUnread ? 'var(--cc-text-secondary)' : 'var(--cc-text-muted)' }}>
                             {notification.body}
                           </p>
 
@@ -292,11 +292,11 @@ export default function Notifications() {
                               {notification.type.replace(/_/g, ' ')}
                             </CCBadge>
                             {actorProfile && (
-                              <span className="text-xs text-[#6B7A94]">
+                              <span className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>
                                 by {actorProfile.display_name}
                               </span>
                             )}
-                            <span className="text-xs text-[#6B7A94]">
+                            <span className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>
                               • {new Date(notification.created_date).toLocaleString()}
                             </span>
                           </div>

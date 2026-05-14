@@ -2,13 +2,13 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 
 const variants = {
-  default: 'bg-[#263248] text-[#E8EEF9]',
-  primary: 'bg-[#4F8CFF]/20 text-[#4F8CFF] border border-[#4F8CFF]/30',
-  accent: 'bg-[#FF2DAA]/20 text-[#FF2DAA] border border-[#FF2DAA]/30',
+  default: 'bg-[var(--cc-border)] text-[var(--cc-text-primary)]',
+  primary: 'bg-[var(--cc-blue)]/20 text-[var(--cc-blue)] border border-[var(--cc-blue)]/30',
+  accent: 'bg-[var(--cc-pink)]/20 text-[var(--cc-pink)] border border-[var(--cc-pink)]/30',
   success: 'bg-[#22C55E]/20 text-[#22C55E] border border-[#22C55E]/30',
   warning: 'bg-[#F59E0B]/20 text-[#F59E0B] border border-[#F59E0B]/30',
   danger: 'bg-[#EF4444]/20 text-[#EF4444] border border-[#EF4444]/30',
-  outline: 'bg-transparent border border-[#263248] text-[#9AA6BC]',
+  outline: 'bg-transparent border border-[var(--cc-border)] text-[var(--cc-text-secondary)]',
 };
 
 const sizes = {

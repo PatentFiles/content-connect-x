@@ -227,14 +227,14 @@ export default function Collaborations() {
 
   return (
     <FeatureRouteGuard flag="collaborations" requiresSubscription={true}>
-      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+      <div className="min-h-screen pb-20 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
       {/* Header */}
-      <div className="sticky z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]" style={{ top: 'calc(4rem + env(safe-area-inset-top, 0px))' }}>
+      <div className="sticky z-30 backdrop-blur-xl border-b" style={{ top: 'calc(4rem + env(safe-area-inset-top, 0px))', backgroundColor: 'color-mix(in srgb, var(--cc-bg) 95%, transparent)', borderColor: 'var(--cc-border)' }}>
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
             <div className="text-center md:text-left flex-1">
-              <h1 className="text-xl font-semibold text-[#E8EEF9]">Collaborations</h1>
-              <p className="text-xs text-[#6B7A94]">Manage your collaborations</p>
+              <h1 className="text-xl font-semibold" style={{ color: 'var(--cc-text-primary)' }}>Collaborations</h1>
+              <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>Manage your collaborations</p>
             </div>
             <Link to={createPageUrl('CreateCollaboration')} className="md:ml-auto">
               <CCButton variant="primary" fullWidth className="md:w-auto">
@@ -261,13 +261,14 @@ export default function Collaborations() {
           <div className="mt-3 space-y-3">
             <div className="flex gap-2">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7A94]" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--cc-text-muted)' }} />
                 <input
                   type="text"
                   placeholder="Search collaborations..."
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
-                  className="w-full bg-[#121824] border border-[#263248] rounded-lg pl-10 pr-4 py-2 text-sm text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                  className="w-full rounded-lg pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2"
+                  style={{ backgroundColor: 'var(--cc-bg)', border: '1px solid var(--cc-border)', color: 'var(--cc-text-primary)' }}
                 />
               </div>
               <CCButton
@@ -298,11 +299,12 @@ export default function Collaborations() {
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
-                className="bg-[#121824] border border-[#263248] rounded-lg p-4 space-y-3"
+                className="rounded-lg p-4 space-y-3 border"
+                style={{ backgroundColor: 'var(--cc-surface)', borderColor: 'var(--cc-border)' }}
               >
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div>
-                    <label className="block text-xs text-[#6B7A94] mb-1">Created By Role</label>
+                    <label className="block text-xs mb-1" style={{ color: 'var(--cc-text-muted)' }}>Created By Role</label>
                     <BottomSheetSelect
                       value={roleFilter}
                       onChange={setRoleFilter}
@@ -318,21 +320,23 @@ export default function Collaborations() {
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-[#6B7A94] mb-1">Created From</label>
+                    <label className="block text-xs mb-1" style={{ color: 'var(--cc-text-muted)' }}>Created From</label>
                     <input
                       type="date"
                       value={dateRange.start}
                       onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                      className="w-full bg-[#0B0F14] border border-[#263248] rounded-lg px-3 py-2 text-sm text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                      className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                      style={{ backgroundColor: 'var(--cc-bg)', border: '1px solid var(--cc-border)', color: 'var(--cc-text-primary)' }}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-[#6B7A94] mb-1">Created To</label>
+                    <label className="block text-xs mb-1" style={{ color: 'var(--cc-text-muted)' }}>Created To</label>
                     <input
                       type="date"
                       value={dateRange.end}
                       onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                      className="w-full bg-[#0B0F14] border border-[#263248] rounded-lg px-3 py-2 text-sm text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                      className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2"
+                      style={{ backgroundColor: 'var(--cc-bg)', border: '1px solid var(--cc-border)', color: 'var(--cc-text-primary)' }}
                     />
                   </div>
                 </div>
@@ -404,14 +408,14 @@ export default function Collaborations() {
                           <CCAvatarGroup avatars={getParticipantAvatars(room)} max={3} />
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-1">
-                              <p className="text-[#E8EEF9] font-medium">
+                              <p className="font-medium" style={{ color: 'var(--cc-text-primary)' }}>
                                 {room.collaboration_name || `${room.participant_ids?.length || 0} Participants`}
                               </p>
                               {room.created_by_role === 'agent' && (
                                 <CCBadge variant="accent" size="sm">Created by Agent</CCBadge>
                               )}
                             </div>
-                            <p className="text-sm text-[#6B7A94] capitalize">
+                            <p className="text-sm capitalize" style={{ color: 'var(--cc-text-muted)' }}>
                               {room.scene_type || 'Scene'} • {room.compensation_type?.replace('_', ' ') || 'TBD'}
                             </p>
                           </div>
@@ -440,7 +444,7 @@ export default function Collaborations() {
                       )}
 
                       {/* Date/Time & Details */}
-                      <div className="flex flex-wrap gap-3 text-sm text-[#9AA6BC] mb-2">
+                      <div className="flex flex-wrap gap-3 text-sm mb-2" style={{ color: 'var(--cc-text-secondary)' }}>
                         {room.schedule?.confirmed_date && (
                           <span className="flex items-center gap-1">
                             <Calendar className="w-4 h-4" />
@@ -457,11 +461,11 @@ export default function Collaborations() {
                       </div>
 
                       {/* Created date */}
-                      <div className="text-xs text-[#6B7A94] mb-3">
+                      <div className="text-xs mb-3" style={{ color: 'var(--cc-text-muted)' }}>
                         Created {new Date(room.created_date).toLocaleDateString()} at {new Date(room.created_date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </div>
 
-                      <div className="flex items-center justify-between pt-3 border-t border-[#263248]">
+                      <div className="flex items-center justify-between pt-3 border-t" style={{ borderColor: 'var(--cc-border)' }}>
                         <div className="flex gap-2">
                           <Link to={createPageUrl(`CreateCollaboration?id=${room.id}`)}>
                             <CCButton variant="ghost" size="sm" icon={Edit}>
@@ -502,11 +506,11 @@ export default function Collaborations() {
       >
         <div className="space-y-4">
           {collaborationToDelete && (
-            <div className="bg-[#0B0F14] border border-[#263248] rounded-lg p-4">
-              <p className="text-[#E8EEF9] font-medium">
+            <div className="rounded-lg p-4 border" style={{ backgroundColor: 'var(--cc-bg)', borderColor: 'var(--cc-border)' }}>
+              <p className="font-medium" style={{ color: 'var(--cc-text-primary)' }}>
                 {collaborationToDelete.collaboration_name || `${collaborationToDelete.participant_ids?.length || 0} Participants`}
               </p>
-              <p className="text-sm text-[#6B7A94] capitalize mt-1">
+              <p className="text-sm capitalize mt-1" style={{ color: 'var(--cc-text-muted)' }}>
                 {collaborationToDelete.scene_type || 'Scene'} • {collaborationToDelete.compensation_type?.replace('_', ' ') || 'TBD'}
               </p>
             </div>

@@ -30,9 +30,9 @@ export default function CCSelect({
   return (
     <div className={cn('space-y-1.5', className)}>
       {label && (
-        <label className="block text-sm font-medium text-[#E8EEF9]">
+        <label className="block text-sm font-medium" style={{ color: 'var(--cc-text-primary)' }}>
           {label}
-          {required && <span className="text-[#FF2DAA] ml-1">*</span>}
+          {required && <span className="ml-1" style={{ color: 'var(--cc-pink)' }}>*</span>}
         </label>
       )}
       <BottomSheetSelect
@@ -46,7 +46,7 @@ export default function CCSelect({
           error && 'border-[#EF4444]'
         )}
       />
-      {hint && !error && <p className="text-xs text-[#6B7A94]">{hint}</p>}
+      {hint && !error && <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>{hint}</p>}
       {error && <p className="text-xs text-[#EF4444]">{error}</p>}
     </div>
   );

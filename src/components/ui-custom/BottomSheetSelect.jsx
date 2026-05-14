@@ -5,14 +5,6 @@ import { Check, ChevronDown, X } from 'lucide-react';
 /**
  * Mobile-friendly replacement for native <select>.
  * On mobile: opens a bottom-sheet. On desktop: behaves like a styled dropdown.
- *
- * Props:
- *   value        - current selected value
- *   onChange     - (value) => void
- *   options      - [{ value, label }]
- *   placeholder  - string
- *   label        - optional label string
- *   className    - extra classes for the trigger button
  */
 export default function BottomSheetSelect({
   value,
@@ -33,18 +25,17 @@ export default function BottomSheetSelect({
   return (
     <>
       {label && (
-        <label className="block text-xs text-[#6B7A94] mb-1">{label}</label>
+        <label className="block text-xs mb-1" style={{ color: 'var(--cc-text-muted)' }}>{label}</label>
       )}
       {/* Trigger */}
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className={`flex items-center justify-between w-full bg-[#121824] border border-[#263248] rounded-lg px-3 py-2 text-sm text-left focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 transition-colors hover:border-[#3A4A6B] ${className}`}
+        className={`flex items-center justify-between w-full rounded-lg px-3 py-2 text-sm text-left focus:outline-none focus:ring-2 transition-colors border ${className}`}
+        style={{ backgroundColor: 'var(--cc-bg)', borderColor: 'var(--cc-border)', color: selected ? 'var(--cc-text-primary)' : 'var(--cc-text-muted)' }}
       >
-        <span className={selected ? 'text-[#E8EEF9]' : 'text-[#6B7A94]'}>
-          {selected ? selected.label : placeholder}
-        </span>
-        <ChevronDown className="w-4 h-4 text-[#6B7A94] flex-shrink-0 ml-2" />
+        <span>{selected ? selected.label : placeholder}</span>
+        <ChevronDown className="w-4 h-4 flex-shrink-0 ml-2" style={{ color: 'var(--cc-text-muted)' }} />
       </button>
 
       {/* Bottom Sheet Overlay */}
@@ -58,7 +49,7 @@ export default function BottomSheetSelect({
             onClick={() => setOpen(false)}
           >
             {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/60" />
+            <div className="absolute inset-0" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }} />
 
             {/* Sheet */}
             <motion.div
@@ -67,20 +58,20 @@ export default function BottomSheetSelect({
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 300 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative bg-[#151D2B] rounded-t-2xl border-t border-[#263248] shadow-2xl max-h-[70vh] flex flex-col"
-              style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+              className="relative rounded-t-2xl shadow-2xl max-h-[70vh] flex flex-col border-t"
+              style={{ backgroundColor: 'var(--cc-surface)', borderColor: 'var(--cc-border)', paddingBottom: 'env(safe-area-inset-bottom)' }}
             >
               {/* Handle */}
               <div className="flex justify-center pt-3 pb-1">
-                <div className="w-10 h-1 rounded-full bg-[#263248]" />
+                <div className="w-10 h-1 rounded-full" style={{ backgroundColor: 'var(--cc-border)' }} />
               </div>
 
               {/* Header */}
-              <div className="flex items-center justify-between px-5 py-3 border-b border-[#263248]">
-                <span className="text-sm font-semibold text-[#E8EEF9]">
+              <div className="flex items-center justify-between px-5 py-3 border-b" style={{ borderColor: 'var(--cc-border)' }}>
+                <span className="text-sm font-semibold" style={{ color: 'var(--cc-text-primary)' }}>
                   {label || placeholder}
                 </span>
-                <button onClick={() => setOpen(false)} className="text-[#6B7A94] hover:text-[#E8EEF9] p-1">
+                <button onClick={() => setOpen(false)} className="p-1" style={{ color: 'var(--cc-text-muted)' }}>
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -93,11 +84,14 @@ export default function BottomSheetSelect({
                     <button
                       key={opt.value}
                       onClick={() => handleSelect(opt.value)}
-                      className={`w-full flex items-center justify-between px-5 py-4 text-sm transition-colors text-left border-b border-[#1E2A3A] last:border-0 ${
-                        isSelected
-                          ? 'bg-[#4F8CFF]/10 text-[#4F8CFF]'
-                          : 'text-[#E8EEF9] hover:bg-[#1A2438]'
-                      }`}
+                      className="w-full flex items-center justify-between px-5 py-4 text-sm transition-colors text-left border-b last:border-0"
+                      style={{
+                        borderColor: 'var(--cc-border)',
+                        backgroundColor: isSelected ? 'color-mix(in srgb, var(--cc-blue) 10%, transparent)' : 'transparent',
+                        color: isSelected ? 'var(--cc-blue)' : 'var(--cc-text-primary)',
+                      }}
+                      onMouseEnter={e => { if (!isSelected) e.currentTarget.style.backgroundColor = 'var(--cc-surface-hover)'; }}
+                      onMouseLeave={e => { if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent'; }}
                     >
                       <span>{opt.label}</span>
                       {isSelected && <Check className="w-4 h-4 flex-shrink-0" />}

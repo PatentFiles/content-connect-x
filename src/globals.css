@@ -94,6 +94,8 @@ html:not(.dark) {
 html, body {
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
+  /* Ensure html itself has background (prevents white flash on scroll bounce) */
+  background-color: var(--cc-bg);
 }
 
 body {
@@ -101,6 +103,21 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: var(--cc-bg);
+  color: var(--cc-text-primary);
+}
+
+/* ── Theme-aware input/select/textarea defaults ─────────────────────────── */
+/* These catch any <input>, <select>, <textarea> not using a CCInput wrapper */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+select,
+textarea {
+  color-scheme: inherit;
+  accent-color: var(--cc-blue);
+}
+
+/* Ensure select options pick up the correct background in light/dark */
+option {
+  background-color: var(--cc-surface);
   color: var(--cc-text-primary);
 }
 

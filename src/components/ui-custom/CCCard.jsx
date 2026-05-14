@@ -33,13 +33,17 @@ export default function CCCard({
       tabIndex={clickable ? 0 : undefined}
       onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick?.(); } } : undefined}
       className={cn(
-        'bg-[var(--cc-surface)] border border-[var(--cc-border)] rounded-xl',
-        'transition-all duration-200',
-        hover && 'hover:bg-[var(--cc-surface-hover)] hover:border-[var(--cc-border-hover)]',
+        'rounded-xl transition-all duration-200',
+        'border',
+        hover && 'cursor-pointer',
         clickable && 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cc-blue)]',
         paddings[padding],
         className
       )}
+      style={{
+        backgroundColor: 'var(--cc-surface)',
+        borderColor: 'var(--cc-border)',
+      }}
       {...motionProps}
       {...props}
     >
@@ -50,7 +54,7 @@ export default function CCCard({
 
 export function CCCardHeader({ children, className }) {
   return (
-    <div className={cn('border-b border-[#263248] pb-4 mb-4', className)}>
+    <div className={cn('border-b pb-4 mb-4', className)} style={{ borderColor: 'var(--cc-border)' }}>
       {children}
     </div>
   );
@@ -58,7 +62,7 @@ export function CCCardHeader({ children, className }) {
 
 export function CCCardTitle({ children, className }) {
   return (
-    <h3 className={cn('text-lg font-semibold text-[var(--cc-text-primary)]', className)}>
+    <h3 className={cn('text-lg font-semibold', className)} style={{ color: 'var(--cc-text-primary)' }}>
       {children}
     </h3>
   );
@@ -66,7 +70,7 @@ export function CCCardTitle({ children, className }) {
 
 export function CCCardDescription({ children, className }) {
   return (
-    <p className={cn('text-sm text-[var(--cc-text-secondary)] mt-1', className)}>
+    <p className={cn('text-sm mt-1', className)} style={{ color: 'var(--cc-text-secondary)' }}>
       {children}
     </p>
   );
@@ -82,7 +86,7 @@ export function CCCardContent({ children, className }) {
 
 export function CCCardFooter({ children, className }) {
   return (
-    <div className={cn('border-t border-[#263248] pt-4 mt-4', className)}>
+    <div className={cn('border-t pt-4 mt-4', className)} style={{ borderColor: 'var(--cc-border)' }}>
       {children}
     </div>
   );
