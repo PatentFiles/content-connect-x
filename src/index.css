@@ -1,6 +1,15 @@
+/* globals.css must be imported before @tailwind so token :root vars are defined first */
+@import './globals.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* All token definitions, theme variables, and global overrides live in globals.css */
-@import './globals.css';
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}

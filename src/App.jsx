@@ -15,6 +15,7 @@ import SubscriptionBlockedScreen from '@/components/auth/SubscriptionBlockedScre
 import VerificationRequiredScreen from '@/components/auth/VerificationRequiredScreen';
 import { useFeatureFlag } from '@/lib/featureFlags';
 import { base44 } from '@/api/base44Client';
+import { ThemeProvider } from '@/lib/ThemeContext';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -144,17 +145,19 @@ const AuthenticatedApp = () => {
 function App() {
 
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <FeatureFlagProvider>
-        <Router>
-          <NavigationTracker />
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
-        </FeatureFlagProvider>
-      </QueryClientProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <QueryClientProvider client={queryClientInstance}>
+          <FeatureFlagProvider>
+            <Router>
+              <NavigationTracker />
+              <AuthenticatedApp />
+            </Router>
+            <Toaster />
+          </FeatureFlagProvider>
+        </QueryClientProvider>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
 

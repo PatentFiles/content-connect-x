@@ -78,7 +78,6 @@ export default function Sidebar({ currentPage, profile, user, onLogout, adminRol
           <Link
             to={createPageUrl(roleType === 'host' ? 'HostProfile' : 'Profile')}
             className="flex items-center gap-3 p-2 rounded-lg transition-colors"
-            style={{ ':hover': { backgroundColor: 'var(--cc-surface-hover)' } }}
             onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--cc-surface-hover)'}
             onMouseLeave={e => e.currentTarget.style.backgroundColor = ''}
           >

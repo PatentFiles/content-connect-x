@@ -1,307 +1,101 @@
 /* ── Content Connect Theme Variables ──────────────────────────────────────────
-   Dark mode is the primary experience.
-   Light mode overrides are applied when the OS reports prefers-color-scheme: light
-   (main.jsx removes the `dark` class on <html> in that case).
+   Single source of truth for all design tokens.
+   html.dark   → dark palette (default)
+   html:not(.dark) → light palette
    ──────────────────────────────────────────────────────────────────────────── */
 
-/* Dark (default) */
+/* ── DARK palette (default) ─────────────────────────────────────────────── */
 :root,
-.dark {
+html.dark {
+  color-scheme: dark;
+
+  /* shadcn/ui tokens */
   --background: 222 47% 6%;
   --foreground: 220 27% 94%;
-
   --card: 220 35% 12%;
   --card-foreground: 220 27% 94%;
-
   --popover: 220 35% 12%;
   --popover-foreground: 220 27% 94%;
-
   --primary: 217 100% 65%;
   --primary-foreground: 0 0% 100%;
-
   --secondary: 220 25% 18%;
   --secondary-foreground: 220 27% 94%;
-
   --muted: 220 25% 18%;
   --muted-foreground: 220 18% 60%;
-
   --accent: 325 100% 60%;
   --accent-foreground: 0 0% 100%;
-
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-
   --border: 220 25% 22%;
   --input: 220 25% 18%;
   --ring: 217 100% 65%;
-
   --radius: 0.75rem;
 
-  /* App-specific palette tokens (dark) */
-  --cc-bg:            #0B0F14;
-  --cc-surface:       #151D2B;
-  --cc-surface-hover: #1A2438;
-  --cc-border:        #263248;
-  --cc-border-hover:  #3A4A6B;
-  --cc-text-primary:  #E8EEF9;
-  --cc-text-secondary:#9AA6BC;
-  --cc-text-muted:    #6B7A94;
-  --cc-blue:          #4F8CFF;
-  --cc-pink:          #FF2DAA;
+  /* App semantic tokens */
+  --cc-bg:             #0B0F14;
+  --cc-surface:        #151D2B;
+  --cc-surface-hover:  #1A2438;
+  --cc-border:         #263248;
+  --cc-border-hover:   #3A4A6B;
+  --cc-text-primary:   #E8EEF9;
+  --cc-text-secondary: #9AA6BC;
+  --cc-text-muted:     #6B7A94;
+  --cc-blue:           #4F8CFF;
+  --cc-pink:           #FF2DAA;
 }
 
-/* ── Light mode: all shadcn tokens + app-specific palette ── */
-:root:not(.dark) {
+/* ── LIGHT palette ───────────────────────────────────────────────────────── */
+html:not(.dark) {
+  color-scheme: light;
+
+  /* shadcn/ui tokens */
   --background: 220 20% 97%;
   --foreground: 220 40% 10%;
-
   --card: 0 0% 100%;
   --card-foreground: 220 40% 10%;
-
   --popover: 0 0% 100%;
   --popover-foreground: 220 40% 10%;
-
   --primary: 217 80% 50%;
   --primary-foreground: 0 0% 100%;
-
   --secondary: 220 20% 92%;
   --secondary-foreground: 220 40% 10%;
-
   --muted: 220 20% 92%;
   --muted-foreground: 220 15% 40%;
-
   --accent: 325 80% 50%;
   --accent-foreground: 0 0% 100%;
-
   --destructive: 0 72% 50%;
   --destructive-foreground: 0 0% 100%;
-
   --border: 220 20% 82%;
   --input: 220 20% 92%;
   --ring: 217 80% 50%;
 
-  /* App-specific palette tokens (light) — meet 4.5:1 contrast on white */
-  --cc-bg:            #F3F5FA;
-  --cc-surface:       #FFFFFF;
-  --cc-surface-hover: #F0F2F8;
-  --cc-border:        #D0D8EC;
-  --cc-border-hover:  #A8B4D0;
-  --cc-text-primary:  #0F1829;
-  --cc-text-secondary:#3A4A6B;
-  --cc-text-muted:    #6B7A94;
-  --cc-blue:          #1A66E0;
-  --cc-pink:          #C8007C;
+  /* App semantic tokens */
+  --cc-bg:             #F3F5FA;
+  --cc-surface:        #FFFFFF;
+  --cc-surface-hover:  #F0F2F8;
+  --cc-border:         #D0D8EC;
+  --cc-border-hover:   #A8B4D0;
+  --cc-text-primary:   #0F1829;
+  --cc-text-secondary: #3A4A6B;
+  --cc-text-muted:     #6B7A94;
+  --cc-blue:           #1A66E0;
+  --cc-pink:           #C8007C;
 }
 
-/* Inform the browser's native UI (scrollbars, form controls) about the active color scheme */
-:root.dark,
+/* ── Safe area inset variables ─────────────────────────────────────────── */
 :root {
-  color-scheme: dark;
-}
-:root:not(.dark) {
-  color-scheme: light;
-}
-
-/* ── Global theming: map EVERY hardcoded dark-palette value used across the
-   entire codebase to semantic CSS token variables. Adding .dark to <html>
-   gives the dark palette; removing it gives the light palette. All components
-   that use these exact Tailwind arbitrary-value classes are automatically
-   covered without any per-component changes.                                ──*/
-
-/* ── App background hex values ── */
-[class*="bg-[#0B0F14]"],
-[class*="bg-[#0b0f14]"],
-[class*="bg-[#020617]"],
-[class*="bg-[#030712]"],
-[class*="bg-[#050505]"],
-[class*="bg-[#09090b]"],
-[class*="bg-[#0f172a]"],
-[class*="bg-[#121824]"],
-[class*="bg-[#111827]"] { background-color: var(--cc-bg) !important; }
-
-/* ── Surface hex values ── */
-[class*="bg-[#151D2B]"],
-[class*="bg-[#151d2b]"],
-[class*="bg-[#1f2937]"],
-[class*="bg-[#1e293b]"],
-[class*="bg-[#172033]"] { background-color: var(--cc-surface) !important; }
-
-/* ── Elevated surface hex values ── */
-[class*="bg-[#1A2438]"],
-[class*="bg-[#1a2438]"],
-[class*="bg-[#1c2a40]"],
-[class*="bg-[#1E2D45]"],
-[class*="bg-[#1e2d45]"],
-[class*="bg-[#2A3A54]"],
-[class*="bg-[#2a3a54]"] { background-color: var(--cc-surface-hover) !important; }
-
-/* ── Border/divider bg values ── */
-[class*="bg-[#263248]"]  { background-color: var(--cc-border) !important; }
-
-/* ── Tailwind semantic dark classes → theme tokens ── */
-.bg-slate-900,
-.bg-gray-900,
-.bg-zinc-900,
-.bg-neutral-900,
-.bg-stone-900 { background-color: var(--cc-bg) !important; }
-
-.bg-slate-800,
-.bg-gray-800,
-.bg-zinc-800,
-.bg-neutral-800 { background-color: var(--cc-surface) !important; }
-
-.bg-slate-700,
-.bg-gray-700,
-.bg-zinc-700,
-.bg-neutral-700 { background-color: var(--cc-surface-hover) !important; }
-
-.bg-black { background-color: var(--cc-bg) !important; }
-
-/* ── Primary text ── */
-[class*="text-[#E8EEF9]"],
-[class*="text-[#e8eef9]"],
-[class*="text-[#F1F5F9]"],
-[class*="text-[#f1f5f9]"],
-[class*="text-[#FFFFFF]"],
-[class*="text-[#ffffff]"] { color: var(--cc-text-primary) !important; }
-
-.text-white         { color: var(--cc-text-primary) !important; }
-.text-slate-100,
-.text-gray-100,
-.text-zinc-100      { color: var(--cc-text-primary) !important; }
-
-/* ── Secondary text ── */
-[class*="text-[#9AA6BC]"],
-[class*="text-[#9aa6bc]"],
-[class*="text-[#94a3b8]"],
-[class*="text-[#A3B3CC]"],
-[class*="text-[#a3b3cc]"] { color: var(--cc-text-secondary) !important; }
-
-.text-slate-300,
-.text-gray-300,
-.text-zinc-300      { color: var(--cc-text-secondary) !important; }
-
-/* ── Muted text ── */
-[class*="text-[#6B7A94]"],
-[class*="text-[#6b7a94]"],
-[class*="text-[#64748b]"],
-[class*="text-[#6B7280]"],
-[class*="text-[#6b7280]"] { color: var(--cc-text-muted) !important; }
-
-.text-slate-400,
-.text-gray-400,
-.text-zinc-400      { color: var(--cc-text-muted) !important; }
-
-.text-slate-500,
-.text-gray-500,
-.text-zinc-500      { color: var(--cc-text-muted) !important; }
-
-/* ── Border colors ── */
-[class*="border-[#263248]"]  { border-color: var(--cc-border) !important; }
-[class*="border-[#3A4A6B]"],
-[class*="border-[#3a4a6b]"]  { border-color: var(--cc-border-hover) !important; }
-[class*="border-[#1E293B]"],
-[class*="border-[#1e293b]"]  { border-color: var(--cc-border) !important; }
-
-.border-slate-700,
-.border-gray-700,
-.border-zinc-700,
-.border-slate-800,
-.border-gray-800,
-.border-zinc-800    { border-color: var(--cc-border) !important; }
-
-.border-slate-600,
-.border-gray-600    { border-color: var(--cc-border-hover) !important; }
-
-/* ── Hover backgrounds ── */
-[class*="hover:bg-[#151D2B]"]:hover,
-[class*="hover:bg-[#151d2b]"]:hover { background-color: var(--cc-surface) !important; }
-[class*="hover:bg-[#1A2438]"]:hover,
-[class*="hover:bg-[#1a2438]"]:hover { background-color: var(--cc-surface-hover) !important; }
-[class*="hover:bg-[#121824]"]:hover { background-color: var(--cc-bg) !important; }
-.hover\:bg-slate-800:hover,
-.hover\:bg-gray-800:hover   { background-color: var(--cc-surface) !important; }
-.hover\:bg-slate-700:hover,
-.hover\:bg-gray-700:hover   { background-color: var(--cc-surface-hover) !important; }
-
-/* ── Hover text ── */
-[class*="hover:text-[#E8EEF9]"]:hover,
-[class*="hover:text-[#e8eef9]"]:hover { color: var(--cc-text-primary) !important; }
-.hover\:text-white:hover { color: var(--cc-text-primary) !important; }
-.hover\:text-slate-100:hover,
-.hover\:text-gray-100:hover { color: var(--cc-text-primary) !important; }
-
-/* ── Divide / ring colors ── */
-.divide-slate-700 > * + *,
-.divide-gray-700  > * + *,
-.divide-slate-800 > * + *,
-.divide-gray-800  > * + * { border-color: var(--cc-border) !important; }
-
-/* ── Fix: header/navbar ── */
-header.fixed,
-header[class*="fixed"] {
-  background-color: color-mix(in srgb, var(--cc-bg) 95%, transparent) !important;
-  border-bottom-color: var(--cc-border) !important;
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left, 0px);
+  --safe-right:  env(safe-area-inset-right, 0px);
 }
 
-/* ── Page root containers ── */
-.min-h-screen { background-color: var(--cc-bg); }
-
-/* ── Shadcn Dialog/Sheet/Popover overlays ── */
-[data-radix-popper-content-wrapper] [class*="bg-[#"],
-[role="dialog"] [class*="bg-[#0"],
-[role="dialog"] [class*="bg-[#1"] { background-color: var(--cc-surface) !important; }
-
-/* ── Ring/outline ── */
-[class*="ring-[#263248]"]   { --tw-ring-color: var(--cc-border) !important; }
-[class*="ring-[#3A4A6B]"],
-[class*="ring-[#3a4a6b]"]   { --tw-ring-color: var(--cc-border-hover) !important; }
-
-/* ── Ensure all top-level page wrappers use the app background ── */
-main#main-content,
-main#main-content > *,
-[class*="min-h-screen"],
-[class*="min-h-full"] {
-  background-color: var(--cc-bg);
+/* ── Base element styles ────────────────────────────────────────────────── */
+html, body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* ── Inputs / textareas / selects inherit theme ── */
-input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="submit"]):not([type="button"]),
-textarea,
-select {
-  background-color: var(--cc-surface) !important;
-  color: var(--cc-text-primary) !important;
-  border-color: var(--cc-border) !important;
-}
-input::placeholder,
-textarea::placeholder { color: var(--cc-text-muted) !important; }
-
-/* ── Card-like elements built with Tailwind dark classes ── */
-.rounded-xl.bg-slate-900,
-.rounded-xl.bg-gray-900,
-.rounded-lg.bg-slate-900,
-.rounded-lg.bg-gray-900,
-.rounded-xl.bg-slate-800,
-.rounded-xl.bg-gray-800,
-.rounded-lg.bg-slate-800,
-.rounded-lg.bg-gray-800 { background-color: var(--cc-surface) !important; }
-
-/* ── p / span / div text that's still inheriting a dark text class ── */
-[class~="text-white"]:not(button):not(a):not([class*="bg-"]) {
-  color: var(--cc-text-primary) !important;
-}
-
-/* ── Specific opacity variants ── */
-[class*="bg-[#0B0F14]/"],
-[class*="bg-[#0b0f14]/"] {
-  background-color: color-mix(in srgb, var(--cc-bg) var(--tw-bg-opacity, 100%), transparent) !important;
-}
-[class*="bg-[#151D2B]/"],
-[class*="bg-[#151d2b]/"] {
-  background-color: color-mix(in srgb, var(--cc-surface) var(--tw-bg-opacity, 100%), transparent) !important;
-}
-
-/* Base styles */
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -310,36 +104,50 @@ body {
   color: var(--cc-text-primary);
 }
 
-/* ── Accessibility: globally-visible focus indicators ────────────────────────
-   Skip-link for keyboard navigation */
+/* ── Safe area utilities ────────────────────────────────────────────────── */
+.safe-top    { padding-top:    max(env(safe-area-inset-top, 0px), 0px); }
+.safe-bottom { padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px); }
+.safe-left   { padding-left:   max(env(safe-area-inset-left, 0px), 0px); }
+.safe-right  { padding-right:  max(env(safe-area-inset-right, 0px), 0px); }
+.fixed-header      { top: 0; padding-top: env(safe-area-inset-top, 0px); }
+.fixed-bottom-nav  { bottom: 0; padding-bottom: env(safe-area-inset-bottom, 0px); }
+.content-pt-safe   { padding-top: calc(4rem + env(safe-area-inset-top, 0px)); }
+.scroll-safe-bottom { padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)); }
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--cc-bg); }
+::-webkit-scrollbar-thumb { background: var(--cc-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--cc-border-hover); }
+.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }
+
+/* ── Overscroll containment ─────────────────────────────────────────────── */
+.scroll-container,
+.overflow-y-auto,
+.overflow-x-auto,
+.overflow-auto { overscroll-behavior: contain; }
+
+/* ── Accessibility ──────────────────────────────────────────────────────── */
 .skip-link {
-  position: absolute;
-  top: -999px;
-  left: 0;
-  z-index: 9999;
-  padding: 0.5rem 1rem;
-  background: var(--cc-blue);
-  color: #fff;
-  font-weight: 600;
-  border-radius: 0 0 0.5rem 0;
-  text-decoration: none;
+  position: absolute; top: -999px; left: 0; z-index: 9999;
+  padding: 0.5rem 1rem; background: var(--cc-blue); color: #fff;
+  font-weight: 600; border-radius: 0 0 0.5rem 0; text-decoration: none;
 }
-.skip-link:focus {
-  top: 0;
-}
+.skip-link:focus { top: 0; }
+:focus-visible { outline: 2px solid var(--cc-blue); outline-offset: 2px; }
 
-/* Ensure all interactive elements have a clearly visible focus ring
-   (browsers may suppress default outlines; this is the override) */
-:focus-visible {
-  outline: 2px solid var(--cc-blue);
-  outline-offset: 2px;
-}
+/* ── Touch targets ──────────────────────────────────────────────────────── */
+button, [role="button"], [role="tab"], [role="menuitem"], [role="option"] { min-height: 44px; }
+a:not(:where(p a, span a, li a, td a, .inline-link)) { min-height: 44px; display: inline-flex; align-items: center; }
+input[type="checkbox"], input[type="radio"] { min-width: 20px; min-height: 20px; padding: 12px; margin: -12px; }
+button[aria-label], button.icon-btn, [role="tab"], [role="menuitem"] { user-select: none; -webkit-user-select: none; }
+.touch-target { position: relative; }
+.touch-target::after { content: ''; position: absolute; inset: -8px; min-width: 44px; min-height: 44px; }
 
-/* ── Reduced-motion: respect user OS preference ─────────────────────────────*/
+/* ── Reduced motion ─────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -347,336 +155,54 @@ body {
   }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+/* ── Responsive typography ──────────────────────────────────────────────── */
+@media (max-width: 640px) { html { font-size: 14px; } }
 
-::-webkit-scrollbar-track {
-  background: var(--cc-bg);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--cc-border);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--cc-border-hover);
-}
-
-/* Hide scrollbar but keep functionality */
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-/* Focus ring utilities */
+/* ── Utility classes ────────────────────────────────────────────────────── */
 .focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:ring-offset-2 focus:ring-offset-[#0B0F14];
+  @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+  --tw-ring-color: color-mix(in srgb, var(--cc-blue) 50%, transparent);
 }
-
-/* Glass effect */
-.glass {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
-/* Gradient text */
+.glass { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 .gradient-text {
-  background: linear-gradient(135deg, #4F8CFF 0%, #FF2DAA 100%);
+  background: linear-gradient(135deg, var(--cc-blue) 0%, var(--cc-pink) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
-
-/* Gradient border */
-.gradient-border {
-  position: relative;
-}
-
+.gradient-border { position: relative; }
 .gradient-border::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px;
-  background: linear-gradient(135deg, #4F8CFF, #FF2DAA);
+  content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
+  background: linear-gradient(135deg, var(--cc-blue), var(--cc-pink));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+  -webkit-mask-composite: xor; mask-composite: exclude;
 }
+.glow-primary { box-shadow: 0 0 20px rgba(79, 140, 255, 0.3); }
+.glow-accent  { box-shadow: 0 0 20px rgba(255, 45, 170, 0.3); }
 
-/* Glow effects */
-.glow-primary {
-  box-shadow: 0 0 20px rgba(79, 140, 255, 0.3);
-}
-
-.glow-accent {
-  box-shadow: 0 0 20px rgba(255, 45, 170, 0.3);
-}
-
-/* Animation utilities */
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-@keyframes slideUp {
-  from { 
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to { 
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
+/* ── Animations ─────────────────────────────────────────────────────────── */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 @keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(79, 140, 255, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 30px rgba(79, 140, 255, 0.5);
-  }
+  0%, 100% { box-shadow: 0 0 20px rgba(79, 140, 255, 0.3); }
+  50%       { box-shadow: 0 0 30px rgba(79, 140, 255, 0.5); }
 }
+.animate-fade-in  { animation: fadeIn 0.3s ease-out; }
+.animate-slide-up { animation: slideUp 0.3s ease-out; }
+.animate-pulse-glow { animation: pulse-glow 2s infinite; }
 
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
-}
+/* ── Form element theming ───────────────────────────────────────────────── */
+input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; }
+input[type="range"]::-webkit-slider-track { background: var(--cc-border); height: 4px; border-radius: 2px; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--cc-blue); border-radius: 50%; cursor: pointer; margin-top: -6px; }
+input[type="range"]::-moz-range-track { background: var(--cc-border); height: 4px; border-radius: 2px; }
+input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; background: var(--cc-blue); border-radius: 50%; cursor: pointer; border: none; }
 
-.animate-slide-up {
-  animation: slideUp 0.3s ease-out;
-}
+input[type="checkbox"] { -webkit-appearance: none; appearance: none; width: 1.25rem; height: 1.25rem; border: 1px solid var(--cc-border); border-radius: 0.375rem; background-color: var(--cc-surface); cursor: pointer; position: relative; }
+input[type="checkbox"]:checked { background-color: var(--cc-blue); border-color: var(--cc-blue); }
+input[type="checkbox"]:checked::after { content: ''; position: absolute; left: 6px; top: 2px; width: 5px; height: 10px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+input[type="checkbox"]:focus { outline: none; box-shadow: 0 0 0 2px rgba(79, 140, 255, 0.3); }
 
-.animate-pulse-glow {
-  animation: pulse-glow 2s infinite;
-}
-
-/* Input range styling */
-input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
-}
-
-input[type="range"]::-webkit-slider-track {
-  background: var(--cc-border);
-  height: 4px;
-  border-radius: 2px;
-}
-
-input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  background: var(--cc-blue);
-  border-radius: 50%;
-  cursor: pointer;
-  margin-top: -6px;
-}
-
-input[type="range"]::-moz-range-track {
-  background: var(--cc-border);
-  height: 4px;
-  border-radius: 2px;
-}
-
-input[type="range"]::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  background: var(--cc-blue);
-  border-radius: 50%;
-  cursor: pointer;
-  border: none;
-}
-
-/* Checkbox styling */
-input[type="checkbox"] {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 1.25rem;
-  height: 1.25rem;
-  border: 1px solid var(--cc-border);
-  border-radius: 0.375rem;
-  background-color: var(--cc-surface);
-  cursor: pointer;
-  position: relative;
-}
-
-input[type="checkbox"]:checked {
-  background-color: var(--cc-blue);
-  border-color: var(--cc-blue);
-}
-
-input[type="checkbox"]:checked::after {
-  content: '';
-  position: absolute;
-  left: 6px;
-  top: 2px;
-  width: 5px;
-  height: 10px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  transform: rotate(45deg);
-}
-
-input[type="checkbox"]:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px rgba(79, 140, 255, 0.3);
-}
-
-/* Radio styling */
-input[type="radio"] {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 1.25rem;
-  height: 1.25rem;
-  border: 1px solid var(--cc-border);
-  border-radius: 50%;
-  background-color: var(--cc-surface);
-  cursor: pointer;
-  position: relative;
-}
-
-input[type="radio"]:checked {
-  border-color: var(--cc-blue);
-}
-
-input[type="radio"]:checked::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 10px;
-  height: 10px;
-  background-color: var(--cc-blue);
-  border-radius: 50%;
-}
-
-/* ================================================
-   iOS / PWA Safe Area Insets — strict mobile-first
-   ================================================ */
-
-/* Apply safe area to the document root so all fixed elements inherit correctly */
-:root {
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-left: env(safe-area-inset-left, 0px);
-  --safe-right: env(safe-area-inset-right, 0px);
-}
-
-/* Utility classes */
-.safe-top    { padding-top:    max(env(safe-area-inset-top, 0px), 0px); }
-.safe-bottom { padding-bottom: max(env(safe-area-inset-bottom, 0px), 0px); }
-.safe-left   { padding-left:   max(env(safe-area-inset-left, 0px), 0px); }
-.safe-right  { padding-right:  max(env(safe-area-inset-right, 0px), 0px); }
-
-/* Fixed header — always sits below the status bar notch */
-.fixed-header {
-  top: 0;
-  padding-top: env(safe-area-inset-top, 0px);
-}
-
-/* Fixed bottom navigation — always sits above the home indicator */
-.fixed-bottom-nav {
-  bottom: 0;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-}
-
-/* Main content area under a fixed header (64px header + safe-area) */
-.content-pt-safe {
-  padding-top: calc(4rem + env(safe-area-inset-top, 0px));
-}
-
-/* Scrollable containers: prevent content hiding behind home bar */
-.scroll-safe-bottom {
-  padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
-}
-
-/* ============================================
-   OVERSCROLL — prevent pull-to-refresh browser
-   bounce and rubber-banding globally
-   ============================================ */
-html, body {
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* Scoped overscroll containment — only apply to known scrollable panels,
-   not globally (global * { overscroll-behavior } traps nested scroll and
-   breaks iOS momentum scrolling in sheets, modals, and lists). */
-.scroll-container,
-.overflow-y-auto,
-.overflow-x-auto,
-.overflow-auto {
-  overscroll-behavior: contain;
-}
-
-/* ============================================
-   TOUCH TARGETS — Apple HIG / Google Material
-   minimum 44×44px for all interactive elements
-   ============================================ */
-/* Buttons and explicit roles always get 44px */
-button,
-[role="button"],
-[role="tab"],
-[role="menuitem"],
-[role="option"] {
-  min-height: 44px;
-}
-
-/* Block-level links (nav, cards) get 44px; inline text links are excluded */
-a:not(:where(p a, span a, li a, td a, .inline-link)) {
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-}
-
-/* Checkboxes and radios use expanded hit areas via padding instead */
-input[type="checkbox"],
-input[type="radio"] {
-  min-width: 20px;
-  min-height: 20px;
-  padding: 12px;
-  margin: -12px;
-}
-
-/* Inline / icon-only elements that intentionally
-   stay small visually but need a larger hit area */
-.touch-target {
-  position: relative;
-}
-.touch-target::after {
-  content: '';
-  position: absolute;
-  inset: -8px;
-  min-width: 44px;
-  min-height: 44px;
-}
-
-/* Prevent accidental text selection on icon-only or purely interactive buttons.
-   Scoped narrowly — do NOT apply globally to all text-containing buttons.
-   Text inside buttons (labels, descriptions) remains selectable for accessibility. */
-button[aria-label],
-button.icon-btn,
-[role="tab"],
-[role="menuitem"] {
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-/* Responsive typography */
-@media (max-width: 640px) {
-  html {
-    font-size: 14px;
-  }
-}
+input[type="radio"] { -webkit-appearance: none; appearance: none; width: 1.25rem; height: 1.25rem; border: 1px solid var(--cc-border); border-radius: 50%; background-color: var(--cc-surface); cursor: pointer; position: relative; }
+input[type="radio"]:checked { border-color: var(--cc-blue); }
+input[type="radio"]:checked::after { content: ''; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; background-color: var(--cc-blue); border-radius: 50%; }

@@ -158,7 +158,7 @@ export default function Layout({ children, currentPageName }) {
   // For public pages, show minimal layout
   if (isPublicPage) {
     return (
-      <div className="min-h-screen bg-cc-bg">
+      <div className="min-h-screen" style={{ backgroundColor: 'var(--cc-bg)' }}>
         <Toaster position="top-center" theme="system" />
         <NavBar 
           user={user}
@@ -189,7 +189,7 @@ export default function Layout({ children, currentPageName }) {
     return (
       <MobileNavProvider>
         <TabNavigatorProvider>
-          <div className="min-h-screen bg-cc-bg">
+          <div className="min-h-screen" style={{ backgroundColor: 'var(--cc-bg)' }}>
             <Toaster position="top-center" theme="system" />
             <NavBar 
               user={user}
@@ -243,7 +243,7 @@ export default function Layout({ children, currentPageName }) {
 
   // Default layout
   return (
-    <div className="min-h-screen bg-cc-bg">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--cc-bg)' }}>
       <Toaster position="top-center" theme="system" />
       <NavBar 
         user={user}
