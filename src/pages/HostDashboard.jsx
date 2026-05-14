@@ -85,14 +85,14 @@ export default function HostDashboard() {
 
   return (
     <FeatureRouteGuard flag="hosting_marketplace">
-      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+      <div className="min-h-screen pb-20 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
         <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
 
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-[#E8EEF9]">My Properties</h1>
-              <p className="text-sm text-[#9AA6BC] mt-1">{activeCount} active · {draftCount} draft</p>
+              <h1 className="text-2xl font-bold cc-text-fix-primary">My Properties</h1>
+              <p className="text-sm cc-text-fix-secondary mt-1">{activeCount} active · {draftCount} draft</p>
             </div>
             <div className="relative group">
               <CCButton
@@ -105,7 +105,7 @@ export default function HostDashboard() {
               </CCButton>
               {!hostReady && (
                 <div className="absolute right-0 top-full mt-1.5 z-10 hidden group-hover:block">
-                  <div className="bg-[#1A2438] border border-[#263248] rounded-lg px-3 py-2 text-xs text-[#9AA6BC] whitespace-nowrap shadow-lg">
+                 <div className="border rounded-lg px-3 py-2 text-xs whitespace-nowrap shadow-lg cc-text-fix-secondary" style={{ backgroundColor: 'var(--cc-surface)', borderColor: 'var(--cc-border)' }}>
                     Complete host setup to add a property
                   </div>
                 </div>
@@ -138,13 +138,13 @@ export default function HostDashboard() {
           {/* Stats */}
           <div className="grid grid-cols-3 gap-4">
             {[
-              { label: 'Active Listings', value: activeCount, color: 'text-[#22C55E]' },
-              { label: 'Total Listings', value: properties.length, color: 'text-[#4F8CFF]' },
-              { label: 'Drafts', value: draftCount, color: 'text-[#F59E0B]' },
+              { label: 'Active Listings', value: activeCount, color: 'text-green-500' },
+              { label: 'Total Listings', value: properties.length, color: 'text-blue-500' },
+              { label: 'Drafts', value: draftCount, color: 'text-amber-500' },
             ].map(stat => (
               <CCCard key={stat.label} padding="md">
                 <p className={`text-2xl font-bold ${stat.color}`}>{stat.value}</p>
-                <p className="text-xs text-[#6B7A94] mt-1">{stat.label}</p>
+                <p className="text-xs cc-text-fix-muted mt-1">{stat.label}</p>
               </CCCard>
             ))}
           </div>
@@ -171,33 +171,33 @@ export default function HostDashboard() {
             />
           ) : (
             <div className="space-y-3">
-              <h2 className="text-sm font-semibold text-[#E8EEF9]">Your Listings</h2>
+              <h2 className="text-sm font-semibold cc-text-fix-primary">Your Listings</h2>
               {properties.map(property => {
                 const cover = property.media?.find(m => m.is_cover) || property.media?.[0];
                 return (
                   <CCCard key={property.id} padding="md">
                     <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-lg overflow-hidden bg-[#263248] flex-shrink-0">
+                      <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0" style={{ backgroundColor: 'var(--cc-border)' }}>
                         {cover ? (
                           <img src={cover.url} alt={property.title} className="w-full h-full object-cover" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
-                            <Building2 className="w-7 h-7 text-[#6B7A94]" />
+                            <Building2 className="w-7 h-7 cc-text-fix-muted" />
                           </div>
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-medium text-[#E8EEF9] truncate">{property.title}</p>
+                          <p className="font-medium cc-text-fix-primary truncate">{property.title}</p>
                           <CCBadge variant={STATUS_VARIANTS[property.status] || 'default'} size="sm">
                             {property.status}
                           </CCBadge>
                         </div>
-                        <p className="text-xs text-[#9AA6BC] mt-0.5 capitalize">
+                        <p className="text-xs cc-text-fix-secondary mt-0.5 capitalize">
                           {property.property_type} · {property.city}{property.state && `, ${property.state}`}
                         </p>
                         {property.pricing?.hourly_rate && (
-                          <p className="text-xs text-[#6B7A94] mt-0.5">${property.pricing.hourly_rate}/hr</p>
+                          <p className="text-xs cc-text-fix-muted mt-0.5">${property.pricing.hourly_rate}/hr</p>
                         )}
                       </div>
                       <div className="flex items-center gap-2 flex-shrink-0">
@@ -221,8 +221,8 @@ export default function HostDashboard() {
                           onClick={() => toggleStatus(property)}
                         >
                           {property.status === 'active'
-                            ? <ToggleRight className="w-5 h-5 text-[#22C55E]" />
-                            : <ToggleLeft className="w-5 h-5 text-[#6B7A94]" />
+                            ? <ToggleRight className="w-5 h-5 text-green-500" />
+                            : <ToggleLeft className="w-5 h-5 cc-text-fix-muted" />
                           }
                         </CCButton>
                       </div>
@@ -241,7 +241,7 @@ export default function HostDashboard() {
 
           {/* Booking inbox */}
           <div>
-            <h2 className="text-sm font-semibold text-[#E8EEF9] mb-3">Booking Requests</h2>
+            <h2 className="text-sm font-semibold cc-text-fix-primary mb-3">Booking Requests</h2>
             <SoloSessionsInbox user={user} asHost={true} />
           </div>
         </div>

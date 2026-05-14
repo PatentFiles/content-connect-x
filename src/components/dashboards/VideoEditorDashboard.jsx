@@ -190,7 +190,7 @@ export default function VideoEditorDashboard({ user, profile, onboardingChecklis
             ) : (
               <div className="space-y-2">
                 {editingQueue.map(room => (
-                  <div key={room.id} className="p-3 bg-[#151D2B] rounded-lg">
+                  <div key={room.id} className="p-3 rounded-lg" style={{ backgroundColor: 'var(--cc-surface-hover)' }}>
                     <p className="text-sm cc-text-fix-primary">{room.collaboration_name || 'Untitled'}</p>
                     <p className="text-xs cc-text-fix-muted flex items-center gap-1 mt-1">
                       <Clock className="w-3 h-3" />
