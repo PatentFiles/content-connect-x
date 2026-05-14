@@ -19,6 +19,7 @@ import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 const STATUS_CONFIG = {
   draft:            { label: 'Draft',            color: 'default',  step: 0 },
@@ -148,6 +149,7 @@ export default function SoloSessionDetail() {
 
   return (
     <FeatureRouteGuard flag="solo_sessions">
+    <MobileRefreshPage onRefresh={() => queryClient.invalidateQueries({ queryKey: ['soloSession', sessionId] })}>
     <div className="min-h-screen bg-[#0B0F14] pb-24 md:pb-8">
       <div className="max-w-4xl mx-auto px-4 py-6">
         {/* Back */}
@@ -462,6 +464,7 @@ export default function SoloSessionDetail() {
         </div>
       )}
     </div>
+    </MobileRefreshPage>
     </FeatureRouteGuard>
   );
 }

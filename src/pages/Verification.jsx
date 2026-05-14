@@ -19,6 +19,7 @@ import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 const steps = [
   { 
@@ -173,6 +174,7 @@ export default function Verification() {
 
   return (
     <FeatureRouteGuard flag="verification" requiresSubscription={false}>
+    <MobileRefreshPage onRefresh={() => queryClient.invalidateQueries({ queryKey: ['verification', user?.email] })}>
     <div className="min-h-screen bg-[#0B0F14] pt-24 pb-12 px-4">
       <div className="max-w-2xl mx-auto">
         {/* Header */}
@@ -367,6 +369,7 @@ export default function Verification() {
         </div>
       </div>
     </div>
+    </MobileRefreshPage>
     </FeatureRouteGuard>
   );
 }

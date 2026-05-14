@@ -24,6 +24,7 @@ import CCInput from '@/components/ui-custom/CCInput';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import CCModal from '@/components/ui-custom/CCModal';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 export default function Portfolio() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -201,9 +202,7 @@ export default function Portfolio() {
   };
 
   const handleBulkDelete = () => {
-    if (confirm(`Delete ${selectedItems.length} items?`)) {
-      bulkDeleteMutation.mutate(selectedItems);
-    }
+    bulkDeleteMutation.mutate(selectedItems);
   };
 
   const handleAddTag = (item) => {
@@ -243,6 +242,7 @@ export default function Portfolio() {
 
   return (
     <FeatureRouteGuard flag="portfolio" requiresSubscription={true}>
+    <MobileRefreshPage onRefresh={() => queryClient.invalidateQueries({ queryKey: ['myPortfolio', user?.email] })}>
       <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
@@ -736,6 +736,7 @@ export default function Portfolio() {
           </div>
           </CCModal>
       </div>
+    </MobileRefreshPage>
     </FeatureRouteGuard>
   );
 }

@@ -12,6 +12,7 @@ import ScheduleEntryCard from '@/components/schedule/ScheduleEntryCard';
 import ScheduleEntryEditor from '@/components/schedule/ScheduleEntryEditor';
 import CCModal from '@/components/ui-custom/CCModal';
 import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 export default function AvailabilitySchedule() {
   const [viewMonth, setViewMonth] = useState(new Date());
@@ -176,12 +177,10 @@ export default function AvailabilitySchedule() {
   };
 
   const handleBulkMarkUnavailable = () => {
-    if (confirm(`Mark ${selectedEntries.length} entries as unavailable?`)) {
-      bulkUpdateMutation.mutate({ 
-        ids: selectedEntries, 
-        data: { status: 'UNAVAILABLE' } 
-      });
-    }
+    bulkUpdateMutation.mutate({ 
+      ids: selectedEntries, 
+      data: { status: 'UNAVAILABLE' } 
+    });
   };
 
   const handleBulkDelete = () => {
@@ -195,9 +194,7 @@ export default function AvailabilitySchedule() {
       return;
     }
 
-    if (confirm(`Delete ${manualSelected.length} entries?`)) {
-      bulkDeleteMutation.mutate(manualSelected);
-    }
+    bulkDeleteMutation.mutate(manualSelected);
   };
 
   const exportToCalendar = (type) => {
@@ -247,6 +244,7 @@ END:VCALENDAR`;
 
   return (
     <FeatureRouteGuard flag="availability_schedule">
+    <MobileRefreshPage onRefresh={() => queryClient.invalidateQueries({ queryKey: ['scheduleEntries', user?.email] })}>
       <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         {/* Header */}
@@ -529,6 +527,7 @@ END:VCALENDAR`;
         </div>
       </CCModal>
       </div>
+    </MobileRefreshPage>
     </FeatureRouteGuard>
   );
 }

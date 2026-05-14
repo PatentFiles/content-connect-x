@@ -8,6 +8,7 @@ import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCTabs, CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCModal from '@/components/ui-custom/CCModal';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 import { toast } from 'sonner';
 import AgentsList from '@/components/agents/AgentsList';
 import AgentPermissionsEditor from '@/components/agents/AgentPermissionsEditor';
@@ -51,6 +52,7 @@ export default function AgentManagement() {
   }
 
   return (
+    <MobileRefreshPage>
     <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--cc-bg)' }}>
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
@@ -109,5 +111,6 @@ export default function AgentManagement() {
         </div>
       </div>
     </div>
+    </MobileRefreshPage>
   );
 }

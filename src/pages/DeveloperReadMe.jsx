@@ -10,6 +10,7 @@ import { BookingSystemSection, EarningsSection, CompletionSection, IdentitySafet
 import { AutomationsSection } from '@/components/docs/DeveloperReadMeAutomations';
 import { RecentChangesSection } from '@/components/docs/DeveloperReadMeChangelog';
 import { toast } from 'sonner';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 // ─── Token Validation ──────────────────────────────────────────────────────────
 
@@ -163,6 +164,7 @@ export default function DeveloperReadMe() {
   }
 
   return (
+    <MobileRefreshPage>
     <div className="min-h-screen pb-24 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
@@ -1116,8 +1118,9 @@ const url = ccbill.getSubscriptionUrl({ pricePoint: '9.99', customerId: user.ema
         <div className="mt-8 p-4 cc-surface-fix border cc-border-fix rounded-lg text-center text-sm cc-text-fix-muted">
           <p>Last Updated: {new Date().toLocaleDateString()}</p>
           <p className="mt-2">This documentation is the canonical source of truth for Content Connect's architecture.</p>
-        </div>
-      </div>
-    </div>
-  );
-}
+          </div>
+          </div>
+          </div>
+          </MobileRefreshPage>
+          );
+          }

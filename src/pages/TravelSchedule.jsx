@@ -9,6 +9,7 @@ import CCCard from '@/components/ui-custom/CCCard';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import TravelDateManager from '@/components/profile/TravelDateManager';
 import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 export default function TravelSchedule() {
   const [showManager, setShowManager] = useState(false);
@@ -108,16 +109,15 @@ END:VCALENDAR`;
   };
 
   const deleteTravelEntry = (id) => {
-    if (confirm('Are you sure you want to delete this travel entry?')) {
-      base44.entities.ScheduleEntry.delete(id).then(() => {
-        queryClient.invalidateQueries({ queryKey: ['travelEntries'] });
-        toast.success('Travel entry deleted');
-      });
-    }
+    base44.entities.ScheduleEntry.delete(id).then(() => {
+      queryClient.invalidateQueries({ queryKey: ['travelEntries'] });
+      toast.success('Travel entry deleted');
+    });
   };
 
   return (
     <FeatureRouteGuard flag="travel_schedule">
+    <MobileRefreshPage onRefresh={() => queryClient.invalidateQueries({ queryKey: ['travelEntries', user?.email] })}>
       <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         {/* Header */}
@@ -246,6 +246,7 @@ END:VCALENDAR`;
         />
       )}
       </div>
+    </MobileRefreshPage>
     </FeatureRouteGuard>
   );
 }

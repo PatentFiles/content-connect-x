@@ -20,6 +20,7 @@ import CCSelect from '@/components/ui-custom/CCSelect';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import CCModal from '@/components/ui-custom/CCModal';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 export default function RosterPortfolio() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [creatorEmail, setCreatorEmail] = useState('');
@@ -86,6 +87,7 @@ export default function RosterPortfolio() {
 
   return (
     <FeatureRouteGuard flag="representations" requiresSubscription={true}>
+    <MobileRefreshPage onRefresh={() => queryClient.invalidateQueries({ queryKey: ['studioRoster', user?.email] })}>
       <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
@@ -257,6 +259,7 @@ export default function RosterPortfolio() {
         </div>
       </CCModal>
       </div>
+    </MobileRefreshPage>
     </FeatureRouteGuard>
   );
 }

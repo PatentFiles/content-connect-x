@@ -9,6 +9,7 @@ import CCBadge from '@/components/ui-custom/CCBadge';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 export default function HostProfile() {
   const [editMode, setEditMode] = useState(false);
@@ -61,6 +62,10 @@ export default function HostProfile() {
 
   return (
     <FeatureRouteGuard flag="hosting_marketplace">
+    <MobileRefreshPage onRefresh={() => {
+      queryClient.invalidateQueries({ queryKey: ['myProfile', user?.email] });
+      queryClient.invalidateQueries({ queryKey: ['myProperties', user?.email] });
+    }}>
       <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
 
@@ -192,6 +197,7 @@ export default function HostProfile() {
         )}
       </div>
       </div>
+    </MobileRefreshPage>
     </FeatureRouteGuard>
   );
 }

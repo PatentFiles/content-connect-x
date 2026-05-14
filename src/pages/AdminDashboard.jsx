@@ -26,6 +26,7 @@ import { CCTabs, CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs
 import CCModal from '@/components/ui-custom/CCModal';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 // Lazy-load heavy admin components
 const ModerationOverview = lazy(() => import('@/components/admin/ModerationOverview'));
@@ -464,6 +465,11 @@ export default function AdminDashboard() {
   const getProfileForVerification = (v) => userProfiles.find(p => p.user_id === v.user_id);
 
   return (
+    <MobileRefreshPage onRefresh={() => {
+      queryClient.invalidateQueries({ queryKey: ['pendingVerifications'] });
+      queryClient.invalidateQueries({ queryKey: ['pendingReports'] });
+      queryClient.invalidateQueries({ queryKey: ['pendingTags'] });
+    }}>
     <div className="min-h-screen pb-20 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
       {/* Header */}
       <div className="sticky top-16 z-30 backdrop-blur-xl border-b" style={{ backgroundColor: 'color-mix(in srgb, var(--cc-bg) 95%, transparent)', borderColor: 'var(--cc-border)' }}>
@@ -919,5 +925,6 @@ export default function AdminDashboard() {
         )}
       </CCModal>
     </div>
+    </MobileRefreshPage>
   );
 }

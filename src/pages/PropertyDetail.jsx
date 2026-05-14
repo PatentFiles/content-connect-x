@@ -14,10 +14,13 @@ import LocationContractClauses from '@/components/hosting/LocationContractClause
 import PropertyReviewsSection from '@/components/property/PropertyReviewsSection';
 import { useFeatureFlag } from '@/lib/featureFlags';
 import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function PropertyDetail() {
   const urlParams = new URLSearchParams(window.location.search);
   const propertyId = urlParams.get('id');
+  const queryClient = useQueryClient();
   const [galleryIndex, setGalleryIndex] = useState(0);
 
   const { data: user } = useQuery({
@@ -74,6 +77,10 @@ export default function PropertyDetail() {
 
   return (
     <FeatureRouteGuard flag="hosting_marketplace" requiresSubscription={true}>
+    <MobileRefreshPage onRefresh={() => {
+      queryClient.invalidateQueries({ queryKey: ['property', propertyId] });
+      queryClient.invalidateQueries({ queryKey: ['ownerProfile', property?.owner_user_id] });
+    }}>
       <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Back nav */}
       <div className="max-w-5xl mx-auto px-4 pt-4">
@@ -239,6 +246,7 @@ export default function PropertyDetail() {
         </div>
       </div>
       </div>
+    </MobileRefreshPage>
     </FeatureRouteGuard>
   );
 }

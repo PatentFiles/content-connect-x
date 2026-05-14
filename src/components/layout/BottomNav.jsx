@@ -42,10 +42,7 @@ export default function BottomNav({ currentPage }) {
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl border-t md:hidden"
-      style={{ backgroundColor: 'color-mix(in srgb, var(--cc-bg) 95%, transparent)', borderColor: 'var(--cc-border)' }}
-      style={{
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-      }}
+      style={{ backgroundColor: 'color-mix(in srgb, var(--cc-bg) 95%, transparent)', borderColor: 'var(--cc-border)', paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="flex items-stretch justify-around px-1" style={{ minHeight: '56px' }}>
         {navItems.map((item) => {

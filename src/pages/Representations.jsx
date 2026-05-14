@@ -23,6 +23,7 @@ import CCModal from '@/components/ui-custom/CCModal';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import AgentInviteInbox from '@/components/representation/AgentInviteInbox';
 import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 export default function Representations() {
   const [showInviteModal, setShowInviteModal] = useState(false);
@@ -195,6 +196,7 @@ export default function Representations() {
 
     return (
       <FeatureRouteGuard flag="representations" requiresSubscription={true}>
+        <MobileRefreshPage onRefresh={() => queryClient.invalidateQueries({ queryKey: ['myCreatorReps', user?.email] })}>
         <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="mb-6">
@@ -290,6 +292,7 @@ export default function Representations() {
           )}
         </div>
         </div>
+        </MobileRefreshPage>
         </FeatureRouteGuard>
     );
   }
@@ -301,6 +304,7 @@ export default function Representations() {
 
   return (
     <FeatureRouteGuard flag="representations" requiresSubscription={true}>
+    <MobileRefreshPage onRefresh={() => queryClient.invalidateQueries({ queryKey: ['myRepresentations', user?.email] })}>
       <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Header */}
@@ -549,6 +553,7 @@ export default function Representations() {
         </div>
       </CCModal>
       </div>
+    </MobileRefreshPage>
     </FeatureRouteGuard>
   );
 }

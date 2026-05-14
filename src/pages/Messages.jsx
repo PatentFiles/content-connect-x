@@ -179,6 +179,8 @@ export default function Messages() {
     markAsRead();
   }, [selectedConversation?.id, messages.length]);
 
+  const convQueryKey = ['conversations', user?.email];
+
   // Send message mutation — routes through protected backend (ban-enforced)
   const sendMessageMutation = useMutation({
     mutationFn: async (messageData) => {
@@ -233,16 +235,32 @@ export default function Messages() {
 
       return result?.data?.data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries(['messages', selectedConversation?.id]);
-      queryClient.invalidateQueries(['conversations']);
-      setNewMessage('');
+    onMutate: async (messageData) => {
+      await queryClient.cancelQueries({ queryKey: ['messages', selectedConversation?.id] });
+      const previous = queryClient.getQueryData(['messages', selectedConversation?.id]);
+      const optimistic = {
+        id: `tmp_${Date.now()}`,
+        conversation_id: messageData.conversation_id,
+        sender_id: user?.email,
+        body: messageData.body,
+        attachments: messageData.attachments || [],
+        created_date: new Date().toISOString(),
+        read_by: [user?.email],
+      };
+      queryClient.setQueryData(['messages', selectedConversation?.id], (old = []) => [...old, optimistic]);
+      return { previous };
     },
-    onError: (error) => {
+    onError: (error, _vars, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(['messages', selectedConversation?.id], ctx.previous);
       if (error.message?.startsWith('BLOCKED:')) {
         toast.error('Your account is blocked. You cannot send messages.');
       }
-    }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['messages', selectedConversation?.id] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      setNewMessage('');
+    },
   });
 
   // Delete message mutation
@@ -283,12 +301,19 @@ export default function Messages() {
   // Archive conversation
   const archiveConversationMutation = useMutation({
     mutationFn: async (conversationId) => {
-      await base44.entities.Conversation.update(conversationId, {
-        status: 'archived'
-      });
+      await base44.entities.Conversation.update(conversationId, { status: 'archived' });
+    },
+    onMutate: async (conversationId) => {
+      await queryClient.cancelQueries({ queryKey: convQueryKey });
+      const previous = queryClient.getQueryData(convQueryKey);
+      queryClient.setQueryData(convQueryKey, (old = []) => old.filter(c => c.id !== conversationId));
+      return { previous };
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(convQueryKey, ctx.previous);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['conversations']);
+      queryClient.invalidateQueries({ queryKey: convQueryKey });
       setSelectedConversation(null);
       setShowConversationMenu(false);
       toast.success('Conversation archived');
@@ -301,11 +326,19 @@ export default function Messages() {
       // Delete all messages first
       const convMessages = await base44.entities.Message.filter({ conversation_id: conversationId });
       await Promise.all(convMessages.map(m => base44.entities.Message.delete(m.id)));
-      // Delete conversation
       await base44.entities.Conversation.delete(conversationId);
     },
+    onMutate: async (conversationId) => {
+      await queryClient.cancelQueries({ queryKey: convQueryKey });
+      const previous = queryClient.getQueryData(convQueryKey);
+      queryClient.setQueryData(convQueryKey, (old = []) => old.filter(c => c.id !== conversationId));
+      return { previous };
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(convQueryKey, ctx.previous);
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['conversations']);
+      queryClient.invalidateQueries({ queryKey: convQueryKey });
       setSelectedConversation(null);
       setShowConversationMenu(false);
       toast.success('Conversation deleted');

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CompliancePortal from '@/components/admin/CompliancePortal';
 import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 export default function CompliancePortalPage() {
   const { data: user, isLoading: userLoading } = useQuery({
@@ -17,7 +18,9 @@ export default function CompliancePortalPage() {
 
   return (
     <FeatureRouteGuard flag="compliance_portal" requiresSubscription={false}>
-      <CompliancePortal currentUser={user} />
+      <MobileRefreshPage>
+        <CompliancePortal currentUser={user} />
+      </MobileRefreshPage>
     </FeatureRouteGuard>
   );
 }

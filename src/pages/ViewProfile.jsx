@@ -48,6 +48,7 @@ import CollaborationHistory from '@/components/profile/CollaborationHistory';
 import TrustBadges from '@/components/profile/TrustBadges';
 import PreCollaborationCheck from '@/components/trust/PreCollaborationCheck';
 import CCModal from '@/components/ui-custom/CCModal';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 const roleColors = {
   creator: 'primary',
@@ -439,6 +440,7 @@ export default function ViewProfile() {
   ];
 
   return (
+    <MobileRefreshPage onRefresh={() => queryClient.invalidateQueries({ queryKey: ['viewProfile', profileUserId] })}>
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Cover Image */}
       <div className="relative h-64 md:h-80">
@@ -1292,5 +1294,6 @@ export default function ViewProfile() {
         </CCTabsContent>
         </div>
     </div>
+    </MobileRefreshPage>
   );
 }

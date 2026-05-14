@@ -12,6 +12,7 @@ import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import { createNotification } from '@/components/notifications/notificationHelpers';
 import { toast } from 'sonner';
 import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 const STATUS_CONFIG = {
   pending:  { label: 'Under Review', variant: 'warning', icon: Clock },
@@ -92,6 +93,10 @@ export default function ModerationFlags() {
 
   return (
     <FeatureRouteGuard flag="moderation_flags" requiresSubscription={false}>
+    <MobileRefreshPage onRefresh={() => {
+      queryClient.invalidateQueries({ queryKey: ['myReputationScore', user?.email] });
+      queryClient.invalidateQueries({ queryKey: ['myFlagAppeals', user?.email] });
+    }}>
       <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Header */}
@@ -213,6 +218,7 @@ export default function ModerationFlags() {
         )}
       </div>
       </div>
+    </MobileRefreshPage>
     </FeatureRouteGuard>
   );
 }
