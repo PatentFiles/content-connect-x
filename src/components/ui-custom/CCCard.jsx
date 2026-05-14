@@ -29,11 +29,14 @@ export default function CCCard({
   return (
     <Component
       onClick={onClick}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onKeyDown={clickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick?.(); } } : undefined}
       className={cn(
-        'bg-[#151D2B] border border-[#263248] rounded-xl',
+        'bg-[var(--cc-surface)] border border-[var(--cc-border)] rounded-xl',
         'transition-all duration-200',
-        hover && 'hover:bg-[#1A2438] hover:border-[#3A4A6B]',
-        clickable && 'cursor-pointer',
+        hover && 'hover:bg-[var(--cc-surface-hover)] hover:border-[var(--cc-border-hover)]',
+        clickable && 'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cc-blue)]',
         paddings[padding],
         className
       )}
@@ -55,7 +58,7 @@ export function CCCardHeader({ children, className }) {
 
 export function CCCardTitle({ children, className }) {
   return (
-    <h3 className={cn('text-lg font-semibold text-[#E8EEF9]', className)}>
+    <h3 className={cn('text-lg font-semibold text-[var(--cc-text-primary)]', className)}>
       {children}
     </h3>
   );
@@ -63,7 +66,7 @@ export function CCCardTitle({ children, className }) {
 
 export function CCCardDescription({ children, className }) {
   return (
-    <p className={cn('text-sm text-[#9AA6BC] mt-1', className)}>
+    <p className={cn('text-sm text-[var(--cc-text-secondary)] mt-1', className)}>
       {children}
     </p>
   );

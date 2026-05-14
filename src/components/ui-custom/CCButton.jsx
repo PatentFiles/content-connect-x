@@ -41,9 +41,11 @@ export default function CCButton({
       whileTap={{ scale: disabled || loading ? 1 : 0.97 }}
       onClick={onClick}
       disabled={disabled || loading}
+      aria-disabled={disabled || loading}
+      aria-busy={loading}
       className={cn(
         'inline-flex items-center justify-center gap-2 font-medium rounded-lg transition-all duration-200',
-        'focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50 focus:ring-offset-2 focus:ring-offset-[#0B0F14]',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cc-blue)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--cc-bg)]',
         'disabled:opacity-50 disabled:cursor-not-allowed',
         variants[variant],
         sizes[size],
@@ -53,12 +55,12 @@ export default function CCButton({
       {...props}
     >
       {loading ? (
-        <Loader2 className="w-4 h-4 animate-spin" />
+        <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
       ) : Icon ? (
-        <Icon className="w-4 h-4" />
+        <Icon className="w-4 h-4" aria-hidden="true" />
       ) : null}
       {children}
-      {IconRight && !loading && <IconRight className="w-4 h-4" />}
+      {IconRight && !loading && <IconRight className="w-4 h-4" aria-hidden="true" />}
     </motion.button>
   );
 }

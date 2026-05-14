@@ -2,7 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 
-export default function CCLoading({ size = 'md', className }) {
+export default function CCLoading({ size = 'md', className, label = 'Loading…' }) {
   const sizes = {
     sm: 'w-5 h-5',
     md: 'w-8 h-8',
@@ -10,29 +10,35 @@ export default function CCLoading({ size = 'md', className }) {
   };
 
   return (
-    <div className={cn('flex items-center justify-center', className)}>
+    <div
+      role="status"
+      aria-label={label}
+      className={cn('flex items-center justify-center', className)}
+    >
       <motion.div
         className={cn(
-          'rounded-full border-2 border-[#263248] border-t-[#4F8CFF]',
+          'rounded-full border-2 border-[var(--cc-border)] border-t-[var(--cc-blue)]',
           sizes[size]
         )}
         animate={{ rotate: 360 }}
         transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+        aria-hidden="true"
       />
+      <span className="sr-only">{label}</span>
     </div>
   );
 }
 
-export function CCLoadingScreen({ message = 'Loading...' }) {
+export function CCLoadingScreen({ message = 'Loading…' }) {
   return (
-    <div className="min-h-screen bg-[#0B0F14] flex flex-col items-center justify-center">
+    <div className="min-h-screen bg-[var(--cc-bg)] flex flex-col items-center justify-center">
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
         className="text-center"
       >
-        <CCLoading size="lg" className="mb-4" />
-        <p className="text-[#9AA6BC] text-sm">{message}</p>
+        <CCLoading size="lg" className="mb-4" label={message} />
+        <p className="text-[var(--cc-text-secondary)] text-sm" aria-hidden="true">{message}</p>
       </motion.div>
     </div>
   );
@@ -43,7 +49,8 @@ export function CCSkeletonLoader({ className, ...props }) {
     <motion.div
       animate={{ opacity: [0.5, 1, 0.5] }}
       transition={{ duration: 1.5, repeat: Infinity }}
-      className={cn('bg-[#263248] rounded-lg', className)}
+      className={cn('bg-[var(--cc-border)] rounded-lg', className)}
+      aria-hidden="true"
       {...props}
     />
   );

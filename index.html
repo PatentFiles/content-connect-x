@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="https://base44.com/logo_v2.svg" />
@@ -9,13 +9,19 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="theme-color" content="#0B0F14" />
+    <!-- theme-color adapts to OS dark/light mode -->
+    <meta name="theme-color" content="#0B0F14" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#F3F5FA" media="(prefers-color-scheme: light)" />
+    <!-- color-scheme tells the browser to render its chrome accordingly -->
+    <meta name="color-scheme" content="dark light" />
     <!-- Prevent phone number auto-detection -->
     <meta name="format-detection" content="telephone=no" />
     <link rel="manifest" href="/manifest.json" />
     <title>Content Connect X</title>
   </head>
   <body>
+    <!-- Skip-link: lets keyboard/screen-reader users jump to main content -->
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

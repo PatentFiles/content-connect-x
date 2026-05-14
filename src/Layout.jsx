@@ -176,7 +176,7 @@ export default function Layout({ children, currentPageName }) {
           onLogout={handleLogout}
           adminRoleView={adminRoleView}
         />
-        <main>
+        <main id="main-content">
           <PageTransition>{children}</PageTransition>
         </main>
       </div>
@@ -224,6 +224,7 @@ export default function Layout({ children, currentPageName }) {
             {/* Per-page dynamic header (back button + title) — mobile only */}
             <MobileHeader />
             <main
+              id="main-content"
               className={cn(
                 "md:pl-64 min-h-screen",
                 "pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:pb-0",
@@ -260,7 +261,7 @@ export default function Layout({ children, currentPageName }) {
         onLogout={handleLogout}
         adminRoleView={adminRoleView}
       />
-      <main className="pt-16">
+      <main id="main-content" className="pt-16">
         <PageTransition>{children}</PageTransition>
       </main>
     </div>
