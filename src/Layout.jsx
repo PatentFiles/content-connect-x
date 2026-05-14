@@ -159,7 +159,7 @@ export default function Layout({ children, currentPageName }) {
   if (isPublicPage) {
     return (
       <div className="min-h-screen bg-cc-bg">
-        <Toaster position="top-center" theme="dark" />
+        <Toaster position="top-center" theme="system" />
         <NavBar 
           user={user}
           profile={profile}
@@ -190,7 +190,7 @@ export default function Layout({ children, currentPageName }) {
       <MobileNavProvider>
         <TabNavigatorProvider>
           <div className="min-h-screen bg-cc-bg">
-            <Toaster position="top-center" theme="dark" />
+            <Toaster position="top-center" theme="system" />
             <NavBar 
               user={user}
               profile={{...profile, verified: isVerified}}
@@ -244,7 +244,7 @@ export default function Layout({ children, currentPageName }) {
   // Default layout
   return (
     <div className="min-h-screen bg-cc-bg">
-      <Toaster position="top-center" theme="dark" />
+      <Toaster position="top-center" theme="system" />
       <NavBar 
         user={user}
         profile={profile}

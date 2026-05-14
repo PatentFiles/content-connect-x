@@ -24,8 +24,10 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
   return (
     <header
       className="fixed top-0 left-0 right-0 z-40 backdrop-blur-xl border-b border-cc-border"
-      style={{ backgroundColor: 'color-mix(in srgb, var(--cc-bg) 95%, transparent)' }}
-      style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
+      style={{
+        backgroundColor: 'color-mix(in srgb, var(--cc-bg) 95%, transparent)',
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+      }}
     >
       <div className="w-full px-4 h-16 flex items-center justify-between">
         {/* Left — Logo */}
@@ -35,19 +37,19 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
             alt="OFX Logo"
             className="w-8 h-8 rounded-lg flex-shrink-0"
           />
-          <span className="text-[#E8EEF9] font-semibold text-lg hidden sm:block">Content Connect X</span>
+          <span className="font-semibold text-lg hidden sm:block" style={{ color: 'var(--cc-text-primary)' }}>Content Connect X</span>
         </Link>
 
         {/* Center — Desktop public nav */}
         {!isAuthenticated && (
           <nav className="hidden md:flex items-center gap-6">
-            <Link to={createPageUrl('HowItWorks')} className="text-[#9AA6BC] hover:text-[#E8EEF9] text-sm font-medium transition-colors">
+            <Link to={createPageUrl('HowItWorks')} className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-text-secondary)' }}>
               How it Works
             </Link>
-            <Link to={createPageUrl('Pricing')} className="text-[#9AA6BC] hover:text-[#E8EEF9] text-sm font-medium transition-colors">
+            <Link to={createPageUrl('Pricing')} className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-text-secondary)' }}>
               Pricing
             </Link>
-            <Link to={createPageUrl('FAQ')} className="text-[#9AA6BC] hover:text-[#E8EEF9] text-sm font-medium transition-colors">
+            <Link to={createPageUrl('FAQ')} className="text-sm font-medium transition-colors" style={{ color: 'var(--cc-text-secondary)' }}>
               FAQ
             </Link>
           </nav>
@@ -79,10 +81,11 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
               {/* Hamburger Menu for Mobile — rightmost */}
               <button
                 onClick={onHamburgerToggle}
-                className="md:hidden p-3 hover:bg-[#151D2B] rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                className="md:hidden p-3 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+                style={{ color: 'var(--cc-text-primary)' }}
                 aria-label="Open menu"
               >
-                <Menu className="w-6 h-6 text-[#E8EEF9]" />
+                <Menu className="w-6 h-6" />
               </button>
             </>
           ) : profile ? (
@@ -138,13 +141,13 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
         <nav className="p-4 space-y-2">
           {!isAuthenticated ? (
             <>
-              <Link to={createPageUrl('HowItWorks')} className="block px-4 py-2 text-[#9AA6BC] hover:text-[#E8EEF9] hover:bg-[#151D2B] rounded-lg">
+              <Link to={createPageUrl('HowItWorks')} className="block px-4 py-2 rounded-lg" style={{ color: 'var(--cc-text-secondary)' }}>
                 How it Works
               </Link>
-              <Link to={createPageUrl('Pricing')} className="block px-4 py-2 text-[#9AA6BC] hover:text-[#E8EEF9] hover:bg-[#151D2B] rounded-lg">
+              <Link to={createPageUrl('Pricing')} className="block px-4 py-2 rounded-lg" style={{ color: 'var(--cc-text-secondary)' }}>
                 Pricing
               </Link>
-              <Link to={createPageUrl('FAQ')} className="block px-4 py-2 text-[#9AA6BC] hover:text-[#E8EEF9] hover:bg-[#151D2B] rounded-lg">
+              <Link to={createPageUrl('FAQ')} className="block px-4 py-2 rounded-lg" style={{ color: 'var(--cc-text-secondary)' }}>
                 FAQ
               </Link>
             </>

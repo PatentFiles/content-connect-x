@@ -41,7 +41,8 @@ export default function BottomNav({ currentPage }) {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 bg-[#0B0F14]/95 backdrop-blur-xl border-t border-[#263248] md:hidden"
+      className="fixed bottom-0 left-0 right-0 z-40 backdrop-blur-xl border-t md:hidden"
+      style={{ backgroundColor: 'color-mix(in srgb, var(--cc-bg) 95%, transparent)', borderColor: 'var(--cc-border)' }}
       style={{
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
@@ -59,25 +60,21 @@ export default function BottomNav({ currentPage }) {
                 'transition-colors duration-200',
                 'min-h-[44px] min-w-[44px]',
                 'focus:outline-none active:opacity-70',
-                isActive ? 'text-[#4F8CFF]' : 'text-[#6B7A94]'
               )}
+              style={{ color: isActive ? 'var(--cc-blue)' : 'var(--cc-text-muted)' }}
               aria-label={item.label}
               aria-current={isActive ? 'page' : undefined}
             >
               {isActive && (
                 <motion.div
                   layoutId="bottomNavIndicator"
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-[#4F8CFF] rounded-full"
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full"
+                  style={{ backgroundColor: 'var(--cc-blue)' }}
                   transition={{ type: 'spring', bounce: 0.2, duration: 0.4 }}
                 />
               )}
-              <item.icon
-                className={cn('w-5 h-5 flex-shrink-0', isActive ? 'text-[#4F8CFF]' : 'text-[#6B7A94]')}
-              />
-              <span className={cn(
-                'text-[10px] font-medium leading-none',
-                isActive ? 'text-[#4F8CFF]' : 'text-[#6B7A94]'
-              )}>
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              <span className="text-[10px] font-medium leading-none">
                 {item.label}
               </span>
             </button>

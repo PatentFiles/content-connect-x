@@ -39,10 +39,11 @@ export default function MobileNavMenu({ isOpen, onClose, profile, currentPage, o
             animate={{ x: 0 }}
             exit={{ x: '-100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] bg-[#0B0F14] border-r border-[#263248] z-50 md:hidden overflow-y-auto"
+            className="fixed top-0 left-0 bottom-0 w-80 max-w-[85vw] z-50 md:hidden overflow-y-auto border-r"
+            style={{ backgroundColor: 'var(--cc-bg)', borderColor: 'var(--cc-border)' }}
           >
             {/* Header */}
-            <div className="p-4 border-b border-[#263248] flex items-center justify-between">
+            <div className="p-4 flex items-center justify-between border-b" style={{ borderColor: 'var(--cc-border)' }}>
               <div className="flex items-center gap-3">
                 <CCAvatar
                   src={profile?.avatar_url}
@@ -50,19 +51,20 @@ export default function MobileNavMenu({ isOpen, onClose, profile, currentPage, o
                   size="md"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[#E8EEF9] font-medium truncate">
+                  <p className="font-medium truncate" style={{ color: 'var(--cc-text-primary)' }}>
                     {profile?.display_name || 'User'}
                   </p>
-                  <p className="text-xs text-[#6B7A94] capitalize">
+                  <p className="text-xs capitalize" style={{ color: 'var(--cc-text-muted)' }}>
                     {roleType}
                   </p>
                 </div>
               </div>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-[#151D2B] rounded-lg transition-colors"
+                className="p-2 rounded-lg transition-colors"
+                style={{ color: 'var(--cc-text-secondary)' }}
               >
-                <X className="w-5 h-5 text-[#9AA6BC]" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -77,12 +79,11 @@ export default function MobileNavMenu({ isOpen, onClose, profile, currentPage, o
                     key={item.path}
                     to={createPageUrl(item.path)}
                     onClick={onClose}
-                    className={cn(
-                      'flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200',
-                      isActive
-                        ? 'bg-gradient-to-r from-[#4F8CFF]/20 to-[#FF2DAA]/20 text-[#E8EEF9] border border-[#4F8CFF]/30'
-                        : 'text-[#9AA6BC] hover:text-[#E8EEF9] hover:bg-[#151D2B]'
-                    )}
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200"
+                    style={{
+                      backgroundColor: isActive ? 'rgba(79,140,255,0.12)' : '',
+                      color: isActive ? 'var(--cc-blue)' : 'var(--cc-text-secondary)',
+                    }}
                   >
                     <Icon className="w-5 h-5 flex-shrink-0" />
                     <span className="font-medium">{item.label}</span>
@@ -94,7 +95,7 @@ export default function MobileNavMenu({ isOpen, onClose, profile, currentPage, o
             {/* Admin Section */}
             {isAdmin && (
               <div className="px-4 pt-4">
-                <p className="text-xs font-semibold text-[#6B7A94] uppercase tracking-wider mb-2 px-4">Admin</p>
+                <p className="text-xs font-semibold uppercase tracking-wider mb-2 px-4" style={{ color: 'var(--cc-text-muted)' }}>Admin</p>
                 {adminNavItems.map((item) => {
                   const Icon = item.icon;
                   const isActive = currentPage === item.path;
@@ -103,12 +104,11 @@ export default function MobileNavMenu({ isOpen, onClose, profile, currentPage, o
                       key={item.path}
                       to={createPageUrl(item.path)}
                       onClick={onClose}
-                      className={cn(
-                        'flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200',
-                        isActive
-                          ? 'bg-gradient-to-r from-[#4F8CFF]/20 to-[#FF2DAA]/20 text-[#E8EEF9] border border-[#4F8CFF]/30'
-                          : 'text-[#9AA6BC] hover:text-[#E8EEF9] hover:bg-[#151D2B]'
-                      )}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200"
+                      style={{
+                        backgroundColor: isActive ? 'rgba(79,140,255,0.12)' : '',
+                        color: isActive ? 'var(--cc-blue)' : 'var(--cc-text-secondary)',
+                      }}
                     >
                       <Icon className="w-5 h-5 flex-shrink-0" />
                       <span className="font-medium">{item.label}</span>
@@ -119,7 +119,7 @@ export default function MobileNavMenu({ isOpen, onClose, profile, currentPage, o
             )}
 
             {/* Logout Button */}
-            <div className="p-4 border-t border-[#263248] mt-4">
+            <div className="p-4 mt-4 border-t" style={{ borderColor: 'var(--cc-border)' }}>
               <CCButton
                 variant="outline"
                 icon={LogOut}

@@ -65,13 +65,23 @@ export default function Sidebar({ currentPage, profile, user, onLogout, adminRol
   }, 0);
   return (
     <aside
-      className="hidden md:flex fixed left-0 bottom-0 w-64 bg-[#121824] border-r border-[#263248] flex-col"
-      style={{ top: 'calc(4rem + env(safe-area-inset-top, 0px))' }}
+      className="hidden md:flex fixed left-0 bottom-0 w-64 flex-col border-r"
+      style={{
+        top: 'calc(4rem + env(safe-area-inset-top, 0px))',
+        backgroundColor: 'var(--cc-surface)',
+        borderColor: 'var(--cc-border)',
+      }}
     >
       {/* Profile Section */}
       {profile && (
-        <div className="p-4 border-b border-[#263248]">
-          <Link to={createPageUrl(roleType === 'host' ? 'HostProfile' : 'Profile')} className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#151D2B] transition-colors">
+        <div className="p-4 border-b" style={{ borderColor: 'var(--cc-border)' }}>
+          <Link
+            to={createPageUrl(roleType === 'host' ? 'HostProfile' : 'Profile')}
+            className="flex items-center gap-3 p-2 rounded-lg transition-colors"
+            style={{ ':hover': { backgroundColor: 'var(--cc-surface-hover)' } }}
+            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--cc-surface-hover)'}
+            onMouseLeave={e => e.currentTarget.style.backgroundColor = ''}
+          >
             <CCAvatar
               src={profile.avatar_url}
               alt={profile.display_name}
@@ -79,16 +89,19 @@ export default function Sidebar({ currentPage, profile, user, onLogout, adminRol
               verified={profile.verified}
             />
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-[#E8EEF9] truncate">{profile.display_name || 'Set up profile'}</p>
+              <p className="text-sm font-medium truncate" style={{ color: 'var(--cc-text-primary)' }}>
+                {profile.display_name || 'Set up profile'}
+              </p>
               <CCBadge variant="outline" size="sm" className="mt-1 capitalize">
                 {profile.role_type}
               </CCBadge>
             </div>
-            <ChevronRight className="w-4 h-4 text-[#6B7A94]" />
+            <ChevronRight className="w-4 h-4" style={{ color: 'var(--cc-text-muted)' }} />
           </Link>
-          <Link 
-            to={createPageUrl(`ViewProfile?id=${profile.user_id}`)} 
-            className="mt-2 flex items-center gap-2 text-xs text-[#4F8CFF] hover:text-[#3A7AEE] px-2"
+          <Link
+            to={createPageUrl(`ViewProfile?id=${profile.user_id}`)}
+            className="mt-2 flex items-center gap-2 text-xs px-2"
+            style={{ color: 'var(--cc-blue)' }}
           >
             <ExternalLink className="w-3 h-3" />
             View Public Profile
@@ -98,7 +111,7 @@ export default function Sidebar({ currentPage, profile, user, onLogout, adminRol
 
       {/* Admin Role View Switcher */}
       {isAdmin && (
-        <AdminRoleViewSwitcher 
+        <AdminRoleViewSwitcher
           currentView={effectiveRoleView}
           onViewChange={onAdminRoleViewChange}
         />
@@ -108,25 +121,26 @@ export default function Sidebar({ currentPage, profile, user, onLogout, adminRol
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {showAdminNav && (
           <>
-            <p className="text-xs font-medium text-[#6B7A94] uppercase tracking-wider px-3 mb-2">Admin</p>
+            <p className="text-xs font-medium uppercase tracking-wider px-3 mb-2" style={{ color: 'var(--cc-text-muted)' }}>Admin</p>
             {adminNavItems.map((item) => {
               const isActive = currentPage === item.page;
               return (
                 <Link
                   key={item.page}
                   to={createPageUrl(item.page)}
-                  className={cn(
-                    'relative flex items-center gap-3 px-3 py-2.5 rounded-lg',
-                    'transition-colors duration-200',
-                    isActive 
-                      ? 'bg-[#4F8CFF]/10 text-[#4F8CFF]' 
-                      : 'text-[#9AA6BC] hover:bg-[#151D2B] hover:text-[#E8EEF9]'
-                  )}
+                  className="relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-200"
+                  style={{
+                    backgroundColor: isActive ? 'rgba(79,140,255,0.12)' : '',
+                    color: isActive ? 'var(--cc-blue)' : 'var(--cc-text-secondary)',
+                  }}
+                  onMouseEnter={e => { if (!isActive) { e.currentTarget.style.backgroundColor = 'var(--cc-surface-hover)'; e.currentTarget.style.color = 'var(--cc-text-primary)'; } }}
+                  onMouseLeave={e => { if (!isActive) { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'var(--cc-text-secondary)'; } }}
                 >
                   {isActive && (
                     <motion.div
                       layoutId="sidebarIndicator"
-                      className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#4F8CFF] rounded-r-full"
+                      className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full"
+                      style={{ backgroundColor: 'var(--cc-blue)' }}
                       transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
                     />
                   )}
@@ -135,11 +149,11 @@ export default function Sidebar({ currentPage, profile, user, onLogout, adminRol
                 </Link>
               );
             })}
-            <div className="pb-2 mb-2 border-b border-[#263248]" />
+            <div className="pb-2 mb-2 border-b" style={{ borderColor: 'var(--cc-border)' }} />
           </>
         )}
         {!showAdminNav && isAdmin && (
-          <p className="text-xs font-medium text-[#6B7A94] uppercase tracking-wider px-3 mb-2">
+          <p className="text-xs font-medium uppercase tracking-wider px-3 mb-2" style={{ color: 'var(--cc-text-muted)' }}>
             {effectiveRoleView.charAt(0).toUpperCase() + effectiveRoleView.slice(1)} View
           </p>
         )}
@@ -150,18 +164,19 @@ export default function Sidebar({ currentPage, profile, user, onLogout, adminRol
             <Link
               key={item.path}
               to={createPageUrl(item.path)}
-              className={cn(
-                'relative flex items-center gap-3 px-3 py-2.5 rounded-lg',
-                'transition-colors duration-200',
-                isActive 
-                  ? 'bg-[#4F8CFF]/10 text-[#4F8CFF]' 
-                  : 'text-[#9AA6BC] hover:bg-[#151D2B] hover:text-[#E8EEF9]'
-              )}
+              className="relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-200"
+              style={{
+                backgroundColor: isActive ? 'rgba(79,140,255,0.12)' : '',
+                color: isActive ? 'var(--cc-blue)' : 'var(--cc-text-secondary)',
+              }}
+              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.backgroundColor = 'var(--cc-surface-hover)'; e.currentTarget.style.color = 'var(--cc-text-primary)'; } }}
+              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'var(--cc-text-secondary)'; } }}
             >
               {isActive && (
                 <motion.div
-                  layoutId="sidebarIndicator"
-                  className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#4F8CFF] rounded-r-full"
+                  layoutId="sidebarIndicatorMain"
+                  className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full"
+                  style={{ backgroundColor: 'var(--cc-blue)' }}
                   transition={{ type: 'spring', bounce: 0.2, duration: 0.5 }}
                 />
               )}
@@ -178,10 +193,13 @@ export default function Sidebar({ currentPage, profile, user, onLogout, adminRol
       </nav>
 
       {/* Logout */}
-      <div className="p-4 border-t border-[#263248]">
+      <div className="p-4 border-t" style={{ borderColor: 'var(--cc-border)' }}>
         <button
           onClick={onLogout}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#9AA6BC] hover:bg-[#EF4444]/10 hover:text-[#EF4444] transition-colors w-full"
+          className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors w-full"
+          style={{ color: 'var(--cc-text-secondary)' }}
+          onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.1)'; e.currentTarget.style.color = '#EF4444'; }}
+          onMouseLeave={e => { e.currentTarget.style.backgroundColor = ''; e.currentTarget.style.color = 'var(--cc-text-secondary)'; }}
         >
           <LogOut className="w-5 h-5" />
           <span className="text-sm font-medium">Log Out</span>

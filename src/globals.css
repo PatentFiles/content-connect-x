@@ -54,31 +54,7 @@
   --cc-pink:          #FF2DAA;
 }
 
-/* ── Light mode: also flip the shadcn/ui index.css tokens so all shadcn
-   components (cards, popovers, dialogs, etc.) also switch to light ── */
-:root:not(.dark) {
-  --background: 220 20% 97%;
-  --foreground: 220 40% 10%;
-  --card: 0 0% 100%;
-  --card-foreground: 220 40% 10%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 220 40% 10%;
-  --primary: 217 80% 50%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 220 20% 92%;
-  --secondary-foreground: 220 40% 10%;
-  --muted: 220 20% 92%;
-  --muted-foreground: 220 15% 40%;
-  --accent: 325 80% 50%;
-  --accent-foreground: 0 0% 100%;
-  --destructive: 0 72% 50%;
-  --destructive-foreground: 0 0% 100%;
-  --border: 220 20% 82%;
-  --input: 220 20% 92%;
-  --ring: 217 80% 50%;
-}
-
-/* Light mode overrides — WCAG AA contrast maintained throughout */
+/* ── Light mode: all shadcn tokens + app-specific palette ── */
 :root:not(.dark) {
   --background: 220 20% 97%;
   --foreground: 220 40% 10%;
@@ -130,49 +106,204 @@
   color-scheme: light;
 }
 
-/* ── Global theming: map the hardcoded dark-palette hex values used throughout
-   the codebase to CSS token variables. When the `.dark` class is removed
-   (light mode), the tokens change and every component that uses these exact
-   hex values automatically inherits the correct light-mode color.           ──*/
+/* ── Global theming: map EVERY hardcoded dark-palette value used across the
+   entire codebase to semantic CSS token variables. Adding .dark to <html>
+   gives the dark palette; removing it gives the light palette. All components
+   that use these exact Tailwind arbitrary-value classes are automatically
+   covered without any per-component changes.                                ──*/
 
-/* Hardcoded bg values → themed background */
-[class*="bg-[#0B0F14]"]   { background-color: var(--cc-bg) !important; }
-[class*="bg-[#121824]"]   { background-color: var(--cc-bg) !important; }
-[class*="bg-[#0b0f14]"]   { background-color: var(--cc-bg) !important; }
-[class*="bg-[#151D2B]"]   { background-color: var(--cc-surface) !important; }
-[class*="bg-[#151d2b]"]   { background-color: var(--cc-surface) !important; }
-[class*="bg-[#1A2438]"]   { background-color: var(--cc-surface-hover) !important; }
-[class*="bg-[#1a2438]"]   { background-color: var(--cc-surface-hover) !important; }
-[class*="bg-[#263248]"]   { background-color: var(--cc-border) !important; }
-[class*="bg-[#263248]/"]  { background-color: color-mix(in srgb, var(--cc-border) var(--tw-bg-opacity, 100%), transparent) !important; }
+/* ── App background hex values ── */
+[class*="bg-[#0B0F14]"],
+[class*="bg-[#0b0f14]"],
+[class*="bg-[#020617]"],
+[class*="bg-[#030712]"],
+[class*="bg-[#050505]"],
+[class*="bg-[#09090b]"],
+[class*="bg-[#0f172a]"],
+[class*="bg-[#121824]"],
+[class*="bg-[#111827]"] { background-color: var(--cc-bg) !important; }
 
-/* Hardcoded text values → themed text */
-[class*="text-[#E8EEF9]"] { color: var(--cc-text-primary) !important; }
-[class*="text-[#e8eef9]"] { color: var(--cc-text-primary) !important; }
-[class*="text-[#9AA6BC]"] { color: var(--cc-text-secondary) !important; }
-[class*="text-[#9aa6bc]"] { color: var(--cc-text-secondary) !important; }
-[class*="text-[#6B7A94]"] { color: var(--cc-text-muted) !important; }
-[class*="text-[#6b7a94]"] { color: var(--cc-text-muted) !important; }
+/* ── Surface hex values ── */
+[class*="bg-[#151D2B]"],
+[class*="bg-[#151d2b]"],
+[class*="bg-[#1f2937]"],
+[class*="bg-[#1e293b]"],
+[class*="bg-[#172033]"] { background-color: var(--cc-surface) !important; }
 
-/* Hardcoded border values → themed border */
+/* ── Elevated surface hex values ── */
+[class*="bg-[#1A2438]"],
+[class*="bg-[#1a2438]"],
+[class*="bg-[#1c2a40]"],
+[class*="bg-[#1E2D45]"],
+[class*="bg-[#1e2d45]"],
+[class*="bg-[#2A3A54]"],
+[class*="bg-[#2a3a54]"] { background-color: var(--cc-surface-hover) !important; }
+
+/* ── Border/divider bg values ── */
+[class*="bg-[#263248]"]  { background-color: var(--cc-border) !important; }
+
+/* ── Tailwind semantic dark classes → theme tokens ── */
+.bg-slate-900,
+.bg-gray-900,
+.bg-zinc-900,
+.bg-neutral-900,
+.bg-stone-900 { background-color: var(--cc-bg) !important; }
+
+.bg-slate-800,
+.bg-gray-800,
+.bg-zinc-800,
+.bg-neutral-800 { background-color: var(--cc-surface) !important; }
+
+.bg-slate-700,
+.bg-gray-700,
+.bg-zinc-700,
+.bg-neutral-700 { background-color: var(--cc-surface-hover) !important; }
+
+.bg-black { background-color: var(--cc-bg) !important; }
+
+/* ── Primary text ── */
+[class*="text-[#E8EEF9]"],
+[class*="text-[#e8eef9]"],
+[class*="text-[#F1F5F9]"],
+[class*="text-[#f1f5f9]"],
+[class*="text-[#FFFFFF]"],
+[class*="text-[#ffffff]"] { color: var(--cc-text-primary) !important; }
+
+.text-white         { color: var(--cc-text-primary) !important; }
+.text-slate-100,
+.text-gray-100,
+.text-zinc-100      { color: var(--cc-text-primary) !important; }
+
+/* ── Secondary text ── */
+[class*="text-[#9AA6BC]"],
+[class*="text-[#9aa6bc]"],
+[class*="text-[#94a3b8]"],
+[class*="text-[#A3B3CC]"],
+[class*="text-[#a3b3cc]"] { color: var(--cc-text-secondary) !important; }
+
+.text-slate-300,
+.text-gray-300,
+.text-zinc-300      { color: var(--cc-text-secondary) !important; }
+
+/* ── Muted text ── */
+[class*="text-[#6B7A94]"],
+[class*="text-[#6b7a94]"],
+[class*="text-[#64748b]"],
+[class*="text-[#6B7280]"],
+[class*="text-[#6b7280]"] { color: var(--cc-text-muted) !important; }
+
+.text-slate-400,
+.text-gray-400,
+.text-zinc-400      { color: var(--cc-text-muted) !important; }
+
+.text-slate-500,
+.text-gray-500,
+.text-zinc-500      { color: var(--cc-text-muted) !important; }
+
+/* ── Border colors ── */
 [class*="border-[#263248]"]  { border-color: var(--cc-border) !important; }
-[class*="border-[#3A4A6B]"]  { border-color: var(--cc-border-hover) !important; }
+[class*="border-[#3A4A6B]"],
 [class*="border-[#3a4a6b]"]  { border-color: var(--cc-border-hover) !important; }
+[class*="border-[#1E293B]"],
+[class*="border-[#1e293b]"]  { border-color: var(--cc-border) !important; }
 
-/* Hover backgrounds */
-[class*="hover:bg-[#151D2B]"]:hover { background-color: var(--cc-surface) !important; }
+.border-slate-700,
+.border-gray-700,
+.border-zinc-700,
+.border-slate-800,
+.border-gray-800,
+.border-zinc-800    { border-color: var(--cc-border) !important; }
+
+.border-slate-600,
+.border-gray-600    { border-color: var(--cc-border-hover) !important; }
+
+/* ── Hover backgrounds ── */
+[class*="hover:bg-[#151D2B]"]:hover,
 [class*="hover:bg-[#151d2b]"]:hover { background-color: var(--cc-surface) !important; }
-[class*="hover:bg-[#1A2438]"]:hover { background-color: var(--cc-surface-hover) !important; }
+[class*="hover:bg-[#1A2438]"]:hover,
 [class*="hover:bg-[#1a2438]"]:hover { background-color: var(--cc-surface-hover) !important; }
-[class*="hover:text-[#E8EEF9]"]:hover { color: var(--cc-text-primary) !important; }
+[class*="hover:bg-[#121824]"]:hover { background-color: var(--cc-bg) !important; }
+.hover\:bg-slate-800:hover,
+.hover\:bg-gray-800:hover   { background-color: var(--cc-surface) !important; }
+.hover\:bg-slate-700:hover,
+.hover\:bg-gray-700:hover   { background-color: var(--cc-surface-hover) !important; }
+
+/* ── Hover text ── */
+[class*="hover:text-[#E8EEF9]"]:hover,
 [class*="hover:text-[#e8eef9]"]:hover { color: var(--cc-text-primary) !important; }
+.hover\:text-white:hover { color: var(--cc-text-primary) !important; }
+.hover\:text-slate-100:hover,
+.hover\:text-gray-100:hover { color: var(--cc-text-primary) !important; }
 
-/* Fix: header/navbar */
-header.fixed { background-color: color-mix(in srgb, var(--cc-bg) 95%, transparent) !important; }
+/* ── Divide / ring colors ── */
+.divide-slate-700 > * + *,
+.divide-gray-700  > * + *,
+.divide-slate-800 > * + *,
+.divide-gray-800  > * + * { border-color: var(--cc-border) !important; }
 
-/* Ensure page-level containers respond to theme */
+/* ── Fix: header/navbar ── */
+header.fixed,
+header[class*="fixed"] {
+  background-color: color-mix(in srgb, var(--cc-bg) 95%, transparent) !important;
+  border-bottom-color: var(--cc-border) !important;
+}
+
+/* ── Page root containers ── */
 .min-h-screen { background-color: var(--cc-bg); }
-/* Body always uses token background */
+
+/* ── Shadcn Dialog/Sheet/Popover overlays ── */
+[data-radix-popper-content-wrapper] [class*="bg-[#"],
+[role="dialog"] [class*="bg-[#0"],
+[role="dialog"] [class*="bg-[#1"] { background-color: var(--cc-surface) !important; }
+
+/* ── Ring/outline ── */
+[class*="ring-[#263248]"]   { --tw-ring-color: var(--cc-border) !important; }
+[class*="ring-[#3A4A6B]"],
+[class*="ring-[#3a4a6b]"]   { --tw-ring-color: var(--cc-border-hover) !important; }
+
+/* ── Ensure all top-level page wrappers use the app background ── */
+main#main-content,
+main#main-content > *,
+[class*="min-h-screen"],
+[class*="min-h-full"] {
+  background-color: var(--cc-bg);
+}
+
+/* ── Inputs / textareas / selects inherit theme ── */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="submit"]):not([type="button"]),
+textarea,
+select {
+  background-color: var(--cc-surface) !important;
+  color: var(--cc-text-primary) !important;
+  border-color: var(--cc-border) !important;
+}
+input::placeholder,
+textarea::placeholder { color: var(--cc-text-muted) !important; }
+
+/* ── Card-like elements built with Tailwind dark classes ── */
+.rounded-xl.bg-slate-900,
+.rounded-xl.bg-gray-900,
+.rounded-lg.bg-slate-900,
+.rounded-lg.bg-gray-900,
+.rounded-xl.bg-slate-800,
+.rounded-xl.bg-gray-800,
+.rounded-lg.bg-slate-800,
+.rounded-lg.bg-gray-800 { background-color: var(--cc-surface) !important; }
+
+/* ── p / span / div text that's still inheriting a dark text class ── */
+[class~="text-white"]:not(button):not(a):not([class*="bg-"]) {
+  color: var(--cc-text-primary) !important;
+}
+
+/* ── Specific opacity variants ── */
+[class*="bg-[#0B0F14]/"],
+[class*="bg-[#0b0f14]/"] {
+  background-color: color-mix(in srgb, var(--cc-bg) var(--tw-bg-opacity, 100%), transparent) !important;
+}
+[class*="bg-[#151D2B]/"],
+[class*="bg-[#151d2b]/"] {
+  background-color: color-mix(in srgb, var(--cc-surface) var(--tw-bg-opacity, 100%), transparent) !important;
+}
 
 /* Base styles */
 body {
