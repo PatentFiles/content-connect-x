@@ -71,24 +71,64 @@ export default function SocialLinksManager({ user }) {
 
   const createLinkMutation = useMutation({
     mutationFn: (data) => base44.entities.SocialLink.create(data),
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['socialLinks', user?.email] });
+      const previous = queryClient.getQueryData(['socialLinks', user?.email]);
+      queryClient.setQueryData(['socialLinks', user?.email], (old = []) => [
+        ...old,
+        { ...data, id: `temp-${Date.now()}`, is_active: true }
+      ]);
+      return { previous };
+    },
+    onError: (_err, _data, context) => {
+      if (context?.previous) queryClient.setQueryData(['socialLinks', user?.email], context.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['socialLinks', user?.email] });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['socialLinks']);
       toast.success('Link added');
     },
   });
 
   const updateLinkMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.SocialLink.update(id, data),
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: ['socialLinks', user?.email] });
+      const previous = queryClient.getQueryData(['socialLinks', user?.email]);
+      queryClient.setQueryData(['socialLinks', user?.email], (old = []) =>
+        old.map(link => link.id === id ? { ...link, ...data } : link)
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(['socialLinks', user?.email], context.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['socialLinks', user?.email] });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['socialLinks']);
       toast.success('Link updated');
     },
   });
 
   const deleteLinkMutation = useMutation({
     mutationFn: (id) => base44.entities.SocialLink.update(id, { is_active: false }),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey: ['socialLinks', user?.email] });
+      const previous = queryClient.getQueryData(['socialLinks', user?.email]);
+      queryClient.setQueryData(['socialLinks', user?.email], (old = []) =>
+        old.map(link => link.id === id ? { ...link, is_active: false } : link)
+      );
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) queryClient.setQueryData(['socialLinks', user?.email], context.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['socialLinks', user?.email] });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['socialLinks']);
       toast.success('Link removed');
     },
   });

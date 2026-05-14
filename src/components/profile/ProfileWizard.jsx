@@ -167,7 +167,25 @@ export default function ProfileWizard({ user, profile, onComplete, onSkip }) {
         ? base44.entities.UserProfile.update(profile.id, payload)
         : base44.entities.UserProfile.create({ ...payload, user_id: user.email });
     },
-    onSuccess: () => queryClient.invalidateQueries(['myProfile']),
+    onMutate: async (data) => {
+      // Cancel in-flight queries
+      await queryClient.cancelQueries({ queryKey: ['myProfile'] });
+      // Snapshot previous state
+      const previous = queryClient.getQueryData(['myProfile']);
+      // Optimistically update
+      queryClient.setQueryData(['myProfile'], (old) =>
+        old ? old.map((p, i) => i === 0 ? { ...p, ...data } : p) : old
+      );
+      return { previous };
+    },
+    onError: (_err, _data, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['myProfile'], context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['myProfile'] });
+    },
   });
 
   const handleNext = async () => {

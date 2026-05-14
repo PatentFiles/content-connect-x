@@ -53,14 +53,33 @@ export default function CollaborationMessaging({ collaborationId, currentUser, u
       
       return base44.entities.CollaborationMessage.create(data);
     },
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['collaborationMessages', collaborationId] });
+      const previous = queryClient.getQueryData(['collaborationMessages', collaborationId]);
+      queryClient.setQueryData(['collaborationMessages', collaborationId], (old = []) => [
+        ...old,
+        {
+          ...data,
+          id: `temp-${Date.now()}`,
+          created_date: new Date().toISOString(),
+          sender_user_id: currentUser.email
+        }
+      ]);
+      return { previous };
+    },
+    onError: (_err, _data, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['collaborationMessages', collaborationId], context.previous);
+      }
+      toast.error('Failed to send message');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['collaborationMessages', collaborationId] });
+      queryClient.invalidateQueries({ queryKey: ['collaborationActivity', collaborationId] });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['collaborationMessages'] });
-      queryClient.invalidateQueries({ queryKey: ['collaborationActivity'] });
       setMessage('');
       setAttachments([]);
-    },
-    onError: () => {
-      toast.error('Failed to send message');
     }
   });
 

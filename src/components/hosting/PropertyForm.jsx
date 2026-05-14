@@ -157,7 +157,10 @@ export default function PropertyForm({ property, ownerUserId, onSaved, onCancel 
         damage_deposit: form.damage_deposit || {},
       };
 
-      // Call backend function for host eligibility enforcement
+      // INTENTIONALLY NON-OPTIMISTIC: Routes through manageProperty backend function
+      // which performs critical host eligibility checks, compliance enforcement, and
+      // onboarding state validation. Server response determines whether the property
+      // was actually saved. Optimistic UI would be unsafe and violate host enforcement rules.
       const response = await base44.functions.invoke('manageProperty', {
         action: isEdit ? 'update' : 'create',
         property: isEdit ? { ...payload, id: property.id } : payload,

@@ -112,12 +112,28 @@ export default function Settings() {
         return base44.entities.UserSettings.create({ ...data, user_id: user.email });
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['userSettings'] });
-      toast.success('Privacy settings saved');
+    onMutate: async (data) => {
+      // Cancel in-flight queries
+      await queryClient.cancelQueries({ queryKey: ['userSettings', user?.email] });
+      // Snapshot previous state
+      const previous = queryClient.getQueryData(['userSettings', user?.email]);
+      // Optimistically update
+      queryClient.setQueryData(['userSettings', user?.email], (old = []) =>
+        old.length > 0
+          ? old.map((s, i) => i === 0 ? { ...s, ...data } : s)
+          : [{ user_id: user?.email, ...data }]
+      );
+      return { previous };
     },
-    onError: () => {
+    onError: (_err, _data, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['userSettings', user?.email], context.previous);
+      }
       toast.error('Failed to save settings');
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['userSettings', user?.email] });
+      toast.success('Privacy settings saved');
     },
   });
 

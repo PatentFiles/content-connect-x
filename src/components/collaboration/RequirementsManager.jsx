@@ -8,6 +8,7 @@ import CCCard, { CCCardHeader, CCCardTitle, CCCardContent } from '@/components/u
 import CCBadge from '@/components/ui-custom/CCBadge';
 import CCModal from '@/components/ui-custom/CCModal';
 import CCSelect from '@/components/ui-custom/CCSelect';
+import BottomSheetSelect from '@/components/ui-custom/BottomSheetSelect';
 
 const REQUIREMENT_TAXONOMY = {
   REQUIRED_ROLE: {
@@ -79,21 +80,48 @@ export default function RequirementsManager({ collaborationId }) {
 
   const addRequirementMutation = useMutation({
     mutationFn: (reqData) => base44.entities.CollaborationRequirement.create(reqData),
-    onSuccess: () => {
+    onMutate: async (reqData) => {
+      await queryClient.cancelQueries({ queryKey: ['collaborationRequirements', collaborationId] });
+      const previous = queryClient.getQueryData(['collaborationRequirements', collaborationId]);
+      queryClient.setQueryData(['collaborationRequirements', collaborationId], (old = []) => [
+        ...old,
+        { ...reqData, id: `temp-${Date.now()}` }
+      ]);
+      return { previous };
+    },
+    onError: (_err, _data, context) => {
+      if (context?.previous) queryClient.setQueryData(['collaborationRequirements', collaborationId], context.previous);
+      toast.error('Failed to add requirement');
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['collaborationRequirements', collaborationId] });
+    },
+    onSuccess: () => {
       toast.success('Requirement added');
       resetForm();
     },
-    onError: () => toast.error('Failed to add requirement')
   });
 
   const deleteRequirementMutation = useMutation({
     mutationFn: (reqId) => base44.entities.CollaborationRequirement.delete(reqId),
-    onSuccess: () => {
+    onMutate: async (reqId) => {
+      await queryClient.cancelQueries({ queryKey: ['collaborationRequirements', collaborationId] });
+      const previous = queryClient.getQueryData(['collaborationRequirements', collaborationId]);
+      queryClient.setQueryData(['collaborationRequirements', collaborationId], (old = []) =>
+        old.filter(r => r.id !== reqId)
+      );
+      return { previous };
+    },
+    onError: (_err, _id, context) => {
+      if (context?.previous) queryClient.setQueryData(['collaborationRequirements', collaborationId], context.previous);
+      toast.error('Failed to remove requirement');
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['collaborationRequirements', collaborationId] });
+    },
+    onSuccess: () => {
       toast.success('Requirement removed');
     },
-    onError: () => toast.error('Failed to remove requirement')
   });
 
   const resetForm = () => {
@@ -202,19 +230,16 @@ export default function RequirementsManager({ collaborationId }) {
           />
 
           {selectedType && (
-            <div>
-              <label className="block text-sm text-[#E8EEF9] mb-2">{REQUIREMENT_TAXONOMY[selectedType]?.label}</label>
-              <select
-                value={selectedValue}
-                onChange={(e) => setSelectedValue(e.target.value)}
-                className="w-full bg-[#121824] border border-[#263248] rounded-lg px-3 py-2 text-sm text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-              >
-                <option value="">Select value...</option>
-                {REQUIREMENT_TAXONOMY[selectedType]?.options.map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
-            </div>
+            <BottomSheetSelect
+              label={REQUIREMENT_TAXONOMY[selectedType]?.label}
+              value={selectedValue}
+              onChange={(val) => setSelectedValue(val)}
+              options={[
+                { value: '', label: 'Select value...' },
+                ...(REQUIREMENT_TAXONOMY[selectedType]?.options || []).map(opt => ({ value: opt, label: opt }))
+              ]}
+              placeholder="Select value..."
+            />
           )}
 
           <div className="flex items-center gap-2">

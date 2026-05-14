@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
+import BottomSheetSelect from '@/components/ui-custom/BottomSheetSelect';
 
 export default function TaskManager({ collaborationId, tasks, profiles, user }) {
   const [showTaskForm, setShowTaskForm] = useState(false);
@@ -31,8 +32,22 @@ export default function TaskManager({ collaborationId, tasks, profiles, user }) 
       collaboration_id: collaborationId,
       created_by: user.email,
     }),
+    onMutate: async (data) => {
+      await queryClient.cancelQueries({ queryKey: ['collaborationTasks', collaborationId] });
+      const previous = queryClient.getQueryData(['collaborationTasks', collaborationId]);
+      queryClient.setQueryData(['collaborationTasks', collaborationId], (old = []) => [
+        ...old,
+        { ...data, collaboration_id: collaborationId, created_by: user.email, id: `temp-${Date.now()}` }
+      ]);
+      return { previous };
+    },
+    onError: (_err, _data, context) => {
+      if (context?.previous) queryClient.setQueryData(['collaborationTasks', collaborationId], context.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['collaborationTasks', collaborationId] });
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries(['collaborationTasks']);
       setNewTask({ title: '', description: '', assigned_to: '', due_date: '', priority: 'medium', parent_task_id: null });
       setShowTaskForm(false);
       toast.success('Task created');
@@ -41,8 +56,19 @@ export default function TaskManager({ collaborationId, tasks, profiles, user }) 
 
   const updateTaskMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.CollaborationTask.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries(['collaborationTasks']);
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: ['collaborationTasks', collaborationId] });
+      const previous = queryClient.getQueryData(['collaborationTasks', collaborationId]);
+      queryClient.setQueryData(['collaborationTasks', collaborationId], (old = []) =>
+        old.map(t => t.id === id ? { ...t, ...data } : t)
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) queryClient.setQueryData(['collaborationTasks', collaborationId], context.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['collaborationTasks', collaborationId] });
     },
   });
 
@@ -181,32 +207,28 @@ export default function TaskManager({ collaborationId, tasks, profiles, user }) 
               onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
             />
             <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm text-[#9AA6BC] mb-1 block">Assign To</label>
-                <select
-                  value={newTask.assigned_to}
-                  onChange={(e) => setNewTask({ ...newTask, assigned_to: e.target.value })}
-                  className="w-full bg-[#151D2B] border border-[#263248] rounded-lg px-3 py-2 text-sm text-[#E8EEF9]"
-                >
-                  <option value="">Select participant</option>
-                  {profiles.map(p => (
-                    <option key={p.user_id} value={p.user_id}>{p.display_name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-sm text-[#9AA6BC] mb-1 block">Priority</label>
-                <select
-                  value={newTask.priority}
-                  onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
-                  className="w-full bg-[#151D2B] border border-[#263248] rounded-lg px-3 py-2 text-sm text-[#E8EEF9]"
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
-                </select>
-              </div>
+              <BottomSheetSelect
+                label="Assign To"
+                value={newTask.assigned_to}
+                onChange={(val) => setNewTask({ ...newTask, assigned_to: val })}
+                options={[
+                  { value: '', label: 'Select participant' },
+                  ...profiles.map(p => ({ value: p.user_id, label: p.display_name }))
+                ]}
+                placeholder="Select participant"
+              />
+              <BottomSheetSelect
+                label="Priority"
+                value={newTask.priority}
+                onChange={(val) => setNewTask({ ...newTask, priority: val })}
+                options={[
+                  { value: 'low', label: 'Low' },
+                  { value: 'medium', label: 'Medium' },
+                  { value: 'high', label: 'High' },
+                  { value: 'urgent', label: 'Urgent' }
+                ]}
+                placeholder="Select priority"
+              />
             </div>
             <CCInput
               label="Due Date"
