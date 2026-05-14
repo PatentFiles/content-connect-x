@@ -123,28 +123,32 @@ export default function OnboardingChecklist({ user, profile }) {
         {/* Header */}
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="w-full flex items-center justify-between p-4 hover:bg-[#1A2438] transition-colors rounded-xl"
+          className="w-full flex items-center justify-between p-4 transition-colors rounded-xl"
+          style={{ '--hover-bg': 'var(--cc-surface-hover)' }}
+          onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--cc-surface-hover)'}
+          onMouseLeave={e => e.currentTarget.style.backgroundColor = ''}
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#4F8CFF]/20 to-[#FF2DAA]/20 flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-[#4F8CFF]" />
+            <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, color-mix(in srgb, var(--cc-blue) 20%, transparent), color-mix(in srgb, var(--cc-pink) 20%, transparent))' }}>
+              <Sparkles className="w-5 h-5" style={{ color: 'var(--cc-blue)' }} />
             </div>
             <div className="text-left">
-              <p className="text-sm font-semibold text-[#E8EEF9]">Get Started Checklist</p>
-              <p className="text-xs text-[#6B7A94]">{completedCount} of {totalCount} steps complete</p>
+              <p className="text-sm font-semibold" style={{ color: 'var(--cc-text-primary)' }}>Get Started Checklist</p>
+              <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>{completedCount} of {totalCount} steps complete</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             {/* Mini progress bar */}
-            <div className="hidden sm:block w-24 h-1.5 bg-[#263248] rounded-full overflow-hidden">
+            <div className="hidden sm:block w-24 h-1.5 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--cc-border)' }}>
               <motion.div
-                className="h-full bg-gradient-to-r from-[#4F8CFF] to-[#FF2DAA] rounded-full"
+                className="h-full rounded-full"
+                style={{ background: 'linear-gradient(to right, var(--cc-blue), var(--cc-pink))' }}
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPct}%` }}
                 transition={{ duration: 0.6 }}
               />
             </div>
-            {collapsed ? <ChevronDown className="w-4 h-4 text-[#6B7A94]" /> : <ChevronUp className="w-4 h-4 text-[#6B7A94]" />}
+            {collapsed ? <ChevronDown className="w-4 h-4" style={{ color: 'var(--cc-text-muted)' }} /> : <ChevronUp className="w-4 h-4" style={{ color: 'var(--cc-text-muted)' }} />}
           </div>
         </button>
 
@@ -165,30 +169,41 @@ export default function OnboardingChecklist({ user, profile }) {
                   return (
                     <div
                       key={step.id}
-                      className={`flex items-center gap-3 p-3 rounded-lg transition-colors ${
-                        done ? 'opacity-50' : 'bg-[#151D2B] hover:bg-[#1A2438]'
-                      }`}
+                      className="flex items-center gap-3 p-3 rounded-lg transition-colors"
+                      style={{
+                        opacity: done ? 0.5 : 1,
+                        backgroundColor: done ? 'transparent' : 'var(--cc-surface-hover)',
+                      }}
+                      onMouseEnter={e => { if (!done) e.currentTarget.style.backgroundColor = 'var(--cc-border)'; }}
+                      onMouseLeave={e => { if (!done) e.currentTarget.style.backgroundColor = 'var(--cc-surface-hover)'; }}
                     >
                       {/* Check */}
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
-                        done ? 'bg-[#22C55E]' : 'bg-[#263248]'
-                      }`}>
+                      <div
+                        className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: done ? '#22C55E' : 'var(--cc-border)' }}
+                      >
                         {done
                           ? <CheckCircle className="w-4 h-4 text-white" />
-                          : <Icon className="w-3.5 h-3.5 text-[#9AA6BC]" />
+                          : <Icon className="w-3.5 h-3.5" style={{ color: 'var(--cc-text-secondary)' }} />
                         }
                       </div>
 
                       {/* Text */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                          <p className={`text-sm font-medium ${done ? 'line-through text-[#6B7A94]' : 'text-[#E8EEF9]'}`}>
+                          <p
+                            className="text-sm font-medium"
+                            style={{
+                              color: done ? 'var(--cc-text-muted)' : 'var(--cc-text-primary)',
+                              textDecoration: done ? 'line-through' : 'none',
+                            }}
+                          >
                             {step.label}
                           </p>
                           <CCTooltip text={step.tooltip} position="top" />
                         </div>
                         {!done && (
-                          <p className="text-xs text-[#6B7A94] truncate">{step.description}</p>
+                          <p className="text-xs truncate" style={{ color: 'var(--cc-text-muted)' }}>{step.description}</p>
                         )}
                       </div>
 

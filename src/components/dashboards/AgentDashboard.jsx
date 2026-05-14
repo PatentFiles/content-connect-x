@@ -48,13 +48,13 @@ export default function AgentDashboard({ user, profile, onboardingChecklist }) {
   const pendingSignatures = contracts.filter(c => c.status === 'sent').length;
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <div className="min-h-screen pb-20 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
       <div className="max-w-6xl mx-auto px-4 py-6">
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-[#E8EEF9] mb-1">
+          <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--cc-text-primary)' }}>
             Agent Dashboard
           </h1>
-          <p className="text-[#6B7A94]">Manage your creator representations</p>
+          <p style={{ color: 'var(--cc-text-muted)' }}>Manage your creator representations</p>
         </div>
 
         {onboardingChecklist}
@@ -63,45 +63,45 @@ export default function AgentDashboard({ user, profile, onboardingChecklist }) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <CCCard padding="md">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#4F8CFF]/20 flex items-center justify-center">
-                <Users className="w-5 h-5 text-[#4F8CFF]" />
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'color-mix(in srgb, var(--cc-blue) 20%, transparent)' }}>
+                <Users className="w-5 h-5" style={{ color: 'var(--cc-blue)' }} />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#E8EEF9]">{activeReps.length}</p>
-                <p className="text-xs text-[#6B7A94]">Active Reps</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--cc-text-primary)' }}>{activeReps.length}</p>
+                <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>Active Reps</p>
               </div>
             </div>
           </CCCard>
           <CCCard padding="md">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#F59E0B]/20 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(245,158,11,0.15)' }}>
                 <Clock className="w-5 h-5 text-[#F59E0B]" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#E8EEF9]">{pendingInvites.length}</p>
-                <p className="text-xs text-[#6B7A94]">Pending Invites</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--cc-text-primary)' }}>{pendingInvites.length}</p>
+                <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>Pending Invites</p>
               </div>
             </div>
           </CCCard>
           <CCCard padding="md">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#FF2DAA]/20 flex items-center justify-center">
-                <Briefcase className="w-5 h-5 text-[#FF2DAA]" />
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'color-mix(in srgb, var(--cc-pink) 20%, transparent)' }}>
+                <Briefcase className="w-5 h-5" style={{ color: 'var(--cc-pink)' }} />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#E8EEF9]">{activeCollaborations.length}</p>
-                <p className="text-xs text-[#6B7A94]">Active Collaborations</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--cc-text-primary)' }}>{activeCollaborations.length}</p>
+                <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>Active Collaborations</p>
               </div>
             </div>
           </CCCard>
           <CCCard padding="md">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#22C55E]/20 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: 'rgba(34,197,94,0.15)' }}>
                 <FileText className="w-5 h-5 text-[#22C55E]" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#E8EEF9]">{pendingSignatures}</p>
-                <p className="text-xs text-[#6B7A94]">Pending Sigs</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--cc-text-primary)' }}>{pendingSignatures}</p>
+                <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>Pending Sigs</p>
               </div>
             </div>
           </CCCard>
@@ -117,16 +117,18 @@ export default function AgentDashboard({ user, profile, onboardingChecklist }) {
           <CCCard padding="lg" className="mb-6 border-l-4 border-l-[#F59E0B]">
             <div className="flex items-center gap-2 mb-4">
               <AlertCircle className="w-5 h-5 text-[#F59E0B]" />
-              <h2 className="text-lg font-semibold text-[#E8EEF9]">Awaiting Completion ({awaitingCompletion.length})</h2>
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--cc-text-primary)' }}>Awaiting Completion ({awaitingCompletion.length})</h2>
             </div>
-            <p className="text-xs text-[#9AA6BC] mb-3">These collaborations are signed and ready for completion. Completion triggers commission calculation.</p>
+            <p className="text-xs mb-3" style={{ color: 'var(--cc-text-secondary)' }}>These collaborations are signed and ready for completion. Completion triggers commission calculation.</p>
             <div className="space-y-2">
               {awaitingCompletion.map(collab => (
                 <Link key={collab.id} to={createPageUrl(`CollaborationDetail?id=${collab.id}`)}>
-                  <div className="flex items-center justify-between p-3 bg-[#151D2B] rounded-lg hover:bg-[#1A2438] transition-colors">
+                  <div className="flex items-center justify-between p-3 rounded-lg transition-colors" style={{ backgroundColor: 'var(--cc-surface-hover)' }}
+                    onMouseEnter={e => e.currentTarget.style.backgroundColor = 'var(--cc-border)'}
+                    onMouseLeave={e => e.currentTarget.style.backgroundColor = 'var(--cc-surface-hover)'}>
                     <div>
-                      <p className="text-sm font-medium text-[#E8EEF9]">{collab.collaboration_name || 'Untitled'}</p>
-                      <p className="text-xs text-[#6B7A94]">{collab.participant_ids?.length || 0} participants</p>
+                      <p className="text-sm font-medium" style={{ color: 'var(--cc-text-primary)' }}>{collab.collaboration_name || 'Untitled'}</p>
+                      <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>{collab.participant_ids?.length || 0} participants</p>
                     </div>
                     <CCBadge variant="warning" size="sm" icon={Clock}>Signed</CCBadge>
                   </div>
@@ -140,7 +142,7 @@ export default function AgentDashboard({ user, profile, onboardingChecklist }) {
           {/* Representations */}
           <CCCard padding="lg">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-[#E8EEF9]">Representations</h2>
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--cc-text-primary)' }}>Representations</h2>
               <Link to={createPageUrl('Representations')}>
                 <CCButton variant="primary" size="sm" icon={Plus}>Invite</CCButton>
               </Link>
@@ -154,13 +156,13 @@ export default function AgentDashboard({ user, profile, onboardingChecklist }) {
             ) : (
               <div className="space-y-2">
                 {activeReps.slice(0, 5).map(rep => (
-                  <div key={rep.id} className="flex items-center gap-3 p-2 bg-[#151D2B] rounded-lg">
-                    <div className="w-8 h-8 rounded-full bg-[#263248] flex items-center justify-center text-xs text-[#6B7A94]">
+                  <div key={rep.id} className="flex items-center gap-3 p-2 rounded-lg" style={{ backgroundColor: 'var(--cc-surface-hover)' }}>
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs" style={{ backgroundColor: 'var(--cc-border)', color: 'var(--cc-text-secondary)' }}>
                       {rep.creator_user_id.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-[#E8EEF9] truncate">{rep.creator_user_id}</p>
-                      <p className="text-xs text-[#6B7A94]">Active</p>
+                      <p className="text-sm truncate" style={{ color: 'var(--cc-text-primary)' }}>{rep.creator_user_id}</p>
+                      <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>Active</p>
                     </div>
                   </div>
                 ))}
@@ -170,21 +172,21 @@ export default function AgentDashboard({ user, profile, onboardingChecklist }) {
 
           {/* Pipeline */}
           <CCCard padding="lg">
-            <h2 className="text-lg font-semibold text-[#E8EEF9] mb-4">Pipeline</h2>
+            <h2 className="text-lg font-semibold mb-4" style={{ color: 'var(--cc-text-primary)' }}>Pipeline</h2>
             <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-[#151D2B] rounded-lg">
+              <div className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: 'var(--cc-surface-hover)' }}>
                 <div>
-                  <p className="text-sm text-[#E8EEF9]">In Negotiation</p>
-                  <p className="text-xs text-[#6B7A94]">Active discussions</p>
+                  <p className="text-sm" style={{ color: 'var(--cc-text-primary)' }}>In Negotiation</p>
+                  <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>Active discussions</p>
                 </div>
-                <p className="text-xl font-bold text-[#4F8CFF]">
+                <p className="text-xl font-bold" style={{ color: 'var(--cc-blue)' }}>
                   {collaborations.filter(d => d.status === 'negotiating').length}
                 </p>
               </div>
-              <div className="flex items-center justify-between p-3 bg-[#151D2B] rounded-lg">
+              <div className="flex items-center justify-between p-3 rounded-lg" style={{ backgroundColor: 'var(--cc-surface-hover)' }}>
                 <div>
-                  <p className="text-sm text-[#E8EEF9]">Contract Ready</p>
-                  <p className="text-xs text-[#6B7A94]">Awaiting signature</p>
+                  <p className="text-sm" style={{ color: 'var(--cc-text-primary)' }}>Contract Ready</p>
+                  <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>Awaiting signature</p>
                 </div>
                 <p className="text-xl font-bold text-[#22C55E]">
                   {collaborations.filter(d => d.status === 'contract_sent').length}
