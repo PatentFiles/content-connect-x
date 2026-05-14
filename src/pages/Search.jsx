@@ -15,6 +15,7 @@ import ProfileCard from '@/components/profiles/ProfileCard';
 import ProfileFilters from '@/components/profiles/ProfileFilters';
 import SaveToFavoritesModal from '@/components/profiles/SaveToFavoritesModal';
 import ReportModal from '@/components/moderation/ReportModal';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 const roleOptions = [
   { value: 'creator', label: 'Creators', icon: Users },
@@ -273,10 +274,9 @@ export default function Search() {
     },
   });
 
+  const [confirmBlockUserId, setConfirmBlockUserId] = useState(null);
   const handleBlock = (profile) => {
-    if (confirm('Block this user? They will not be able to contact you.')) {
-      blockUserMutation.mutate(profile.user_id);
-    }
+    setConfirmBlockUserId(profile.user_id);
   };
 
   const handleReport = (profile) => {
@@ -373,6 +373,7 @@ export default function Search() {
       </div>
 
       {/* Results */}
+      <MobileRefreshPage onRefresh={() => queryClient.invalidateQueries({ queryKey: ['extendedSearch', searchQuery] })}>
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Travel Sync */}
         <div className="flex justify-center mb-6">
@@ -496,6 +497,7 @@ export default function Search() {
         targetUserId={reportTargetUserId}
         targetContentType="profile"
       />
+      </MobileRefreshPage>
       </div>
     </FeatureRouteGuard>
   );

@@ -43,6 +43,8 @@ export default function Messages() {
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [showConversationMenu, setShowConversationMenu] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null); // { type: 'conversation'|'block', id, extra }
+
   const [longPressMessage, setLongPressMessage] = useState(null);
   const [uploadingFile, setUploadingFile] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
@@ -516,9 +518,7 @@ export default function Messages() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (confirm('Delete this conversation?')) {
-                                deleteConversationMutation.mutate(conv.id);
-                              }
+                              setConfirmDelete({ type: 'conversation', id: conv.id });
                             }}
                             className="text-[#6B7A94] hover:text-[#EF4444] transition-colors"
                             title="Delete conversation"
@@ -585,9 +585,7 @@ export default function Messages() {
                       <button
                         onClick={() => {
                           const otherUserId = selectedConversation.participant_ids.find(id => id !== user.email);
-                          if (confirm('Block this user? They will not be able to contact you.')) {
-                            blockUserMutation.mutate(otherUserId);
-                          }
+                          setConfirmDelete({ type: 'block', id: otherUserId });
                         }}
                         className="w-full px-4 py-3 text-left text-sm flex items-center gap-3 transition-colors text-[#F59E0B]"
                         onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(245,158,11,0.1)'}
@@ -612,9 +610,7 @@ export default function Messages() {
                       </button>
                       <button
                         onClick={() => {
-                          if (confirm('Delete this conversation? This cannot be undone.')) {
-                            deleteConversationMutation.mutate(selectedConversation.id);
-                          }
+                          setConfirmDelete({ type: 'conversation', id: selectedConversation.id });
                         }}
                         className="w-full px-4 py-3 text-left text-sm flex items-center gap-3 transition-colors rounded-b-lg text-[#EF4444]"
                         onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(239,68,68,0.1)'}
@@ -769,6 +765,35 @@ export default function Messages() {
           )}
         </div>
       </div>
+
+      {/* Confirm Dialog (replaces window.confirm) */}
+      {confirmDelete && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ backgroundColor: 'rgba(0,0,0,0.6)' }}>
+          <div className="rounded-2xl p-6 max-w-sm w-full shadow-2xl border" style={{ backgroundColor: 'var(--cc-surface)', borderColor: 'var(--cc-border)' }}>
+            <p className="font-semibold mb-2" style={{ color: 'var(--cc-text-primary)' }}>
+              {confirmDelete.type === 'block' ? 'Block this user?' : 'Delete conversation?'}
+            </p>
+            <p className="text-sm mb-5" style={{ color: 'var(--cc-text-muted)' }}>
+              {confirmDelete.type === 'block'
+                ? 'They will not be able to contact you.'
+                : 'This action cannot be undone.'}
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setConfirmDelete(null)} className="px-4 py-2 rounded-lg text-sm border" style={{ borderColor: 'var(--cc-border)', color: 'var(--cc-text-primary)' }}>Cancel</button>
+              <button
+                onClick={() => {
+                  if (confirmDelete.type === 'block') blockUserMutation.mutate(confirmDelete.id);
+                  else deleteConversationMutation.mutate(confirmDelete.id);
+                  setConfirmDelete(null);
+                }}
+                className="px-4 py-2 rounded-lg text-sm bg-[#EF4444] text-white"
+              >
+                {confirmDelete.type === 'block' ? 'Block' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile Long Press Menu */}
       {longPressMessage && (

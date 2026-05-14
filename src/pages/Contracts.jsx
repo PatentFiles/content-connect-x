@@ -27,6 +27,8 @@ import { CCLoadingScreen, CCSkeletonLoader } from '@/components/ui-custom/CCLoad
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import CCModal from '@/components/ui-custom/CCModal';
 import CCSelect from '@/components/ui-custom/CCSelect';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
+import BottomSheetSelect from '@/components/ui-custom/BottomSheetSelect';
 
 const statusConfig = {
   draft: { label: 'Draft', variant: 'default', icon: FileText },
@@ -327,6 +329,7 @@ export default function Contracts() {
       </div>
 
       {/* Content */}
+      <MobileRefreshPage onRefresh={() => queryClient.invalidateQueries({ queryKey: ['contracts', user?.email] })}>
       <div className="max-w-6xl mx-auto px-4 py-6">
         {contractsLoading ? (
           <div className="space-y-4">
@@ -441,6 +444,7 @@ export default function Contracts() {
         )}
       </div>
 
+      </MobileRefreshPage>
       {/* Create Contract Modal */}
       <CCModal
         isOpen={createModalOpen}
@@ -461,19 +465,15 @@ export default function Contracts() {
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--cc-text-primary)' }}>
               Select Collaboration <span style={{ color: 'var(--cc-pink)' }}>*</span>
             </label>
-            <select
+            <BottomSheetSelect
               value={selectedCollaboration}
-              onChange={(e) => setSelectedCollaboration(e.target.value)}
-              className="w-full rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 transition-all duration-200"
-              style={{ backgroundColor: 'var(--cc-bg)', border: '1px solid var(--cc-border)', color: 'var(--cc-text-primary)' }}
-            >
-              <option value="">Choose a collaboration...</option>
-              {collaborations.map(collab => (
-                <option key={collab.id} value={collab.id}>
-                  {collab.collaboration_name || `${collab.scene_type || 'Collaboration'} - ${new Date(collab.created_date).toLocaleDateString()}`}
-                </option>
-              ))}
-            </select>
+              onChange={setSelectedCollaboration}
+              placeholder="Choose a collaboration..."
+              options={collaborations.map(collab => ({
+                value: collab.id,
+                label: collab.collaboration_name || `${collab.scene_type || 'Collaboration'} - ${new Date(collab.created_date).toLocaleDateString()}`
+              }))}
+            />
           </div>
 
           <div>
@@ -647,18 +647,18 @@ export default function Contracts() {
             <label className="block text-sm font-medium mb-2" style={{ color: 'var(--cc-text-primary)' }}>
               Category
             </label>
-            <select
+            <BottomSheetSelect
               value={templateForm.category}
-              onChange={(e) => setTemplateForm({ ...templateForm, category: e.target.value })}
-              className="w-full rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 transition-all duration-200"
-              style={{ backgroundColor: 'var(--cc-bg)', border: '1px solid var(--cc-border)', color: 'var(--cc-text-primary)' }}
-            >
-              <option value="custom">Custom</option>
-              <option value="creator_to_creator">Creator to Creator</option>
-              <option value="studio_contract">Studio Contract</option>
-              <option value="photographer_contract">Photographer Contract</option>
-              <option value="videographer_contract">Videographer Contract</option>
-            </select>
+              onChange={(val) => setTemplateForm({ ...templateForm, category: val })}
+              placeholder="Select category"
+              options={[
+                { value: 'custom', label: 'Custom' },
+                { value: 'creator_to_creator', label: 'Creator to Creator' },
+                { value: 'studio_contract', label: 'Studio Contract' },
+                { value: 'photographer_contract', label: 'Photographer Contract' },
+                { value: 'videographer_contract', label: 'Videographer Contract' },
+              ]}
+            />
           </div>
 
           <div>

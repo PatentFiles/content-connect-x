@@ -10,6 +10,7 @@ import CCLoadingScreen from '@/components/ui-custom/CCLoading';
 import VerificationGate from '@/components/auth/VerificationGate';
 import { format } from 'date-fns';
 import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 export default function Testing() {
   const queryClient = useQueryClient();
@@ -164,6 +165,10 @@ export default function Testing() {
   return (
     <FeatureRouteGuard flag="testing" requiresSubscription={true}>
     <VerificationGate isVerified={isVerified} isAdmin={isAdmin}>
+    <MobileRefreshPage onRefresh={() => {
+      queryClient.invalidateQueries({ queryKey: ['myTestingDocuments', user?.email] });
+      queryClient.invalidateQueries({ queryKey: ['myTestingCredentials', user?.email] });
+    }}>
     <div className="min-h-screen pb-20 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Header */}
@@ -326,6 +331,7 @@ export default function Testing() {
         </CCCard>
       </div>
     </div>
+    </MobileRefreshPage>
     </VerificationGate>
     </FeatureRouteGuard>
   );

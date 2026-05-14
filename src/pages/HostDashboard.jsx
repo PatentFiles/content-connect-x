@@ -18,6 +18,7 @@ import SoloSessionsInbox from '@/components/sessions/SoloSessionsInbox';
 import ProHostSubscriptionPanel from '@/components/hosting/ProHostSubscriptionPanel';
 import HostPricingSettings from '@/components/hosting/HostPricingSettings';
 import { canCreateProperty } from '@/lib/hostReadiness';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 const STATUS_VARIANTS = {
   draft: 'outline',
@@ -86,7 +87,11 @@ export default function HostDashboard() {
   return (
     <FeatureRouteGuard flag="hosting_marketplace">
       <div className="min-h-screen pb-20 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
-        <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+        <MobileRefreshPage onRefresh={() => {
+        queryClient.invalidateQueries({ queryKey: ['myProperties', user?.email] });
+        queryClient.invalidateQueries({ queryKey: ['myProfile', user?.email] });
+      }}>
+      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
 
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -245,6 +250,7 @@ export default function HostDashboard() {
             <SoloSessionsInbox user={user} asHost={true} />
           </div>
         </div>
+      </MobileRefreshPage>
       </div>
     </FeatureRouteGuard>
   );

@@ -9,9 +9,12 @@ import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import FriendRequestsList from '@/components/friends/FriendRequestsList';
 import FriendsList from '@/components/friends/FriendsList';
 import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function Connections() {
   const [activeTab, setActiveTab] = useState('friends');
+  const queryClient = useQueryClient();
 
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ['currentUser'],
@@ -53,6 +56,10 @@ export default function Connections() {
         </div>
       </div>
 
+      <MobileRefreshPage onRefresh={() => {
+        queryClient.invalidateQueries({ queryKey: ['friends', user?.email] });
+        queryClient.invalidateQueries({ queryKey: ['pendingFriendRequests', user?.email] });
+      }}>
       <div className="max-w-4xl mx-auto px-4 py-6 md:pl-64">
         <CCTabsList tabs={tabs} activeTab={activeTab} onChange={setActiveTab} className="mb-6" />
 
@@ -64,6 +71,7 @@ export default function Connections() {
           <FriendRequestsList userId={user?.email} />
         </CCTabsContent>
       </div>
+      </MobileRefreshPage>
       </div>
     </FeatureRouteGuard>
   );

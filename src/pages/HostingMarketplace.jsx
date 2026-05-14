@@ -10,6 +10,8 @@ import FeatureGate from '@/components/feature/FeatureGate';
 import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 import PropertyCard from '@/components/hosting/PropertyCard';
 import PropertyFilters from '@/components/hosting/PropertyFilters';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
+import { useQueryClient } from '@tanstack/react-query';
 
 const PROPERTY_TYPES = ['All', 'studio', 'loft', 'house', 'rooftop', 'outdoor', 'warehouse', 'office', 'other'];
 
@@ -18,6 +20,8 @@ export default function HostingMarketplace() {
   const [selectedType, setSelectedType] = useState('All');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({ minPrice: '', maxPrice: '', city: '', amenities: [] });
+
+  const queryClient = useQueryClient();
 
   const { data: user } = useQuery({
     queryKey: ['currentUser'],
@@ -119,6 +123,7 @@ export default function HostingMarketplace() {
           </div>
         </div>
 
+        <MobileRefreshPage onRefresh={() => queryClient.invalidateQueries({ queryKey: ['activeProperties'] })}>
         <div className="max-w-6xl mx-auto px-4 py-6">
           {/* Results count */}
           <div className="flex items-center justify-between mb-5">
@@ -149,6 +154,7 @@ export default function HostingMarketplace() {
             </div>
           )}
         </div>
+        </MobileRefreshPage>
       </div>
     </FeatureRouteGuard>
   );

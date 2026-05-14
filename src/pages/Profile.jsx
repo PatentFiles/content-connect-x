@@ -38,6 +38,7 @@ import GalleryGrid from '@/components/profile/GalleryGrid';
 import ProfileThemeSelector, { PROFILE_THEMES } from '@/components/profile/ProfileThemeSelector';
 import ProfileAnalytics from '@/components/profile/ProfileAnalytics';
 import ReactQuill from 'react-quill';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 // Component to show availability and travel from ScheduleEntry
 function AvailabilityTravelSection({ user, profile }) {
@@ -400,6 +401,11 @@ export default function Profile() {
   ).map(pairing => pairing.value || pairing);
 
   return (
+    <MobileRefreshPage onRefresh={() => {
+      queryClient.invalidateQueries({ queryKey: ['myProfile', user?.email] });
+      queryClient.invalidateQueries({ queryKey: ['myCreatorDetails', user?.email] });
+      queryClient.invalidateQueries({ queryKey: ['myGalleries', user?.email] });
+    }}>
     <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
       {/* Cover & Avatar */}
       <div className="relative">
@@ -1678,5 +1684,6 @@ export default function Profile() {
         </div>
       )}
     </div>
+    </MobileRefreshPage>
   );
 }

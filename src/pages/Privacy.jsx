@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Lock } from 'lucide-react';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 const LAST_UPDATED = 'March 25, 2026';
 
@@ -23,6 +24,7 @@ function Ul({ items }) {
 
 export default function Privacy() {
   return (
+    <MobileRefreshPage>
     <div className="min-h-screen bg-cc-bg pt-24 pb-16">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -273,5 +275,6 @@ export default function Privacy() {
         </Section>
       </motion.div>
     </div>
+    </MobileRefreshPage>
   );
 }

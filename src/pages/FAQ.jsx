@@ -5,6 +5,7 @@ import { ChevronDown, Search, ArrowRight } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCInput from '@/components/ui-custom/CCInput';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 const faqCategories = [
   {
@@ -204,6 +205,7 @@ export default function FAQ() {
   })).filter(category => category.faqs.length > 0);
 
   return (
+    <MobileRefreshPage>
     <div className="min-h-screen bg-cc-bg pt-24 pb-12">
       {/* Header */}
       <section className="px-4 py-12 text-center">
@@ -296,5 +298,6 @@ export default function FAQ() {
         </CCCard>
       </section>
     </div>
+    </MobileRefreshPage>
   );
 }

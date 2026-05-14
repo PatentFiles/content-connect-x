@@ -11,6 +11,7 @@ import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCTabsList } from '@/components/ui-custom/CCTabs';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import { toast } from 'sonner';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 const roleLabels = {
   creator: 'Creator',
@@ -167,6 +168,7 @@ export default function Pricing() {
   const displayRole = availableRoles.includes(activeRole) ? activeRole : availableRoles[0] || 'creator';
 
   return (
+    <MobileRefreshPage onRefresh={() => queryClient.invalidateQueries({ queryKey: ['pricingTiers'] })}>
     <div className="min-h-screen bg-cc-bg pt-24 pb-12">
       {/* Header */}
       <section className="px-4 py-12 text-center">
@@ -426,5 +428,6 @@ export default function Pricing() {
         </Link>
       </section>
     </div>
+    </MobileRefreshPage>
   );
 }

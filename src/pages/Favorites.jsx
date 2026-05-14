@@ -20,6 +20,7 @@ import CCEmpty from '@/components/ui-custom/CCEmpty';
 import ProfileCard from '@/components/profiles/ProfileCard';
 import { useFeatureFlag } from '@/lib/featureFlags';
 import VerificationGate from '@/components/auth/VerificationGate';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 // Role tabs for filtering saved profiles
 const PROFILE_TABS = [
@@ -339,6 +340,10 @@ export default function Favorites() {
       </div>
 
       {/* Content */}
+      <MobileRefreshPage onRefresh={() => {
+        queryClient.invalidateQueries({ queryKey: ['favorites', user?.email] });
+        queryClient.invalidateQueries({ queryKey: ['favoriteProperties', user?.email] });
+      }}>
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Host Properties Tab */}
         {activeTab === 'properties' ? (
@@ -514,6 +519,7 @@ export default function Favorites() {
         ) }
       </div>
 
+      </MobileRefreshPage>
       {/* Create List Modal */}
       <CCModal
         isOpen={isCreating}

@@ -11,6 +11,7 @@ import {
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import MarketingFeatureShowcase from '@/components/marketing/MarketingFeatureShowcase';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 // CCCard is used in the How It Works section steps below
 
@@ -52,6 +53,7 @@ export default function Landing() {
   if (user) return null;
 
   return (
+    <MobileRefreshPage>
     <div className="min-h-screen bg-cc-bg">
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-32 pb-20 px-4">
@@ -264,5 +266,6 @@ export default function Landing() {
         </div>
       </footer>
     </div>
+    </MobileRefreshPage>
   );
 }

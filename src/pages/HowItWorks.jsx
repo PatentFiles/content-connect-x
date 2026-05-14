@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 const steps = [
   {
@@ -106,6 +107,7 @@ const faqs = [
 
 export default function HowItWorks() {
   return (
+    <MobileRefreshPage>
     <div className="min-h-screen bg-cc-bg pt-24 pb-12">
       {/* Header */}
       <section className="px-4 py-12 text-center">
@@ -227,5 +229,6 @@ export default function HowItWorks() {
         </Link>
       </section>
     </div>
+    </MobileRefreshPage>
   );
 }

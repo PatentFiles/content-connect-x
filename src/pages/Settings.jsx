@@ -32,6 +32,7 @@ import { CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs';
 import CCModal from '@/components/ui-custom/CCModal';
 import DeleteAccountFlow from '@/components/settings/DeleteAccountFlow';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
+import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('account');
@@ -136,6 +137,11 @@ export default function Settings() {
   ];
 
   return (
+    <MobileRefreshPage onRefresh={() => {
+      queryClient.invalidateQueries({ queryKey: ['currentUser'] });
+      queryClient.invalidateQueries({ queryKey: ['myProfile', user?.email] });
+      queryClient.invalidateQueries({ queryKey: ['subscription', user?.email] });
+    }}>
     <div className="min-h-screen pb-20 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
       {/* Header */}
       <div className="sticky z-30 backdrop-blur-xl border-b" style={{ top: 'calc(4rem + env(safe-area-inset-top, 0px))', backgroundColor: 'color-mix(in srgb, var(--cc-bg) 95%, transparent)', borderColor: 'var(--cc-border)' }}>
@@ -355,5 +361,6 @@ export default function Settings() {
         userEmail={user?.email}
       />
     </div>
+    </MobileRefreshPage>
   );
 }
