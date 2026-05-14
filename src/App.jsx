@@ -16,6 +16,7 @@ import VerificationRequiredScreen from '@/components/auth/VerificationRequiredSc
 import { useFeatureFlag } from '@/lib/featureFlags';
 import { base44 } from '@/api/base44Client';
 import { ThemeProvider } from '@/lib/ThemeContext';
+import ContactPage from './pages/Contact';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -133,6 +134,14 @@ const AuthenticatedApp = () => {
             <Suspense fallback={<div className="fixed inset-0 flex items-center justify-center bg-[#0B0F14]"><div className="w-8 h-8 border-4 border-[#263248] border-t-[#4F8CFF] rounded-full animate-spin" /></div>}>
               <SoloSessionDetail />
             </Suspense>
+          </LayoutWrapper>
+        }
+      />
+      <Route
+        path="/Contact"
+        element={
+          <LayoutWrapper currentPageName="Contact">
+            <ContactPage />
           </LayoutWrapper>
         }
       />

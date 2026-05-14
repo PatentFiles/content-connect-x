@@ -24,7 +24,8 @@ const publicPages = [
   'Terms', 
   'Privacy',
   'Login',
-  'Signup'
+  'Signup',
+  'Contact'
 ];
 
 // Pages that show the full app layout (sidebar, bottom nav)

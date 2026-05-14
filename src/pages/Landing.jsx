@@ -254,7 +254,7 @@ export default function Landing() {
             <div className="text-center md:text-left">
               <h4 className="font-semibold cc-text-fix-primary mb-4">Support</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="mailto:support@onlycollabsx.com" className="cc-text-fix-secondary hover:cc-text-fix-primary">Contact Us</a></li>
+                <li><Link to={createPageUrl('Contact')} className="cc-text-fix-secondary hover:cc-text-fix-primary">Contact Us</Link></li>
               </ul>
             </div>
           </div>
