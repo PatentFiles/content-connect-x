@@ -4,36 +4,3 @@
 
 /* All token definitions, theme variables, and global overrides live in globals.css */
 @import './globals.css';
-
-
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-
-  body {
-    @apply bg-background text-foreground;
-    /* Apply safe-area insets globally for notched/home-bar devices */
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-    /* Prevent browser pull-to-refresh and rubber-banding */
-    overscroll-behavior: none;
-  }
-
-  html {
-    overscroll-behavior: none;
-  }
-}
-
-/* Bottom nav safe-area utility */
-.safe-bottom {
-  padding-bottom: calc(env(safe-area-inset-bottom) + 1rem);
-}
-
-/* Allow fixed elements to account for safe areas */
-.fixed-bottom-safe {
-  bottom: env(safe-area-inset-bottom);
-}

@@ -1,7 +1,3 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* ── Content Connect Theme Variables ──────────────────────────────────────────
    Dark mode is the primary experience.
    Light mode overrides are applied when the OS reports prefers-color-scheme: light
