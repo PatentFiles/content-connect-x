@@ -120,14 +120,15 @@ function UserManagement({ currentUser }) {
   return (
     <div className="space-y-4">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6B7A94]" />
-        <input
-          type="text"
-          placeholder="Search users by email or name..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full bg-[#121824] border border-[#263248] rounded-lg pl-10 pr-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-        />
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: 'var(--cc-text-muted)' }} />
+      <input
+        type="text"
+        placeholder="Search users by email or name..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        className="w-full rounded-lg pl-10 pr-4 py-2.5 focus:outline-none focus:ring-2"
+        style={{ backgroundColor: 'var(--cc-surface)', border: '1px solid var(--cc-border)', color: 'var(--cc-text-primary)' }}
+      />
       </div>
 
       {usersLoading ? (
@@ -157,7 +158,7 @@ function UserManagement({ currentUser }) {
                     <CCAvatar src={profile?.avatar_url} size="md" />
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="font-medium text-[#E8EEF9]">
+                        <p className="font-medium" style={{ color: 'var(--cc-text-primary)' }}>
                           {profile?.display_name || user.full_name || 'No name'}
                         </p>
                         {user.role === 'admin' && (
@@ -179,14 +180,14 @@ function UserManagement({ currentUser }) {
                           </CCBadge>
                         )}
                       </div>
-                      <p className="text-sm text-[#6B7A94]">{user.email}</p>
+                      <p className="text-sm" style={{ color: 'var(--cc-text-muted)' }}>{user.email}</p>
                     </div>
                   </div>
                   <motion.div
                     animate={{ rotate: isExpanded ? 90 : 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <ChevronRight className="w-5 h-5 text-[#6B7A94]" />
+                    <ChevronRight className="w-5 h-5" style={{ color: 'var(--cc-text-muted)' }} />
                   </motion.div>
                 </div>
 
@@ -197,32 +198,32 @@ function UserManagement({ currentUser }) {
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
                     transition={{ duration: 0.2 }}
-                    className="mt-4 pt-4 border-t border-[#263248] space-y-3"
+                    className="mt-4 pt-4 border-t space-y-3" style={{ borderColor: 'var(--cc-border)' }}
                   >
                     {/* User Info Grid */}
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       {profile?.real_name && (
                         <div>
-                          <p className="text-[#6B7A94]">Real Name</p>
-                          <p className="text-[#E8EEF9]">{profile.real_name}</p>
+                          <p style={{ color: 'var(--cc-text-muted)' }}>Real Name</p>
+                          <p style={{ color: 'var(--cc-text-primary)' }}>{profile.real_name}</p>
                         </div>
                       )}
                       {profile?.age && (
                         <div>
-                          <p className="text-[#6B7A94]">Age</p>
-                          <p className="text-[#E8EEF9]">{profile.age}</p>
+                          <p style={{ color: 'var(--cc-text-muted)' }}>Age</p>
+                          <p style={{ color: 'var(--cc-text-primary)' }}>{profile.age}</p>
                         </div>
                       )}
                       {creatorDetails?.gender_identity && (
                         <div>
-                          <p className="text-[#6B7A94]">Gender</p>
-                          <p className="text-[#E8EEF9] capitalize">{creatorDetails.gender_identity.replace(/_/g, ' ')}</p>
+                          <p style={{ color: 'var(--cc-text-muted)' }}>Gender</p>
+                          <p className="capitalize" style={{ color: 'var(--cc-text-primary)' }}>{creatorDetails.gender_identity.replace(/_/g, ' ')}</p>
                         </div>
                       )}
                       {profile?.base_location?.city && (
                         <div>
-                          <p className="text-[#6B7A94]">Location</p>
-                          <p className="text-[#E8EEF9]">
+                          <p style={{ color: 'var(--cc-text-muted)' }}>Location</p>
+                          <p style={{ color: 'var(--cc-text-primary)' }}>
                             {profile.base_location.city}
                             {profile.base_location.state && `, ${profile.base_location.state}`}
                           </p>
@@ -230,7 +231,7 @@ function UserManagement({ currentUser }) {
                       )}
                       {creatorDetails?.orientation_category && creatorDetails.orientation_category.length > 0 && (
                         <div>
-                          <p className="text-[#6B7A94]">Orientation</p>
+                          <p style={{ color: 'var(--cc-text-muted)' }}>Orientation</p>
                           <div className="flex flex-wrap gap-1 mt-1">
                             {creatorDetails.orientation_category.map(o => (
                               <CCBadge key={o} variant="outline" size="sm">{o}</CCBadge>
@@ -242,7 +243,7 @@ function UserManagement({ currentUser }) {
 
                     {/* Role Management */}
                     <div className="flex items-center gap-2 pt-2">
-                      <label className="text-sm text-[#6B7A94]">Change Role:</label>
+                      <label className="text-sm" style={{ color: 'var(--cc-text-muted)' }}>Change Role:</label>
                       <select
                         value={profile?.role_type || ''}
                         onChange={(e) => {
@@ -253,7 +254,8 @@ function UserManagement({ currentUser }) {
                           });
                         }}
                         onClick={(e) => e.stopPropagation()}
-                        className="bg-[#121824] border border-[#263248] rounded-lg px-3 py-1.5 text-sm text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+                        className="rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2"
+                        style={{ backgroundColor: 'var(--cc-surface)', border: '1px solid var(--cc-border)', color: 'var(--cc-text-primary)' }}
                       >
                         <option value="">Select role</option>
                         <option value="creator">Creator</option>
@@ -416,11 +418,11 @@ export default function AdminDashboard() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--cc-bg)' }}>
         <CCCard padding="xl" className="text-center max-w-md">
           <Shield className="w-16 h-16 text-[#EF4444] mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-[#E8EEF9] mb-2">Access Denied</h1>
-          <p className="text-[#9AA6BC]">You don't have permission to access the admin dashboard.</p>
+          <h1 className="text-2xl font-bold mb-2" style={{ color: 'var(--cc-text-primary)' }}>Access Denied</h1>
+          <p style={{ color: 'var(--cc-text-secondary)' }}>You don't have permission to access the admin dashboard.</p>
         </CCCard>
       </div>
     );
@@ -462,13 +464,13 @@ export default function AdminDashboard() {
   const getProfileForVerification = (v) => userProfiles.find(p => p.user_id === v.user_id);
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <div className="min-h-screen pb-20 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
       {/* Header */}
-      <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
+      <div className="sticky top-16 z-30 backdrop-blur-xl border-b" style={{ backgroundColor: 'color-mix(in srgb, var(--cc-bg) 95%, transparent)', borderColor: 'var(--cc-border)' }}>
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="text-center">
-            <h1 className="text-xl font-semibold text-[#E8EEF9]">Admin Management</h1>
-            <p className="text-xs text-[#6B7A94]">Platform-wide moderation metrics and recent actions</p>
+            <h1 className="text-xl font-semibold" style={{ color: 'var(--cc-text-primary)' }}>Admin Management</h1>
+            <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>Platform-wide moderation metrics and recent actions</p>
           </div>
         </div>
       </div>
@@ -505,19 +507,19 @@ export default function AdminDashboard() {
                 <Clock className="w-5 h-5 text-[#F59E0B]" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#E8EEF9]">{pendingVerifications.length}</p>
-                <p className="text-xs text-[#6B7A94]">Pending Verifications</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--cc-text-primary)' }}>{pendingVerifications.length}</p>
+                <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>Pending Verifications</p>
               </div>
             </div>
           </CCCard>
           <CCCard padding="md">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-lg bg-[#4F8CFF]/20 flex items-center justify-center">
-                <Tag className="w-5 h-5 text-[#4F8CFF]" />
+                <Tag className="w-5 h-5" style={{ color: 'var(--cc-blue)' }} />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#E8EEF9]">{pendingTags.length}</p>
-                <p className="text-xs text-[#6B7A94]">Pending Tags</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--cc-text-primary)' }}>{pendingTags.length}</p>
+                <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>Pending Tags</p>
               </div>
             </div>
           </CCCard>
@@ -527,8 +529,8 @@ export default function AdminDashboard() {
                 <AlertTriangle className="w-5 h-5 text-[#EF4444]" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#E8EEF9]">{reports.length}</p>
-                <p className="text-xs text-[#6B7A94]">Open Reports</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--cc-text-primary)' }}>{reports.length}</p>
+                <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>Open Reports</p>
               </div>
             </div>
           </CCCard>
@@ -538,8 +540,8 @@ export default function AdminDashboard() {
                 <Users className="w-5 h-5 text-[#22C55E]" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-[#E8EEF9]">{totalUsersCount}</p>
-                <p className="text-xs text-[#6B7A94]">Total Users</p>
+                <p className="text-2xl font-bold" style={{ color: 'var(--cc-text-primary)' }}>{totalUsersCount}</p>
+                <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>Total Users</p>
               </div>
             </div>
           </CCCard>
@@ -551,7 +553,8 @@ export default function AdminDashboard() {
           <select
             value={activeTab}
             onChange={(e) => setActiveTab(e.target.value)}
-            className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-3 text-[#E8EEF9] text-sm focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+            className="w-full rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2"
+            style={{ backgroundColor: 'var(--cc-surface)', border: '1px solid var(--cc-border)', color: 'var(--cc-text-primary)' }}
           >
             {tabs.map((tab) => (
               <option key={tab.value} value={tab.value}>{tab.label}</option>
@@ -565,11 +568,14 @@ export default function AdminDashboard() {
             <button
               key={tab.value}
               onClick={() => setActiveTab(tab.value)}
-              className={`px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200 ${
-                activeTab === tab.value
-                  ? 'bg-[#4F8CFF] text-white shadow-lg'
-                  : 'bg-[#151D2B] border border-[#263248] text-[#9AA6BC] hover:border-[#4F8CFF] hover:text-[#E8EEF9]'
-              }`}
+              className="px-4 py-2.5 rounded-lg font-medium text-sm transition-all duration-200"
+              style={{
+                backgroundColor: activeTab === tab.value ? 'var(--cc-blue)' : 'var(--cc-surface)',
+                border: `1px solid ${activeTab === tab.value ? 'var(--cc-blue)' : 'var(--cc-border)'}`,
+                color: activeTab === tab.value ? '#fff' : 'var(--cc-text-secondary)',
+              }}
+              onMouseEnter={e => { if (activeTab !== tab.value) { e.currentTarget.style.borderColor = 'var(--cc-blue)'; e.currentTarget.style.color = 'var(--cc-text-primary)'; } }}
+              onMouseLeave={e => { if (activeTab !== tab.value) { e.currentTarget.style.borderColor = 'var(--cc-border)'; e.currentTarget.style.color = 'var(--cc-text-secondary)'; } }}
             >
               {tab.label}
             </button>
@@ -583,7 +589,7 @@ export default function AdminDashboard() {
             <div className="space-y-4">
               <div>
                 <h2 className="text-xl font-bold text-[#EF4444] mb-1">Safety Alerts</h2>
-                <p className="text-sm text-[#9AA6BC]">
+                <p className="text-sm" style={{ color: 'var(--cc-text-secondary)' }}>
                   Auto-detected and user-reported underage risk, trafficking, coercion, solicitation, and other high-risk cases.
                   These cases require structured moderator resolution — they cannot be silently dismissed.
                 </p>
@@ -653,8 +659,8 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between">
                     <div>
                       <CCBadge variant="outline" size="lg">{tag.tag_text}</CCBadge>
-                      <p className="text-sm text-[#6B7A94] mt-1">
-                        Category: {tag.category} • Submitted by: {tag.created_by_user_id}
+                      <p className="text-sm mt-1" style={{ color: 'var(--cc-text-muted)' }}>
+                      Category: {tag.category} • Submitted by: {tag.created_by_user_id}
                       </p>
                     </div>
                     <div className="flex gap-2">
@@ -700,8 +706,8 @@ export default function AdminDashboard() {
                       >
                         {report.reason}
                       </CCBadge>
-                      <p className="text-[#E8EEF9]">{report.details}</p>
-                      <p className="text-sm text-[#6B7A94] mt-2">
+                      <p style={{ color: 'var(--cc-text-primary)' }}>{report.details}</p>
+                      <p className="text-sm mt-2" style={{ color: 'var(--cc-text-muted)' }}>
                         Reporter: {report.reporter_id} • Target: {report.target_user_id}
                       </p>
                     </div>
@@ -881,16 +887,17 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-2 gap-4">
               {selectedVerification.documents_submitted?.map((doc, i) => (
                 <div key={i} className="text-center">
-                  <p className="text-sm text-[#6B7A94] mb-2 capitalize">{doc.type}</p>
+                  <p className="text-sm mb-2 capitalize" style={{ color: 'var(--cc-text-muted)' }}>{doc.type}</p>
                   <img 
-                    src={doc.url} 
-                    alt={doc.type}
-                    className="w-full h-48 object-cover rounded-lg bg-[#121824]"
+                  src={doc.url} 
+                  alt={doc.type}
+                  className="w-full h-48 object-cover rounded-lg"
+                  style={{ backgroundColor: 'var(--cc-surface)' }}
                   />
                 </div>
               ))}
             </div>
-            <div className="flex gap-3 justify-end pt-4 border-t border-[#263248]">
+            <div className="flex gap-3 justify-end pt-4 border-t" style={{ borderColor: 'var(--cc-border)' }}>
               <CCButton 
                 variant="danger" 
                 onClick={() => rejectVerificationMutation.mutate({ 

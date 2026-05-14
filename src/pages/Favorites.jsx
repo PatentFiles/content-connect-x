@@ -270,9 +270,9 @@ export default function Favorites() {
 
   return (
     <FeatureRouteGuard flag="favorites" requiresSubscription={true}>
-      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+      <div className="min-h-screen pb-20 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
       {/* Header */}
-      <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
+      <div className="sticky top-16 z-30 backdrop-blur-xl border-b" style={{ backgroundColor: 'color-mix(in srgb, var(--cc-bg) 95%, transparent)', borderColor: 'var(--cc-border)' }}>
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -280,8 +280,8 @@ export default function Favorites() {
                 <Heart className="w-5 h-5 text-[#FF2DAA]" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-[#E8EEF9]">Favorites</h1>
-                <p className="text-xs text-[#6B7A94]">{profiles.length} saved profiles</p>
+                <h1 className="text-xl font-semibold" style={{ color: 'var(--cc-text-primary)' }}>Favorites</h1>
+                <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>{profiles.length} saved profiles</p>
               </div>
             </div>
             <div className="flex gap-2">
@@ -309,11 +309,12 @@ export default function Favorites() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                activeTab === tab.key
-                  ? 'bg-[#4F8CFF] text-white'
-                  : 'bg-[#121824] border border-[#263248] text-[#9AA6BC] hover:border-[#3A4A6B]'
-              }`}
+              className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all"
+              style={{
+                backgroundColor: activeTab === tab.key ? 'var(--cc-blue)' : 'var(--cc-surface)',
+                border: `1px solid ${activeTab === tab.key ? 'var(--cc-blue)' : 'var(--cc-border)'}`,
+                color: activeTab === tab.key ? '#fff' : 'var(--cc-text-secondary)',
+              }}
             >
               {tab.label}
             </button>
@@ -321,11 +322,12 @@ export default function Favorites() {
           {hostingEnabled && (
             <button
               onClick={() => setActiveTab('properties')}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1 ${
-                activeTab === 'properties'
-                  ? 'bg-[#FF2DAA] text-white'
-                  : 'bg-[#121824] border border-[#263248] text-[#9AA6BC] hover:border-[#3A4A6B]'
-              }`}
+              className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all flex items-center gap-1"
+              style={{
+                backgroundColor: activeTab === 'properties' ? 'var(--cc-pink)' : 'var(--cc-surface)',
+                border: `1px solid ${activeTab === 'properties' ? 'var(--cc-pink)' : 'var(--cc-border)'}`,
+                color: activeTab === 'properties' ? '#fff' : 'var(--cc-text-secondary)',
+              }}
             >
               <Building2 className="w-3 h-3" /> Host Properties
               {allFavPropertyIds.length > 0 && (
@@ -354,15 +356,15 @@ export default function Favorites() {
                 return (
                   <div key={prop.id} className={`relative ${!isAvail ? 'opacity-60' : ''}`}>
                     <Link to={`/PropertyDetail?id=${prop.id}`} className="block group">
-                      <div className="bg-[#151D2B] border border-[#263248] rounded-xl overflow-hidden hover:border-[#3A4A6B] transition-all">
-                        <div className="relative aspect-[4/3] bg-[#0B0F14]">
-                          {cover ? (
-                            <img src={cover.url} alt={prop.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Building2 className="w-10 h-10 text-[#263248]" />
-                            </div>
-                          )}
+                      <div className="rounded-xl overflow-hidden transition-all" style={{ backgroundColor: 'var(--cc-surface)', border: '1px solid var(--cc-border)' }}>
+                      <div className="relative aspect-[4/3]" style={{ backgroundColor: 'var(--cc-bg)' }}>
+                        {cover ? (
+                          <img src={cover.url} alt={prop.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Building2 className="w-10 h-10" style={{ color: 'var(--cc-border)' }} />
+                          </div>
+                        )}
                           {!isAvail && (
                             <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
                               <span className="text-xs text-white bg-[#EF4444]/80 px-2 py-1 rounded">Unavailable</span>
@@ -370,12 +372,12 @@ export default function Favorites() {
                           )}
                         </div>
                         <div className="p-3">
-                          <p className="font-medium text-[#E8EEF9] text-sm truncate">{prop.title}</p>
-                          <p className="text-xs text-[#9AA6BC] flex items-center gap-1 mt-1">
-                            <MapPin className="w-3 h-3" />{prop.city}{prop.state && `, ${prop.state}`}
+                          <p className="font-medium text-sm truncate" style={{ color: 'var(--cc-text-primary)' }}>{prop.title}</p>
+                          <p className="text-xs flex items-center gap-1 mt-1" style={{ color: 'var(--cc-text-secondary)' }}>
+                           <MapPin className="w-3 h-3" />{prop.city}{prop.state && `, ${prop.state}`}
                           </p>
                           {prop.pricing?.hourly_rate && (
-                            <p className="text-xs text-[#E8EEF9] mt-1 font-semibold">${prop.pricing.hourly_rate}<span className="font-normal text-[#9AA6BC]">/hr</span></p>
+                           <p className="text-xs mt-1 font-semibold" style={{ color: 'var(--cc-text-primary)' }}>${prop.pricing.hourly_rate}<span className="font-normal" style={{ color: 'var(--cc-text-secondary)' }}>/hr</span></p>
                           )}
                         </div>
                       </div>
@@ -428,8 +430,8 @@ export default function Favorites() {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div>
-                        <h3 className="font-semibold text-[#E8EEF9]">{list.name}</h3>
-                        <p className="text-sm text-[#6B7A94]">
+                        <h3 className="font-semibold" style={{ color: 'var(--cc-text-primary)' }}>{list.name}</h3>
+                        <p className="text-sm" style={{ color: 'var(--cc-text-muted)' }}>
                           {list.items?.length || 0} profile{list.items?.length !== 1 ? 's' : ''}
                         </p>
                       </div>
@@ -449,13 +451,13 @@ export default function Favorites() {
                           />
                         ))}
                         {list.items?.length > 5 && (
-                          <div className="w-8 h-8 rounded-full bg-[#263248] flex items-center justify-center text-xs text-[#9AA6BC] ring-2 ring-[#151D2B]">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs" style={{ backgroundColor: 'var(--cc-border)', color: 'var(--cc-text-secondary)' }}>
                             +{list.items.length - 5}
                           </div>
                         )}
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 text-sm text-[#6B7A94]">
+                      <div className="flex items-center gap-2 text-sm" style={{ color: 'var(--cc-text-muted)' }}>
                         <Users className="w-4 h-4" />
                         No profiles saved yet
                       </div>
@@ -551,7 +553,7 @@ export default function Favorites() {
         {selectedList && (
           <div>
             <div className="flex justify-between mb-4">
-              <p className="text-sm text-[#9AA6BC]">
+              <p className="text-sm" style={{ color: 'var(--cc-text-secondary)' }}>
                 {selectedList.items?.length || 0} profiles in this list
               </p>
               <CCButton
@@ -570,7 +572,8 @@ export default function Favorites() {
                 {getProfilesForList(selectedList).map((profile) => (
                   <div 
                     key={profile.user_id}
-                    className="flex items-center gap-3 p-3 bg-[#121824] rounded-lg"
+                    className="flex items-center gap-3 p-3 rounded-lg"
+                    style={{ backgroundColor: 'var(--cc-surface)' }}
                   >
                     <Link 
                       to={createPageUrl('ViewProfile') + '?id=' + profile.user_id}
@@ -578,8 +581,8 @@ export default function Favorites() {
                     >
                       <CCAvatar src={profile.avatar_url} size="md" />
                       <div className="flex-1">
-                        <p className="font-medium text-[#E8EEF9]">{profile.display_name}</p>
-                        <p className="text-sm text-[#6B7A94] capitalize">{profile.role_type}</p>
+                        <p className="font-medium" style={{ color: 'var(--cc-text-primary)' }}>{profile.display_name}</p>
+                        <p className="text-sm capitalize" style={{ color: 'var(--cc-text-muted)' }}>{profile.role_type}</p>
                       </div>
                     </Link>
                     <CCButton 
@@ -619,11 +622,11 @@ export default function Favorites() {
       >
         {addingToList && (
           <div className="space-y-4">
-            <div className="flex items-center gap-3 p-3 bg-[#121824] rounded-lg">
+            <div className="flex items-center gap-3 p-3 rounded-lg" style={{ backgroundColor: 'var(--cc-surface)' }}>
               <CCAvatar src={addingToList.avatar_url} size="md" />
               <div>
-                <p className="font-medium text-[#E8EEF9]">{addingToList.display_name}</p>
-                <p className="text-sm text-[#6B7A94] capitalize">{addingToList.role_type}</p>
+                <p className="font-medium" style={{ color: 'var(--cc-text-primary)' }}>{addingToList.display_name}</p>
+                <p className="text-sm capitalize" style={{ color: 'var(--cc-text-muted)' }}>{addingToList.role_type}</p>
               </div>
             </div>
             

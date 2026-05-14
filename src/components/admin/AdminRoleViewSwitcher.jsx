@@ -19,10 +19,10 @@ export default function AdminRoleViewSwitcher({ currentView, onViewChange }) {
   const hostingEnabled = useFeatureFlag('hosting_marketplace');
   const visibleRoles = hostingEnabled ? roleOptions : roleOptions.filter(r => r.value !== 'host');
   return (
-    <div className="p-4 border-b border-[#263248]">
+    <div className="p-4 border-b" style={{ borderColor: 'var(--cc-border)' }}>
       <div className="flex items-center gap-2 mb-3">
-        <Eye className="w-4 h-4 text-[#6B7A94]" />
-        <p className="text-xs font-medium text-[#6B7A94] uppercase tracking-wider">View As</p>
+        <Eye className="w-4 h-4" style={{ color: 'var(--cc-text-muted)' }} />
+        <p className="text-xs font-medium uppercase tracking-wider" style={{ color: 'var(--cc-text-muted)' }}>View As</p>
       </div>
       <div className="grid grid-cols-2 gap-2">
         {visibleRoles.map((role) => {
@@ -36,10 +36,14 @@ export default function AdminRoleViewSwitcher({ currentView, onViewChange }) {
               className={cn(
                 'flex items-center justify-center px-3 py-2 rounded-lg transition-all duration-200',
                 'border text-center',
-                isActive
-                  ? 'bg-[#4F8CFF]/10 border-[#4F8CFF] text-[#4F8CFF]'
-                  : 'bg-[#151D2B] border-[#263248] text-[#9AA6BC] hover:bg-[#1A2438] hover:border-[#3A4A6B]'
               )}
+              style={{
+                backgroundColor: isActive ? 'rgba(79,140,255,0.12)' : 'var(--cc-surface)',
+                borderColor: isActive ? 'var(--cc-blue)' : 'var(--cc-border)',
+                color: isActive ? 'var(--cc-blue)' : 'var(--cc-text-secondary)',
+              }}
+              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.backgroundColor = 'var(--cc-surface-hover)'; e.currentTarget.style.borderColor = 'var(--cc-border-hover)'; } }}
+              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.backgroundColor = 'var(--cc-surface)'; e.currentTarget.style.borderColor = 'var(--cc-border)'; } }}
             >
               <span className="text-xs font-medium">{role.label}</span>
             </button>

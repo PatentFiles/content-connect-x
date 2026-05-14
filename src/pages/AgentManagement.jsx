@@ -38,11 +38,11 @@ export default function AgentManagement() {
 
   if (!profile?.is_admin) {
     return (
-      <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center p-6">
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: 'var(--cc-bg)' }}>
         <CCCard padding="xl" className="max-w-md text-center">
           <Shield className="w-16 h-16 text-[#EF4444] mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-[#E8EEF9] mb-2">Admin Access Required</h2>
-          <p className="text-sm text-[#9AA6BC]">
+          <h2 className="text-xl font-bold mb-2" style={{ color: 'var(--cc-text-primary)' }}>Admin Access Required</h2>
+          <p className="text-sm" style={{ color: 'var(--cc-text-secondary)' }}>
             You need administrator privileges to access agent management.
           </p>
         </CCCard>
@@ -51,12 +51,12 @@ export default function AgentManagement() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-24">
+    <div className="min-h-screen pb-24" style={{ backgroundColor: 'var(--cc-bg)' }}>
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-xl font-semibold text-[#E8EEF9] mb-1">Agent Management</h1>
-          <p className="text-xs text-[#6B7A94]">
+          <h1 className="text-xl font-semibold mb-1" style={{ color: 'var(--cc-text-primary)' }}>Agent Management</h1>
+          <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>
             Manage AI agents, permissions, runs, flags, and risk scores
           </p>
         </div>
@@ -73,11 +73,12 @@ export default function AgentManagement() {
             <button
               key={value}
               onClick={() => setActiveTab(value)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                activeTab === value
-                  ? 'bg-[#4F8CFF] text-white'
-                  : 'bg-[#151D2B] border border-[#263248] text-[#9AA6BC] hover:text-[#E8EEF9] hover:bg-[#1A2438]'
-              }`}
+              style={{
+                backgroundColor: activeTab === value ? 'var(--cc-blue)' : 'var(--cc-surface)',
+                border: `1px solid ${activeTab === value ? 'var(--cc-blue)' : 'var(--cc-border)'}`,
+                color: activeTab === value ? '#fff' : 'var(--cc-text-secondary)',
+              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all"
             >
               <Icon className="w-4 h-4" />
               {label}

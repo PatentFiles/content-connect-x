@@ -175,6 +175,15 @@ button[aria-label], button.icon-btn, [role="tab"], [role="menuitem"] { user-sele
 /* ── Responsive typography ──────────────────────────────────────────────── */
 @media (max-width: 640px) { html { font-size: 14px; } }
 
+/* ── Theme-aware text utility classes (used in DeveloperReadMe and elsewhere) ── */
+.cc-text-fix-primary   { color: var(--cc-text-primary); }
+.cc-text-fix-secondary { color: var(--cc-text-secondary); }
+.cc-text-fix-muted     { color: var(--cc-text-muted); }
+.cc-bg-fix             { background-color: var(--cc-bg); }
+.cc-surface-fix        { background-color: var(--cc-surface); }
+.cc-border-fix         { border-color: var(--cc-border); }
+.cc-text-blue-fix      { color: var(--cc-blue); }
+
 /* ── Utility classes ────────────────────────────────────────────────────── */
 .focus-ring {
   @apply focus:outline-none focus:ring-2 focus:ring-offset-2;

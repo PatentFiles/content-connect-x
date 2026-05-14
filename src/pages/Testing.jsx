@@ -164,12 +164,12 @@ export default function Testing() {
   return (
     <FeatureRouteGuard flag="testing" requiresSubscription={true}>
     <VerificationGate isVerified={isVerified} isAdmin={isAdmin}>
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <div className="min-h-screen pb-20 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-[#E8EEF9] mb-2">Health Testing</h1>
-          <p className="text-[#9AA6BC]">Upload and manage your lab results</p>
+          <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--cc-text-primary)' }}>Health Testing</h1>
+          <p style={{ color: 'var(--cc-text-secondary)' }}>Upload and manage your lab results</p>
         </div>
 
         {/* Current Status */}
@@ -179,8 +179,8 @@ export default function Testing() {
               <div className="flex items-start gap-3">
                 <Shield className="w-5 h-5 text-[#22C55E] mt-0.5" />
                 <div className="flex-1">
-                  <h3 className="font-semibold text-[#E8EEF9] mb-1">Current Testing Status: Valid</h3>
-                  <div className="text-sm text-[#9AA6BC] space-y-1">
+                  <h3 className="font-semibold mb-1" style={{ color: 'var(--cc-text-primary)' }}>Current Testing Status: Valid</h3>
+                  <div className="text-sm space-y-1" style={{ color: 'var(--cc-text-secondary)' }}>
                     {activeCredential.tested_at && (
                       <p>Tested: {format(new Date(activeCredential.tested_at), 'MMM d, yyyy')}</p>
                     )}
@@ -208,11 +208,11 @@ export default function Testing() {
               onDragLeave={handleDrag}
               onDragOver={handleDrag}
               onDrop={handleDrop}
-              className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
-                dragActive
-                  ? 'border-[#4F8CFF] bg-[#4F8CFF]/5'
-                  : 'border-[#263248] hover:border-[#3A4A6B] hover:bg-[#1A2438]'
-              }`}
+              className="border-2 border-dashed rounded-xl p-8 text-center transition-all"
+              style={{
+                borderColor: dragActive ? 'var(--cc-blue)' : 'var(--cc-border)',
+                backgroundColor: dragActive ? 'color-mix(in srgb, var(--cc-blue) 5%, transparent)' : 'transparent',
+              }}
             >
               <input
                 ref={fileInputRef}
@@ -224,23 +224,23 @@ export default function Testing() {
               
               {uploading ? (
                 <div className="flex flex-col items-center gap-3">
-                  <Loader2 className="w-12 h-12 text-[#4F8CFF] animate-spin" />
-                  <p className="text-[#9AA6BC]">Uploading...</p>
+                  <Loader2 className="w-12 h-12 animate-spin" style={{ color: 'var(--cc-blue)' }} />
+                  <p style={{ color: 'var(--cc-text-secondary)' }}>Uploading...</p>
                 </div>
               ) : (
                 <>
-                  <Upload className="w-12 h-12 text-[#9AA6BC] mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-[#E8EEF9] mb-2">
+                  <Upload className="w-12 h-12 mx-auto mb-4" style={{ color: 'var(--cc-text-secondary)' }} />
+                  <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--cc-text-primary)' }}>
                     Drag & drop your lab results here
                   </h3>
-                  <p className="text-sm text-[#9AA6BC] mb-4">or</p>
+                  <p className="text-sm mb-4" style={{ color: 'var(--cc-text-secondary)' }}>or</p>
                   <CCButton
                     variant="primary"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     Choose File
                   </CCButton>
-                  <p className="text-xs text-[#6B7A94] mt-4">
+                  <p className="text-xs mt-4" style={{ color: 'var(--cc-text-muted)' }}>
                     PDF, PNG, JPG up to 10MB
                   </p>
                 </>
@@ -260,8 +260,8 @@ export default function Testing() {
           <CCCardContent>
             {testingDocuments.length === 0 ? (
               <div className="text-center py-8">
-                <FileText className="w-12 h-12 text-[#6B7A94] mx-auto mb-3" />
-                <p className="text-[#9AA6BC]">No documents uploaded yet</p>
+                <FileText className="w-12 h-12 mx-auto mb-3" style={{ color: 'var(--cc-text-muted)' }} />
+                <p style={{ color: 'var(--cc-text-secondary)' }}>No documents uploaded yet</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -270,14 +270,17 @@ export default function Testing() {
                   return (
                     <div
                       key={doc.id}
-                      className="flex items-center gap-3 p-3 bg-[#121824] border border-[#263248] rounded-lg hover:border-[#3A4A6B] transition-all"
+                      className="flex items-center gap-3 p-3 rounded-lg transition-all"
+                      style={{ backgroundColor: 'var(--cc-surface)', border: '1px solid var(--cc-border)' }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--cc-border-hover)'}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--cc-border)'}
                     >
-                      <div className="p-2 bg-[#151D2B] rounded-lg">
-                        <FileIcon className="w-5 h-5 text-[#4F8CFF]" />
+                      <div className="p-2 rounded-lg" style={{ backgroundColor: 'var(--cc-surface-hover)' }}>
+                        <FileIcon className="w-5 h-5" style={{ color: 'var(--cc-blue)' }} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-[#E8EEF9] truncate">{doc.file_name}</p>
-                        <div className="flex items-center gap-2 text-xs text-[#6B7A94] mt-1">
+                        <p className="font-medium truncate" style={{ color: 'var(--cc-text-primary)' }}>{doc.file_name}</p>
+                        <div className="flex items-center gap-2 text-xs mt-1" style={{ color: 'var(--cc-text-muted)' }}>
                           <Calendar className="w-3 h-3" />
                           {format(new Date(doc.uploaded_at), 'MMM d, yyyy')}
                           {doc.file_size && (
@@ -308,8 +311,8 @@ export default function Testing() {
           <CCCardContent className="p-4">
             <div className="flex flex-col items-center text-center gap-3">
               <AlertCircle className="w-5 h-5 text-[#F59E0B]" />
-              <div className="text-sm text-[#9AA6BC] space-y-2">
-                <p className="font-medium text-[#E8EEF9]">Important Information</p>
+              <div className="text-sm space-y-2" style={{ color: 'var(--cc-text-secondary)' }}>
+                <p className="font-medium" style={{ color: 'var(--cc-text-primary)' }}>Important Information</p>
                 <ul className="list-none space-y-1">
                   <li>Documents are reviewed by platform administrators</li>
                   <li>Verification typically takes 1-2 business days</li>

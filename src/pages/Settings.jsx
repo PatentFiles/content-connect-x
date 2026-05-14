@@ -136,17 +136,17 @@ export default function Settings() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <div className="min-h-screen pb-20 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
       {/* Header */}
-      <div className="sticky z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]" style={{ top: 'calc(4rem + env(safe-area-inset-top, 0px))' }}>
+      <div className="sticky z-30 backdrop-blur-xl border-b" style={{ top: 'calc(4rem + env(safe-area-inset-top, 0px))', backgroundColor: 'color-mix(in srgb, var(--cc-bg) 95%, transparent)', borderColor: 'var(--cc-border)' }}>
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#4F8CFF]/20 to-[#FF2DAA]/20 flex items-center justify-center">
               <SettingsIcon className="w-5 h-5 text-[#4F8CFF]" />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-[#E8EEF9]">Settings</h1>
-              <p className="text-xs text-[#6B7A94]">Manage your account</p>
+              <h1 className="text-xl font-semibold" style={{ color: 'var(--cc-text-primary)' }}>Settings</h1>
+              <p className="text-xs" style={{ color: 'var(--cc-text-muted)' }}>Manage your account</p>
             </div>
           </div>
         </div>
@@ -160,18 +160,18 @@ export default function Settings() {
         <CCTabsContent value="account" activeTab={activeTab}>
           <div className="space-y-6">
             <CCCard padding="lg">
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Account Information</h3>
+              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--cc-text-primary)' }}>Account Information</h3>
               <div className="space-y-4">
-                <div className="flex items-center justify-between py-3 border-b border-[#263248]">
+                <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: 'var(--cc-border)' }}>
                   <div>
-                    <p className="text-sm text-[#6B7A94]">Email</p>
-                    <p className="text-[#E8EEF9]">{user?.email}</p>
+                    <p className="text-sm" style={{ color: 'var(--cc-text-muted)' }}>Email</p>
+                    <p style={{ color: 'var(--cc-text-primary)' }}>{user?.email}</p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between py-3 border-b border-[#263248]">
+                <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: 'var(--cc-border)' }}>
                   <div>
-                    <p className="text-sm text-[#6B7A94]">Display Name</p>
-                    <p className="text-[#E8EEF9]">{currentProfile?.display_name || 'Not set'}</p>
+                    <p className="text-sm" style={{ color: 'var(--cc-text-muted)' }}>Display Name</p>
+                    <p style={{ color: 'var(--cc-text-primary)' }}>{currentProfile?.display_name || 'Not set'}</p>
                   </div>
                   <CCButton
                     variant="outline"
@@ -186,32 +186,32 @@ export default function Settings() {
                 </div>
                 <div className="flex items-center justify-between py-3">
                   <div>
-                    <p className="text-sm text-[#6B7A94]">Account Type</p>
-                    <p className="text-[#E8EEF9] capitalize">{currentProfile?.role_type || 'Not set'}</p>
+                    <p className="text-sm" style={{ color: 'var(--cc-text-muted)' }}>Account Type</p>
+                    <p className="capitalize" style={{ color: 'var(--cc-text-primary)' }}>{currentProfile?.role_type || 'Not set'}</p>
                   </div>
                 </div>
               </div>
             </CCCard>
 
             <CCCard padding="lg">
-              <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Security</h3>
+              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--cc-text-primary)' }}>Security</h3>
               <div className="space-y-4">
-                <div className="flex items-center justify-between py-3 border-b border-[#263248]">
+                <div className="flex items-center justify-between py-3 border-b" style={{ borderColor: 'var(--cc-border)' }}>
                   <div className="flex items-center gap-3">
-                    <Lock className="w-5 h-5 text-[#6B7A94]" />
+                    <Lock className="w-5 h-5" style={{ color: 'var(--cc-text-muted)' }} />
                     <div>
-                      <p className="text-[#E8EEF9]">Password</p>
-                      <p className="text-sm text-[#6B7A94]">Managed via your login provider</p>
+                      <p style={{ color: 'var(--cc-text-primary)' }}>Password</p>
+                      <p className="text-sm" style={{ color: 'var(--cc-text-muted)' }}>Managed via your login provider</p>
                     </div>
                   </div>
                   <CCButton variant="outline" size="sm" onClick={() => toast.info('Password management is handled by your login provider.')}>Change</CCButton>
                 </div>
                 <div className="flex items-center justify-between py-3">
                   <div className="flex items-center gap-3">
-                    <Shield className="w-5 h-5 text-[#6B7A94]" />
+                    <Shield className="w-5 h-5" style={{ color: 'var(--cc-text-muted)' }} />
                     <div>
-                      <p className="text-[#E8EEF9]">Two-Factor Authentication</p>
-                      <p className="text-sm text-[#6B7A94]">Managed via your login provider</p>
+                      <p style={{ color: 'var(--cc-text-primary)' }}>Two-Factor Authentication</p>
+                      <p className="text-sm" style={{ color: 'var(--cc-text-muted)' }}>Managed via your login provider</p>
                     </div>
                   </div>
                   <CCButton variant="outline" size="sm" onClick={() => toast.info('2FA is managed by your login provider.')}>Enable</CCButton>
@@ -223,8 +223,8 @@ export default function Settings() {
               <h3 className="text-lg font-semibold text-[#EF4444] mb-4">Danger Zone</h3>
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-[#E8EEF9]">Delete Account</p>
-                  <p className="text-sm text-[#6B7A94]">Anonymize and deactivate your account. Safety and legal records are retained per platform policy.</p>
+                  <p style={{ color: 'var(--cc-text-primary)' }}>Delete Account</p>
+                  <p className="text-sm" style={{ color: 'var(--cc-text-muted)' }}>Anonymize and deactivate your account. Safety and legal records are retained per platform policy.</p>
                   {currentProfile?.deletion_status === 'blocked_legal_hold' && (
                     <p className="text-xs text-[#F59E0B] mt-1 flex items-center gap-1">
                       <Shield className="w-3 h-3" /> Deletion is currently blocked — account is under compliance review.
@@ -251,8 +251,8 @@ export default function Settings() {
         {/* Analytics Tab */}
         <CCTabsContent value="analytics" activeTab={activeTab}>
           <div className="mb-4">
-            <h3 className="text-lg font-semibold text-[#E8EEF9]">Profile Analytics</h3>
-            <p className="text-sm text-[#9AA6BC] mt-1">Track profile visits, gallery views, and saves over time.</p>
+            <h3 className="text-lg font-semibold" style={{ color: 'var(--cc-text-primary)' }}>Profile Analytics</h3>
+            <p className="text-sm mt-1" style={{ color: 'var(--cc-text-secondary)' }}>Track profile visits, gallery views, and saves over time.</p>
           </div>
           <ProfileAnalytics userId={user?.email} />
         </CCTabsContent>
@@ -260,8 +260,8 @@ export default function Settings() {
         {/* Social Links Tab */}
         <CCTabsContent value="social" activeTab={activeTab}>
           <div>
-            <h3 className="text-lg font-semibold text-[#E8EEF9] mb-4">Social Links</h3>
-            <p className="text-sm text-[#9AA6BC] mb-6">
+            <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--cc-text-primary)' }}>Social Links</h3>
+            <p className="text-sm mb-6" style={{ color: 'var(--cc-text-secondary)' }}>
               Manage your social media and platform links with granular visibility control.
             </p>
             <SocialLinksManager user={user} />
@@ -323,12 +323,13 @@ export default function Settings() {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Display Name</label>
+            <label className="block text-sm font-medium mb-2" style={{ color: 'var(--cc-text-primary)' }}>Display Name</label>
             <input
               type="text"
               value={editingName}
               onChange={(e) => setEditingName(e.target.value)}
-              className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] placeholder-[#6B7A94] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
+              className="w-full rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2"
+              style={{ backgroundColor: 'var(--cc-bg)', border: '1px solid var(--cc-border)', color: 'var(--cc-text-primary)' }}
               placeholder="Enter your display name"
             />
           </div>

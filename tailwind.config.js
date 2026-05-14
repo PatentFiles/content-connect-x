@@ -96,5 +96,14 @@ module.exports = {
   		}
   	}
   },
+  safelist: [
+    'cc-text-fix-primary',
+    'cc-text-fix-secondary',
+    'cc-text-fix-muted',
+    'cc-text-blue-fix',
+    'cc-bg-fix',
+    'cc-surface-fix',
+    'cc-border-fix',
+  ],
   plugins: [require("tailwindcss-animate")],
 }
