@@ -104,9 +104,9 @@ export default function TravelSync({ userId, myProfile }) {
     return (
       <CCCard padding="md">
         <div className="text-center mb-2">
-          <h3 className="text-sm font-semibold text-[#E8EEF9]">Travel Sync</h3>
+          <h3 className="text-sm font-semibold cc-text-fix-primary">Travel Sync</h3>
         </div>
-        <p className="text-xs text-[#6B7A94] text-center">
+        <p className="text-xs cc-text-fix-muted text-center">
           No overlapping travel found. Add travel dates to find matches in your destination cities.
         </p>
       </CCCard>
@@ -116,7 +116,7 @@ export default function TravelSync({ userId, myProfile }) {
   return (
     <CCCard padding="md">
       <div className="text-center mb-3">
-        <h3 className="text-sm font-semibold text-[#E8EEF9]">Travel Sync</h3>
+        <h3 className="text-sm font-semibold cc-text-fix-primary">Travel Sync</h3>
         <CCBadge variant="primary" size="sm" className="mt-1 inline-block">{travelMatches.length} match{travelMatches.length !== 1 ? 'es' : ''}</CCBadge>
       </div>
 
@@ -129,12 +129,12 @@ export default function TravelSync({ userId, myProfile }) {
               to={createPageUrl(`ViewProfile?user_id=${profile.user_id}`)}
               className="block"
             >
-              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-[#1A2438] transition-colors">
+              <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-cc-surface-hover transition-colors">
                 <CCAvatar src={profile.avatar_url} size="sm" />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <p className="text-sm font-medium text-[#E8EEF9] truncate">{profile.display_name}</p>
-                    {isVerified && <span className="text-[#4F8CFF] text-xs">✓</span>}
+                    <p className="text-sm font-medium cc-text-fix-primary truncate">{profile.display_name}</p>
+                    {isVerified && <span className="cc-text-blue-fix text-xs">✓</span>}
                   </div>
                   <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                     {isSameCity && (
@@ -143,15 +143,15 @@ export default function TravelSync({ userId, myProfile }) {
                       </span>
                     )}
                     {isOverlapping && !isSameCity && (
-                      <span className="text-xs text-[#4F8CFF] flex items-center gap-0.5">
+                      <span className="text-xs cc-text-blue-fix flex items-center gap-0.5">
                         <Calendar className="w-2.5 h-2.5" />Overlapping travel
                       </span>
                     )}
                     {nextEntry?.location && (
-                      <span className="text-xs text-[#6B7A94]">{nextEntry.location}</span>
+                      <span className="text-xs cc-text-fix-muted">{nextEntry.location}</span>
                     )}
                     {nextEntry?.date && (
-                      <span className="text-xs text-[#6B7A94]">
+                      <span className="text-xs cc-text-fix-muted">
                         {format(parseISO(nextEntry.date), 'MMM d')}
                       </span>
                     )}
