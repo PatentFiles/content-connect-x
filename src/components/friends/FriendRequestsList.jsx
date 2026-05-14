@@ -39,7 +39,9 @@ export default function FriendRequestsList({ userId }) {
     enabled: !!userId,
   });
 
-  // Respond to request (direct — no backend function needed)
+  const pendingQK = ['pendingFriendRequests', userId];
+
+  // Respond to request — optimistic: remove from pending list immediately
   const respondMutation = useMutation({
     mutationFn: async ({ friendship_id, response }) => {
       await base44.entities.Friendship.update(friendship_id, {
@@ -47,13 +49,22 @@ export default function FriendRequestsList({ userId }) {
         responded_at: new Date().toISOString(),
       });
     },
+    onMutate: async ({ friendship_id }) => {
+      await queryClient.cancelQueries({ queryKey: pendingQK });
+      const previous = queryClient.getQueryData(pendingQK);
+      queryClient.setQueryData(pendingQK, (old = []) => old.filter(r => r.id !== friendship_id));
+      return { previous };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(pendingQK, ctx.previous);
+      toast.error('Failed to respond to request');
+    },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['pendingFriendRequests'] });
-      queryClient.invalidateQueries({ queryKey: ['friendsList'] });
       toast.success(variables.response === 'ACCEPT' ? 'Friend request accepted' : 'Friend request declined');
     },
-    onError: () => {
-      toast.error('Failed to respond to request');
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['pendingFriendRequests'] });
+      queryClient.invalidateQueries({ queryKey: ['friendsList'] });
     },
   });
 

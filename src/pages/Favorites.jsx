@@ -20,7 +20,7 @@ import CCEmpty from '@/components/ui-custom/CCEmpty';
 import ProfileCard from '@/components/profiles/ProfileCard';
 import { useFeatureFlag } from '@/lib/featureFlags';
 import VerificationGate from '@/components/auth/VerificationGate';
-import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
+
 
 // Role tabs for filtering saved profiles
 const PROFILE_TABS = [
@@ -247,6 +247,37 @@ export default function Favorites() {
     return profiles.filter(p => p.role_type === activeTab);
   }, [profiles, activeTab]);
 
+  // Remove property from favorites — optimistic
+  const removePropertyMutation = useMutation({
+    mutationFn: async (propertyId) => {
+      for (const fav of favorites) {
+        if (fav.property_items?.some(p => p.property_id === propertyId)) {
+          await base44.entities.Favorite.update(fav.id, {
+            property_items: fav.property_items.filter(p => p.property_id !== propertyId),
+          });
+        }
+      }
+    },
+    onMutate: async (propertyId) => {
+      await queryClient.cancelQueries({ queryKey: favQueryKey });
+      const previous = queryClient.getQueryData(favQueryKey);
+      queryClient.setQueryData(favQueryKey, (old = []) =>
+        old.map(f => ({
+          ...f,
+          property_items: (f.property_items || []).filter(p => p.property_id !== propertyId),
+        }))
+      );
+      return { previous };
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(favQueryKey, ctx.previous);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: favQueryKey });
+      queryClient.invalidateQueries({ queryKey: ['favoriteProperties', user?.email] });
+    },
+  });
+
   if (userLoading) {
     return <CCLoadingScreen message="Loading..." />;
   }
@@ -256,18 +287,6 @@ export default function Favorites() {
   };
 
   const hasLists = favorites.length > 0;
-
-  const removePropertyFromFavorites = async (propertyId) => {
-    for (const fav of favorites) {
-      if (fav.property_items?.some(p => p.property_id === propertyId)) {
-        await base44.entities.Favorite.update(fav.id, {
-          property_items: fav.property_items.filter(p => p.property_id !== propertyId),
-        });
-      }
-    }
-    queryClient.invalidateQueries({ queryKey: ['favorites', user?.email] });
-    queryClient.invalidateQueries({ queryKey: ['favoriteProperties', user?.email] });
-  };
 
   return (
     <FeatureRouteGuard flag="favorites" requiresSubscription={true}>
@@ -339,11 +358,7 @@ export default function Favorites() {
         </div>
       </div>
 
-      {/* Content */}
-      <MobileRefreshPage onRefresh={() => {
-        queryClient.invalidateQueries({ queryKey: ['favorites', user?.email] });
-        queryClient.invalidateQueries({ queryKey: ['favoriteProperties', user?.email] });
-      }}>
+      {/* Content — pull-to-refresh handled globally via GlobalPullToRefresh in layout.jsx */}
       <div className="max-w-6xl mx-auto px-4 py-6">
         {/* Host Properties Tab */}
         {activeTab === 'properties' ? (
@@ -388,7 +403,7 @@ export default function Favorites() {
                       </div>
                     </Link>
                     <button
-                      onClick={() => removePropertyFromFavorites(prop.id)}
+                      onClick={() => removePropertyMutation.mutate(prop.id)}
                       className="absolute top-2 right-2 p-1.5 bg-black/60 hover:bg-[#EF4444]/80 text-white rounded-full transition-colors"
                       title="Remove from favorites"
                     >
@@ -519,7 +534,6 @@ export default function Favorites() {
         ) }
       </div>
 
-      </MobileRefreshPage>
       {/* Create List Modal */}
       <CCModal
         isOpen={isCreating}

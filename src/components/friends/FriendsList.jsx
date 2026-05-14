@@ -41,15 +41,26 @@ export default function FriendsList({ userId }) {
     enabled: !!userId,
   });
 
+  const friendsQK = ['friendsList', userId];
+
   const removeFriendMutation = useMutation({
     mutationFn: (friendshipId) => base44.entities.Friendship.delete(friendshipId),
+    onMutate: async (friendshipId) => {
+      await queryClient.cancelQueries({ queryKey: friendsQK });
+      const previous = queryClient.getQueryData(friendsQK);
+      queryClient.setQueryData(friendsQK, (old = []) => old.filter(f => f.id !== friendshipId));
+      return { previous };
+    },
+    onError: (_err, _id, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(friendsQK, ctx.previous);
+      toast.error('Failed to remove friend');
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['friendsList', userId] });
       setConfirmRemove(null);
       setRemoveSuccess(true);
     },
-    onError: () => {
-      toast.error('Failed to remove friend');
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: friendsQK });
     },
   });
 

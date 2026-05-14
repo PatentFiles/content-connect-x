@@ -215,11 +215,7 @@ export default function FriendRequestButton({ targetUserId, size = 'md', variant
             <CCButton
               onClick={() => {
                 setShowSuccessModal(false);
-                setTimeout(() => {
-                  if (window.confirm('Cancel this friend request?')) {
-                    cancelRequestMutation.mutate();
-                  }
-                }, 300);
+                cancelRequestMutation.mutate();
               }}
               variant="ghost"
               fullWidth

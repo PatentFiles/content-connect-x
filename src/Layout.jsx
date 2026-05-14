@@ -14,6 +14,7 @@ import TabNavigatorProvider from '@/components/layout/TabNavigator';
 import { MobileNavProvider } from '@/lib/MobileNavContext';
 import MobileHeader from '@/components/layout/MobileHeader';
 import { getPlatform } from '@/lib/usePlatform';
+import GlobalPullToRefresh from '@/components/ui-custom/GlobalPullToRefresh';
 
 // Public pages that don't need auth
 const publicPages = [
@@ -159,28 +160,30 @@ export default function Layout({ children, currentPageName }) {
   // For public pages, show minimal layout
   if (isPublicPage) {
     return (
-      <div className="min-h-screen" style={{ backgroundColor: 'var(--cc-bg)' }}>
-        <Toaster position="top-center" theme="system" />
-        <NavBar 
-          user={user}
-          profile={profile}
-          isAuthenticated={isAuthenticated}
-          onMenuToggle={() => setMenuOpen(!menuOpen)}
-          menuOpen={menuOpen}
-          onHamburgerToggle={() => setMobileNavOpen(!mobileNavOpen)}
-        />
-        <MobileNavMenu
-          isOpen={mobileNavOpen}
-          onClose={() => setMobileNavOpen(false)}
-          profile={profile}
-          currentPage={currentPageName}
-          onLogout={handleLogout}
-          adminRoleView={adminRoleView}
-        />
-        <main id="main-content">
-          <PageTransition>{children}</PageTransition>
-        </main>
-      </div>
+      <GlobalPullToRefresh>
+        <div className="min-h-screen" style={{ backgroundColor: 'var(--cc-bg)' }}>
+          <Toaster position="top-center" theme="system" />
+          <NavBar 
+            user={user}
+            profile={profile}
+            isAuthenticated={isAuthenticated}
+            onMenuToggle={() => setMenuOpen(!menuOpen)}
+            menuOpen={menuOpen}
+            onHamburgerToggle={() => setMobileNavOpen(!mobileNavOpen)}
+          />
+          <MobileNavMenu
+            isOpen={mobileNavOpen}
+            onClose={() => setMobileNavOpen(false)}
+            profile={profile}
+            currentPage={currentPageName}
+            onLogout={handleLogout}
+            adminRoleView={adminRoleView}
+          />
+          <main id="main-content">
+            <PageTransition>{children}</PageTransition>
+          </main>
+        </div>
+      </GlobalPullToRefresh>
     );
   }
 
@@ -188,6 +191,7 @@ export default function Layout({ children, currentPageName }) {
   if (isAppPage && (isAuthenticated || userLoading)) {
     // Main content must clear NavBar (64px) + safe-area-inset-top
     return (
+      <GlobalPullToRefresh>
       <MobileNavProvider>
         <TabNavigatorProvider>
           <div className="min-h-screen" style={{ backgroundColor: 'var(--cc-bg)' }}>
@@ -239,32 +243,35 @@ export default function Layout({ children, currentPageName }) {
           </div>
         </TabNavigatorProvider>
       </MobileNavProvider>
+      </GlobalPullToRefresh>
     );
   }
 
   // Default layout
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--cc-bg)' }}>
-      <Toaster position="top-center" theme="system" />
-      <NavBar 
-        user={user}
-        profile={profile}
-        isAuthenticated={isAuthenticated}
-        onMenuToggle={() => setMenuOpen(!menuOpen)}
-        menuOpen={menuOpen}
-        onHamburgerToggle={() => setMobileNavOpen(!mobileNavOpen)}
-      />
-      <MobileNavMenu
-        isOpen={mobileNavOpen}
-        onClose={() => setMobileNavOpen(false)}
-        profile={profile}
-        currentPage={currentPageName}
-        onLogout={handleLogout}
-        adminRoleView={adminRoleView}
-      />
-      <main id="main-content" className="pt-16">
-        <PageTransition>{children}</PageTransition>
-      </main>
-    </div>
+    <GlobalPullToRefresh>
+      <div className="min-h-screen" style={{ backgroundColor: 'var(--cc-bg)' }}>
+        <Toaster position="top-center" theme="system" />
+        <NavBar 
+          user={user}
+          profile={profile}
+          isAuthenticated={isAuthenticated}
+          onMenuToggle={() => setMenuOpen(!menuOpen)}
+          menuOpen={menuOpen}
+          onHamburgerToggle={() => setMobileNavOpen(!mobileNavOpen)}
+        />
+        <MobileNavMenu
+          isOpen={mobileNavOpen}
+          onClose={() => setMobileNavOpen(false)}
+          profile={profile}
+          currentPage={currentPageName}
+          onLogout={handleLogout}
+          adminRoleView={adminRoleView}
+        />
+        <main id="main-content" className="pt-16">
+          <PageTransition>{children}</PageTransition>
+        </main>
+      </div>
+    </GlobalPullToRefresh>
   );
 }

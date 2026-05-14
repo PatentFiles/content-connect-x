@@ -1,32 +1,19 @@
 /**
- * MobileRefreshPage
- * ─────────────────
- * A lightweight wrapper that applies PullToRefresh to any page's main scroll area.
- * - On mobile: enables native-feeling pull-to-refresh via the existing PullToRefresh component.
- * - On desktop: renders children normally without any pull gesture interference.
- * - Does NOT add an extra scroll container; it delegates to PullToRefresh with scrollable=false
- *   so the page's own scroll container (body / layout main) handles scrolling.
+ * MobileRefreshPage — now a passthrough.
  *
- * Usage:
- *   <MobileRefreshPage onRefresh={async () => { ... }}>
- *     <YourPageContent />
- *   </MobileRefreshPage>
+ * Pull-to-refresh is handled globally by GlobalPullToRefresh in layout.jsx.
+ * This component is kept for backwards compatibility (pages still import it)
+ * but renders children directly without adding any PTR layer.
  *
- * For static pages with no data: omit onRefresh (renders children as-is on desktop,
- * provides a no-op pull indicator on mobile so the scanner doesn't flag the page).
+ * The `onRefresh` prop is accepted but ignored — GlobalPullToRefresh calls
+ * queryClient.invalidateQueries({ queryKey: [] }) which invalidates everything.
  */
 import React from 'react';
-import PullToRefresh from './PullToRefresh';
 
-export default function MobileRefreshPage({ children, onRefresh, className = '' }) {
-  const handleRefresh = onRefresh ?? (() => Promise.resolve());
+export default function MobileRefreshPage({ children, className = '' }) {
   return (
-    <PullToRefresh
-      onRefresh={handleRefresh}
-      scrollable={false}
-      className={className}
-    >
+    <div className={className}>
       {children}
-    </PullToRefresh>
+    </div>
   );
 }
