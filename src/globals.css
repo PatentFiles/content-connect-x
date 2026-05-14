@@ -54,6 +54,30 @@
   --cc-pink:          #FF2DAA;
 }
 
+/* ── Light mode: also flip the shadcn/ui index.css tokens so all shadcn
+   components (cards, popovers, dialogs, etc.) also switch to light ── */
+:root:not(.dark) {
+  --background: 220 20% 97%;
+  --foreground: 220 40% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 220 40% 10%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 220 40% 10%;
+  --primary: 217 80% 50%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 20% 92%;
+  --secondary-foreground: 220 40% 10%;
+  --muted: 220 20% 92%;
+  --muted-foreground: 220 15% 40%;
+  --accent: 325 80% 50%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 50%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 220 20% 82%;
+  --input: 220 20% 92%;
+  --ring: 217 80% 50%;
+}
+
 /* Light mode overrides — WCAG AA contrast maintained throughout */
 :root:not(.dark) {
   --background: 220 20% 97%;
@@ -105,6 +129,50 @@
 :root:not(.dark) {
   color-scheme: light;
 }
+
+/* ── Global theming: map the hardcoded dark-palette hex values used throughout
+   the codebase to CSS token variables. When the `.dark` class is removed
+   (light mode), the tokens change and every component that uses these exact
+   hex values automatically inherits the correct light-mode color.           ──*/
+
+/* Hardcoded bg values → themed background */
+[class*="bg-[#0B0F14]"]   { background-color: var(--cc-bg) !important; }
+[class*="bg-[#121824]"]   { background-color: var(--cc-bg) !important; }
+[class*="bg-[#0b0f14]"]   { background-color: var(--cc-bg) !important; }
+[class*="bg-[#151D2B]"]   { background-color: var(--cc-surface) !important; }
+[class*="bg-[#151d2b]"]   { background-color: var(--cc-surface) !important; }
+[class*="bg-[#1A2438]"]   { background-color: var(--cc-surface-hover) !important; }
+[class*="bg-[#1a2438]"]   { background-color: var(--cc-surface-hover) !important; }
+[class*="bg-[#263248]"]   { background-color: var(--cc-border) !important; }
+[class*="bg-[#263248]/"]  { background-color: color-mix(in srgb, var(--cc-border) var(--tw-bg-opacity, 100%), transparent) !important; }
+
+/* Hardcoded text values → themed text */
+[class*="text-[#E8EEF9]"] { color: var(--cc-text-primary) !important; }
+[class*="text-[#e8eef9]"] { color: var(--cc-text-primary) !important; }
+[class*="text-[#9AA6BC]"] { color: var(--cc-text-secondary) !important; }
+[class*="text-[#9aa6bc]"] { color: var(--cc-text-secondary) !important; }
+[class*="text-[#6B7A94]"] { color: var(--cc-text-muted) !important; }
+[class*="text-[#6b7a94]"] { color: var(--cc-text-muted) !important; }
+
+/* Hardcoded border values → themed border */
+[class*="border-[#263248]"]  { border-color: var(--cc-border) !important; }
+[class*="border-[#3A4A6B]"]  { border-color: var(--cc-border-hover) !important; }
+[class*="border-[#3a4a6b]"]  { border-color: var(--cc-border-hover) !important; }
+
+/* Hover backgrounds */
+[class*="hover:bg-[#151D2B]"]:hover { background-color: var(--cc-surface) !important; }
+[class*="hover:bg-[#151d2b]"]:hover { background-color: var(--cc-surface) !important; }
+[class*="hover:bg-[#1A2438]"]:hover { background-color: var(--cc-surface-hover) !important; }
+[class*="hover:bg-[#1a2438]"]:hover { background-color: var(--cc-surface-hover) !important; }
+[class*="hover:text-[#E8EEF9]"]:hover { color: var(--cc-text-primary) !important; }
+[class*="hover:text-[#e8eef9]"]:hover { color: var(--cc-text-primary) !important; }
+
+/* Fix: header/navbar */
+header.fixed { background-color: color-mix(in srgb, var(--cc-bg) 95%, transparent) !important; }
+
+/* Ensure page-level containers respond to theme */
+.min-h-screen { background-color: var(--cc-bg); }
+/* Body always uses token background */
 
 /* Base styles */
 body {
@@ -272,7 +340,7 @@ input[type="range"] {
 }
 
 input[type="range"]::-webkit-slider-track {
-  background: #263248;
+  background: var(--cc-border);
   height: 4px;
   border-radius: 2px;
 }
@@ -282,14 +350,14 @@ input[type="range"]::-webkit-slider-thumb {
   appearance: none;
   width: 16px;
   height: 16px;
-  background: #4F8CFF;
+  background: var(--cc-blue);
   border-radius: 50%;
   cursor: pointer;
   margin-top: -6px;
 }
 
 input[type="range"]::-moz-range-track {
-  background: #263248;
+  background: var(--cc-border);
   height: 4px;
   border-radius: 2px;
 }
@@ -297,7 +365,7 @@ input[type="range"]::-moz-range-track {
 input[type="range"]::-moz-range-thumb {
   width: 16px;
   height: 16px;
-  background: #4F8CFF;
+  background: var(--cc-blue);
   border-radius: 50%;
   cursor: pointer;
   border: none;
@@ -309,16 +377,16 @@ input[type="checkbox"] {
   appearance: none;
   width: 1.25rem;
   height: 1.25rem;
-  border: 1px solid #263248;
+  border: 1px solid var(--cc-border);
   border-radius: 0.375rem;
-  background-color: #121824;
+  background-color: var(--cc-surface);
   cursor: pointer;
   position: relative;
 }
 
 input[type="checkbox"]:checked {
-  background-color: #4F8CFF;
-  border-color: #4F8CFF;
+  background-color: var(--cc-blue);
+  border-color: var(--cc-blue);
 }
 
 input[type="checkbox"]:checked::after {
@@ -344,15 +412,15 @@ input[type="radio"] {
   appearance: none;
   width: 1.25rem;
   height: 1.25rem;
-  border: 1px solid #263248;
+  border: 1px solid var(--cc-border);
   border-radius: 50%;
-  background-color: #121824;
+  background-color: var(--cc-surface);
   cursor: pointer;
   position: relative;
 }
 
 input[type="radio"]:checked {
-  border-color: #4F8CFF;
+  border-color: var(--cc-blue);
 }
 
 input[type="radio"]:checked::after {
@@ -363,7 +431,7 @@ input[type="radio"]:checked::after {
   transform: translate(-50%, -50%);
   width: 10px;
   height: 10px;
-  background-color: #4F8CFF;
+  background-color: var(--cc-blue);
   border-radius: 50%;
 }
 

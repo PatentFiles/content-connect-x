@@ -10,6 +10,17 @@ module.exports = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
+  			/* Content Connect semantic tokens — usable as bg-cc-bg, text-cc-text-primary, etc. */
+  			'cc-bg':            'var(--cc-bg)',
+  			'cc-surface':       'var(--cc-surface)',
+  			'cc-surface-hover': 'var(--cc-surface-hover)',
+  			'cc-border':        'var(--cc-border)',
+  			'cc-border-hover':  'var(--cc-border-hover)',
+  			'cc-text-primary':  'var(--cc-text-primary)',
+  			'cc-text-secondary':'var(--cc-text-secondary)',
+  			'cc-text-muted':    'var(--cc-text-muted)',
+  			'cc-blue':          'var(--cc-blue)',
+  			'cc-pink':          'var(--cc-pink)',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

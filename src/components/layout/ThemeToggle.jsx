@@ -12,8 +12,8 @@ export default function ThemeToggle({ className }) {
       aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
       className={cn(
         'p-2 rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center',
-        'text-[#9AA6BC] hover:text-[#E8EEF9] hover:bg-[#151D2B]',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4F8CFF]',
+        'text-cc-text-secondary hover:text-cc-text-primary hover:bg-cc-surface',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--cc-blue)]',
         className
       )}
     >

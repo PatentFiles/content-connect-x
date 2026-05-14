@@ -23,7 +23,8 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-40 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]"
+      className="fixed top-0 left-0 right-0 z-40 backdrop-blur-xl border-b border-cc-border"
+      style={{ backgroundColor: 'color-mix(in srgb, var(--cc-bg) 95%, transparent)' }}
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
       <div className="w-full px-4 h-16 flex items-center justify-between">
@@ -132,7 +133,7 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
       <motion.div
         initial={false}
         animate={{ height: menuOpen ? 'auto' : 0 }}
-        className="md:hidden overflow-hidden bg-[#121824] border-t border-[#263248]"
+        className="md:hidden overflow-hidden bg-cc-bg border-t border-cc-border"
       >
         <nav className="p-4 space-y-2">
           {!isAuthenticated ? (
