@@ -17,6 +17,8 @@ import AgentRepresentationRequestModal from '@/components/representation/AgentRe
 import TopCreators from '@/components/discovery/TopCreators';
 import TravelSync from '@/components/discovery/TravelSync';
 import AgentMarketplaceCard from '@/components/marketplace/AgentMarketplaceCard';
+import PullToRefresh from '@/components/ui-custom/PullToRefresh';
+import { useOptimisticMutation } from '@/hooks/useOptimisticMutation';
 
 function calculateDistance(lat1, lon1, lat2, lon2) {
   const R = 3959;
@@ -167,7 +169,14 @@ export default function Discovery() {
 
   const favQueryKey = ['myFavorites', user?.email];
 
-  const unsaveFromFavoritesMutation = useMutation({
+  // Optimistic unsave — removes the item from cache immediately, syncs in background
+  const { mutate: optimisticUnsave } = useOptimisticMutation({
+    queryKey: favQueryKey,
+    optimisticUpdate: (old, userId) =>
+      (old ?? []).map(list => ({
+        ...list,
+        items: (list.items ?? []).filter(item => item.user_id !== userId),
+      })),
     mutationFn: async (userId) => {
       const listsWithProfile = favorites.filter(f => f.items?.some(item => item.user_id === userId));
       await Promise.all(
@@ -177,16 +186,13 @@ export default function Discovery() {
         })
       );
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: favQueryKey });
-      toast.success('Removed from favorites');
-    },
+    onSuccess: () => toast.success('Removed from favorites'),
   });
 
   const handleFavorite = (profile) => {
     const isSaved = favorites.some(f => f.items?.some(item => item.user_id === profile.user_id));
     if (isSaved) {
-      unsaveFromFavoritesMutation.mutate(profile.user_id);
+      optimisticUnsave(profile.user_id);
     } else {
       setSelectedProfile(profile);
       if (favorites.length === 0) {
@@ -416,6 +422,10 @@ export default function Discovery() {
         </div>
       </div>
 
+      <PullToRefresh
+        scrollable={false}
+        onRefresh={() => queryClient.invalidateQueries({ queryKey: ['extendedSearch', searchQuery] })}
+      >
       <div className="max-w-6xl mx-auto px-4 py-6">
         {activeTab === 'profiles' && (
           <div className="flex justify-center mb-4">
@@ -565,6 +575,7 @@ export default function Discovery() {
           onSuccess={() => queryClient.invalidateQueries({ queryKey: ['myCreatorReps'] })}
         />
       </div>
+      </PullToRefresh>
       </div>
     </FeatureRouteGuard>
   );

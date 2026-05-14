@@ -35,6 +35,7 @@ import VerificationRequired from '@/components/auth/VerificationRequired';
 import AvailabilityCalendar from '@/components/collaboration/AvailabilityCalendar';
 import { logCollaborationActivity } from '@/components/collaboration/activityLogHelpers';
 import { revalidateBanStatus } from '@/hooks/useProtectedMutation';
+import BottomSheetSelect from '@/components/ui-custom/BottomSheetSelect';
 import { toast } from 'sonner';
 
 const compensationTypes = [
@@ -1431,21 +1432,18 @@ export default function CreateCollaboration() {
                 <MapPin className="w-5 h-5" /> Location
               </h3>
               <div className="text-center mb-4">
-                <label className="block text-sm font-medium text-[#E8EEF9] mb-2">Location Type</label>
-                <select
+                <BottomSheetSelect
+                  label="Location Type"
                   value={formData.location.type}
-                  onChange={(e) => updateForm('location', {
-                    ...formData.location,
-                    type: e.target.value
-                  })}
-                  className="w-full bg-[#121824] border border-[#263248] rounded-lg px-4 py-2.5 text-[#E8EEF9] focus:outline-none focus:ring-2 focus:ring-[#4F8CFF]/50"
-                >
-                  <option value="">Select location type</option>
-                  <option value="studio">Studio</option>
-                  <option value="private">Private Location</option>
-                  <option value="outdoor">Outdoor</option>
-                  <option value="travel">Travel Required</option>
-                </select>
+                  onChange={(val) => updateForm('location', { ...formData.location, type: val })}
+                  options={[
+                    { value: 'studio', label: 'Studio' },
+                    { value: 'private', label: 'Private Location' },
+                    { value: 'outdoor', label: 'Outdoor' },
+                    { value: 'travel', label: 'Travel Required' },
+                  ]}
+                  placeholder="Select location type"
+                />
               </div>
               <div className="text-center">
                 <label className="block text-sm font-medium text-[#E8EEF9] mb-2">City</label>

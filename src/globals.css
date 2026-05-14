@@ -140,10 +140,15 @@ option {
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 
 /* ── Overscroll containment ─────────────────────────────────────────────── */
+/* Top-level html/body keeps overscroll-behavior: none (set above).
+   All secondary scroll containers get contain so momentum scrolling works
+   but content doesn't trigger browser pull-to-refresh / back navigation. */
 .scroll-container,
 .overflow-y-auto,
 .overflow-x-auto,
-.overflow-auto { overscroll-behavior: contain; }
+.overflow-auto,
+[class*="max-h-"][class*="overflow"],
+.overflow-y-scroll { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
 
 /* ── Accessibility ──────────────────────────────────────────────────────── */
 .skip-link {

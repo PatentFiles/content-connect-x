@@ -16,6 +16,7 @@ import PropertyAccessSettings from './PropertyAccessSettings';
 import PropertyDamageDepositSection from './PropertyDamageDepositSection';
 import CancellationPolicySelector from './CancellationPolicySelector';
 import { useFeatureFlag } from '@/lib/featureFlags';
+import BottomSheetSelect from '@/components/ui-custom/BottomSheetSelect';
 
 const PROPERTY_TYPES = [
   'studio', 'loft', 'house', 'apartment', 'studio_set', 'dungeon',
@@ -194,14 +195,20 @@ export default function PropertyForm({ property, ownerUserId, onSaved, onCancel 
           <input value={form.title} onChange={e => set('title', e.target.value)} placeholder="e.g. Bright Downtown Loft Studio" className={INPUT} />
         )}
         {field('Property Type',
-          <select value={form.property_type} onChange={e => set('property_type', e.target.value)} className={INPUT}>
-            {PROPERTY_TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-          </select>
+          <BottomSheetSelect
+            value={form.property_type}
+            onChange={val => set('property_type', val)}
+            options={PROPERTY_TYPES.map(t => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1).replace(/_/g, ' ') }))}
+            placeholder="Select property type"
+          />
         )}
         {field('Owner Type',
-          <select value={form.owner_type} onChange={e => set('owner_type', e.target.value)} className={INPUT}>
-            {OWNER_TYPES.map(t => <option key={t} value={t}>{t.replace(/_/g, ' ')}</option>)}
-          </select>
+          <BottomSheetSelect
+            value={form.owner_type}
+            onChange={val => set('owner_type', val)}
+            options={OWNER_TYPES.map(t => ({ value: t, label: t.replace(/_/g, ' ') }))}
+            placeholder="Select owner type"
+          />
         )}
         {field('City *',
           <input value={form.city} onChange={e => set('city', e.target.value)} placeholder="Los Angeles" className={INPUT} />
