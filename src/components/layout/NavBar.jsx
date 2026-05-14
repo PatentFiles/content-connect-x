@@ -9,6 +9,7 @@ import CCButton from '../ui-custom/CCButton';
 import CCAvatar from '../ui-custom/CCAvatars';
 import { useQuery } from '@tanstack/react-query';
 import CCBadge from '../ui-custom/CCBadge';
+import ThemeToggle from './ThemeToggle';
 
 export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, menuOpen, onHamburgerToggle }) {
   // Fetch unread notifications count
@@ -55,6 +56,8 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
         <div className="flex items-center gap-2">
           {isAuthenticated && user ? (
             <>
+              <ThemeToggle />
+
               <Link to={createPageUrl('Notifications')} className="relative">
                 <CCButton variant="ghost" size="icon">
                   <Bell className="w-5 h-5" />
@@ -83,6 +86,8 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
             </>
           ) : profile ? (
             <>
+              <ThemeToggle />
+
               <Link to={createPageUrl('Notifications')} className="relative">
                 <CCButton variant="ghost" size="icon">
                   <Bell className="w-5 h-5" />
@@ -96,6 +101,8 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
             </>
           ) : (
             <>
+              <ThemeToggle />
+
               <CCButton 
                 variant="ghost" 
                 size="sm"

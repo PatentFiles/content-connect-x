@@ -3,23 +3,31 @@ import ReactDOM from 'react-dom/client'
 import App from '@/App.jsx'
 import '@/index.css'
 
-// ── System theme: auto-apply dark/light class based on prefers-color-scheme ──
-// The app is dark-first, but we respect the OS preference.
-// We add the `dark` class to <html> when the OS is in dark mode and remove it
-// when the OS is in light mode, then listen for live changes.
-function applySystemTheme(mq) {
-  if (mq.matches) {
-    document.documentElement.classList.add('dark');
-  } else {
-    document.documentElement.classList.remove('dark');
-  }
+// ── Theme initialisation: check localStorage first, then OS preference ──
+// This runs synchronously before React mounts to prevent any flash.
+const STORAGE_KEY = 'cc_theme';
+const stored = localStorage.getItem(STORAGE_KEY);
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const initialTheme = stored ?? (prefersDark ? 'dark' : 'light');
+
+if (initialTheme === 'dark') {
+  document.documentElement.classList.add('dark');
+} else {
+  document.documentElement.classList.remove('dark');
 }
 
-const darkMQ = window.matchMedia('(prefers-color-scheme: dark)');
-// Apply immediately so there's no flash
-applySystemTheme(darkMQ);
-// Re-apply whenever the user changes their OS theme
-darkMQ.addEventListener('change', applySystemTheme);
+// Listen for OS changes only when the user hasn't set a manual preference
+if (!stored) {
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    if (!localStorage.getItem(STORAGE_KEY)) {
+      if (e.matches) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  });
+}
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <App />
