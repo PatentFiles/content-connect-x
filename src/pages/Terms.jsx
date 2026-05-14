@@ -7,8 +7,8 @@ const LAST_UPDATED = 'March 25, 2026';
 function Section({ number, title, children }) {
   return (
     <section className="mb-10">
-      <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4">{number}. {title}</h2>
-      <div className="text-[#9AA6BC] space-y-3 leading-relaxed">{children}</div>
+      <h2 className="text-xl font-semibold cc-text-fix-primary mb-4">{number}. {title}</h2>
+      <div className="cc-text-fix-secondary space-y-3 leading-relaxed">{children}</div>
     </section>
   );
 }
@@ -23,19 +23,19 @@ function Ul({ items }) {
 
 export default function Terms() {
   return (
-    <div className="min-h-screen bg-[#0B0F14] pt-24 pb-16">
+    <div className="min-h-screen bg-cc-bg pt-24 pb-16">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-3xl mx-auto px-4"
       >
-        <h1 className="text-4xl font-bold text-[#E8EEF9] mb-2">Terms of Service</h1>
-        <p className="text-[#9AA6BC] mb-10">Last updated: {LAST_UPDATED}</p>
+        <h1 className="text-4xl font-bold cc-text-fix-primary mb-2">Terms of Service</h1>
+        <p className="cc-text-fix-secondary mb-10">Last updated: {LAST_UPDATED}</p>
 
         {/* Critical callout */}
         <div className="flex gap-3 bg-[#EF4444]/10 border border-[#EF4444]/30 rounded-xl p-4 mb-10">
           <AlertTriangle className="w-5 h-5 text-[#EF4444] flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-[#E8EEF9]">
+          <p className="text-sm cc-text-fix-primary">
             <strong>Important:</strong> Content Connect X is a professional creator collaboration
             platform exclusively. Use of this platform for any form of solicitation, escorting,
             prostitution, sex trafficking, or exploitation is strictly prohibited and may result
@@ -100,7 +100,7 @@ export default function Terms() {
             account suspension, permanent ban, and potential legal action:
           </p>
 
-          <p className="font-semibold text-[#E8EEF9] pt-2">4.1 — Solicitation and Illegal Sexual Activity</p>
+          <p className="font-semibold cc-text-fix-primary pt-2">4.1 — Solicitation and Illegal Sexual Activity</p>
           <Ul items={[
             'Soliciting, offering, or arranging payment for sexual acts, sexual services, or any form of in-person prostitution or escorting.',
             'Using the Platform\'s messaging, collaboration tools, or any other features to negotiate, arrange, or facilitate prostitution or escorting.',
@@ -108,7 +108,7 @@ export default function Terms() {
             'Using coded language, abbreviations, or euphemisms (e.g., "roses," "donations," "GFE," "FBSM," "p4p," "incall," "outcall") to solicit or offer sexual services.',
           ]} />
 
-          <p className="font-semibold text-[#E8EEF9] pt-2">4.2 — Trafficking, Coercion, and Exploitation</p>
+          <p className="font-semibold cc-text-fix-primary pt-2">4.2 — Trafficking, Coercion, and Exploitation</p>
           <Ul items={[
             'Sex trafficking, labor trafficking, or any facilitation thereof.',
             'Recruiting, harboring, transporting, providing, obtaining, or maintaining persons through force, fraud, or coercion for commercial sex.',
@@ -116,7 +116,7 @@ export default function Terms() {
             'Exploiting any person through abuse of power, position, financial dependency, or vulnerability.',
           ]} />
 
-          <p className="font-semibold text-[#E8EEF9] pt-2">4.3 — Underage Activity</p>
+          <p className="font-semibold cc-text-fix-primary pt-2">4.3 — Underage Activity</p>
           <Ul items={[
             'Any access, use, or attempted use of the Platform by any person under 18 years of age.',
             'Soliciting, recruiting, or engaging with any person who may be under 18.',
@@ -124,14 +124,14 @@ export default function Terms() {
             'Misrepresenting the age of any performer or collaborator.',
           ]} />
 
-          <p className="font-semibold text-[#E8EEF9] pt-2">4.4 — Non-Consensual Content and Threats</p>
+          <p className="font-semibold cc-text-fix-primary pt-2">4.4 — Non-Consensual Content and Threats</p>
           <Ul items={[
             'Distributing, threatening to distribute, or facilitating the distribution of non-consensual intimate images.',
             'Threatening to expose, "doxx," blackmail, or extort any person using intimate images, personal information, or other leverage.',
             'Publishing or sharing content that was created without the informed consent of all depicted persons.',
           ]} />
 
-          <p className="font-semibold text-[#E8EEF9] pt-2">4.5 — General Prohibited Conduct</p>
+          <p className="font-semibold cc-text-fix-primary pt-2">4.5 — General Prohibited Conduct</p>
           <Ul items={[
             'Misrepresenting your identity, credentials, age, or role type.',
             'Harassing, threatening, or intimidating other users.',
@@ -178,7 +178,7 @@ export default function Terms() {
             'Disclosure of information to law enforcement or regulatory agencies where required or permitted by law.',
           ]} />
           <p>
-            <strong className="text-[#E8EEF9]">Severe violations</strong> — including but not
+            <strong className="cc-text-fix-primary">Severe violations</strong> — including but not
             limited to suspected sex trafficking, underage activity, or non-consensual content
             distribution — will result in immediate account restriction, mandatory evidence
             preservation, and referral to appropriate law enforcement agencies.

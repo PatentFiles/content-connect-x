@@ -204,14 +204,14 @@ export default function FAQ() {
   })).filter(category => category.faqs.length > 0);
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pt-24 pb-12">
+    <div className="min-h-screen bg-cc-bg pt-24 pb-12">
       {/* Header */}
       <section className="px-4 py-12 text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-4xl md:text-5xl font-bold text-[#E8EEF9] mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold cc-text-fix-primary mb-4">
             Frequently Asked Questions
           </h1>
-          <p className="text-lg text-[#9AA6BC] max-w-2xl mx-auto mb-8">
+          <p className="text-lg cc-text-fix-secondary max-w-2xl mx-auto mb-8">
             Everything you need to know about Content Connect X
           </p>
           <div className="max-w-md mx-auto">
@@ -235,7 +235,7 @@ export default function FAQ() {
             transition={{ delay: categoryIndex * 0.05 }}
             className="mb-8"
           >
-            <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4">{category.name}</h2>
+            <h2 className="text-xl font-semibold cc-text-fix-primary mb-4">{category.name}</h2>
             <div className="space-y-3">
               {category.faqs.map((faq, faqIndex) => {
                 const key = `${categoryIndex}-${faqIndex}`;
@@ -246,9 +246,9 @@ export default function FAQ() {
                       onClick={() => toggleItem(categoryIndex, faqIndex)}
                       className="w-full p-4 flex items-center justify-between text-left"
                     >
-                      <span className="font-medium text-[#E8EEF9] pr-4">{faq.q}</span>
+                      <span className="font-medium cc-text-fix-primary pr-4">{faq.q}</span>
                       <ChevronDown
-                        className={`w-5 h-5 text-[#6B7A94] transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
+                        className={`w-5 h-5 cc-text-fix-muted transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`}
                       />
                     </button>
                     <AnimatePresence>
@@ -260,7 +260,7 @@ export default function FAQ() {
                           transition={{ duration: 0.2 }}
                         >
                           <div className="px-4 pb-4 pt-0">
-                            <p className="text-[#9AA6BC] text-sm leading-relaxed">{faq.a}</p>
+                            <p className="cc-text-fix-secondary text-sm leading-relaxed">{faq.a}</p>
                           </div>
                         </motion.div>
                       )}
@@ -274,7 +274,7 @@ export default function FAQ() {
 
         {filteredCategories.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-[#9AA6BC]">No questions found matching "{searchQuery}"</p>
+            <p className="cc-text-fix-secondary">No questions found matching "{searchQuery}"</p>
           </div>
         )}
       </section>
@@ -282,11 +282,11 @@ export default function FAQ() {
       {/* Contact CTA */}
       <section className="px-4 py-16 text-center">
         <CCCard padding="lg" className="max-w-xl mx-auto">
-          <h3 className="text-xl font-semibold text-[#E8EEF9] mb-2">Still have questions?</h3>
-          <p className="text-[#9AA6BC] mb-4">
+          <h3 className="text-xl font-semibold cc-text-fix-primary mb-2">Still have questions?</h3>
+          <p className="cc-text-fix-secondary mb-4">
             Can't find what you're looking for? Our support team is here to help.
           </p>
-          <p className="text-xs text-[#6B7A94] mb-6">
+          <p className="text-xs cc-text-fix-muted mb-6">
             To report urgent safety concerns — suspected trafficking, underage activity, or coercion —
             email <a href="mailto:safety@onlycollabsx.com" className="text-[#EF4444] hover:underline">safety@onlycollabsx.com</a> directly.
           </p>

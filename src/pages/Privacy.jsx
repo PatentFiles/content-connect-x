@@ -7,8 +7,8 @@ const LAST_UPDATED = 'March 25, 2026';
 function Section({ number, title, children }) {
   return (
     <section className="mb-10">
-      <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4">{number}. {title}</h2>
-      <div className="text-[#9AA6BC] space-y-3 leading-relaxed">{children}</div>
+      <h2 className="text-xl font-semibold cc-text-fix-primary mb-4">{number}. {title}</h2>
+      <div className="cc-text-fix-secondary space-y-3 leading-relaxed">{children}</div>
     </section>
   );
 }
@@ -23,18 +23,18 @@ function Ul({ items }) {
 
 export default function Privacy() {
   return (
-    <div className="min-h-screen bg-[#0B0F14] pt-24 pb-16">
+    <div className="min-h-screen bg-cc-bg pt-24 pb-16">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="max-w-3xl mx-auto px-4"
       >
-        <h1 className="text-4xl font-bold text-[#E8EEF9] mb-2">Privacy Policy</h1>
-        <p className="text-[#9AA6BC] mb-10">Last updated: {LAST_UPDATED}</p>
+        <h1 className="text-4xl font-bold cc-text-fix-primary mb-2">Privacy Policy</h1>
+        <p className="cc-text-fix-secondary mb-10">Last updated: {LAST_UPDATED}</p>
 
         <div className="flex gap-3 bg-[#4F8CFF]/10 border border-[#4F8CFF]/30 rounded-xl p-4 mb-10">
           <Lock className="w-5 h-5 text-[#4F8CFF] flex-shrink-0 mt-0.5" />
-          <p className="text-sm text-[#E8EEF9]">
+          <p className="text-sm cc-text-fix-primary">
             Content Connect X collects and retains identity documents and health credentials
             in secure private storage as part of our safety and compliance infrastructure.
             This policy accurately describes what we store, how it is protected, and how
@@ -45,14 +45,14 @@ export default function Privacy() {
         <Section number="1" title="Information We Collect">
           <p>We collect the following categories of information:</p>
           <Ul items={[
-            <><strong className="text-[#E8EEF9]">Account Information:</strong> Email address, full name, role type, and profile details you provide during registration.</>,
-            <><strong className="text-[#E8EEF9]">Identity Verification Documents:</strong> Government-issued identification documents and selfie images submitted during identity verification. These are stored in secure private storage on our platform. See Section 5 for full details.</>,
-            <><strong className="text-[#E8EEF9]">Health and Safety Documents:</strong> Lab result documents and health credentials you choose to upload. These are stored in secure private storage. See Section 6 for full details.</>,
-            <><strong className="text-[#E8EEF9]">Profile Content:</strong> Photos, videos, bios, portfolios, and other content you upload to your public or private galleries.</>,
-            <><strong className="text-[#E8EEF9]">Communications:</strong> Messages sent through the Platform, collaboration details, and contract content.</>,
-            <><strong className="text-[#E8EEF9]">Usage and Activity Data:</strong> How you interact with the Platform, session history, navigation patterns, and feature usage.</>,
-            <><strong className="text-[#E8EEF9]">Moderation Records:</strong> Content moderation logs, safety flags, reports, and administrative actions related to your account.</>,
-            <><strong className="text-[#E8EEF9]">Payment Information:</strong> Subscription billing is processed by third-party payment providers. We do not store full payment card details.</>,
+            <><strong className="cc-text-fix-primary">Account Information:</strong> Email address, full name, role type, and profile details you provide during registration.</>,
+            <><strong className="cc-text-fix-primary">Identity Verification Documents:</strong> Government-issued identification documents and selfie images submitted during identity verification. These are stored in secure private storage on our platform. See Section 5 for full details.</>,
+            <><strong className="cc-text-fix-primary">Health and Safety Documents:</strong> Lab result documents and health credentials you choose to upload. These are stored in secure private storage. See Section 6 for full details.</>,
+            <><strong className="cc-text-fix-primary">Profile Content:</strong> Photos, videos, bios, portfolios, and other content you upload to your public or private galleries.</>,
+            <><strong className="cc-text-fix-primary">Communications:</strong> Messages sent through the Platform, collaboration details, and contract content.</>,
+            <><strong className="cc-text-fix-primary">Usage and Activity Data:</strong> How you interact with the Platform, session history, navigation patterns, and feature usage.</>,
+            <><strong className="cc-text-fix-primary">Moderation Records:</strong> Content moderation logs, safety flags, reports, and administrative actions related to your account.</>,
+            <><strong className="cc-text-fix-primary">Payment Information:</strong> Subscription billing is processed by third-party payment providers. We do not store full payment card details.</>,
           ]} />
         </Section>
 
@@ -76,10 +76,10 @@ export default function Privacy() {
         <Section number="3" title="Information Sharing">
           <p>We share your information only in the following circumstances:</p>
           <Ul items={[
-            <><strong className="text-[#E8EEF9]">With Other Users:</strong> Profile information you choose to make visible according to your privacy settings. Private galleries and health documents are shared only with explicit permission.</>,
-            <><strong className="text-[#E8EEF9]">Service Providers:</strong> Trusted hosting, infrastructure, and analytics providers who process data on our behalf under strict confidentiality agreements.</>,
-            <><strong className="text-[#E8EEF9]">Legal and Safety Requirements:</strong> When required or permitted by law, including in response to court orders, subpoenas, or law enforcement requests. We may also disclose information to prevent or respond to suspected illegal activity, trafficking, underage exploitation, or imminent harm.</>,
-            <><strong className="text-[#E8EEF9]">Safety Investigations:</strong> Internal safety and compliance teams who review flagged content and moderation cases.</>,
+            <><strong className="cc-text-fix-primary">With Other Users:</strong> Profile information you choose to make visible according to your privacy settings. Private galleries and health documents are shared only with explicit permission.</>,
+            <><strong className="cc-text-fix-primary">Service Providers:</strong> Trusted hosting, infrastructure, and analytics providers who process data on our behalf under strict confidentiality agreements.</>,
+            <><strong className="cc-text-fix-primary">Legal and Safety Requirements:</strong> When required or permitted by law, including in response to court orders, subpoenas, or law enforcement requests. We may also disclose information to prevent or respond to suspected illegal activity, trafficking, underage exploitation, or imminent harm.</>,
+            <><strong className="cc-text-fix-primary">Safety Investigations:</strong> Internal safety and compliance teams who review flagged content and moderation cases.</>,
           ]} />
           <p>We never sell your personal information to third parties.</p>
         </Section>
@@ -99,31 +99,31 @@ export default function Privacy() {
 
         <Section number="5" title="Identity Verification Documents">
           <p>
-            <strong className="text-[#E8EEF9]">What we store:</strong> Identity documents
+            <strong className="cc-text-fix-primary">What we store:</strong> Identity documents
             submitted during verification — including government-issued ID images and selfie
             photos — are stored in secure, encrypted private storage on our Platform.
           </p>
           <p>
-            <strong className="text-[#E8EEF9]">Correction of prior statements:</strong> Previous
+            <strong className="cc-text-fix-primary">Correction of prior statements:</strong> Previous
             versions of this policy incorrectly stated that "ID documents are not stored on
             our servers." This was inaccurate. Identity documents are stored by us in private
             storage as part of our age verification and safety compliance infrastructure.
           </p>
           <p>
-            <strong className="text-[#E8EEF9]">Access controls:</strong> Document access is
+            <strong className="cc-text-fix-primary">Access controls:</strong> Document access is
             restricted to authorized administrators conducting identity verification reviews.
             No other users can access your identity documents. All access events are logged
             with the reviewer's identity, timestamp, and purpose.
           </p>
           <p>
-            <strong className="text-[#E8EEF9]">Retention:</strong> Identity documents are
+            <strong className="cc-text-fix-primary">Retention:</strong> Identity documents are
             retained for as long as your account is active, and may be retained beyond account
             deletion for compliance, legal hold, or law enforcement purposes. If your account
             is subject to a safety investigation, documents may be preserved indefinitely until
             the investigation is resolved.
           </p>
           <p>
-            <strong className="text-[#E8EEF9]">What is visible to other users:</strong> Only
+            <strong className="cc-text-fix-primary">What is visible to other users:</strong> Only
             your verification status (Verified / Not Verified / Pending) is visible to other
             members. Document contents are never shared with other users.
           </p>
@@ -131,24 +131,24 @@ export default function Privacy() {
 
         <Section number="6" title="Health and Safety Documents">
           <p>
-            <strong className="text-[#E8EEF9]">What we store:</strong> Health testing documents
+            <strong className="cc-text-fix-primary">What we store:</strong> Health testing documents
             you optionally upload — including lab results and STI panel documentation — are
             stored in secure, encrypted private storage. They are never publicly accessible.
           </p>
           <p>
-            <strong className="text-[#E8EEF9]">Access controls:</strong> You control who can
+            <strong className="cc-text-fix-primary">Access controls:</strong> You control who can
             see your health credentials through your sharing settings. Within Collaborations,
             sharing with participants is governed by the testing policy you configure. Full
             document access requires explicit permission from you. All access is logged.
           </p>
           <p>
-            <strong className="text-[#E8EEF9]">What is visible without permission:</strong> Only
+            <strong className="cc-text-fix-primary">What is visible without permission:</strong> Only
             a testing status badge (Valid / Expired / Pending Review) and expiration date are
             visible to other members when you enable this setting. Document contents are never
             shared without your explicit permission.
           </p>
           <p>
-            <strong className="text-[#E8EEF9]">Retention:</strong> Health documents may be
+            <strong className="cc-text-fix-primary">Retention:</strong> Health documents may be
             retained beyond account deletion if related to an active safety investigation or
             legal hold.
           </p>
@@ -188,11 +188,11 @@ export default function Privacy() {
         <Section number="9" title="Data Retention">
           <p>We retain your data as follows:</p>
           <Ul items={[
-            <><strong className="text-[#E8EEF9]">Active accounts:</strong> Data is retained while your account is active.</>,
-            <><strong className="text-[#E8EEF9]">Deleted accounts:</strong> Upon account deletion, personal profile data is anonymized. However, communications, collaboration records, contracts, and moderation logs may be retained to fulfill legal obligations and maintain platform integrity.</>,
-            <><strong className="text-[#E8EEF9]">Identity and health documents:</strong> May be retained beyond deletion for compliance, legal hold, or law enforcement purposes.</>,
-            <><strong className="text-[#E8EEF9]">Legal hold:</strong> Accounts flagged for safety or legal investigation will not be fully deleted until the hold is lifted. Deletion requests are blocked when a legal hold is active.</>,
-            <><strong className="text-[#E8EEF9]">Safety records:</strong> Moderation logs, safety reports, and administrative action records are retained for compliance and may be disclosed to law enforcement.</>,
+            <><strong className="cc-text-fix-primary">Active accounts:</strong> Data is retained while your account is active.</>,
+            <><strong className="cc-text-fix-primary">Deleted accounts:</strong> Upon account deletion, personal profile data is anonymized. However, communications, collaboration records, contracts, and moderation logs may be retained to fulfill legal obligations and maintain platform integrity.</>,
+            <><strong className="cc-text-fix-primary">Identity and health documents:</strong> May be retained beyond deletion for compliance, legal hold, or law enforcement purposes.</>,
+            <><strong className="cc-text-fix-primary">Legal hold:</strong> Accounts flagged for safety or legal investigation will not be fully deleted until the hold is lifted. Deletion requests are blocked when a legal hold is active.</>,
+            <><strong className="cc-text-fix-primary">Safety records:</strong> Moderation logs, safety reports, and administrative action records are retained for compliance and may be disclosed to law enforcement.</>,
           ]} />
         </Section>
 

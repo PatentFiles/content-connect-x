@@ -106,17 +106,17 @@ const faqs = [
 
 export default function HowItWorks() {
   return (
-    <div className="min-h-screen bg-[#0B0F14] pt-24 pb-12">
+    <div className="min-h-screen bg-cc-bg pt-24 pb-12">
       {/* Header */}
       <section className="px-4 py-12 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="text-4xl md:text-5xl font-bold text-[#E8EEF9] mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold cc-text-fix-primary mb-4">
           How Content Connect X Works
           </h1>
-          <p className="text-lg text-[#9AA6BC] max-w-2xl mx-auto">
+          <p className="text-lg cc-text-fix-secondary max-w-2xl mx-auto">
             Our five-step process ensures safe, professional collaborations from start to finish.
           </p>
         </motion.div>
@@ -140,8 +140,8 @@ export default function HowItWorks() {
               }`}
             >
               {/* Step number - center on desktop */}
-              <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-16 h-16 rounded-full bg-[#151D2B] border-2 border-[#4F8CFF] items-center justify-center z-10">
-                <span className="text-2xl font-bold text-[#4F8CFF]">{step.step}</span>
+              <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 w-16 h-16 rounded-full border-2 border-cc-blue items-center justify-center z-10" style={{ backgroundColor: 'var(--cc-surface)' }}>
+                <span className="text-2xl font-bold text-cc-blue">{step.step}</span>
               </div>
 
               {/* Content */}
@@ -152,12 +152,12 @@ export default function HowItWorks() {
                       <step.icon className={`w-6 h-6 text-${step.color === 'primary' ? '[#4F8CFF]' : '[#FF2DAA]'}`} />
                     </div>
                     <div className="flex-1">
-                      <div className="md:hidden text-sm text-[#4F8CFF] font-medium mb-1">Step {step.step}</div>
-                      <h3 className="text-xl font-semibold text-[#E8EEF9] mb-2">{step.title}</h3>
-                      <p className="text-[#9AA6BC] text-sm mb-4">{step.description}</p>
+                      <div className="md:hidden text-sm text-cc-blue font-medium mb-1">Step {step.step}</div>
+                      <h3 className="text-xl font-semibold cc-text-fix-primary mb-2">{step.title}</h3>
+                      <p className="cc-text-fix-secondary text-sm mb-4">{step.description}</p>
                       <ul className={`space-y-2 ${i % 2 === 0 ? 'md:text-left' : ''}`}>
                         {step.details.map((detail) => (
-                          <li key={detail} className="flex items-center gap-2 text-sm text-[#E8EEF9]">
+                          <li key={detail} className="flex items-center gap-2 text-sm cc-text-fix-primary">
                             <CheckCircle className="w-4 h-4 text-[#22C55E] flex-shrink-0" />
                             {detail}
                           </li>
@@ -176,28 +176,28 @@ export default function HowItWorks() {
       </section>
 
       {/* Key Points */}
-      <section className="px-4 py-16 bg-[#121824] mt-12">
+      <section className="px-4 py-16 bg-cc-surface mt-12">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-[#E8EEF9] text-center mb-10">Key Platform Rules</h2>
+          <h2 className="text-2xl font-bold cc-text-fix-primary text-center mb-10">Key Platform Rules</h2>
           <div className="grid md:grid-cols-3 gap-6">
             <CCCard padding="lg" className="text-center">
               <Lock className="w-10 h-10 text-[#4F8CFF] mx-auto mb-4" />
-              <h3 className="font-semibold text-[#E8EEF9] mb-2">Verified Only</h3>
-              <p className="text-sm text-[#9AA6BC]">
+              <h3 className="font-semibold cc-text-fix-primary mb-2">Verified Only</h3>
+              <p className="text-sm cc-text-fix-secondary">
                 Profile hidden until verified. No access to browse, search, or message without verification.
               </p>
             </CCCard>
             <CCCard padding="lg" className="text-center">
               <CreditCard className="w-10 h-10 text-[#FF2DAA] mx-auto mb-4" />
-              <h3 className="font-semibold text-[#E8EEF9] mb-2">Subscription Required</h3>
-              <p className="text-sm text-[#9AA6BC]">
+              <h3 className="font-semibold cc-text-fix-primary mb-2">Subscription Required</h3>
+              <p className="text-sm cc-text-fix-secondary">
                 Active subscription needed for all platform features. Free trial available for new members.
               </p>
             </CCCard>
             <CCCard padding="lg" className="text-center">
               <FileText className="w-10 h-10 text-[#22C55E] mx-auto mb-4" />
-              <h3 className="font-semibold text-[#E8EEF9] mb-2">Contract First</h3>
-              <p className="text-sm text-[#9AA6BC]">
+              <h3 className="font-semibold cc-text-fix-primary mb-2">Contract First</h3>
+              <p className="text-sm cc-text-fix-secondary">
                 All collaborations can generate contracts. Terms are recorded but payments happen externally.
               </p>
             </CCCard>
@@ -207,12 +207,12 @@ export default function HowItWorks() {
 
       {/* FAQs */}
       <section className="px-4 py-16 max-w-4xl mx-auto">
-        <h2 className="text-2xl font-bold text-[#E8EEF9] text-center mb-10">Quick Questions</h2>
+        <h2 className="text-2xl font-bold cc-text-fix-primary text-center mb-10">Quick Questions</h2>
         <div className="space-y-4">
           {faqs.map((faq) => (
             <CCCard key={faq.q} padding="lg">
-              <h3 className="font-semibold text-[#E8EEF9] mb-2">{faq.q}</h3>
-              <p className="text-sm text-[#9AA6BC]">{faq.a}</p>
+              <h3 className="font-semibold cc-text-fix-primary mb-2">{faq.q}</h3>
+              <p className="text-sm cc-text-fix-secondary">{faq.a}</p>
             </CCCard>
           ))}
         </div>

@@ -52,7 +52,7 @@ export default function Landing() {
   if (user) return null;
 
   return (
-    <div className="min-h-screen bg-[#0B0F14]">
+    <div className="min-h-screen bg-cc-bg">
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-32 pb-20 px-4">
         {/* Background gradient */}
@@ -71,12 +71,12 @@ export default function Landing() {
               Verified & Subscription-Only Platform
             </span>
             
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-[#E8EEF9] mb-6 leading-tight">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold cc-text-fix-primary mb-6 leading-tight">
               The Professional Network for
               <span className="bg-gradient-to-r from-[#4F8CFF] to-[#FF2DAA] bg-clip-text text-transparent"> Content Creators</span>
             </h1>
             
-            <p className="text-lg md:text-xl text-[#9AA6BC] max-w-3xl mx-auto mb-10">
+            <p className="text-lg md:text-xl cc-text-fix-secondary max-w-3xl mx-auto mb-10">
               Connect with verified creators, photographers, videographers, video editors, agents, and studios. 
               Build collaborations with built-in contracts and consent management.
             </p>
@@ -108,8 +108,8 @@ export default function Landing() {
             >
               {stats.map((stat) => (
                 <div key={stat.label} className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-[#E8EEF9]">{stat.value}</div>
-                  <div className="text-sm text-[#6B7A94]">{stat.label}</div>
+                  <div className="text-3xl md:text-4xl font-bold cc-text-fix-primary">{stat.value}</div>
+                  <div className="text-sm cc-text-fix-muted">{stat.label}</div>
                 </div>
               ))}
             </motion.div>
@@ -118,7 +118,7 @@ export default function Landing() {
       </section>
 
       {/* Features Section — driven by live feature flags */}
-      <section className="py-20 px-4 bg-[#121824]">
+      <section className="py-20 px-4 bg-cc-surface">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0 }}
@@ -126,10 +126,10 @@ export default function Landing() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-[#E8EEF9] mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold cc-text-fix-primary mb-4">
               Everything You Need to Collaborate Safely
             </h2>
-            <p className="text-[#9AA6BC] max-w-2xl mx-auto">
+            <p className="cc-text-fix-secondary max-w-2xl mx-auto">
               Built specifically for content professionals. Every feature designed with your safety and success in mind.
             </p>
           </motion.div>
@@ -146,10 +146,10 @@ export default function Landing() {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-[#E8EEF9] mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold cc-text-fix-primary mb-4">
               Simple, Safe, Professional
             </h2>
-            <p className="text-[#9AA6BC] max-w-2xl mx-auto">
+            <p className="cc-text-fix-secondary max-w-2xl mx-auto">
               Get started in minutes. Our verification process keeps the community safe.
             </p>
           </motion.div>
@@ -174,11 +174,11 @@ export default function Landing() {
                   <div className="w-10 h-10 rounded-full bg-[#4F8CFF] text-white font-bold flex items-center justify-center mx-auto mb-3">
                     {item.step}
                   </div>
-                  <h4 className="font-semibold text-[#E8EEF9] mb-1">{item.title}</h4>
-                  <p className="text-xs text-[#6B7A94]">{item.desc}</p>
+                  <h4 className="font-semibold cc-text-fix-primary mb-1">{item.title}</h4>
+                  <p className="text-xs cc-text-fix-muted">{item.desc}</p>
                 </CCCard>
                 {i < 4 && (
-                  <div className="hidden md:block absolute top-1/2 -right-2 w-4 text-[#263248]">
+                  <div className="hidden md:block absolute top-1/2 -right-2 w-4 cc-text-fix-muted">
                     <ArrowRight className="w-4 h-4" />
                   </div>
                 )}
@@ -196,10 +196,10 @@ export default function Landing() {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-[#E8EEF9] mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold cc-text-fix-primary mb-4">
               Ready to Join the Community?
             </h2>
-            <p className="text-[#9AA6BC] mb-8 max-w-2xl mx-auto">
+            <p className="cc-text-fix-secondary mb-8 max-w-2xl mx-auto">
               Start your journey today. Connect with verified professionals and take your collaborations to the next level.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -222,7 +222,7 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 border-t border-[#263248]">
+      <footer className="py-12 px-4 border-t border-cc-border">
         <div className="max-w-6xl mx-auto">
           <div className="grid md:grid-cols-4 gap-8">
             <div className="text-center md:text-left">
@@ -230,35 +230,35 @@ export default function Landing() {
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4F8CFF] to-[#FF2DAA] flex items-center justify-center">
                   <span className="text-white font-bold text-sm">OCX</span>
                 </div>
-                <span className="text-[#E8EEF9] font-semibold">Content Connect X</span>
+                <span className="font-semibold cc-text-fix-primary">Content Connect X</span>
               </div>
-              <p className="text-sm text-[#6B7A94]">
+              <p className="text-sm cc-text-fix-muted">
                 The verified collaboration network for professional content creators.
               </p>
             </div>
             <div className="text-center md:text-left">
-              <h4 className="font-semibold text-[#E8EEF9] mb-4">Platform</h4>
+              <h4 className="font-semibold cc-text-fix-primary mb-4">Platform</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link to={createPageUrl('HowItWorks')} className="text-[#9AA6BC] hover:text-[#E8EEF9]">How it Works</Link></li>
-                <li><Link to={createPageUrl('Pricing')} className="text-[#9AA6BC] hover:text-[#E8EEF9]">Pricing</Link></li>
-                <li><Link to={createPageUrl('FAQ')} className="text-[#9AA6BC] hover:text-[#E8EEF9]">FAQ</Link></li>
+                <li><Link to={createPageUrl('HowItWorks')} className="cc-text-fix-secondary hover:cc-text-fix-primary">How it Works</Link></li>
+                <li><Link to={createPageUrl('Pricing')} className="cc-text-fix-secondary hover:cc-text-fix-primary">Pricing</Link></li>
+                <li><Link to={createPageUrl('FAQ')} className="cc-text-fix-secondary hover:cc-text-fix-primary">FAQ</Link></li>
               </ul>
             </div>
             <div className="text-center md:text-left">
-              <h4 className="font-semibold text-[#E8EEF9] mb-4">Legal</h4>
+              <h4 className="font-semibold cc-text-fix-primary mb-4">Legal</h4>
               <ul className="space-y-2 text-sm">
-                <li><Link to={createPageUrl('Terms')} className="text-[#9AA6BC] hover:text-[#E8EEF9]">Terms of Service</Link></li>
-                <li><Link to={createPageUrl('Privacy')} className="text-[#9AA6BC] hover:text-[#E8EEF9]">Privacy Policy</Link></li>
+                <li><Link to={createPageUrl('Terms')} className="cc-text-fix-secondary hover:cc-text-fix-primary">Terms of Service</Link></li>
+                <li><Link to={createPageUrl('Privacy')} className="cc-text-fix-secondary hover:cc-text-fix-primary">Privacy Policy</Link></li>
               </ul>
             </div>
             <div className="text-center md:text-left">
-              <h4 className="font-semibold text-[#E8EEF9] mb-4">Support</h4>
+              <h4 className="font-semibold cc-text-fix-primary mb-4">Support</h4>
               <ul className="space-y-2 text-sm">
-                <li><a href="mailto:support@onlycollabsx.com" className="text-[#9AA6BC] hover:text-[#E8EEF9]">Contact Us</a></li>
+                <li><a href="mailto:support@onlycollabsx.com" className="cc-text-fix-secondary hover:cc-text-fix-primary">Contact Us</a></li>
               </ul>
             </div>
           </div>
-          <div className="mt-12 pt-8 border-t border-[#263248] text-center text-sm text-[#6B7A94]">
+          <div className="mt-12 pt-8 border-t border-cc-border text-center text-sm cc-text-fix-muted">
             © {new Date().getFullYear()} Content Connect X. All rights reserved.
           </div>
         </div>

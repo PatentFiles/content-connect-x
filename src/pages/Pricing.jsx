@@ -167,25 +167,25 @@ export default function Pricing() {
   const displayRole = availableRoles.includes(activeRole) ? activeRole : availableRoles[0] || 'creator';
 
   return (
-    <div className="min-h-screen bg-[#0B0F14] pt-24 pb-12">
+    <div className="min-h-screen bg-cc-bg pt-24 pb-12">
       {/* Header */}
       <section className="px-4 py-12 text-center">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-          <h1 className="text-4xl md:text-5xl font-bold text-[#E8EEF9] mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold cc-text-fix-primary mb-4">
             Simple, Transparent Pricing
           </h1>
-          <p className="text-lg text-[#9AA6BC] max-w-2xl mx-auto mb-8">
+          <p className="text-lg cc-text-fix-secondary max-w-2xl mx-auto mb-8">
             Choose the plan that fits your role and needs. All plans include verification and core platform features.
           </p>
 
           {/* Billing toggle */}
-          <div className="inline-flex items-center gap-1 p-1 bg-[#121824] rounded-xl border border-[#263248]">
+          <div className="inline-flex items-center gap-1 p-1 rounded-xl border border-cc-border" style={{ backgroundColor: 'var(--cc-surface)' }}>
             <button
               onClick={() => setBillingCycle('monthly')}
               className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${
                 billingCycle === 'monthly'
-                  ? 'bg-[#4F8CFF] text-white shadow-lg'
-                  : 'text-[#9AA6BC] hover:text-[#E8EEF9]'
+                  ? 'bg-cc-blue text-white shadow-lg'
+                  : 'cc-text-fix-secondary hover:cc-text-fix-primary'
               }`}
             >
               Monthly
@@ -194,8 +194,8 @@ export default function Pricing() {
               onClick={() => setBillingCycle('yearly')}
               className={`px-5 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
                 billingCycle === 'yearly'
-                  ? 'bg-[#4F8CFF] text-white shadow-lg'
-                  : 'text-[#9AA6BC] hover:text-[#E8EEF9]'
+                  ? 'bg-cc-blue text-white shadow-lg'
+                  : 'cc-text-fix-secondary hover:cc-text-fix-primary'
               }`}
             >
               Yearly
@@ -288,18 +288,18 @@ export default function Pricing() {
                       {/* Plan Name & Icon */}
                       <div className="flex items-center gap-3 mb-2">
                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                          isHighlighted ? `${tierStyle.bg}/20` : 'bg-[#263248]'
+                          isHighlighted ? `${tierStyle.bg}/20` : 'bg-cc-border'
                         }`}>
-                          <TierIcon className={`w-5 h-5 ${isHighlighted ? 'text-[#E8EEF9]' : 'text-[#9AA6BC]'}`} />
+                          <TierIcon className={`w-5 h-5 ${isHighlighted ? 'cc-text-fix-primary' : 'cc-text-fix-secondary'}`} />
                         </div>
                         <div>
-                          <h3 className="text-xl font-bold text-[#E8EEF9]">{plan.name}</h3>
-                          <p className="text-xs text-[#6B7A94] capitalize">{plan.tier} tier</p>
+                          <h3 className="text-xl font-bold cc-text-fix-primary">{plan.name}</h3>
+                          <p className="text-xs cc-text-fix-muted capitalize">{plan.tier} tier</p>
                         </div>
                       </div>
 
                       {plan.description && (
-                        <p className="text-sm text-[#9AA6BC] mb-4">{plan.description}</p>
+                        <p className="text-sm cc-text-fix-secondary mb-4">{plan.description}</p>
                       )}
 
                       {/* Price */}
@@ -307,8 +307,8 @@ export default function Pricing() {
                         {monthlyPrice != null ? (
                           <>
                             <div className="flex items-end gap-1">
-                              <span className="text-4xl font-bold text-[#E8EEF9]">${monthlyPrice}</span>
-                              <span className="text-[#6B7A94] mb-1">/mo</span>
+                              <span className="text-4xl font-bold cc-text-fix-primary">${monthlyPrice}</span>
+                              <span className="cc-text-fix-muted mb-1">/mo</span>
                             </div>
                             {billingCycle === 'yearly' && plan.price_yearly && (
                               <p className="text-xs text-[#22C55E] mt-1">
@@ -318,7 +318,7 @@ export default function Pricing() {
                             )}
                           </>
                         ) : (
-                          <span className="text-2xl font-bold text-[#E8EEF9]">Contact Us</span>
+                          <span className="text-2xl font-bold cc-text-fix-primary">Contact Us</span>
                         )}
                       </div>
 
@@ -341,7 +341,7 @@ export default function Pricing() {
                           </CCButton>
                         )}
                         {!hasStripeLink && !isCurrent && (
-                          <p className="text-center text-xs text-[#6B7A94] mt-2">14-day free trial • No credit card required</p>
+                          <p className="text-center text-xs cc-text-fix-muted mt-2">14-day free trial • No credit card required</p>
                         )}
                       </div>
 
@@ -351,7 +351,7 @@ export default function Pricing() {
                           {plan.features.map((feat) => (
                             <li key={feat} className="flex items-start gap-2 text-sm">
                               <Check className="w-4 h-4 text-[#22C55E] flex-shrink-0 mt-0.5" />
-                              <span className="text-[#E8EEF9]">{feat}</span>
+                              <span className="cc-text-fix-primary">{feat}</span>
                             </li>
                           ))}
                         </ul>
@@ -359,31 +359,31 @@ export default function Pricing() {
 
                       {/* Limits */}
                       {plan.limits && Object.keys(plan.limits).some(k => plan.limits[k]) && (
-                        <div className="mt-4 pt-4 border-t border-[#263248]">
-                          <p className="text-xs font-medium text-[#6B7A94] mb-2 uppercase tracking-wide">Limits</p>
+                        <div className="mt-4 pt-4 border-t border-cc-border">
+                         <p className="text-xs font-medium cc-text-fix-muted mb-2 uppercase tracking-wide">Limits</p>
                           <div className="grid grid-cols-2 gap-2">
                             {plan.limits.messages_per_day != null && (
-                              <div className="bg-[#0B0F14] rounded-lg p-2 text-center">
-                                <p className="text-xs font-semibold text-[#4F8CFF]">{plan.limits.messages_per_day < 0 ? '∞' : plan.limits.messages_per_day}</p>
-                                <p className="text-xs text-[#6B7A94]">msgs/day</p>
+                              <div className="rounded-lg p-2 text-center" style={{ backgroundColor: 'var(--cc-bg)' }}>
+                                <p className="text-xs font-semibold text-cc-blue">{plan.limits.messages_per_day < 0 ? '∞' : plan.limits.messages_per_day}</p>
+                                <p className="text-xs cc-text-fix-muted">msgs/day</p>
                               </div>
                             )}
                             {plan.limits.deal_rooms_per_month != null && (
-                              <div className="bg-[#0B0F14] rounded-lg p-2 text-center">
-                                <p className="text-xs font-semibold text-[#4F8CFF]">{plan.limits.deal_rooms_per_month < 0 ? '∞' : plan.limits.deal_rooms_per_month}</p>
-                                <p className="text-xs text-[#6B7A94]">collabs/mo</p>
+                              <div className="rounded-lg p-2 text-center" style={{ backgroundColor: 'var(--cc-bg)' }}>
+                                <p className="text-xs font-semibold text-cc-blue">{plan.limits.deal_rooms_per_month < 0 ? '∞' : plan.limits.deal_rooms_per_month}</p>
+                                <p className="text-xs cc-text-fix-muted">collabs/mo</p>
                               </div>
                             )}
                             {plan.limits.gallery_items != null && (
-                              <div className="bg-[#0B0F14] rounded-lg p-2 text-center">
-                                <p className="text-xs font-semibold text-[#4F8CFF]">{plan.limits.gallery_items < 0 ? '∞' : plan.limits.gallery_items}</p>
-                                <p className="text-xs text-[#6B7A94]">gallery items</p>
+                              <div className="rounded-lg p-2 text-center" style={{ backgroundColor: 'var(--cc-bg)' }}>
+                                <p className="text-xs font-semibold text-cc-blue">{plan.limits.gallery_items < 0 ? '∞' : plan.limits.gallery_items}</p>
+                                <p className="text-xs cc-text-fix-muted">gallery items</p>
                               </div>
                             )}
                             {plan.limits.shortlists != null && (
-                              <div className="bg-[#0B0F14] rounded-lg p-2 text-center">
-                                <p className="text-xs font-semibold text-[#4F8CFF]">{plan.limits.shortlists < 0 ? '∞' : plan.limits.shortlists}</p>
-                                <p className="text-xs text-[#6B7A94]">shortlists</p>
+                              <div className="rounded-lg p-2 text-center" style={{ backgroundColor: 'var(--cc-bg)' }}>
+                                <p className="text-xs font-semibold text-cc-blue">{plan.limits.shortlists < 0 ? '∞' : plan.limits.shortlists}</p>
+                                <p className="text-xs cc-text-fix-muted">shortlists</p>
                               </div>
                             )}
                           </div>
@@ -397,7 +397,7 @@ export default function Pricing() {
 
             {/* No tiers for this role */}
             {pricingData[displayRole]?.length === 0 && (
-              <div className="col-span-3 text-center py-16 text-[#6B7A94]">
+              <div className="col-span-3 text-center py-16 cc-text-fix-muted">
                 <p>No plans available for this role yet.</p>
                 <p className="text-sm mt-1">Contact support to discuss custom pricing.</p>
               </div>
@@ -408,10 +408,10 @@ export default function Pricing() {
 
       {/* Stripe Notice */}
       <section className="px-4 max-w-4xl mx-auto mt-12">
-        <div className="p-4 bg-[#151D2B] border border-[#263248] rounded-xl flex items-start gap-3">
-          <Shield className="w-5 h-5 text-[#4F8CFF] flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-[#9AA6BC]">
-            <strong className="text-[#E8EEF9]">Secure Payments via Stripe.</strong>
+        <div className="p-4 border border-cc-border rounded-xl flex items-start gap-3" style={{ backgroundColor: 'var(--cc-surface)' }}>
+          <Shield className="w-5 h-5 text-cc-blue flex-shrink-0 mt-0.5" />
+          <div className="text-sm cc-text-fix-secondary">
+            <strong className="cc-text-fix-primary">Secure Payments via Stripe.</strong>
             {' '}When a Stripe Payment Link is configured for a plan, clicking "Subscribe with Stripe" opens a secure Stripe-hosted checkout. Your payment info is never stored on our servers.
             {' '}Admins can configure Stripe Payment Links per plan in Admin → Pricing settings.
           </div>
@@ -420,7 +420,7 @@ export default function Pricing() {
 
       {/* FAQ link */}
       <section className="px-4 py-12 text-center">
-        <p className="text-[#9AA6BC] mb-4">Have questions about pricing?</p>
+        <p className="cc-text-fix-secondary mb-4">Have questions about pricing?</p>
         <Link to={createPageUrl('FAQ')}>
           <CCButton variant="outline" iconRight={ArrowRight}>View FAQ</CCButton>
         </Link>
