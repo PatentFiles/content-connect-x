@@ -66,7 +66,7 @@ export default function HostingMarketplace() {
     <FeatureRouteGuard flag="hosting_marketplace">
       <div className="min-h-screen bg-[var(--cc-bg)] pb-20 md:pb-8">
         {/* Header */}
-        <div className="sticky top-16 z-20 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248] px-4 py-3">
+         <div className="sticky top-16 z-20 backdrop-blur-xl border-b px-4 py-3" style={{ backgroundColor: 'color-mix(in srgb, var(--cc-bg) 95%, transparent)', borderColor: 'var(--cc-border)' }}>
           <div className="max-w-6xl mx-auto space-y-3">
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
