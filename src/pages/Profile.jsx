@@ -406,7 +406,7 @@ export default function Profile() {
       queryClient.invalidateQueries({ queryKey: ['myCreatorDetails', user?.email] });
       queryClient.invalidateQueries({ queryKey: ['myGalleries', user?.email] });
     }}>
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <div className="min-h-screen bg-[var(--cc-bg)] pb-20 md:pb-8">
       {/* Cover & Avatar */}
       <div className="relative">
         <div className="h-48 md:h-64 relative overflow-hidden group">

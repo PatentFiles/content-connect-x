@@ -64,7 +64,7 @@ export default function HostingMarketplace() {
 
   return (
     <FeatureRouteGuard flag="hosting_marketplace">
-      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+      <div className="min-h-screen bg-[var(--cc-bg)] pb-20 md:pb-8">
         {/* Header */}
         <div className="sticky top-16 z-20 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248] px-4 py-3">
           <div className="max-w-6xl mx-auto space-y-3">

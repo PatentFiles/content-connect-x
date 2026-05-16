@@ -41,7 +41,7 @@ export default function Connections() {
 
   return (
     <FeatureRouteGuard flag="connections" requiresSubscription={true}>
-      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+      <div className="min-h-screen bg-[var(--cc-bg)] pb-20 md:pb-8">
       <div className="sticky top-16 z-30 bg-[#0B0F14]/95 backdrop-blur-xl border-b border-[#263248]">
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
