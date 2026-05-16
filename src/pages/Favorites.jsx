@@ -81,14 +81,17 @@ export default function Favorites() {
     queryFn: async () => {
       if (allFavoriteUserIds.length === 0) return [];
       const allProfiles = await base44.entities.UserProfile.list();
-      const activeProfiles = allProfiles.filter(p =>
+      return allProfiles.filter(p =>
         allFavoriteUserIds.includes(p.user_id) &&
         !p.banned &&
         !p.account_deactivated &&
         p.deletion_status !== 'anonymized' &&
         p.deletion_status !== 'completed'
       );
-      // Auto-clean deleted profiles from favorite lists
+    },
+    enabled: allFavoriteUserIds.length > 0,
+    onSuccess: (activeProfiles) => {
+      // Auto-clean deleted profiles from favorite lists (outside queryFn for correct RLS context)
       const activeIds = new Set(activeProfiles.map(p => p.user_id));
       const deletedIds = allFavoriteUserIds.filter(id => !activeIds.has(id));
       if (deletedIds.length > 0) {
@@ -101,9 +104,7 @@ export default function Favorites() {
           }
         });
       }
-      return activeProfiles;
     },
-    enabled: allFavoriteUserIds.length > 0,
   });
 
   // Fetch creator details for profiles
