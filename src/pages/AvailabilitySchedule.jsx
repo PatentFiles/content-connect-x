@@ -10,6 +10,7 @@ import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import ScheduleEntryCard from '@/components/schedule/ScheduleEntryCard';
 import ScheduleEntryEditor from '@/components/schedule/ScheduleEntryEditor';
+import GoogleCalendarSyncPanel from '@/components/schedule/GoogleCalendarSyncPanel';
 import CCModal from '@/components/ui-custom/CCModal';
 import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
@@ -303,6 +304,9 @@ END:VCALENDAR`;
             </div>
           </CCCard>
         )}
+
+        {/* Google Calendar Two-Way Sync (Builder+ required) */}
+        <GoogleCalendarSyncPanel />
 
         {/* Quick Actions */}
         <CCCard padding="lg">
