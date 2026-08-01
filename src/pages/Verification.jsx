@@ -154,14 +154,14 @@ export default function Verification() {
               <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#F59E0B]/20 flex items-center justify-center">
                 <Clock className="w-10 h-10 text-[#F59E0B]" />
               </div>
-              <h1 className="text-2xl font-bold text-[#E8EEF9] mb-3">Verification Pending</h1>
-              <p className="text-[#9AA6BC] mb-6">
+              <h1 className="text-2xl font-bold mb-3" style={{ color: 'var(--cc-text-primary)' }}>Verification Pending</h1>
+              <p className="mb-6" style={{ color: 'var(--cc-text-secondary)' }}>
                 Your verification is being reviewed. This usually takes less than 24 hours.
               </p>
               <CCBadge variant="warning" size="lg" icon={Clock}>
                 Under Review
               </CCBadge>
-              <p className="text-sm text-[#6B7A94] mt-4">
+              <p className="text-sm mt-4" style={{ color: 'var(--cc-text-muted)' }}>
                 We'll notify you by email when your verification is complete.
               </p>
             </CCCard>
@@ -175,7 +175,7 @@ export default function Verification() {
   return (
     <FeatureRouteGuard flag="verification" requiresSubscription={false}>
     <MobileRefreshPage onRefresh={() => queryClient.invalidateQueries({ queryKey: ['verification', user?.email] })}>
-    <div className="min-h-screen bg-[#0B0F14] pt-24 pb-12 px-4">
+    <div className="min-h-screen pt-24 pb-12 px-4" style={{ backgroundColor: 'var(--cc-bg)' }}>
       <div className="max-w-2xl mx-auto">
         {/* Header */}
         <motion.div
@@ -186,8 +186,8 @@ export default function Verification() {
           <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-[#4F8CFF]/20 to-[#FF2DAA]/20 flex items-center justify-center">
             <ShieldCheck className="w-8 h-8 text-[#4F8CFF]" />
           </div>
-          <h1 className="text-3xl font-bold text-[#E8EEF9] mb-2">Identity Verification</h1>
-          <p className="text-[#9AA6BC]">
+          <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--cc-text-primary)' }}>Identity Verification</h1>
+          <p style={{ color: 'var(--cc-text-secondary)' }}>
             Verify your identity to access all platform features and build trust with other members.
           </p>
         </motion.div>

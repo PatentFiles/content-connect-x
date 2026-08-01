@@ -118,12 +118,12 @@ END:VCALENDAR`;
   return (
     <FeatureRouteGuard flag="travel_schedule">
     <MobileRefreshPage onRefresh={() => queryClient.invalidateQueries({ queryKey: ['travelEntries', user?.email] })}>
-      <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+      <div className="min-h-screen pb-20 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[#E8EEF9]">Travel Schedule</h1>
-          <p className="text-sm text-[#9AA6BC] mt-2">
+          <h1 className="text-3xl font-bold" style={{ color: 'var(--cc-text-primary)' }}>Travel Schedule</h1>
+          <p className="text-sm mt-2" style={{ color: 'var(--cc-text-secondary)' }}>
             Manage your travel destinations and dates
           </p>
         </div>

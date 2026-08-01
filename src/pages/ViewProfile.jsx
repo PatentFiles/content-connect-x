@@ -402,7 +402,7 @@ export default function ViewProfile() {
 
   if (!profile) {
     return (
-      <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--cc-bg)' }}>
         <CCEmpty
           title="Profile not found"
           description="This profile doesn't exist or has been removed."
@@ -418,7 +418,7 @@ export default function ViewProfile() {
   const profileIsBanned = profile.banned;
   if ((profileIsDeleted || profileIsBanned) && !isAdmin) {
     return (
-      <div className="min-h-screen bg-[#0B0F14] flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--cc-bg)' }}>
         <CCEmpty
           title="User not available"
           description="This account is no longer accessible."
@@ -442,7 +442,7 @@ export default function ViewProfile() {
 
   return (
     <MobileRefreshPage onRefresh={() => queryClient.invalidateQueries({ queryKey: ['viewProfile', profileUserId] })}>
-    <div className="min-h-screen bg-[#0B0F14] pb-20 md:pb-8">
+    <div className="min-h-screen pb-20 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
       {/* Cover Image */}
       <div className="relative h-64 md:h-80">
         {profile.cover_url ? (
