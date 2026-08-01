@@ -1,0 +1,108 @@
+{
+  "name": "SafetyCheckIn",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "User performing the check-in"
+    },
+    "collaboration_id": {
+      "type": "string",
+      "description": "The collaboration this check-in is for"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "checked_in",
+        "safe",
+        "missed",
+        "escalated"
+      ],
+      "default": "pending"
+    },
+    "checkin_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When user checked in"
+    },
+    "checkout_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When user checked out / marked safe"
+    },
+    "expected_end_time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the collaboration was expected to end"
+    },
+    "trusted_contact_name": {
+      "type": "string",
+      "description": "Optional trusted contact name"
+    },
+    "trusted_contact_phone": {
+      "type": "string",
+      "description": "Optional trusted contact phone (private, not shared)"
+    },
+    "location_shared": {
+      "type": "string",
+      "description": "Vague location shared at check-in (city only)"
+    },
+    "escalated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When escalation was triggered"
+    },
+    "escalation_reason": {
+      "type": "string",
+      "description": "Why escalation was triggered"
+    },
+    "admin_notified": {
+      "type": "boolean",
+      "default": false
+    },
+    "notes": {
+      "type": "string",
+      "description": "Optional notes"
+    }
+  },
+  "required": [
+    "user_id",
+    "collaboration_id",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

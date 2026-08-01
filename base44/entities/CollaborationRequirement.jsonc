@@ -1,0 +1,68 @@
+{
+  "name": "CollaborationRequirement",
+  "type": "object",
+  "properties": {
+    "collaboration_id": {
+      "type": "string",
+      "description": "Collaboration ID"
+    },
+    "requirement_type": {
+      "type": "string",
+      "enum": [
+        "REQUIRED_ROLE",
+        "REQUIRED_SCENE_PAIRING",
+        "REQUIRED_STANDARD_ACT",
+        "REQUIRED_FETISH_ACT",
+        "REQUIRED_KINK_EDGE_ACT",
+        "REQUIRED_POSITIONING",
+        "REQUIRED_VERIFICATION",
+        "REQUIRED_TESTING_VISIBILITY",
+        "REQUIRED_JURISDICTION",
+        "REQUIRED_INSURANCE",
+        "REPRESENTATION_COMPATIBILITY",
+        "STUDIO_EXCLUSIVITY_COMPATIBILITY"
+      ],
+      "description": "Type of requirement"
+    },
+    "requirement_value": {
+      "type": "string",
+      "description": "Required value"
+    },
+    "required": {
+      "type": "boolean",
+      "default": true,
+      "description": "Hard requirement vs preference"
+    },
+    "snapshot_at_contract": {
+      "type": "object",
+      "description": "Snapshot when contract created"
+    }
+  },
+  "required": [
+    "collaboration_id",
+    "requirement_type",
+    "requirement_value"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

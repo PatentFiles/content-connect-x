@@ -1,0 +1,83 @@
+{
+  "name": "JurisdictionRule",
+  "type": "object",
+  "properties": {
+    "jurisdiction_code": {
+      "type": "string",
+      "enum": [
+        "US",
+        "UK",
+        "EU",
+        "CA",
+        "AU",
+        "OTHER"
+      ],
+      "description": "Jurisdiction code"
+    },
+    "jurisdiction_name": {
+      "type": "string",
+      "description": "Full jurisdiction name"
+    },
+    "rule_type": {
+      "type": "string",
+      "enum": [
+        "verification",
+        "recordkeeping",
+        "consent",
+        "age_verification",
+        "data_retention"
+      ],
+      "description": "Type of compliance rule"
+    },
+    "requirements_json": {
+      "type": "object",
+      "description": "Jurisdiction-specific requirements"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether rule is currently enforced"
+    },
+    "min_retention_days": {
+      "type": "number",
+      "description": "Minimum record retention in days"
+    },
+    "strictness_level": {
+      "type": "number",
+      "description": "1-5, higher = stricter enforcement"
+    }
+  },
+  "required": [
+    "jurisdiction_code",
+    "rule_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.active": true
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

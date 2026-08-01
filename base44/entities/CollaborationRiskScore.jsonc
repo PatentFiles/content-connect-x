@@ -1,0 +1,59 @@
+{
+  "name": "CollaborationRiskScore",
+  "type": "object",
+  "properties": {
+    "collaboration_id": {
+      "type": "string",
+      "description": "Collaboration ID"
+    },
+    "score": {
+      "type": "number",
+      "description": "Risk score 0-100"
+    },
+    "risk_tier": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "description": "Risk tier classification"
+    },
+    "factors_json": {
+      "type": "object",
+      "description": "Risk factors and weights"
+    },
+    "calculated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When score was calculated"
+    }
+  },
+  "required": [
+    "collaboration_id",
+    "score",
+    "risk_tier"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

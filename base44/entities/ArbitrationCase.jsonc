@@ -1,0 +1,106 @@
+{
+  "name": "ArbitrationCase",
+  "type": "object",
+  "properties": {
+    "collaboration_id": {
+      "type": "string",
+      "description": "Collaboration ID"
+    },
+    "dispute_id": {
+      "type": "string",
+      "description": "Related dispute ID"
+    },
+    "opened_by_admin_id": {
+      "type": "string",
+      "description": "Admin who escalated to arbitration"
+    },
+    "assigned_arbitrator_id": {
+      "type": "string",
+      "description": "Arbitrator user ID"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Under Review",
+        "Resolved"
+      ],
+      "default": "Open",
+      "description": "Case status"
+    },
+    "resolution": {
+      "type": "string",
+      "enum": [
+        "Uphold Contract",
+        "Void Contract",
+        "Partial Breach",
+        "No Fault Found"
+      ],
+      "description": "Arbitration resolution"
+    },
+    "resolution_notes": {
+      "type": "string",
+      "description": "Arbitrator's resolution notes"
+    },
+    "evidence_reviewed": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "List of evidence IDs reviewed"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When case was resolved"
+    },
+    "immutable": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether decision is finalized and immutable"
+    }
+  },
+  "required": [
+    "collaboration_id",
+    "opened_by_admin_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.opened_by_admin_id": "{{user.email}}"
+        },
+        {
+          "data.assigned_arbitrator_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.assigned_arbitrator_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

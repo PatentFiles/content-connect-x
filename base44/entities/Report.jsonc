@@ -1,0 +1,101 @@
+{
+  "name": "Report",
+  "type": "object",
+  "properties": {
+    "reporter_id": {
+      "type": "string"
+    },
+    "target_user_id": {
+      "type": "string"
+    },
+    "target_content_type": {
+      "type": "string",
+      "enum": [
+        "profile",
+        "message",
+        "gallery",
+        "contract"
+      ]
+    },
+    "target_content_id": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "harassment",
+        "fake_profile",
+        "underage",
+        "non_consensual",
+        "solicitation",
+        "spam",
+        "scam",
+        "other"
+      ]
+    },
+    "details": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "investigating",
+        "resolved",
+        "dismissed"
+      ],
+      "default": "pending"
+    },
+    "admin_notes": {
+      "type": "string"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resolved_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "reporter_id",
+    "target_user_id",
+    "reason"
+  ],
+  "rls": {
+    "create": {
+      "$and": [
+        {
+          "data.reporter_id": "{{user.email}}"
+        },
+        {
+          "not": {
+            "has_banned_or_suspended": true
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.reporter_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

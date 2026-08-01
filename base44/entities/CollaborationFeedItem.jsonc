@@ -1,0 +1,95 @@
+{
+  "name": "CollaborationFeedItem",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "collaboration_completed",
+        "user_verified",
+        "user_newly_joined",
+        "travel_announced",
+        "testing_updated",
+        "milestone_reached"
+      ],
+      "description": "Feed item type"
+    },
+    "actor_user_id": {
+      "type": "string",
+      "description": "User who triggered this feed item"
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Cached display name at time of creation"
+    },
+    "avatar_url": {
+      "type": "string",
+      "description": "Cached avatar at time of creation"
+    },
+    "role_type": {
+      "type": "string",
+      "description": "Cached role type"
+    },
+    "collaboration_id": {
+      "type": "string",
+      "description": "Reference collaboration (if applicable)"
+    },
+    "headline": {
+      "type": "string",
+      "description": "Safe, non-sensitive headline for the feed item"
+    },
+    "location_hint": {
+      "type": "string",
+      "description": "City-level location only (if user allows)"
+    },
+    "visible_to": {
+      "type": "string",
+      "enum": [
+        "verified_members",
+        "all_members"
+      ],
+      "default": "verified_members"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this feed item should stop showing"
+    }
+  },
+  "required": [
+    "type",
+    "actor_user_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.visible_to": "all_members"
+        },
+        {
+          "data.visible_to": "verified_members"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

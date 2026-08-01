@@ -1,0 +1,133 @@
+{
+  "name": "StudioRepresentation",
+  "type": "object",
+  "properties": {
+    "studio_id": {
+      "type": "string",
+      "description": "Studio user ID"
+    },
+    "creator_user_id": {
+      "type": "string",
+      "description": "Creator user ID"
+    },
+    "representation_type": {
+      "type": "string",
+      "enum": [
+        "Exclusive",
+        "Non-Exclusive",
+        "Revenue-Share Affiliate"
+      ],
+      "description": "Type of studio representation"
+    },
+    "revenue_share_percentage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Studio revenue share percentage"
+    },
+    "applies_to": {
+      "type": "string",
+      "enum": [
+        "all_collaborations",
+        "off_studio_only",
+        "specific_types"
+      ],
+      "description": "Which collaborations revenue share applies to"
+    },
+    "specific_collaboration_types": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Specific collaboration types if applies_to is specific_types"
+    },
+    "effective_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When representation starts"
+    },
+    "expiration_date": {
+      "type": "string",
+      "format": "date",
+      "description": "When representation ends (optional)"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether representation is currently active"
+    },
+    "terms_acknowledged": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether creator acknowledged terms"
+    }
+  },
+  "required": [
+    "studio_id",
+    "creator_user_id",
+    "representation_type",
+    "revenue_share_percentage"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.studio_id": "{{user.email}}"
+        },
+        {
+          "data.creator_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.studio_id": "{{user.email}}"
+        },
+        {
+          "data.creator_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.studio_id": "{{user.email}}"
+        },
+        {
+          "data.creator_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.studio_id": "{{user.email}}"
+        },
+        {
+          "data.creator_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "name": "CollaborationTestingPolicy",
+  "type": "object",
+  "properties": {
+    "collaboration_id": {
+      "type": "string",
+      "description": "Reference to collaboration"
+    },
+    "require_verified_testing": {
+      "type": "boolean",
+      "default": true,
+      "description": "Only verified testing credentials allowed"
+    },
+    "require_full_panel_within_days": {
+      "type": "number",
+      "description": "Days threshold for testing recency (14, 30, 60, or null)"
+    },
+    "require_hiv_negative_only": {
+      "type": "boolean",
+      "default": false,
+      "description": "Require HIV negative status"
+    },
+    "allow_hiv_undetectable": {
+      "type": "boolean",
+      "default": true,
+      "description": "Allow HIV Positive \u2013 Undetectable (U=U)"
+    },
+    "allow_self_reported": {
+      "type": "boolean",
+      "default": false,
+      "description": "Allow self-reported testing"
+    },
+    "require_testing_before_contract": {
+      "type": "boolean",
+      "default": true,
+      "description": "Block contract until testing satisfied"
+    },
+    "require_testing_before_schedule_lock": {
+      "type": "boolean",
+      "default": false,
+      "description": "Block schedule lock until testing satisfied"
+    }
+  },
+  "required": [
+    "collaboration_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

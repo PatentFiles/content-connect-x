@@ -1,0 +1,59 @@
+{
+  "name": "SocialLinkVerification",
+  "type": "object",
+  "properties": {
+    "social_link_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "platform_id": {
+      "type": "string"
+    },
+    "method": {
+      "type": "string",
+      "enum": [
+        "OAUTH",
+        "BIO_TOKEN",
+        "WEBSITE_FILE",
+        "WEBSITE_META",
+        "DM_CODE",
+        "SCREENSHOT",
+        "ADMIN_REVIEW"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "NOT_SUBMITTED",
+        "PENDING",
+        "VERIFIED",
+        "REJECTED",
+        "EXPIRED"
+      ],
+      "default": "NOT_SUBMITTED"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "proof_data_json": {
+      "type": "object"
+    },
+    "admin_notes": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "social_link_id",
+    "user_id",
+    "platform_id",
+    "method",
+    "status"
+  ]
+}

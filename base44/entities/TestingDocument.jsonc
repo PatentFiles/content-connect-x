@@ -1,0 +1,117 @@
+{
+  "name": "TestingDocument",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "User who uploaded the document"
+    },
+    "file_uri": {
+      "type": "string",
+      "description": "Private storage URI for the document (never a public URL). Use getSecureDocumentUrl backend function to get a short-lived signed URL."
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Original filename"
+    },
+    "file_type": {
+      "type": "string",
+      "enum": [
+        "pdf",
+        "png",
+        "jpg",
+        "jpeg",
+        "heic"
+      ],
+      "description": "File type"
+    },
+    "file_size": {
+      "type": "number",
+      "description": "File size in bytes"
+    },
+    "uploaded_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When document was uploaded"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "verified",
+        "rejected"
+      ],
+      "default": "pending",
+      "description": "Review status"
+    },
+    "reviewed_by_user_id": {
+      "type": "string",
+      "description": "Admin who reviewed the document"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When document was reviewed"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Review notes"
+    },
+    "is_active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether document is active"
+    },
+    "collaboration_id": {
+      "type": "string",
+      "description": "Optional collaboration reference if uploaded for specific collab"
+    }
+  },
+  "required": [
+    "user_id",
+    "file_uri",
+    "file_name",
+    "file_type"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

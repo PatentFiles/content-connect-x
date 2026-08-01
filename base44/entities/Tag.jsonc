@@ -1,0 +1,84 @@
+{
+  "name": "Tag",
+  "type": "object",
+  "properties": {
+    "tag_text": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "fetish",
+        "kink_edge",
+        "style",
+        "service",
+        "location"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "pending",
+        "blocked"
+      ],
+      "default": "pending"
+    },
+    "created_by_user_id": {
+      "type": "string"
+    },
+    "usage_count": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "tag_text",
+    "category"
+  ],
+  "rls": {
+    "create": {
+      "data.created_by_user_id": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.status": "approved"
+        },
+        {
+          "data.created_by_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.created_by_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.created_by_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

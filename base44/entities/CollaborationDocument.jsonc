@@ -1,0 +1,91 @@
+{
+  "name": "CollaborationDocument",
+  "type": "object",
+  "properties": {
+    "collaboration_id": {
+      "type": "string"
+    },
+    "title": {
+      "type": "string"
+    },
+    "content": {
+      "type": "string",
+      "description": "Document content in HTML/markdown"
+    },
+    "created_by": {
+      "type": "string"
+    },
+    "last_edited_by": {
+      "type": "string"
+    },
+    "version": {
+      "type": "number",
+      "default": 1
+    },
+    "is_locked": {
+      "type": "boolean",
+      "default": false
+    },
+    "locked_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "collaboration_id",
+    "title",
+    "created_by"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.created_by": "{{user.email}}"
+        },
+        {
+          "data.locked_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.created_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

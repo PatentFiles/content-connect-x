@@ -1,0 +1,73 @@
+{
+  "name": "CollaborationDispute",
+  "type": "object",
+  "properties": {
+    "collaboration_id": {
+      "type": "string",
+      "description": "DealRoom collaboration ID"
+    },
+    "opened_by_user_id": {
+      "type": "string",
+      "description": "User who opened the dispute"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for dispute"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Open",
+        "Under Review",
+        "Resolved",
+        "Escalated",
+        "Voided"
+      ],
+      "default": "Open",
+      "description": "Current dispute status"
+    },
+    "resolution_notes": {
+      "type": "string",
+      "description": "Admin notes on resolution"
+    },
+    "evidence_links": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Links to messages, documents as evidence"
+    }
+  },
+  "required": [
+    "collaboration_id",
+    "opened_by_user_id",
+    "reason"
+  ],
+  "rls": {
+    "create": {
+      "data.opened_by_user_id": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.opened_by_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

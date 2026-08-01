@@ -1,0 +1,115 @@
+{
+  "name": "AgentDetails",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "agency_name": {
+      "type": "string"
+    },
+    "age": {
+      "type": "number"
+    },
+    "gender_identity": {
+      "type": "string",
+      "enum": [
+        "woman",
+        "man",
+        "trans_woman",
+        "trans_man",
+        "non_binary"
+      ]
+    },
+    "content_types": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "gay",
+          "straight",
+          "trans"
+        ]
+      },
+      "description": "Types of content they work with"
+    },
+    "website": {
+      "type": "string",
+      "description": "Agency website URL"
+    },
+    "represented_creator_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "permissions": {
+      "type": "object",
+      "properties": {
+        "can_negotiate": {
+          "type": "boolean",
+          "default": true
+        },
+        "can_sign_contracts": {
+          "type": "boolean",
+          "default": false
+        },
+        "can_message": {
+          "type": "boolean",
+          "default": true
+        },
+        "can_view_private_gallery": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "commission_rate": {
+      "type": "number",
+      "description": "Commission percentage"
+    },
+    "contact_email": {
+      "type": "string"
+    },
+    "contact_phone": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

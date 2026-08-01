@@ -1,0 +1,74 @@
+{
+  "name": "ContractAuditLog",
+  "type": "object",
+  "properties": {
+    "contract_id": {
+      "type": "string",
+      "description": "Contract ID"
+    },
+    "collaboration_id": {
+      "type": "string",
+      "description": "Associated collaboration ID"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "contract_created",
+        "contract_generated",
+        "version_created",
+        "contract_sent",
+        "signature_added",
+        "contract_signed",
+        "contract_completed",
+        "pdf_generated",
+        "pdf_downloaded",
+        "reminder_scheduled",
+        "reminder_sent",
+        "contract_disputed",
+        "contract_voided",
+        "contract_expired"
+      ],
+      "description": "Type of action performed"
+    },
+    "actor_email": {
+      "type": "string",
+      "description": "User who performed action (null for system)"
+    },
+    "metadata_json": {
+      "type": "object",
+      "description": "Additional action metadata"
+    }
+  },
+  "required": [
+    "contract_id",
+    "action"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.actor_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.actor_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {},
+    "delete": {}
+  }
+}

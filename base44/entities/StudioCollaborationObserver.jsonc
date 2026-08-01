@@ -1,0 +1,87 @@
+{
+  "name": "StudioCollaborationObserver",
+  "type": "object",
+  "properties": {
+    "studio_id": {
+      "type": "string",
+      "description": "Studio user ID"
+    },
+    "collaboration_id": {
+      "type": "string",
+      "description": "Collaboration ID"
+    },
+    "creator_user_id": {
+      "type": "string",
+      "description": "Creator being represented"
+    },
+    "access_level": {
+      "type": "string",
+      "enum": [
+        "Observer",
+        "Member"
+      ],
+      "default": "Observer",
+      "description": "Studio's access level"
+    },
+    "revenue_share_percentage": {
+      "type": "number",
+      "description": "Studio's revenue share for this collaboration"
+    },
+    "added_automatically": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether added by system based on representation"
+    },
+    "added_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When studio was added as observer"
+    }
+  },
+  "required": [
+    "studio_id",
+    "collaboration_id",
+    "creator_user_id"
+  ],
+  "rls": {
+    "create": {
+      "data.studio_id": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.studio_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.studio_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.studio_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "CollaborationPacketItem",
+  "type": "object",
+  "properties": {
+    "collaboration_id": {
+      "type": "string",
+      "description": "Reference to collaboration"
+    },
+    "item_type": {
+      "type": "string",
+      "enum": [
+        "contract_pdf",
+        "contract_snapshot",
+        "testing_document",
+        "verification_summary",
+        "activity_log_export"
+      ],
+      "description": "Type of packet item"
+    },
+    "related_entity_type": {
+      "type": "string",
+      "description": "Entity type (Contract, TestingDocument, etc.)"
+    },
+    "related_entity_id": {
+      "type": "string",
+      "description": "ID of related entity"
+    },
+    "title": {
+      "type": "string",
+      "description": "Display title for packet item"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "File URL if applicable"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional metadata"
+    }
+  },
+  "required": [
+    "collaboration_id",
+    "item_type",
+    "title"
+  ]
+}

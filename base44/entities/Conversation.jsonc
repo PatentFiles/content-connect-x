@@ -1,0 +1,109 @@
+{
+  "name": "Conversation",
+  "type": "object",
+  "properties": {
+    "type": {
+      "type": "string",
+      "enum": [
+        "discovery",
+        "negotiation",
+        "contract"
+      ],
+      "default": "discovery"
+    },
+    "participant_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "deal_room_id": {
+      "type": "string"
+    },
+    "contract_id": {
+      "type": "string"
+    },
+    "last_message_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_message_preview": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "archived",
+        "blocked"
+      ],
+      "default": "active"
+    },
+    "unread_counts": {
+      "type": "object",
+      "description": "Map of user_id to unread count"
+    },
+    "participants_who_replied": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tracks which participants have sent at least one message",
+      "default": []
+    }
+  },
+  "required": [
+    "type",
+    "participant_ids"
+  ],
+  "rls": {
+    "create": {
+      "$and": [
+        {
+          "data.participant_ids": "{{user.email}}"
+        },
+        {
+          "not": {
+            "has_banned_or_suspended": true
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.participant_ids": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$and": [
+        {
+          "data.participant_ids": "{{user.email}}"
+        },
+        {
+          "not": {
+            "has_banned_or_suspended": true
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$and": [
+        {
+          "data.participant_ids": "{{user.email}}"
+        },
+        {
+          "not": {
+            "has_banned_or_suspended": true
+          }
+        }
+      ]
+    }
+  }
+}

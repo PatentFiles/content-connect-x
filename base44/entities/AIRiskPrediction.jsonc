@@ -1,0 +1,78 @@
+{
+  "name": "AIRiskPrediction",
+  "type": "object",
+  "properties": {
+    "collaboration_id": {
+      "type": "string",
+      "description": "Collaboration ID"
+    },
+    "predicted_risk_level": {
+      "type": "string",
+      "enum": [
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "description": "AI-predicted risk level"
+    },
+    "factors_json": {
+      "type": "object",
+      "description": "AI-identified risk factors"
+    },
+    "confidence_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Prediction confidence (0-1)"
+    },
+    "explanation": {
+      "type": "string",
+      "description": "Human-readable explanation"
+    },
+    "model_version": {
+      "type": "string",
+      "description": "AI model version used"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When prediction was generated"
+    },
+    "referenced_by_admin": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether admin viewed this prediction"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "Admin notes on prediction accuracy"
+    }
+  },
+  "required": [
+    "collaboration_id",
+    "predicted_risk_level",
+    "confidence_score"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

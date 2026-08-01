@@ -1,0 +1,29 @@
+{
+  "name": "ProfileView",
+  "type": "object",
+  "properties": {
+    "profile_owner_id": {
+      "type": "string"
+    },
+    "viewer_user_id": {
+      "type": "string"
+    },
+    "viewed_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "view_type": {
+      "type": "string",
+      "enum": [
+        "profile",
+        "gallery"
+      ],
+      "default": "profile"
+    }
+  },
+  "required": [
+    "profile_owner_id",
+    "viewer_user_id",
+    "viewed_date"
+  ]
+}

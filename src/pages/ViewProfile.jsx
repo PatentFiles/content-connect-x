@@ -47,6 +47,7 @@ import ReputationBadge from '@/components/trust/ReputationBadge';
 import CollaborationHistory from '@/components/profile/CollaborationHistory';
 import TrustBadges from '@/components/profile/TrustBadges';
 import PreCollaborationCheck from '@/components/trust/PreCollaborationCheck';
+import ActivityIndicator from '@/components/profile/ActivityIndicator';
 import CCModal from '@/components/ui-custom/CCModal';
 import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
@@ -499,6 +500,10 @@ export default function ViewProfile() {
                 <ShieldCheck className="w-5 h-5 text-white" />
               </div>
             )}
+          </div>
+
+          <div className="flex items-center justify-center mb-3">
+            <ActivityIndicator profile={profile} showLabel size="sm" />
           </div>
           
           <div className="flex items-center justify-center gap-2 mb-3">

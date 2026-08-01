@@ -1,0 +1,54 @@
+{
+  "name": "ComplianceRecord",
+  "type": "object",
+  "properties": {
+    "collaboration_id": {
+      "type": "string",
+      "description": "Collaboration ID"
+    },
+    "creator_user_id": {
+      "type": "string",
+      "description": "Creator user ID"
+    },
+    "verification_snapshot_json": {
+      "type": "object",
+      "description": "Verification data at time of collaboration"
+    },
+    "contract_snapshot_json": {
+      "type": "object",
+      "description": "Contract data snapshot"
+    },
+    "confirmation_snapshot_json": {
+      "type": "object",
+      "description": "Confirmation data snapshot"
+    },
+    "finalized_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When record was finalized"
+    },
+    "immutable": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether record is locked from editing"
+    }
+  },
+  "required": [
+    "collaboration_id",
+    "creator_user_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {},
+    "delete": {}
+  }
+}

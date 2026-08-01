@@ -1,0 +1,76 @@
+{
+  "name": "TestingRequirement",
+  "type": "object",
+  "properties": {
+    "collaboration_id": {
+      "type": "string",
+      "description": "Reference to the collaboration"
+    },
+    "is_required": {
+      "type": "boolean",
+      "description": "Whether testing is required for this collaboration"
+    },
+    "visibility_level": {
+      "type": "string",
+      "enum": [
+        "PRIVATE",
+        "COLLABORATION_ROOM_ONLY",
+        "VERIFIED_COLLABORATORS"
+      ],
+      "description": "Who can view testing credentials"
+    },
+    "deadline_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Deadline for providing testing credentials"
+    },
+    "require_valid_credential": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether a valid testing credential is required"
+    },
+    "require_new_upload": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether a new upload is required vs existing credential"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ACTIVE",
+        "SATISFIED",
+        "FAILED",
+        "WAIVED"
+      ],
+      "description": "Current status of the testing requirement"
+    }
+  },
+  "required": [
+    "collaboration_id",
+    "is_required",
+    "visibility_level",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

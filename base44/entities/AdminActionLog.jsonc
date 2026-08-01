@@ -1,0 +1,75 @@
+{
+  "name": "AdminActionLog",
+  "type": "object",
+  "properties": {
+    "admin_user_id": {
+      "type": "string",
+      "description": "Admin who performed action"
+    },
+    "target_type": {
+      "type": "string",
+      "enum": [
+        "User",
+        "Collaboration",
+        "Contract",
+        "Dispute",
+        "Verification",
+        "ComplianceRecord"
+      ],
+      "description": "Type of entity acted upon"
+    },
+    "target_id": {
+      "type": "string",
+      "description": "ID of target entity"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "suspend_account",
+        "reinstate_account",
+        "flag_user",
+        "unflag_user",
+        "pause_collaboration",
+        "resume_collaboration",
+        "override_status",
+        "escalate_to_arbitration",
+        "assign_arbitrator",
+        "override_compliance",
+        "add_internal_note"
+      ],
+      "description": "Action performed"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Reason for action"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Admin notes"
+    },
+    "metadata_json": {
+      "type": "object",
+      "description": "Additional action metadata"
+    }
+  },
+  "required": [
+    "admin_user_id",
+    "target_type",
+    "target_id",
+    "action"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {},
+    "delete": {}
+  }
+}

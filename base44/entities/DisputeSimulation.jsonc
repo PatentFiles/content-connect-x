@@ -1,0 +1,74 @@
+{
+  "name": "DisputeSimulation",
+  "type": "object",
+  "properties": {
+    "collaboration_id": {
+      "type": "string",
+      "description": "Test collaboration ID"
+    },
+    "scenario_type": {
+      "type": "string",
+      "enum": [
+        "consent_violation_claim",
+        "verification_expired_post_signing",
+        "agent_no_creator_approval",
+        "contract_modified_post_execution",
+        "participant_refuses_confirmation",
+        "jurisdiction_conflict",
+        "missing_insurance_high_risk",
+        "dispute_post_completion"
+      ],
+      "description": "Type of stress test scenario"
+    },
+    "triggered_by_admin_id": {
+      "type": "string",
+      "description": "Admin who triggered simulation"
+    },
+    "results_json": {
+      "type": "object",
+      "description": "Test results and system responses"
+    },
+    "passed": {
+      "type": "boolean",
+      "description": "Whether system handled scenario correctly"
+    },
+    "issues_found": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Issues discovered during test"
+    },
+    "recommendations": {
+      "type": "string",
+      "description": "Recommended improvements"
+    }
+  },
+  "required": [
+    "collaboration_id",
+    "scenario_type",
+    "triggered_by_admin_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

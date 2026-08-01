@@ -11,6 +11,7 @@ import CCBadge from '../ui-custom/CCBadge';
 import CCButton from '../ui-custom/CCButton';
 import TrustBadges from '@/components/profile/TrustBadges';
 import ReputationBadge from '@/components/trust/ReputationBadge';
+import ActivityIndicator from '@/components/profile/ActivityIndicator';
 
 const roleColors = {
   creator: 'primary',
@@ -160,6 +161,16 @@ export default function ProfileCard({
                 <h3 className="text-lg font-bold text-white">
                   {profile.display_name || 'Anonymous'}
                 </h3>
+                {/* Online status dot */}
+                {isOnline && (
+                  <span
+                    className="relative flex w-2.5 h-2.5 ml-auto"
+                    title="Online now"
+                  >
+                    <span className="absolute inline-flex h-full w-full rounded-full opacity-60 animate-ping bg-green-500" />
+                    <span className="relative inline-flex rounded-full w-2.5 h-2.5 bg-green-500" />
+                  </span>
+                )}
               </div>
               
               <div className="text-sm text-white/90 leading-relaxed">

@@ -1,0 +1,48 @@
+{
+  "name": "CompliancePortalAccess",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "User granted access"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "Compliance Viewer",
+        "Compliance Admin"
+      ],
+      "description": "Access level"
+    },
+    "allowed_jurisdictions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Jurisdictions this user can access"
+    },
+    "granted_by_admin_id": {
+      "type": "string",
+      "description": "Admin who granted access"
+    },
+    "purpose": {
+      "type": "string",
+      "description": "Reason for access (legal counsel, audit, etc.)"
+    },
+    "access_expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When access expires"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether access is currently active"
+    }
+  },
+  "required": [
+    "user_id",
+    "role",
+    "granted_by_admin_id"
+  ]
+}

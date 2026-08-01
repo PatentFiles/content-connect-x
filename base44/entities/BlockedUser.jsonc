@@ -1,0 +1,69 @@
+{
+  "name": "BlockedUser",
+  "type": "object",
+  "properties": {
+    "blocker_id": {
+      "type": "string"
+    },
+    "blocked_id": {
+      "type": "string"
+    },
+    "reason": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "blocker_id",
+    "blocked_id"
+  ],
+  "rls": {
+    "create": {
+      "$and": [
+        {
+          "data.blocker_id": "{{user.email}}"
+        },
+        {
+          "not": {
+            "has_banned_or_suspended": true
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.blocker_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$and": [
+        {
+          "data.blocker_id": "{{user.email}}"
+        },
+        {
+          "not": {
+            "has_banned_or_suspended": true
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$and": [
+        {
+          "data.blocker_id": "{{user.email}}"
+        },
+        {
+          "not": {
+            "has_banned_or_suspended": true
+          }
+        }
+      ]
+    }
+  }
+}

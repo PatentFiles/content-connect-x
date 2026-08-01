@@ -1,0 +1,98 @@
+{
+  "name": "ConsentRevocation",
+  "type": "object",
+  "properties": {
+    "collaboration_id": {
+      "type": "string",
+      "description": "Collaboration ID"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "User revoking consent"
+    },
+    "consent_type": {
+      "type": "string",
+      "enum": [
+        "scene_participation",
+        "distribution",
+        "promotional_usage"
+      ],
+      "description": "Type of consent being revoked"
+    },
+    "reason": {
+      "type": "string",
+      "enum": [
+        "boundary_violation",
+        "misrepresentation",
+        "contract_breach",
+        "personal_choice",
+        "safety_concern",
+        "other"
+      ],
+      "description": "Reason for revocation"
+    },
+    "reason_details": {
+      "type": "string",
+      "description": "Additional details"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "Submitted",
+        "Under Review",
+        "Acknowledged",
+        "Contested",
+        "Resolved"
+      ],
+      "default": "Submitted",
+      "description": "Revocation status"
+    },
+    "admin_notes": {
+      "type": "string",
+      "description": "Admin review notes"
+    },
+    "resolved_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When revocation was resolved"
+    },
+    "immutable": {
+      "type": "boolean",
+      "default": true,
+      "description": "Revocation record is immutable"
+    }
+  },
+  "required": [
+    "collaboration_id",
+    "user_id",
+    "consent_type",
+    "reason"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

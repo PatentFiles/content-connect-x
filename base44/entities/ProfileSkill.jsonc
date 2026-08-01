@@ -1,0 +1,122 @@
+{
+  "name": "ProfileSkill",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "User profile ID"
+    },
+    "role_scope": {
+      "type": "string",
+      "enum": [
+        "creator",
+        "photographer",
+        "videographer",
+        "agent",
+        "studio"
+      ],
+      "description": "Role this skill applies to"
+    },
+    "skill_type": {
+      "type": "string",
+      "enum": [
+        "SCENE_PAIRING",
+        "STANDARD_ACT",
+        "FETISH_ACT",
+        "KINK_EDGE_ACT",
+        "PERFORMANCE_POSITIONING",
+        "NICHE_TAG",
+        "CREATOR_TYPES_SERVED",
+        "SHOOT_STYLE",
+        "TECHNICAL_SKILL",
+        "GENRES_MANAGED",
+        "JURISDICTIONS_OPERATED"
+      ],
+      "description": "Type of skill"
+    },
+    "skill_value": {
+      "type": "string",
+      "description": "Specific skill value"
+    },
+    "verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether skill is verified"
+    },
+    "verified_by": {
+      "type": "string",
+      "description": "Admin who verified"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When verified"
+    },
+    "visibility": {
+      "type": "string",
+      "enum": [
+        "PUBLIC",
+        "VERIFIED_ONLY",
+        "COLLABORATION_ONLY",
+        "PRIVATE"
+      ],
+      "default": "PUBLIC",
+      "description": "Visibility level"
+    },
+    "collaboration_count": {
+      "type": "number",
+      "default": 0,
+      "description": "Times used in verified collaborations"
+    }
+  },
+  "required": [
+    "user_id",
+    "role_scope",
+    "skill_type",
+    "skill_value"
+  ],
+  "rls": {
+    "create": {
+      "data.user_id": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "data.visibility": "PUBLIC"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

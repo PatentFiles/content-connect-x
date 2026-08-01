@@ -1,0 +1,94 @@
+{
+  "name": "CollaborationRole",
+  "type": "object",
+  "properties": {
+    "deal_room_id": {
+      "type": "string"
+    },
+    "user_id": {
+      "type": "string"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "editor",
+        "viewer"
+      ],
+      "default": "viewer"
+    },
+    "permissions": {
+      "type": "object",
+      "properties": {
+        "manage_tasks": {
+          "type": "boolean",
+          "default": false
+        },
+        "manage_files": {
+          "type": "boolean",
+          "default": false
+        },
+        "manage_calendar": {
+          "type": "boolean",
+          "default": false
+        },
+        "manage_contracts": {
+          "type": "boolean",
+          "default": false
+        },
+        "manage_members": {
+          "type": "boolean",
+          "default": false
+        },
+        "edit_details": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "assigned_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "deal_room_id",
+    "user_id",
+    "role"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

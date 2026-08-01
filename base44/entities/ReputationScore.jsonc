@@ -1,0 +1,117 @@
+{
+  "name": "ReputationScore",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "User this score belongs to"
+    },
+    "score": {
+      "type": "number",
+      "description": "Computed reputation score 0-100"
+    },
+    "label": {
+      "type": "string",
+      "enum": [
+        "new",
+        "established",
+        "reliable",
+        "highly_reliable",
+        "trusted"
+      ],
+      "description": "Human-readable trust band"
+    },
+    "factors": {
+      "type": "object",
+      "description": "Breakdown of score components",
+      "properties": {
+        "completed_collabs": {
+          "type": "number"
+        },
+        "cancelled_collabs": {
+          "type": "number"
+        },
+        "disputed_collabs": {
+          "type": "number"
+        },
+        "dispute_outcomes_favorable": {
+          "type": "number"
+        },
+        "contract_completion_rate": {
+          "type": "number"
+        },
+        "response_time_hours": {
+          "type": "number"
+        },
+        "verification_status": {
+          "type": "string"
+        },
+        "testing_compliance": {
+          "type": "string"
+        },
+        "moderation_flags": {
+          "type": "number"
+        },
+        "consent_revocations": {
+          "type": "number"
+        },
+        "profile_completeness": {
+          "type": "number"
+        },
+        "account_age_days": {
+          "type": "number"
+        },
+        "positive_points": {
+          "type": "number"
+        },
+        "negative_points": {
+          "type": "number"
+        }
+      }
+    },
+    "computed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When this score was last calculated"
+    },
+    "version": {
+      "type": "number",
+      "default": 1,
+      "description": "Score formula version for migration tracking"
+    }
+  },
+  "required": [
+    "user_id",
+    "score",
+    "label"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

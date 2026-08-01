@@ -1,0 +1,63 @@
+{
+  "name": "GalleryPermission",
+  "type": "object",
+  "properties": {
+    "gallery_id": {
+      "type": "string"
+    },
+    "owner_id": {
+      "type": "string"
+    },
+    "granted_to_user_id": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "granted",
+        "revoked"
+      ],
+      "default": "pending"
+    },
+    "granted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "gallery_id",
+    "owner_id",
+    "granted_to_user_id"
+  ],
+  "rls": {
+    "create": {
+      "data.owner_id": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.owner_id": "{{user.email}}"
+        },
+        {
+          "data.granted_to_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "data.owner_id": "{{user.email}}"
+    },
+    "delete": {
+      "data.owner_id": "{{user.email}}"
+    }
+  }
+}

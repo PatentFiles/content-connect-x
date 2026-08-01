@@ -1,0 +1,92 @@
+{
+  "name": "SocialPlatform",
+  "type": "object",
+  "properties": {
+    "key": {
+      "type": "string",
+      "description": "Unique platform identifier"
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "group": {
+      "type": "string",
+      "enum": [
+        "FAN_PLATFORM",
+        "SOCIAL_TRAFFIC",
+        "DIRECT_CONTACT",
+        "HUB",
+        "TUBE_MODEL_PAGES",
+        "CREATOR_MARKETPLACES",
+        "KINK_COMMUNITY",
+        "GAY_PLATFORMS",
+        "INTERNATIONAL",
+        "STUDIO_NICHE",
+        "CUSTOM"
+      ]
+    },
+    "input_type": {
+      "type": "string",
+      "enum": [
+        "URL",
+        "HANDLE",
+        "TEXT"
+      ]
+    },
+    "base_url": {
+      "type": "string"
+    },
+    "icon_key": {
+      "type": "string"
+    },
+    "supports_oauth": {
+      "type": "boolean",
+      "default": false
+    },
+    "oauth_provider_key": {
+      "type": "string"
+    },
+    "is_enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "sort_order": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "key",
+    "display_name",
+    "group",
+    "input_type"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.is_enabled": true
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

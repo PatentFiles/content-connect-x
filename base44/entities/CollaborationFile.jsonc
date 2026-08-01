@@ -1,0 +1,86 @@
+{
+  "name": "CollaborationFile",
+  "type": "object",
+  "properties": {
+    "collaboration_id": {
+      "type": "string",
+      "description": "Reference to collaboration"
+    },
+    "uploaded_by": {
+      "type": "string",
+      "description": "User who uploaded"
+    },
+    "file_name": {
+      "type": "string"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "file_type": {
+      "type": "string"
+    },
+    "file_size": {
+      "type": "number",
+      "description": "Size in bytes"
+    },
+    "version": {
+      "type": "number",
+      "default": 1
+    },
+    "parent_file_id": {
+      "type": "string",
+      "description": "For version control"
+    },
+    "is_latest": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "collaboration_id",
+    "uploaded_by",
+    "file_name",
+    "file_url"
+  ],
+  "rls": {
+    "create": {
+      "data.uploaded_by": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.uploaded_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.uploaded_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.uploaded_by": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

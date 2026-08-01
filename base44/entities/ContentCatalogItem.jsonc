@@ -1,0 +1,105 @@
+{
+  "name": "ContentCatalogItem",
+  "type": "object",
+  "properties": {
+    "category": {
+      "type": "string",
+      "enum": [
+        "scene_pairing",
+        "standard_act",
+        "fetish_act",
+        "kink_edge_act",
+        "platform",
+        "deliverable",
+        "usage_right",
+        "niche_tag"
+      ],
+      "description": "Type of catalog item"
+    },
+    "value": {
+      "type": "string",
+      "description": "The actual value/label"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "disabled",
+        "archived"
+      ],
+      "default": "active"
+    },
+    "approved_by": {
+      "type": "string",
+      "description": "Admin who approved this item"
+    },
+    "approved_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "usage_count": {
+      "type": "number",
+      "default": 0,
+      "description": "How many times this has been used"
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "version": {
+          "type": "number",
+          "default": 1
+        },
+        "previous_values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "merged_from": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "category",
+    "value",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.status": "active"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

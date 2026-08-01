@@ -1,0 +1,110 @@
+{
+  "name": "Message",
+  "type": "object",
+  "properties": {
+    "conversation_id": {
+      "type": "string"
+    },
+    "sender_id": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "attachments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "image",
+              "document",
+              "testing_proof"
+            ]
+          },
+          "url": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "size": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "read_by": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "system_message": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "conversation_id",
+    "sender_id",
+    "body"
+  ],
+  "rls": {
+    "create": {
+      "$and": [
+        {
+          "data.sender_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "not": {
+            "has_banned_or_suspended": true
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.sender_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$and": [
+        {
+          "data.sender_id": "{{user.email}}"
+        },
+        {
+          "not": {
+            "has_banned_or_suspended": true
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$and": [
+        {
+          "data.sender_id": "{{user.email}}"
+        },
+        {
+          "not": {
+            "has_banned_or_suspended": true
+          }
+        }
+      ]
+    }
+  }
+}

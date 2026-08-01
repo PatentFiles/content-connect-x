@@ -1,0 +1,37 @@
+{
+  "name": "AgentProfile",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Agent display name"
+    },
+    "description": {
+      "type": "string",
+      "description": "Agent purpose and capabilities"
+    },
+    "agent_type": {
+      "type": "string",
+      "enum": [
+        "COMPLIANCE_SAFETY",
+        "CUSTOM"
+      ],
+      "default": "CUSTOM",
+      "description": "Type of agent"
+    },
+    "is_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Whether agent is active"
+    },
+    "created_by_admin_user_id": {
+      "type": "string",
+      "description": "Admin who created this agent"
+    }
+  },
+  "required": [
+    "name",
+    "agent_type",
+    "created_by_admin_user_id"
+  ]
+}

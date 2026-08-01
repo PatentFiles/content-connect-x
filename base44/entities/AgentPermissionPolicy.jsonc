@@ -1,0 +1,100 @@
+{
+  "name": "AgentPermissionPolicy",
+  "type": "object",
+  "properties": {
+    "agent_id": {
+      "type": "string",
+      "description": "Reference to AgentProfile"
+    },
+    "scope": {
+      "type": "string",
+      "enum": [
+        "PROFILES",
+        "COLLABORATIONS",
+        "CONTRACTS",
+        "MESSAGES",
+        "AUDIT_LOGS",
+        "VERIFICATION",
+        "TESTING",
+        "REPRESENTATION",
+        "COMPLIANCE"
+      ],
+      "description": "Data scope this permission applies to"
+    },
+    "access_level": {
+      "type": "string",
+      "enum": [
+        "NONE",
+        "READ_ONLY",
+        "READ_METADATA_ONLY"
+      ],
+      "default": "READ_ONLY",
+      "description": "Access level for this scope"
+    },
+    "field_allowlist_json": {
+      "type": "object",
+      "description": "Optional field list for READ_ONLY access"
+    },
+    "field_blocklist_json": {
+      "type": "object",
+      "description": "Optional field list to force-hide"
+    },
+    "pii_redaction_level": {
+      "type": "string",
+      "enum": [
+        "NONE",
+        "STANDARD",
+        "STRICT"
+      ],
+      "default": "STANDARD",
+      "description": "PII redaction level - STANDARD: email/phone/address/docs, STRICT: + usernames/messages"
+    },
+    "can_generate_reports": {
+      "type": "boolean",
+      "default": true,
+      "description": "Can generate compliance reports"
+    },
+    "can_generate_risk_scores": {
+      "type": "boolean",
+      "default": true,
+      "description": "Can calculate and store risk scores"
+    },
+    "can_create_flags": {
+      "type": "boolean",
+      "default": true,
+      "description": "Can create compliance flags"
+    },
+    "can_recommend_actions": {
+      "type": "boolean",
+      "default": true,
+      "description": "Can provide action recommendations"
+    }
+  },
+  "required": [
+    "agent_id",
+    "scope",
+    "access_level"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

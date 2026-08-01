@@ -1,0 +1,166 @@
+{
+  "name": "AIMatchSuggestion",
+  "type": "object",
+  "properties": {
+    "source_type": {
+      "type": "string",
+      "enum": [
+        "user",
+        "collaboration"
+      ],
+      "description": "What is requesting matches"
+    },
+    "source_id": {
+      "type": "string",
+      "description": "User ID or Collaboration ID"
+    },
+    "target_type": {
+      "type": "string",
+      "enum": [
+        "user",
+        "collaboration"
+      ],
+      "description": "What is being suggested"
+    },
+    "target_id": {
+      "type": "string",
+      "description": "Suggested user ID or collaboration ID"
+    },
+    "match_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Match score 0-100"
+    },
+    "match_factors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "factor": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number"
+          },
+          "weight": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Breakdown of match factors"
+    },
+    "explanation": {
+      "type": "string",
+      "description": "Human-readable explanation of match"
+    },
+    "risk_flags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Any risk or compliance flags"
+    },
+    "requires_review": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether admin/agent review required"
+    },
+    "review_reason": {
+      "type": "string",
+      "description": "Why review is required"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "accepted",
+        "dismissed",
+        "expired"
+      ],
+      "default": "pending",
+      "description": "Suggestion status"
+    },
+    "viewed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether user has viewed this suggestion"
+    },
+    "viewed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When suggestion was viewed"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When suggestion expires"
+    },
+    "model_version": {
+      "type": "string",
+      "description": "AI model version used"
+    }
+  },
+  "required": [
+    "source_type",
+    "source_id",
+    "target_type",
+    "target_id",
+    "match_score",
+    "explanation"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.source_type": "user",
+          "data.source_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.source_type": "user",
+          "data.source_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.source_type": "user",
+          "data.source_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.source_type": "user",
+          "data.source_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

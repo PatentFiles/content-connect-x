@@ -1,0 +1,72 @@
+{
+  "name": "CollaborationParticipantRole",
+  "type": "object",
+  "properties": {
+    "collaboration_id": {
+      "type": "string",
+      "description": "DealRoom collaboration ID"
+    },
+    "user_id": {
+      "type": "string",
+      "description": "Participant user ID"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "Admin",
+        "Member",
+        "Viewer"
+      ],
+      "default": "Member",
+      "description": "Participant role in collaboration"
+    },
+    "approved": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether participant has approved participation"
+    },
+    "assigned_by_user_id": {
+      "type": "string",
+      "description": "User who assigned this role"
+    },
+    "assigned_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When role was assigned"
+    }
+  },
+  "required": [
+    "collaboration_id",
+    "user_id",
+    "role"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

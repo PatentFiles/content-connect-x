@@ -1,0 +1,97 @@
+{
+  "name": "CollaborationInsurance",
+  "type": "object",
+  "properties": {
+    "collaboration_id": {
+      "type": "string",
+      "description": "Collaboration ID"
+    },
+    "insurance_type": {
+      "type": "string",
+      "enum": [
+        "performer_personal",
+        "studio_production",
+        "agent_liability",
+        "general_liability"
+      ],
+      "description": "Type of insurance coverage"
+    },
+    "provider": {
+      "type": "string",
+      "description": "Insurance provider name"
+    },
+    "policy_reference": {
+      "type": "string",
+      "description": "Policy number (private)"
+    },
+    "coverage_start": {
+      "type": "string",
+      "format": "date",
+      "description": "Coverage start date"
+    },
+    "coverage_end": {
+      "type": "string",
+      "format": "date",
+      "description": "Coverage end date"
+    },
+    "coverage_scope": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "general_liability",
+          "production",
+          "travel",
+          "medical",
+          "equipment"
+        ]
+      },
+      "description": "Scope of coverage"
+    },
+    "verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Whether insurance has been verified"
+    },
+    "verified_by_admin_id": {
+      "type": "string",
+      "description": "Admin who verified insurance"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When insurance was verified"
+    },
+    "document_url": {
+      "type": "string",
+      "description": "URL to insurance certificate"
+    }
+  },
+  "required": [
+    "collaboration_id",
+    "insurance_type",
+    "provider"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

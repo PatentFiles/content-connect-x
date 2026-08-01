@@ -1,0 +1,74 @@
+{
+  "name": "IdentityFingerprint",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string",
+      "description": "User this fingerprint belongs to"
+    },
+    "name_hash": {
+      "type": "string",
+      "description": "SHA-256 hex of normalized(real_name). Never stores raw name."
+    },
+    "name_metaphone": {
+      "type": "string",
+      "description": "Double-metaphone phonetic key of name \u2014 allows near-name matching without raw exposure"
+    },
+    "dob_hash": {
+      "type": "string",
+      "description": "SHA-256 hex of normalized DOB string if available. Privacy-safe."
+    },
+    "doc_type": {
+      "type": "string",
+      "description": "Document type used for verification (e.g. passport, driver_license) \u2014 not the doc itself"
+    },
+    "verification_record_id": {
+      "type": "string",
+      "description": "Reference to the VerificationRecord that sourced this fingerprint"
+    },
+    "created_from_status": {
+      "type": "string",
+      "enum": [
+        "approved",
+        "rejected",
+        "pending"
+      ],
+      "description": "Verification status at time of fingerprint creation"
+    },
+    "submission_count": {
+      "type": "number",
+      "default": 1,
+      "description": "How many verification submissions this user has made"
+    },
+    "rejection_count": {
+      "type": "number",
+      "default": 0,
+      "description": "How many of those submissions were rejected"
+    }
+  },
+  "required": [
+    "user_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

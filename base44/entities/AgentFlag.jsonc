@@ -1,0 +1,130 @@
+{
+  "name": "AgentFlag",
+  "type": "object",
+  "properties": {
+    "agent_id": {
+      "type": "string",
+      "description": "Reference to AgentProfile that created flag"
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Reference to AgentRun that generated this flag"
+    },
+    "target_type": {
+      "type": "string",
+      "enum": [
+        "USER_PROFILE",
+        "COLLABORATION",
+        "CONTRACT",
+        "VERIFICATION_RECORD"
+      ],
+      "description": "Type of entity being flagged"
+    },
+    "target_id": {
+      "type": "string",
+      "description": "ID of the flagged entity"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "CRITICAL"
+      ],
+      "default": "MEDIUM",
+      "description": "Severity of the issue"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "PROFILE_COMPLIANCE",
+        "COLLAB_RISK",
+        "CONTRACT_READINESS",
+        "AUDIT_INTEGRITY",
+        "EXCLUSIVITY_CONFLICT",
+        "TESTING_GAP",
+        "VERIFICATION_PENDING",
+        "BOUNDARY_CONFLICT",
+        "CONSENT_REVOCATION"
+      ],
+      "description": "Category of compliance issue"
+    },
+    "title": {
+      "type": "string",
+      "description": "Short title of the issue"
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed description of the issue"
+    },
+    "reason_codes_json": {
+      "type": "object",
+      "description": "Structured reason codes and evidence"
+    },
+    "suggested_actions_json": {
+      "type": "object",
+      "description": "Recommended admin actions"
+    },
+    "risk_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Associated risk score if applicable"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "OPEN",
+        "ACKNOWLEDGED",
+        "DISMISSED",
+        "RESOLVED"
+      ],
+      "default": "OPEN",
+      "description": "Current status of the flag"
+    },
+    "reviewed_by_admin_user_id": {
+      "type": "string",
+      "description": "Admin who reviewed the flag"
+    },
+    "reviewed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When flag was reviewed"
+    },
+    "review_notes": {
+      "type": "string",
+      "description": "Admin notes on review"
+    }
+  },
+  "required": [
+    "agent_id",
+    "target_type",
+    "target_id",
+    "severity",
+    "category",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

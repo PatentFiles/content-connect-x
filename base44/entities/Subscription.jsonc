@@ -1,0 +1,89 @@
+{
+  "name": "Subscription",
+  "type": "object",
+  "properties": {
+    "user_id": {
+      "type": "string"
+    },
+    "plan_id": {
+      "type": "string",
+      "enum": [
+        "creator_basic",
+        "creator_pro",
+        "creator_elite",
+        "photographer_basic",
+        "photographer_pro",
+        "videographer_basic",
+        "videographer_pro",
+        "agent_basic",
+        "agent_pro",
+        "studio_basic",
+        "studio_pro",
+        "studio_enterprise"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "cancelled",
+        "past_due",
+        "expired",
+        "trial"
+      ],
+      "default": "trial"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "renews_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cancelled_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "payment_provider": {
+      "type": "string"
+    },
+    "external_subscription_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "user_id",
+    "plan_id",
+    "status"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

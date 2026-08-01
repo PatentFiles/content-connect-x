@@ -1,0 +1,88 @@
+{
+  "name": "CollaborationActivityLog",
+  "type": "object",
+  "properties": {
+    "collaboration_id": {
+      "type": "string",
+      "description": "DealRoom collaboration ID"
+    },
+    "actor_user_id": {
+      "type": "string",
+      "description": "User who performed the action"
+    },
+    "actor_role": {
+      "type": "string",
+      "description": "Role of actor at time of action"
+    },
+    "action_type": {
+      "type": "string",
+      "enum": [
+        "created",
+        "participant_invited",
+        "participant_approved",
+        "participant_removed",
+        "role_changed",
+        "task_created",
+        "task_updated",
+        "task_completed",
+        "document_uploaded",
+        "document_replaced",
+        "message_sent",
+        "contract_created",
+        "contract_updated",
+        "contract_signed",
+        "verification_blocked",
+        "dispute_opened",
+        "dispute_updated",
+        "dispute_resolved",
+        "status_changed",
+        "confirmation_submitted",
+        "collaboration_closed",
+        "collaboration_cancelled"
+      ],
+      "description": "Type of action performed"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable action description"
+    },
+    "metadata_json": {
+      "type": "object",
+      "description": "Additional action metadata"
+    }
+  },
+  "required": [
+    "collaboration_id",
+    "actor_user_id",
+    "action_type",
+    "description"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.actor_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.actor_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {},
+    "delete": {}
+  }
+}
