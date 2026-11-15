@@ -44,7 +44,7 @@ Deno.serve(async req=>{
    return data;
  };
  const eventAccess=async(id:string)=>{
-   const {data,eventError}=await db.from('production_events').select('id,organizer_id,team_id,visibility,status,capacity,starts_at,ends_at,title,city').eq('id',id).maybeSingle();
+   const {data,error:eventError}=await db.from('production_events').select('id,organizer_id,team_id,visibility,status,capacity,starts_at,ends_at,title,city').eq('id',id).maybeSingle();
    if(eventError||!data)return null;
    if(data.organizer_id===uid)return data;
    if(data.visibility==='verified')return data;
