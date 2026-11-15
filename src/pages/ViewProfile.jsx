@@ -1221,7 +1221,7 @@ export default function ViewProfile() {
         {socialLinks.length > 0 && (
           <CCCard padding="lg" className="mb-6 text-center">
             <h2 className="text-xl font-semibold text-[#E8EEF9] mb-4 text-center">Connect</h2>
-            <SocialLinksDisplay links={socialLinks} />
+            <SocialLinksDisplay userId={profileUserId} viewerContext={user?.email === profileUserId ? 'OWNER' : 'PUBLIC'} />
           </CCCard>
         )}
 
