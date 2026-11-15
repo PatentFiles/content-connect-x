@@ -66,6 +66,28 @@ Deno.serve(async req=>{
    const {data:collab,error:collabError}=await db.from('collaborations')
     .select('id,creator_id,status').eq('id',contract.collaboration_id).maybeSingle();
    if(collabError||!collab||collab.creator_id!==uid||collab.status==='paused')return reply({error:'Only the production owner may prepare a packet'},403);
+
+   const {data:workPolicy,error:workPolicyError}=await db.from('collaborations')
+    .select('requires_work_clearance').eq('id',contract.collaboration_id).maybeSingle();
+   if(workPolicyError||!workPolicy)return reply({error:'Collaboration requirements unavailable'},503);
+   if(workPolicy.requires_work_clearance){
+    const {data:participants,error:peopleError}=await db.from('collaboration_members')
+     .select('user_id').eq('collaboration_id',collab.id);
+    if(peopleError||!participants?.length)return reply({error:'Collaborators unavailable'},503);
+    const peopleIds=participants.map((v:any)=>v.user_id);
+    const [consents,records]=await Promise.all([
+      db.from('ccx_clearance_share_consents').select('user_id,revoked_at')
+       .eq('collaboration_id',collab.id).in('user_id',peopleIds),
+      db.from('performer_work_clearances').select('user_id,clearance_confirmed,expires_at')
+       .in('user_id',peopleIds)
+    ]);
+    if(consents.error||records.error)return reply({error:'Work readiness unavailable'},503);
+    const opted=new Set((consents.data||[]).filter((v:any)=>!v.revoked_at).map((v:any)=>v.user_id));
+    if(!peopleIds.every((person:string)=>{
+      const result=(records.data||[]).find((v:any)=>v.user_id===person);
+      return opted.has(person)&&result?.clearance_confirmed&&result.expires_at&&Date.parse(result.expires_at)>Date.now();
+    }))return reply({error:'Work clearance is required for all participants before preparing a signing packet'},409);
+   }
    const {data:members,error:memberError}=await db.from('collaboration_members')
     .select('user_id').eq('collaboration_id',collab.id);
    if(memberError||!members?.length)return reply({error:'No collaboration participants'},409);
