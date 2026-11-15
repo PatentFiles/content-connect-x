@@ -84,6 +84,11 @@ Deno.serve(async request=>{
   if(error)throw error;await notify(body.user_id,'Venue staff invitation',p.id);
   return reply({ok:true},201);
  }
+ case 'my_staff_invites':{
+  const {data,error}=await db.from('hosting_staff').select('property_id,role,status,created_at')
+   .eq('member_id',uid).in('status',['invited','active']).limit(100);
+  if(error)throw error;return reply({items:data||[]});
+ }
  case 'staff_respond':{
   if(!valid(body.property_id)||!['active','declined'].includes(body.status))return deny('Invalid invitation response');
   const {data,error}=await db.from('hosting_staff').update({
@@ -94,7 +99,8 @@ Deno.serve(async request=>{
  }
  case 'staff_list':{
   const property=await own(body.property_id);
-  if(!property&&!(await staff(String(body.property_id)))?.role?.includes('manager'))return deny('Staff listing unavailable',403);
+  const manager=await staff(String(body.property_id));
+  if(!property&&(manager?.status!=='active'||manager.role!=='manager'))return deny('Staff listing unavailable',403);
   const {data,error}=await db.from('hosting_staff').select('member_id,role,status,created_at,accepted_at')
    .eq('property_id',body.property_id).limit(100);
   if(error)throw error;
@@ -112,7 +118,8 @@ Deno.serve(async request=>{
   const {data:job}=await db.from('property_turnovers').select('id,property_id,created_by,status').eq('id',body.turnover_id).maybeSingle();
   if(!job)return deny('Turnover not found',404);
   const p=await own(job.property_id);
-  if(!p&&!(await staff(job.property_id))?.role?.includes('manager'))return deny('Owner or manager required',403);
+  const manager=await staff(job.property_id);
+  if(!p&&(manager?.status!=='active'||manager.role!=='manager'))return deny('Owner or manager required',403);
   const person=await staff(job.property_id,body.user_id);
   if(!person||person.status!=='active'||person.role!=='cleaner')return deny('Cleaner must accept property invitation first',403);
   if(job.status==='completed')return deny('Finished job cannot be reassigned',409);
@@ -131,19 +138,33 @@ Deno.serve(async request=>{
     .select('id,booking_id,property_id,assigned_to,status,due_at,created_at,started_at,completed_at,quality_rating')
     .eq('property_id',body.property_id).order('created_at',{ascending:false}).limit(100);
    if(error)throw error;
-   return reply({items:(data||[]).filter(x=>p||x.assigned_to===uid)});
+   const allowed=(data||[]).filter(x=>p||x.assigned_to===uid);
+   const ids=allowed.map(x=>x.id);
+   const {data:tasks,error:taskError}=ids.length?await db.from('property_turnover_tasks')
+    .select('id,turnover_id,label,done,position').in('turnover_id',ids).order('position')
+    :{data:[],error:null};
+   if(taskError)throw taskError;
+   return reply({items:allowed.map(x=>({...x,tasks:(tasks||[]).filter(t=>t.turnover_id===x.id)}))});
   }
   const {data,error}=await db.from('property_turnovers')
    .select('id,booking_id,property_id,assigned_to,status,due_at,created_at,started_at,completed_at,quality_rating')
    .eq('assigned_to',uid).order('created_at',{ascending:false}).limit(100);
-  if(error)throw error;return reply({items:data||[]});
+  if(error)throw error;
+  const ids=(data||[]).map(x=>x.id);
+  const {data:tasks,error:taskError}=ids.length?await db.from('property_turnover_tasks')
+   .select('id,turnover_id,label,done,position').in('turnover_id',ids).order('position')
+   :{data:[],error:null};
+  if(taskError)throw taskError;
+  return reply({items:(data||[]).map(x=>({...x,tasks:(tasks||[]).filter(t=>t.turnover_id===x.id)}))});
  }
  case 'cleaning_task':{
   if(!valid(body.task_id)||typeof body.done!=='boolean')return deny('Valid task and status required');
   const {data:task}=await db.from('property_turnover_tasks').select('id,turnover_id').eq('id',body.task_id).maybeSingle();
   if(!task)return deny('Task unavailable',404);
   const {data:job}=await db.from('property_turnovers').select('id,property_id,assigned_to,status,started_at').eq('id',task.turnover_id).maybeSingle();
-  if(!job||!await own(job.property_id)&&job.assigned_to!==uid)return deny('Assigned cleaner or owner required',403);
+  if(!job)return deny('Cleaning job unavailable',404);
+  const cleaner=await staff(job.property_id);
+  if(!await own(job.property_id)&&!(job.assigned_to===uid&&cleaner?.status==='active'&&cleaner.role==='cleaner'))return deny('Accepted cleaner assignment or owner permission required',403);
   if(job.status==='completed'||job.status==='cancelled')return deny('Job is already closed',409);
   const {error}=await db.from('property_turnover_tasks')
    .update({done:body.done,done_at:body.done?new Date().toISOString():null}).eq('id',task.id);
@@ -499,6 +520,26 @@ Deno.serve(async request=>{
   },{onConflict:'property_id'}).select('property_id,permits_verified').single();
   if(error)throw error;
   return reply({item:data,note:'Host-declared suitability; professional verification requires independent review.'});
+ }
+ case 'admin_suitability_queue':{
+  if(!admin||!keyAAL(bearer))return deny('MFA administrator required',403);
+  const {data,error}=await db.from('hosting_suitability')
+   .select('property_id,adult_production_permitted,privacy_level,soundproof_confirmed,parking_spaces,separate_dressing_rooms,noise_restrictions,permits_verified')
+   .eq('permits_verified',false).limit(80);
+  if(error)throw error;return reply({items:data||[]});
+ }
+ case 'admin_suitability_review':{
+  if(!admin||!keyAAL(bearer)||!valid(body.property_id)||body.review_confirmed!==true||typeof body.approved!=='boolean')
+   return deny('Independent MFA review required',403);
+  const {data:prop}=await db.from('properties').select('id,owner_id').eq('id',body.property_id).maybeSingle();
+  if(!prop||prop.owner_id===uid)return deny('Self-approval prohibited',403);
+  const {data,error}=await db.from('hosting_suitability').update({
+   permits_verified:body.approved,reviewer_id:body.approved?uid:null,
+   reviewed_at:body.approved?new Date().toISOString():null
+  }).eq('property_id',prop.id).select('property_id,permits_verified').maybeSingle();
+  if(error||!data)return deny('Venue badges not found',404);
+  await audit('hosting_venue_suitability_reviewed',prop.id);
+  return reply({item:data});
  }
  case 'suitability_get':{
   if(!valid(body.property_id))return deny('Valid listing required');
