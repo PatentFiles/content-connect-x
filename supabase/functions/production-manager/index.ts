@@ -43,10 +43,23 @@ Deno.serve(async req=>{
  const approved=age.data?.[0]?.status==='approved'&&(!age.data[0].expires_at||Date.parse(age.data[0].expires_at)>Date.now());
  const paid=isAdmin||active(subscription.data);
  if(!approved)return json({error:'Verified adult account required'},403);
- const safetyActions=new Set(['create_case','my_cases','case_history','case_add_note']);
+ const safetyActions=new Set(['create_case','my_cases','case_history','case_add_note','notification_preferences','set_notification_preferences','saved_posts','toggle_saved_post']);
  if(isAdmin&&!safetyActions.has(action)&&assurance(req.headers.get('Authorization')||'')!=='aal2')return json({error:'Administrator MFA required'},403);
  if((security.data?.banned||security.data?.suspended)&&!safetyActions.has(action))return json({error:'Account restricted'},403);
  if(!paid&&!safetyActions.has(action))return json({error:'Paid membership required'},403);
+ const key=action.startsWith('teams_')||action==='team_members'?'creator_groups':
+   action.startsWith('events_')?'event_rsvps':
+   action.startsWith('review_')||action.startsWith('admin_review_')?'verified_reviews':
+   safetyActions.has(action)?null:'production_manager';
+ if(key&&!isAdmin){
+   const {data:flag,error:flagError}=await db.from('product_feature_flags')
+     .select('enabled,allowed_tiers,rollout_percent').eq('key',key).maybeSingle();
+   if(flagError||!flag?.enabled||!flag.allowed_tiers?.includes('premium'))
+     return json({error:'Feature unavailable'},403);
+   let hash=0;for(const char of uid+key)hash=(hash*31+char.charCodeAt(0))>>>0;
+   if(hash%100>=flag.rollout_percent)return json({error:'Feature not enabled for this account'},403);
+ }
+
  const log=async(event:string,target:string,meta:Record<string,unknown>={})=>{
    await db.from('platform_action_audit').insert({actor_id:uid,action:event,target_type:'production_manager',target_id:target,metadata:meta});
  };
