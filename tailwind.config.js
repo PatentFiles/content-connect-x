@@ -105,5 +105,5 @@ module.exports = {
     'cc-surface-fix',
     'cc-border-fix',
   ],
-  plugins: [require("tailwindcss-animate")],
+  plugins: [],
 }
