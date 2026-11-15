@@ -79,12 +79,20 @@ Predict the risk level (Low/Medium/High) and provide:
           }
         });
 
+        // Validate the model output before storing or presenting it as a risk assessment.
+        const parsed = typeof result === 'string' ? JSON.parse(result) : result;
+        if (!parsed || !['Low', 'Medium', 'High'].includes(parsed.risk_level) ||
+            !Array.isArray(parsed.factors) || !Number.isFinite(parsed.confidence) ||
+            parsed.confidence < 0 || parsed.confidence > 1 ||
+            typeof parsed.explanation !== 'string') {
+          throw new Error('Risk prediction returned an invalid response');
+        }
         const prediction = await base44.entities.AIRiskPrediction.create({
           collaboration_id: collaborationId,
-          predicted_risk_level: result.risk_level,
-          factors_json: { factors: result.factors },
-          confidence_score: result.confidence,
-          explanation: result.explanation,
+          predicted_risk_level: parsed.risk_level,
+          factors_json: { factors: parsed.factors },
+          confidence_score: parsed.confidence,
+          explanation: parsed.explanation,
           model_version: 'gpt-4o',
           generated_at: new Date().toISOString(),
           referenced_by_admin: false
