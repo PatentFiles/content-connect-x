@@ -169,6 +169,29 @@ Deno.serve(async(req)=>{
         return reply({ok:true});
       }
 
+      case 'follow_toggle':{
+        if(!uuid(body.user_id)||body.user_id===uid)return reject('Invalid follow target',400);
+        const target=body.user_id;
+        const blocked=await blockedUsers();
+        if(blocked.has(target))return reject('Member unavailable',403);
+        const {data:latestAge,error:ageError}=await db.from('age_verification_requests')
+          .select('status,expires_at').eq('user_id',target).order('created_at',{ascending:false}).limit(1);
+        if(ageError||!isCurrent(latestAge?.[0]))return reject('Member not verified',403);
+        const {data:existing,error:priorError}=await db.from('member_follows')
+          .select('followed_id').eq('follower_id',uid).eq('followed_id',target).maybeSingle();
+        if(priorError)throw priorError;
+        const result=existing
+          ?await db.from('member_follows').delete().eq('follower_id',uid).eq('followed_id',target)
+          :await db.from('member_follows').insert({follower_id:uid,followed_id:target});
+        if(result.error)throw result.error;
+        return reply({following:!existing});
+      }
+      case 'following_list':{
+        const {data,error}=await db.from('member_follows')
+          .select('followed_id').eq('follower_id',uid).limit(200);
+        if(error)throw error;
+        return reply({user_ids:(data||[]).map((v:any)=>v.followed_id)});
+      }
       case 'community_feed':{
         if(!await feature('community_feed'))return reject('Feed not available',403);
         const blocked=await blockedUsers();
@@ -187,10 +210,15 @@ Deno.serve(async(req)=>{
           ?await db.from('community_reactions').select('post_id,user_id').in('post_id',ids).limit(1000)
           :{data:[],error:null};
         if(reactionError)throw reactionError;
+        const {data:following,error:followError}=await db.from('member_follows')
+          .select('followed_id').eq('follower_id',uid).limit(200);
+        if(followError)throw followError;
+        const followSet=new Set((following||[]).map((f:any)=>f.followed_id));
         return reply({items:items.map((v:any)=>({
           ...v,author:(profiles||[]).find((p:any)=>p.id===v.author_id)||null,
           reactions:(reactions||[]).filter((r:any)=>r.post_id===v.id).length,
-          liked:(reactions||[]).some((r:any)=>r.post_id===v.id&&r.user_id===uid)
+          liked:(reactions||[]).some((r:any)=>r.post_id===v.id&&r.user_id===uid),
+          followed:followSet.has(v.author_id)
         })),preview:!paid});
       }
       case 'community_create_post':{
