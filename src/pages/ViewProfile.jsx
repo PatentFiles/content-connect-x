@@ -103,7 +103,7 @@ export default function ViewProfile() {
     enabled: !!user?.email,
   });
 
-  const isAdmin = myProfiles[0]?.is_admin || user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
   const isVerified = isAdmin || verification?.[0]?.status === 'approved';
   const isSubscribed = isAdmin || subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
@@ -119,7 +119,7 @@ export default function ViewProfile() {
   const { data: profiles = [], isLoading: profileLoading } = useQuery({
     queryKey: ['viewProfile', profileUserId],
     queryFn: () => base44.entities.UserProfile.filter({ user_id: profileUserId }),
-    enabled: !!profileUserId && !!user && isVerified && isSubscribed,
+    enabled: !!profileUserId && !!user && isVerified,
   });
 
   const profile = profiles[0];
@@ -396,9 +396,6 @@ export default function ViewProfile() {
     return <AccessGate type="verification" />;
   }
 
-  if (!isSubscribed) {
-    return <AccessGate type="subscription" />;
-  }
 
   if (!profile) {
     return (

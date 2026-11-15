@@ -72,67 +72,30 @@ export default function Pricing() {
   const currentSubscription = subscriptions[0];
   const currentProfile = userProfile[0];
 
-  // When user selects a plan — if Stripe Payment Link configured, redirect there.
-  // Otherwise, create a Subscription record in trial state and redirect to Dashboard.
+  // A paid entitlement must only be granted by a verified payment webhook.
+  // Never create a trial subscription as a client-side checkout fallback.
   const selectPlanMutation = useMutation({
     mutationFn: async (plan) => {
-      // If plan has a Stripe Payment Link, redirect to it
-      const stripeLink = billingCycle === 'yearly'
+      const paymentLink = billingCycle === 'yearly'
         ? plan.stripe_payment_link_yearly
         : plan.stripe_payment_link_monthly;
-
-      if (stripeLink) {
-        // Append prefill params for Stripe to auto-fill email
-        const url = user?.email
-          ? `${stripeLink}?prefilled_email=${encodeURIComponent(user.email)}&client_reference_id=${user.email}`
-          : stripeLink;
-        window.open(url, '_blank');
-        return { redirected: true };
+      if (!paymentLink || !/^https:\/\//i.test(paymentLink)) {
+        throw new Error('Checkout is not configured for this plan yet.');
       }
-
-      // Fallback: create/update subscription in trial mode
-      if (!user) {
+      if (!user?.email) {
         base44.auth.redirectToLogin(createPageUrl('Pricing'));
-        return;
+        return { redirecting: true };
       }
-
-      const now = new Date();
-      const trialEnd = new Date(now);
-      trialEnd.setDate(trialEnd.getDate() + 14);
-
-      if (currentSubscription) {
-        return base44.entities.Subscription.update(currentSubscription.id, {
-          plan_id: plan.plan_id,
-          status: 'trial',
-          started_at: now.toISOString(),
-          renews_at: trialEnd.toISOString(),
-          payment_provider: 'stripe',
-        });
-      } else {
-        return base44.entities.Subscription.create({
-          user_id: user.email,
-          plan_id: plan.plan_id,
-          status: 'trial',
-          started_at: now.toISOString(),
-          renews_at: trialEnd.toISOString(),
-          payment_provider: 'stripe',
-        });
-      }
+      const url = new URL(paymentLink);
+      url.searchParams.set('prefilled_email', user.email);
+      // This is checkout only; the server-side payment webhook grants entitlements.
+      window.location.assign(url.toString());
+      return { redirecting: true };
     },
-    onSuccess: (result) => {
-      if (result?.redirected) {
-        toast.info('Redirecting to secure checkout...', { duration: 3000 });
-        return;
-      }
-      queryClient.invalidateQueries(['subscription']);
-      toast.success('Plan selected! Your 14-day trial has started.');
+    onSuccess: () => setSelectingPlan(null),
+    onError: (error) => {
       setSelectingPlan(null);
-      setTimeout(() => {
-        window.location.href = createPageUrl('Dashboard');
-      }, 1000);
-    },
-    onError: () => {
-      toast.error('Something went wrong. Please try again.');
+      toast.error(error?.message || 'Checkout is unavailable. Please contact support.');
     },
   });
 
@@ -176,8 +139,14 @@ export default function Pricing() {
             Simple, Transparent Pricing
           </h1>
           <p className="text-lg cc-text-fix-secondary max-w-2xl mx-auto mb-8">
-            Choose the plan that fits your role and needs. All plans include verification and core platform features.
+            Age verification and a limited preview are free. Subscribe when you are ready to unlock messaging, collaborations, contracts, and other advanced features.
           </p>
+
+          <div className="max-w-xl mx-auto mb-8 bg-[#151D2B] border border-[#263248] rounded-xl p-5 text-left">
+            <h2 className="font-semibold text-[#E8EEF9] mb-2">Start for free</h2>
+            <p className="text-[#9AA6BC] text-sm mb-4">Create your account, complete free age verification, build your profile, and preview creators. No payment required until you choose a full membership.</p>
+            <Link to={createPageUrl('Verification')} className="text-[#4F8CFF] font-semibold text-sm">Start free age verification</Link>
+          </div>
 
           {/* Billing toggle */}
           <div className="inline-flex items-center gap-1 p-1 rounded-xl border border-cc-border" style={{ backgroundColor: 'var(--cc-surface)' }}>

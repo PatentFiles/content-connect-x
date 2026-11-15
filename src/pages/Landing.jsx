@@ -70,7 +70,7 @@ export default function Landing() {
           >
             <span className="inline-flex items-center gap-2 px-4 py-2 bg-[#4F8CFF]/10 border border-[#4F8CFF]/30 rounded-full text-[#4F8CFF] text-sm font-medium mb-6">
               <Lock className="w-4 h-4" />
-              Verified & Subscription-Only Platform
+              Free Age Verification · Explore Before Subscribing
             </span>
             
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold cc-text-fix-primary mb-6 leading-tight">
