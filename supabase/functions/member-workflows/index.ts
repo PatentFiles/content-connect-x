@@ -391,6 +391,13 @@ Deno.serve(async req=>{
         await audit('send_message',data.id);
         return respond({item:data},201);
       }
+      case 'list_collaboration_members':{
+        if(!isId(body.collaboration_id)||!await memberOf(body.collaboration_id))return fail('Collaboration unavailable',403);
+        const {data,error}=await admin.from('collaboration_members').select('user_id,membership_role')
+          .eq('collaboration_id',body.collaboration_id).limit(30);
+        if(error)throw error;
+        return respond({items:data||[]});
+      }
       case 'list_contracts':{
         const {data:members,error}=await admin.from('collaboration_members').select('collaboration_id').eq('user_id',uid);
         if(error)throw error;
