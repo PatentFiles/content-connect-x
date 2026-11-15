@@ -199,6 +199,85 @@ Deno.serve(async req=>{
   return out({registered:data?.status==='active',status:data?.status||'not_registered',
    age_verified:verified(ages.data?.[0])});
  }
+ case 'clearance_upload_token':{
+  if(!verified(ages.data?.[0]))return bad('Age verification required',403);
+  const type=txt(body.mime_type,80);
+  const extension={'application/pdf':'pdf','image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[type];
+  if(!extension)return bad('PDF, JPEG, PNG or WebP required',400);
+  const path=uid+'/clearance/'+crypto.randomUUID()+'.'+extension;
+  const {data,error}=await db.storage.from('ccx-private-clearance').createSignedUploadUrl(path);
+  if(error)throw error;
+  return out({path,token:data.token});
+ }
+ case 'clearance_submit':{
+  if(!verified(ages.data?.[0]))return bad('Age verification required',403);
+  const path=txt(body.path,600);
+  if(!path.startsWith(uid+'/clearance/')||path.includes('..'))return bad('Invalid private testing document',403);
+  const {data:info,error:fileError}=await db.storage.from('ccx-private-clearance').info(path);
+  if(fileError||!info)return bad('Private document not found',404);
+  const {data,error}=await db.from('ccx_clearance_document_submissions')
+   .insert({user_id:uid,storage_path:path,status:'pending'})
+   .select('id,status').single();
+  if(error)throw error;
+  await audit('ccx_private_clearance_document_submitted',data.id);
+  return out({item:data,note:'Private evidence received for professional review. This does not automatically establish work clearance.'},201);
+ }
+ case 'clearance_documents_mine':{
+  const {data,error}=await db.from('ccx_clearance_document_submissions')
+   .select('id,status,created_at,reviewed_at,review_note').eq('user_id',uid).order('created_at',{ascending:false}).limit(50);
+  if(error)throw error;return out({items:data||[]});
+ }
+ case 'admin_clearance_queue':{
+  const {data,error}=await db.from('ccx_clearance_document_submissions')
+   .select('id,user_id,status,created_at').in('status',['pending','under_review'])
+   .order('created_at',{ascending:true}).limit(70);
+  if(error)throw error;return out({items:data||[]});
+ }
+ case 'admin_clearance_document':{
+  if(!id(body.id))return bad('Submission required',400);
+  const {data:submission}=await db.from('ccx_clearance_document_submissions')
+   .select('storage_path,user_id').eq('id',body.id).maybeSingle();
+  if(!submission||submission.user_id===uid)return bad('Independent review required',403);
+  const {data,error}=await db.storage.from('ccx-private-clearance').createSignedUrl(submission.storage_path,90);
+  if(error)throw error;await audit('ccx_private_clearance_document_opened',body.id);
+  return out({url:data.signedUrl,expires_in:90});
+ }
+ case 'admin_clearance_review':{
+  if(!id(body.id)||!['rejected','verified_offsite'].includes(body.decision))
+   return bad('Invalid clearance-document review',400);
+  const {data:submission}=await db.from('ccx_clearance_document_submissions')
+   .select('id,user_id,status').eq('id',body.id).maybeSingle();
+  if(!submission||submission.user_id===uid||!['pending','under_review'].includes(submission.status))
+   return bad('Cannot review this submission',403);
+  if(body.decision==='verified_offsite'&&body.independent_provider_confirmation!==true)
+   return bad('Obtain independent confirmation from a qualified testing provider; a PDF alone is not sufficient',409);
+  const now=new Date(),collected=new Date(body.sample_collected_on);
+  if(body.decision==='verified_offsite'&&(!Number.isFinite(collected.getTime())||collected>now||now.getTime()-collected.getTime()>14*86400000))
+   return bad('Sample collection must be within 14 days',409);
+  const {data,error}=await db.from('ccx_clearance_document_submissions').update({
+   status:body.decision,reviewed_by:uid,reviewed_at:now.toISOString(),review_note:txt(body.review_note,500)
+  }).eq('id',submission.id).in('status',['pending','under_review']).select('id,user_id,status').maybeSingle();
+  if(error||!data)return bad('Review conflict',409);
+  if(body.decision==='verified_offsite'){
+   const expires=new Date(collected.getTime()+14*86400000);
+   const {error:writeError}=await db.from('performer_work_clearances').upsert({
+    user_id:submission.user_id,clearance_confirmed:true,
+    provider:'manual_provider_confirmation',provider_reference:'manual:'+submission.id,
+    confirmed_at:now.toISOString(),expires_at:expires.toISOString(),reviewed_by:uid,updated_at:now.toISOString()
+   },{onConflict:'user_id'});
+   if(writeError)throw writeError;
+   await db.from('ccx_clearance_events').insert({
+    user_id:submission.user_id,source:'manual_admin',clearance_confirmed:true,
+    expires_at:expires.toISOString()
+   });
+  }
+  await audit('ccx_private_clearance_document_reviewed',submission.id);
+  await db.from('member_notifications').insert({
+   recipient_id:submission.user_id,kind:'work_clearance_update',
+   title:'Your private work-clearance review was updated',details:{submission_id:submission.id}
+  });
+  return out({item:data,note:'Only clearance status is shared after participant consent. Clinical diagnoses stay private.'});
+ }
  case 'pass_link':{
   if(body.allow_status_sync!==true)return bad('Explicit opt-in required',400);
   if(!verified(ages.data?.[0]))return bad('Verified account required',403);
@@ -252,7 +331,7 @@ Deno.serve(async req=>{
   const [members,consents,clearances,hold]=await Promise.all([
    db.from('collaboration_members').select('user_id').eq('collaboration_id',idCollab),
    db.from('ccx_clearance_share_consents').select('user_id,revoked_at').eq('collaboration_id',idCollab),
-   db.from('performer_work_clearances').select('user_id,clearance_confirmed,expires_at,provider'),
+   db.from('performer_work_clearances').select('user_id,clearance_confirmed,expires_at,provider').in('user_id', (await db.from('collaboration_members').select('user_id').eq('collaboration_id',idCollab)).data?.map((m:any)=>m.user_id)||[]),
    db.from('ccx_integrations').select('enabled').eq('provider','pass').maybeSingle()
   ]);
   if(members.error||consents.error||clearances.error||hold.error)return bad('Provider status unavailable',503);
