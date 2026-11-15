@@ -247,3 +247,16 @@
   right:0;
   background:var(--ccx-gradient);
 }
+
+/* Mobile app navigation preserves discoverability without occupying multiple screens. */
+.ccx-shell-header {
+  padding-top: max(.75rem, env(safe-area-inset-top, 0px));
+}
+.ccx-app .scrollbar-hide {
+  scroll-snap-type: x proximity;
+}
+.ccx-app .ccx-nav-pill {
+  white-space: nowrap;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+}
