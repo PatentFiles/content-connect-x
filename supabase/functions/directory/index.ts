@@ -76,7 +76,7 @@ Deno.serve(async req=>{
   .range(filters.offset,filters.offset+filters.limit);
  const {data,error}=await query;
  if(error)return json({error:'Unable to load directory'},503);
- const page=data||[],hasMore=premium&&page.length>filters.limit;
+ const page=data||[],hasMore=premium&&page.length>filters.limit&&filters.offset+filters.limit<500;
  const results=page.slice(0,filters.limit).map(v=>({
   id:v.id,display_name:v.display_name,role_type:v.role_type,
   bio:premium?v.bio:null,avatar_path:v.avatar_path,city:v.city,
