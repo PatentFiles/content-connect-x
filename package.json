@@ -14,7 +14,8 @@
     "build:supabase": "vite build --mode supabase",
     "preview:supabase": "vite preview --mode supabase",
     "typecheck:supabase": "tsc -p ./jsconfig.supabase.json",
-    "typecheck:legacy": "tsc -p ./jsconfig.json"
+    "typecheck:legacy": "tsc -p ./jsconfig.json",
+    "smoke:supabase": "node scripts/supabase-smoke.mjs"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.61",
