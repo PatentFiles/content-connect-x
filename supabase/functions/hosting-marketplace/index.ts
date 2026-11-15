@@ -41,16 +41,18 @@ Deno.serve(async req=>{
  const {data:{user},error:authError}=await memberClient.auth.getUser();
  if(authError||!user)return denial('Unauthorized',401);
  const db=createClient(url,secret),uid=user.id;
- const [security,age,plan]=await Promise.all([
+ const [security,age,plan,ohAccount]=await Promise.all([
   db.from('account_security').select('banned,suspended,admin').eq('user_id',uid).maybeSingle(),
   db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
-  db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle()
+  db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
+  db.from('onlyhost_accounts').select('status').eq('user_id',uid).maybeSingle()
  ]);
- if(security.error||age.error||plan.error)return denial('Account status unavailable',503);
+ if(security.error||age.error||plan.error||ohAccount.error)return denial('Account status unavailable',503);
  if(security.data?.banned||security.data?.suspended)return denial('Account restricted',403);
  if(!verified(age.data?.[0]))return denial('Approved 18+ age verification required',403);
  const admin=security.data?.admin===true;
- const paid=admin||subscribed(plan.data);
+ const onlyHostEligible=ohAccount.data?.status==='active';
+ const paid=admin||subscribed(plan.data)||onlyHostEligible;
  const payload=await req.json().catch(()=>null);
  if(!payload||typeof payload!=='object')return denial('Invalid JSON',400);
  const action=safe(payload.action,55);
@@ -219,7 +221,7 @@ Deno.serve(async req=>{
   if(!permitted.length)return denial('Select permitted production uses');
   const amenities=Array.isArray(payload.amenities)?payload.amenities.filter((v:any)=>acceptedAmenities.has(v)):[];
   const {data,error}=await db.from('properties').insert({
-   owner_id:uid,status:'draft',title,city,country,state:safe(payload.state,100),category,hourly_rate:rate,capacity:crew,
+   owner_id:uid,status:'draft',created_via_brand:payload.source_brand==='onlyhost'&&onlyHostEligible?'onlyhost':'content_connect',title,city,country,state:safe(payload.state,100),category,hourly_rate:rate,capacity:crew,
    minimum_hours:minHours,description:safe(payload.description,4000),permitted_uses:[...new Set(permitted)],
    amenities:[...new Set(amenities)],rules:safe(payload.rules,3000),
    setup_buffer_minutes:30,cleanup_buffer_minutes:30,
