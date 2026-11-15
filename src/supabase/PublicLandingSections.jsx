@@ -5,8 +5,8 @@
  */
 import React from 'react';
 import {ArrowUpRight,ArrowRight,Camera,Clapperboard,UsersRound,ShieldCheck,
- CalendarDays,LockKeyhole,MessageSquare,CheckCircle2,Building2,Sparkles,
- Fingerprint,ScanFace,FileSignature,Layers,ChevronRight,HeartHandshake} from 'lucide-react';
+ CalendarDays,LockKeyhole,MessageSquare,CheckCircle2,Building2,
+ Fingerprint,ScanFace,FileSignature,Layers,ChevronRight} from 'lucide-react';
 
 const categories=[
  {title:'Find your people',category:'DISCOVER',Icon:UsersRound,text:'Connect with creators, filmmakers, producers and production services in a private professional network.',theme:'fuchsia'},
