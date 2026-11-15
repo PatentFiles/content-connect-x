@@ -128,6 +128,17 @@ export default function SupabaseApp() {
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
 
+  const checkout=async(cycle)=>{
+    setBusy(true);setError('');setNotice('');
+    try{
+      const {data,error:checkoutError}=await supabase.functions.invoke('create-checkout',{body:{cycle}});
+      if(checkoutError||data?.error||!data?.url)throw new Error(data?.error||checkoutError?.message||'Checkout is not configured');
+      const destination=new URL(data.url);
+      if(destination.protocol!=='https:'||!(destination.hostname==='checkout.stripe.com'||destination.hostname.endsWith('.stripe.com')))throw new Error('Checkout returned an untrusted URL');
+      window.location.assign(destination.toString());
+    }catch(e){setError(e.message);}finally{setBusy(false);}
+  };
+
   const findCreators=async()=>{
     setQueryRunning(true);setError('');
     try{
@@ -168,6 +179,6 @@ export default function SupabaseApp() {
     {tab==='reviews'&&isAdmin&&<div className="space-y-4"><div className="flex justify-between items-center"><h2 className="text-xl font-semibold">Age verification review queue</h2><button className={primary} onClick={loadReviews} disabled={busy}><RefreshCw size={16}/></button></div><p className={muted}>Only authorized administrators can open short-lived private document links or approve requests.</p>{reviews.map(request=><div key={request.id} className={`${panel} space-y-2`}><p className="text-sm">Request {request.id} · {request.status}</p><p className={muted}>{new Date(request.created_at).toLocaleString()}</p><div className="flex flex-wrap gap-2"><button className={primary} onClick={()=>openReviewDocument(request.id,'id')} disabled={busy}>View ID</button><button className={primary} onClick={()=>openReviewDocument(request.id,'selfie')} disabled={busy}>View selfie</button>{request.status==='pending'&&<><button className={primary} onClick={()=>reviewAge(request.id,'approve')} disabled={busy}>Approve</button><button className="rounded-lg bg-red-700 px-4 py-2.5 text-white disabled:opacity-50" onClick={()=>reviewAge(request.id,'reject')} disabled={busy}>Reject</button></>}</div></div>)}{reviews.length===0&&<p className={muted}>Select refresh to load recent review requests.</p>}</div>}
     {tab==='workspace' && paid && approved && <MemberWorkspace user={user}/> }
     {tab==='safety' && approved && <SafetyPanel/>}
-    {tab==='membership'&&<div className={`${panel} max-w-2xl space-y-3`}><h2 className="text-xl font-semibold">Free today. Unlock more when ready.</h2><p className={muted}>Your free account includes age verification, profile setup and limited directory previews.</p><div className="p-4 rounded-lg bg-[#1A2438]"><LockKeyhole className="text-blue-400 mb-2"/>Full discovery, direct messages, contracts, collaboration rooms, property booking and advanced tools require membership.</div><p className="text-sm text-amber-200">Secure payment checkout is not connected in this Supabase preview yet. No charges are taken here.</p></div>}
+    {tab==='membership'&&<div className={`${panel} max-w-2xl space-y-3`}><h2 className="text-xl font-semibold">Free today. Unlock more when ready.</h2><p className={muted}>Your free account includes age verification, profile setup and limited directory previews.</p><div className="p-4 rounded-lg bg-[#1A2438]"><LockKeyhole className="text-blue-400 mb-2"/>Full discovery, direct messages, contracts, collaboration rooms, property booking and advanced tools require membership.</div><p className="text-sm text-amber-200">Checkout only becomes available after verified Stripe configuration. Payment is never collected by this website directly.</p><div className="flex flex-wrap gap-2"><button disabled={busy||!approved} className={primary} onClick={()=>checkout('monthly')}>Monthly membership checkout</button><button disabled={busy||!approved} className={primary} onClick={()=>checkout('yearly')}>Yearly membership checkout</button></div></div>}
   </>}</main></div>;
 }
