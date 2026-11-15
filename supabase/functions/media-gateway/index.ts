@@ -196,6 +196,8 @@ Deno.serve(async req=>{
         .select('id,status,uploader_rights_attested').eq('id',body.id).maybeSingle();
       if(error||asset?.status!=='pending')return reply({error:'Media already reviewed'},409);
       if(!asset.uploader_rights_attested)return reply({error:'Uploader rights attestation required'},403);
+      if(body.status==='approved' && Deno.env.get('ADULT_MEDIA_PUBLICATION_READY')!=='true')
+        return reply({error:'Publication is paused until releases, retention and content-review policies are approved'},503);
       if(body.manual_review_confirmed!==true)return reply({error:'Human content and consent review is required'},400);
       const {data,error:saveError}=await db.from('member_media_assets').update({
         status:body.status,reviewed_by:uid,reviewed_at:new Date().toISOString()
