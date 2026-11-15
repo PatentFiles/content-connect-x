@@ -23,6 +23,12 @@ Deno.serve(async req => {
   const approved=ages?.some(v=>v.status==='approved'&&(!v.expires_at||Date.parse(v.expires_at)>Date.now()));
   if (!approved) return json({error:'Free age verification required'},403);
   const paid=Boolean(security?.admin||subscription && ['active','trial'].includes(subscription.status)&&(!subscription.period_end||Date.parse(subscription.period_end)>Date.now()));
+  const {data:flag,error:flagError}=await admin.from('product_feature_flags')
+    .select('enabled,allowed_tiers,rollout_percent').eq('key','creator_discovery').maybeSingle();
+  if(flagError||!flag?.enabled||!flag.allowed_tiers?.includes(paid?'premium':'free'))
+    return json({error:'Creator discovery is currently unavailable'},403);
+  let hash=0;for(const char of user.id+'creator_discovery')hash=(hash*31+char.charCodeAt(0))>>>0;
+  if(hash%100>=flag.rollout_percent)return json({error:'Creator discovery is not enabled for this account'},403);
   const body=await req.json().catch(()=>({}));
   const query=typeof body.query==='string'?body.query.trim().slice(0,80):'';
   const max=paid?100:12;

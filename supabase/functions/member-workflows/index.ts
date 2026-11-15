@@ -49,6 +49,25 @@ Deno.serve(async req=>{
   if(!verified)return fail('Approved age verification required',403);
   const freeSafetyActions=new Set(['block_user','unblock_user','submit_report','list_blocks']);
   if(!paid&&!freeSafetyActions.has(action))return fail('Active paid membership required',402);
+  // Real feature flags are evaluated on the server, never trusted from UI.
+  const actionFeatures:Record<string,string>={
+    start_conversation:'messages',create_conversation:'messages',
+    list_conversations:'messages',list_messages:'messages',send_message:'messages',
+    mark_conversation_read:'messages',
+    list_contracts:'contracts',create_contract:'contracts',sign_contract:'contracts',
+    list_properties:'property_bookings',list_my_properties:'property_bookings',
+    create_property:'property_bookings',list_bookings:'property_bookings',
+    book_property:'property_bookings',respond_booking:'property_bookings'
+  };
+  const featureKey=actionFeatures[action];
+  if(featureKey&&!adminRole){
+    const {data:flag,error:flagError}=await admin.from('product_feature_flags')
+      .select('enabled,allowed_tiers,rollout_percent').eq('key',featureKey).maybeSingle();
+    if(flagError||!flag?.enabled||!flag.allowed_tiers?.includes(paid?'premium':'free'))
+      return fail('This feature is unavailable',403);
+    let hash=0;for(const char of uid+featureKey)hash=(hash*31+char.charCodeAt(0))>>>0;
+    if(hash%100>=flag.rollout_percent)return fail('This feature is not enabled for your account yet',403);
+  }
   const audit=async(type:string,id?:string,metadata:Record<string,unknown>={})=>{
     await admin.from('platform_action_audit').insert({actor_id:uid,action:type,target_type:type.split('_')[0],target_id:isId(id)?id:null,metadata});
   };
