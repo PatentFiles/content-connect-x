@@ -13,6 +13,9 @@ async function invoke(fn,action,args={}){
 export const hostingBusiness=(action,args)=>invoke('hosting-operations',action,args);
 export const hostingAgreement=(action,args)=>invoke('hosting-docusign',action,args);
 export const hostingCheckout=(action,args)=>invoke('hosting-ccbill',action,args);
+export const hostingAdvanced=(action,args)=>invoke('hosting-advanced',action,args);
+export const hostingProduction=(action,args)=>invoke('hosting-production',action,args);
+export const hostingCalendar=(action,args)=>invoke('hosting-calendar',action,args);
 
 export async function uploadHostingCompliance({propertyId,type,file}){
  if(!file||file.size>10_485_760||!['application/pdf','image/jpeg','image/png','image/webp'].includes(file.type))
