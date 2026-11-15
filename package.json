@@ -17,6 +17,7 @@
     "test:hosting": "node --test tests/hosting-rules.test.mjs tests/hosting-map-math.test.mjs",
     "test:integrations": "node --test tests/yoti-trust-policies.test.mjs",
     "test:readiness": "node --test tests/integration-release-readiness.test.mjs",
+    "test:directory": "node --test tests/directory-search-policy.test.mjs",
     "test:hosting:e2e": "node --test tests/hosting-authenticated.test.mjs",
     "verify:release": "node scripts/release-static-guards.mjs",
     "verify:frontend-contract": "node scripts/frontend-backend-contract.mjs",
