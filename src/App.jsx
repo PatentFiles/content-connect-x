@@ -3,7 +3,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import NavigationTracker from '@/lib/NavigationTracker'
 import { pagesConfig } from './pages.config.jsx'
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import { lazy, Suspense, useEffect, useState } from 'react';
 const SoloSessionDetail = lazy(() => import('./pages/SoloSessionDetail'));
 import PageNotFound from './lib/PageNotFound';
@@ -17,6 +17,7 @@ import { useFeatureFlag } from '@/lib/featureFlags';
 import { base44 } from '@/api/base44Client';
 import { ThemeProvider } from '@/lib/ThemeContext';
 import ContactPage from './pages/Contact';
+import { isFreeMemberRoute, isPreVerificationRoute } from '@/lib/accessPolicy';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -28,6 +29,7 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
 
 const AuthenticatedApp = () => {
   const { user, isLoadingAuth, isLoadingPublicSettings, authError, blockStatus, subscriptionBlocked, isAuthenticated, navigateToLogin } = useAuth();
+  const location = useLocation();
   const [isVerified, setIsVerified] = useState(false);
   const [verificationLoading, setVerificationLoading] = useState(true);
   const verificationEnabled = useFeatureFlag('verification');
@@ -42,10 +44,8 @@ const AuthenticatedApp = () => {
        }
 
        try {
-         const profiles = await base44.entities.UserProfile.filter({ user_id: user.email });
-         const profile = profiles[0];
-         // SINGLE SOURCE OF TRUTH: age_verified
-         setIsVerified(profile?.age_verified === true);
+         const records = await base44.entities.VerificationRecord.filter({ user_id: user.email });
+         setIsVerified(records.some(r => r.status === 'approved' && (!r.expires_at || Date.parse(r.expires_at) > Date.now())));
        } catch (error) {
          console.error('Failed to check verification:', error);
          setIsVerified(false);
@@ -79,21 +79,15 @@ const AuthenticatedApp = () => {
 
   // CRITICAL GATE 1: Verification Required (BEFORE subscription check)
   // When verification flag is ON, ALL non-admin users must be verified
-  const isAdmin = user?.role === 'admin' || user?.role_type === 'admin';
-  if (isAuthenticated && verificationEnabled && !isAdmin && !isVerified) {
+  const isAdmin = user?.role === 'admin';
+  if (isAuthenticated && verificationEnabled && !isAdmin && !isVerified && !isPreVerificationRoute(location.pathname)) {
     return <VerificationRequiredScreen />;
   }
 
-  // CRITICAL GATE 2: Subscription Required (AFTER verification)
-  // When authenticated and not admin, check subscription
-  if (isAuthenticated && subscriptionBlocked && !isAdmin) {
-    // Only allow access to Settings and Pricing pages for resubscription
-    const allowedRoutes = ['/Settings', '/Pricing', '/Billing'];
-    const currentPath = window.location.pathname;
-    
-    if (!allowedRoutes.some(route => currentPath.startsWith(route))) {
-      return <SubscriptionBlockedScreen reason="subscription_inactive" />;
-    }
+  // Age-approved free members may use selected read/preview and account pages.
+  // Premium routes are blocked here for UX; backend permissions remain mandatory.
+  if (isAuthenticated && subscriptionBlocked && !isAdmin && !isFreeMemberRoute(location.pathname)) {
+    return <SubscriptionBlockedScreen reason="no_subscription" />;
   }
 
   // Handle authentication errors
