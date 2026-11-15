@@ -14,7 +14,8 @@
     "dev:supabase": "vite --host 0.0.0.0",
     "build:supabase": "vite build",
     "typecheck:supabase": "tsc -p jsconfig.json",
-    "test:hosting": "node --test tests/hosting-rules.test.mjs tests/hosting-map-math.test.mjs"
+    "test:hosting": "node --test tests/hosting-rules.test.mjs tests/hosting-map-math.test.mjs",
+    "test:hosting:e2e": "node --test tests/hosting-authenticated.test.mjs"
   },
   "dependencies": {
     "@flagsmith/flagsmith": "12.5.0",
