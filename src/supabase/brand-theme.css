@@ -1,0 +1,221 @@
+/*
+ * Content Connect X — unified production design system.
+ * Match the homepage hero artwork: electric fuchsia, luminous pink and cobalt blue.
+ * Use a cool near-black substrate so images and saturated accents stay readable.
+ * All components can reuse these classes; avoid one-off blue-only visual drift.
+ */
+:root {
+  --ccx-fuchsia: #E900C5;
+  --ccx-pink: #FF49B6;
+  --ccx-blue: #4F8CFF;
+  --ccx-deep-blue: #2548DB;
+  --ccx-ink: #090C19;
+  --ccx-surface: #151A2B;
+  --ccx-gradient: linear-gradient(112deg, #E900C5 0%, #FF49B6 43%, #4F8CFF 100%);
+}
+
+.ccx-app {
+  --cc-blue: var(--ccx-blue);
+  --cc-pink: var(--ccx-pink);
+  --cc-bg: #090D19;
+  --cc-surface: #171C2F;
+  --cc-surface-hover: #212842;
+  --cc-border: #303650;
+  --cc-border-hover: #55547C;
+  background:
+    radial-gradient(ellipse 64rem 36rem at 100% -12rem, rgba(80,103,255,.12), transparent 64%),
+    radial-gradient(ellipse 47rem 34rem at -9rem 20rem, rgba(234,0,197,.075), transparent 66%),
+    #090D19;
+  color: #F5F3FF;
+}
+
+.ccx-brand-topline {
+  height: 4px;
+  background: var(--ccx-gradient);
+  box-shadow: 0 0 22px rgba(255, 73, 182, .42);
+}
+
+.ccx-shell-header {
+  background: rgba(12,17,32,.92);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+.ccx-brand-mark {
+  box-shadow: 0 0 0 1px rgba(255,73,182,.22), 0 0 20px rgba(233,0,197,.18);
+}
+.ccx-gradient-text {
+  background: var(--ccx-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.ccx-eyebrow {
+  color: #FF8FDE;
+  font-size: .72rem;
+  letter-spacing: .19em;
+  font-weight: 750;
+  text-transform: uppercase;
+}
+.ccx-primary,
+.ccx-action-primary {
+  background: var(--ccx-gradient);
+  color: #fff;
+  font-weight: 700;
+  border: 1px solid rgba(255,255,255,.22);
+  box-shadow: 0 5px 23px rgba(233,0,197,.13);
+  transition: filter .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+.ccx-primary:hover:not(:disabled),
+.ccx-action-primary:hover:not(:disabled) {
+  filter: brightness(1.12);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 28px rgba(255,73,182,.22);
+}
+.ccx-primary:disabled,
+.ccx-action-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+.ccx-secondary {
+  border: 1px solid rgba(158,160,212,.23);
+  color: #F2EAFF;
+  background: rgba(32,41,69,.78);
+  transition: border-color .2s, background .2s;
+}
+.ccx-secondary:hover { border-color: rgba(255,73,182,.55); background: rgba(59,45,85,.86); }
+
+.ccx-nav-pill {
+  min-height: 43px;
+  border: 1px solid rgba(142,160,207,.12);
+  border-radius: .82rem;
+  padding: .65rem .82rem;
+  font-size: .83rem;
+  font-weight: 590;
+  color: #BBC4DD;
+  background: rgba(28,34,56,.8);
+  transition: color .2s, background .2s, border-color .2s, box-shadow .2s;
+}
+.ccx-nav-pill:hover:not(.is-active) {
+  border-color: rgba(255,73,182,.4);
+  background: rgba(56,41,83,.68);
+  color: white;
+}
+.ccx-nav-pill.is-active {
+  border-color: rgba(255,73,182,.54);
+  background: linear-gradient(105deg, rgba(233,0,197,.23), rgba(255,73,182,.16) 47%, rgba(79,140,255,.18));
+  color: #fff;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.065), 0 3px 18px rgba(233,0,197,.09);
+}
+.ccx-nav-pill.is-active svg { color: #FF8CDE; }
+
+.ccx-surface {
+  border: 1px solid rgba(157,164,205,.14);
+  border-radius: 1.15rem;
+  background: linear-gradient(145deg, rgba(29,34,56,.95), rgba(19,26,45,.96));
+  box-shadow: 0 8px 30px rgba(0,0,0,.12);
+}
+.ccx-module-card {
+  border: 1px solid rgba(163,157,199,.18);
+  border-radius: 1.25rem;
+  min-height: 178px;
+  padding: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  align-items: flex-start;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 92% 6%, var(--ccx-card-glow,rgba(233,0,197,.12)), transparent 48%),
+    linear-gradient(145deg, rgba(33,38,65,.95), rgba(16,24,43,.98));
+  transition: transform .2s, border-color .2s, box-shadow .2s;
+}
+.ccx-module-card:hover:not(:disabled) {
+  transform: translateY(-3px);
+  border-color: rgba(255,73,182,.49);
+  box-shadow: 0 14px 36px rgba(11,6,36,.24);
+}
+.ccx-module-card:focus-visible,
+.ccx-nav-pill:focus-visible,
+.ccx-primary:focus-visible {
+  outline: 2px solid #FF77D8;
+  outline-offset: 3px;
+}
+.ccx-icon-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 43px;
+  height: 43px;
+  border-radius: .8rem;
+  background: linear-gradient(135deg, rgba(242,49,198,.21), rgba(79,140,255,.19));
+  border: 1px solid rgba(255,73,182,.22);
+  color: #FF9AE1;
+}
+
+.ccx-hero,
+.ccx-login-art {
+  isolation: isolate;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255,105,218,.2);
+  background-color: #181229;
+  background-image:
+    linear-gradient(90deg, rgba(11,11,31,.94) 0%, rgba(19,13,43,.88) 37%, rgba(21,14,41,.46) 76%, rgba(12,15,39,.20) 100%),
+    linear-gradient(120deg, rgba(238,0,193,.20), rgba(255,73,182,.09) 45%, rgba(76,103,255,.17)),
+    url('/Content_Connect_Hero_Banner.png');
+  background-size: cover;
+  background-position: center;
+}
+.ccx-hero::after,
+.ccx-login-art::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: auto 0 0;
+  height: 4px;
+  z-index: 2;
+  background: var(--ccx-gradient);
+}
+.ccx-hero-ambient {
+  background: radial-gradient(circle at 80% 35%, rgba(255,73,182,.18), transparent 45%);
+}
+.ccx-stat-card {
+  border: 1px solid rgba(150,164,209,.16);
+  border-radius: 1.1rem;
+  padding: 1.15rem;
+  background: linear-gradient(145deg, rgba(30,36,60,.86), rgba(18,27,47,.94));
+}
+.ccx-stat-marker { width: 26px; height: 3px; border-radius: 100px; background: var(--ccx-gradient); }
+.ccx-text-muted { color: #AEB9D0; }
+.ccx-outline-pink { border: 1px solid rgba(255,105,210,.35); }
+
+.ccx-app input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus-visible,
+.ccx-app select:focus-visible,
+.ccx-app textarea:focus-visible {
+  outline: 2px solid rgba(255,73,182,.84);
+  outline-offset: 2px;
+}
+.ccx-app a:not(.ccx-primary) { text-underline-offset: 3px; }
+.ccx-app button:focus-visible { outline-color: #FF77D8; }
+
+@media (max-width: 640px) {
+  .ccx-hero,
+  .ccx-login-art {
+    background-position: 60% center;
+    background-image:
+      linear-gradient(90deg, rgba(11,11,31,.96), rgba(17,12,38,.77) 70%, rgba(16,14,39,.54)),
+      linear-gradient(120deg, rgba(238,0,193,.20), rgba(76,103,255,.14)),
+      url('/Content_Connect_Hero_Banner.png');
+  }
+  .ccx-module-card { min-height: 154px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ccx-module-card,
+  .ccx-primary,
+  .ccx-action-primary,
+  .ccx-nav-pill { transition: none; }
+  .ccx-module-card:hover,
+  .ccx-primary:hover,
+  .ccx-action-primary:hover { transform: none; }
+}
