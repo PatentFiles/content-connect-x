@@ -93,7 +93,8 @@ export default function DashboardHome({profile,verification,approved,paid,onNavi
         {modules.filter(m=>
           m.key==='workspace'?canAccessWorkspace:
           m.key==='schedule'?canAccessWorkspace&&enabled.availability===true:
-          m.key==='hosting'||m.key==='production'?approved:true
+          m.key==='hosting'?approved&&enabled.hosting_marketplace===true:
+          m.key==='production'?approved:true
         ).map(({key,title,description,Icon,tag})=>
           <button key={key} className="ccx-module-card group"
             data-accent={key} onClick={()=>onNavigate(key)}>
