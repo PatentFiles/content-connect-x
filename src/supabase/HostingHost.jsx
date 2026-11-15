@@ -28,7 +28,7 @@ function CheckboxGrid({options,values,update}) {
   </label>)}</div>;
 }
 
-export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,user}) {
+export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,user,brand='content_connect'}) {
  const [listings,setListings]=useState([]);
  const [pending,setPending]=useState([]);
  const [pendingImages,setPendingImages]=useState([]);
@@ -98,7 +98,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
  };
  const save=async(e)=>{
   e.preventDefault();
-  const result=await mutate(selected?'host_update':'host_create',{...form,...(selected?{id:selected}:{})},
+  const result=await mutate(selected?'host_update':'host_create',{...form,source_brand:brand,...(selected?{id:selected}:{})},
     selected?'Listing saved as draft. Resubmit for approval.':'Draft listing created.');
   if(result){
     const chosen=result.item?.id||selected;
