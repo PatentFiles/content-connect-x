@@ -1,6 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import SupabaseApp from './SupabaseApp';
+import './brand-theme.css';
 import { initializeOptionalIntegrations } from './integrations';
 
 document.documentElement.classList.add('dark');
