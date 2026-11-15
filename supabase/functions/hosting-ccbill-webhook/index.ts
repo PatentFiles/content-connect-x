@@ -9,7 +9,11 @@ const respond=(body:unknown,status=200)=>Response.json(body,{status});
 const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 Deno.serve(async req=>{
  if(req.method!=='POST')return respond({error:'Method not allowed'},405);
- if(!flexConfigured())return respond({error:'Merchant not configured'},503);
+ if(!flexConfigured())return respond({error:'Financial release gate closed'},503);
+ // An independently verified merchant event contract + payout/reconciliation procedure
+ // must be attested before ANY webhook can update captured funds.
+ if(Deno.env.get('CCBILL_WEBHOOK_EVENT_CONTRACT_VERIFIED')!=='true')
+  return respond({error:'Unverified webhook contract: capture disabled'},503);
  const content=await req.text();
  if(content.length>30_000)return respond({error:'Payload too large'},413);
  let body:any;
