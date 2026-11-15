@@ -12,7 +12,9 @@
     "preview": "vite preview",
     "dev:supabase": "vite --mode supabase",
     "build:supabase": "vite build --mode supabase",
-    "preview:supabase": "vite preview --mode supabase"
+    "preview:supabase": "vite preview --mode supabase",
+    "typecheck:supabase": "tsc -p ./jsconfig.supabase.json",
+    "typecheck:legacy": "tsc -p ./jsconfig.json"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.61",
