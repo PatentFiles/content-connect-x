@@ -18,6 +18,9 @@ import {hostingAdvanced} from './hostingBusinessApi';
 import HostingBookingOperations from './HostingBookingOperations';
 import {hostingBusiness} from './hostingBusinessApi';
 import HostingNotificationSettings from './HostingNotificationSettings';
+import HostingCrewInbox from './HostingCrewInbox';
+import HostingWorkforceManager from './HostingWorkforceManager';
+import {hostingProduction} from './hostingBusinessApi';
 
 const panel='rounded-2xl border border-[#293649] bg-[#141D2B]';
 const input='w-full rounded-xl border border-[#34465E] bg-[#0B1422] px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500';
@@ -65,6 +68,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked}) {
   const [dates,setDates]=useState([]);
   const [reviews,setReviews]=useState([]);
   const [reviewSummary,setReviewSummary]=useState(null);
+  const [suitability,setSuitability]=useState(null);
   const [photoIndex,setPhotoIndex]=useState(0);
   const [starts,setStarts]=useState('');
   const [ends,setEnds]=useState('');
@@ -82,8 +86,8 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked}) {
   const [notice,setNotice]=useState('');
   useEffect(()=>{
     let alive=true;
-    Promise.all([hostingAction('listing',{id}),hostingAction('reviews_public',{id}),hostingAdvanced('addons_public',{property_id:id})]).then(([r,reviewData,equipment])=>{
-      if(!alive)return;setItem(r.item);setDates(r.unavailable||[]);setReviews(reviewData.items||[]);setReviewSummary(reviewData);setAssetItems(equipment.assets||[]);setBundles(equipment.bundles||[]);
+    Promise.all([hostingAction('listing',{id}),hostingAction('reviews_public',{id}),hostingAdvanced('addons_public',{property_id:id}),hostingProduction('suitability_get',{property_id:id})]).then(([r,reviewData,equipment,venue])=>{
+      if(!alive)return;setItem(r.item);setDates(r.unavailable||[]);setReviews(reviewData.items||[]);setReviewSummary(reviewData);setAssetItems(equipment.assets||[]);setBundles(equipment.bundles||[]);setSuitability(venue.item||null);
       setPurpose(r.item?.permitted_uses?.[0]||'');
     }).catch(e=>{if(alive)setError(e.message);}).finally(()=>{if(alive)setBusy(false);});
     return()=>{alive=false;};
@@ -142,6 +146,18 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked}) {
         </section>
         <section className={panel+' p-6'}><h3 className="text-lg font-semibold">Amenities</h3>
           <div className="mt-4 flex flex-wrap gap-2">{item.amenities?.length?item.amenities.map(a=><span className={pill} key={a}>{amenityLabels[a]||a}</span>):<span className={empty}>No amenities listed</span>}</div>
+        </section>
+        <section className={panel+' p-6'}><h3 className="text-lg font-semibold">Production suitability</h3>
+          {!suitability?<p className="mt-2 text-sm text-[#A3B7D0]">No venue suitability declaration is available.</p>:
+           <div className="mt-3 flex flex-wrap gap-2 text-xs">
+             {suitability.adult_production_permitted&&<span className={pill}>Host declares adult production permitted</span>}
+             {suitability.soundproof_confirmed&&<span className={pill}>Host-declared soundproofing</span>}
+             <span className={pill}>{suitability.parking_spaces} parking spaces</span>
+             <span className={pill}>{suitability.separate_dressing_rooms} dressing rooms</span>
+             <span className={pill}>Privacy: {suitability.privacy_level?.replaceAll('_',' ')}</span>
+             {suitability.permits_verified&&<span className="rounded-full bg-emerald-900 px-3 py-1.5">Independent venue suitability review recorded</span>}
+             {!suitability.permits_verified&&<span className="text-amber-200">Host-declared, not independently verified</span>}
+           </div>}
         </section>
         <section className={panel+' p-6'}><h3 className="text-lg font-semibold">Permitted production uses</h3>
           <div className="mt-3 flex flex-wrap gap-2">{(item.permitted_uses||[]).map(p=><span key={p} className="rounded-full bg-blue-500/10 px-3 py-2 text-xs text-blue-200"><CheckCircle2 size={13} className="inline mr-1"/>{usageLabels[p]||p}</span>)}</div>
@@ -226,7 +242,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
     setBusy(true);setError('');
     try{
       const [browse,favs,bookings]=await Promise.all([
-        hostingAction('browse',{query,city,category,max_price:maxPrice,crew_size:crew,amenity,from:from?new Date(from).toISOString():null,to:to?new Date(to).toISOString():null,bounds:boundsOverride||mapBounds}),
+        hostingAction('browse',{query,city,category,max_price:maxPrice,crew_size:crew,amenity,from:from?new Date(from).toISOString():null,to:to?new Date(to).toISOString():null,bounds:boundsOverride===false?null:(boundsOverride||mapBounds)}),
         hostingAction('favorites'),hostingAction('my_bookings'),
       ]);
       setListings(browse.items||[]);setFavorites(favs.ids||[]);setMyBookings(bookings.items||[]);
@@ -284,7 +300,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
       </div>
     </div>
     <nav className="flex flex-wrap gap-2">
-      {/** @type {Array<[string, string, import('react').ElementType]>} */ ([['explore','Explore spaces',Search],['favorites','Saved',Heart],['bookings','My requests',CalendarDays],...(paid?[['host','Host dashboard',Home]]:[]),...(isAdmin?[['review','Listing approvals',ShieldCheck]]:[]),['alerts','Notifications',CalendarDays]])
+      {/** @type {Array<[string, string, import('react').ElementType]>} */ ([['explore','Explore spaces',Search],['favorites','Saved',Heart],['bookings','My requests',CalendarDays],...(paid?[['host','Host dashboard',Home]]:[]),...(isAdmin?[['review','Listing approvals',ShieldCheck]]:[]),['alerts','Notifications',CalendarDays],['crew','Crew invitations',Users],['cleaning','My cleaning jobs',Home]])
       .map(([key,label,Icon])=><button key={key} className={'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm '+(section===key?'bg-[#5078EE] text-white':'border border-[#31435C] bg-[#141D2B] text-[#BED0E6]')} onClick={()=>{setSection(key);setSelected('');setError('');}}><Icon size={16}/>{label}</button>)}
     </nav>
     {error&&<p className="rounded-xl border border-red-700/50 bg-red-900/20 p-3 text-sm text-red-300" role="alert">{error}</p>}
@@ -308,7 +324,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
           <button className={showMap?button: 'rounded-lg border border-[#34465E] px-4 py-2 text-sm'} onClick={()=>setShowMap(!showMap)}>
             {showMap?'Hide interactive map':'Show interactive map'}
           </button>
-          {mapBounds&&<button className="text-xs text-blue-300" onClick={()=>{setMapBounds(null);search(null);}}>Clear map-area search</button>}
+          {mapBounds&&<button className="text-xs text-blue-300" onClick={()=>{setMapBounds(null);search(false);}}>Clear map-area search</button>}
         </div>
         {showMap&&<HostingAreaMap areas={areas} listings={listings} onSelect={setSelected}
            onSearchBounds={bounds=>{setMapBounds(bounds);search(bounds);}}/>}
@@ -343,6 +359,8 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
     </div>}
 
     {section==='alerts'&&<HostingNotificationSettings/>}
+    {section==='crew'&&<HostingCrewInbox/>}
+    {section==='cleaning'&&<HostingWorkforceManager worker/>}
     {(section==='host'||section==='review')&&<HostingHost paid={paid} isAdmin={isAdmin} reviewMode={section==='review'} user={user}/>}
   </div>;
 }
