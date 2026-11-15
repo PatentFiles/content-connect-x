@@ -45,7 +45,8 @@ Deno.serve(async (req) => {
     if (action === 'create') {
       const newProperty = await base44.entities.Property.create({
         ...property,
-        owner_user_id: property.owner_user_id || user.email,
+        // Never trust a client-supplied owner ID when creating a listing.
+        owner_user_id: isAdmin && property.owner_user_id ? property.owner_user_id : user.email,
         status: property.status || 'draft',
       });
       return Response.json({ property: newProperty });
