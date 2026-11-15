@@ -245,6 +245,77 @@ Deno.serve(async req=>{
        if(result.error)throw result.error;
        return json({saved:!prior});
      }
+     case 'collaboration_completion_vote':{
+       if(!uuid(body.collaboration_id))return json({error:'Valid collaboration required'},400);
+       const {data:collab,error:collabError}=await db.from('collaborations')
+         .select('id,status').eq('id',body.collaboration_id).maybeSingle();
+       if(collabError||!collab||['paused','cancelled'].includes(collab.status))return json({error:'Collaboration unavailable'},409);
+       const {data:members,error:memberError}=await db.from('collaboration_members').select('user_id').eq('collaboration_id',body.collaboration_id);
+       if(memberError||!members?.some(m=>m.user_id===uid))return json({error:'Not a collaboration member'},403);
+       const {data:envelope,error:envelopeError}=await db.from('signature_envelopes')
+         .select('id,status,completed_document_path,certificate_path').eq('collaboration_id',collab.id)
+         .eq('status','completed').not('completed_document_path','is',null).not('certificate_path','is',null).limit(1);
+       if(envelopeError||!envelope?.length)return json({error:'A completed DocuSign agreement and certificate must be on file first'},409);
+       const {data:consents,error:consentError}=await db.from('collaboration_consents')
+         .select('user_id,participation_consent,recording_consent,revoked_at').eq('collaboration_id',collab.id);
+       if(consentError||members.some(m=>!consents?.some(c=>c.user_id===m.user_id&&c.participation_consent&&c.recording_consent&&!c.revoked_at)))
+         return json({error:'All performers need current recorded consent'},409);
+       if(body.acknowledged!==true)return json({error:'Explicit completion acknowledgment required'},400);
+       const {error:voteError}=await db.from('collaboration_completion_votes').upsert({collaboration_id:collab.id,user_id:uid,acknowledged_at:new Date().toISOString()},{onConflict:'collaboration_id,user_id'});
+       if(voteError)throw voteError;
+       const {data:votes,error:voteLoadError}=await db.from('collaboration_completion_votes').select('user_id').eq('collaboration_id',collab.id);
+       if(voteLoadError)throw voteLoadError;
+       const allConfirmed=members.every(m=>votes?.some(v=>v.user_id===m.user_id));
+       if(allConfirmed){
+         const {error:completeError}=await db.from('collaborations').update({status:'completed'}).eq('id',collab.id).neq('status','paused');
+         if(completeError)throw completeError;
+       }
+       await log('collaboration_completion_acknowledged',collab.id,{completed:allConfirmed});
+       return json({confirmed:true,collaboration_completed:allConfirmed});
+     }
+     case 'review_create':{
+       if(!uuid(body.collaboration_id)||!uuid(body.reviewee_id)||body.reviewee_id===uid)return json({error:'Invalid review target'},400);
+       const score=Number(body.rating);
+       if(!Number.isInteger(score)||score<1||score>5)return json({error:'Rating must be 1–5'},400);
+       const {data:flag}=await db.from('product_feature_flags').select('enabled').eq('key','verified_reviews').maybeSingle();
+       if(!flag?.enabled)return json({error:'Verified reviews are not launched yet'},403);
+       const {data:collab}=await db.from('collaborations').select('status').eq('id',body.collaboration_id).maybeSingle();
+       if(collab?.status!=='completed')return json({error:'Only completed projects can be reviewed'},403);
+       const {data:members,error:memberError}=await db.from('collaboration_members').select('user_id').eq('collaboration_id',body.collaboration_id);
+       if(memberError||!members?.some(m=>m.user_id===uid)||!members.some(m=>m.user_id===body.reviewee_id))return json({error:'Both members must belong to this collaboration'},403);
+       const {data,error}=await db.from('completed_collaboration_reviews').insert({
+         collaboration_id:body.collaboration_id,reviewer_id:uid,reviewee_id:body.reviewee_id,
+         rating:score,comment:safe(body.comment,1000),status:'pending'
+       }).select('id,status').single();
+       if(error)return json({error:'Review already exists or cannot be submitted'},409);
+       await log('collaboration_review_submitted',data.id);
+       return json({item:data},201);
+     }
+     case 'review_public':{
+       if(!uuid(body.reviewee_id))return json({error:'Member ID required'},400);
+       const {data:rows,error}=await db.from('completed_collaboration_reviews')
+         .select('id,rating,comment,created_at').eq('reviewee_id',body.reviewee_id)
+         .eq('status','published').order('created_at',{ascending:false}).limit(50);
+       if(error)throw error;
+       const ratings=(rows||[]).map(x=>x.rating);
+       return json({items:rows||[],summary:{count:ratings.length,average:ratings.length?Math.round(ratings.reduce((a,b)=>a+b,0)*10/ratings.length)/10:null}});
+     }
+     case 'admin_review_queue':{
+       if(!isAdmin)return json({error:'Administrator required'},403);
+       const {data,error}=await db.from('completed_collaboration_reviews')
+         .select('id,reviewer_id,reviewee_id,rating,comment,status,created_at')
+         .eq('status','pending').order('created_at').limit(50);
+       if(error)throw error;
+       return json({items:data||[]});
+     }
+     case 'admin_review_decide':{
+       if(!isAdmin||!uuid(body.review_id)||!['published','hidden'].includes(body.status))return json({error:'Invalid moderation action'},403);
+       const {data,error}=await db.from('completed_collaboration_reviews').update({status:body.status})
+         .eq('id',body.review_id).eq('status','pending').select('id,status').maybeSingle();
+       if(error||!data)return json({error:'Review already handled'},409);
+       await log('collaboration_review_moderated',data.id,{status:data.status});
+       return json({item:data});
+     }
      default:return json({error:'Unknown production workflow'},404);
    }
  }catch(e){console.error('production-manager',action,e);return json({error:'Production workflow failed'},500);}
