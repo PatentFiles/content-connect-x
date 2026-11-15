@@ -18,15 +18,16 @@ Deno.serve(async(req)=>{
  const {data:{user},error:authError}=await auth.auth.getUser();
  if(authError||!user)return reject('Unauthorized',401);
  const db=createClient(url,secret),uid=user.id;
- const [security,age,plan]=await Promise.all([
+ const [security,age,plan,ohAccount]=await Promise.all([
   db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
   db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
-  db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle()
+  db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
+  db.from('onlyhost_accounts').select('status').eq('user_id',uid).maybeSingle()
  ]);
- if(security.error||age.error||plan.error)return reject('Account unavailable',503);
+ if(security.error||age.error||plan.error||ohAccount.error)return reject('Account unavailable',503);
  if(security.data?.banned||security.data?.suspended||age.data?.[0]?.status!=='approved'||age.data?.[0]?.expires_at&&Date.parse(age.data[0].expires_at)<=Date.now())
   return reject('Verified adult account required',403);
- const admin=security.data?.admin===true,paid=admin||(['active','trial'].includes(plan.data?.status)&&(!plan.data?.period_end||Date.parse(plan.data.period_end)>Date.now()));
+ const admin=security.data?.admin===true,paid=admin||ohAccount.data?.status==='active'||(['active','trial'].includes(plan.data?.status)&&(!plan.data?.period_end||Date.parse(plan.data.period_end)>Date.now()));
  const body=await req.json().catch(()=>({}));
  const action=brief(body.action,55);
  if(!paid)return reject('Premium membership required',403);
