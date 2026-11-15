@@ -10,7 +10,7 @@ Deno.serve(async (req) => {
     const profiles = await base44.asServiceRole.entities.UserProfile.filter({ user_id: user.email });
     if (profiles.some(p => p.banned || p.suspended)) return Response.json({ error: 'Account unavailable' }, { status: 403 });
     const { id_file_uri, selfie_file_uri } = await req.json();
-    if (![id_file_uri, selfie_file_uri].every(v => typeof v === 'string' && v.startsWith('private://'))) {
+    if (![id_file_uri, selfie_file_uri].every(v => typeof v === 'string' && v.trim().length > 5 && v.length < 2048 && !/^https?:\/\//i.test(v))) {
       return Response.json({ error: 'Two private document references are required' }, { status: 400 });
     }
     const existing = await base44.asServiceRole.entities.VerificationRecord.filter({ user_id: user.email });
