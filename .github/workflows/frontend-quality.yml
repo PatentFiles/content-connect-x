@@ -15,8 +15,12 @@ jobs:
       - run: npm ci
       - name: Check lint
         run: npm run lint
-      - name: Verify production build
+      - name: Verify legacy site build
         run: npm run build
+      - name: Strict Supabase type check
+        run: npm run typecheck:supabase
+      - name: Verify Supabase/Bolt build
+        run: npm run build:supabase
       - name: Prevent TypeScript regression
         shell: bash
         run: |
@@ -24,8 +28,8 @@ jobs:
           npm run typecheck > typecheck-report.txt 2>&1
           set -e
           count=$(grep -c 'error TS' typecheck-report.txt || true)
-          echo "Current type-check diagnostics: $count (baseline: 2645)"
-          if [ "$count" -gt 2645 ]; then
+          echo "Current type-check diagnostics: $count (baseline: 2639)"
+          if [ "$count" -gt 2639 ]; then
             cat typecheck-report.txt
             echo "::error::Type-check diagnostics increased. Fix the new errors before merging."
             exit 1
