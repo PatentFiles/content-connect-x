@@ -13,6 +13,8 @@ import {
   hostingAction, rentalCategories, rentalAmenities, rentalUses, usd, dateTime,
 } from './hostingApi';
 import HostingHost from './HostingHost';
+import HostingAreaMap from './HostingAreaMap';
+import {hostingAdvanced} from './hostingBusinessApi';
 import HostingBookingOperations from './HostingBookingOperations';
 import {hostingBusiness} from './hostingBusinessApi';
 import HostingNotificationSettings from './HostingNotificationSettings';
@@ -58,7 +60,7 @@ function ListingCard({listing,favorite,toggle,open}) {
   </article>;
 }
 
-function ListingDetail({id,paid,favorites,toggle,back}) {
+function ListingDetail({id,paid,favorites,toggle,back,onBooked}) {
   const [item,setItem]=useState(null);
   const [dates,setDates]=useState([]);
   const [reviews,setReviews]=useState([]);
@@ -69,28 +71,45 @@ function ListingDetail({id,paid,favorites,toggle,back}) {
   const [crew,setCrew]=useState(1);
   const [purpose,setPurpose]=useState('');
   const [notes,setNotes]=useState('');
+  const [assetItems,setAssetItems]=useState([]);
+  const [bundles,setBundles]=useState([]);
+  const [selectedBundle,setSelectedBundle]=useState('');
+  const [addonCounts,setAddonCounts]=useState({});
+  const [discountCode,setDiscountCode]=useState('');
+  const [secureQuote,setSecureQuote]=useState(null);
   const [busy,setBusy]=useState(true);
   const [error,setError]=useState('');
   const [notice,setNotice]=useState('');
   useEffect(()=>{
     let alive=true;
-    Promise.all([hostingAction('listing',{id}),hostingAction('reviews_public',{id})]).then(([r,reviewData])=>{
-      if(!alive)return;setItem(r.item);setDates(r.unavailable||[]);setReviews(reviewData.items||[]);setReviewSummary(reviewData);
+    Promise.all([hostingAction('listing',{id}),hostingAction('reviews_public',{id}),hostingAdvanced('addons_public',{property_id:id})]).then(([r,reviewData,equipment])=>{
+      if(!alive)return;setItem(r.item);setDates(r.unavailable||[]);setReviews(reviewData.items||[]);setReviewSummary(reviewData);setAssetItems(equipment.assets||[]);setBundles(equipment.bundles||[]);
       setPurpose(r.item?.permitted_uses?.[0]||'');
     }).catch(e=>{if(alive)setError(e.message);}).finally(()=>{if(alive)setBusy(false);});
     return()=>{alive=false;};
   },[id]);
   const hours=starts&&ends?(new Date(ends).getTime()-new Date(starts).getTime())/3600000:0;
-  const estimate=hours>0&&item?hours*Number(item.hourly_rate):0;
+
+  const bookingParams=()=>({
+    property_id:item.id,starts_at:new Date(starts).toISOString(),ends_at:new Date(ends).toISOString(),
+    crew_size:crew,requested_use:purpose,notes,
+    addons:Object.entries(addonCounts).filter(([,qty])=>qty>0).map(([id,quantity])=>({id,quantity})),
+    bundle_id:selectedBundle||null,discount_code:discountCode.trim()||null
+  });
+  const calculate=async()=>{
+    setBusy(true);setError('');setNotice('');setSecureQuote(null);
+    try{
+      const result=await hostingAdvanced('quote',bookingParams());
+      setSecureQuote(result.quote);
+    }catch(e){setError(e.message);}finally{setBusy(false);}
+  };
   const submit=async(e)=>{
     e.preventDefault();setBusy(true);setError('');setNotice('');
     try{
-      const result=await hostingAction('booking_request',{
-        id:item.id,starts_at:new Date(starts).toISOString(),ends_at:new Date(ends).toISOString(),
-        crew_size:crew,requested_use:purpose,notes,
-      });
-      setNotice(result.note||'Request submitted to your host.');
-      setStarts('');setEnds('');setNotes('');
+      const result=await hostingAdvanced('reserve',bookingParams());
+      setNotice(result.note||'Booking request submitted. No payment collected.');
+      setStarts('');setEnds('');setNotes('');setSecureQuote(null);
+      onBooked?.();
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
   if(busy&&!item)return <div className={panel+' p-8 text-[#A6B5C8]'}>Loading location…</div>;
@@ -145,9 +164,32 @@ function ListingDetail({id,paid,favorites,toggle,back}) {
         <label className="block text-sm">End date & time<input className={input+' mt-1'} type="datetime-local" value={ends} onChange={e=>setEnds(e.target.value)} required/></label>
         <label className="block text-sm">Crew size<input type="number" min={1} max={item.capacity} className={input+' mt-1'} value={crew} onChange={e=>setCrew(Number(e.target.value))}/></label>
         <label className="block text-sm">Requested production use<select className={input+' mt-1'} value={purpose} onChange={e=>setPurpose(e.target.value)}>{(item.permitted_uses||[]).map(v=><option key={v} value={v}>{usageLabels[v]||v}</option>)}</select></label>
+        {assetItems.length>0&&<div className="space-y-3 rounded-xl border border-[#304967] p-3"><h4 className="font-semibold text-sm">Production equipment and add-ons</h4>
+          {assetItems.map(asset=><label key={asset.id} className="flex flex-wrap items-center justify-between gap-2 text-xs"><span>{asset.label} · {usd(asset.hourly_cents/100)}/hr · {asset.quantity} available</span>
+            <input className={input+' max-w-[90px]'} type="number" min={0} max={asset.quantity} value={addonCounts[asset.id]||0}
+             onChange={e=>{setAddonCounts(p=>({...p,[asset.id]:Number(e.target.value)}));setSecureQuote(null);}}/>
+          </label>)}
+          {bundles.length>0&&<label className="block text-xs">Equipment bundle<select className={input+' mt-1'} value={selectedBundle}
+            onChange={e=>{setSelectedBundle(e.target.value);setSecureQuote(null);}}>
+             <option value="">No bundle</option>{bundles.map(b=><option key={b.id} value={b.id}>{b.title} · {b.discount_bps/100}% equipment discount</option>)}
+          </select></label>}
+        </div>}
+        <label className="block text-xs">Discount code (optional)<input className={input+' mt-1'} maxLength={40} value={discountCode}
+          onChange={e=>{setDiscountCode(e.target.value);setSecureQuote(null);}} placeholder="Enter code"/></label>
         <label className="block text-sm">Message to host<textarea className={input+' mt-1'} rows={3} maxLength={1000} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Describe your shoot, equipment and special requests."/></label>
-        <div className="flex justify-between border-y border-[#34465E] py-3 text-sm"><span className="text-[#AABDD4]">{hours>0?hours.toFixed(1)+' hours':'Select booking dates'}</span><strong>{usd(estimate)}</strong></div>
-        <button className={button+' w-full'} disabled={!paid||busy||hours<item.minimum_hours||crew<1||!purpose}>{paid?'Request this space':'Premium booking required'}</button>
+        <div className="rounded-xl border-y border-[#34465E] py-3 text-sm space-y-2">
+          <p className="text-[#AABDD4]">{hours>0?hours.toFixed(2)+' hours':'Select booking dates'} · Minimum notice: {item.min_notice_hours||24}h</p>
+          {secureQuote?<div className="space-y-2">
+            <div className="flex justify-between"><span>Rental</span><strong>{usd(secureQuote.rental_cents/100)}</strong></div>
+            <div className="flex justify-between"><span>Equipment</span><span>{usd(secureQuote.addon_cents/100)}</span></div>
+            <div className="flex justify-between"><span>Cleaning fee</span><span>{usd(secureQuote.cleaning_cents/100)}</span></div>
+            {secureQuote.discount_cents>0&&<div className="flex justify-between text-emerald-300"><span>Discounts</span><span>-{usd(secureQuote.discount_cents/100)}</span></div>}
+            <div className="flex justify-between border-t border-[#34465E] pt-2 font-semibold"><span>Booking total</span><span>{usd(secureQuote.total_cents/100)}</span></div>
+            <p className="text-xs text-[#A6B9D2]">Proposed deposit ceiling: {usd(secureQuote.deposit_cents/100)} · Overtime: {usd(secureQuote.overtime_hour_cents/100)}/h</p>
+          </div>:<p className="text-xs text-[#98AFCB]">Calculate the authoritative server quote before requesting. Rates may vary by date, bundle or promotion.</p>}
+        </div>
+        <button type="button" className={button+' w-full bg-[#233F70]'} onClick={calculate} disabled={!paid||busy||hours<item.minimum_hours||crew<1||!purpose}>Calculate secure price</button>
+        <button type="submit" className={button+' w-full'} disabled={!paid||busy||!secureQuote}>{paid?'Request space with this quote':'Premium booking required'}</button>
         <p className="text-center text-xs leading-5 text-[#A3B5CD]">No payment is collected here. The host must approve your request. The exact address is shared only through a trusted post-approval process, not through search results.</p>
       </form>
     </div>
@@ -166,6 +208,9 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
   const [from,setFrom]=useState('');
   const [to,setTo]=useState('');
   const [onlySaved,setOnlySaved]=useState(false);
+  const [showMap,setShowMap]=useState(true);
+  const [areas,setAreas]=useState([]);
+  const [mapBounds,setMapBounds]=useState(null);
   const [listings,setListings]=useState([]);
   const [favorites,setFavorites]=useState([]);
   const [myBookings,setMyBookings]=useState([]);
@@ -177,17 +222,17 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
   const [error,setError]=useState('');
   const [notice,setNotice]=useState('');
 
-  const search=useCallback(async()=>{
+  const search=useCallback(async(boundsOverride=null)=>{
     setBusy(true);setError('');
     try{
       const [browse,favs,bookings]=await Promise.all([
-        hostingAction('browse',{query,city,category,max_price:maxPrice,crew_size:crew,amenity,from:from?new Date(from).toISOString():null,to:to?new Date(to).toISOString():null}),
+        hostingAction('browse',{query,city,category,max_price:maxPrice,crew_size:crew,amenity,from:from?new Date(from).toISOString():null,to:to?new Date(to).toISOString():null,bounds:boundsOverride||mapBounds}),
         hostingAction('favorites'),hostingAction('my_bookings'),
       ]);
       setListings(browse.items||[]);setFavorites(favs.ids||[]);setMyBookings(bookings.items||[]);
     }catch(e){setError(e.message);}finally{setBusy(false);}
-  },[query,city,category,maxPrice,crew,amenity,from,to]);
-  useEffect(()=>{search();},[]);
+  },[query,city,category,maxPrice,crew,amenity,from,to,mapBounds]);
+  useEffect(()=>{search();hostingAdvanced('areas_public').then(r=>setAreas(r.items||[])).catch(()=>{});},[]);
 
   const toggle=async(id)=>{
     setError('');
@@ -246,7 +291,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
     {notice&&<p className="rounded-xl border border-green-700/50 bg-green-900/20 p-3 text-sm text-green-300" role="status">{notice}</p>}
 
     {(section==='explore'||section==='favorites')&&<>
-      {selected?<ListingDetail id={selected} paid={paid} favorites={favorites} toggle={toggle} back={()=>setSelected('')}/>:
+      {selected?<ListingDetail id={selected} paid={paid} favorites={favorites} toggle={toggle} back={()=>setSelected('')} onBooked={()=>search()}/>:
       <div className="space-y-5">
         <form onSubmit={e=>{e.preventDefault();search();}} className={panel+' grid gap-3 p-4 md:grid-cols-3 xl:grid-cols-4'}>
           <label className="block text-xs text-[#ADC1DA]">Find a space<input className={input+' mt-1'} value={query} onChange={e=>setQuery(e.target.value)} placeholder="Studio, loft, location…"/></label>
@@ -259,6 +304,14 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
           <label className="block text-xs text-[#ADC1DA]">Available until<input className={input+' mt-1'} type="datetime-local" value={to} onChange={e=>setTo(e.target.value)}/></label>
           <button type="submit" disabled={busy} className={button+' mt-4 self-end'}><SlidersHorizontal size={16} className="inline mr-2"/>Search spaces</button>
         </form>
+        <div className="flex flex-wrap gap-2 items-center">
+          <button className={showMap?button: 'rounded-lg border border-[#34465E] px-4 py-2 text-sm'} onClick={()=>setShowMap(!showMap)}>
+            {showMap?'Hide interactive map':'Show interactive map'}
+          </button>
+          {mapBounds&&<button className="text-xs text-blue-300" onClick={()=>{setMapBounds(null);search(null);}}>Clear map-area search</button>}
+        </div>
+        {showMap&&<HostingAreaMap areas={areas} listings={listings} onSelect={setSelected}
+           onSearchBounds={bounds=>{setMapBounds(bounds);search(bounds);}}/>}
         <div className="flex items-center justify-between gap-3">
           <div><h2 className="text-xl font-semibold">{section==='favorites'?'Your saved locations':'Explore professional spaces'}</h2><p className="mt-1 text-xs text-[#91A7C4]">{visible.length} approved {visible.length===1?'listing':'listings'} · Search returns only general location information</p></div>
           <button className="flex items-center gap-2 text-sm text-blue-300" onClick={search} disabled={busy}><RefreshCw size={15}/>Refresh</button>
