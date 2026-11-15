@@ -1,6 +1,6 @@
 # Content Connect X — Supabase Product & Security Roadmap (2026-11)
 
-This document is the **current migration product contract** for the Supabase replacement. The legacy `src/pages/DeveloperReadMe.jsx` describes the intended multi-role business workflows, but its Base44-specific assertions of being "production ready" do **not** establish that the Supabase implementation has been end-to-end verified.
+This document is the current product contract for the Supabase application. Features require authenticated end-to-end validation before any production-readiness claim.
 
 ## Product identity
 
@@ -43,7 +43,7 @@ A single contract signature is **not** standing consent for all future scenes or
 
 ## Financial dependencies
 
-The former Base44 ReadMe was CCBill-oriented. Stripe currently states it does not support businesses that sell or offer adult content/services: https://support.stripe.com/questions/prohibited-and-restricted-business-list-faqs . CCBill markets adult creator platform payment services: https://ccbill.com/industries/content-creator-platforms .
+Payment architecture should use an approved adult-industry processor. Stripe currently states it does not support businesses that sell or offer adult content/services: https://support.stripe.com/questions/prohibited-and-restricted-business-list-faqs . CCBill markets adult creator platform payment services: https://ccbill.com/industries/content-creator-platforms .
 
 Until an appropriate merchant processor approves this **specific** platform, public checkout must remain disabled. Entitlements must be created exclusively from verified server-side payment webhooks with idempotency and audit.
 
@@ -63,7 +63,7 @@ Until an appropriate merchant processor approves this **specific** platform, pub
 - Authenticated multi-account tests covering unverified, verified free, premium, admin, suspended and expired memberships.
 - Verify all access policies, signed URLs, identity review audit, self-verification prevention and consent withdrawal.
 - Confirm a merchant processor accepts the actual adult-industry network model; implement and test their approved webhooks.
-- Migrate existing Base44 users only with account-holder consent, secure identities and private documents, provider-backed verified states, and an explicit rollback plan.
+- Migrate historical members only with account-holder consent, secure identities and private documents, provider-backed verified states, and an explicit rollback plan.
 - Restore the full legacy interface design, components and flows on Supabase rather than relying only on the replacement preview shell.
 - Verify contract legal templates, co-performer consent, age/identity documentation and retention requirements with appropriate counsel.
 
@@ -88,5 +88,5 @@ Until an appropriate merchant processor approves this **specific** platform, pub
 - Basic Supabase preview screens cover authentication, profiles, discovery, messaging/collaboration drafts, contract signature records, booking requests, consent recording and withdrawal, and safety controls.
 - Additional work-clearance and optional background-screening request foundations are implemented, **not** a live PASS or background-check provider integration.
 - Stripe checkout is deliberately disabled unless specifically approved and configured.
-- The legacy React/Base44 application remains in the repository for reference and is not yet fully ported.
+- The repository contains only the Supabase frontend and Edge Functions. Additional role-based workflows and automated acceptance tests remain to be completed.
 - No claim of completed end-to-end authorization, billing, compliance, test automation, or data migration is warranted until those are actually tested and documented.
