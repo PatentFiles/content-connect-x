@@ -148,7 +148,7 @@ const AuthenticatedApp = () => {
 
 function App() {
   // Explicit migration switch: no Base44 contexts or API calls are mounted in Bolt mode.
-  if (import.meta.env.VITE_BACKEND_PROVIDER === 'supabase') return <SupabaseApp />;
+  if (import.meta.env.MODE === 'supabase' || import.meta.env.VITE_BACKEND_PROVIDER === 'supabase') return <SupabaseApp />;
 
   return (
     <ThemeProvider>

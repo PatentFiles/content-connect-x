@@ -9,7 +9,10 @@
     "lint": "eslint . --quiet",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc -p ./jsconfig.json",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "dev:supabase": "vite --mode supabase",
+    "build:supabase": "vite build --mode supabase",
+    "preview:supabase": "vite preview --mode supabase"
   },
   "dependencies": {
     "@base44/sdk": "^0.8.61",
