@@ -50,6 +50,29 @@ Deno.serve(async req=>{
  const audit=async(what:string,target:string|null=null)=>{
   await db.from('platform_action_audit').insert({actor_id:uid,action:what,target_type:'integration',target_id:id(target)?target:null});
  };
+ const notifyOptedInCollaborators=async(person:string)=>{
+  // Neutral event: does not reveal diagnosis, report contents or even a positive
+  // clearance result. Collaborators must separately query consented status.
+  const {data:participations,error:membershipError}=await db.from('collaboration_members')
+    .select('collaboration_id').eq('user_id',person).limit(100);
+  if(membershipError)throw membershipError;
+  for(const member of participations||[]){
+    const {data:share}=await db.from('ccx_clearance_share_consents')
+      .select('revoked_at').eq('collaboration_id',member.collaboration_id)
+      .eq('user_id',person).maybeSingle();
+    if(!share||share.revoked_at)continue;
+    const {data:team}=await db.from('collaboration_members')
+      .select('user_id').eq('collaboration_id',member.collaboration_id).limit(25);
+    for(const teammate of team||[]){
+      if(teammate.user_id===person)continue;
+      await db.from('member_notifications').insert({
+       recipient_id:teammate.user_id,kind:'work_clearance_update',
+       title:'A collaboration readiness status was updated',
+       details:{collaboration_id:member.collaboration_id}
+      });
+    }
+  }
+ };
  const conf=async(provider:string)=>{
   const {data,error}=await db.from('ccx_integrations').select('provider,enabled,setup_status,notes,callback_origin,secondary_origin,updated_at')
    .eq('provider',provider).maybeSingle();
@@ -290,6 +313,7 @@ Deno.serve(async req=>{
     user_id:submission.user_id,source:'manual_admin',clearance_confirmed:true,
     expires_at:expires.toISOString()
    });
+   await notifyOptedInCollaborators(submission.user_id);
   }
   await audit('ccx_private_clearance_document_reviewed',submission.id);
   await db.from('member_notifications').insert({
@@ -332,7 +356,8 @@ Deno.serve(async req=>{
   if(action==='pass_revoke'){
    await db.from('ccx_clearance_share_consents').update({revoked_at:new Date().toISOString()})
     .eq('collaboration_id',collaborationId).eq('user_id',uid);
-   await audit('ccx_clearance_share_withdrawn',collaborationId);return out({shared:false});
+   await audit('ccx_clearance_share_withdrawn',collaborationId);
+   await notifyOptedInCollaborators(uid);return out({shared:false});
   }
   if(body.allow_binary_clearance_share!==true)return bad('Explicit permission to share work-clearance status is required',400);
   const {error:saveError}=await db.from('ccx_clearance_share_consents').upsert({
@@ -340,6 +365,7 @@ Deno.serve(async req=>{
   },{onConflict:'collaboration_id,user_id'});
   if(saveError)throw saveError;
   await audit('ccx_clearance_share_granted',collaborationId);
+  await notifyOptedInCollaborators(uid);
   return out({shared:true});
  }
  case 'pass_collaboration_status':{
