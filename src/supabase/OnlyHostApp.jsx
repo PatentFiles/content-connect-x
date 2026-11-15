@@ -28,6 +28,13 @@ export default function OnlyHostApp(){
  const [category,setCategory]=useState(''),[selected,setSelected]=useState(null);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const user=session?.user;
+ useEffect(()=>{
+  const params=new URLSearchParams(window.location.search);
+  if(params.has('age_verification')){
+   setView('account');params.delete('age_verification');
+   window.history.replaceState(null,'',window.location.pathname+(params.toString()?'?'+params.toString():'')+window.location.hash);
+  }
+ },[]);
  const refreshAccount=useCallback(async(current)=>{
   if(!current?.user){setVerified(false);setAccount(null);return;}
   const [age,registration]=await Promise.all([
@@ -149,7 +156,7 @@ export default function OnlyHostApp(){
          <button className={primary} disabled={!terms||busy} onClick={register}>Activate free OnlyHost account</button></>}
         <p className="text-sm">Independent age verification: <strong>{isVerified?'Approved':'Not yet approved'}</strong></p>
         {!isVerified&&<div className="space-y-4">
-         <YotiVerification/>
+         <YotiVerification brand="onlyhost"/>
          <div className="rounded-xl border border-[#3C4D69] bg-[#101A2D] p-4 space-y-3">
           <h3 className="font-semibold">Alternative: manual identity review</h3>
           <p className="text-xs text-[#ADBDD3]">Upload your ID and selfie privately. An authorized reviewer must approve them before bookings or hosting can begin.</p>
