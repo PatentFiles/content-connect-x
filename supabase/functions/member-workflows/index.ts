@@ -410,6 +410,30 @@ Deno.serve(async req=>{
       case 'create_contract':{
         const cid=body.collaboration_id,title=text(body.title,150),content=body.content;
         if(!isId(cid)||!await memberOf(cid))return fail('Collaboration not available',403);
+        // A clearance-required collaboration cannot begin contractual preparation
+        // until each performer has explicitly agreed to share current clearance
+        // (binary status only; never individual medical records).
+        const {data:collabPolicy,error:policyError}=await admin.from('collaborations')
+          .select('requires_work_clearance').eq('id',cid).maybeSingle();
+        if(policyError||!collabPolicy)return fail('Collaboration policy unavailable',503);
+        if(collabPolicy.requires_work_clearance){
+          const {data:members,error:membersError}=await admin.from('collaboration_members')
+            .select('user_id').eq('collaboration_id',cid);
+          if(membersError||!members?.length)return fail('Collaboration participants unavailable',503);
+          const ids=members.map((v:any)=>v.user_id);
+          const [consents,checks]=await Promise.all([
+            admin.from('ccx_clearance_share_consents').select('user_id,revoked_at')
+              .eq('collaboration_id',cid).in('user_id',ids),
+            admin.from('performer_work_clearances').select('user_id,clearance_confirmed,expires_at')
+              .in('user_id',ids)
+          ]);
+          if(consents.error||checks.error)return fail('Work clearance status unavailable',503);
+          const opted=new Set((consents.data||[]).filter((v:any)=>!v.revoked_at).map((v:any)=>v.user_id));
+          if(!ids.every((person:string)=>{
+            const c=(checks.data||[]).find((v:any)=>v.user_id===person);
+            return opted.has(person)&&c?.clearance_confirmed===true&&c.expires_at&&Date.parse(c.expires_at)>Date.now();
+          }))return fail('Every collaboration participant must opt in and have a current verified work-clearance status before contract preparation',409);
+        }
         if(title.length<3||!content||typeof content!=='object'||Array.isArray(content))return fail('Valid contract required');
         if(JSON.stringify(content).length>40000)return fail('Contract too large');
         const {data,error}=await admin.from('contracts').insert({collaboration_id:cid,title,content,created_by:uid,status:'draft'}).select('id,collaboration_id,title,status,created_at').single();
