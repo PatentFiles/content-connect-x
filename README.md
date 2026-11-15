@@ -20,6 +20,7 @@ npm run lint
 npm run typecheck
 npm run build
 npm run smoke:supabase
+npm run test:readiness
 ```
 
 The smoke script checks authentication protection on deployed backend endpoints; it is not a substitute for end-to-end tests with verified users.
@@ -39,6 +40,10 @@ The browser receives only a Supabase URL and publishable key through `VITE_SUPAB
 ## Release status
 
 The frontend and database foundation compile. No complete authenticated multi-user acceptance suite has passed yet. Real document signing requires DocuSign setup and qualified review; paid subscriptions require an approved adult-industry merchant processor. Media publication and provider-backed clearance remain protected until their corresponding procedures are ready. A successful build is **not** production certification.
+
+## Hands-on tests before launch
+
+The production configuration console is restricted to independently age-verified MFA administrators. It shows provider prerequisites and missing server settings without exposing credentials; a configured provider is not proof of a working provider transaction. Follow [the at-home acceptance test matrix](ops/AT_HOME_TEST_MATRIX.md), capture the tested commit SHA and use a dedicated staging environment for any test data.
 
 ## Production location marketplace
 
