@@ -350,12 +350,12 @@ Deno.serve(async request=>{
    .eq('conversation_id',conversation.conversation_id).limit(30);
   const userIds=(participants||[]).map(m=>m.user_id).filter(id=>id!==uid);
   if(userIds.length){
-   const {data:blocks,error:blocksError}=await db.from('member_blocks').select('blocker_id')
-    .or('blocker_id.eq.'+uid+',blocked_id.eq.'+uid).limit(200);
-   if(blocksError)throw blocksError;
-   const {data:relations}=await db.from('member_blocks').select('blocker_id,blocked_id')
-    .or('blocker_id.in.('+userIds.join(',')+'),blocked_id.in.('+userIds.join(',')+')').limit(500);
-   if((relations||[]).some(x=>x.blocker_id===uid||x.blocked_id===uid)||blocks?.length)
+   const {data:relations,error:relationError}=await db.from('member_blocks')
+    .select('blocker_id,blocked_id')
+    .or('and(blocker_id.eq.'+uid+',blocked_id.in.('+userIds.join(',')+')),'+
+        'and(blocked_id.eq.'+uid+',blocker_id.in.('+userIds.join(',')+'))').limit(500);
+   if(relationError)throw relationError;
+   if((relations||[]).length)
     return deny('Conversation restricted by member safety settings',403);
   }
   if(action==='booking_chat_list'){
