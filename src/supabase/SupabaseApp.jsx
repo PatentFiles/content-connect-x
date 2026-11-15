@@ -17,7 +17,8 @@ import ReputationHub from './ReputationHub';
 import SecurityCenter from './SecurityCenter';
 import MfaChallenge from './MfaChallenge';
 import AgreementPackets from './AgreementPackets';
-import { ShieldCheck, LockKeyhole, Search, UserRound, CreditCard, LogOut, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw, CalendarDays, MessageSquare, Lightbulb, Settings2, Images, UsersRound, Star, FileSignature } from 'lucide-react';
+const HostingMarketplace = React.lazy(() => import('./HostingMarketplace'));
+import { ShieldCheck, LockKeyhole, Search, UserRound, CreditCard, LogOut, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw, CalendarDays, MessageSquare, Lightbulb, Settings2, Images, UsersRound, Star, FileSignature, Building2 } from 'lucide-react';
 
 const shell = 'min-h-screen bg-[#0B0F14] text-[#E8EEF9]';
 const panel = 'rounded-xl border border-[#263248] bg-[#151D2B] p-5';
@@ -219,6 +220,7 @@ export default function SupabaseApp() {
     if(visibleFeatures?.media_gallery)menu.push(['media','Creator Media',Images]);
     if(paid && visibleFeatures?.availability) menu.push(['schedule','Availability',CalendarDays]);
     menu.push(['production','Production Manager',UsersRound]);
+    menu.push(['hosting','Hosting Marketplace',Building2]);
     if(paid){
       if(visibleFeatures?.verified_reviews)menu.push(['reputation','Verified Reviews',Star]);
       if(visibleFeatures?.contracts)menu.push(['agreements','Agreements',FileSignature]);
@@ -249,6 +251,7 @@ export default function SupabaseApp() {
     {tab==='media' && approved && <MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
     {tab==='schedule' && approved && paid && <ScheduleHub paid={paid} userId={user.id} creatorBookingEnabled={Boolean(visibleFeatures?.creator_booking)}/>}
     {tab==='production' && approved && <ProductionManager user={user} paid={paid} isAdmin={isAdmin}/>}
+    {tab==='hosting' && approved && <React.Suspense fallback={<div className={panel}>Loading hosting marketplace…</div>}><HostingMarketplace user={user} paid={paid} isAdmin={isAdmin}/></React.Suspense>}
     {tab==='reputation' && approved && paid && <ReputationHub isAdmin={isAdmin}/>}
     {tab==='agreements' && approved && paid && <AgreementPackets/>}
     {tab==='controls' && approved && isAdmin && <AdminProductControls/>}
