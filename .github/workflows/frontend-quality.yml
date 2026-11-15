@@ -1,0 +1,35 @@
+name: Frontend quality gate
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - name: Check lint
+        run: npm run lint
+      - name: Verify production build
+        run: npm run build
+      - name: Prevent TypeScript regression
+        shell: bash
+        run: |
+          set +e
+          npm run typecheck > typecheck-report.txt 2>&1
+          set -e
+          count=$(grep -c 'error TS' typecheck-report.txt || true)
+          echo "Current type-check diagnostics: $count (baseline: 2645)"
+          if [ "$count" -gt 2645 ]; then
+            cat typecheck-report.txt
+            echo "::error::Type-check diagnostics increased. Fix the new errors before merging."
+            exit 1
+          fi
+          if [ "$count" -ne 0 ]; then
+            echo "::warning::$count existing type-check diagnostics remain. Reduce baseline as they are fixed."
+          fi
