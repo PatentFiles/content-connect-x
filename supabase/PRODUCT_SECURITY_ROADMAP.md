@@ -4,7 +4,7 @@ This document is the current product contract for the Supabase application. Feat
 
 ## Product identity
 
-A verified professional collaboration network for adult content creators, performers, photographers, videographers, editors, agents, studios, and location hosts. The two connected systems in the legacy ReadMe remain in scope:
+A verified professional collaboration network for adult content creators, performers, photographers, videographers, editors, agents, studios, and location hosts. The two connected products remain in scope:
 
 1. **Collaboration Network:** discovery, availability/travel, invitations, messaging, consent, agreements, work-clearance validation, project completion, disputes and reputation.
 2. **Hosting Marketplace:** studios/locations, availability, bookings, private access instructions, equipment, incident reporting, and reviews.
@@ -64,7 +64,7 @@ Until an appropriate merchant processor approves this **specific** platform, pub
 - Verify all access policies, signed URLs, identity review audit, self-verification prevention and consent withdrawal.
 - Confirm a merchant processor accepts the actual adult-industry network model; implement and test their approved webhooks.
 - Migrate historical members only with account-holder consent, secure identities and private documents, provider-backed verified states, and an explicit rollback plan.
-- Restore the full legacy interface design, components and flows on Supabase rather than relying only on the replacement preview shell.
+- Complete the production interface and role-specific workflows in the current Supabase application.
 - Verify contract legal templates, co-performer consent, age/identity documentation and retention requirements with appropriate counsel.
 
 ### P1 — Product differentiators
@@ -76,7 +76,7 @@ Until an appropriate merchant processor approves this **specific** platform, pub
 - Support reports, content complaint/appeal queue, takedown requests and dispute records.
 
 ### P2 — Scale and polish
-- Mobile-first responsive UX using the legacy design system.
+- Mobile-first responsive UX with a cohesive Content Connect X design system.
 - Notifications (transactional email + in-app realtime), deep links and reminders with opt-outs.
 - Activity metrics: verified conversion, match-to-conversation, collaboration-to-completion, revenue per active professional, and safety response times.
 - Optional background checks provided by a qualified vendor, with the necessary consent/disclosure/adverse-action workflow for the particular use.
