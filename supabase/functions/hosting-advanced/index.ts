@@ -19,15 +19,17 @@ Deno.serve(async req=>{
  const auth=createClient(url,anon,{global:{headers:{Authorization:req.headers.get('Authorization')||''}}});
  const {data:{user},error:e}=await auth.auth.getUser();if(e||!user)return deny('Unauthorized',401);
  const db=createClient(url,secret),uid=user.id;
- const [verification,security,sub]=await Promise.all([
+ const [verification,security,sub,ohAccount]=await Promise.all([
   db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
   db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
-  db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle()
+  db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
+  db.from('onlyhost_accounts').select('status').eq('user_id',uid).maybeSingle()
  ]);
- if(verification.error||security.error||sub.error)return deny('Account status unavailable',503);
+ if(verification.error||security.error||sub.error||ohAccount.error)return deny('Account status unavailable',503);
  const adult=verification.data?.[0]?.status==='approved'&&(!verification.data[0].expires_at||Date.parse(verification.data[0].expires_at)>Date.now());
  if(!adult||security.data?.banned||security.data?.suspended)return deny('Verified, unrestricted adult account required',403);
  const paid=security.data?.admin||['active','trial'].includes(sub.data?.status)&&(!sub.data?.period_end||Date.parse(sub.data.period_end)>Date.now());
+ const onlyHostEligible=ohAccount.data?.status==='active';
  const body=await req.json().catch(()=>null);if(!body||typeof body!=='object')return deny('Invalid JSON',400);
  const action=str(body.action,60);
  const own=async(propertyId:unknown)=>{
@@ -44,7 +46,7 @@ Deno.serve(async req=>{
  const audit=async(action:string,target:string)=>{
   await db.from('platform_action_audit').insert({actor_id:uid,action,target_type:'hosting_pricing',target_id:target});
  };
- if(!paid&&!['quote','addons_public','areas_public'].includes(action))return deny('Premium membership required',403);
+ if(!paid&&!onlyHostEligible&&!['quote','addons_public','areas_public'].includes(action))return deny('Premium membership required',403);
  try{
  switch(action){
  case 'areas_public':{
@@ -130,7 +132,8 @@ Deno.serve(async req=>{
  case 'reserve':{
   if(!id(body.property_id)||!iso(body.starts_at)||!iso(body.ends_at)||typeof body.requested_use!=='string')
    return deny('Valid property, date range and production use required');
-  if(action==='reserve'&&!paid)return deny('Premium membership required',403);
+  const sourceBrand=body.source_brand==='onlyhost'?'onlyhost':'content_connect';
+  if(action==='reserve'&&!paid&&!(sourceBrand==='onlyhost'&&onlyHostEligible))return deny('Verified OnlyHost account or CCX premium membership required',403);
   const additions=Array.isArray(body.addons)?body.addons:[];
   if(additions.length>25||additions.some(x=>!id(x?.id)||!percent(x?.quantity,1,1000)))return deny('Invalid equipment selection');
   if(body.bundle_id&&!id(body.bundle_id))return deny('Invalid bundle ID');
@@ -152,7 +155,7 @@ Deno.serve(async req=>{
   const {count,error:limitError}=await db.from('property_booking_requests').select('id',{head:true,count:'exact'})
    .eq('requester_id',uid).eq('status','requested').gte('created_at',new Date(Date.now()-86400000).toISOString());
   if(limitError)throw limitError;if((count||0)>=10)return deny('Daily booking request limit reached',429);
-  const {data,error}=await db.rpc('ccx_hosting_reserve',{p_guest:uid,...params,p_note:str(body.notes,1000)});
+  const {data,error}=await db.rpc('ccx_hosting_reserve',{p_guest:uid,...params,p_note:str(body.notes,1000),p_origin_brand:sourceBrand});
   if(error)return deny('Reservation could not be made: '+error.message,409);
   await db.from('member_notifications').insert({recipient_id:property.owner_id,
    kind:'hosting_booking',title:'New professional venue booking request',details:{booking_id:data}});
