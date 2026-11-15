@@ -77,11 +77,13 @@ Deno.serve(async req=>{
        if(!uuid(body.team_id)||!uuid(body.member_id)||body.member_id===uid)return json({error:'Valid team and member required'},400);
        const me=await memberOf(body.team_id);
        if(!me||me.status!=='active'||!['owner','manager'].includes(me.role))return json({error:'Team management permission required'},403);
-       const [targetAge,block]=await Promise.all([
+       const [targetAge,block,targetSub,targetSecurity]=await Promise.all([
          db.from('age_verification_requests').select('status,expires_at').eq('user_id',body.member_id).order('created_at',{ascending:false}).limit(1),
-         db.from('member_blocks').select('blocker_id').or(`and(blocker_id.eq.${uid},blocked_id.eq.${body.member_id}),and(blocker_id.eq.${body.member_id},blocked_id.eq.${uid})`).limit(1)
+         db.from('member_blocks').select('blocker_id').or(`and(blocker_id.eq.${uid},blocked_id.eq.${body.member_id}),and(blocker_id.eq.${body.member_id},blocked_id.eq.${uid})`).limit(1),
+         db.from('member_subscriptions').select('status,period_end').eq('user_id',body.member_id).maybeSingle(),
+         db.from('account_security').select('banned,suspended').eq('user_id',body.member_id).maybeSingle()
        ]);
-       if(targetAge.error||targetAge.data?.[0]?.status!=='approved'||block.error||block.data?.length)return json({error:'Member cannot be invited'},403);
+       if(targetAge.error||targetAge.data?.[0]?.status!=='approved'||block.error||block.data?.length||targetSub.error||!active(targetSub.data)||targetSecurity.error||targetSecurity.data?.banned||targetSecurity.data?.suspended)return json({error:'Member cannot be invited'},403);
        const {data:existing}=await db.from('production_team_members').select('status').eq('team_id',body.team_id).eq('member_id',body.member_id).maybeSingle();
        if(existing&&['active','invited'].includes(existing.status))return json({error:'Already invited or joined'},409);
        const {error}=await db.from('production_team_members').upsert({team_id:body.team_id,member_id:body.member_id,role:'member',status:'invited',invited_by:uid,joined_at:null},{onConflict:'team_id,member_id'});
