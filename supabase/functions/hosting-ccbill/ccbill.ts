@@ -1,6 +1,9 @@
 /** CCBill hosted FlexForms, only after specific adult-industry merchant approval. */
 import {createHash} from 'node:crypto';
 export const flexConfigured=()=>Boolean(
+ // Separate final production switch; merchant onboarding alone must never enable live charges.
+ Deno.env.get('HOSTING_FINANCIAL_RELEASE_APPROVED')==='true'&&
+ Deno.env.get('HOSTING_PROVIDER_CALLBACK_RECONCILED')==='true'&&
  Deno.env.get('CCBILL_HOSTING_APPROVED')==='true'&&
  Deno.env.get('CCBILL_DYNAMIC_PRICING_APPROVED')==='true'&&
  Deno.env.get('CCBILL_FLEXFORM_LIVE_APPROVED')==='true'&&
