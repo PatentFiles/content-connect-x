@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Activity, RefreshCw } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
+import IntegrationSettings from './IntegrationSettings';
 
 const panel='ccx-surface p-5';
 export default function IntegrationHealth(){
@@ -25,5 +26,6 @@ export default function IntegrationHealth(){
     <div className={panel}><h3 className="font-semibold mb-2">Database signals</h3>{Object.entries(data.database||{}).map(([key,value])=><div key={key} className="flex justify-between border-b border-[#263248] py-1 text-sm"><span>{key.replaceAll('_',' ')}</span><strong>{String(value)}</strong></div>)}</div>
     <div className={panel}><h3 className="font-semibold">Client integrations</h3>{Object.entries(data.client_side_services||{}).map(([name,value])=><p className="text-sm text-[#9AA6BC] mt-2" key={name}><strong className="text-white capitalize">{name}</strong>: {value}</p>)}</div>
     <p className="text-sm text-[#9AA6BC]">{data.note}</p></>}
+    <div className="mt-8 border-t border-[#3A435C] pt-6"><IntegrationSettings/></div>
   </div>;
 }
