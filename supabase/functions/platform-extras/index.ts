@@ -87,7 +87,7 @@ Deno.serve(async(req)=>{
   try{
     switch(action){
       case 'get_feature_flags':{
-        const keys=['creator_discovery','availability','community_feed','community_publish','product_feedback','media_gallery','messages','contracts','property_bookings','background_screening'];
+        const keys=['creator_discovery','availability','community_feed','community_publish','product_feedback','media_gallery','creator_booking','messages','contracts','property_bookings','background_screening'];
         const entries=await Promise.all(keys.map(async(key)=>[key,await feature(key)]));
         return reply({flags:Object.fromEntries(entries),tier});
       }
@@ -239,6 +239,75 @@ Deno.serve(async(req)=>{
           .select('followed_id').eq('follower_id',uid).limit(200);
         if(error)throw error;
         return reply({user_ids:(data||[]).map((v:any)=>v.followed_id)});
+      }
+      case 'creator_bookings_list':{
+        const {data,error}=await db.from('creator_booking_requests')
+          .select('id,host_id,requester_id,starts_at,ends_at,status,notes,created_at')
+          .or(`host_id.eq.${uid},requester_id.eq.${uid}`)
+          .order('created_at',{ascending:false}).limit(100);
+        if(error)throw error;
+        return reply({items:data||[]});
+      }
+      case 'creator_bookings_request':{
+        if(!paid||!await feature('creator_booking','premium'))return reject('Premium booking required',403);
+        const host=body.host_id,start=iso(body.starts_at),end=iso(body.ends_at);
+        if(!uuid(host)||host===uid||!start||!end||Date.parse(start)<=Date.now()||Date.parse(end)<=Date.parse(start)||
+          Date.parse(end)-Date.parse(start)>8*3600000||Date.parse(end)-Date.parse(start)<30*60000||
+          Date.parse(start)>Date.now()+120*86400000)return reject('Invalid creator booking window',400);
+        const [ageCheck,subscriptionCheck,securityCheck,connected,blocked]=await Promise.all([
+          db.from('age_verification_requests').select('status,expires_at').eq('user_id',host).order('created_at',{ascending:false}).limit(1),
+          db.from('member_subscriptions').select('status,period_end').eq('user_id',host).maybeSingle(),
+          db.from('account_security').select('banned,suspended').eq('user_id',host).maybeSingle(),
+          db.from('member_connection_requests').select('id').eq('status','accepted').or(`and(requester_id.eq.${uid},recipient_id.eq.${host}),and(requester_id.eq.${host},recipient_id.eq.${uid})`).limit(1),
+          db.from('member_blocks').select('blocker_id').or(`and(blocker_id.eq.${uid},blocked_id.eq.${host}),and(blocker_id.eq.${host},blocked_id.eq.${uid})`).limit(1)
+        ]);
+        if(ageCheck.error||!isCurrent(ageCheck.data?.[0])||subscriptionCheck.error||!isPaid(subscriptionCheck.data)||
+          securityCheck.error||securityCheck.data?.banned||securityCheck.data?.suspended||connected.error||!connected.data?.length||
+          blocked.error||blocked.data?.length)return reject('Creator is not available for booking',403);
+        const {data:availability,error:availabilityError}=await db.from('member_availability')
+          .select('id').eq('user_id',host).in('kind',['shoot','studio']).neq('visibility','private')
+          .lte('starts_at',start).gte('ends_at',end).limit(1);
+        if(availabilityError||!availability?.length)return reject('The creator has not offered this time window',409);
+        const {count,error:limitError}=await db.from('creator_booking_requests').select('id',{head:true,count:'exact'})
+          .eq('requester_id',uid).eq('status','requested').gte('created_at',new Date(Date.now()-86400000).toISOString());
+        if(limitError)throw limitError;
+        if((count||0)>=10)return reject('Daily request limit reached',429);
+        const {data,error}=await db.from('creator_booking_requests').insert({
+          host_id:host,requester_id:uid,starts_at:start,ends_at:end,notes:str(body.notes,1000)
+        }).select('id,status,starts_at,ends_at').single();
+        if(error)return reject('Requested time is not available',409);
+        await db.from('member_notifications').insert({recipient_id:host,kind:'creator_booking',title:'New professional shoot booking request',details:{booking_id:data.id}});
+        await audits('creator_booking_request',data.id);
+        return reply({item:data},201);
+      }
+      case 'creator_bookings_respond':{
+        if(!uuid(body.id)||!['confirmed','declined'].includes(body.status))return reject('Invalid booking response',400);
+        const {data:existing,error:existingError}=await db.from('creator_booking_requests')
+          .select('id,host_id,requester_id,status').eq('id',body.id).maybeSingle();
+        if(existingError||!existing||existing.host_id!==uid)return reject('Booking unavailable',403);
+        if(existing.status!=='requested')return reject('Booking has already been answered',409);
+        const {data,error}=await db.from('creator_booking_requests')
+          .update({status:body.status,updated_at:new Date().toISOString()})
+          .eq('id',existing.id).eq('status','requested').select('id,status').maybeSingle();
+        if(error||!data)return reject('Booking update conflict',409);
+        await db.from('member_notifications').insert({recipient_id:existing.requester_id,kind:'creator_booking',title:'Booking '+body.status,details:{booking_id:data.id}});
+        await audits('creator_booking_response',data.id,{status:data.status});
+        return reply({item:data});
+      }
+      case 'creator_bookings_cancel':{
+        if(!uuid(body.id))return reject('Invalid booking ID',400);
+        const {data:existing,error:existingError}=await db.from('creator_booking_requests')
+          .select('id,host_id,requester_id,status').eq('id',body.id).maybeSingle();
+        if(existingError||!existing||![existing.host_id,existing.requester_id].includes(uid))return reject('Booking unavailable',403);
+        if(!['requested','confirmed'].includes(existing.status))return reject('Booking cannot be cancelled',409);
+        const {data,error}=await db.from('creator_booking_requests')
+          .update({status:'cancelled',updated_at:new Date().toISOString()}).eq('id',existing.id)
+          .in('status',['requested','confirmed']).select('id').maybeSingle();
+        if(error||!data)return reject('Booking update conflict',409);
+        const recipient=existing.host_id===uid?existing.requester_id:existing.host_id;
+        await db.from('member_notifications').insert({recipient_id:recipient,kind:'creator_booking',title:'Booking cancelled',details:{booking_id:data.id}});
+        await audits('creator_booking_cancel',data.id);
+        return reply({ok:true});
       }
       case 'community_feed':{
         if(!await feature('community_feed'))return reject('Feed not available',403);
