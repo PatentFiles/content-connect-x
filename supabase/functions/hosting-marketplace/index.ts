@@ -105,6 +105,19 @@ Deno.serve(async req=>{
   const q=safe(payload.query,100),category=safe(payload.category,40),
    city=safe(payload.city,100),max=finite(payload.max_price),minCrew=finite(payload.crew_size);
   let query=db.from('properties').select(publicCols).eq('status','active').not('approved_at','is',null).order('created_at',{ascending:false}).limit(80);
+  if(payload.bounds&&typeof payload.bounds==='object'){
+   const v=payload.bounds;
+   const west=Number(v.west),east=Number(v.east),south=Number(v.south),north=Number(v.north);
+   if(![west,east,south,north].every(Number.isFinite)||west>east||south>north||
+    west < -180||east>180||south< -85||north>85)return denial('Invalid map bounds');
+   const {data:areaRows,error:mapError}=await db.from('hosting_public_areas').select('id')
+    .gte('longitude',west).lte('longitude',east)
+    .gte('latitude',south).lte('latitude',north).eq('approved',true).limit(500);
+   if(mapError)throw mapError;
+   const allowed=(areaRows||[]).map(x=>x.id);
+   if(!allowed.length)return reply({items:[],count:0});
+   query=query.in('public_area_id',allowed);
+  }
   if(city)query=query.ilike('city',city.replace(/[%*_]/g,''));
   if(category&&acceptedCategories.has(category))query=query.eq('category',category);
   if(Number.isFinite(max)&&max>0)query=query.lte('hourly_rate',max);
