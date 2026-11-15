@@ -46,7 +46,7 @@ export default function MemberWorkspace({user}) {
     }catch(e){setError(e.message);}finally{setWorking(false);}
   },[invoke,section]);
 
-  useEffect(()=>{refresh(section);setSelected('');},[section,refresh]);
+  useEffect(()=>{refresh(section); if(section!=='contracts')setSelected('');},[section,refresh]);
 
   const mutate=async(action,payload={},success='Saved')=>{
     setWorking(true);setError('');setNotice('');
