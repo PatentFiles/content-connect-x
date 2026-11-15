@@ -186,7 +186,8 @@ export default function MemberWorkspace({user,flags={}}) {
     if(result){setDateFrom('');setDateTo('');}
   };
 
-  const visibleSections=sections.filter(([key])=>(key==='properties'||key==='bookings')?flags.property_bookings===true:(key==='messages'||key==='connections')?flags.messages!==false:(key==='contracts')?flags.contracts!==false:true);
+  const enabled = /** @type {Record<string, boolean>} */ (flags);
+  const visibleSections=sections.filter(([key])=>(key==='properties'||key==='bookings')?enabled.property_bookings===true:(key==='messages'||key==='connections')?enabled.messages!==false:(key==='contracts')?enabled.contracts!==false:true);
 
   return <div className="space-y-4">
     <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-xl font-semibold">Member workspace</h2><button className={button} onClick={()=>refresh()} disabled={working}><RefreshCw size={15}/></button></div>
