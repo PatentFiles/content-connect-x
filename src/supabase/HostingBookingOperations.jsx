@@ -3,7 +3,7 @@
  * Visible to booking participants only. All actions are independently verified.
  */
 import React,{useCallback,useEffect,useState} from 'react';
-import {FileSignature,CreditCard,ShieldCheck,RefreshCw,CalendarClock,AlertTriangle,Banknote,Download} from 'lucide-react';
+import {FileSignature,CreditCard,ShieldCheck,RefreshCw,CalendarClock,Banknote,Download} from 'lucide-react';
 import {hostingBusiness,hostingAgreement,hostingCheckout,formatUSD,formatDate,uploadDamageEvidence} from './hostingBusinessApi';
 
 const panel='rounded-xl border border-[#30435E] bg-[#111B29] p-4';
