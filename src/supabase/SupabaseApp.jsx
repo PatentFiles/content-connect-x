@@ -197,7 +197,7 @@ export default function SupabaseApp() {
     {tab==='trust' && paid && approved && <TrustCenter isAdmin={isAdmin}/> }
     {tab==='consent' && <ConsentCenter user={user} canGrant={Boolean(paid && approved)}/> }
     {tab==='safety' && approved && <SafetyPanel/>}
-    {tab==='community' && approved && <CommunityHub paid={paid}/>}
+    {tab==='community' && approved && <CommunityHub paid={paid} userId={user.id}/>}
     {tab==='feedback' && approved && <FeedbackHub admin={isAdmin}/>}
     {tab==='schedule' && approved && paid && <ScheduleHub paid={paid}/>}
     {tab==='controls' && approved && isAdmin && <AdminProductControls/>}

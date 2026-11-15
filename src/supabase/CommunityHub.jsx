@@ -40,7 +40,7 @@ function Comments({post,paid}){
   </div>;
 }
 
-export default function CommunityHub({paid=false}){
+export default function CommunityHub({paid=false,userId}){
   const [posts,setPosts]=useState([]);
   const [body,setBody]=useState('');
   const [error,setError]=useState('');
@@ -59,6 +59,13 @@ export default function CommunityHub({paid=false}){
       setBody('');setNotice(result.note||'Submitted for moderation');
       await load();
     }catch(e){setError(e.message);}finally{setBusy(false);}
+  };
+  const follow=async(target)=>{
+    setError('');
+    try{
+      const result=await platformAction('follow_toggle',{user_id:target});
+      setPosts(previous=>previous.map(p=>p.author_id===target?{...p,followed:result.following}:p));
+    }catch(e){setError(e.message);}
   };
   const like=async(id)=>{
     setError('');
@@ -79,7 +86,7 @@ export default function CommunityHub({paid=false}){
       <div className="flex justify-between items-center gap-3"><p className="text-xs text-[#9AA6BC]"><ShieldCheck size={14} className="inline mr-1"/>Moderated before publishing</p><button className={button} disabled={busy}>Submit post</button></div>
     </form>}
     <div className="space-y-4 max-w-3xl">{posts.map(post=><article className={panel} key={post.id}>
-      <div className="flex justify-between gap-2 mb-3"><div><p className="font-semibold">{post.author?.display_name||'Verified creator'}</p><p className="text-xs text-[#9AA6BC]">{post.author?.role_type||'Creator'} · {post.author?.city||'Professional network'}</p></div><p className="text-xs text-[#9AA6BC]">{new Date(post.published_at||post.created_at).toLocaleDateString()}</p></div>
+      <div className="flex justify-between gap-2 mb-3"><div><p className="font-semibold">{post.author?.display_name||'Verified creator'}</p><p className="text-xs text-[#9AA6BC]">{post.author?.role_type||'Creator'} · {post.author?.city||'Professional network'}</p>{post.author_id!==userId&&<button className="text-xs text-blue-400 mt-1" onClick={()=>follow(post.author_id)}>{post.followed?'Following · Unfollow':'+ Follow creator'}</button>}</div><p className="text-xs text-[#9AA6BC]">{new Date(post.published_at||post.created_at).toLocaleDateString()}</p></div>
       <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{post.body}</p>
       <button className={'mt-4 inline-flex items-center gap-2 text-sm '+(post.liked?'text-pink-400':'text-[#9AA6BC]')} onClick={()=>like(post.id)}><Heart size={16} fill={post.liked?'currentColor':'none'}/>{post.reactions||0}</button>
       <Comments paid={paid} post={post}/>
