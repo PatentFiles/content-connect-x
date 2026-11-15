@@ -18,7 +18,8 @@ import AdminProductControls from './AdminProductControls';
 import MediaGallery from './MediaGallery';
 import IntegrationHealth from './IntegrationHealth';
 import ProductionManager from './ProductionManager';
-import { ShieldCheck, LockKeyhole, Search, UserRound, CreditCard, LogOut, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw, CalendarDays, MessageSquare, Lightbulb, Settings2, Images, UsersRound } from 'lucide-react';
+import ReputationHub from './ReputationHub';
+import { ShieldCheck, LockKeyhole, Search, UserRound, CreditCard, LogOut, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw, CalendarDays, MessageSquare, Lightbulb, Settings2, Images, UsersRound, Star } from 'lucide-react';
 
 const shell = 'min-h-screen bg-[#0B0F14] text-[#E8EEF9]';
 const panel = 'rounded-xl border border-[#263248] bg-[#151D2B] p-5';
@@ -199,6 +200,7 @@ export default function SupabaseApp() {
     if(visibleFeatures?.media_gallery)menu.push(['media','Creator Media',Images]);
     if(paid && visibleFeatures?.availability) menu.push(['schedule','Availability',CalendarDays]);
     menu.push(['production','Production Manager',UsersRound]);
+    if(paid)menu.push(['reputation','Verified Reviews',Star]);
   }
   if(paid && approved) {
     menu.push(['workspace','Full Workspace',LockKeyhole]);
@@ -224,6 +226,7 @@ export default function SupabaseApp() {
     {tab==='media' && approved && <MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
     {tab==='schedule' && approved && paid && <ScheduleHub paid={paid}/>}
     {tab==='production' && approved && <ProductionManager user={user} paid={paid} isAdmin={isAdmin}/>}
+    {tab==='reputation' && approved && paid && <ReputationHub isAdmin={isAdmin}/>}
     {tab==='controls' && approved && isAdmin && <AdminProductControls/>}
     {tab==='integrations' && approved && isAdmin && <IntegrationHealth/>}
     {tab==='membership'&&<div className={`${panel} max-w-2xl space-y-3`}><h2 className="text-xl font-semibold">Free today. Unlock more when ready.</h2><p className={muted}>Your free account includes age verification, profile setup and limited directory previews.</p><div className="p-4 rounded-lg bg-[#1A2438]"><LockKeyhole className="text-blue-400 mb-2"/>Full discovery, direct messages, contracts, collaboration rooms, property booking and advanced tools require membership.</div><p className="text-sm text-amber-200">Checkout only becomes available after verified Stripe configuration. Payment is never collected by this website directly.</p><div className="flex flex-wrap gap-2"><p className={muted}>Paid checkout is paused until an adult-industry merchant processor approves this business model. No subscription charges are possible from this preview.</p></div></div>}
