@@ -8,8 +8,6 @@ const input='w-full rounded-lg border border-[#3C506A] bg-[#091625] p-2 text-sm 
 const button='rounded-lg bg-[#507AF4] px-4 py-2 text-xs font-semibold text-white disabled:opacity-50';
 const second='rounded-lg border border-[#3A526E] bg-[#233A54] px-3 py-2 text-xs text-white disabled:opacity-50';
 
-const escapeText=s=>String(s??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
-  .replaceAll('"','&quot;').replaceAll("'",'&#39;');
 
 export default function HostingProductionPacket({bookingId,userId}){
  const [packet,setPacket]=useState(null),[access,setAccess]=useState([]),[incidents,setIncidents]=useState([]);
@@ -88,7 +86,6 @@ export default function HostingProductionPacket({bookingId,userId}){
   setTimeout(()=>URL.revokeObjectURL(url),1000);
  };
  if(!packet)return <section className={card}><p className="text-sm text-[#A7BED9]">{busy?'Loading protected shoot packet…':error||'No accessible packet'}</p></section>;
- const isHost=packet?.property&&packet?.booking_id&&packet.property?.id?false:false;
  // Host-only operations are separately checked by the backend; the UI never determines permissions.
  return <div className="space-y-4 text-white">
   <div><h3 className="flex gap-2 items-center text-lg font-semibold"><FileText size={18}/>Private shoot planning and operations</h3>
