@@ -6,10 +6,15 @@ const panel='rounded-xl bg-[#151D2B] border border-[#263248] p-5';
 const control='rounded-lg bg-[#0F1520] text-white border border-[#34445D] p-2 w-full';
 const button='rounded-lg bg-[#4F8CFF] text-white font-semibold text-sm px-4 py-2 disabled:opacity-50';
 
-export default function ScheduleHub({paid=false}){
+export default function ScheduleHub({paid=false,userId}){
   const [list,setList]=useState([]);
   const [mine,setMine]=useState([]);
   const [overlaps,setOverlaps]=useState([]);
+  const [bookings,setBookings]=useState([]);
+  const [hostId,setHostId]=useState('');
+  const [bookStart,setBookStart]=useState('');
+  const [bookEnd,setBookEnd]=useState('');
+  const [bookNotes,setBookNotes]=useState('');
   const [city,setCity]=useState('');
   const [search,setSearch]=useState('');
   const [type,setType]=useState('travel');
@@ -25,12 +30,14 @@ export default function ScheduleHub({paid=false}){
   const load=useCallback(async(searchCity='')=>{
     setError('');setBusy(true);
     try{
-      const [results,own]=await Promise.all([
+      const [results,own,bookingData]=await Promise.all([
         platformAction('availability_list',{city:searchCity}),
         paid?platformAction('availability_my'):Promise.resolve({items:[]}),
+        platformAction('creator_bookings_list'),
       ]);
       setList(results.items||[]);
       setMine(own.items||[]);
+      setBookings(bookingData.items||[]);
     }catch(e){setError(e.message);}finally{setBusy(false);}
   },[paid]);
   useEffect(()=>{load('');},[load]);
@@ -53,6 +60,32 @@ export default function ScheduleHub({paid=false}){
     try{await platformAction('availability_delete',{id});await load(search);}
     catch(e){setError(e.message);}finally{setBusy(false);}
   };
+  const requestBooking=async(event)=>{
+    event.preventDefault();setError('');setInfo('');setBusy(true);
+    try{
+      await platformAction('creator_bookings_request',{
+        host_id:hostId,starts_at:new Date(bookStart).toISOString(),
+        ends_at:new Date(bookEnd).toISOString(),notes:bookNotes
+      });
+      setInfo('Booking requested. The host must confirm your proposed time.');
+      setHostId('');setBookStart('');setBookEnd('');setBookNotes('');
+      await load(search);
+    }catch(e){setError(e.message);}finally{setBusy(false);}
+  };
+  const respondBooking=async(id,status)=>{
+    setBusy(true);setError('');setInfo('');
+    try{
+      await platformAction('creator_bookings_respond',{id,status});
+      setInfo('Booking '+status+'.');await load(search);
+    }catch(e){setError(e.message);}finally{setBusy(false);}
+  };
+  const cancelBooking=async(id)=>{
+    if(!window.confirm('Cancel this booking request?'))return;
+    setBusy(true);setError('');
+    try{await platformAction('creator_bookings_cancel',{id});await load(search);setInfo('Booking cancelled.');}
+    catch(e){setError(e.message);}finally{setBusy(false);}
+  };
+
   const checkOverlaps=async()=>{
     setError('');setBusy(true);
     try{
@@ -93,10 +126,29 @@ export default function ScheduleHub({paid=false}){
         <p className="text-sm text-[#9AA6BC] capitalize">{item.kind.replaceAll('_',' ')} · {item.region||'Travel schedule'}</p>
         <p className="text-sm mt-3">{short(item.starts_at)}</p><p className="text-sm text-[#9AA6BC]">Through {short(item.ends_at)}</p>
         {item.note&&<p className="text-sm mt-3 whitespace-pre-wrap">{item.note}</p>}
+        {paid&&['shoot','studio'].includes(item.kind)&&<button className={button+' mt-3'} onClick={()=>{setHostId(item.user_id);setBookStart('');setBookEnd('');}} disabled={busy}>Request shoot booking</button>}
       </article>)}
     </div>
     {!list.length&&<div className={panel}><p className="text-[#9AA6BC] text-sm">No matching published availability. Search another city or date.</p></div>}
     {!paid&&<p className="text-[#9AA6BC] text-sm">Premium members can list their own shoot dates and see additional availability entries.</p>}
+    {paid&&<form className={panel+' space-y-3'} onSubmit={requestBooking}>
+      <h3 className="font-semibold">Request a creator shoot slot</h3>
+      <p className="text-xs text-[#9AA6BC]">Only accepted mutual connections can request times that the host listed for shoots or studios. Requests do not reserve or charge anyone until confirmed.</p>
+      <label className="text-sm block">Creator member ID<input className={control+' mt-1'} required value={hostId} onChange={e=>setHostId(e.target.value)} placeholder="Verified host UUID"/></label>
+      <div className="grid sm:grid-cols-2 gap-3"><label className="text-sm">Start<input type="datetime-local" required className={control+' mt-1'} value={bookStart} onChange={e=>setBookStart(e.target.value)}/></label><label className="text-sm">End<input type="datetime-local" required className={control+' mt-1'} value={bookEnd} onChange={e=>setBookEnd(e.target.value)}/></label></div>
+      <label className="block text-sm">Message for host<textarea className={control+' mt-1'} maxLength={1000} rows={2} value={bookNotes} onChange={e=>setBookNotes(e.target.value)}/></label>
+      <button className={button} disabled={busy||!hostId||!bookStart||!bookEnd}>Send booking request</button>
+    </form>}
+    <div className={panel+' space-y-3'}><h3 className="font-semibold">Creator booking requests</h3>
+      {!bookings.length&&<p className="text-sm text-[#9AA6BC]">No private booking requests yet.</p>}
+      {bookings.map(item=><div className="border-b border-[#34445D] pb-3 space-y-2" key={item.id}>
+        <p className="text-sm font-semibold">{item.status} · {short(item.starts_at)}</p>
+        <p className="text-xs text-[#9AA6BC]">Host: {item.host_id} · Requester: {item.requester_id}</p>
+        <p className="text-sm">{item.notes}</p>
+        <div className="flex flex-wrap gap-2">{item.host_id===userId&&item.status==='requested'&&<><button className={button} disabled={busy} onClick={()=>respondBooking(item.id,'confirmed')}>Confirm</button><button className={button} disabled={busy} onClick={()=>respondBooking(item.id,'declined')}>Decline</button></>}
+        {['requested','confirmed'].includes(item.status)&&<button className={button} disabled={busy} onClick={()=>cancelBooking(item.id)}>Cancel</button>}</div>
+      </div>)}
+    </div>
     {paid&&<>
       <form className={panel+' space-y-4'} onSubmit={submit}>
         <h3 className="font-semibold flex gap-2 items-center"><Plane size={18}/> Publish availability</h3>

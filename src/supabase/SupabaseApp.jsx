@@ -252,7 +252,7 @@ export default function SupabaseApp() {
     {tab==='community' && approved && <CommunityHub paid={paid} userId={user.id}/>}
     {tab==='feedback' && approved && <FeedbackHub admin={isAdmin}/>}
     {tab==='media' && approved && <MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
-    {tab==='schedule' && approved && paid && <ScheduleHub paid={paid}/>}
+    {tab==='schedule' && approved && paid && <ScheduleHub paid={paid} userId={user.id}/>}
     {tab==='production' && approved && <ProductionManager user={user} paid={paid} isAdmin={isAdmin}/>}
     {tab==='reputation' && approved && paid && <ReputationHub isAdmin={isAdmin}/>}
     {tab==='agreements' && approved && paid && <AgreementPackets/>}
