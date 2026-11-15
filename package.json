@@ -13,7 +13,8 @@
     "smoke:supabase": "node scripts/supabase-smoke.mjs",
     "dev:supabase": "vite --host 0.0.0.0",
     "build:supabase": "vite build",
-    "typecheck:supabase": "tsc -p jsconfig.json"
+    "typecheck:supabase": "tsc -p jsconfig.json",
+    "test:hosting": "node --test tests/hosting-rules.test.mjs tests/hosting-map-math.test.mjs"
   },
   "dependencies": {
     "@flagsmith/flagsmith": "12.5.0",
