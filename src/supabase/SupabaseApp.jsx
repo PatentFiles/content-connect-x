@@ -63,7 +63,7 @@ export default function SupabaseApp() {
       // The Yoti view will retrieve the real outcome from our protected backend.
       window.history.replaceState({
         ...(window.history.state||{}),
-        ccxYotiReturned:params.get('age_verification')||'returned'
+        ccxYotiReturned:true
       },'',window.location.pathname+(remainder?'?'+remainder:'')+window.location.hash);
     }
   },[]);
