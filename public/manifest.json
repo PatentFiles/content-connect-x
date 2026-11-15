@@ -1,0 +1,19 @@
+{
+  "name": "Content Connect X — Creator & Production Network",
+  "short_name": "CCX",
+  "description": "Verified creators, production studios and secure professional collaboration.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#090D19",
+  "theme_color": "#E900C5",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/content_connect_logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
