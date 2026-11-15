@@ -57,7 +57,7 @@ export default function Landing() {
       {/* Hero Section */}
       <section className="bg-[#0B0F14]">
         <img
-          src="/Content_Connect_Hero_Banner.png"
+          src="/content_conect_hero.png"
           alt="Content Connect X creator collaboration banner"
           className="block w-full h-auto object-contain"
         />
