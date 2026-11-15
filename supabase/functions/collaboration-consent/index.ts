@@ -25,6 +25,15 @@ Deno.serve(async req=>{
   if(authError||!user)return respond({error:'Unauthorized'},401);
   const admin=createClient(url,secret),uid=user.id;
   const body=await req.json().catch(()=>({}));
+  if(body.action==='list_mine'){
+    const {data:members,error:membershipError}=await admin.from('collaboration_members').select('collaboration_id').eq('user_id',uid).limit(100);
+    if(membershipError)return respond({error:'Unable to list collaborations'},503);
+    const ids=(members||[]).map(m=>m.collaboration_id);
+    if(!ids.length)return respond({items:[]});
+    const {data,error}=await admin.from('collaborations').select('id,title,status').in('id',ids).order('created_at',{ascending:false});
+    if(error)return respond({error:'Unable to list collaborations'},503);
+    return respond({items:data||[]});
+  }
   if(!isId(body.collaboration_id))return respond({error:'Invalid collaboration'},400);
   if(!['status','grant','revoke'].includes(body.action))return respond({error:'Invalid action'},400);
   const id=body.collaboration_id;
