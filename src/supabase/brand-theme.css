@@ -219,3 +219,11 @@
   .ccx-primary:hover,
   .ccx-action-primary:hover { transform: none; }
 }
+
+/* Accent per module keeps native CSS custom properties out of JSX style bindings. */
+.ccx-module-card[data-accent="directory"] { --ccx-card-glow: rgba(233,0,197,.18); }
+.ccx-module-card[data-accent="production"] { --ccx-card-glow: rgba(255,73,182,.18); }
+.ccx-module-card[data-accent="hosting"] { --ccx-card-glow: rgba(79,140,255,.20); }
+.ccx-module-card[data-accent="workspace"] { --ccx-card-glow: rgba(181,93,246,.18); }
+.ccx-module-card[data-accent="schedule"] { --ccx-card-glow: rgba(79,140,255,.16); }
+.ccx-module-card[data-accent="account-security"] { --ccx-card-glow: rgba(255,73,182,.17); }
