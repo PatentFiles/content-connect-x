@@ -6,12 +6,15 @@ import React,{useCallback,useEffect,useState} from 'react';
 import { supabase } from '@/api/supabaseClient';
 import {Building2,Plus,UploadCloud,CalendarDays,ClipboardCheck,ImageIcon,RefreshCw,Trash2,Settings2,ShieldCheck} from 'lucide-react';
 import {hostingAction,uploadHostingPhoto,rentalCategories,rentalAmenities,rentalUses,usd,dateTime} from './hostingApi';
+import HostingHostVerification from './HostingHostVerification';
+import HostingBookingOperations from './HostingBookingOperations';
+import HostingAdminOperations from './HostingAdminOperations';
 const panel='rounded-2xl border border-[#29364A] bg-[#151D2B] p-5';
 const input='w-full rounded-xl border border-[#34465E] bg-[#0B1422] px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500';
 const button='rounded-xl bg-[#517DF7] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50';
 const secondary='rounded-xl border border-[#42536A] bg-[#1F2D40] px-4 py-2.5 text-sm text-white disabled:opacity-50';
 const muted='text-sm text-[#A7B9D0]';
-const blank={title:'',description:'',category:'film_studio',city:'',state:'',country:'United States',capacity:4,minimum_hours:2,hourly_rate:100,rules:'',amenities:[],permitted_uses:[]};
+const blank={title:'',description:'',category:'film_studio',city:'',state:'',country:'United States',capacity:4,minimum_hours:2,hourly_rate:100,cancellation_policy:'flexible',deposit_percent:0,required_insurance:false,rules:'',amenities:[],permitted_uses:[]};
 
 function CheckboxGrid({options,values,update}) {
  return <div className="grid gap-2 sm:grid-cols-2">{options.map(([id,label])=>
@@ -20,7 +23,7 @@ function CheckboxGrid({options,values,update}) {
   </label>)}</div>;
 }
 
-export default function HostingHost({paid=false,isAdmin=false,reviewMode=false}) {
+export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,user}) {
  const [listings,setListings]=useState([]);
  const [pending,setPending]=useState([]);
  const [pendingImages,setPendingImages]=useState([]);
@@ -39,6 +42,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false})
  const [inspectionFile,setInspectionFile]=useState(null);
  const [inspectionPhase,setInspectionPhase]=useState('before');
  const [reviewQueue,setReviewQueue]=useState([]);
+ const [expandedBooking,setExpandedBooking]=useState('');
  const [icalFile,setIcalFile]=useState(null);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
@@ -235,6 +239,11 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false})
             <label className="text-sm">Hourly rate (USD)<input className={input+' mt-1'} type="number" min={1} max={100000} value={form.hourly_rate} onChange={e=>field('hourly_rate',Number(e.target.value))}/></label>
             <label className="text-sm">Maximum crew size<input className={input+' mt-1'} type="number" min={1} max={500} value={form.capacity} onChange={e=>field('capacity',Number(e.target.value))}/></label>
             <label className="text-sm">Minimum hours<input className={input+' mt-1'} type="number" min={1} max={72} value={form.minimum_hours} onChange={e=>field('minimum_hours',Number(e.target.value))}/></label>
+            <label className="text-sm">Cancellation policy<select className={input+' mt-1'} value={form.cancellation_policy||'flexible'} onChange={e=>field('cancellation_policy',e.target.value)}>
+              <option value="flexible">Flexible (24h refund window)</option><option value="moderate">Moderate (72h/24h)</option><option value="strict">Strict (7-day/72h)</option>
+            </select></label>
+            <label className="text-sm">Proposed security deposit (% of rental)<input className={input+' mt-1'} type="number" min={0} max={50} value={form.deposit_percent||0} onChange={e=>field('deposit_percent',Number(e.target.value))}/></label>
+            <label className="flex gap-3 items-center text-sm"><input type="checkbox" checked={Boolean(form.required_insurance)} onChange={e=>field('required_insurance',e.target.checked)}/>Require production insurance evidence</label>
           </div>
           <label className="block text-sm">Full description<textarea className={input+' mt-1'} rows={4} maxLength={4000} value={form.description} onChange={e=>field('description',e.target.value)}/></label>
           <label className="block text-sm">Host rules and restrictions<textarea className={input+' mt-1'} rows={3} maxLength={3000} value={form.rules} onChange={e=>field('rules',e.target.value)}/></label>
@@ -244,6 +253,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false})
           <p className="text-xs text-[#AABED8]">Only city-level location information is used in search. Your exact address is not collected by the public listing form.</p>
         </form>
 
+        {selected&&<HostingHostVerification propertyId={selected} requiredInsurance={Boolean(own?.required_insurance)}/>}
         {selected&&<form onSubmit={saveAddress} className={panel+' space-y-3'}>
           <h3 className="font-semibold flex items-center gap-2"><ShieldCheck size={18}/>Private address and access rules</h3>
           <p className={muted}>Never displayed in public search. Access instructions are returned to booking participants only after the host accepts the reservation.</p>
@@ -287,10 +297,16 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false})
       <h3 className="flex items-center gap-2 font-semibold"><Settings2 size={18}/>Booking requests from guests</h3>
       {!reservations.length&&<p className={muted}>No pending or past reservation requests.</p>}
       {reservations.map(b=><div key={b.id} className="flex flex-wrap justify-between gap-3 border-b border-[#34465E] pb-3">
-        <div className="space-y-1"><p className="text-sm font-semibold">{dateTime(b.starts_at)} – {dateTime(b.ends_at)}</p><p className="text-xs text-[#A8BED8]">Requested use: {b.requested_use} · Crew: {b.crew_size} · Est. {usd(b.estimated_total)}</p><p className="text-xs text-[#829AB5]">Guest {b.requester_id} · {b.status}</p><p className="text-sm">{b.notes}</p></div>
+        <div className="space-y-1"><p className="text-sm font-semibold">{dateTime(b.starts_at)} – {dateTime(b.ends_at)}</p><p className="text-xs text-[#A8BED8]">Requested use: {b.requested_use} · Crew: {b.crew_size} · Est. {usd(b.estimated_total)}</p><p className="text-xs text-[#829AB5]">Guest {b.requester_id} · {b.status}</p><p className="text-sm">{b.notes}</p>
+          <button className="mt-2 text-sm text-blue-300" onClick={()=>setExpandedBooking(expandedBooking===b.id?'':b.id)}>
+            {expandedBooking===b.id?'Hide operations':'Agreement, payments, refunds and disputes'}
+          </button>
+          {expandedBooking===b.id&&<div className="mt-4 max-w-3xl"><HostingBookingOperations bookingId={b.id} userId={user?.id}/></div>}
+        </div>
         {b.status==='accepted'&&new Date(b.ends_at)<new Date()&&<button className={button} onClick={()=>completeBooking(b.id)} disabled={busy}>Mark completed</button>}{b.status==='requested'&&<div className="flex gap-2"><button className={button} disabled={busy} onClick={()=>mutate('host_booking_respond',{id:b.id,status:'accepted'},'Request accepted; no payment charged.')}>Accept</button><button className={secondary} disabled={busy} onClick={()=>mutate('host_booking_respond',{id:b.id,status:'declined'},'Request declined.')}>Decline</button></div>}
       </div>)}
     </div>
   </>}
+  {reviewMode&&isAdmin&&<HostingAdminOperations/>}
  </section>;
 }
