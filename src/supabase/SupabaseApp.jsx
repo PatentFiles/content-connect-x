@@ -44,8 +44,16 @@ export default function SupabaseApp() {
   const [email,setEmail] = useState('');
   const [password,setPassword] = useState('');
   const [signUp,setSignUp] = useState(false);
+  const [recovering,setRecovering] = useState(false);
+  const [passwordRecoverySession,setPasswordRecoverySession] = useState(false);
+  const [newPassword,setNewPassword] = useState('');
+  const [confirmNewPassword,setConfirmNewPassword] = useState('');
   const [directory,setDirectory] = useState([]);
   const [search,setSearch] = useState('');
+  const [directoryFilters,setDirectoryFilters]=useState({role:'',city:'',country:''});
+  const [directoryOffset,setDirectoryOffset]=useState(0);
+  const [directoryHasMore,setDirectoryHasMore]=useState(false);
+  const [directorySearched,setDirectorySearched]=useState(false);
   const [queryRunning,setQueryRunning] = useState(false);
   const [documents,setDocuments] = useState({id:null,selfie:null});
   const [reviews,setReviews] = useState([]);
@@ -96,9 +104,14 @@ export default function SupabaseApp() {
       setSession(data.session);
       await refresh(data.session);
     }).catch(e=>active&&setError(e.message)).finally(()=>active&&setLoading(false));
-    const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,next)=>{
-      // Avoid issuing Supabase API requests synchronously in an auth callback.
-      if(active){setSession(next);setProfile(null);setVerification(null);setBilling(null);setSecurity(null);}
+    const {data:{subscription}}=supabase.auth.onAuthStateChange((event,next)=>{
+      // PASSWORD_RECOVERY is a navigational state, not an authorization grant.
+      // Supabase validates the recovery token before establishing a session.
+      if(active){
+        if(event==='PASSWORD_RECOVERY')setPasswordRecoverySession(true);
+        if(event==='SIGNED_OUT')setPasswordRecoverySession(false);
+        setSession(next);setProfile(null);setVerification(null);setBilling(null);setSecurity(null);
+      }
     });
     return()=>{active=false;subscription.unsubscribe();};
   },[refresh]);
@@ -147,6 +160,33 @@ export default function SupabaseApp() {
     } catch(e){setError(e.message);}finally{setBusy(false);}
   };
 
+  /** Supabase emails an expiring recovery link; no account existence is disclosed. */
+  const requestRecovery=async(event)=>{
+    event.preventDefault();setBusy(true);setError('');setNotice('');
+    try{
+      if(!email.trim())throw new Error('Enter your email address.');
+      const {error:recoveryError}=await requireSupabase().auth.resetPasswordForEmail(email.trim(),{
+        redirectTo:window.location.origin
+      });
+      if(recoveryError)throw recoveryError;
+      setNotice('If an account exists for this address, a password recovery email has been sent.');
+    }catch(e){setError(e.message);}finally{setBusy(false);}
+  };
+
+  /** Only a provider-authenticated recovery session can update a password. */
+  const updateRecoveredPassword=async(event)=>{
+    event.preventDefault();setBusy(true);setError('');setNotice('');
+    try{
+      if(newPassword.length<12)throw new Error('Use a password of at least 12 characters.');
+      if(newPassword!==confirmNewPassword)throw new Error('Passwords do not match.');
+      const {error:updateError}=await requireSupabase().auth.updateUser({password:newPassword});
+      if(updateError)throw updateError;
+      setPasswordRecoverySession(false);setNewPassword('');setConfirmNewPassword('');
+      await requireSupabase().auth.signOut();
+      setNotice('Password updated. Sign in using your new password.');
+    }catch(e){setError(e.message);}finally{setBusy(false);}
+  };
+
   const saveProfile=async(event)=>{
     event.preventDefault();setBusy(true);setError('');setNotice('');
     try{
@@ -183,13 +223,20 @@ export default function SupabaseApp() {
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
 
-  const findCreators=async()=>{
+  const findCreators=async(loadMore=false)=>{
     setQueryRunning(true);setError('');
     try{
-      const {data,error:searchError}=await supabase.functions.invoke('directory',{body:{query:search}});
+      const offset=loadMore?directoryOffset:0;
+      const {data,error:searchError}=await supabase.functions.invoke('directory',{
+        body:{query:search,...directoryFilters,offset}
+      });
       if(searchError)throw searchError;
       if(data?.error)throw new Error(data.error);
-      setDirectory(data?.results||[]);
+      const found=data?.results||[];
+      setDirectory(previous=>loadMore?[...previous,...found]:found);
+      setDirectoryOffset(offset+found.length);
+      setDirectoryHasMore(data?.has_more===true);
+      setDirectorySearched(true);
     }catch(e){setError(e.message);}finally{setQueryRunning(false);}
   };
 
@@ -214,17 +261,60 @@ export default function SupabaseApp() {
           <div><p className="ccx-eyebrow">Content Connect X</p><h2 className="mt-1 text-2xl font-bold">{signUp?'Join the network':'Welcome back'}</h2></div>
         </div>
         <p className="mt-5 text-sm leading-6 text-[#B7C3DD]">Start with free registration and independent age verification. Membership and premium actions are available only when their services are activated.</p>
-        <form onSubmit={authenticate} className="mt-6 space-y-4">
-          <label className="block text-sm font-medium">Email address<input className={input+' mt-2'} type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/></label>
-          <label className="block text-sm font-medium">Password<input className={input+' mt-2'} type="password" value={password} onChange={e=>setPassword(e.target.value)} minLength={8} required autoComplete={signUp?'new-password':'current-password'}/></label>
-          <button className={primary+' w-full'} disabled={busy}>{busy?'Working…':signUp?'Create free account':'Sign in securely'}</button>
-        </form>
-        <button className="mt-4 w-full text-sm font-medium text-[#FF87D8] underline underline-offset-4" onClick={()=>{setSignUp(!signUp);setError('');}}>{signUp?'Already have an account? Sign in':'New here? Create your free account'}</button>
+        {recovering?
+          <form onSubmit={requestRecovery} className="mt-6 space-y-4">
+            <p className="text-sm text-[#B7C3DD]">Enter your account email. We will send a recovery link if the address is registered.</p>
+            <label className="block text-sm font-medium">Email address
+              <input className={input+' mt-2'} type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/>
+            </label>
+            <button className={primary+' w-full'} disabled={busy}>{busy?'Sending…':'Email recovery link'}</button>
+            <button type="button" className="w-full text-sm font-medium text-[#FF87D8] underline underline-offset-4"
+              onClick={()=>{setRecovering(false);setNotice('');setError('');}}>Back to sign in</button>
+          </form>
+        :<>
+          <form onSubmit={authenticate} className="mt-6 space-y-4">
+            <label className="block text-sm font-medium">Email address
+              <input className={input+' mt-2'} type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/>
+            </label>
+            <label className="block text-sm font-medium">Password
+              <input className={input+' mt-2'} type="password" value={password} onChange={e=>setPassword(e.target.value)}
+                minLength={8} required autoComplete={signUp?'new-password':'current-password'}/>
+            </label>
+            <button className={primary+' w-full'} disabled={busy}>{busy?'Working…':signUp?'Create free account':'Sign in securely'}</button>
+          </form>
+          <button className="mt-4 w-full text-sm font-medium text-[#FF87D8] underline underline-offset-4"
+            onClick={()=>{setSignUp(!signUp);setError('');setNotice('');}}>
+            {signUp?'Already have an account? Sign in':'New here? Create your free account'}
+          </button>
+          {!signUp&&<button type="button" className="mt-2 w-full text-sm text-[#B7C3DD] underline underline-offset-4"
+            onClick={()=>{setRecovering(true);setError('');setNotice('');}}>
+            Forgot password?
+          </button>}
+        </>}
         <div className="mt-5"><ErrorMessage message={error}/>{notice&&<p className="mt-3 text-sm text-emerald-300" role="status">{notice}</p>}</div>
         <p className="mt-5 text-center text-xs text-[#99A9C4]">Independent adult verification is required before accessing protected creator and location features.</p>
       </section>
     </div>
     <PublicLandingSections/>
+  </div>;
+
+  if(passwordRecoverySession)return <div className={shell+' grid min-h-screen place-items-center px-4'}>
+    <form onSubmit={updateRecoveredPassword} className={panel+' w-full max-w-lg space-y-4'}>
+      <h1 className="text-2xl font-bold">Set a new password</h1>
+      <p className="text-sm text-[#B7C3DD]">Your recovery link has been verified. Create a new password to protect your account.</p>
+      <label className="block text-sm">New password (12+ characters)
+        <input className={input+' mt-2'} type="password" autoComplete="new-password" required minLength={12}
+          value={newPassword} onChange={e=>setNewPassword(e.target.value)}/>
+      </label>
+      <label className="block text-sm">Confirm new password
+        <input className={input+' mt-2'} type="password" autoComplete="new-password" required minLength={12}
+          value={confirmNewPassword} onChange={e=>setConfirmNewPassword(e.target.value)}/>
+      </label>
+      <button className={primary+' w-full'} disabled={busy}>{busy?'Updating…':'Update password securely'}</button>
+      <ErrorMessage message={error}/>
+      <button type="button" className="text-sm text-[#B7C3DD] underline"
+        onClick={()=>supabase.auth.signOut()}>Cancel and sign out</button>
+    </form>
   </div>;
 
   if(mfaNeeded)return <MfaChallenge onVerified={async()=>{
@@ -302,7 +392,65 @@ export default function SupabaseApp() {
     {tab==='profile'&&<form key={profile?.updated_at||'new'} onSubmit={saveProfile} className={`${panel} space-y-4 max-w-2xl`}><h2 className="text-xl font-semibold">Your profile</h2><label className="block text-sm">Display name<input name="display_name" className={`${input} mt-1`} defaultValue={profile?.display_name||''} required/></label><label className="block text-sm">Creator type<select name="role_type" className={`${input} mt-1`} defaultValue={profile?.role_type||'creator'}>{['creator','photographer','videographer','video_editor','agent','studio'].map(r=><option value={r} key={r}>{r.replaceAll('_',' ')}</option>)}</select></label><label className="block text-sm">About you<textarea name="bio" className={`${input} mt-1`} rows={4} defaultValue={profile?.bio||''}/></label><div className="grid grid-cols-2 gap-3"><label className="block text-sm">City<input name="city" className={`${input} mt-1`} defaultValue={profile?.city||''}/></label><label className="block text-sm">Country<input name="country" className={`${input} mt-1`} defaultValue={profile?.country||''}/></label></div><button className={primary} disabled={busy}>Save profile</button></form>}
     {tab==='verification'&&<div className={`${panel} space-y-4 max-w-2xl`}><h2 className="text-xl font-semibold">Free age verification</h2><p className={muted}>Identity documents are stored privately for authorized review. Upload your ID and a selfie; this does not grant immediate verified status.</p>{approved?<div className="flex gap-2 text-green-400"><CheckCircle2/>Verified</div>:verification?.status==='pending'?<p className="text-amber-300">Your documents are under review. No payment is required.</p>:<><label className="block text-sm">Government ID<input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={upload('id')} className="block mt-2 text-sm" disabled={busy}/></label><label className="block text-sm">Selfie<input type="file" accept="image/jpeg,image/png,image/webp" onChange={upload('selfie')} className="block mt-2 text-sm" disabled={busy}/></label><button className={`${primary} inline-flex gap-2 items-center`} disabled={busy||!documents.id||!documents.selfie} onClick={submitVerification}><UploadCloud size={16}/> Submit for review</button></>}</div>}
     {tab==='verification'&&<div className="mt-5 max-w-2xl"><YotiVerification/></div>}
-    {tab==='directory'&&<div className="space-y-4"><h2 className="text-xl font-semibold">Explore creators</h2>{!approved?<p className={panel}>Complete your free age verification to view the directory.</p>:<><div className="flex gap-2 max-w-xl"><input className={input} value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search display names"/><button className={primary} onClick={findCreators} disabled={queryRunning}>{queryRunning?'Searching…':'Search'}</button></div>{!paid&&<p className={muted}>Free preview: up to 12 creators. Subscribe to explore the full directory.</p>}<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{directory.map(p=><article key={p.id} className={panel}><h3 className="font-semibold">{p.display_name}</h3><p className="text-sm text-blue-400">{p.role_type.replaceAll('_',' ')}</p><p className={muted}>{[p.city,p.country].filter(Boolean).join(', ')}</p>{paid&&p.bio&&<p className="mt-2 text-sm">{p.bio}</p>}{paid&&<p className="mt-2 text-xs text-[#9AA6BC] break-all">Member ID: {p.id}</p>}</article>)}</div></>}</div>}
+    {tab==='directory'&&<section className="space-y-4">
+      <div><h2 className="text-xl font-semibold">Explore creators</h2>
+        <p className="mt-1 text-sm text-[#AABCD2]">Find verified professionals by role, name and approximate public location.</p>
+      </div>
+      {!approved?<p className={panel}>Complete your free age verification to view the directory.</p>:<>
+        <form onSubmit={e=>{e.preventDefault();void findCreators(false);}} className={panel+' grid gap-3 sm:grid-cols-2 lg:grid-cols-4'}>
+          <label className="block text-sm">Name
+            <input className={input+' mt-1'} value={search} onChange={e=>setSearch(e.target.value)}
+              placeholder="Search display names"/>
+          </label>
+          <label className="block text-sm">Creator type
+            <select className={input+' mt-1'} value={directoryFilters.role}
+              onChange={e=>setDirectoryFilters(v=>({...v,role:e.target.value}))}>
+              <option value="">All roles</option>
+              {['creator','photographer','videographer','video_editor','agent','studio'].map(role=>
+                <option key={role} value={role}>{role.replaceAll('_',' ')}</option>)}
+            </select>
+          </label>
+          <label className="block text-sm">City
+            <input className={input+' mt-1'} value={directoryFilters.city}
+              onChange={e=>setDirectoryFilters(v=>({...v,city:e.target.value}))}
+              placeholder="e.g. Los Angeles"/>
+          </label>
+          <label className="block text-sm">Country
+            <input className={input+' mt-1'} value={directoryFilters.country}
+              onChange={e=>setDirectoryFilters(v=>({...v,country:e.target.value}))}
+              placeholder="e.g. United States"/>
+          </label>
+          <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-4">
+            <button className={primary+' inline-flex items-center gap-2'} type="submit" disabled={queryRunning}>
+              <Search size={17}/>{queryRunning?'Searching…':'Find creators'}
+            </button>
+            <button type="button" className="ccx-secondary rounded-lg px-4 py-2.5 text-sm"
+              onClick={()=>{setSearch('');setDirectoryFilters({role:'',city:'',country:''});
+                setDirectory([]);setDirectoryOffset(0);setDirectoryHasMore(false);setDirectorySearched(false);}}>
+              Clear filters
+            </button>
+          </div>
+        </form>
+        {!paid&&<p className={muted}>Free verified preview: up to 12 creators. Premium discovery includes additional result pages.</p>}
+        {directorySearched&&!directory.length&&<p className={panel+' text-sm text-[#AABCD2]'}>
+          No matching verified profiles were found. Try a different role or wider location.
+        </p>}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{directory.map(p=>
+          <article key={p.id} className={panel+' space-y-2'}>
+            <h3 className="font-semibold text-white">{p.display_name}</h3>
+            <p className="text-sm text-[#FF87D8]">{p.role_type.replaceAll('_',' ')}</p>
+            <p className={muted}>{[p.city,p.country].filter(Boolean).join(', ')||'Location not specified'}</p>
+            {paid&&p.bio&&<p className="mt-2 text-sm">{p.bio}</p>}
+            <p className="text-xs text-emerald-200">Age verified</p>
+            {paid&&<p className="mt-2 text-xs text-[#9AA6BC] break-all">Member ID: {p.id}</p>}
+          </article>)}
+        </div>
+        {paid&&directoryHasMore&&<button className={primary} type="button"
+          disabled={queryRunning} onClick={()=>findCreators(true)}>
+          {queryRunning?'Loading…':'Show more creators'}
+        </button>}
+      </>}
+    </section>}
     {tab==='reviews'&&isAdmin&&approved&&<div className="space-y-4"><div className="flex justify-between items-center"><h2 className="text-xl font-semibold">Age verification review queue</h2><button className={primary} onClick={loadReviews} disabled={busy}><RefreshCw size={16}/></button></div><p className={muted}>Only authorized administrators can open short-lived private document links or approve requests.</p>{reviews.map(request=><div key={request.id} className={`${panel} space-y-2`}><p className="text-sm">Request {request.id} · {request.status}</p><p className={muted}>{new Date(request.created_at).toLocaleString()}</p><div className="flex flex-wrap gap-2"><button className={primary} onClick={()=>openReviewDocument(request.id,'id')} disabled={busy}>View ID</button><button className={primary} onClick={()=>openReviewDocument(request.id,'selfie')} disabled={busy}>View selfie</button>{request.status==='pending'&&<><button className={primary} onClick={()=>reviewAge(request.id,'approve')} disabled={busy}>Approve</button><button className="rounded-lg bg-red-700 px-4 py-2.5 text-white disabled:opacity-50" onClick={()=>reviewAge(request.id,'reject')} disabled={busy}>Reject</button></>}</div></div>)}{reviews.length===0&&<p className={muted}>Select refresh to load recent review requests.</p>}</div>}
     {tab==='workspace' && paid && approved && <MemberWorkspace user={user} flags={visibleFeatures||{}}/> }
     {tab==='trust' && paid && approved && <TrustCenter isAdmin={isAdmin}/> }

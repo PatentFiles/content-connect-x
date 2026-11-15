@@ -29,6 +29,8 @@ jobs:
         run: npm run test:hosting
       - name: Yoti integration trust boundaries
         run: npm run test:integrations
+      - name: Directory public-filter policy tests
+        run: npm run test:directory
       - name: Release integration configuration tests
         run: npm run test:readiness
       - name: Release invariants

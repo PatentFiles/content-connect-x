@@ -14,7 +14,8 @@ This is a **real testing plan**, not an assertion of completed tests. It covers 
 
 | Workflow | Expected result | Gate |
 |---|---|---|
-| New user registration, confirmation, login, logout, recovery | No accidental verification/paid status | P0 |
+| New user registration, confirmation, login, logout, recovery | Recovery link delivered; session validated by Supabase; new password works, old one fails; no accidental verification/paid status | P0 |
+| Creator directory filters and free-tier pagination | City/country/role/name filters return only independently verified, unrestricted profiles; free preview cannot page past 12 | P0 |
 | Unverified account uses Search, Messages or booking | Protected operations denied by the backend | P0 |
 | Verified free account requests paid booking/chat feature | Denied unless explicitly included in free tier | P0 |
 | Independently verified premium accounts connect and message | Own messages visible to permitted members only | P0 |

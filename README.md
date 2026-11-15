@@ -21,6 +21,8 @@ npm run typecheck
 npm run build
 npm run smoke:supabase
 npm run test:readiness
+npm run test:directory
+npm run verify:edge-imports
 ```
 
 The smoke script checks authentication protection on deployed backend endpoints; it is not a substitute for end-to-end tests with verified users.
@@ -40,6 +42,10 @@ The browser receives only a Supabase URL and publishable key through `VITE_SUPAB
 ## Release status
 
 The frontend and database foundation compile. No complete authenticated multi-user acceptance suite has passed yet. Real document signing requires DocuSign setup and qualified review; paid subscriptions require an approved adult-industry merchant processor. Media publication and provider-backed clearance remain protected until their corresponding procedures are ready. A successful build is **not** production certification.
+
+## Current creator directory and account recovery
+
+Verified members can filter public directory results by display name, creator role, city and country. Age-gate and server-side subscription restrictions remain in force, free users see at most 12 result profiles, and premium results are paginated. Only explicitly public profile fields are returned. Account recovery sends a Supabase email link and requires a verified recovery session before a member can set a new password. Delivery, authenticated user flows and UI accessibility must still be tested against Bolt's actual deployment with the authorized Supabase redirect origin.
 
 ## Hands-on tests before launch
 
