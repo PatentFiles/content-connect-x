@@ -13,7 +13,7 @@ const respond=(data:unknown,status=200)=>new Response(JSON.stringify(data),{stat
 const isId=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 const text=(v:unknown,max=1000)=>typeof v==='string'?v.trim().slice(0,max):'';
 const isActive=(v:any)=>v&&['active','trial'].includes(v.status)&&(!v.period_end||new Date(v.period_end)>new Date());
-const isAdult=(rows:any[])=>rows.some(v=>v.status==='approved'&&(!v.expires_at||new Date(v.expires_at)>new Date()));
+const isAdult=(rows:any[])=>rows.length>0&&rows[0].status==='approved'&&(!rows[0].expires_at||new Date(rows[0].expires_at)>new Date());
 const fail=(message:string,status=400)=>respond({error:message},status);
 const hashContent=async(content:unknown)=>{
   const bytes=new TextEncoder().encode(JSON.stringify(content));
@@ -33,7 +33,7 @@ Deno.serve(async req=>{
   const uid=user.id;
   const [securityResult,verificationResult,subscriptionResult]=await Promise.all([
     admin.from('account_security').select('banned,suspended,admin').eq('user_id',uid).maybeSingle(),
-    admin.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).limit(50),
+    admin.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
     admin.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
   ]);
   if(securityResult.error||verificationResult.error||subscriptionResult.error)return fail('Account status unavailable',503);
@@ -46,7 +46,8 @@ Deno.serve(async req=>{
   if(!body||typeof body!=='object')return fail('Invalid JSON',400);
   const action=text(body.action,65);
   if(!verified)return fail('Approved age verification required',403);
-  if(!paid)return fail('Active paid membership required',402);
+  const freeSafetyActions=new Set(['block_user','unblock_user','submit_report','list_blocks']);
+  if(!paid&&!freeSafetyActions.has(action))return fail('Active paid membership required',402);
   const audit=async(type:string,id?:string,metadata:Record<string,unknown>={})=>{
     await admin.from('platform_action_audit').insert({actor_id:uid,action:type,target_type:type.split('_')[0],target_id:isId(id)?id:null,metadata});
   };
@@ -65,6 +66,35 @@ Deno.serve(async req=>{
   };
   try{
     switch(action){
+      case 'list_blocks':{
+        const {data,error}=await admin.from('member_blocks').select('blocked_id,created_at').eq('blocker_id',uid).limit(100);
+        if(error)throw error;
+        return respond({items:data});
+      }
+      case 'block_user':{
+        const target=body.target_user_id;
+        if(!isId(target)||target===uid)return fail('Valid user required');
+        const {error}=await admin.from('member_blocks').upsert({blocker_id:uid,blocked_id:target},{onConflict:'blocker_id,blocked_id'});
+        if(error)return fail('Unable to block user',400);
+        await audit('block_user',target);
+        return respond({ok:true});
+      }
+      case 'unblock_user':{
+        const target=body.target_user_id;
+        if(!isId(target))return fail('Valid user required');
+        const {error}=await admin.from('member_blocks').delete().eq('blocker_id',uid).eq('blocked_id',target);
+        if(error)throw error;
+        await audit('unblock_user',target);
+        return respond({ok:true});
+      }
+      case 'submit_report':{
+        const target=body.reported_id,reason=text(body.reason,300);
+        if(!isId(target)||target===uid||reason.length<5)return fail('Valid reported user and reason required');
+        const {data,error}=await admin.from('member_reports').insert({reporter_id:uid,reported_id:target,reason,details:text(body.details,3000)}).select('id,status').single();
+        if(error)throw error;
+        await audit('submit_report',data.id);
+        return respond({item:data},201);
+      }
       case 'list_collaborations':{
         const {data:members,error}=await admin.from('collaboration_members').select('collaboration_id').eq('user_id',uid).limit(200);
         if(error)throw error;
@@ -90,7 +120,7 @@ Deno.serve(async req=>{
         const {data:collab,error:collabError}=await admin.from('collaborations').select('id,creator_id,title').eq('id',cid).maybeSingle();
         if(collabError||!collab||collab.creator_id!==uid)return fail('Only the collaboration owner can invite members',403);
         if(await memberOf(cid,invitee))return fail('Already a member',409);
-        const {data:theirAge,error:ageError}=await admin.from('age_verification_requests').select('status,expires_at').eq('user_id',invitee).limit(50);
+        const {data:theirAge,error:ageError}=await admin.from('age_verification_requests').select('status,expires_at').eq('user_id',invitee).order('created_at',{ascending:false}).limit(1);
         const {data:theirSubscription,error:subError}=await admin.from('member_subscriptions').select('status,period_end').eq('user_id',invitee).maybeSingle();
         if(ageError||subError||!isAdult(theirAge||[])||!isActive(theirSubscription))return fail('Invitee must be verified and subscribed',403);
         const {data,error}=await admin.from('collaboration_invitations').insert({collaboration_id:cid,invited_by:uid,invitee_id:invitee,status:'pending'}).select('id,collaboration_id,status').single();
@@ -134,10 +164,14 @@ Deno.serve(async req=>{
         if(!isId(target)||target===uid)return fail('Valid recipient required');
         const {data:targetSecurity,error:targetError}=await admin.from('account_security').select('banned,suspended').eq('user_id',target).maybeSingle();
         if(targetError||targetSecurity?.banned||targetSecurity?.suspended)return fail('Recipient unavailable',403);
-        const {data:theirAge,error:theirAgeError}=await admin.from('age_verification_requests').select('status,expires_at').eq('user_id',target).limit(50);
+        const {data:theirAge,error:theirAgeError}=await admin.from('age_verification_requests').select('status,expires_at').eq('user_id',target).order('created_at',{ascending:false}).limit(1);
         if(theirAgeError||!isAdult(theirAge||[]))return fail('Recipient is not verified',403);
         const {data:theirSubscription,error:subError}=await admin.from('member_subscriptions').select('status,period_end').eq('user_id',target).maybeSingle();
         if(subError||!isActive(theirSubscription))return fail('Recipient unavailable',403);
+        // A block in either direction prevents new contact.
+        const {data:blocks,error:blockError}=await admin.from('member_blocks').select('blocker_id').or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1);
+        if(blockError)throw blockError;
+        if(blocks?.length)return fail('This conversation cannot be created',403);
         const {data:convo,error}=await admin.from('conversations').insert({}).select('id,created_at').single();
         if(error)throw error;
         const {error:membersError}=await admin.from('conversation_members').insert([{conversation_id:convo.id,user_id:uid},{conversation_id:convo.id,user_id:target}]);
@@ -157,6 +191,19 @@ Deno.serve(async req=>{
         const cid=body.conversation_id,message=text(body.message,10000);
         if(!isId(cid)||!await conversationMember(cid))return fail('Conversation not available',403);
         if(!message||message.length>10000)return fail('Message text is required');
+        // Simple server-side abuse throttling. Larger deployments should use an atomic rate limiter.
+        const cutoff=new Date(Date.now()-60000).toISOString();
+        const {count,error:rateError}=await admin.from('messages').select('id',{count:'exact',head:true}).eq('sender_id',uid).gte('created_at',cutoff);
+        if(rateError)throw rateError;
+        if((count||0)>=25)return fail('Message rate limit reached. Try again shortly.',429);
+        const {data:members,error:memberError}=await admin.from('conversation_members').select('user_id').eq('conversation_id',cid);
+        if(memberError)throw memberError;
+        const recipients=(members||[]).filter(m=>m.user_id!==uid).map(m=>m.user_id);
+        for(const target of recipients){
+          const {data:blocks,error:blockError}=await admin.from('member_blocks').select('blocker_id').or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1);
+          if(blockError)throw blockError;
+          if(blocks?.length)return fail('Conversation unavailable',403);
+        }
         const {data,error}=await admin.from('messages').insert({conversation_id:cid,sender_id:uid,body:message}).select('id,conversation_id,sender_id,body,created_at').single();
         if(error)throw error;
         const {data:participants,error:participantError}=await admin.from('conversation_members').select('user_id').eq('conversation_id',cid);
