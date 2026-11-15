@@ -33,7 +33,7 @@ Deno.serve(async request=>{
  const paid=admin||['active','trial'].includes(sub.data?.status)&&(!sub.data?.period_end||Date.parse(sub.data.period_end)>Date.now());
  const body=await request.json().catch(()=>null);if(!body||typeof body!=='object')return deny('Invalid JSON',400);
  const action=txt(body.action,65);
- const safety=new Set(['incident_report','incident_my','incident_evidence_token','incident_evidence_register','booking_access_revoke','staff_respond','my_staff_invites','booking_access_respond','cleaning_jobs','cleaning_task','supplies','supply_adjust']);
+ const safety=new Set(['incident_report','incident_my','incident_evidence_token','incident_evidence_register','booking_access_revoke','my_crew_invites','booking_planning_packet','booking_chat_info','booking_chat_list','booking_chat_send','staff_respond','my_staff_invites','booking_access_respond','cleaning_jobs','cleaning_task','supplies','supply_adjust']);
  if((security.data?.banned||security.data?.suspended)&&!safety.has(action))return deny('Account restricted',403);
  if(!paid&&!safety.has(action))return deny('Active premium membership required',403);
  if(action.startsWith('admin_')&&(!admin||!keyAAL(bearer)))return deny('Administrator MFA required',403);
@@ -331,6 +331,53 @@ Deno.serve(async request=>{
   if(membersError)throw membersError;
   await audit('hosting_booking_chat_created',b.id);
   return reply({conversation_id:conversation.id});
+ }
+ case 'booking_chat_info':
+ case 'booking_chat_list':
+ case 'booking_chat_send':{
+  const b=await booking(body.booking_id);
+  if(!b||b.status!=='accepted')return deny('Accepted booking required',403);
+  const myAccess=await access(b);
+  if(!myAccess)return deny('Booking participant required',403);
+  const {data:conversation,error:conversationError}=await db.from('hosting_booking_conversations')
+   .select('conversation_id').eq('booking_id',b.id).maybeSingle();
+  if(conversationError||!conversation)return deny('Booking chat not yet created',404);
+  const {data:joined,error:memberError}=await db.from('conversation_members').select('user_id')
+   .eq('conversation_id',conversation.conversation_id).eq('user_id',uid).maybeSingle();
+  if(memberError||!joined)return deny('You are not a participant in this conversation',403);
+  if(action==='booking_chat_info')return reply({conversation_id:conversation.conversation_id});
+  const {data:participants}=await db.from('conversation_members').select('user_id')
+   .eq('conversation_id',conversation.conversation_id).limit(30);
+  const userIds=(participants||[]).map(m=>m.user_id).filter(id=>id!==uid);
+  if(userIds.length){
+   const {data:blocks,error:blocksError}=await db.from('member_blocks').select('blocker_id')
+    .or('blocker_id.eq.'+uid+',blocked_id.eq.'+uid).limit(200);
+   if(blocksError)throw blocksError;
+   const {data:relations}=await db.from('member_blocks').select('blocker_id,blocked_id')
+    .or('blocker_id.in.('+userIds.join(',')+'),blocked_id.in.('+userIds.join(',')+')').limit(500);
+   if((relations||[]).some(x=>x.blocker_id===uid||x.blocked_id===uid)||blocks?.length)
+    return deny('Conversation restricted by member safety settings',403);
+  }
+  if(action==='booking_chat_list'){
+   const {data:rows,error:readError}=await db.from('messages')
+    .select('id,sender_id,body,created_at,edited_at,deleted_at').eq('conversation_id',conversation.conversation_id)
+    .order('created_at',{ascending:false}).limit(100);
+   if(readError)throw readError;
+   return reply({items:(rows||[]).reverse()});
+  }
+  if(security.data?.banned||security.data?.suspended)return deny('Restricted accounts cannot send chat messages',403);
+  const message=txt(body.message,3000);
+  if(!message)return deny('Message required');
+  const {count,error:rateError}=await db.from('messages').select('id',{head:true,count:'exact'})
+   .eq('conversation_id',conversation.conversation_id).eq('sender_id',uid)
+   .gte('created_at',new Date(Date.now()-3600000).toISOString());
+  if(rateError)throw rateError;
+  if((count||0)>=60)return deny('Message rate limit reached',429);
+  const {data:written,error:writeError}=await db.from('messages').insert({
+   conversation_id:conversation.conversation_id,sender_id:uid,body:message
+  }).select('id,created_at').single();
+  if(writeError)throw writeError;
+  return reply({item:written},201);
  }
  case 'booking_planning_packet':{
   const b=await booking(body.booking_id);
