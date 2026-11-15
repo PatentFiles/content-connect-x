@@ -17,6 +17,7 @@ import { useFeatureFlag } from '@/lib/featureFlags';
 import { base44 } from '@/api/base44Client';
 import { ThemeProvider } from '@/lib/ThemeContext';
 import ContactPage from './pages/Contact';
+import SupabaseApp from './supabase/SupabaseApp';
 import { isFreeMemberRoute, isPreVerificationRoute } from '@/lib/accessPolicy';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -146,6 +147,8 @@ const AuthenticatedApp = () => {
 
 
 function App() {
+  // Explicit migration switch: no Base44 contexts or API calls are mounted in Bolt mode.
+  if (import.meta.env.VITE_BACKEND_PROVIDER === 'supabase') return <SupabaseApp />;
 
   return (
     <ThemeProvider>
