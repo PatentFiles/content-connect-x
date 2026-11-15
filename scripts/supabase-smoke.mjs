@@ -9,7 +9,8 @@ const project=process.env.SUPABASE_URL||'https://yxuqbygykpfbioslljlf.supabase.c
 const functions=[
   'submit-age-verification','directory','admin-age-review','member-workflows',
   'collaboration-consent','performer-readiness','create-checkout',
-  'platform-extras','media-gateway','integration-health'
+  'platform-extras','media-gateway','integration-health',
+  'production-manager','agreement-packets'
 ];
 for(const name of functions){
   const res=await fetch(project+'/functions/v1/'+name,{
