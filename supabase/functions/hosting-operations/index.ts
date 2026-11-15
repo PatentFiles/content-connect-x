@@ -26,16 +26,17 @@ Deno.serve(async request=>{
  const {data:{user},error:authError}=await auth.auth.getUser();
  if(authError||!user)return reject('Unauthorized',401);
  const db=createClient(url,secret),uid=user.id;
- const [ages,sec,sub]=await Promise.all([
+ const [ages,sec,sub,ohAccount]=await Promise.all([
   db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
   db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
   db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
+  db.from('onlyhost_accounts').select('status').eq('user_id',uid).maybeSingle(),
  ]);
- if(ages.error||sec.error||sub.error)return reject('Unable to verify account status',503);
+ if(ages.error||sec.error||sub.error||ohAccount.error)return reject('Unable to verify account status',503);
  const age=ages.data?.[0];
  if(age?.status!=='approved'||age.expires_at&&Date.parse(age.expires_at)<=Date.now())return reject('Independent adult verification required',403);
  const admin=sec.data?.admin===true,restricted=sec.data?.banned||sec.data?.suspended;
- const paid=admin||(['active','trial'].includes(sub.data?.status)&&(!sub.data?.period_end||Date.parse(sub.data.period_end)>Date.now()));
+ const paid=admin||ohAccount.data?.status==='active'||(['active','trial'].includes(sub.data?.status)&&(!sub.data?.period_end||Date.parse(sub.data.period_end)>Date.now()));
  const body=await request.json().catch(()=>null);
  if(!body||typeof body!=='object')return reject('Invalid JSON',400);
  const action=short(body.action,70),isAdminAction=action.startsWith('admin_');
