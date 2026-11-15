@@ -19,6 +19,8 @@ import MediaGallery from './MediaGallery';
 import IntegrationHealth from './IntegrationHealth';
 import ProductionManager from './ProductionManager';
 import ReputationHub from './ReputationHub';
+import SecurityCenter from './SecurityCenter';
+import MfaChallenge from './MfaChallenge';
 import { ShieldCheck, LockKeyhole, Search, UserRound, CreditCard, LogOut, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw, CalendarDays, MessageSquare, Lightbulb, Settings2, Images, UsersRound, Star } from 'lucide-react';
 
 const shell = 'min-h-screen bg-[#0B0F14] text-[#E8EEF9]';
@@ -47,6 +49,8 @@ export default function SupabaseApp() {
   const [queryRunning,setQueryRunning] = useState(false);
   const [documents,setDocuments] = useState({id:null,selfie:null});
   const [reviews,setReviews] = useState([]);
+  const [mfaChecking,setMfaChecking] = useState(true);
+  const [mfaNeeded,setMfaNeeded] = useState(false);
   const [visibleFeatures,setVisibleFeatures] = useState(null);
   const user = session?.user;
   const approved = verification?.status === 'approved' && (!verification.expires_at || new Date(verification.expires_at) > new Date());
@@ -102,6 +106,18 @@ export default function SupabaseApp() {
     });
     return()=>{alive=false;};
   },[approved,paid]);
+
+  useEffect(()=>{
+    let alive=true;
+    if(!session?.user){setMfaNeeded(false);setMfaChecking(false);return;}
+    setMfaChecking(true);
+    supabase.auth.mfa.getAuthenticatorAssuranceLevel().then(({data,error})=>{
+      if(!alive)return;
+      if(error){setError('Unable to verify the authentication level.');setMfaNeeded(true);}
+      else setMfaNeeded(data.currentLevel==='aal1'&&data.nextLevel==='aal2');
+    }).catch(()=>{if(alive)setMfaNeeded(true);}).finally(()=>{if(alive)setMfaChecking(false);});
+    return()=>{alive=false;};
+  },[session?.access_token]);
 
   const authenticate = async (event) => {
     event.preventDefault();setBusy(true);setError('');setNotice('');
@@ -173,8 +189,14 @@ export default function SupabaseApp() {
     }catch(e){setError(e.message);}finally{setQueryRunning(false);}
   };
 
-  if(loading)return <div className={`${shell} grid place-items-center`}><Loader2 className="animate-spin"/></div>;
+  if(loading||mfaChecking)return <div className={`${shell} grid place-items-center`}><Loader2 className="animate-spin"/></div>;
   if(!user)return <div className={`${shell} grid place-items-center px-4 py-16`}><div className={`${panel} w-full max-w-md space-y-5`}><div className="flex items-center gap-3"><ShieldCheck className="text-blue-400"/><h1 className="text-2xl font-bold">Content Connect X</h1></div><p className={muted}>Free account creation and age verification. Subscribe only when you're ready for full access.</p><form onSubmit={authenticate} className="space-y-3"><label className="block text-sm">Email<input className={`${input} mt-1`} type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/></label><label className="block text-sm">Password<input className={`${input} mt-1`} type="password" value={password} onChange={e=>setPassword(e.target.value)} minLength={8} required autoComplete={signUp?'new-password':'current-password'}/></label><button className={`${primary} w-full`} disabled={busy}>{busy?'Working…':signUp?'Create free account':'Sign in'}</button></form><button className="text-sm text-blue-400 underline" onClick={()=>{setSignUp(!signUp);setError('');}}>{signUp?'Already registered? Sign in':'New here? Create your free account'}</button><ErrorMessage message={error}/>{notice&&<p className="text-sm text-green-400">{notice}</p>}</div></div>;
+
+  if(mfaNeeded)return <MfaChallenge onVerified={async()=>{
+    const {data}=await supabase.auth.getSession();
+    setSession(data.session);
+    setMfaNeeded(false);
+  }}/>;
 
   const loadReviews=async()=>{
     setBusy(true);setError('');
@@ -193,6 +215,7 @@ export default function SupabaseApp() {
   /** @type {Array<[string, string, import('react').ElementType]>} */
   const menu=[['dashboard','Dashboard',UserRound],['profile','My Profile',UserRound],['verification','Free Age Verification',ShieldCheck],['directory','Explore',Search],['membership','Membership',CreditCard]];
   menu.push(['consent','My Consent & Rights',ShieldCheck]);
+  menu.push(['account-security','Account Security',LockKeyhole]);
   if(approved) {
     menu.push(['safety','Safety',ShieldCheck]);
     if(visibleFeatures?.community_feed)menu.push(['community','Community',MessageSquare]);
@@ -220,6 +243,7 @@ export default function SupabaseApp() {
     {tab==='workspace' && paid && approved && <MemberWorkspace user={user}/> }
     {tab==='trust' && paid && approved && <TrustCenter isAdmin={isAdmin}/> }
     {tab==='consent' && <ConsentCenter user={user} canGrant={Boolean(paid && approved)}/> }
+    {tab==='account-security' && <SecurityCenter/>}
     {tab==='safety' && approved && <SafetyPanel/>}
     {tab==='community' && approved && <CommunityHub paid={paid} userId={user.id}/>}
     {tab==='feedback' && approved && <FeedbackHub admin={isAdmin}/>}
