@@ -1,9 +1,4 @@
-/**
- * Content Connect X — standalone Supabase cutover workspace.
- * Mount with VITE_BACKEND_PROVIDER=supabase to run WITHOUT Base44 runtime calls.
- * Includes real Auth, profile, private verification uploads and sanitized discovery.
- * Premium actions remain disabled until their server-controlled workflows are migrated.
- */
+/** Content Connect X — Supabase application, backed by protected Edge Functions. */
 import React, { useCallback, useEffect, useState } from 'react';
 import { supabase, requireSupabase } from '@/api/supabaseClient';
 import { platformAction } from './platformApi';
