@@ -10,7 +10,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
-import { AlertTriangle, Plus, X, Upload, ChevronDown, ChevronUp } from 'lucide-react';
+import { AlertTriangle, X, Upload, ChevronDown, ChevronUp } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 
 const INCIDENT_TYPES = [

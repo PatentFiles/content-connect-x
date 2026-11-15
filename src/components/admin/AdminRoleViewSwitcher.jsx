@@ -2,7 +2,6 @@ import React from 'react';
 import { Eye, Shield, User, Briefcase, Building2, Camera, Video, Home } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useFeatureFlag } from '@/lib/featureFlags';
-import CCBadge from '../ui-custom/CCBadge';
 
 const roleOptions = [
   { value: 'admin', label: 'Admin', icon: Shield, color: 'bg-[#EF4444]/20 text-[#EF4444]' },

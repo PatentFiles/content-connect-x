@@ -12,12 +12,10 @@ import {
   Video,
   User,
   Settings,
-  Bot,
   UserPlus,
   Cross,
   Film,
-  Building2,
-  BarChart3
+  Building2
 } from 'lucide-react';
 
 export const roleNavigation = {

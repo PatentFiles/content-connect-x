@@ -6,7 +6,6 @@ import { createPageUrl } from '@/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircle,
-  Circle,
   ChevronDown,
   ChevronUp,
   Sparkles,

@@ -15,7 +15,6 @@ import {
   Fingerprint,
   AlertTriangle,
   CheckCircle,
-  XCircle,
   Shield,
   Play,
   RefreshCw,
@@ -31,7 +30,6 @@ import CCCard from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
-import CCModal from '@/components/ui-custom/CCModal';
 
 const CONFIDENCE_CONFIG = {
   high:   { variant: 'danger',  label: 'High', icon: AlertTriangle },

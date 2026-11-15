@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { MessageCircle, Users, Shield, FileText, Calendar, AlertTriangle, CheckCircle, Bell } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
-import { toast } from 'sonner';
 
 export default function NotificationPreferences({ user }) {
   const queryClient = useQueryClient();

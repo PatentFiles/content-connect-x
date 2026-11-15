@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { X, AlertTriangle, CheckCircle, ArrowRight, Lock } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
-import { Link } from 'react-router-dom';
 
 // Onboarding steps required before host account activates
 const ACCOUNT_STEPS = [

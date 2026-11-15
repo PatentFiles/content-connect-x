@@ -9,7 +9,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, ChevronDown, ChevronUp, ExternalLink, Shield } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronUp, Shield } from 'lucide-react';
 import { format } from 'date-fns';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';

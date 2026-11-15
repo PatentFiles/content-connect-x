@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Shield, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 
 const LAST_UPDATED = 'March 25, 2026';

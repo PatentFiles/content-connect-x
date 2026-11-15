@@ -4,8 +4,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSearchParams, Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { 
-  ArrowLeft, Download, Send, CheckCircle, Clock, Eye, 
-  History, FileText, AlertTriangle, Edit, Users, Calendar,
+  ArrowLeft, Download, Send, CheckCircle, Clock, 
+  History, FileText, AlertTriangle, Users,
   Shield
 } from 'lucide-react';
 import { toast } from 'sonner';

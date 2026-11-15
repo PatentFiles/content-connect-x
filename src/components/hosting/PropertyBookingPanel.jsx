@@ -5,7 +5,7 @@
  */
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { DollarSign, Clock, Shield, Info, Pencil, Sparkles, Wrench } from 'lucide-react';
+import { Clock, Shield, Info, Pencil, Sparkles, Wrench } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import SoloSessionBookingModal from '@/components/sessions/SoloSessionBookingModal';

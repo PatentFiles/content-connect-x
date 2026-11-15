@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 import { 
   MessageCircle, 
@@ -11,12 +11,6 @@ import {
   Paperclip, 
   MoreVertical, 
   ChevronLeft,
-  Phone,
-  Video,
-  Info,
-  Image,
-  File,
-  X,
   Trash2,
   Archive,
   Ban,
@@ -29,14 +23,11 @@ import CCButton from '@/components/ui-custom/CCButton';
 import CCInput from '@/components/ui-custom/CCInput';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
 import CCBadge from '@/components/ui-custom/CCBadge';
-import CCCard from '@/components/ui-custom/CCCard';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import CommFilterWarning from '@/components/messaging/CommFilterWarning';
 import { detectCommViolation, getEscalationLevel } from '@/lib/commFilter';
 import { useFeatureFlag } from '@/lib/featureFlags';
-import VerificationGate from '@/components/auth/VerificationGate';
-import AccessGate from '@/components/auth/AccessGate';
 
 export default function Messages() {
   const [selectedConversation, setSelectedConversation] = useState(null);

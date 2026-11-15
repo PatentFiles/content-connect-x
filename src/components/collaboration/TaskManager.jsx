@@ -6,8 +6,7 @@ import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import CCInput from '@/components/ui-custom/CCInput';
 import { 
-  CheckCircle2, Circle, Clock, AlertCircle, Plus, 
-  ChevronRight, Calendar, User 
+  CheckCircle2, Circle, Clock, AlertCircle, Plus, Calendar, User 
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';

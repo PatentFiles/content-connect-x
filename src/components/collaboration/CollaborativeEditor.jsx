@@ -7,7 +7,7 @@ import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import CCInput from '@/components/ui-custom/CCInput';
-import { Lock, Unlock, Save, FileText, Plus, Edit } from 'lucide-react';
+import { Lock, Unlock, Save, FileText, Plus } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function CollaborativeEditor({ collaborationId, user }) {

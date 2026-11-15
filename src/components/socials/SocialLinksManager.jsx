@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { ChevronDown, ChevronUp, Plus, Trash2, ShieldCheck, AlertCircle } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, Trash2, ShieldCheck } from 'lucide-react';
 import CCButton from '../ui-custom/CCButton';
 import CCCard from '../ui-custom/CCCard';
 import CCSelect from '../ui-custom/CCSelect';

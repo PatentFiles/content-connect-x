@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ShieldCheck, Copy, Upload, FileText, MessageCircle } from 'lucide-react';
+import { Copy, Upload, FileText, MessageCircle } from 'lucide-react';
 import CCButton from '../ui-custom/CCButton';
 import CCInput from '../ui-custom/CCInput';
 import CCModal from '../ui-custom/CCModal';
-import { CCTabs, CCTabsList, CCTabsContent } from '../ui-custom/CCTabs';
+import { CCTabsList, CCTabsContent } from '../ui-custom/CCTabs';
 import { toast } from 'sonner';
 
 export default function VerificationModal({ link, platform, user, onClose }) {

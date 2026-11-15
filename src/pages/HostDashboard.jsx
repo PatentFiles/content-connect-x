@@ -9,7 +9,6 @@ import CCButton from '@/components/ui-custom/CCButton';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import { toast } from 'sonner';
-import FeatureGate from '@/components/feature/FeatureGate';
 import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 import PropertyForm from '@/components/hosting/PropertyForm';
 import HostOnboardingChecklist from '@/components/hosting/HostOnboardingChecklist';

@@ -3,10 +3,10 @@
  * Shows commission records for an agent — commission_received type only.
  * Respects agent_visible flag.
  */
-import React, { useState } from 'react';
+import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { DollarSign, TrendingUp, CheckCircle, Clock, AlertTriangle, RefreshCw } from 'lucide-react';
+import { DollarSign, TrendingUp } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import CCButton from '@/components/ui-custom/CCButton';

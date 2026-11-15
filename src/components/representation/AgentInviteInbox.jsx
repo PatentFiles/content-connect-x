@@ -13,7 +13,6 @@ import {
   XCircle,
   Clock,
   DollarSign,
-  Shield,
   Lock,
   MessageCircle,
   FileSignature,

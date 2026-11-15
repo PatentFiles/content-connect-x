@@ -7,10 +7,9 @@
  */
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { CalendarClock, CheckCircle, XCircle } from 'lucide-react';
-import CCCard from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import CCBadge from '@/components/ui-custom/CCBadge';

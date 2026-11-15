@@ -13,7 +13,7 @@
  *   showAll        — show all badges even if not earned (grayed out)
  */
 import React from 'react';
-import { ShieldCheck, Calendar, FlaskConical, Star, Clock } from 'lucide-react';
+import { ShieldCheck, FlaskConical, Star, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, UserX, UserCheck, Eye, ChevronDown, ChevronUp, Shield, ShieldOff, RefreshCw, Ban, MapPin } from 'lucide-react';
+import { Search, UserCheck, Eye, ChevronDown, ChevronUp, Shield, ShieldOff, RefreshCw, Ban, MapPin } from 'lucide-react';
 import { SuspensionStatusBadge, SuspensionActionButtons } from '@/components/admin/SuspensionManager';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';

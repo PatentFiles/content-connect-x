@@ -10,9 +10,7 @@ import {
   Sparkles, Globe, DollarSign, Heart, Search, MessageCircle,
 } from 'lucide-react';
 import CCButton from '../ui-custom/CCButton';
-import CCInput from '../ui-custom/CCInput';
 import CCCard from '../ui-custom/CCCard';
-import CCBadge from '../ui-custom/CCBadge';
 import LocationSelector from '../location/LocationSelector';
 import CCTooltip from '../onboarding/CCTooltip';
 

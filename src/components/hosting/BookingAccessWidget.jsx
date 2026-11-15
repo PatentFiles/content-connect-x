@@ -12,7 +12,7 @@
  * All events write to BookingAccessEvent + AdminActionLog via manageBookingAccess backend.
  * Feature-gated: GPS behind gps_checkin flag, checkout evidence behind checkout_evidence_enabled flag.
  */
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';

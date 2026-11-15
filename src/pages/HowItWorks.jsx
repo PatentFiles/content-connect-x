@@ -10,8 +10,6 @@ import {
   FileText,
   ArrowRight,
   CheckCircle,
-  Users,
-  MessageCircle,
   Lock
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';

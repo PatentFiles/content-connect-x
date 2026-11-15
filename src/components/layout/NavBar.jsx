@@ -2,13 +2,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
-import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
-import { Menu, X, Bell, Settings } from 'lucide-react';
+import { Menu, Bell, Settings } from 'lucide-react';
 import CCButton from '../ui-custom/CCButton';
-import CCAvatar from '../ui-custom/CCAvatars';
 import { useQuery } from '@tanstack/react-query';
-import CCBadge from '../ui-custom/CCBadge';
 import ThemeToggle from './ThemeToggle';
 
 export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, menuOpen, onHamburgerToggle }) {

@@ -5,12 +5,12 @@
  * No vanity metrics (no likes, no reviews).
  * Uses ReputationScore + VerificationRecord + Collaboration data.
  */
-import React, { useMemo } from 'react';
+import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Award, ShieldCheck, TrendingUp, Star } from 'lucide-react';
+import { Award, ShieldCheck, Star } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
 import CCBadge from '@/components/ui-custom/CCBadge';

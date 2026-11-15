@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import CCCard, { CCCardHeader, CCCardTitle, CCCardDescription, CCCardContent } from '../ui-custom/CCCard';
 import CCButton from '../ui-custom/CCButton';
 import CCSelect from '../ui-custom/CCSelect';
-import { Shield, Save } from 'lucide-react';
+import { Save } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function FriendSettingsCard({ userId }) {

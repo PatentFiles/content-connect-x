@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Star, Zap, TrendingUp, Shield, Clock, DollarSign, CheckCircle } from 'lucide-react';
+import { Star, Zap, TrendingUp, Shield, DollarSign } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';

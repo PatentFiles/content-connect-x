@@ -5,7 +5,7 @@
  * Supports CCBill as primary provider with architecture for future additions.
  */
 import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { CreditCard, CheckCircle, AlertTriangle, Eye, EyeOff, Save } from 'lucide-react';

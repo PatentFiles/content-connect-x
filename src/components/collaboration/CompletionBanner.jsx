@@ -1,8 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, AlertCircle } from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
-import CCBadge from '@/components/ui-custom/CCBadge';
 
 export default function CompletionBanner({ collaboration, userEmail }) {
   // Show banner when signed/active but not yet completed

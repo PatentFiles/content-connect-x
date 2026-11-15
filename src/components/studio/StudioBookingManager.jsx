@@ -14,7 +14,7 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import {
   CalendarCheck, Clock, Check, X, ExternalLink, MessageSquare,
-  Building2, MapPin, User, ChevronDown, ChevronUp, Filter
+  Building2, MapPin, User, ChevronDown, ChevronUp
 } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';

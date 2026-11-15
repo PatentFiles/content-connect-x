@@ -1,7 +1,7 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
-import { AlertTriangle, Shield, Lock } from 'lucide-react';
+import { Shield, Lock } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import CCBadge from '@/components/ui-custom/CCBadge';

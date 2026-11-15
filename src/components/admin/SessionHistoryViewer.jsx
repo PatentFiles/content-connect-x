@@ -2,10 +2,8 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { Search, Monitor, MapPin, Calendar, AlertTriangle, Clock, Smartphone, Tablet, Laptop } from 'lucide-react';
-import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
-import CCInput from '@/components/ui-custom/CCInput';
 import { motion } from 'framer-motion';
 
 export default function SessionHistoryViewer() {

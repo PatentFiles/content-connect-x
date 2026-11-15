@@ -4,9 +4,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import CCModal from '../ui-custom/CCModal';
 import CCButton from '../ui-custom/CCButton';
-import CCInput from '../ui-custom/CCInput';
-import CCEmpty from '../ui-custom/CCEmpty';
-import { Mail, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 export default function AgentRepresentationRequestModal({ isOpen, onClose, agentUserId, creatorUserId, onSuccess }) {
   const [message, setMessage] = useState('');

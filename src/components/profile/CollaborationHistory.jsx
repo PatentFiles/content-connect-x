@@ -11,7 +11,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
-  Briefcase, CheckCircle, XCircle, AlertTriangle, Users, TrendingUp, Clock
+  Briefcase, CheckCircle, XCircle, AlertTriangle, Users, TrendingUp
 } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';

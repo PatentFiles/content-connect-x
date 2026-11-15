@@ -6,7 +6,6 @@ import { format, startOfMonth, endOfMonth, eachDayOfInterval, addMonths } from '
 import { Calendar, ChevronLeft, ChevronRight, Download, Trash2, Plus, CheckSquare, AlertTriangle } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
-import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import ScheduleEntryCard from '@/components/schedule/ScheduleEntryCard';
 import ScheduleEntryEditor from '@/components/schedule/ScheduleEntryEditor';

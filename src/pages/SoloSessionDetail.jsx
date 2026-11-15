@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import {
   Calendar, Clock, MapPin, User, Shield, ArrowLeft,
-  CheckCircle, XCircle, FileText, Zap, ArrowUpCircle,
+  CheckCircle, XCircle, FileText, ArrowUpCircle,
   AlertTriangle, Key, LogIn, LogOut, RefreshCw, Lock
 } from 'lucide-react';
 import { format } from 'date-fns';

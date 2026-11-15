@@ -8,7 +8,6 @@ import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import CCInput from '@/components/ui-custom/CCInput';
 import CCModal from '@/components/ui-custom/CCModal';
-import CCSelect from '@/components/ui-custom/CCSelect';
 import { format } from 'date-fns';
 
 const priorityConfig = {

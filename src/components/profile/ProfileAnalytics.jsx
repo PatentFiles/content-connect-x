@@ -5,7 +5,7 @@ import {
   LineChart, Line, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
-import { format, subDays } from 'date-fns';
+import { format } from 'date-fns';
 import { Eye, Image, Heart, TrendingUp } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import { CCSkeletonLoader } from '@/components/ui-custom/CCLoading';

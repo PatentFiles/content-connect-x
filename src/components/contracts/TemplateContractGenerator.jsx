@@ -12,7 +12,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   FileText, Plus, CheckCircle, ChevronDown, ChevronUp,
-  Zap, AlertTriangle, Lock, Edit2, Info, Eye
+  Zap, AlertTriangle, Edit2, Info, Eye
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
@@ -264,7 +264,7 @@ export default function TemplateContractGenerator({ collaborationId, onContractC
       const bOk = getApplicability(b).applicable ? 0 : 1;
       return aOk - bOk;
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+   
   }, [templates, collaboration]);
 
   return (

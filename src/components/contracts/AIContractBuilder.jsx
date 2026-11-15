@@ -15,7 +15,7 @@ import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Sparkles, ChevronDown, ChevronUp, Edit2, AlertTriangle,
-  CheckCircle, Lock, FileText, Send, RotateCcw, Info
+  CheckCircle, RotateCcw, Info
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';

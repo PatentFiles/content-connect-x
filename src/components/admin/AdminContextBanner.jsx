@@ -1,7 +1,5 @@
 import React from 'react';
 import { Eye, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 import { motion } from 'framer-motion';
 import CCButton from '../ui-custom/CCButton';
 import CCBadge from '../ui-custom/CCBadge';

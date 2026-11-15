@@ -10,13 +10,12 @@ import { format } from 'date-fns';
 import { toast } from 'sonner';
 import {
   UserX, CheckCircle, XCircle, AlertTriangle, MessageSquare,
-  ShieldAlert, Clock, ChevronDown, ChevronUp, Info
+  ShieldAlert, ChevronDown, ChevronUp, Info
 } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
-import CCModal from '@/components/ui-custom/CCModal';
 
 const STATUS_CONFIG = {
   pending:              { variant: 'warning',  label: 'Pending Review' },

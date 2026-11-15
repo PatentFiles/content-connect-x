@@ -11,7 +11,6 @@ import {
   AlertCircle,
   ArrowRight,
   FileText,
-  User,
   Lock
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';

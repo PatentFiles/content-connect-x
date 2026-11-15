@@ -17,7 +17,6 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Clock, MapPin, DollarSign, Users, User, AlertTriangle, Plus, Trash2 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
-import CCBadge from '@/components/ui-custom/CCBadge';
 import { useFeatureFlag } from '@/lib/featureFlags';
 import PropertyBookingAddons from '@/components/hosting/PropertyBookingAddons';
 import LocationContractClauses from '@/components/hosting/LocationContractClauses';

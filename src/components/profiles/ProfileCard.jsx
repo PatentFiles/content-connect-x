@@ -3,15 +3,12 @@ import { Link, useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { base44 } from '@/api/base44Client';
 import { motion } from 'framer-motion';
-import { MapPin, Calendar, Heart, MessageCircle, ShieldCheck, Clock } from 'lucide-react';
+import { Heart, MessageCircle, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import CCCard from '../ui-custom/CCCard';
-import CCAvatar from '../ui-custom/CCAvatars';
-import CCBadge from '../ui-custom/CCBadge';
 import CCButton from '../ui-custom/CCButton';
 import TrustBadges from '@/components/profile/TrustBadges';
 import ReputationBadge from '@/components/trust/ReputationBadge';
-import ActivityIndicator from '@/components/profile/ActivityIndicator';
 
 const roleColors = {
   creator: 'primary',

@@ -4,7 +4,7 @@ import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { 
   FileText, Send, CheckCircle, Download, AlertTriangle, 
-  XCircle, Clock, Shield, Edit
+  XCircle, Clock, Edit
 } from 'lucide-react';
 
 const actionConfig = {

@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Search, ArrowRight } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';

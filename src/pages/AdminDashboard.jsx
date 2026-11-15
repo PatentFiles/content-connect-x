@@ -5,24 +5,19 @@ import { motion } from 'framer-motion';
 import { 
   Shield, 
   Users, 
-  CheckCircle, 
-  XCircle, 
   Clock,
   Tag,
   AlertTriangle,
   Search,
-  Filter,
   Eye,
   Ban,
-  ChevronRight,
-  TrendingUp
+  ChevronRight
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
-import CCInput from '@/components/ui-custom/CCInput';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
-import { CCTabs, CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs';
+import { CCTabsContent } from '@/components/ui-custom/CCTabs';
 import CCModal from '@/components/ui-custom/CCModal';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';

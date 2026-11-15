@@ -6,7 +6,7 @@ import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import CCInput from '@/components/ui-custom/CCInput';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
-import { FileText, Plus, Send, CheckCircle2, Clock, Edit } from 'lucide-react';
+import { FileText, Plus, Send, CheckCircle2, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import AIContractBuilder from '@/components/contracts/AIContractBuilder';

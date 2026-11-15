@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import CCButton from '../ui-custom/CCButton';
 import CCModal from '../ui-custom/CCModal';
 import CCErrorModal from '../ui-custom/CCErrorModal';
-import { UserPlus, Check, Clock, X } from 'lucide-react';
+import { UserPlus, Check, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function FriendRequestButton({ targetUserId, size = 'md', variant = 'outline' }) {

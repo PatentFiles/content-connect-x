@@ -9,15 +9,12 @@ import {
   FileText, 
   Plus,
   Clock,
-  CheckCircle,
-  TrendingUp,
   AlertCircle
 } from 'lucide-react';
 import CCCard from '../ui-custom/CCCard';
 import CCButton from '../ui-custom/CCButton';
 import CCBadge from '../ui-custom/CCBadge';
 import CCEmpty from '../ui-custom/CCEmpty';
-import CCAvatar from '../ui-custom/CCAvatars';
 import AgentEarningsWidget from '../earnings/AgentEarningsWidget';
 
 export default function AgentDashboard({ user, profile, onboardingChecklist }) {

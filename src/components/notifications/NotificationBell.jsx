@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { Bell, MessageCircle, Briefcase, FileText, Users, CheckCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import CCBadge from '../ui-custom/CCBadge';
 import { formatDistanceToNow } from 'date-fns';
 
 const notificationIcons = {

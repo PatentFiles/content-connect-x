@@ -7,7 +7,7 @@
  * Props: bundles (array), equipment (array), onChange(updatedBundles)
  */
 import React, { useState } from 'react';
-import { Plus, Trash2, ChevronDown, ChevronUp, Package } from 'lucide-react';
+import { Trash2, ChevronDown, ChevronUp, Package } from 'lucide-react';
 
 const PRESET_TEMPLATES = [
   { name: 'Space Only', description: 'Bare space rental — no equipment included', included_equipment_ids: [], price_modifier: 0 },

@@ -1,6 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { User, ShieldCheck, Star } from 'lucide-react';
+import { User, ShieldCheck } from 'lucide-react';
 
 const sizes = {
   xs: 'w-6 h-6',

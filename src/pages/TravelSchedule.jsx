@@ -3,7 +3,7 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { format, startOfMonth, endOfMonth, addMonths } from 'date-fns';
-import { MapPin, Trash2, Plus, Download, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MapPin, Trash2, Plus, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';

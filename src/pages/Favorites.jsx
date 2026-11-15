@@ -19,7 +19,6 @@ import { CCLoadingScreen, CCSkeletonLoader } from '@/components/ui-custom/CCLoad
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import ProfileCard from '@/components/profiles/ProfileCard';
 import { useFeatureFlag } from '@/lib/featureFlags';
-import VerificationGate from '@/components/auth/VerificationGate';
 
 
 // Role tabs for filtering saved profiles

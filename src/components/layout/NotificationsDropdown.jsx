@@ -4,7 +4,6 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Check, Trash2, MessageCircle, FileText, Briefcase, Eye, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 import CCButton from '../ui-custom/CCButton';
 import CCBadge from '../ui-custom/CCBadge';
 import { toast } from 'sonner';

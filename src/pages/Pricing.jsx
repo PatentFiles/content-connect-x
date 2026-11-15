@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, ArrowRight, Sparkles, Shield, Zap, Crown, ExternalLink } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
-import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCTabsList } from '@/components/ui-custom/CCTabs';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import { toast } from 'sonner';

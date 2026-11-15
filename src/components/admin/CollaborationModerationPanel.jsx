@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, Pause, Play, AlertTriangle, Shield, FileText } from 'lucide-react';
+import { Search, Pause, Shield, FileText } from 'lucide-react';
 import { createPageUrl } from '@/utils';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';

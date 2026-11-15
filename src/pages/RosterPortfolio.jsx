@@ -2,19 +2,14 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
-import { motion } from 'framer-motion';
 import { 
   Users, 
-  Plus, 
-  CheckCircle, 
   Clock,
-  XCircle,
   UserPlus,
   Camera
 } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';
-import CCBadge from '@/components/ui-custom/CCBadge';
 import CCInput from '@/components/ui-custom/CCInput';
 import CCSelect from '@/components/ui-custom/CCSelect';
 import CCEmpty from '@/components/ui-custom/CCEmpty';

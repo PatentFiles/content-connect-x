@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
-import { Ticket, Plus, Copy, Eye, EyeOff, Edit2, Trash2, Sparkles, CheckCircle } from 'lucide-react';
+import { Ticket, Plus, Copy, Eye, EyeOff, Trash2, Sparkles } from 'lucide-react';
 import CCButton from '../ui-custom/CCButton';
 import CCCard from '../ui-custom/CCCard';
 import CCBadge from '../ui-custom/CCBadge';

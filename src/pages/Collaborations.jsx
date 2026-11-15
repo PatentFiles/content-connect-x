@@ -7,20 +7,15 @@ import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 import { motion } from 'framer-motion';
 import { 
   Briefcase, 
-  Plus, 
-  Filter, 
   Clock, 
   CheckCircle, 
   FileText,
-  ChevronRight,
-  Users,
   Calendar,
   DollarSign,
   Edit,
   Trash2,
   Search,
-  SlidersHorizontal,
-  ArrowUpDown
+  SlidersHorizontal
 } from 'lucide-react';
 import { toast } from 'sonner';
 import CCButton from '@/components/ui-custom/CCButton';

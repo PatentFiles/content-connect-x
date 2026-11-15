@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
 import { sanitizeHtml } from '@/lib/sanitizeHtml';
-import { toast } from 'sonner';
 import { 
   User, 
   MapPin, 
@@ -29,7 +27,7 @@ import CCSelect from '@/components/ui-custom/CCSelect';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
-import { CCTabs, CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs';
+import { CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import LocationSelector from '@/components/location/LocationSelector';
 import BioGenerator from '@/components/profile/BioGenerator';

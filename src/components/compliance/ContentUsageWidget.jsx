@@ -9,7 +9,6 @@ import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
 import { Film, ChevronDown, ChevronUp, Plus, X } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
-import CCBadge from '@/components/ui-custom/CCBadge';
 
 const USAGE_TYPES = [
   { value: 'authorized_self_publish', label: 'Authorized — self publish', color: 'success' },

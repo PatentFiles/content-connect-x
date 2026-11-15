@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Briefcase, Users, DollarSign, Shield, MapPin, Globe, Lock, Star } from 'lucide-react';
+import { Briefcase, Users, DollarSign, MapPin, Globe, Lock, Star } from 'lucide-react';
 import CCButton from '../ui-custom/CCButton';
 import CCBadge from '../ui-custom/CCBadge';
 

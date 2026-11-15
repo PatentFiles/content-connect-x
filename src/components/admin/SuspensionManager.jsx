@@ -8,7 +8,7 @@ import { base44 } from '@/api/base44Client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { Clock, UserCheck, Ban, AlertTriangle, ShieldOff } from 'lucide-react';
+import { Clock, UserCheck, Ban, AlertTriangle } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import CCModal from '@/components/ui-custom/CCModal';

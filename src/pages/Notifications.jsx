@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
 import { 
   Bell, 
   BellOff, 
@@ -20,7 +19,7 @@ import { motion } from 'framer-motion';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
-import { CCTabs, CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs';
+import { CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import { toast } from 'sonner';

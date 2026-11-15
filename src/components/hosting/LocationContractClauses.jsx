@@ -6,8 +6,7 @@
  * Does NOT create a new contract engine — feeds into existing ContractTemplate token system.
  */
 import React, { useMemo } from 'react';
-import { Shield, AlertTriangle, Camera, MapPin, Trash2, Wrench, DollarSign, Navigation } from 'lucide-react';
-import { useFeatureFlag } from '@/lib/featureFlags';
+import { Shield, AlertTriangle, DollarSign, Navigation } from 'lucide-react';
 
 function ClauseSection({ icon: IconComp, title, children, color = 'text-[#9AA6BC]' }) {
   const Icon = IconComp;

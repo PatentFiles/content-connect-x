@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Search, ShieldCheck, Crown, ChevronDown, ChevronUp, Eye, Ban, UserX } from 'lucide-react';
+import { Users, Search, Crown, ChevronDown, ChevronUp } from 'lucide-react';
 import CCButton from '../ui-custom/CCButton';
 import CCCard from '../ui-custom/CCCard';
 import CCBadge from '../ui-custom/CCBadge';

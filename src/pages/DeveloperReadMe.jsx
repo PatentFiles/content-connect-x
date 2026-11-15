@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { FileText, AlertTriangle, Database, Shield, Users, Network, Calendar, FileCheck, Lock, Activity, DollarSign, CheckCircle, Copy, Share2, Loader2, CheckCircle2, CreditCard, Flag, Home, Search, Star, Code, Settings, Key } from 'lucide-react';
+import { FileText, AlertTriangle, Database, Shield, Users, Network, Calendar, Lock, DollarSign, Copy, Share2, Loader2, CreditCard, Flag, Home, Search, Star, Code, Settings, Key } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';
 import EntityReferenceSection from '@/components/docs/EntityReference';

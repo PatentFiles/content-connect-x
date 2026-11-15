@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, LogOut, Shield, Home, Bot, BookOpen } from 'lucide-react';
 import { getNavigationForRole } from '@/components/utils/roleNavConfig';

@@ -10,7 +10,7 @@
 import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { toast } from 'sonner';
-import { Shield, MapPin, AlertTriangle, FileCheck, Ban, Upload } from 'lucide-react';
+import { MapPin, FileCheck, Ban, Upload } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';
 

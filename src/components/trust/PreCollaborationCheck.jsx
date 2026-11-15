@@ -15,8 +15,8 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
-  ShieldCheck, FlaskConical, TrendingUp, AlertTriangle, CheckCircle,
-  Clock, Users, MapPin, XCircle, Loader2, Info
+  ShieldCheck, FlaskConical, AlertTriangle, CheckCircle,
+  Clock, Users, MapPin, XCircle, Loader2
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';

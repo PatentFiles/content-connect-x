@@ -13,12 +13,11 @@ import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   FileText, Plus, Edit2, ToggleLeft, ToggleRight, Trash2,
-  ChevronDown, ChevronUp, Hash, Save, X, AlertTriangle, Eye
+  ChevronDown, ChevronUp, Hash, Save, X, Eye
 } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCBadge from '@/components/ui-custom/CCBadge';
-import CCModal from '@/components/ui-custom/CCModal';
 import CCInput from '@/components/ui-custom/CCInput';
 import CCEmpty from '@/components/ui-custom/CCEmpty';
 import { toast } from 'sonner';

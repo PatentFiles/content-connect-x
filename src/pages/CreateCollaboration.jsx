@@ -27,7 +27,6 @@ import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCInput from '@/components/ui-custom/CCInput';
 import CCSelect from '@/components/ui-custom/CCSelect';
-import CCBadge from '@/components/ui-custom/CCBadge';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import { useVerificationCheck } from '@/components/auth/useVerificationCheck';

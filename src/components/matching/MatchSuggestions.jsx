@@ -7,7 +7,6 @@ import { createPageUrl } from '@/utils';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard, { CCCardHeader, CCCardTitle, CCCardContent } from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
-import { CCAvatarGroup } from '@/components/ui-custom/CCAvatars';
 
 export default function MatchSuggestions({ sourceType, sourceId, title = "AI Match Suggestions" }) {
   const [expandedSuggestion, setExpandedSuggestion] = useState(null);

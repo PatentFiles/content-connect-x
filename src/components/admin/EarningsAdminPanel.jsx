@@ -11,7 +11,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import {
-  DollarSign, RefreshCw, CheckCircle, AlertTriangle, Clock, Search, Zap
+  DollarSign, RefreshCw, Search, Zap
 } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';

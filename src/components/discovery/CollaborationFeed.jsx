@@ -19,7 +19,6 @@ import {
   ShieldCheck, MapPin, Star, Zap, Clock, Award, TrendingUp
 } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
-import CCBadge from '@/components/ui-custom/CCBadge';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
 import { formatDistanceToNow } from 'date-fns';
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Settings as SettingsIcon, LogOut, User, Bell, Shield, CreditCard, Trash2, Lock } from 'lucide-react';
+import { Settings as SettingsIcon, LogOut, User, Bell, CreditCard, Trash2, Lock } from 'lucide-react';
 import { CCTabsList, CCTabsContent } from '@/components/ui-custom/CCTabs';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';

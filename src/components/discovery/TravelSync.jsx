@@ -14,8 +14,7 @@ import { MapPin, Calendar } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCAvatar from '@/components/ui-custom/CCAvatars';
 import CCBadge from '@/components/ui-custom/CCBadge';
-import CCButton from '@/components/ui-custom/CCButton';
-import { format, isWithinInterval, parseISO } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 
 export default function TravelSync({ userId, myProfile }) {
   const today = new Date().toISOString().split('T')[0];

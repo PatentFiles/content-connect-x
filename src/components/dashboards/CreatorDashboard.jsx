@@ -18,8 +18,7 @@ import {
   TrendingUp,
   AlertCircle,
   Handshake,
-  Flag,
-  X
+  Flag
 } from 'lucide-react';
 import CCCard from '../ui-custom/CCCard';
 import CCButton from '../ui-custom/CCButton';
@@ -34,7 +33,7 @@ import CollaborationFeed from '@/components/discovery/CollaborationFeed';
 import TopCreators from '@/components/discovery/TopCreators';
 import TravelSync from '@/components/discovery/TravelSync';
 import EarningsTracker from '@/components/earnings/EarningsTracker';
-import ReputationBadge, { ReputationScoreBar } from '@/components/trust/ReputationBadge';
+import ReputationBadge from '@/components/trust/ReputationBadge';
 import CCModal from '../ui-custom/CCModal';
 
 function ReputationScoreBarWithFlags({ score }) {

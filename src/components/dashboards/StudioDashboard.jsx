@@ -6,7 +6,6 @@ import { createPageUrl } from '@/utils';
 import { 
   Users, 
   Briefcase, 
-  FileText, 
   Plus,
   Camera,
   Clock,
@@ -22,7 +21,7 @@ import CCEmpty from '../ui-custom/CCEmpty';
 import StudioEarningsDashboard from '../studio/StudioEarningsDashboard';
 import StudioBookingManager from '../studio/StudioBookingManager';
 import StudioAvailabilityManager from '../studio/StudioAvailabilityManager';
-import { CCTabs, CCTabsList, CCTabsContent } from '../ui-custom/CCTabs';
+import { CCTabsList, CCTabsContent } from '../ui-custom/CCTabs';
 
 export default function StudioDashboard({ user, profile, onboardingChecklist }) {
   const [activeTab, setActiveTab] = useState('overview');

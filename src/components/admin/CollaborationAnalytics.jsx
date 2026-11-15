@@ -2,13 +2,13 @@ import React, { useState, useMemo } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
 import { AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { TrendingUp, Users, FileText, AlertTriangle, CheckCircle, Calendar, Download, Activity } from 'lucide-react';
+import { TrendingUp, Users, FileText, AlertTriangle, CheckCircle, Download, Activity } from 'lucide-react';
 import CCCard, { CCCardHeader, CCCardTitle, CCCardContent } from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCSelect from '@/components/ui-custom/CCSelect';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
-import { format, subDays, isAfter, isBefore, startOfMonth, endOfMonth } from 'date-fns';
+import { format, subDays, isAfter, isBefore } from 'date-fns';
 
 const COLORS = ['#4F8CFF', '#FF2DAA', '#22C55E', '#F59E0B', '#EF4444', '#8B5CF6'];
 

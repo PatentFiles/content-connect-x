@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { 
   LogOut,
@@ -15,7 +14,7 @@ import {
 import CCAvatar from '../ui-custom/CCAvatars';
 import CCBadge from '../ui-custom/CCBadge';
 import { getNavigationForRole } from '../utils/roleNavConfig';
-import { useFilteredNav, useFeatureFlag } from '@/lib/featureFlags';
+import { useFilteredNav } from '@/lib/featureFlags';
 import AdminRoleViewSwitcher from '../admin/AdminRoleViewSwitcher';
 
 const adminNavItems = [

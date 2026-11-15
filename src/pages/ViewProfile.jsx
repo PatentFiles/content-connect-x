@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useMobilePageSetup from '@/hooks/useMobilePageSetup';
 import { toast } from 'sonner';
 import SaveToFavoritesModal from '@/components/profiles/SaveToFavoritesModal';
 import { sanitizeHtml } from '@/lib/sanitizeHtml';
-import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { 
   MapPin, 

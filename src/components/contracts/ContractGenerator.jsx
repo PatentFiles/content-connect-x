@@ -1,4 +1,3 @@
-import React from 'react';
 
 // Contract generation utility function
 export function generateContractFromCollaboration(collaboration, template) {

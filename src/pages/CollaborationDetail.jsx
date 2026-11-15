@@ -4,7 +4,7 @@ import useMobilePageSetup from '@/hooks/useMobilePageSetup';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams, Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { ArrowLeft, Users, Calendar, FileText, CheckSquare, Activity, MessageSquare, AlertTriangle, Shield, Download } from 'lucide-react';
+import { ArrowLeft, Users, Calendar, FileText, CheckSquare, MessageSquare, AlertTriangle, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';

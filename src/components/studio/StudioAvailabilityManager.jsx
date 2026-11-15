@@ -11,7 +11,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { format, parseISO, isAfter, startOfToday } from 'date-fns';
 import {
-  Plus, Pencil, Trash2, Building2, Clock, MapPin, Zap, FileText, X
+  Plus, Pencil, Trash2, Building2, Clock, MapPin, FileText
 } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCButton from '@/components/ui-custom/CCButton';

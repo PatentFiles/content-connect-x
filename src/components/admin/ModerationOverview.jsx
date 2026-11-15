@@ -1,10 +1,9 @@
 import React from 'react';
 import { base44 } from '@/api/base44Client';
 import { useQuery } from '@tanstack/react-query';
-import { AlertTriangle, Users, Briefcase, Shield, Flag, Activity } from 'lucide-react';
+import { AlertTriangle, Briefcase, Shield, Flag, Activity } from 'lucide-react';
 import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
-import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 
 export default function ModerationOverview() {
   const { data: collaborations = [] } = useQuery({
