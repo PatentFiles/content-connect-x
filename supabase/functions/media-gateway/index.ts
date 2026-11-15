@@ -16,6 +16,17 @@ const cors={
 const reply=(data:unknown,status=200)=>Response.json(data,{status,headers:cors});
 const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 const plain=(v:unknown,max=100)=>typeof v==='string'?v.trim().slice(0,max):'';
+// The JWT has already been validated by Supabase Auth.getUser before this is used.
+const assurance=(header:string)=>{
+  try {
+    const jwt=header.replace(/^Bearer\s+/i,'');
+    const payload=jwt.split('.')[1];
+    const base64=payload.replace(/-/g,'+').replace(/_/g,'/');
+    const claims=JSON.parse(atob(base64.padEnd(Math.ceil(base64.length/4)*4,'=')));
+    return claims?.aal==='aal2'?'aal2':'aal1';
+  } catch {return 'aal1';}
+};
+
 Deno.serve(async req=>{
   if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
   if(req.method!=='POST')return reply({error:'Method not allowed'},405);
@@ -43,6 +54,7 @@ Deno.serve(async req=>{
   if(!allowed.includes(paid?'premium':'free'))return reply({error:'Media gallery unavailable to this membership'},403);
   const body=await req.json().catch(()=>({}));
   const action=body.action;
+  if(admin&&String(action).startsWith('admin_')&&assurance(req.headers.get('Authorization')||'')!=='aal2')return reply({error:'Administrator MFA required'},403);
   const bucket=db.storage.from('member-private');
   const audit=async(event:string,target:string,details:Record<string,unknown>={})=>{
     await db.from('platform_action_audit').insert({actor_id:uid,action:event,target_type:'media',target_id:target,metadata:details});

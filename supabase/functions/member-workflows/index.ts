@@ -20,6 +20,17 @@ const hashContent=async(content:unknown)=>{
   const digest=await crypto.subtle.digest('SHA-256',bytes);
   return [...new Uint8Array(digest)].map(v=>v.toString(16).padStart(2,'0')).join('');
 };
+// The JWT has already been validated by Supabase Auth.getUser before this is used.
+const assurance=(header:string)=>{
+  try {
+    const jwt=header.replace(/^Bearer\s+/i,'');
+    const payload=jwt.split('.')[1];
+    const base64=payload.replace(/-/g,'+').replace(/_/g,'/');
+    const claims=JSON.parse(atob(base64.padEnd(Math.ceil(base64.length/4)*4,'=')));
+    return claims?.aal==='aal2'?'aal2':'aal1';
+  } catch {return 'aal1';}
+};
+
 Deno.serve(async req=>{
   if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
   if(req.method!=='POST')return fail('Method not allowed',405);
@@ -48,6 +59,7 @@ Deno.serve(async req=>{
   const action=text(body.action,65);
   if(!verified)return fail('Approved age verification required',403);
   const freeSafetyActions=new Set(['block_user','unblock_user','submit_report','list_blocks']);
+  if(adminRole&&!freeSafetyActions.has(action)&&assurance(req.headers.get('Authorization')||'')!=='aal2')return fail('Administrator MFA required',403);
   if(!paid&&!freeSafetyActions.has(action))return fail('Active paid membership required',402);
   // Real feature flags are evaluated on the server, never trusted from UI.
   const actionFeatures:Record<string,string>={

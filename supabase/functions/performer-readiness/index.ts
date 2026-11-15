@@ -16,6 +16,17 @@ const reply=(body:unknown,status=200)=>new Response(JSON.stringify(body),{
 const uuid=(v:unknown)=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 const isActive=(v:any)=>v&&['active','trial'].includes(v.status)&&(!v.period_end||Date.parse(v.period_end)>Date.now());
 
+// The JWT has already been validated by Supabase Auth.getUser before this is used.
+const assurance=(header:string)=>{
+  try {
+    const jwt=header.replace(/^Bearer\s+/i,'');
+    const payload=jwt.split('.')[1];
+    const base64=payload.replace(/-/g,'+').replace(/_/g,'/');
+    const claims=JSON.parse(atob(base64.padEnd(Math.ceil(base64.length/4)*4,'=')));
+    return claims?.aal==='aal2'?'aal2':'aal1';
+  } catch {return 'aal1';}
+};
+
 Deno.serve(async req=>{
   if(req.method==='OPTIONS')return new Response(null,{status:204,headers});
   if(req.method!=='POST')return reply({error:'Method not allowed'},405);
@@ -38,6 +49,7 @@ Deno.serve(async req=>{
   const body=await req.json().catch(()=>({}));
   const action=body?.action;
   const adminUser=status.data?.admin===true;
+  if(adminUser&&action==='admin_record_provider_clearance'&&assurance(req.headers.get('Authorization')||'')!=='aal2')return reply({error:'Administrator MFA required'},403);
   const paid=adminUser||isActive(subscription.data);
   if(!paid&&action!=='my_status')return reply({error:'Premium membership required'},403);
 

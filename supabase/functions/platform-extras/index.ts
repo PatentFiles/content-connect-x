@@ -19,6 +19,17 @@ const isPaid=(row:any)=>['active','trial'].includes(row?.status)&&(!row?.period_
 const iso=(v:unknown)=>{const d=new Date(typeof v==='string'?v:'');return Number.isFinite(d.valueOf())?d.toISOString():null;};
 const reject=(reason:string,status=400)=>reply({error:reason},status);
 
+// The JWT has already been validated by Supabase Auth.getUser before this is used.
+const assurance=(header:string)=>{
+  try {
+    const jwt=header.replace(/^Bearer\s+/i,'');
+    const payload=jwt.split('.')[1];
+    const base64=payload.replace(/-/g,'+').replace(/_/g,'/');
+    const claims=JSON.parse(atob(base64.padEnd(Math.ceil(base64.length/4)*4,'=')));
+    return claims?.aal==='aal2'?'aal2':'aal1';
+  } catch {return 'aal1';}
+};
+
 Deno.serve(async(req)=>{
   if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
   if(req.method!=='POST')return reject('Method not allowed',405);
@@ -39,6 +50,7 @@ Deno.serve(async(req)=>{
   const admin=sec.data?.admin===true,paid=admin||isPaid(sub.data),tier=paid?'premium':'free';
   const body=await req.json().catch(()=>({}));
   const action=str(body?.action,70);
+  if(admin&&action.startsWith('admin_')&&assurance(req.headers.get('Authorization')||'')!=='aal2')return reject('Administrator MFA required',403);
   const feature=async(key:string,requiredTier=tier)=>{
     const {data,error}=await db.from('product_feature_flags').select('enabled,allowed_tiers,rollout_percent').eq('key',key).maybeSingle();
     if(error||!data?.enabled||!data.allowed_tiers?.includes(requiredTier))return false;

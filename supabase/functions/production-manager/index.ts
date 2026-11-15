@@ -11,6 +11,17 @@ const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{
 const safe=(v:unknown,n=1000)=>typeof v==='string'?v.trim().slice(0,n):'';
 const active=(s:any)=>['active','trial'].includes(s?.status)&&(!s.period_end||Date.parse(s.period_end)>Date.now());
 
+// The JWT has already been validated by Supabase Auth.getUser before this is used.
+const assurance=(header:string)=>{
+  try {
+    const jwt=header.replace(/^Bearer\s+/i,'');
+    const payload=jwt.split('.')[1];
+    const base64=payload.replace(/-/g,'+').replace(/_/g,'/');
+    const claims=JSON.parse(atob(base64.padEnd(Math.ceil(base64.length/4)*4,'=')));
+    return claims?.aal==='aal2'?'aal2':'aal1';
+  } catch {return 'aal1';}
+};
+
 Deno.serve(async req=>{
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
  if(req.method!=='POST')return json({error:'Method not allowed'},405);
@@ -33,6 +44,7 @@ Deno.serve(async req=>{
  const paid=isAdmin||active(subscription.data);
  if(!approved)return json({error:'Verified adult account required'},403);
  const safetyActions=new Set(['create_case','my_cases','case_history','case_add_note']);
+ if(isAdmin&&!safetyActions.has(action)&&assurance(req.headers.get('Authorization')||'')!=='aal2')return json({error:'Administrator MFA required'},403);
  if((security.data?.banned||security.data?.suspended)&&!safetyActions.has(action))return json({error:'Account restricted'},403);
  if(!paid&&!safetyActions.has(action))return json({error:'Paid membership required'},403);
  const log=async(event:string,target:string,meta:Record<string,unknown>={})=>{

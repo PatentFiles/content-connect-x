@@ -2,6 +2,17 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.95.0';
 const cors={ 'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type','Access-Control-Allow-Methods':'POST, OPTIONS' };
 const respond=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,'Content-Type':'application/json'}});
+// The JWT has already been validated by Supabase Auth.getUser before this is used.
+const assurance=(header:string)=>{
+  try {
+    const jwt=header.replace(/^Bearer\s+/i,'');
+    const payload=jwt.split('.')[1];
+    const base64=payload.replace(/-/g,'+').replace(/_/g,'/');
+    const claims=JSON.parse(atob(base64.padEnd(Math.ceil(base64.length/4)*4,'=')));
+    return claims?.aal==='aal2'?'aal2':'aal1';
+  } catch {return 'aal1';}
+};
+
 Deno.serve(async(req)=>{
   if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
   if(req.method!=='POST')return respond({error:'Method not allowed'},405);
@@ -13,6 +24,7 @@ Deno.serve(async(req)=>{
   const admin=createClient(url,secret);
   const {data:role,error:roleError}=await admin.from('account_security').select('admin,banned,suspended').eq('user_id',user.id).maybeSingle();
   if(roleError||!role?.admin||role.banned||role.suspended)return respond({error:'Forbidden'},403);
+  if(assurance(req.headers.get('Authorization')||'')!=='aal2')return respond({error:'Administrator MFA required'},403);
   // Administrator accounts also require independent 18+ verification.
   const {data:reviewerAge,error:reviewerAgeError}=await admin.from('age_verification_requests')
     .select('status,expires_at').eq('user_id',user.id)
