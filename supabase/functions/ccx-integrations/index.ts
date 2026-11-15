@@ -51,7 +51,7 @@ Deno.serve(async req=>{
   await db.from('platform_action_audit').insert({actor_id:uid,action:what,target_type:'integration',target_id:id(target)?target:null});
  };
  const conf=async(provider:string)=>{
-  const {data,error}=await db.from('ccx_integrations').select('provider,enabled,setup_status,notes,updated_at')
+  const {data,error}=await db.from('ccx_integrations').select('provider,enabled,setup_status,notes,callback_origin,secondary_origin,updated_at')
    .eq('provider',provider).maybeSingle();
   if(error)throw error;return data;
  };
@@ -79,13 +79,33 @@ Deno.serve(async req=>{
  switch(action){
  case 'admin_list':{
   const {data,error}=await db.from('ccx_integrations')
-   .select('provider,enabled,setup_status,notes,updated_at').order('provider');
+   .select('provider,enabled,setup_status,notes,callback_origin,secondary_origin,updated_at').order('provider');
   if(error)throw error;
   return out({providers:await Promise.all((data||[]).map(async p=>({
     ...p,fields:await Promise.all((secretFields[p.provider]||[]).map(async name=>({
      name,configured:Boolean(await getSecret(name))
     })))
    })))});
+ }
+ case 'admin_yoti_origins':{
+  const validate=(value:unknown)=>{
+   if(value===null||value==='')return null;
+   if(typeof value!=='string'||value.length>240)throw Error('Origin too long');
+   const u=new URL(value);
+   if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash||
+      u.port&&u.port!=='443'||u.pathname!=='/'||
+      !u.hostname.includes('.')||u.hostname==='localhost')throw Error('Use an HTTPS production origin without paths or credentials');
+   return u.origin;
+  };
+  let ccx:string|null=null,onlyhost:string|null=null;
+  try{ccx=validate(body.ccx_origin);onlyhost=validate(body.onlyhost_origin);}
+  catch{return bad('Provide valid HTTPS origins for both brands',400);}
+  if(!ccx)return bad('Content Connect X return origin is required');
+  const {data,error}=await db.from('ccx_integrations').update({
+   callback_origin:ccx,secondary_origin:onlyhost,updated_by:uid,updated_at:new Date().toISOString()
+  }).eq('provider','yoti').select('callback_origin,secondary_origin').single();
+  if(error)throw error;await audit('ccx_yoti_return_origins_saved');
+  return out({item:data,note:'Yoti return origins saved. Your provider must also allow these URLs.'});
  }
  case 'admin_set_secret':{
   const provider=txt(body.provider,32),name=txt(body.name,70),value=body.secret;
@@ -122,7 +142,7 @@ Deno.serve(async req=>{
   const mode=body.mode==='performer_identity'?'performer_identity':'age_gate';
   const cfg=await yotiReady();
   if(!cfg.ready)return bad('Yoti is not configured. Use manual ID verification until onboarding is complete.',503);
-  const origin=txt(Deno.env.get('CCX_PUBLIC_ORIGIN'),260);
+  const origin=txt((body.brand==='onlyhost'?cfg.setting?.secondary_origin:cfg.setting?.callback_origin)||cfg.setting?.callback_origin||Deno.env.get('CCX_PUBLIC_ORIGIN'),260);
   let trusted:URL;
   try{trusted=new URL(origin);}catch{return bad('Yoti redirect origin is not configured',503);}
   if(trusted.protocol!=='https:'||trusted.username||trusted.password||trusted.pathname!=='/'||trusted.search)return bad('Invalid Yoti return origin',503);
