@@ -81,16 +81,7 @@
   ],
   "rls": {
     "create": {
-      "$and": [
-        {
-          "data.reviewer_user_id": "{{user.email}}"
-        },
-        {
-          "not": {
-            "has_banned_or_suspended": true
-          }
-        }
-      ]
+      "data.reviewer_user_id": "{{user.email}}"
     },
     "read": {
       "$or": [
@@ -120,9 +111,16 @@
       ]
     },
     "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "data.reviewer_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
     }
   }
 }

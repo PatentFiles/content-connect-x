@@ -304,22 +304,13 @@
   ],
   "rls": {
     "create": {
-      "$and": [
+      "$or": [
         {
-          "$or": [
-            {
-              "data.guest_user_id": "{{user.email}}"
-            },
-            {
-              "user_condition": {
-                "role": "admin"
-              }
-            }
-          ]
+          "data.guest_user_id": "{{user.email}}"
         },
         {
-          "not": {
-            "has_banned_or_suspended": true
+          "user_condition": {
+            "role": "admin"
           }
         }
       ]

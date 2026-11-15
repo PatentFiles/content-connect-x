@@ -348,16 +348,7 @@
     "update": {
       "$or": [
         {
-          "$and": [
-            {
-              "data.user_id": "{{user.email}}"
-            },
-            {
-              "not": {
-                "has_banned_or_suspended": true
-              }
-            }
-          ]
+          "data.user_id": "{{user.email}}"
         },
         {
           "user_condition": {

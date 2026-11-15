@@ -302,22 +302,13 @@
   ],
   "rls": {
     "create": {
-      "$and": [
+      "$or": [
         {
-          "$or": [
-            {
-              "data.participant_ids": "{{user.email}}"
-            },
-            {
-              "user_condition": {
-                "role": "admin"
-              }
-            }
-          ]
+          "data.participant_ids": "{{user.email}}"
         },
         {
-          "not": {
-            "has_banned_or_suspended": true
+          "user_condition": {
+            "role": "admin"
           }
         }
       ]
@@ -335,25 +326,25 @@
       ]
     },
     "update": {
-      "$and": [
+      "$or": [
         {
           "data.participant_ids": "{{user.email}}"
         },
         {
-          "not": {
-            "has_banned_or_suspended": true
+          "user_condition": {
+            "role": "admin"
           }
         }
       ]
     },
     "delete": {
-      "$and": [
+      "$or": [
         {
           "data.created_by_user_id": "{{user.email}}"
         },
         {
-          "not": {
-            "has_banned_or_suspended": true
+          "user_condition": {
+            "role": "admin"
           }
         }
       ]

@@ -43,9 +43,6 @@
           "data.sender_id": "{{user.email}}"
         },
         {
-          "data.read_by": "{{user.email}}"
-        },
-        {
           "user_condition": {
             "role": "admin"
           }

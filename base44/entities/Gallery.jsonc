@@ -53,16 +53,7 @@
   ],
   "rls": {
     "create": {
-      "$and": [
-        {
-          "data.user_id": "{{user.email}}"
-        },
-        {
-          "not": {
-            "has_banned_or_suspended": true
-          }
-        }
-      ]
+      "data.user_id": "{{user.email}}"
     },
     "read": {
       "$or": [
@@ -80,25 +71,25 @@
       ]
     },
     "update": {
-      "$and": [
+      "$or": [
         {
           "data.user_id": "{{user.email}}"
         },
         {
-          "not": {
-            "has_banned_or_suspended": true
+          "user_condition": {
+            "role": "admin"
           }
         }
       ]
     },
     "delete": {
-      "$and": [
+      "$or": [
         {
           "data.user_id": "{{user.email}}"
         },
         {
-          "not": {
-            "has_banned_or_suspended": true
+          "user_condition": {
+            "role": "admin"
           }
         }
       ]

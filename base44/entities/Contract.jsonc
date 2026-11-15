@@ -234,22 +234,13 @@
   ],
   "rls": {
     "create": {
-      "$and": [
+      "$or": [
         {
-          "$or": [
-            {
-              "data.created_by": "{{user.email}}"
-            },
-            {
-              "user_condition": {
-                "role": "admin"
-              }
-            }
-          ]
+          "data.created_by": "{{user.email}}"
         },
         {
-          "not": {
-            "has_banned_or_suspended": true
+          "user_condition": {
+            "role": "admin"
           }
         }
       ]
@@ -260,7 +251,16 @@
           "data.created_by": "{{user.email}}"
         },
         {
-          "data.signatories.user_id": "{{user.email}}"
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.created_by": "{{user.email}}"
         },
         {
           "user_condition": {
@@ -269,47 +269,14 @@
         }
       ]
     },
-    "update": {
-      "$and": [
-        {
-          "$or": [
-            {
-              "data.created_by": "{{user.email}}"
-            },
-            {
-              "data.signatories.user_id": "{{user.email}}"
-            },
-            {
-              "user_condition": {
-                "role": "admin"
-              }
-            }
-          ]
-        },
-        {
-          "not": {
-            "has_banned_or_suspended": true
-          }
-        }
-      ]
-    },
     "delete": {
-      "$and": [
+      "$or": [
         {
-          "$or": [
-            {
-              "data.created_by": "{{user.email}}"
-            },
-            {
-              "user_condition": {
-                "role": "admin"
-              }
-            }
-          ]
+          "data.created_by": "{{user.email}}"
         },
         {
-          "not": {
-            "has_banned_or_suspended": true
+          "user_condition": {
+            "role": "admin"
           }
         }
       ]

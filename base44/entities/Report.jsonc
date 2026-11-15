@@ -64,16 +64,7 @@
   ],
   "rls": {
     "create": {
-      "$and": [
-        {
-          "data.reporter_id": "{{user.email}}"
-        },
-        {
-          "not": {
-            "has_banned_or_suspended": true
-          }
-        }
-      ]
+      "data.reporter_id": "{{user.email}}"
     },
     "read": {
       "$or": [

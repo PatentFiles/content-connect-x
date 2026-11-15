@@ -25,5 +25,35 @@
     "profile_owner_id",
     "viewer_user_id",
     "viewed_date"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "data.viewer_user_id": "{{user.email}}"
+    },
+    "read": {
+      "$or": [
+        {
+          "data.profile_owner_id": "{{user.email}}"
+        },
+        {
+          "data.viewer_user_id": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }
