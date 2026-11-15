@@ -179,7 +179,7 @@ export default function Layout({ children, currentPageName }) {
             onLogout={handleLogout}
             adminRoleView={adminRoleView}
           />
-          <main id="main-content">
+          <main id="main-content" className="pt-[calc(4rem+env(safe-area-inset-top,0px))]">
             <PageTransition>{children}</PageTransition>
           </main>
         </div>
