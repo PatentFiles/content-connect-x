@@ -2,7 +2,7 @@
 import React,{useEffect,useState} from 'react';
 import {ShieldCheck,Camera,RefreshCw,ExternalLink} from 'lucide-react';
 import {integrationAction} from './integrationApi';
-export default function YotiVerification(){
+export default function YotiVerification({brand='content_connect'}){
  const [status,setStatus]=useState(null),[readiness,setReadiness]=useState(null);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const refresh=async(verify=false)=>{
@@ -15,7 +15,7 @@ export default function YotiVerification(){
  const begin=async(mode)=>{
   setBusy(true);setError('');setNotice('');
   try{
-   const response=await integrationAction('yoti_start',{mode});
+   const response=await integrationAction('yoti_start',{mode,brand});
    const u=new URL(response.url);
    if(u.protocol!=='https:'||u.hostname!=='age.yoti.com')throw Error('Verification link was invalid');
    window.location.assign(u.toString());
