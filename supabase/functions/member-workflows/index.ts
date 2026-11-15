@@ -294,41 +294,9 @@ Deno.serve(async req=>{
         return respond({item:data},201);
       }
       case 'sign_contract':{
-        const contract_id=body.contract_id;
-        if(!isId(contract_id))return fail('Contract ID required');
-        const {data:contract,error}=await admin.from('contracts').select('id,collaboration_id,content,status,locked_at').eq('id',contract_id).maybeSingle();
-        if(error||!contract||!await memberOf(contract.collaboration_id))return fail('Contract unavailable',403);
-        if(!['draft','partially_signed'].includes(contract.status))return fail('Contract no longer signable',409);
-        if(body.consent!==true)return fail('Explicit contract consent required');
-        // Signature alone is not permission to record or distribute a collaboration.
-        const {data:consentRecord,error:consentError}=await admin.from('collaboration_consents')
-          .select('participation_consent,recording_consent,revoked_at')
-          .eq('collaboration_id',contract.collaboration_id).eq('user_id',uid).maybeSingle();
-        if(consentError||!consentRecord||!consentRecord.participation_consent||!consentRecord.recording_consent||consentRecord.revoked_at)
-          return fail('Separate, current performer participation and recording consent required',403);
-        const {data:collabPolicy,error:policyError}=await admin.from('collaborations')
-          .select('requires_work_clearance,status').eq('id',contract.collaboration_id).maybeSingle();
-        if(policyError||!collabPolicy||collabPolicy.status==='paused')return fail('Collaboration is paused or unavailable',409);
-        if(collabPolicy.requires_work_clearance){
-          const {data:workClearance,error:clearanceError}=await admin.from('performer_work_clearances')
-            .select('clearance_confirmed,expires_at').eq('user_id',uid).maybeSingle();
-          if(clearanceError||!workClearance?.clearance_confirmed||!workClearance.expires_at||Date.parse(workClearance.expires_at)<Date.now())
-            return fail('Current verified work clearance required before signing',403);
-        }
-        const hash=await hashContent(contract.content);
-        const {data:already}=await admin.from('contract_signatures').select('id').eq('contract_id',contract_id).eq('signer_id',uid).maybeSingle();
-        if(already)return fail('Already signed',409);
-        const {data:record,error:signatureError}=await admin.from('contract_signatures').insert({contract_id,signer_id:uid,signed_content_hash:hash}).select('id,accepted_at').single();
-        if(signatureError)throw signatureError;
-        const {data:members,error:membersError}=await admin.from('collaboration_members').select('user_id').eq('collaboration_id',contract.collaboration_id);
-        const {data:signatures,error:sigsError}=await admin.from('contract_signatures').select('signer_id').eq('contract_id',contract_id);
-        if(membersError||sigsError)throw membersError||sigsError;
-        const signed=new Set((signatures||[]).map(v=>v.signer_id));
-        const completed=(members||[]).every(v=>signed.has(v.user_id));
-        const {error:updateError}=await admin.from('contracts').update({status:completed?'signed':'partially_signed',locked_at:contract.locked_at||new Date().toISOString()}).eq('id',contract_id).in('status',['draft','partially_signed']);
-        if(updateError)throw updateError;
-        await audit('sign_contract',contract_id,{signature_id:record.id,hash});
-        return respond({item:{id:record.id,accepted_at:record.accepted_at,contract_id,complete:completed}});
+        // Formal agreements must be signed with independently verified DocuSign
+        // envelopes, not locally generated signature rows.
+        return fail('DocuSign completion is required. In-app prototype signing is disabled.',409);
       }
       case 'list_properties':{
         const {data,error}=await admin.from('properties').select('id,title,description,city,state,country,hourly_rate,status').eq('status','active').order('created_at',{ascending:false}).limit(60);
