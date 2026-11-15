@@ -14,18 +14,17 @@ export default function useMobilePageSetup({ title = '', onBack, rightAction } =
   // useMobileNav will throw if called outside MobileNavProvider.
   // We catch that at the MobileNavContext level by returning a no-op context
   // when there's no provider — see MobileNavContext safe export below.
-  const mobileNav = useMobileNav();
+  const { setTitle, setBackAction, setRightAction } = useMobileNav();
 
   useEffect(() => {
-    mobileNav.setTitle(title);
-    mobileNav.setBackAction(onBack ?? null);
-    mobileNav.setRightAction(rightAction ?? null);
+    setTitle(title);
+    setBackAction(onBack ?? null);
+    setRightAction(rightAction ?? null);
 
     return () => {
-      mobileNav.setTitle('');
-      mobileNav.setBackAction(null);
-      mobileNav.setRightAction(null);
+      setTitle('');
+      setBackAction(null);
+      setRightAction(null);
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title]);
+  }, [title, onBack, rightAction, setTitle, setBackAction, setRightAction]);
 }
