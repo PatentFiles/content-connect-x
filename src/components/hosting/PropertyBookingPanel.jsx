@@ -118,7 +118,7 @@ export default function PropertyBookingPanel({ property, currentUser, isOwner })
         {property.rules?.verified_only && (
           <CCBadge variant="success" size="sm" icon={Shield}>Verified Users Only</CCBadge>
         )}
-        {property.instant_book && (
+        {false && property.instant_book && (
           <CCBadge variant="primary" size="sm">⚡ Instant Book</CCBadge>
         )}
       </div>
@@ -145,7 +145,7 @@ export default function PropertyBookingPanel({ property, currentUser, isOwner })
           fullWidth
           onClick={() => setShowBooking(true)}
         >
-          {property.instant_book ? '⚡ Book Instantly' : 'Request to Book'}
+          Request to Book
         </CCButton>
       )}
 
