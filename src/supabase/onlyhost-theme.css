@@ -1,0 +1,41 @@
+/* OnlyHost sister brand: same premium interface system, distinct location-first identity. */
+.oh-app {
+  background:radial-gradient(ellipse 60rem 40rem at 75% -10%,rgba(66,121,233,.13),transparent 70%),#080F1E;
+  color:#F5F8FF; min-height:100vh;
+}
+.oh-topline{height:3px;background:linear-gradient(90deg,#76E3F7,#8076FF,#D98CFF);}
+.oh-header{background:rgba(11,21,36,.92);border-bottom:1px solid rgba(183,206,238,.10);backdrop-filter:blur(18px)}
+.oh-gradient-text{background:linear-gradient(105deg,#76E4EF 0%,#8B9CFF 55%,#D3A1FF 100%);background-clip:text;-webkit-background-clip:text;color:transparent}
+.oh-mark{width:43px;height:43px;display:grid;place-items:center;border:1px solid rgba(130,221,238,.4);border-radius:13px;
+ background:linear-gradient(135deg,rgba(39,191,219,.28),rgba(114,97,239,.2));color:#B6F8FF}
+.oh-primary{background:linear-gradient(112deg,#17A8D9,#5B75EE 68%,#9378F6);color:white;
+ border:1px solid rgba(197,242,255,.2);box-shadow:0 9px 25px rgba(22,120,216,.12);transition:filter .2s,transform .2s}
+.oh-primary:hover:not(:disabled){filter:brightness(1.12);transform:translateY(-1px)}
+.oh-primary:disabled{opacity:.5}
+.oh-secondary{background:rgba(30,50,75,.75);border:1px solid rgba(156,201,235,.21);color:#D8EAF8}
+.oh-secondary:hover{border-color:rgba(130,230,243,.56);background:rgba(41,66,92,.78)}
+.oh-icon-button{width:43px;height:43px;display:grid;place-items:center;border-radius:12px;border:1px solid rgba(170,196,234,.2)}
+.oh-eyebrow{color:#77D9EE;font-size:.74rem;text-transform:uppercase;letter-spacing:.22em;font-weight:750}
+.oh-dot{display:inline-block;width:8px;height:8px;margin-right:12px;border-radius:50%;background:#6EF0E4;box-shadow:0 0 18px rgba(80,237,220,.5)}
+.oh-panel{border:1px solid rgba(161,188,220,.17);border-radius:24px;background:linear-gradient(145deg,rgba(26,43,65,.86),rgba(13,26,47,.92))}
+.oh-hero-grid{background-image:linear-gradient(rgba(153,205,230,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(153,205,230,.035) 1px,transparent 1px);background-size:55px 55px;mask-image:linear-gradient(to bottom,black,transparent)}
+.oh-hero-visual{
+ background:
+ radial-gradient(circle at 58% 31%,rgba(115,197,255,.34),transparent 38%),
+ radial-gradient(circle at 21% 76%,rgba(157,105,238,.37),transparent 39%),
+ linear-gradient(145deg,#1B3856,#112540 53%,#211B47);
+ border:1px solid rgba(154,217,238,.25);box-shadow:0 25px 100px rgba(2,6,22,.38);
+}
+.oh-hero-orbit{position:absolute;inset:50px 24px;border-radius:40% 60% 57% 43%;border:1px solid rgba(170,221,244,.32);transform:rotate(-23deg);box-shadow:0 0 90px rgba(93,163,230,.2),inset 0 0 55px rgba(117,146,240,.1)}
+.oh-hero-orbit::after{content:'';position:absolute;inset:58px;border:1px solid rgba(173,160,255,.36);border-radius:45% 55%}
+.oh-property-card{border:1px solid rgba(161,188,220,.18);border-radius:24px;background:#132037;overflow:hidden;transition:transform .2s,border-color .2s}
+.oh-property-card:hover{transform:translateY(-3px);border-color:#66BFEA}
+.oh-category-card{min-height:275px;border:1px solid rgba(155,199,232,.17);border-radius:22px;padding:26px;display:flex;flex-direction:column;align-items:flex-start;
+ background:radial-gradient(circle at 89% 5%,rgba(88,139,226,.16),transparent 44%),linear-gradient(145deg,#17283F,#101D32);
+ transition:transform .2s,border-color .2s}
+.oh-category-card:hover{transform:translateY(-4px);border-color:rgba(115,230,248,.6)}
+.oh-category-icon{width:55px;height:55px;border-radius:16px;display:grid;place-items:center;background:rgba(80,153,220,.16);color:#8DE1F1;border:1px solid rgba(129,219,238,.22)}
+.oh-step{color:#8CE2EC;font-size:1.25rem;font-weight:800}
+.oh-modal-backdrop{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;background:rgba(0,6,17,.82);backdrop-filter:blur(12px);padding:15px;overflow:auto}
+.oh-modal{position:relative;width:100%;max-width:650px;max-height:95vh;overflow:auto;border:1px solid rgba(140,195,234,.3);border-radius:24px;background:#14213B;padding:26px;box-shadow:0 35px 90px rgba(0,0,0,.38)}
+@media(prefers-reduced-motion:reduce){.oh-primary,.oh-property-card,.oh-category-card{transition:none}.oh-primary:hover,.oh-property-card:hover,.oh-category-card:hover{transform:none}}
