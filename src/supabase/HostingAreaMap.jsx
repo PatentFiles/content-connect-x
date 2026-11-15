@@ -137,7 +137,7 @@ export default function HostingAreaMap({areas=[],listings=[],onSelect,onSearchBo
      <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-[#D2E1F2]"><Route size={15}/> Travel and commute</p>
      <label className={label+' block'}>Travel origin<select className={field+' mt-1 w-full'} value={origin} onChange={e=>requestRoutes(e.target.value)}><option value="">Any location</option>{areas.map(a=><option key={a.id} value={a.id}>{a.city}, {a.region}</option>)}</select></label>
      <label className={label+' block'}>Maximum straight-line radius <strong>{range} km</strong>
-      <input type="range" className="mt-2 block w-full" value={range} min={5} max={400} step={5} onChange={e=>setRange(e.target.value)}/>
+      <input type="range" className="mt-2 block w-full" value={range} min={5} max={400} step={5} onChange={e=>setRange(Number(e.target.value))}/>
      </label>
      {originArea&&<p className="text-[11px] text-[#9EB4D0]">Distance is calculated between general public areas, not exact venue addresses.</p>}
      {routeData&&!routeData.routing_ready&&<p className="rounded-lg bg-amber-950/40 p-2 text-[11px] text-amber-200">Verified driving times unavailable until a routing provider is connected. Do not treat straight-line distance as driving time.</p>}
