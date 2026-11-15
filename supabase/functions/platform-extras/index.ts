@@ -139,6 +139,42 @@ Deno.serve(async(req)=>{
         if(error)throw error;
         return reply({items:data});
       }
+      case 'availability_overlaps':{
+        if(!paid||!await feature('availability'))return reject('Premium scheduling required',403);
+        const {data:mine,error:mineError}=await db.from('member_availability')
+          .select('id,city,country,starts_at,ends_at,kind').eq('user_id',uid)
+          .gt('ends_at',new Date().toISOString()).order('starts_at').limit(60);
+        if(mineError)throw mineError;
+        if(!mine?.length)return reply({items:[]});
+        const earliest=mine.reduce((acc:any,item:any)=>item.starts_at<acc?item.starts_at:acc,mine[0].starts_at);
+        const latest=mine.reduce((acc:any,item:any)=>item.ends_at>acc?item.ends_at:acc,mine[0].ends_at);
+        const {data:others,error:otherError}=await db.from('member_availability')
+          .select('id,user_id,city,country,starts_at,ends_at,visibility,kind')
+          .neq('user_id',uid).lt('starts_at',latest).gt('ends_at',earliest).limit(250);
+        if(otherError)throw otherError;
+        const blocked=await blockedUsers();
+        const {data:connections,error:connError}=await db.from('member_connection_requests')
+          .select('requester_id,recipient_id').eq('status','accepted')
+          .or(`requester_id.eq.${uid},recipient_id.eq.${uid}`);
+        if(connError)throw connError;
+        const contacts=new Set((connections||[]).map((c:any)=>c.requester_id===uid?c.recipient_id:c.requester_id));
+        const found=[];
+        for(const myWindow of mine){
+          for(const theirWindow of others||[]){
+            if(blocked.has(theirWindow.user_id)||theirWindow.visibility==='private')continue;
+            if(theirWindow.visibility==='connections'&&!contacts.has(theirWindow.user_id))continue;
+            if(myWindow.city.toLowerCase()!==theirWindow.city.toLowerCase()||
+               myWindow.country.toLowerCase()!==theirWindow.country.toLowerCase())continue;
+            const start=Math.max(Date.parse(myWindow.starts_at),Date.parse(theirWindow.starts_at));
+            const end=Math.min(Date.parse(myWindow.ends_at),Date.parse(theirWindow.ends_at));
+            if(end<=start)continue;
+            found.push({user_id:theirWindow.user_id,city:myWindow.city,country:myWindow.country,
+              starts_at:new Date(start).toISOString(),ends_at:new Date(end).toISOString(),
+              kind:theirWindow.kind,overlap_hours:Math.round((end-start)/3600000)});
+          }
+        }
+        return reply({items:found.slice(0,100),checked_at:new Date().toISOString()});
+      }
       case 'availability_create':{
         if(!paid||!await feature('availability'))return reject('Premium availability required',403);
         if(!await rate('member_availability','user_id',80,30*86400000))
