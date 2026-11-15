@@ -21,7 +21,7 @@ Deno.serve(async req => {
   ]);
   if (security?.banned || security?.suspended) return json({error:'Account unavailable'},403);
   const approved=ages?.some(v=>v.status==='approved'&&(!v.expires_at||Date.parse(v.expires_at)>Date.now()));
-  if (!approved && !security?.admin) return json({error:'Free age verification required'},403);
+  if (!approved) return json({error:'Free age verification required'},403);
   const paid=Boolean(security?.admin||subscription && ['active','trial'].includes(subscription.status)&&(!subscription.period_end||Date.parse(subscription.period_end)>Date.now()));
   const body=await req.json().catch(()=>({}));
   const query=typeof body.query==='string'?body.query.trim().slice(0,80):'';

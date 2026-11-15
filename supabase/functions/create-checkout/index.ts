@@ -10,6 +10,8 @@ Deno.serve(async (req) => {
   const url=Deno.env.get('SUPABASE_URL'),anon=Deno.env.get('SUPABASE_ANON_KEY'),role=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   const stripe=Deno.env.get('STRIPE_SECRET_KEY'),origin=Deno.env.get('CONTENT_CONNECT_APP_URL');
   if(!url||!anon||!role)return answer({error:'Account service unavailable'},503);
+  // No processing for an adult platform without verified merchant approval.
+  if(Deno.env.get('STRIPE_ADULT_BUSINESS_APPROVED')!=='true')return answer({error:'Adult-industry merchant onboarding required'},503);
   if(!stripe||!origin)return answer({error:'Subscription checkout is not yet configured'},503);
   const client=createClient(url,anon,{global:{headers:{Authorization:req.headers.get('Authorization')||''}}});
   const {data:{user},error}=await client.auth.getUser();

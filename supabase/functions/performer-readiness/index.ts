@@ -33,7 +33,7 @@ Deno.serve(async req=>{
   ]);
   if(status.error||age.error||subscription.error)return reply({error:'Unable to verify eligibility'},503);
   if(status.data?.banned||status.data?.suspended)return reply({error:'Account unavailable'},403);
-  if(!status.data?.admin&&!(age.data?.[0]?.status==='approved'&&(!age.data[0].expires_at||Date.parse(age.data[0].expires_at)>Date.now())))
+  if(!(age.data?.[0]?.status==='approved'&&(!age.data[0].expires_at||Date.parse(age.data[0].expires_at)>Date.now())))
     return reply({error:'Age verification required'},403);
   const body=await req.json().catch(()=>({}));
   const action=body?.action;

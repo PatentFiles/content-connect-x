@@ -40,7 +40,8 @@ Deno.serve(async req=>{
   const security=securityResult.data;
   if(security?.banned||security?.suspended)return fail('Account unavailable',403);
   const adminRole=security?.admin===true;
-  const verified=adminRole||isAdult(verificationResult.data||[]);
+  // Every member, including administrators, needs independently approved age verification.
+  const verified=isAdult(verificationResult.data||[]);
   const paid=adminRole||isActive(subscriptionResult.data);
   const body=await req.json().catch(()=>null);
   if(!body||typeof body!=='object')return fail('Invalid JSON',400);
