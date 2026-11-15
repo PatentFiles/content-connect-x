@@ -14,7 +14,8 @@ import ScheduleHub from './ScheduleHub';
 import CommunityHub from './CommunityHub';
 import FeedbackHub from './FeedbackHub';
 import AdminProductControls from './AdminProductControls';
-import { ShieldCheck, LockKeyhole, Search, UserRound, CreditCard, LogOut, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw, CalendarDays, MessageSquare, Lightbulb, Settings2 } from 'lucide-react';
+import MediaGallery from './MediaGallery';
+import { ShieldCheck, LockKeyhole, Search, UserRound, CreditCard, LogOut, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw, CalendarDays, MessageSquare, Lightbulb, Settings2, Images } from 'lucide-react';
 
 const shell = 'min-h-screen bg-[#0B0F14] text-[#E8EEF9]';
 const panel = 'rounded-xl border border-[#263248] bg-[#151D2B] p-5';
@@ -179,6 +180,7 @@ export default function SupabaseApp() {
     menu.push(['safety','Safety',ShieldCheck]);
     menu.push(['community','Community',MessageSquare]);
     menu.push(['feedback','Feedback',Lightbulb]);
+    menu.push(['media','Creator Media',Images]);
     if(paid) menu.push(['schedule','Availability',CalendarDays]);
   }
   if(paid && approved) {
@@ -199,6 +201,7 @@ export default function SupabaseApp() {
     {tab==='safety' && approved && <SafetyPanel/>}
     {tab==='community' && approved && <CommunityHub paid={paid} userId={user.id}/>}
     {tab==='feedback' && approved && <FeedbackHub admin={isAdmin}/>}
+    {tab==='media' && approved && <MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
     {tab==='schedule' && approved && paid && <ScheduleHub paid={paid}/>}
     {tab==='controls' && approved && isAdmin && <AdminProductControls/>}
     {tab==='membership'&&<div className={`${panel} max-w-2xl space-y-3`}><h2 className="text-xl font-semibold">Free today. Unlock more when ready.</h2><p className={muted}>Your free account includes age verification, profile setup and limited directory previews.</p><div className="p-4 rounded-lg bg-[#1A2438]"><LockKeyhole className="text-blue-400 mb-2"/>Full discovery, direct messages, contracts, collaboration rooms, property booking and advanced tools require membership.</div><p className="text-sm text-amber-200">Checkout only becomes available after verified Stripe configuration. Payment is never collected by this website directly.</p><div className="flex flex-wrap gap-2"><p className={muted}>Paid checkout is paused until an adult-industry merchant processor approves this business model. No subscription charges are possible from this preview.</p></div></div>}
