@@ -3,19 +3,21 @@
  * Edge Functions, which authorize every resource and action independently.
  */
 import React, { useCallback, useEffect, useState } from 'react';
-import { UsersRound, CalendarDays, ShieldAlert, Settings2, RefreshCw, CheckCircle2, Clock, Send, MessageSquare, BookMarked } from 'lucide-react';
+import { UsersRound, CalendarDays, ShieldAlert, Settings2, RefreshCw, MessageSquare } from 'lucide-react';
 import { productionAction } from './productionApi';
 
 const panel='rounded-xl border border-[#273449] bg-[#151D2B] p-5';
 const control='w-full rounded-lg border border-[#34445D] bg-[#0F1520] px-3 py-2 text-sm text-white';
 const button='rounded-lg bg-[#4F8CFF] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
 const secondary='rounded-lg bg-[#273449] px-3 py-2 text-sm text-white disabled:opacity-50';
+/** @type {Array<[string, string, import('react').ElementType]>} */
 const tabs=[['teams','Production Teams',UsersRound],['events','Shoot Events',CalendarDays],['cases','Disputes & Safety',ShieldAlert],['preferences','Notifications',Settings2]];
 
 export default function ProductionManager({user,paid=false,isAdmin=false}){
   const [tab,setTab]=useState(paid?'teams':'cases');
   const [items,setItems]=useState([]);
   const [teamMembers,setTeamMembers]=useState([]);
+  const [availableTeams,setAvailableTeams]=useState([]);
   const [team,setTeam]=useState('');
   const [name,setName]=useState('');
   const [description,setDescription]=useState('');
@@ -42,6 +44,10 @@ export default function ProductionManager({user,paid=false,isAdmin=false}){
       const result=await productionAction(action);
       if(section==='preferences')setPrefs(result.item||{email_digest:false,booking_reminders:true,message_alerts:true});
       else setItems(result.items||[]);
+      if(section==='events'){
+        const teams=await productionAction('teams_list');
+        setAvailableTeams((teams.items||[]).filter(x=>x.my_membership?.status==='active'&&['owner','manager'].includes(x.my_membership?.role)));
+      }
     } catch(e){setError(e.message);}
     finally{setBusy(false);}
   },[tab]);
@@ -143,7 +149,7 @@ export default function ProductionManager({user,paid=false,isAdmin=false}){
           <label className="text-sm">Visibility<select className={control+' mt-1'} value={eventVisibility} onChange={e=>setEventVisibility(e.target.value)}><option value="invite">Invited only</option><option value="verified">Verified professionals</option></select></label>
         </div>
         <p className="text-xs text-[#9AA6BC]">You can optionally associate this shoot with a private production team.</p>
-        <label className="text-sm block">Team<select className={control+' mt-1'} value={team} onChange={e=>setTeam(e.target.value)}><option value="">No team</option>{/* Available teams are loaded on the Teams tab */}{items.filter(x=>x.my_membership).map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
+        <label className="text-sm block">Team<select className={control+' mt-1'} value={team} onChange={e=>setTeam(e.target.value)}><option value="">No team</option>{/* Available teams are loaded on the Teams tab */}{availableTeams.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></label>
         <button className={button} disabled={busy}>Create event</button>
       </form>
       <div className={panel+' space-y-3'}><h3 className="font-semibold">Upcoming production events</h3>
