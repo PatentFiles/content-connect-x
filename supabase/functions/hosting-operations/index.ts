@@ -8,7 +8,7 @@ import {cancellationQuote,depositQuote,payoutEligibility,payoutQuote} from './ho
 const headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type','Access-Control-Allow-Methods':'POST,OPTIONS'};
 const response=(body:unknown,status=200)=>Response.json(body,{status,headers});
 const reject=(error:string,status=400)=>response({error},status);
-const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
+const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 const short=(v:unknown,max=1000)=>typeof v==='string'?v.trim().slice(0,max):'';
 const assured=(token:string)=>{
  try{const payload=token.replace(/^Bearer\s+/i,'').split('.')[1];const b64=payload.replace(/-/g,'+').replace(/_/g,'/');return JSON.parse(atob(b64.padEnd(Math.ceil(b64.length/4)*4,'=')))?.aal==='aal2';}catch{return false;}
