@@ -21,6 +21,8 @@ jobs:
         run: npm run typecheck:supabase
       - name: Verify Supabase/Bolt build
         run: npm run build:supabase
+      - name: Verify unauthenticated Supabase gateway restrictions
+        run: npm run smoke:supabase
       - name: Prevent TypeScript regression
         shell: bash
         run: |
