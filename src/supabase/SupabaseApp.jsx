@@ -6,7 +6,7 @@
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import { supabase, requireSupabase } from '@/api/supabaseClient';
-import { ShieldCheck, LockKeyhole, Search, UserRound, CreditCard, LogOut, UploadCloud, Camera, CheckCircle2, AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
+import { ShieldCheck, LockKeyhole, Search, UserRound, CreditCard, LogOut, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
 
 const shell = 'min-h-screen bg-[#0B0F14] text-[#E8EEF9]';
 const panel = 'rounded-xl border border-[#263248] bg-[#151D2B] p-5';
