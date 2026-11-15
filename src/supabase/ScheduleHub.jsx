@@ -9,6 +9,7 @@ const button='rounded-lg bg-[#4F8CFF] text-white font-semibold text-sm px-4 py-2
 export default function ScheduleHub({paid=false}){
   const [list,setList]=useState([]);
   const [mine,setMine]=useState([]);
+  const [overlaps,setOverlaps]=useState([]);
   const [city,setCity]=useState('');
   const [search,setSearch]=useState('');
   const [type,setType]=useState('travel');
@@ -52,6 +53,31 @@ export default function ScheduleHub({paid=false}){
     try{await platformAction('availability_delete',{id});await load(search);}
     catch(e){setError(e.message);}finally{setBusy(false);}
   };
+  const checkOverlaps=async()=>{
+    setError('');setBusy(true);
+    try{
+      const result=await platformAction('availability_overlaps');
+      setOverlaps(result.items||[]);
+      setInfo(result.items?.length?'Found '+result.items.length+' travel overlaps.':'No matching travel dates yet.');
+    }catch(e){setError(e.message);}finally{setBusy(false);}
+  };
+  const exportCalendar=()=>{
+    const escape=(v)=>String(v||'').replaceAll('\\','\\\\').replaceAll(',','\\,').replaceAll(';','\\;').replaceAll('\n','\\n');
+    const utc=(date)=>new Date(date).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+    const events=mine.map(item=>[
+      'BEGIN:VEVENT','UID:'+item.id+'@contentconnectx.com','DTSTAMP:'+utc(new Date()),
+      'DTSTART:'+utc(item.starts_at),'DTEND:'+utc(item.ends_at),
+      'SUMMARY:'+escape('Content Connect X: '+item.kind+' in '+item.city),
+      'LOCATION:'+escape(item.city+', '+item.country),
+      'DESCRIPTION:'+escape(item.note||'Professional availability'),
+      'END:VEVENT'
+    ].join('\r\n')).join('\r\n');
+    const payload='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Content Connect X//Availability//EN\r\n'+events+'\r\nEND:VCALENDAR\r\n';
+    const file=new Blob([payload],{type:'text/calendar;charset=utf-8'});
+    const url=URL.createObjectURL(file);
+    const anchor=document.createElement('a');anchor.href=url;anchor.download='content-connect-x-availability.ics';
+    anchor.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  };
   const short=(value)=>new Date(value).toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'});
   return <section className="space-y-5">
     <div><h2 className="text-2xl font-semibold flex gap-2 items-center"><CalendarDays size={24}/> Creator availability</h2><p className="text-sm text-[#9AA6BC] mt-1">Find travel overlaps, production windows and studio availability by city. Exact home addresses are never exposed.</p></div>
@@ -87,6 +113,9 @@ export default function ScheduleHub({paid=false}){
       </form>
       <div className={panel+' space-y-3'}>
         <h3 className="font-semibold">Manage your listings</h3>
+        <div className="flex flex-wrap gap-2"><button disabled={!mine.length||busy} className={button} onClick={exportCalendar}>Export iCalendar (.ics)</button><button disabled={!mine.length||busy} className={button} onClick={checkOverlaps}>Find date overlaps</button></div>
+        {!!overlaps.length&&<div className="bg-[#0F1520] rounded-lg p-3 space-y-2"><h4 className="font-semibold text-sm">Matching creators and shared windows</h4>{overlaps.map((m,i)=><div key={m.user_id+'-'+i} className="text-xs border-b border-[#263248] pb-2"><strong>{m.city}, {m.country}</strong> · {short(m.starts_at)} to {short(m.ends_at)} · {m.overlap_hours} hours · Member: {m.user_id}</div>)}</div>}
+
         {!mine.length&&<p className="text-sm text-[#9AA6BC]">You have no scheduled entries yet.</p>}
         {mine.map(entry=><div key={entry.id} className="flex items-center justify-between gap-2 border-b border-[#263248] pb-2">
           <span className="text-sm">{entry.city} · {short(entry.starts_at)} · {entry.kind}</span>
