@@ -13,6 +13,13 @@ Deno.serve(async(req)=>{
   const admin=createClient(url,secret);
   const {data:role,error:roleError}=await admin.from('account_security').select('admin,banned,suspended').eq('user_id',user.id).maybeSingle();
   if(roleError||!role?.admin||role.banned||role.suspended)return respond({error:'Forbidden'},403);
+  // Administrator accounts also require independent 18+ verification.
+  const {data:reviewerAge,error:reviewerAgeError}=await admin.from('age_verification_requests')
+    .select('status,expires_at').eq('user_id',user.id)
+    .order('created_at',{ascending:false}).limit(1);
+  if(reviewerAgeError||reviewerAge?.[0]?.status!=='approved'||
+    (reviewerAge?.[0]?.expires_at&&Date.parse(reviewerAge[0].expires_at)<Date.now()))
+    return respond({error:'Reviewer must be age verified'},403);
   const body=await req.json().catch(()=>({}));
   if(body.action==='list'){
     const {data, error}=await admin.from('age_verification_requests').select('id,user_id,status,provider,created_at,verified_at,expires_at,reviewed_at').order('created_at',{ascending:false}).limit(100);
@@ -22,6 +29,7 @@ Deno.serve(async(req)=>{
   if(!['approve','reject','document'].includes(body.action)||typeof body.request_id!=='string')return respond({error:'Invalid request'},400);
   const {data:record,error:findError}=await admin.from('age_verification_requests').select('id,user_id,status,id_document_path,selfie_document_path').eq('id',body.request_id).maybeSingle();
   if(findError||!record)return respond({error:'Not found'},404);
+  if(record.user_id===user.id)return respond({error:'Administrators cannot review their own age verification'},403);
   if(body.action==='document'){
     if(record.status!=='pending'&&record.status!=='approved'&&record.status!=='rejected')return respond({error:'Invalid status'},400);
     const path=body.document_type==='id'?record.id_document_path:body.document_type==='selfie'?record.selfie_document_path:null;
