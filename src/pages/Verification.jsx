@@ -65,20 +65,12 @@ export default function Verification() {
 
   const submitVerificationMutation = useMutation({
     mutationFn: async () => {
-      const data = {
-        user_id: user.email,
-        provider: 'manual',
-        status: 'pending',
-        documents_submitted: [
-          { type: 'id', uri: uploadedId, submitted_at: new Date().toISOString() },
-          { type: 'selfie', uri: uploadedSelfie, submitted_at: new Date().toISOString() },
-        ],
-      };
-      
-      if (verification) {
-        return base44.entities.VerificationRecord.update(verification.id, data);
-      }
-      return base44.entities.VerificationRecord.create(data);
+      if (!uploadedId || !uploadedSelfie) throw new Error('Both documents are required');
+      // Only the trusted backend can create verification records; it always sets pending.
+      return base44.functions.invoke('submitAgeVerification', {
+        id_file_uri: uploadedId,
+        selfie_file_uri: uploadedSelfie,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries(['verification']);
@@ -121,7 +113,7 @@ export default function Verification() {
               </div>
               <h1 className="text-2xl font-bold text-[#E8EEF9] mb-3">You're Verified!</h1>
               <p className="text-[#9AA6BC] mb-6">
-                Your identity has been verified. You have full access to all platform features.
+                Your age verification is approved. You can explore free previews now; subscribe to unlock all platform features.
               </p>
               <CCBadge variant="success" size="lg" icon={CheckCircle}>
                 Verified on {new Date(verification.verified_at).toLocaleDateString()}
@@ -187,7 +179,7 @@ export default function Verification() {
           </div>
           <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--cc-text-primary)' }}>Identity Verification</h1>
           <p style={{ color: 'var(--cc-text-secondary)' }}>
-            Verify your identity to access all platform features and build trust with other members.
+            Age verification is free. Once approved, you can explore previews and complete your profile before choosing a paid plan.
           </p>
         </motion.div>
 
