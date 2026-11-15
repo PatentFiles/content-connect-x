@@ -206,13 +206,20 @@ Deno.serve(async req=>{
         return respond({item:saved});
       }
       case 'list_conversations':{
-        const {data:links,error}=await admin.from('conversation_members').select('conversation_id').eq('user_id',uid).limit(150);
+        const {data:links,error}=await admin.from('conversation_members').select('conversation_id,last_read_at').eq('user_id',uid).limit(75);
         if(error)throw error;
         const ids=(links||[]).map(v=>v.conversation_id);
         if(!ids.length)return respond({items:[]});
         const {data,error:loadError}=await admin.from('conversations').select('id,created_at').in('id',ids).order('created_at',{ascending:false});
         if(loadError)throw loadError;
-        return respond({items:data});
+        const enriched=await Promise.all((data||[]).map(async c=>{
+          const cursor=links?.find(l=>l.conversation_id===c.id)?.last_read_at;
+          let q=admin.from('messages').select('id',{head:true,count:'exact'}).eq('conversation_id',c.id).neq('sender_id',uid);
+          if(cursor)q=q.gt('created_at',cursor);
+          const {count,error:countError}=await q;
+          return {...c,unread:countError?0:(count||0)};
+        }));
+        return respond({items:enriched});
       }
       case 'create_conversation':{
         const target=body.target_user_id;
@@ -248,6 +255,16 @@ Deno.serve(async req=>{
         const {data,error}=await admin.from('messages').select('id,conversation_id,sender_id,body,created_at').eq('conversation_id',cid).order('created_at',{ascending:false}).limit(100);
         if(error)throw error;
         return respond({items:(data||[]).reverse()});
+      }
+      case 'mark_conversation_read':{
+        const conversation_id=body.conversation_id;
+        if(!isId(conversation_id)||!await conversationMember(conversation_id))return fail('Conversation unavailable',403);
+        const {data,error}=await admin.from('conversation_members')
+          .update({last_read_at:new Date().toISOString()})
+          .eq('conversation_id',conversation_id).eq('user_id',uid)
+          .select('conversation_id').maybeSingle();
+        if(error||!data)return fail('Unable to mark read',404);
+        return respond({ok:true});
       }
       case 'send_message':{
         const cid=body.conversation_id,message=text(body.message,10000);
