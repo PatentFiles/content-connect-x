@@ -104,19 +104,23 @@ export default function Landing() {
       </section>
 
       {/* Features Section — driven by live feature flags */}
-      <section className="py-20 px-4 bg-cc-surface">
-        <div className="max-w-6xl mx-auto">
+      <section className="relative overflow-hidden bg-cc-surface px-4 py-20 sm:py-24">
+        <div className="pointer-events-none absolute left-1/2 top-0 h-64 w-[min(90vw,900px)] -translate-x-1/2 rounded-full bg-[#4F8CFF]/10 blur-3xl" />
+        <div className="relative mx-auto max-w-6xl">
           <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="mx-auto mb-12 max-w-3xl text-center sm:mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold cc-text-fix-primary mb-4">
+            <span className="mb-4 inline-flex rounded-full border border-[#4F8CFF]/30 bg-[#4F8CFF]/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#4F8CFF]">
+              Built for better creative work
+            </span>
+            <h2 className="mb-5 text-3xl font-bold leading-tight cc-text-fix-primary sm:text-4xl md:text-5xl">
               Everything You Need to Collaborate Safely
             </h2>
-            <p className="cc-text-fix-secondary max-w-2xl mx-auto">
-              Built specifically for content professionals. Every feature designed with your safety and success in mind.
+            <p className="mx-auto max-w-2xl text-base leading-7 cc-text-fix-secondary sm:text-lg">
+              Built specifically for content professionals. Every feature is designed to help you create with more trust, clarity, and confidence.
             </p>
           </motion.div>
           <MarketingFeatureShowcase onlyPage="Landing" />
@@ -124,23 +128,26 @@ export default function Landing() {
       </section>
 
       {/* How It Works Preview */}
-      <section className="py-20 px-4">
-        <div className="max-w-6xl mx-auto">
+      <section className="bg-cc-bg px-4 py-20 sm:py-24">
+        <div className="mx-auto max-w-6xl">
           <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="mx-auto mb-12 max-w-3xl text-center sm:mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold cc-text-fix-primary mb-4">
+            <span className="mb-4 inline-flex rounded-full border border-[#FF2DAA]/30 bg-[#FF2DAA]/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#FF5FBD]">
+              Your path to collaboration
+            </span>
+            <h2 className="mb-5 text-3xl font-bold leading-tight cc-text-fix-primary sm:text-4xl md:text-5xl">
               Simple, Safe, Professional
             </h2>
-            <p className="cc-text-fix-secondary max-w-2xl mx-auto">
-              Get started in minutes. Our verification process keeps the community safe.
+            <p className="mx-auto max-w-2xl text-base leading-7 cc-text-fix-secondary sm:text-lg">
+              Get started in minutes. Our verification process helps create a safer, more dependable community.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-5 gap-4">
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
             {[
               { step: 1, title: 'Verify', desc: 'Complete identity verification' },
               { step: 2, title: 'Subscribe', desc: 'Choose your plan' },
@@ -156,16 +163,16 @@ export default function Landing() {
                 transition={{ delay: i * 0.1 }}
                 className="relative"
               >
-                <CCCard padding="md" className="text-center h-full">
-                  <div className="w-10 h-10 rounded-full bg-[#4F8CFF] text-white font-bold flex items-center justify-center mx-auto mb-3">
+                <CCCard padding="lg" className="group h-full text-center hover:-translate-y-1 hover:border-[#4F8CFF]/60 hover:shadow-[0_16px_40px_rgba(79,140,255,0.1)]">
+                  <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#4F8CFF] to-[#FF2DAA] text-lg font-bold text-white shadow-lg shadow-[#4F8CFF]/20 transition-transform duration-300 group-hover:scale-110">
                     {item.step}
                   </div>
-                  <h4 className="font-semibold cc-text-fix-primary mb-1">{item.title}</h4>
-                  <p className="text-xs cc-text-fix-muted">{item.desc}</p>
+                  <h4 className="mb-2 font-semibold cc-text-fix-primary">{item.title}</h4>
+                  <p className="text-sm leading-6 cc-text-fix-muted">{item.desc}</p>
                 </CCCard>
                 {i < 4 && (
-                  <div className="hidden md:block absolute top-1/2 -right-2 w-4 cc-text-fix-muted">
-                    <ArrowRight className="w-4 h-4" />
+                  <div className="pointer-events-none absolute -right-4 top-1/2 hidden -translate-y-1/2 text-[#4F8CFF]/60 lg:block">
+                    <ArrowRight className="h-5 w-5" />
                   </div>
                 )}
               </motion.div>
@@ -175,20 +182,26 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 bg-gradient-to-br from-[#4F8CFF]/20 to-[#FF2DAA]/20">
-        <div className="max-w-4xl mx-auto text-center">
+      <section className="px-4 py-20 sm:py-24">
+        <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl border border-[#4F8CFF]/30 bg-gradient-to-br from-[#4F8CFF]/20 via-cc-surface to-[#FF2DAA]/20 px-6 py-14 text-center shadow-2xl shadow-[#4F8CFF]/10 sm:px-12 sm:py-16">
+          <div className="pointer-events-none absolute -right-24 -top-24 h-56 w-56 rounded-full bg-[#FF2DAA]/20 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-[#4F8CFF]/20 blur-3xl" />
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
+            className="relative"
           >
-            <h2 className="text-3xl md:text-4xl font-bold cc-text-fix-primary mb-4">
+            <span className="mb-4 inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
+              Start creating together
+            </span>
+            <h2 className="mb-4 text-3xl font-bold leading-tight text-white sm:text-4xl md:text-5xl">
               Ready to Join the Community?
             </h2>
-            <p className="cc-text-fix-secondary mb-8 max-w-2xl mx-auto">
+            <p className="mx-auto mb-8 max-w-2xl text-base leading-7 text-white/75 sm:text-lg">
               Start your journey today. Connect with verified professionals and take your collaborations to the next level.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col justify-center gap-4 sm:flex-row">
               <CCButton 
                 variant="primary" 
                 size="xl" 
