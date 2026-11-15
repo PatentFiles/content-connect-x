@@ -1,7 +1,7 @@
 /** Independent verified administrator review: hosts, damage claims, refunds and signing identity. */
 import React,{useCallback,useEffect,useState} from 'react';
 import {ShieldCheck,FileSignature,RefreshCw,AlertTriangle,ExternalLink} from 'lucide-react';
-import {hostingBusiness,hostingAgreement,formatUSD,formatDate} from './hostingBusinessApi';
+import {hostingBusiness,hostingAgreement,hostingProduction,formatUSD,formatDate} from './hostingBusinessApi';
 const panel='rounded-xl border border-[#31445D] bg-[#111B29] p-5';
 const button='rounded-lg bg-[#557DF4] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
 const secondary='rounded-lg border border-[#40536B] bg-[#26384D] px-4 py-2 text-sm text-white disabled:opacity-50';
@@ -11,6 +11,7 @@ export default function HostingAdminOperations(){
  const [hosts,setHosts]=useState([]);
  const [claims,setClaims]=useState([]);
  const [refunds,setRefunds]=useState([]);
+ const [venueReviews,setVenueReviews]=useState([]);
  const [reviewed,setReviewed]=useState(false);
  const [note,setNote]=useState('');
  const [target,setTarget]=useState('');
@@ -22,10 +23,10 @@ export default function HostingAdminOperations(){
  const refresh=useCallback(async()=>{
   setBusy(true);setError('');
   try{
-   const [a,b,c]=await Promise.all([
-    hostingBusiness('admin_host_queue'),hostingBusiness('admin_claims'),hostingBusiness('admin_refunds')
+   const [a,b,c,d]=await Promise.all([
+    hostingBusiness('admin_host_queue'),hostingBusiness('admin_claims'),hostingBusiness('admin_refunds'),hostingProduction('admin_suitability_queue')
    ]);
-   setHosts(a.items||[]);setClaims(b.items||[]);setRefunds(c.items||[]);
+   setHosts(a.items||[]);setClaims(b.items||[]);setRefunds(c.items||[]);setVenueReviews(d.items||[]);
   }catch(e){setError(e.message);}finally{setBusy(false);}
  },[]);
  useEffect(()=>{refresh();},[refresh]);
@@ -69,6 +70,19 @@ export default function HostingAdminOperations(){
          perform(hostingBusiness,'admin_host_decide',{id:item.id,decision:'approved',note,human_review_confirmed:true},'Host authority approved.');
       }}>Approve host</button>
       <button className={secondary} disabled={!reviewed||busy} onClick={()=>perform(hostingBusiness,'admin_host_decide',{id:item.id,decision:'rejected',note,human_review_confirmed:true},'Verification rejected.')}>Reject</button></div>
+    </div>)}
+  </div>
+  <div className={panel+' space-y-3'}>
+    <h3 className="font-semibold">Venue production suitability review ({venueReviews.length})</h3>
+    {venueReviews.map(v=><div className="space-y-2 border-t border-[#31445D] py-3" key={v.property_id}>
+      <p className="text-xs break-all">Venue {v.property_id}</p>
+      <p className="text-sm">Adult production: {v.adult_production_permitted?'Host permits':'Not declared'} · Privacy: {v.privacy_level} · Soundproofing: {v.soundproof_confirmed?'Declared':'Not declared'}</p>
+      <p className="text-xs text-[#AABDD3]">Parking: {v.parking_spaces} · Dressing rooms: {v.separate_dressing_rooms}</p>
+      <p className="text-xs whitespace-pre-wrap text-[#AABDD3]">Restrictions: {v.noise_restrictions||'None provided'}</p>
+      <div className="flex gap-2">
+        <button className={button} disabled={busy||!reviewed} onClick={()=>perform(hostingProduction,'admin_suitability_review',{property_id:v.property_id,approved:true,review_confirmed:true},'Suitability approved after independent review.')}>Confirm verified suitability</button>
+        <button className={secondary} disabled={busy||!reviewed} onClick={()=>perform(hostingProduction,'admin_suitability_review',{property_id:v.property_id,approved:false,review_confirmed:true},'Venue declarations remain unverified.')}>Leave unverified</button>
+      </div>
     </div>)}
   </div>
   <div className={panel+' space-y-3'}><h3 className="font-semibold flex gap-2 items-center"><FileSignature size={17}/>Trusted DocuSign legal names</h3>
