@@ -6,6 +6,7 @@
  */
 import React, { useCallback, useEffect, useState } from 'react';
 import { supabase, requireSupabase } from '@/api/supabaseClient';
+import { platformAction } from './platformApi';
 import MemberWorkspace from './MemberWorkspace';
 import TrustCenter from './TrustCenter';
 import ConsentCenter from './ConsentCenter';
@@ -44,6 +45,7 @@ export default function SupabaseApp() {
   const [queryRunning,setQueryRunning] = useState(false);
   const [documents,setDocuments] = useState({id:null,selfie:null});
   const [reviews,setReviews] = useState([]);
+  const [visibleFeatures,setVisibleFeatures] = useState(null);
   const user = session?.user;
   const approved = verification?.status === 'approved' && (!verification.expires_at || new Date(verification.expires_at) > new Date());
   const activePaid = (billing?.status === 'active' || billing?.status === 'trial') && (!billing?.period_end || new Date(billing.period_end) > new Date());
@@ -86,6 +88,18 @@ export default function SupabaseApp() {
     refresh(session).catch(e=>!cancelled&&setError(e.message));
     return()=>{cancelled=true;};
   },[session?.access_token,refresh]);
+
+  useEffect(()=>{
+    if(!approved){setVisibleFeatures(null);return;}
+    let alive=true;
+    platformAction('get_feature_flags').then(result=>{
+      if(alive)setVisibleFeatures(result.flags||{});
+    }).catch(err=>{
+      console.warn('Feature visibility unavailable');
+      if(alive)setVisibleFeatures({});
+    });
+    return()=>{alive=false;};
+  },[approved,paid]);
 
   const authenticate = async (event) => {
     event.preventDefault();setBusy(true);setError('');setNotice('');
@@ -179,10 +193,10 @@ export default function SupabaseApp() {
   menu.push(['consent','My Consent & Rights',ShieldCheck]);
   if(approved) {
     menu.push(['safety','Safety',ShieldCheck]);
-    menu.push(['community','Community',MessageSquare]);
-    menu.push(['feedback','Feedback',Lightbulb]);
-    menu.push(['media','Creator Media',Images]);
-    if(paid) menu.push(['schedule','Availability',CalendarDays]);
+    if(visibleFeatures?.community_feed)menu.push(['community','Community',MessageSquare]);
+    if(visibleFeatures?.product_feedback)menu.push(['feedback','Feedback',Lightbulb]);
+    if(visibleFeatures?.media_gallery)menu.push(['media','Creator Media',Images]);
+    if(paid && visibleFeatures?.availability) menu.push(['schedule','Availability',CalendarDays]);
   }
   if(paid && approved) {
     menu.push(['workspace','Full Workspace',LockKeyhole]);

@@ -75,7 +75,7 @@ Deno.serve(async(req)=>{
   try{
     switch(action){
       case 'get_feature_flags':{
-        const keys=['creator_discovery','availability','community_feed','community_publish','product_feedback','messages','contracts','property_bookings','background_screening'];
+        const keys=['creator_discovery','availability','community_feed','community_publish','product_feedback','media_gallery','messages','contracts','property_bookings','background_screening'];
         const entries=await Promise.all(keys.map(async(key)=>[key,await feature(key)]));
         return reply({flags:Object.fromEntries(entries),tier});
       }
