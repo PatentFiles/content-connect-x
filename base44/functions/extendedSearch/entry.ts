@@ -153,18 +153,31 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
     const payload = await req.json();
-    const { query = '', limit = 50 } = payload;
+    const query = typeof payload.query === 'string' ? payload.query.slice(0, 120) : '';
+    const subs = await base44.asServiceRole.entities.Subscription.filter({ user_id: user.email });
+    const isAdmin = user.role === 'admin';
+    const subscribed = isAdmin || subs.some(s => ['active', 'trial'].includes(s.status));
+    // The verified-free tier gets a limited, read-only public-field preview.
+    const limit = Math.max(1, Math.min(Number(payload.limit) || 50, subscribed ? 100 : 12));
+    if (!isAdmin) {
+      const ownVerification = await base44.asServiceRole.entities.VerificationRecord.filter({ user_id: user.email });
+      if (!ownVerification.some(v => v.status === 'approved' && (!v.expires_at || Date.parse(v.expires_at) > Date.now()))) {
+        return Response.json({ error: 'Age verification required' }, { status: 403 });
+      }
+    }
+    const approved = await base44.asServiceRole.entities.VerificationRecord.list('-verified_at', 2000);
+    const verifiedIds = new Set(approved.filter(v => v.status === 'approved' && (!v.expires_at || Date.parse(v.expires_at) > Date.now())).map(v => v.user_id));
 
     const rankingConfig = await loadRankingConfig(base44);
     const results = [];
 
     // Search profiles
     if (!payload.typeFilter || payload.typeFilter === 'profile') {
-      const profiles = await base44.entities.UserProfile.list('-updated_date', 100);
+      const profiles = await base44.asServiceRole.entities.UserProfile.list('-updated_date', 500);
       const q = query.toLowerCase();
       const filtered = profiles.filter(p =>
         !p.is_admin &&
-        p.profile_complete &&
+        p.profile_complete && verifiedIds.has(p.user_id) &&
         !p.banned &&
         !p.account_deactivated &&
         p.deletion_status !== 'anonymized' &&
@@ -183,13 +196,13 @@ Deno.serve(async (req) => {
         role_type: p.role_type,
         avatar_url: p.avatar_url,
         city: p.base_location?.city,
-        verified: false,
+        verified: true,
       })));
     }
 
     // Search properties — use stored aggregates (average_rating, total_reviews, last_review_at)
     if (!payload.typeFilter || payload.typeFilter === 'property') {
-      const properties = await base44.entities.Property.list('-updated_date', 100);
+      const properties = await base44.asServiceRole.entities.Property.list('-updated_date', 300);
       const q = query.toLowerCase();
       const filtered = properties.filter(p =>
         p.status === 'active' &&

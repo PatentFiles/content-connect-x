@@ -97,7 +97,7 @@ export default function Discovery() {
     enabled: !!user?.email,
   });
 
-  const isAdmin = myProfile?.[0]?.is_admin || user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
   const isSubscribed = isAdmin || subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
   const { data: allVerifications = [] } = useQuery({
@@ -117,7 +117,7 @@ export default function Discovery() {
   const { data: unifiedResults = [], isLoading: resultsLoading } = useQuery({
     queryKey: ['extendedSearch', searchQuery],
     queryFn: () => base44.functions.invoke('extendedSearch', { query: searchQuery, limit: 100 }),
-    enabled: !!user && isSubscribed,
+    enabled: !!user,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -303,7 +303,7 @@ export default function Discovery() {
     // Verified filter (profile only)
     const verifiedFiltered = finalFiltered.filter(r => {
       if (r.type !== 'profile') return true;
-      if (!filters.verifiedOnly) return true;
+      if (!filters.verifiedOnly || r.verified === true) return true;
       const verifiedIds = allVerifications.filter(v => v.status === 'approved').map(v => v.user_id);
       return verifiedIds.includes(r.user_id);
     });
@@ -340,8 +340,9 @@ export default function Discovery() {
   if (userLoading) return <CCLoadingScreen message="Loading..." />;
 
   return (
-    <FeatureRouteGuard flag="discovery" requiresSubscription={true}>
+    <FeatureRouteGuard flag="discovery">
       <div className="min-h-screen pb-20 md:pb-8" style={{ backgroundColor: 'var(--cc-bg)' }}>
+      {!isSubscribed && <div className="max-w-6xl mx-auto px-4 py-3 text-sm text-[#E8EEF9] bg-[#151D2B] border border-[#263248] rounded-lg">Free preview: browse up to 12 verified profiles and listings. <Link to="/Pricing" className="text-[#4F8CFF] underline">Unlock messaging and full discovery</Link>.</div>}
       <div className="sticky top-16 z-30 backdrop-blur-xl border-b" style={{ backgroundColor: 'color-mix(in srgb, var(--cc-bg) 95%, transparent)', borderColor: 'var(--cc-border)' }}>
         <div className="max-w-6xl mx-auto px-4 py-4">
           <div className="text-center mb-4">

@@ -70,7 +70,7 @@ export default function Search() {
     queryFn: () => base44.entities.UserProfile.filter({ user_id: user?.email }),
     enabled: !!user?.email,
   });
-  const isAdmin = myProfile?.[0]?.is_admin || user?.role === 'admin';
+  const isAdmin = user?.role === 'admin';
   const isSubscribed = isAdmin || subscription?.[0]?.status === 'active' || subscription?.[0]?.status === 'trial';
 
   // Fetch all creator details and verifications with staleTime and limits
@@ -99,7 +99,7 @@ export default function Search() {
   const { data: searchResults = [], isLoading: profilesLoading } = useQuery({
     queryKey: ['extendedSearch', searchQuery],
     queryFn: () => base44.functions.invoke('extendedSearch', { query: searchQuery, limit: 100 }),
-    enabled: !!user && isSubscribed,
+    enabled: !!user,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -178,7 +178,7 @@ export default function Search() {
     // Verified filter (profile only)
     const verifiedFiltered = finalFiltered.filter(r => {
       if (r.type !== 'profile') return true;
-      if (!filters.verifiedOnly) return true;
+      if (!filters.verifiedOnly || r.verified === true) return true;
       const verifiedIds = allVerifications.filter(v => v.status === 'approved').map(v => v.user_id);
       return verifiedIds.includes(r.user_id);
     });
