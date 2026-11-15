@@ -7,6 +7,7 @@
  * No unsupported PASS API protocol is invented. No lab reports are returned here.
  */
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
+import {getYotiReturnOrigin,isYotiConfigured} from './yotiPolicy.mjs';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type','Access-Control-Allow-Methods':'POST,OPTIONS'};
 const out=(v:unknown,s=200)=>Response.json(v,{status:s,headers:{...cors,'Cache-Control':'no-store'}});
 const bad=(msg:string,s=400)=>out({error:msg},s);
@@ -147,7 +148,12 @@ Deno.serve(async req=>{
   if(!secretFields[provider])return bad('Unsupported provider');
   if(on&&body.provider_contract_reviewed!==true)return bad('Confirm the provider contract and supported use before activation',409);
   if(on&&provider==='pass')return bad('PASS API requires approved partner access and documented protocol; no public API has been verified',409);
-  if(on&&provider==='yoti'&&!(await yotiReady()).token)return bad('Store Yoti credentials first',409);
+  if(on&&provider==='yoti'){
+   const cfg=await yotiReady();
+   if(!isYotiConfigured({
+     enabled:true,token:cfg.token,sdk:cfg.sdk,callback_origin:cfg.setting?.callback_origin
+   })) return bad('Yoti activation requires API token, SDK ID and the trusted Content Connect X HTTPS return origin',409);
+  }
   const {data,error}=await db.from('ccx_integrations').update({
    enabled:on,notes:txt(body.notes,400),updated_by:uid,updated_at:new Date().toISOString()
   }).eq('provider',provider).select('provider,enabled,setup_status,notes').maybeSingle();
@@ -156,8 +162,12 @@ Deno.serve(async req=>{
   return out({item:data,note:'The configuration is saved. Provider readiness still needs live acceptance tests.'});
  }
  case 'status':{
-  const [yoti,pass]=await Promise.all([conf('yoti'),conf('pass')]);
-  return out({yoti_configured:yoti?.enabled===true,pass_partner_connected:pass?.enabled===true,
+  const [yoti,pass]=await Promise.all([yotiReady(),conf('pass')]);
+  const available=isYotiConfigured({
+    enabled:yoti.setting?.enabled,token:yoti.token,sdk:yoti.sdk,
+    callback_origin:yoti.setting?.callback_origin
+  });
+  return out({yoti_configured:available,pass_partner_connected:pass?.enabled===true,
    yoti_note:'Provider age checks are not sufficient to establish performer identity without additional evidence review.',
    pass_note:'PASS partner access remains unverified. Only approved clearance status, never laboratory results, may be shared.'});
  }
@@ -165,10 +175,12 @@ Deno.serve(async req=>{
   const mode=body.mode==='performer_identity'?'performer_identity':'age_gate';
   const cfg=await yotiReady();
   if(!cfg.ready)return bad('Yoti is not configured. Use manual ID verification until onboarding is complete.',503);
-  const origin=txt((body.brand==='onlyhost'?cfg.setting?.secondary_origin:cfg.setting?.callback_origin)||cfg.setting?.callback_origin||Deno.env.get('CCX_PUBLIC_ORIGIN'),260);
-  let trusted:URL;
-  try{trusted=new URL(origin);}catch{return bad('Yoti redirect origin is not configured',503);}
-  if(trusted.protocol!=='https:'||trusted.username||trusted.password||trusted.pathname!=='/'||trusted.search)return bad('Invalid Yoti return origin',503);
+  // Select by brand using trusted server config. Never send OnlyHost users
+  // back to CCX because their brand's origin is missing or misconfigured.
+  const trustedOrigin=getYotiReturnOrigin(cfg.setting,body.brand);
+  if(!trustedOrigin)return bad(body.brand==='onlyhost'
+    ? 'OnlyHost HTTPS Yoti return origin must be configured first'
+    : 'Content Connect X HTTPS Yoti return origin must be configured first',503);
   const {data:prior}=await db.from('ccx_age_provider_sessions').select('id')
    .eq('user_id',uid).gte('created_at',new Date(Date.now()-3600000).toISOString()).limit(5);
   if(prior&&prior.length>=5)return bad('Verification retry limit reached; try again later',429);
@@ -180,8 +192,8 @@ Deno.serve(async req=>{
    digital_id:{allowed:!isID,threshold:18,age_estimation_allowed:false,retry_limit:2},
    doc_scan:{allowed:true,threshold:18,retry_limit:2,level:'PASSIVE',authenticity:'AUTO',synchronous_checks:true},
    credit_card:{allowed:false},mobile:{allowed:false},
-   callback:{auto:true,url:trusted.origin+'/?age_verification=complete'},
-   cancel_url:trusted.origin+'/?age_verification=cancelled',
+   callback:{auto:true,url:trustedOrigin+'/?age_verification=complete'},
+   cancel_url:trustedOrigin+'/?age_verification=cancelled',
    block_biometric_consent:false
   };
   const response=await yotiRequest('POST',null,payload);
