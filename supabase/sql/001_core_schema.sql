@@ -1,6 +1,6 @@
 -- Content Connect X / Supabase foundation
--- Run against a newly created Supabase project; no existing Base44 data is imported.
--- This is a staged migration, not yet a complete replacement of all Base44 entities.
+-- Schema for the Supabase application; historical records are not imported automatically.
+-- Staged database schema with versioned migrations.
 create extension if not exists pgcrypto;
 
 create table if not exists public.member_profiles (
