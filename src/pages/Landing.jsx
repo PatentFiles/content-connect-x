@@ -104,9 +104,12 @@ export default function Landing() {
       </section>
 
       {/* Features Section — driven by live feature flags */}
-      <section className="relative overflow-hidden bg-cc-surface px-4 py-20 sm:py-24">
-        <div className="pointer-events-none absolute left-1/2 top-0 h-64 w-[min(90vw,900px)] -translate-x-1/2 rounded-full bg-[#00D9FF]/20 blur-3xl" />
-        <div className="relative mx-auto max-w-6xl">
+      <section
+        className="relative overflow-hidden bg-[#030817] bg-cover bg-center px-4 py-20 sm:py-24"
+        style={{ backgroundImage: "url('/backgrounnd.png')" }}
+      >
+        <div className="pointer-events-none absolute inset-0 bg-[#030817]/60" />
+        <div className="relative z-10 mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
