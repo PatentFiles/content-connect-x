@@ -43,11 +43,11 @@ The user requested integration of ten upstream open-source projects. We have **n
 
 - Supabase project had no auth users at the most recent inspection. Authenticated two-account/role end-to-end tests have NOT passed.
 - A first independently age-verified administrator must be provisioned through trusted controls without self-approval.
-- No existing Base44 accounts or media have been migrated. The legacy frontend still has a separate typecheck backlog.
+- The Supabase project needs independently verified test members; any historical member or media migration must be planned separately.
 - No DocuSign access, approved merchant payments, external age provider, clinical clearance provider, optional background-screening provider, hosted OpenModerate service, or production Sentry/Flagsmith organizations are connected.
 - Media rights/recordkeeping, international privacy, moderation escalation, content appeals, retention and adult-industry policies need reviewed production procedures.
-- The older Base44/Vite dependency tree still has 10 npm audit advisories (7 moderate, 2 high and 1 critical) after safe nonbreaking updates have been applied. Its critical jsPDF dependency and other breaking upgrades require a separate compatibility-tested remediation.
-- The current UI is a Supabase-only preview shell; the original full Base44 visual site has not been completely migrated.
+- Dependencies must be checked using the current Supabase-only lockfile.
+- The current frontend is the sole Supabase application; additional polished UI workflows remain to be built.
 
 ## Verification evidence
 
