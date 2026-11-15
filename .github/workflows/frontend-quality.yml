@@ -35,7 +35,9 @@ jobs:
         run: npm run build
       - name: Build staging container and verify health endpoint
         run: |
-          docker build -t content-connect-x:ci .
+          docker build --build-arg VITE_SUPABASE_URL=https://example.supabase.co \
+            --build-arg VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_ci_fixture_123456789 \
+            -t content-connect-x:ci .
           docker run -d --name ccx-ci -p 18080:8080 content-connect-x:ci
           trap 'docker logs ccx-ci || true; docker rm -f ccx-ci || true' EXIT
           sleep 3
