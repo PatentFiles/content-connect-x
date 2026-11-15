@@ -10,7 +10,7 @@ const muted='text-[#9AA6BC]';
 /** @type {Array<[string, string, import('react').ElementType]>} */
 const sections=[['collaborations','Collaborations',Users],['invitations','Invitations',Check],['connections','Connections',Users],['messages','Messages',MessageSquare],['contracts','Contracts',FileSignature],['properties','Properties',Home],['bookings','Bookings',Home],['notifications','Notifications',Bell]];
 
-export default function MemberWorkspace({user}) {
+export default function MemberWorkspace({user,flags={}}) {
   const [section,setSection]=useState('collaborations');
   const [items,setItems]=useState([]);
   const [secondary,setSecondary]=useState([]);
@@ -186,10 +186,12 @@ export default function MemberWorkspace({user}) {
     if(result){setDateFrom('');setDateTo('');}
   };
 
+  const visibleSections=sections.filter(([key])=>(key==='properties'||key==='bookings')?flags.property_bookings===true:(key==='messages'||key==='connections')?flags.messages!==false:(key==='contracts')?flags.contracts!==false:true);
+
   return <div className="space-y-4">
     <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-xl font-semibold">Member workspace</h2><button className={button} onClick={()=>refresh()} disabled={working}><RefreshCw size={15}/></button></div>
     <p className={`text-sm ${muted}`}>This is the Supabase-only workspace. Each action is authorized by the backend and recorded for audit.</p>
-    <div className="flex flex-wrap gap-2">{sections.map(([key,label,Icon])=><button key={key} onClick={()=>setSection(key)} className={`inline-flex items-center gap-1 rounded-md px-3 py-2 text-xs ${key===section?'bg-[#4F8CFF]':'bg-[#1A2438]'}`}><Icon size={14}/>{label}</button>)}</div>
+    <div className="flex flex-wrap gap-2">{visibleSections.map(([key,label,Icon])=><button key={key} onClick={()=>setSection(key)} className={`inline-flex items-center gap-1 rounded-md px-3 py-2 text-xs ${key===section?'bg-[#4F8CFF]':'bg-[#1A2438]'}`}><Icon size={14}/>{label}</button>)}</div>
     {error&&<p role="alert" className="rounded-md bg-red-950 p-3 text-red-200 text-sm">{error}</p>}
     {notice&&<p role="status" className="rounded-md bg-emerald-950 p-3 text-emerald-200 text-sm">{notice}</p>}
     {working&&<Loader2 className="animate-spin text-blue-400" size={18}/>}

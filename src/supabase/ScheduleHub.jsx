@@ -6,7 +6,7 @@ const panel='rounded-xl bg-[#151D2B] border border-[#263248] p-5';
 const control='rounded-lg bg-[#0F1520] text-white border border-[#34445D] p-2 w-full';
 const button='rounded-lg bg-[#4F8CFF] text-white font-semibold text-sm px-4 py-2 disabled:opacity-50';
 
-export default function ScheduleHub({paid=false,userId}){
+export default function ScheduleHub({paid=false,userId,creatorBookingEnabled=false}){
   const [list,setList]=useState([]);
   const [mine,setMine]=useState([]);
   const [overlaps,setOverlaps]=useState([]);
@@ -126,12 +126,12 @@ export default function ScheduleHub({paid=false,userId}){
         <p className="text-sm text-[#9AA6BC] capitalize">{item.kind.replaceAll('_',' ')} · {item.region||'Travel schedule'}</p>
         <p className="text-sm mt-3">{short(item.starts_at)}</p><p className="text-sm text-[#9AA6BC]">Through {short(item.ends_at)}</p>
         {item.note&&<p className="text-sm mt-3 whitespace-pre-wrap">{item.note}</p>}
-        {paid&&['shoot','studio'].includes(item.kind)&&<button className={button+' mt-3'} onClick={()=>{setHostId(item.user_id);setBookStart('');setBookEnd('');}} disabled={busy}>Request shoot booking</button>}
+        {paid&&creatorBookingEnabled&&['shoot','studio'].includes(item.kind)&&<button className={button+' mt-3'} onClick={()=>{setHostId(item.user_id);setBookStart('');setBookEnd('');}} disabled={busy}>Request shoot booking</button>}
       </article>)}
     </div>
     {!list.length&&<div className={panel}><p className="text-[#9AA6BC] text-sm">No matching published availability. Search another city or date.</p></div>}
     {!paid&&<p className="text-[#9AA6BC] text-sm">Premium members can list their own shoot dates and see additional availability entries.</p>}
-    {paid&&<form className={panel+' space-y-3'} onSubmit={requestBooking}>
+    {paid&&creatorBookingEnabled&&<form className={panel+' space-y-3'} onSubmit={requestBooking}>
       <h3 className="font-semibold">Request a creator shoot slot</h3>
       <p className="text-xs text-[#9AA6BC]">Only accepted mutual connections can request times that the host listed for shoots or studios. Requests do not reserve or charge anyone until confirmed.</p>
       <label className="text-sm block">Creator member ID<input className={control+' mt-1'} required value={hostId} onChange={e=>setHostId(e.target.value)} placeholder="Verified host UUID"/></label>
