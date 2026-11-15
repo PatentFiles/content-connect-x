@@ -1,0 +1,39 @@
+/** Age-verified directory preview. Never expose raw private Base44/Supabase records. */
+import { createClient } from 'npm:@supabase/supabase-js@2.95.0';
+const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
+const json = (body: unknown, status=200) => new Response(JSON.stringify(body), {status, headers:{...cors,'content-type':'application/json'}});
+Deno.serve(async req => {
+  if (req.method === 'OPTIONS') return new Response(null, {status:204,headers:cors});
+  if (req.method !== 'POST') return json({error:'Method not allowed'},405);
+  const url = Deno.env.get('SUPABASE_URL');
+  const publishable = Deno.env.get('SUPABASE_ANON_KEY');
+  const secret = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!url || !publishable || !secret) return json({error:'Service unavailable'},503);
+  const authHeader = req.headers.get('Authorization') || '';
+  const client = createClient(url,publishable,{global:{headers:{Authorization:authHeader}}});
+  const {data:{user},error:authError}=await client.auth.getUser();
+  if (authError || !user) return json({error:'Unauthorized'},401);
+  const admin = createClient(url,secret);
+  const [{data: security},{data: ages},{data: subscription}] = await Promise.all([
+    admin.from('account_security').select('banned,suspended,admin').eq('user_id',user.id).maybeSingle(),
+    admin.from('age_verification_requests').select('status,expires_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(1),
+    admin.from('member_subscriptions').select('status,period_end').eq('user_id',user.id).maybeSingle(),
+  ]);
+  if (security?.banned || security?.suspended) return json({error:'Account unavailable'},403);
+  const approved=ages?.some(v=>v.status==='approved'&&(!v.expires_at||Date.parse(v.expires_at)>Date.now()));
+  if (!approved && !security?.admin) return json({error:'Free age verification required'},403);
+  const paid=Boolean(security?.admin||subscription && ['active','trial'].includes(subscription.status)&&(!subscription.period_end||Date.parse(subscription.period_end)>Date.now()));
+  const body=await req.json().catch(()=>({}));
+  const query=typeof body.query==='string'?body.query.trim().slice(0,80):'';
+  const max=paid?100:12;
+  const {data:verified, error:verificationError} = await admin.from('age_verification_requests').select('user_id').eq('status','approved').limit(2000);
+  if (verificationError) return json({error:'Unable to load directory'},500);
+  const ids=[...new Set((verified||[]).map(v=>v.user_id))];
+  if (!ids.length) return json({results:[],preview:!paid,limit:max});
+  let builder=admin.from('member_profiles').select('id,display_name,role_type,bio,avatar_path,city,country').eq('profile_complete',true).in('id',ids).limit(max);
+  if (query) builder=builder.ilike('display_name',`%${query.replace(/[%_,]/g,'')}%`);
+  const {data,error}=await builder;
+  if (error) return json({error:'Unable to load directory'},500);
+  const results=(data||[]).map(v=>({id:v.id,display_name:v.display_name,role_type:v.role_type,bio:paid?v.bio:null,avatar_path:v.avatar_path,city:v.city,country:v.country,age_verified:true}));
+  return json({results,preview:!paid,limit:max});
+});
