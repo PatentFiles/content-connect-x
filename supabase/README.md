@@ -36,10 +36,12 @@ This repository contains the original Base44 app plus a working, separate Supaba
 - Payment events must be verified server-side before enabling paid functionality.
 - Test creator, studio, agent, administrator, suspended, unverified, trial, cancelled and expired states.
 
-**Migration status:** Supabase preview shell and backend are active, with 25 RLS-protected application tables and several authenticated Edge Functions. No Base44 member data migrated; Supabase Auth still has no user accounts; no authenticated end-to-end test passed. Stripe checkout is disabled pending adult-industry merchant approval. Original production site still uses Base44. See `PRODUCT_SECURITY_ROADMAP.md` for the full scope and release criteria.
+**Migration status:** Supabase preview shell and backend are active, with 36 RLS-protected application tables and several authenticated Edge Functions. No Base44 member data migrated; Supabase Auth still has no user accounts; no authenticated end-to-end test passed. Stripe checkout is disabled pending adult-industry merchant approval. Original production site still uses Base44. See `PRODUCT_SECURITY_ROADMAP.md` for the full scope and release criteria.
 
 ## Integration status
 
 See [INTEGRATION_STATUS.md](./INTEGRATION_STATUS.md) for the full ten-project integration matrix, what is implemented natively, and what still needs vendor credentials or authenticated acceptance testing.
 
 Run `npm run smoke:supabase` for non-destructive JWT gateway checks. This does not replace multi-account tests.
+
+The integration program is tracked in [GitHub issue #1](https://github.com/PatentFiles/content-connect-x/issues/1). The latest iteration adds creator travel overlap search, iCalendar exports, a moderated social feed and follow graph, feedback voting, private media review, optional Sentry/Flagsmith clients, and an admin integration-health screen. None of these modules grants paid access without a verified server entitlement.
