@@ -51,6 +51,66 @@ Deno.serve(async req=>{
   const {data,error}=await db.from('hosting_public_areas').select('id,city,region,country,latitude,longitude,radius_km').eq('approved',true).order('city').limit(500);
   if(error)throw error;return respond({items:data||[]});
  }
+ case 'host_set_area':{
+  const property=await own(body.property_id);if(!property)return deny('Only the host may choose the public map area',403);
+  if(!id(body.area_id))return deny('Approved public area required');
+  const {data:area}=await db.from('hosting_public_areas')
+   .select('id,city,region,country').eq('id',body.area_id).eq('approved',true).maybeSingle();
+  if(!area)return deny('Unknown public area',404);
+  const {data:venue}=await db.from('properties')
+   .select('city,state,country').eq('id',property.id).maybeSingle();
+  if(!venue)return deny('Listing unavailable',404);
+  if(venue.country?.toLowerCase()!==area.country.toLowerCase()||
+   ![venue.city?.toLowerCase(),venue.state?.toLowerCase()].includes(area.city.toLowerCase())&&
+   venue.state?.toLowerCase()!==area.region.toLowerCase()&&venue.city?.toLowerCase()!==area.city.toLowerCase())
+   return deny('Public map area must be in the venue region',400);
+  const {data,error}=await db.from('properties').update({public_area_id:area.id})
+   .eq('id',property.id).eq('owner_id',uid).select('id,public_area_id').single();
+  if(error)throw error;return respond({item:data});
+ }
+ case 'commute_estimates':{
+  if(!id(body.origin_area_id)||!Array.isArray(body.area_ids)||body.area_ids.length>25||
+    body.area_ids.some(v=>!id(v)))return deny('Public origin and destination areas required');
+  const areaIds=[...new Set([body.origin_area_id,...body.area_ids])];
+  const {data:areas,error}=await db.from('hosting_public_areas')
+   .select('id,latitude,longitude,city,region').in('id',areaIds).eq('approved',true);
+  if(error)throw error;
+  const origin=areas?.find(a=>a.id===body.origin_area_id);
+  if(!origin)return deny('Origin area unavailable',404);
+  const haversine=(a:any,b:any)=>{
+   const rad=Math.PI/180,x=(Number(b.latitude)-Number(a.latitude))*rad,
+    y=(Number(b.longitude)-Number(a.longitude))*rad;
+   const q=Math.sin(x/2)**2+Math.cos(Number(a.latitude)*rad)*Math.cos(Number(b.latitude)*rad)*Math.sin(y/2)**2;
+   return Math.round(6371*2*Math.atan2(Math.sqrt(q),Math.sqrt(1-q))*10)/10;
+  };
+  const results=(areas||[]).filter(a=>a.id!==origin.id).map(a=>({
+   area_id:a.id,city:a.city,straight_line_km:haversine(origin,a),
+   driving_minutes:null as number|null,route_verified:false
+  }));
+  const base=Deno.env.get('HOSTING_ROUTING_OSRM_URL');
+  const approved=Deno.env.get('HOSTING_ROUTING_APPROVED')==='true';
+  if(base&&approved){
+   let parsed:URL;try{parsed=new URL(base);}catch{return deny('Routing URL misconfigured',503);}
+   if(parsed.protocol!=='https:'||!['router.project-osrm.org','routing.openstreetmap.de'].includes(parsed.hostname))
+    return deny('Routing host is not approved',503);
+   for(const destination of results.slice(0,10)){
+    const area=areas!.find(a=>a.id===destination.area_id)!;
+    const path='/route/v1/driving/'+Number(origin.longitude)+','+Number(origin.latitude)+';'+
+      Number(area.longitude)+','+Number(area.latitude)+'?overview=false';
+    try{
+     const response=await fetch(parsed.origin+path,{redirect:'error',signal:AbortSignal.timeout(3500)});
+     const data=response.ok?await response.json():null;
+     if(data?.routes?.[0]?.duration&&Number.isFinite(data.routes[0].duration)){
+      destination.driving_minutes=Math.ceil(data.routes[0].duration/60);
+      destination.route_verified=true;
+     }
+    }catch{/* route remains unavailable, never invent travel times */}
+   }
+  }
+  return respond({origin_area_id:origin.id,results,
+   routing_ready:approved&&!!base,
+   disclaimer:'Route estimates use public area centers, never exact property addresses. Straight-line distance is not commute time.'});
+ }
  case 'addons_public':{
   if(!id(body.property_id))return deny('Property required');
   const {data:property}=await db.from('properties').select('id,status').eq('id',body.property_id).maybeSingle();
