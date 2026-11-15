@@ -15,10 +15,11 @@ sentry:'DSN can be configured for production release monitoring.',
 flagsmith:'Remote flags require environment and rollout verification.'};
 export default function IntegrationSettings(){
  const [providers,setProviders]=useState([]),[values,setValues]=useState({}),[visible,setVisible]=useState({}),[agreements,setAgreements]=useState({});
+ const [origins,setOrigins]=useState({ccx_origin:'',onlyhost_origin:''});
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const load=async()=>{
   setBusy(true);setError('');
-  try{const r=await integrationAction('admin_list');setProviders(r.providers||[]);}catch(e){setError(e.message);}
+  try{const r=await integrationAction('admin_list');setProviders(r.providers||[]);const y=r.providers?.find(p=>p.provider==='yoti');if(y)setOrigins({ccx_origin:y.callback_origin||'',onlyhost_origin:y.secondary_origin||''});}catch(e){setError(e.message);}
   finally{setBusy(false);}
  };
  useEffect(()=>{void load();},[]);
@@ -51,6 +52,20 @@ export default function IntegrationSettings(){
   </div>
   {error&&<p role="alert" className="rounded-xl bg-red-950 p-3 text-sm text-red-200">{error}</p>}
   {notice&&<p role="status" className="rounded-xl bg-emerald-950 p-3 text-sm text-emerald-200">{notice}</p>}
+  <section className="ccx-surface space-y-3 p-5">
+    <h3 className="font-semibold">Yoti return domains for both brands</h3>
+    <p className="text-xs text-[#B5C6DF]">These are HTTPS public website origins, not secret keys. Configure them in your Yoti provider account as approved callback destinations before starting live sessions.</p>
+    <div className="grid gap-3 sm:grid-cols-2">
+      <label className="text-xs">Content Connect X website origin<input className={styles.input+' mt-1'} type="url" placeholder="https://contentconnectx.com" value={origins.ccx_origin}
+        onChange={e=>setOrigins(v=>({...v,ccx_origin:e.target.value}))}/></label>
+      <label className="text-xs">OnlyHost website origin<input className={styles.input+' mt-1'} type="url" placeholder="https://your-onlyhost-domain.example" value={origins.onlyhost_origin}
+        onChange={e=>setOrigins(v=>({...v,onlyhost_origin:e.target.value}))}/></label>
+    </div>
+    <button className={styles.button} disabled={busy||!origins.ccx_origin} onClick={async()=>{setBusy(true);setError('');setNotice('');
+      try{const r=await integrationAction('admin_yoti_origins',origins);setNotice(r.note||'Saved.');await load();}
+      catch(e){setError(e.message);}finally{setBusy(false);}
+    }}>Save Yoti callback URLs</button>
+  </section>
   <div className="grid gap-4 lg:grid-cols-2">
    {providers.map(p=><article key={p.provider} className={styles.panel+' space-y-3'}>
     <div className="flex flex-wrap items-start justify-between gap-3">
