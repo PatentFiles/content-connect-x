@@ -10,7 +10,9 @@ const functions=[
   'submit-age-verification','directory','admin-age-review','member-workflows',
   'collaboration-consent','performer-readiness','create-checkout',
   'platform-extras','media-gateway','hosting-marketplace','integration-health',
-  'production-manager','agreement-packets'
+  'production-manager','agreement-packets',
+  'hosting-operations','hosting-docusign','hosting-ccbill',
+  'hosting-advanced','hosting-production','hosting-calendar'
 ];
 for(const name of functions){
   const res=await fetch(project+'/functions/v1/'+name,{
