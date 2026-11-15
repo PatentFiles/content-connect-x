@@ -29,10 +29,10 @@ export default function NavBar({ user, profile, isAuthenticated, onMenuToggle, m
       <div className="w-full px-4 h-16 flex items-center justify-between">
         {/* Left — Logo */}
         <Link to={createPageUrl('Landing')} className="flex items-center gap-2 flex-shrink-0">
-          <img 
-            src="https://media.base44.com/images/public/69495df631e52046b1356040/4607f2f69_OFXLogo.jpg"
-            alt="OFX Logo"
-            className="w-8 h-8 rounded-lg flex-shrink-0"
+          <img
+            src="/content_connect_logo.png"
+            alt="Content Connect X logo"
+            className="w-9 h-9 rounded-lg object-cover flex-shrink-0"
           />
           <span className="font-semibold text-lg hidden sm:block" style={{ color: 'var(--cc-text-primary)' }}>Content Connect X</span>
         </Link>

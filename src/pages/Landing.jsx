@@ -213,9 +213,11 @@ export default function Landing() {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="text-center md:text-left">
               <div className="flex items-center gap-2 mb-4 justify-center md:justify-start">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4F8CFF] to-[#FF2DAA] flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">OCX</span>
-                </div>
+                <img
+                  src="/content_connect_logo.png"
+                  alt="Content Connect X logo"
+                  className="w-10 h-10 rounded-xl object-cover"
+                />
                 <span className="font-semibold cc-text-fix-primary">Content Connect X</span>
               </div>
               <p className="text-sm cc-text-fix-muted">
