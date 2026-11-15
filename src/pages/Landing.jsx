@@ -6,7 +6,6 @@ import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { 
   ArrowRight,
-  Lock,
 } from 'lucide-react';
 import CCButton from '@/components/ui-custom/CCButton';
 import CCCard from '@/components/ui-custom/CCCard';
@@ -56,54 +55,33 @@ export default function Landing() {
     <MobileRefreshPage>
     <div className="min-h-screen bg-cc-bg">
       {/* Hero Section */}
-      <section className="relative overflow-hidden min-h-[640px] flex items-center justify-center px-4 pt-32 pb-20">
-        {/* Hero banner image */}
-        <div className="absolute inset-0">
-          <img
-            src="/Content_Connect_Hero_Banner.png"
-            alt="Content Connect hero banner"
-            className="w-full h-full object-cover"
-          />
-          {/* Dark gradient overlay for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70" />
-        </div>
+      <section className="bg-[#0B0F14]">
+        <img
+          src="/Content_Connect_Hero_Banner.png"
+          alt="Content Connect X creator collaboration banner"
+          className="block w-full h-auto object-contain"
+        />
 
-        <div className="relative max-w-6xl mx-auto text-center">
+        <div className="px-4 py-10 sm:py-12 md:py-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
+            className="flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <span className="inline-flex items-center gap-2 px-4 py-2 bg-[#4F8CFF]/10 border border-[#4F8CFF]/30 rounded-full text-[#4F8CFF] text-sm font-medium mb-6">
-              <Lock className="w-4 h-4" />
-              Free Age Verification · Explore Before Subscribing
-            </span>
-            
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
-              The Professional Network for
-              <span className="bg-gradient-to-r from-[#4F8CFF] to-[#FF2DAA] bg-clip-text text-transparent"> Content Creators</span>
-            </h1>
-            
-            <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto mb-10 drop-shadow-md">
-              Connect with verified creators, photographers, videographers, video editors, agents, and studios. 
-              Build collaborations with built-in contracts and consent management.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <CCButton 
-                variant="primary" 
-                size="xl" 
-                iconRight={ArrowRight}
-                onClick={() => base44.auth.redirectToLogin(createPageUrl('Discovery'))}
-              >
-                Get Started Free
+            <CCButton
+              variant="primary"
+              size="xl"
+              iconRight={ArrowRight}
+              onClick={() => base44.auth.redirectToLogin(createPageUrl('Discovery'))}
+            >
+              Get Started Free
+            </CCButton>
+            <Link to={createPageUrl('HowItWorks')}>
+              <CCButton variant="outline" size="xl">
+                See How It Works
               </CCButton>
-              <Link to={createPageUrl('HowItWorks')}>
-                <CCButton variant="outline" size="xl">
-                  See How It Works
-                </CCButton>
-              </Link>
-            </div>
+            </Link>
           </motion.div>
 
           {/* Stats - Hidden until 1000 verified members */}
@@ -112,12 +90,12 @@ export default function Landing() {
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.6 }}
-              className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-20"
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-12 max-w-6xl mx-auto"
             >
               {stats.map((stat) => (
                 <div key={stat.label} className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold cc-text-fix-primary">{stat.value}</div>
-                  <div className="text-sm cc-text-fix-muted">{stat.label}</div>
+                  <div className="text-3xl md:text-4xl font-bold text-white">{stat.value}</div>
+                  <div className="text-sm text-white/70">{stat.label}</div>
                 </div>
               ))}
             </motion.div>
