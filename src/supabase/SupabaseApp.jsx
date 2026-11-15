@@ -19,6 +19,7 @@ import MfaChallenge from './MfaChallenge';
 import AgreementPackets from './AgreementPackets';
 import DashboardHome from './DashboardHome';
 import YotiVerification from './YotiVerification';
+import PublicLandingSections from './PublicLandingSections';
 const HostingMarketplace = React.lazy(() => import('./HostingMarketplace'));
 import { ShieldCheck, LockKeyhole, Search, UserRound, CreditCard, LogOut, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw, CalendarDays, MessageSquare, Lightbulb, Settings2, Images, UsersRound, Star, FileSignature, Building2 } from 'lucide-react';
 
@@ -202,7 +203,7 @@ export default function SupabaseApp() {
           </div>
         </div>
       </section>
-      <section className="ccx-surface w-full max-w-xl justify-self-center p-6 sm:p-8" aria-label={signUp?'Create a Content Connect X account':'Sign in to Content Connect X'}>
+      <section id="ccx-auth" className="ccx-surface w-full max-w-xl scroll-mt-24 justify-self-center p-6 sm:p-8" aria-label={signUp?'Create a Content Connect X account':'Sign in to Content Connect X'}>
         <div className="flex items-center gap-4">
           <img src="/content_connect_logo.png" alt="Content Connect X" className="ccx-brand-mark h-16 w-16 shrink-0 rounded-2xl object-cover"/>
           <div><p className="ccx-eyebrow">Content Connect X</p><h2 className="mt-1 text-2xl font-bold">{signUp?'Join the network':'Welcome back'}</h2></div>
@@ -218,6 +219,7 @@ export default function SupabaseApp() {
         <p className="mt-5 text-center text-xs text-[#99A9C4]">Independent adult verification is required before accessing protected creator and location features.</p>
       </section>
     </div>
+    <PublicLandingSections/>
   </div>;
 
   if(mfaNeeded)return <MfaChallenge onVerified={async()=>{
