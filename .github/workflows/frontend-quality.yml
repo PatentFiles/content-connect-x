@@ -35,6 +35,8 @@ jobs:
         run: npm run verify:release
       - name: Frontend and Supabase gateway contract
         run: npm run verify:frontend-contract
+      - name: All Edge Functions must have resolved local imports
+        run: npm run verify:edge-imports
       - name: Dependency vulnerability audit
         run: npm audit --audit-level=high
       - name: Build Supabase application

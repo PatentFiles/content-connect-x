@@ -19,7 +19,8 @@
     "test:readiness": "node --test tests/integration-release-readiness.test.mjs",
     "test:hosting:e2e": "node --test tests/hosting-authenticated.test.mjs",
     "verify:release": "node scripts/release-static-guards.mjs",
-    "verify:frontend-contract": "node scripts/frontend-backend-contract.mjs"
+    "verify:frontend-contract": "node scripts/frontend-backend-contract.mjs",
+    "verify:edge-imports": "node scripts/verify-edge-dependencies.mjs"
   },
   "dependencies": {
     "@flagsmith/flagsmith": "12.5.0",
