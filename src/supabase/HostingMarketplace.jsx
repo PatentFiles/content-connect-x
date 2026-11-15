@@ -63,7 +63,7 @@ function ListingCard({listing,favorite,toggle,open}) {
   </article>;
 }
 
-function ListingDetail({id,paid,favorites,toggle,back,onBooked}) {
+function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_connect'}) {
   const [item,setItem]=useState(null);
   const [dates,setDates]=useState([]);
   const [reviews,setReviews]=useState([]);
@@ -96,7 +96,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked}) {
 
   const bookingParams=()=>({
     property_id:item.id,starts_at:new Date(starts).toISOString(),ends_at:new Date(ends).toISOString(),
-    crew_size:crew,requested_use:purpose,notes,
+    crew_size:crew,requested_use:purpose,notes,source_brand:brand,
     addons:Object.entries(addonCounts).filter(([,qty])=>qty>0).map(([id,quantity])=>({id,quantity})),
     bundle_id:selectedBundle||null,discount_code:discountCode.trim()||null
   });
@@ -212,7 +212,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked}) {
   </div>;
 }
 
-export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
+export default function HostingMarketplace({paid=false,isAdmin=false,user,brand='content_connect'}) {
   const [section,setSection]=useState('explore');
   const [selected,setSelected]=useState('');
   const [query,setQuery]=useState('');
@@ -307,7 +307,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
     {notice&&<p className="rounded-xl border border-green-700/50 bg-green-900/20 p-3 text-sm text-green-300" role="status">{notice}</p>}
 
     {(section==='explore'||section==='favorites')&&<>
-      {selected?<ListingDetail id={selected} paid={paid} favorites={favorites} toggle={toggle} back={()=>setSelected('')} onBooked={()=>search()}/>:
+      {selected?<ListingDetail brand={brand} id={selected} paid={paid} favorites={favorites} toggle={toggle} back={()=>setSelected('')} onBooked={()=>search()}/>:
       <div className="space-y-5">
         <form onSubmit={e=>{e.preventDefault();search();}} className={panel+' grid gap-3 p-4 md:grid-cols-3 xl:grid-cols-4'}>
           <label className="block text-xs text-[#ADC1DA]">Find a space<input className={input+' mt-1'} value={query} onChange={e=>setQuery(e.target.value)} placeholder="Studio, loft, location…"/></label>
@@ -329,7 +329,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
         {showMap&&<HostingAreaMap areas={areas} listings={listings} onSelect={setSelected}
            onSearchBounds={bounds=>{setMapBounds(bounds);search(bounds);}}/>}
         <div className="flex items-center justify-between gap-3">
-          <div><h2 className="text-xl font-semibold">{section==='favorites'?'Your saved locations':'Explore professional spaces'}</h2><p className="mt-1 text-xs text-[#91A7C4]">{visible.length} approved {visible.length===1?'listing':'listings'} · Search returns only general location information</p></div>
+          <div><h2 className="text-xl font-semibold">{section==='favorites'?'Your saved locations':brand==='onlyhost'?'Browse OnlyHost spaces':'Explore professional spaces'}</h2><p className="mt-1 text-xs text-[#91A7C4]">{visible.length} approved {visible.length===1?'listing':'listings'} · Search returns only general location information</p></div>
           <button className="flex items-center gap-2 text-sm text-blue-300" onClick={search} disabled={busy}><RefreshCw size={15}/>Refresh</button>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -361,6 +361,6 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
     {section==='alerts'&&<HostingNotificationSettings/>}
     {section==='crew'&&<HostingCrewInbox/>}
     {section==='cleaning'&&<HostingWorkforceManager worker/>}
-    {(section==='host'||section==='review')&&<HostingHost paid={paid} isAdmin={isAdmin} reviewMode={section==='review'} user={user}/>}
+    {(section==='host'||section==='review')&&<HostingHost paid={paid} isAdmin={isAdmin} reviewMode={section==='review'} user={user} brand={brand}/>}
   </div>;
 }
