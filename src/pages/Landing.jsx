@@ -1,8 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { base44 } from '@/api/base44Client';
-import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/lib/AuthContext';
 import { motion } from 'framer-motion';
 import { 
   ArrowRight,
@@ -15,24 +14,9 @@ import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 // CCCard is used in the How It Works section steps below
 
 export default function Landing() {
-  const { data: user } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: async () => {
-      const isAuth = await base44.auth.isAuthenticated();
-      if (!isAuth) return null;
-      return base44.auth.me();
-    },
-  });
-
-  const { data: verifiedMembers = [] } = useQuery({
-    queryKey: ['verifiedMembersCount'],
-    queryFn: () => base44.entities.VerificationRecord.filter({ status: 'approved' }),
-  });
-
-  const { data: completedCollabs = [] } = useQuery({
-    queryKey: ['completedCollabsCount'],
-    queryFn: () => base44.entities.Collaboration.filter({ status: 'completed' }),
-  });
+  const { isAuthenticated: user } = useAuth();
+  const verifiedMembers = [];
+  const completedCollabs = [];
 
   const stats = [
     { value: verifiedMembers.length > 0 ? `${verifiedMembers.length}` : '0', label: 'Verified Members' },
@@ -73,7 +57,7 @@ export default function Landing() {
               variant="primary"
               size="xl"
               iconRight={ArrowRight}
-              onClick={() => base44.auth.redirectToLogin(createPageUrl('Discovery'))}
+              onClick={() => window.location.assign('/login?returnTo=%2FDiscovery') }
             >
               Get Started Free
             </CCButton>
@@ -210,7 +194,7 @@ export default function Landing() {
                 size="xl"
                 className="!bg-[#FF00C8] !shadow-[0_0_30px_rgba(255,0,200,0.4)] hover:!bg-[#FF2BD4]"
                 iconRight={ArrowRight}
-                onClick={() => base44.auth.redirectToLogin(createPageUrl('Discovery'))}
+                onClick={() => window.location.assign('/login?returnTo=%2FDiscovery') }
               >
                 Create Free Account
               </CCButton>

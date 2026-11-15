@@ -14,7 +14,7 @@ import AccountBlockedScreen from '@/components/auth/AccountBlockedScreen';
 import SubscriptionBlockedScreen from '@/components/auth/SubscriptionBlockedScreen';
 import VerificationRequiredScreen from '@/components/auth/VerificationRequiredScreen';
 import { useFeatureFlag } from '@/lib/featureFlags';
-import { base44 } from '@/api/base44Client';
+import SupabaseAuthScreen from './components/SupabaseAuthScreen';
 import { ThemeProvider } from '@/lib/ThemeContext';
 import ContactPage from './pages/Contact';
 import SupabaseApp from './supabase/SupabaseApp';
@@ -29,34 +29,16 @@ const LayoutWrapper = ({ children, currentPageName }) => Layout ?
   : <>{children}</>;
 
 const AuthenticatedApp = () => {
-  const { user, isLoadingAuth, isLoadingPublicSettings, authError, blockStatus, subscriptionBlocked, isAuthenticated, navigateToLogin } = useAuth();
+  const { user, isLoadingAuth, isLoadingPublicSettings, authError, blockStatus, subscriptionBlocked, isAuthenticated, navigateToLogin, verification } = useAuth();
   const location = useLocation();
   const [isVerified, setIsVerified] = useState(false);
   const [verificationLoading, setVerificationLoading] = useState(true);
   const verificationEnabled = useFeatureFlag('verification');
 
-  // Check verification status on auth change
-   useEffect(() => {
-     const checkVerification = async () => {
-       if (!isAuthenticated || !user?.email) {
-         setIsVerified(false);
-         setVerificationLoading(false);
-         return;
-       }
-
-       try {
-         const records = await base44.entities.VerificationRecord.filter({ user_id: user.email });
-         setIsVerified(records.some(r => r.status === 'approved' && (!r.expires_at || Date.parse(r.expires_at) > Date.now())));
-       } catch (error) {
-         console.error('Failed to check verification:', error);
-         setIsVerified(false);
-       } finally {
-         setVerificationLoading(false);
-       }
-     };
-
-     checkVerification();
-   }, [isAuthenticated, user?.email]);
+  useEffect(() => {
+    setIsVerified(verification?.status === 'approved' && (!verification.expires_at || Date.parse(verification.expires_at) > Date.now()));
+    setVerificationLoading(false);
+  }, [verification]);
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth || verificationLoading) {
@@ -105,6 +87,7 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
+      <Route path="/login" element={<SupabaseAuthScreen />} />
       <Route path="/" element={
         <LayoutWrapper currentPageName={mainPageKey}>
           <MainPage />

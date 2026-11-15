@@ -18,7 +18,6 @@
 
 import React, { createContext, useContext, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { base44 } from '@/api/base44Client';
 
 // ─── Default flag definitions ──────────────────────────────────────────────────
 // These are the in-code defaults. The DB can override any value at runtime.
@@ -133,9 +132,10 @@ const FeatureFlagContext = createContext({});
 export function FeatureFlagProvider({ children }) {
   const { data: dbFlags = [] } = useQuery({
     queryKey: ['platformFeatureFlags'],
-    queryFn: () => base44.entities.PlatformFeatureFlag.list(),
+    queryFn: async () => [],
     staleTime: 60_000,      // Re-fetch at most once per minute
     refetchInterval: 120_000, // Background refresh every 2 min
+    enabled: false,
   });
 
   const flags = useMemo(() => {
