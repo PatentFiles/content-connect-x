@@ -13,6 +13,7 @@ import HostingPricingManager from './HostingPricingManager';
 import HostingEquipmentManager from './HostingEquipmentManager';
 import HostingCalendarManager from './HostingCalendarManager';
 import HostingWorkforceManager from './HostingWorkforceManager';
+import HostingSuitabilityManager from './HostingSuitabilityManager';
 const panel='rounded-2xl border border-[#29364A] bg-[#151D2B] p-5';
 const input='w-full rounded-xl border border-[#34465E] bg-[#0B1422] px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500';
 const button='rounded-xl bg-[#517DF7] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50';
@@ -263,7 +264,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           <div className="flex flex-wrap gap-2">
             {[
               ['pricing','Advanced pricing'],['equipment','Equipment and add-ons'],
-              ['calendar','External calendars'],['workforce','Cleaning and staff']
+              ['calendar','External calendars'],['workforce','Cleaning and staff'],['suitability','Production suitability']
             ].map(([id,title])=><button key={id} type="button" className={managementTab===id?button:secondary}
               onClick={()=>setManagementTab(id)}>{title}</button>)}
           </div>
@@ -271,6 +272,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           {managementTab==='equipment'&&<HostingEquipmentManager propertyId={selected}/>}
           {managementTab==='calendar'&&<HostingCalendarManager propertyId={selected}/>}
           {managementTab==='workforce'&&<HostingWorkforceManager propertyId={selected}/>}
+          {managementTab==='suitability'&&<HostingSuitabilityManager propertyId={selected}/>}
         </section>}
         {selected&&<form onSubmit={saveAddress} className={panel+' space-y-3'}>
           <h3 className="font-semibold flex items-center gap-2"><ShieldCheck size={18}/>Private address and access rules</h3>
