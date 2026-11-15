@@ -204,7 +204,7 @@ export default function SupabaseApp() {
         </form>
         <button className="mt-4 w-full text-sm font-medium text-[#FF87D8] underline underline-offset-4" onClick={()=>{setSignUp(!signUp);setError('');}}>{signUp?'Already have an account? Sign in':'New here? Create your free account'}</button>
         <div className="mt-5"><ErrorMessage message={error}/>{notice&&<p className="mt-3 text-sm text-emerald-300" role="status">{notice}</p>}</div>
-        <a href="/" className="mt-4 inline-flex text-sm text-[#B6C2D9] underline underline-offset-4 hover:text-white">Back to home</a>
+        <p className="mt-5 text-center text-xs text-[#99A9C4]">Independent adult verification is required before accessing protected creator and location features.</p>
       </section>
     </div>
   </div>;
