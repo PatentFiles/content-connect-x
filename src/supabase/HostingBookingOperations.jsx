@@ -13,7 +13,7 @@ const secondary='rounded-lg bg-[#2D405A] px-4 py-2.5 text-sm text-white disabled
 const statuses={signed:'Signed',pending_signature:'Awaiting signatures',captured:'Captured by processor',not_started:'Not paid',
   pending:'Pending',accepted:'Accepted',requested:'Requested',voided:'Voided',completed:'Completed'};
 
-export default function HostingBookingOperations({bookingId,userId,onChanged}){
+export default function HostingBookingOperations({bookingId,userId,onChanged=()=>{}}){
  const [view,setView]=useState(null);
  const [agreement,setAgreement]=useState(null);
  const [setup,setSetup]=useState(null);
