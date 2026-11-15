@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
     }
 
     const body = await req.json();
-    const { action, contract_id, signed_name, participant_ids } = body;
+    const { action, contract_id, signed_name } = body;
 
     if (!contract_id) return Response.json({ error: 'contract_id required' }, { status: 400 });
 
@@ -62,12 +62,20 @@ Deno.serve(async (req) => {
         return Response.json({ error: `Contract is already ${contract.status}` }, { status: 409 });
       }
 
-      // Build signatories from participant_ids (passed in) or collaboration participants
-      let signatoryIds = participant_ids;
-      if (!signatoryIds?.length) {
-        const collabs = await svc.entities.Collaboration.filter({ id: contract.collaboration_id }).catch(() => []);
-        signatoryIds = collabs[0]?.participant_ids || [];
+      // ── Authorization: creator, collaboration participant, or admin ────────
+      const collabs = await svc.entities.Collaboration.filter({ id: contract.collaboration_id }).catch(() => []);
+      const collaboration = collabs[0];
+      const isCreator = contract.created_by === user.email;
+      const isParticipant = (collaboration?.participant_ids || []).includes(user.email);
+      if (!isCreator && !isParticipant && user.role !== 'admin') {
+        return Response.json({ error: 'Forbidden' }, { status: 403 });
       }
+
+      // Signatories are always derived server-side from the collaboration —
+      // never from a client-supplied list.
+      const signatoryIds = (collaboration?.participant_ids || []).length
+        ? collaboration.participant_ids
+        : [contract.created_by].filter(Boolean);
       if (!signatoryIds.length) {
         return Response.json({ error: 'No participants found to sign' }, { status: 400 });
       }

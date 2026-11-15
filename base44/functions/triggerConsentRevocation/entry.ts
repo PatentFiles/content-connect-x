@@ -20,6 +20,20 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'collaboration_id required' }, { status: 400 });
     }
 
+    // ── Load collaboration and authorize before any write ────────────────────
+    const collaboration = await base44.asServiceRole.entities.Collaboration.filter({
+      id: collaboration_id
+    });
+
+    if (collaboration.length === 0) {
+      return Response.json({ error: 'Collaboration not found' }, { status: 404 });
+    }
+
+    const participantIds = collaboration[0].participant_ids || [];
+    if (!participantIds.includes(user.email) && user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     // Create consent revocation record
     const revocation = await base44.asServiceRole.entities.ConsentRevocation.create({
       user_id: user.email,
@@ -69,54 +83,45 @@ Deno.serve(async (req) => {
       }
     });
 
-    // Get all participants to notify (respecting preferences)
-    const collaboration = await base44.asServiceRole.entities.Collaboration.filter({
-      id: collaboration_id
-    });
+    // Get notification preferences
+    const notificationPrefs = await base44.asServiceRole.entities.NotificationPreference.list();
 
-    if (collaboration.length > 0) {
-      const participantIds = collaboration[0].participant_ids || [];
+    for (const participantId of participantIds) {
+      if (participantId === user.email) continue;
+
+      // Check if user wants this notification type
+      const pref = notificationPrefs.find(p => 
+        p.user_id === participantId && 
+        p.notification_type === 'dispute_updates'
+      );
+
+      const shouldNotify = !pref || pref.enabled;
       
-      // Get notification preferences
-      const notificationPrefs = await base44.asServiceRole.entities.NotificationPreference.list();
-      
-      for (const participantId of participantIds) {
-        if (participantId === user.email) continue;
+      if (shouldNotify) {
+        // In-app notification
+        if (!pref || pref.channels?.in_app !== false) {
+          await base44.asServiceRole.entities.Notification.create({
+            user_id: participantId,
+            type: 'consent_revocation',
+            title: 'Consent Revoked - Action Required',
+            message: `A participant has revoked consent for this collaboration. The collaboration has been paused and is under admin review.`,
+            related_entity_type: 'collaboration',
+            related_entity_id: collaboration_id,
+            read: false
+          });
+        }
 
-        // Check if user wants this notification type
-        const pref = notificationPrefs.find(p => 
-          p.user_id === participantId && 
-          p.notification_type === 'dispute_updates'
-        );
-
-        const shouldNotify = !pref || pref.enabled;
-        
-        if (shouldNotify) {
-          // In-app notification
-          if (!pref || pref.channels?.in_app !== false) {
-            await base44.asServiceRole.entities.Notification.create({
-              user_id: participantId,
-              type: 'consent_revocation',
-              title: 'Consent Revoked - Action Required',
-              message: `A participant has revoked consent for this collaboration. The collaboration has been paused and is under admin review.`,
-              related_entity_type: 'collaboration',
-              related_entity_id: collaboration_id,
-              read: false
+        // Email notification
+        if (pref?.channels?.email !== false) {
+          try {
+            await base44.asServiceRole.integrations.Core.SendEmail({
+              to: participantId,
+              subject: 'Consent Revoked - Collaboration Paused',
+              body: `A participant has revoked consent for collaboration "${collaboration[0].collaboration_name}". The collaboration has been paused pending admin review. Please check the platform for details.`,
+              from_name: 'Content Connect'
             });
-          }
-
-          // Email notification
-          if (pref?.channels?.email !== false) {
-            try {
-              await base44.asServiceRole.integrations.Core.SendEmail({
-                to: participantId,
-                subject: 'Consent Revoked - Collaboration Paused',
-                body: `A participant has revoked consent for collaboration "${collaboration[0].collaboration_name}". The collaboration has been paused pending admin review. Please check the platform for details.`,
-                from_name: 'Content Connect'
-              });
-            } catch (error) {
-              console.error('Failed to send email notification:', error);
-            }
+          } catch (error) {
+            console.error('Failed to send email notification:', error);
           }
         }
       }

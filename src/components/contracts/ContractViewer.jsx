@@ -15,6 +15,7 @@ import CCCard from '@/components/ui-custom/CCCard';
 import CCBadge from '@/components/ui-custom/CCBadge';
 import { CCLoadingScreen } from '@/components/ui-custom/CCLoading';
 import CCModal from '@/components/ui-custom/CCModal';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 import { useVerificationCheck } from '@/components/auth/useVerificationCheck';
 import VerificationRequired from '@/components/auth/VerificationRequired';
 import ContractVersionHistory from './ContractVersionHistory';
@@ -285,7 +286,7 @@ export default function ContractViewer({ contractId }) {
           <div className="lg:col-span-2">
             <CCCard padding="lg">
               <div className="prose prose-invert max-w-none">
-                <div dangerouslySetInnerHTML={{ __html: currentVersion?.body_html || '<p>No content available</p>' }} />
+                <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(currentVersion?.body_html || '<p>No content available</p>') }} />
               </div>
             </CCCard>
           </div>

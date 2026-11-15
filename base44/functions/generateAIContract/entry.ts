@@ -58,6 +58,11 @@ Deno.serve(async (req) => {
     if (!collabs.length) return Response.json({ error: 'Collaboration not found' }, { status: 404 });
     const collab = collabs[0];
 
+    // ── Authorization: caller must be a participant or an admin ──────────────
+    if (!(collab.participant_ids || []).includes(user.email) && user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     // ── Load participant profiles ─────────────────────────────────────────────
     const allProfiles = await svc.entities.UserProfile.list();
     const profileMap = {};

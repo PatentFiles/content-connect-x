@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { Link } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 import { toast } from 'sonner';
 import { 
   User, 
@@ -685,7 +686,7 @@ export default function Profile() {
                         <p className="text-sm text-[#6B7A94]">Bio</p>
                         <div
                           className="text-[#E8EEF9] mt-1 prose prose-invert prose-sm max-w-none text-center [&_a]:text-[#4F8CFF]"
-                          dangerouslySetInnerHTML={{ __html: profile.bio }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.bio) }}
                         />
                       </div>
                     )}

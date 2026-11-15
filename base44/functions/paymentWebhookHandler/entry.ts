@@ -4,6 +4,15 @@
  * Handles incoming payment webhooks from CCBill and other providers.
  * Updates Subscription entity state and sends notifications.
  *
+ * SECURITY:
+ *   - Every POST must carry the shared webhook secret (x-webhook-secret header
+ *     or Authorization: Bearer <secret>). Without a configured secret the
+ *     handler refuses to process anything.
+ *   - Subscriptions are only ever UPDATED by external_subscription_id, matching a
+ *     record that was created through the authenticated checkout flow. The
+ *     webhook never creates subscriptions and never looks a subscription up by
+ *     an email address supplied by the caller.
+ *
  * Supported events:
  *   - subscription.created   → active
  *   - subscription.renewed   → active
@@ -12,6 +21,18 @@
  *   - subscription.expired   → expired
  */
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
+
+// ─── Constant-time string comparison ─────────────────────────────────────────
+
+function safeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  if (a.length !== b.length) return false;
+  let mismatch = 0;
+  for (let i = 0; i < a.length; i++) {
+    mismatch |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return mismatch === 0;
+}
 
 // ─── Subscription status mapping ─────────────────────────────────────────────
 
@@ -66,6 +87,21 @@ Deno.serve(async (req) => {
     return Response.json({ error: 'Method not allowed' }, { status: 405 });
   }
 
+  // ── Verify the caller before touching any state ───────────────────────────
+  const webhookSecret = Deno.env.get('PAYMENT_WEBHOOK_SECRET');
+  if (!webhookSecret) {
+    console.error('[paymentWebhook] PAYMENT_WEBHOOK_SECRET is not configured — refusing request');
+    return Response.json({ error: 'Webhook not configured' }, { status: 503 });
+  }
+
+  const providedSecret = req.headers.get('x-webhook-secret')
+    || (req.headers.get('authorization') || '').replace(/^Bearer\s+/i, '');
+
+  if (!safeEqual(providedSecret, webhookSecret)) {
+    console.warn('[paymentWebhook] Rejected unverified webhook call');
+    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const base44 = createClientFromRequest(req);
     const svc = base44.asServiceRole;
@@ -100,52 +136,20 @@ Deno.serve(async (req) => {
       return Response.json({ received: true, event: parsed.event, action: 'ignored' });
     }
 
-    // Find subscription by provider subscription ID or customer email
-    let subscription = null;
-    if (parsed.subscriptionId) {
-      const subs = await svc.entities.Subscription.filter({ external_subscription_id: parsed.subscriptionId }).catch(() => []);
-      subscription = subs[0];
+    // Only ever match an existing subscription created by the authenticated
+    // checkout flow. Never create from a webhook, never match by email.
+    if (!parsed.subscriptionId) {
+      console.warn('[paymentWebhook] Missing provider subscription id');
+      return Response.json({ received: true, action: 'not_found' });
     }
-    if (!subscription && parsed.customerEmail) {
-      const subs = await svc.entities.Subscription.filter({ user_id: parsed.customerEmail }).catch(() => []);
-      subscription = subs[0];
-    }
+
+    const subs = await svc.entities.Subscription
+      .filter({ external_subscription_id: parsed.subscriptionId })
+      .catch(() => []);
+    const subscription = subs[0];
 
     if (!subscription) {
-      // If this is a new subscription creation, create the record
-      if (newStatus === 'active' && parsed.customerEmail) {
-        await svc.entities.Subscription.create({
-          user_id: parsed.customerEmail,
-          status: 'active',
-          external_subscription_id: parsed.subscriptionId || null,
-          provider: parsed.provider,
-          started_at: now,
-          current_period_end: parsed.nextRenewalDate || null,
-          amount: parsed.amount,
-          currency: parsed.currency,
-        });
-
-        // Send welcome notification
-        await svc.entities.Notification.create({
-          user_id: parsed.customerEmail,
-          type: 'system_announcements',
-          title: 'Subscription Active',
-          body: 'Your subscription is now active. Welcome to Content Connect!',
-        }).catch(() => {});
-
-        await svc.entities.AdminActionLog.create({
-          admin_user_id: 'SYSTEM_PAYMENT',
-          target_type: 'Subscription',
-          target_id: parsed.customerEmail,
-          action: 'subscription_created',
-          reason: `New subscription from ${parsed.provider}`,
-          metadata_json: { event: parsed.event, provider: parsed.provider, subscriptionId: parsed.subscriptionId, timestamp: now },
-        }).catch(() => {});
-
-        return Response.json({ received: true, action: 'subscription_created' });
-      }
-
-      console.warn('[paymentWebhook] Subscription not found for:', parsed);
+      console.warn('[paymentWebhook] Subscription not found for:', parsed.subscriptionId);
       return Response.json({ received: true, action: 'not_found' });
     }
 

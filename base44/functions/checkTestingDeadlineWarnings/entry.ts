@@ -4,12 +4,10 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // This is a scheduled function for 24h warnings
-    const authHeader = req.headers.get('authorization');
-    const expectedSecret = Deno.env.get('CRON_SECRET');
-    
-    if (expectedSecret && authHeader !== `Bearer ${expectedSecret}`) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    // Scheduled / workflow-invoked function — admin only. Fails closed.
+    const user = await base44.auth.me().catch(() => null);
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const now = new Date();

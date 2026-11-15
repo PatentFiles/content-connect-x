@@ -26,6 +26,12 @@ Deno.serve(async (req) => {
 
     const collaboration = collaborations[0];
 
+    // ── Authorization: caller must be a participant or an admin ──────────────
+    const isParticipant = (collaboration.participant_ids || []).includes(user.email);
+    if (!isParticipant && user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     // Get participant profiles
     const profiles = await base44.asServiceRole.entities.UserProfile.list();
     const participantProfiles = profiles.filter(p => 

@@ -1,5 +1,13 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+const escapeHtml = (value) =>
+  String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -9,11 +17,49 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { contractId, title, content, userEmail } = await req.json();
+    const { contractId } = await req.json();
 
-    if (!contractId || !title || !content) {
+    if (!contractId) {
       return Response.json({ error: 'Missing required fields' }, { status: 400 });
     }
+
+    // ── Load the contract server-side and authorize the caller ───────────────
+    const contracts = await base44.asServiceRole.entities.Contract.filter({ id: contractId }).catch(() => []);
+    const contract = contracts[0];
+
+    if (!contract) {
+      return Response.json({ error: 'Contract not found' }, { status: 404 });
+    }
+
+    let collabParticipant = false;
+    if (contract.collaboration_id) {
+      const collabs = await base44.asServiceRole.entities.Collaboration
+        .filter({ id: contract.collaboration_id })
+        .catch(() => []);
+      collabParticipant = (collabs[0]?.participant_ids || []).includes(user.email);
+    }
+
+    const isSignatory = (contract.signatories || []).some(s => s.user_id === user.email);
+    const isCreator = contract.created_by === user.email;
+
+    if (!isCreator && !isSignatory && !collabParticipant && user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
+    // ── Build the document from the STORED contract, never caller input ──────
+    let storedBody = '';
+    if (contract.current_version_id) {
+      const versions = await base44.asServiceRole.entities.ContractVersion
+        .filter({ id: contract.current_version_id })
+        .catch(() => []);
+      storedBody = versions[0]?.body_html || '';
+    }
+    if (!storedBody && typeof contract.content?.generated_content === 'string') {
+      storedBody = contract.content.generated_content;
+    }
+
+    const title = contract.title || 'Contract';
+    const userEmail = user.email;
 
     // Get Google Drive access token
     const accessToken = await base44.asServiceRole.connectors.getAccessToken('googledrive');
@@ -30,7 +76,7 @@ Deno.serve(async (req) => {
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>${title}</title>
+  <title>${escapeHtml(title)}</title>
   <style>
     body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
     h1 { color: #333; border-bottom: 2px solid #4F8CFF; padding-bottom: 10px; }
@@ -38,14 +84,14 @@ Deno.serve(async (req) => {
   </style>
 </head>
 <body>
-  <h1>${title}</h1>
+  <h1>${escapeHtml(title)}</h1>
   <div class="metadata">
-    <p><strong>Contract ID:</strong> ${contractId}</p>
-    <p><strong>Created:</strong> ${new Date().toLocaleString()}</p>
-    <p><strong>Created By:</strong> ${userEmail}</p>
+    <p><strong>Contract ID:</strong> ${escapeHtml(contract.id)}</p>
+    <p><strong>Created:</strong> ${escapeHtml(new Date().toLocaleString())}</p>
+    <p><strong>Exported By:</strong> ${escapeHtml(userEmail)}</p>
   </div>
   <div class="content">
-    ${content}
+    ${storedBody}
   </div>
 </body>
 </html>`;
@@ -58,7 +104,7 @@ Deno.serve(async (req) => {
     const metadata = {
       name: `${title}.html`,
       mimeType: 'text/html',
-      description: `Contract backup - ${contractId}`,
+      description: `Contract backup - ${contract.id}`,
     };
 
     const multipartRequestBody =
@@ -93,11 +139,12 @@ Deno.serve(async (req) => {
 
     const file = await response.json();
 
-    // Log the backup
+    // Log the backup — actor is always the authenticated caller
     await base44.asServiceRole.entities.ContractAuditLog.create({
-      contract_id: contractId,
-      action: 'contract_created',
-      actor_email: userEmail,
+      contract_id: contract.id,
+      collaboration_id: contract.collaboration_id,
+      action: 'contract_backed_up_to_drive',
+      actor_email: user.email,
       metadata_json: {
         google_drive_file_id: file.id,
         google_drive_file_name: file.name,

@@ -43,6 +43,12 @@ Deno.serve(async (req) => {
     }
 
     const participantIds = collaboration.participant_ids || [];
+
+    // ── Authorization: caller must be a participant or an admin ──────────────
+    if (!participantIds.includes(user.email) && user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
+
     const notifications = [];
 
     // Define notification content based on type

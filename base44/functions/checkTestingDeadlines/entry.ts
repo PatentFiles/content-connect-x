@@ -3,14 +3,13 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    
-    // This is a scheduled function, can be called without user auth
-    // Validate it's being called from a trusted source (optional)
-    const authHeader = req.headers.get('authorization');
-    const expectedSecret = Deno.env.get('CRON_SECRET');
-    
-    if (expectedSecret && authHeader !== `Bearer ${expectedSecret}`) {
-      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+    // Scheduled / workflow-invoked maintenance function — admin only.
+    // Fails closed: with no authenticated admin (or with any non-admin caller)
+    // nothing runs and no data is mutated.
+    const user = await base44.auth.me().catch(() => null);
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
     const now = new Date();

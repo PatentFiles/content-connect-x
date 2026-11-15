@@ -13,6 +13,7 @@ import PropertyBookingPanel from '@/components/hosting/PropertyBookingPanel';
 import LocationContractClauses from '@/components/hosting/LocationContractClauses';
 import PropertyReviewsSection from '@/components/property/PropertyReviewsSection';
 import { useFeatureFlag } from '@/lib/featureFlags';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 import FeatureRouteGuard from '@/components/feature/FeatureRouteGuard.jsx';
 import MobileRefreshPage from '@/components/ui-custom/MobileRefreshPage';
 import { useQueryClient } from '@tanstack/react-query';
@@ -147,7 +148,7 @@ export default function PropertyDetail() {
                 <h3 className="text-base font-semibold text-[#E8EEF9] mb-2">About this space</h3>
                 <div
                   className="text-sm text-[#9AA6BC] leading-relaxed prose prose-invert prose-sm max-w-none"
-                  dangerouslySetInnerHTML={{ __html: property.description }}
+                  dangerouslySetInnerHTML={{ __html: sanitizeHtml(property.description) }}
                 />
               </CCCard>
             )}

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useMobilePageSetup from '@/hooks/useMobilePageSetup';
 import { toast } from 'sonner';
 import SaveToFavoritesModal from '@/components/profiles/SaveToFavoritesModal';
+import { sanitizeHtml } from '@/lib/sanitizeHtml';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { 
@@ -880,7 +881,7 @@ export default function ViewProfile() {
             <h2 className="text-xl font-semibold text-[#E8EEF9] mb-3 text-center">About</h2>
             <div
               className="text-[#9AA6BC] leading-relaxed prose prose-invert prose-sm max-w-none text-center [&_a]:text-[#4F8CFF]"
-              dangerouslySetInnerHTML={{ __html: profile.bio }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(profile.bio) }}
             />
           </CCCard>
         )}
