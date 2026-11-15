@@ -144,8 +144,9 @@ export default function SupabaseApp() {
     try{const {data,error}=await supabase.functions.invoke('admin-age-review',{body:{action:'list'}});if(error||data?.error)throw new Error(data?.error||error.message);setReviews(data.requests||[]);}catch(e){setError(e.message);}finally{setBusy(false);}
   };
   const reviewAge=async(recordId,action)=>{
+    if(action==='approve' && !window.confirm('I have reviewed both documents and confirmed this person is at least 18 years old. Approve?')) return;
     setBusy(true);setError('');
-    try{const {data,error}=await supabase.functions.invoke('admin-age-review',{body:{request_id:recordId,action}});if(error||data?.error)throw new Error(data?.error||error.message);await loadReviews();setNotice('Review saved.');}catch(e){setError(e.message);}finally{setBusy(false);}
+    try{const {data,error}=await supabase.functions.invoke('admin-age-review',{body:{request_id:recordId,action,age_confirmed:action==='approve'}});if(error||data?.error)throw new Error(data?.error||error.message);await loadReviews();setNotice('Review saved.');}catch(e){setError(e.message);}finally{setBusy(false);}
   };
   const openReviewDocument=async(recordId,document_type)=>{
     setBusy(true);setError('');

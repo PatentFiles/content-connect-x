@@ -31,6 +31,8 @@ Deno.serve(async(req)=>{
     return respond({url:data.signedUrl,expires_in:120});
   }
   if(record.status!=='pending')return respond({error:'Request already resolved'},409);
+  // Explicit human 18+ determination is required before approval.
+  if(body.action==='approve' && body.age_confirmed!==true)return respond({error:'Reviewer must confirm age 18 or older'},400);
   const status=body.action==='approve'?'approved':'rejected';
   const now=new Date().toISOString();
   const {data,error}=await admin.from('age_verification_requests').update({status,reviewer_id:user.id,reviewed_at:now,verified_at:status==='approved'?now:null}).eq('id',record.id).eq('status','pending').select('id,status').maybeSingle();
