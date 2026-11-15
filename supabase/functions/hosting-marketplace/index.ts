@@ -391,7 +391,7 @@ Deno.serve(async req=>{
   const {data,error}=await q;if(error)throw error;
   return reply({items:data||[]});
  }
- case 'booking_cancel':
+ case 'booking_cancel':return denial('Use the booking cancellation-policy workflow',409);
  case 'host_booking_respond':{
   if(!uuid(payload.id))return denial('Invalid reservation');
   const {data:reservation}=await db.from('property_booking_requests').select(bookingCols).eq('id',payload.id).maybeSingle();
