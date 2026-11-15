@@ -118,9 +118,7 @@ export default function PropertyBookingPanel({ property, currentUser, isOwner })
         {property.rules?.verified_only && (
           <CCBadge variant="success" size="sm" icon={Shield}>Verified Users Only</CCBadge>
         )}
-        {false && property.instant_book && (
-          <CCBadge variant="primary" size="sm">⚡ Instant Book</CCBadge>
-        )}
+        {/* Instant booking is not advertised until payment, availability, and confirmation are verified. */}
       </div>
 
       {/* CTA */}
