@@ -26,7 +26,7 @@ const acceptedAmenities=new Set(['wifi','parking','private_entrance','makeup_roo
 const acceptedUses=new Set(['photography','filming','commercial','interviews','music_video','adult_production','events','equipment_rental']);
 const acceptedCategories=new Set(['film_studio','photo_studio','house','villa','loft','set','outdoor','equipment','other']);
 const hashClaim=(header:string)=>{try{const part=header.replace(/^Bearer\s+/i,'').split('.')[1];return JSON.parse(atob(part.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(part.length/4)*4,'=')))?.aal||'aal1';}catch{return 'aal1';}};
-const publicCols='id,owner_id,title,description,category,city,state,country,capacity,minimum_hours,hourly_rate,currency,amenities,permitted_uses,rules,setup_buffer_minutes,cleanup_buffer_minutes,status,created_at';
+const publicCols='id,owner_id,title,description,category,city,state,country,capacity,minimum_hours,hourly_rate,currency,amenities,permitted_uses,rules,setup_buffer_minutes,cleanup_buffer_minutes,cancellation_policy,deposit_percent,required_insurance,status,created_at';
 const ownerCols=publicCols+',submitted_at,approved_at';
 const bookingCols='id,property_id,requester_id,owner_id,starts_at,ends_at,status,notes,requested_use,crew_size,estimated_total,hourly_rate_snapshot,created_at,updated_at';
 const denial=(message:string,status=400)=>reply({error:message},status);
@@ -209,7 +209,10 @@ Deno.serve(async req=>{
    owner_id:uid,status:'draft',title,city,country,state:safe(payload.state,100),category,hourly_rate:rate,capacity:crew,
    minimum_hours:minHours,description:safe(payload.description,4000),permitted_uses:[...new Set(permitted)],
    amenities:[...new Set(amenities)],rules:safe(payload.rules,3000),
-   setup_buffer_minutes:30,cleanup_buffer_minutes:30
+   setup_buffer_minutes:30,cleanup_buffer_minutes:30,
+   cancellation_policy:['flexible','moderate','strict'].includes(payload.cancellation_policy)?payload.cancellation_policy:'flexible',
+   deposit_percent:Number.isInteger(payload.deposit_percent)&&payload.deposit_percent>=0&&payload.deposit_percent<=50?payload.deposit_percent:0,
+   required_insurance:payload.required_insurance===true
   }).select('id,status,title').single();
   if(error)throw error;await audit('host_listing_created',data.id);return reply({item:data},201);
  }
@@ -230,7 +233,10 @@ Deno.serve(async req=>{
    status:'draft',approved_at:null,approved_by:null,
    title,city,country,state:safe(payload.state,100),category,hourly_rate:rate,
    capacity:crew,minimum_hours:minimum,description:safe(payload.description,4000),rules:safe(payload.rules,3000),
-   permitted_uses:[...new Set(uses)],amenities:[...new Set(amenities)],updated_at:new Date().toISOString()
+   permitted_uses:[...new Set(uses)],amenities:[...new Set(amenities)],updated_at:new Date().toISOString(),
+   cancellation_policy:['flexible','moderate','strict'].includes(payload.cancellation_policy)?payload.cancellation_policy:'flexible',
+   deposit_percent:Number.isInteger(payload.deposit_percent)&&payload.deposit_percent>=0&&payload.deposit_percent<=50?payload.deposit_percent:0,
+   required_insurance:payload.required_insurance===true
   }).eq('id',original.id).eq('owner_id',uid).select('id,status').maybeSingle();
   if(error||!data)throw error||Error('Property update failed');
   await audit('host_listing_updated',data.id);return reply({item:data});
@@ -469,9 +475,10 @@ Deno.serve(async req=>{
  case 'guest_checkin_details':{
   if(!uuid(payload.booking_id))return denial('Booking ID required');
   const {data:booking,error}=await db.from('property_booking_requests')
-   .select('property_id,requester_id,owner_id,status,starts_at,ends_at').eq('id',payload.booking_id).maybeSingle();
+   .select('property_id,requester_id,owner_id,status,starts_at,ends_at,legal_status,payment_status').eq('id',payload.booking_id).maybeSingle();
   if(error||!booking||![booking.requester_id,booking.owner_id].includes(uid))return denial('Booking unavailable',403);
-  if(!['accepted','completed'].includes(booking.status))return denial('Host acceptance required before entry information is shared',403);
+  if(!['accepted','completed'].includes(booking.status)||booking.legal_status!=='signed'||!['captured','partially_refunded'].includes(booking.payment_status))
+    return denial('Completed rental agreement and confirmed payment required before private entry information is shared',403);
   const {data:info,error:detailsError}=await db.from('property_private')
    .select('exact_address,entry_instructions').eq('property_id',booking.property_id).maybeSingle();
   if(detailsError)throw detailsError;
@@ -480,9 +487,9 @@ Deno.serve(async req=>{
  }
  case 'host_booking_complete':{
   if(!uuid(payload.id))return denial('Booking ID required');
-  const {data:booking}=await db.from('property_booking_requests').select('id,property_id,owner_id,requester_id,status,ends_at').eq('id',payload.id).maybeSingle();
+  const {data:booking}=await db.from('property_booking_requests').select('id,property_id,owner_id,requester_id,status,ends_at,legal_status,payment_status').eq('id',payload.id).maybeSingle();
   if(!booking||booking.owner_id!==uid)return denial('Only the property owner can complete a booking',403);
-  if(booking.status!=='accepted'||Date.parse(booking.ends_at)>Date.now())return denial('Only finished, accepted bookings may be completed',409);
+  if(booking.status!=='accepted'||booking.legal_status!=='signed'||!['captured','partially_refunded'].includes(booking.payment_status)||Date.parse(booking.ends_at)>Date.now())return denial('Completion requires a finished, signed and funded rental',409);
   const {data,error}=await db.from('property_booking_requests')
    .update({status:'completed',updated_at:new Date().toISOString()})
    .eq('id',booking.id).eq('status','accepted').select('id,status').maybeSingle();
