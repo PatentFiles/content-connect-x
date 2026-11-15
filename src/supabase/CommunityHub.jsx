@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Heart, MessageCircle, ShieldCheck, Send, RefreshCw } from 'lucide-react';
 import { platformAction } from './platformApi';
+import { productionAction } from './productionApi';
 
 const panel='rounded-xl border border-[#263248] bg-[#151D2B] p-5';
 const control='w-full rounded-lg bg-[#0F1520] border border-[#34445D] text-white p-2';
@@ -10,6 +11,9 @@ function Comments({post,paid}){
   const [comments,setComments]=useState([]);
   const [expanded,setExpanded]=useState(false);
   const [body,setBody]=useState('');
+  const [mode,setMode]=useState('latest');
+  const [savedIds,setSavedIds]=useState([]);
+  const [savedOnly,setSavedOnly]=useState(false);
   const [error,setError]=useState('');
   const [busy,setBusy]=useState(false);
   const fetchComments=async()=>{
@@ -43,14 +47,17 @@ function Comments({post,paid}){
 export default function CommunityHub({paid=false,userId}){
   const [posts,setPosts]=useState([]);
   const [body,setBody]=useState('');
+  const [mode,setMode]=useState('latest');
+  const [savedIds,setSavedIds]=useState([]);
+  const [savedOnly,setSavedOnly]=useState(false);
   const [error,setError]=useState('');
   const [notice,setNotice]=useState('');
   const [busy,setBusy]=useState(false);
   const load=useCallback(async()=>{
     setBusy(true);setError('');
-    try{const response=await platformAction('community_feed');setPosts(response.items||[]);}
+    try{const [response,saved]=await Promise.all([platformAction('community_feed',{feed_mode:mode}),productionAction('saved_posts')]);setPosts(response.items||[]);setSavedIds((saved.items||[]).map(v=>v.post_id));}
     catch(e){setError(e.message);}finally{setBusy(false);}
-  },[]);
+  },[mode]);
   useEffect(()=>{load();},[load]);
   const createPost=async(event)=>{
     event.preventDefault();setBusy(true);setError('');setNotice('');
@@ -59,6 +66,13 @@ export default function CommunityHub({paid=false,userId}){
       setBody('');setNotice(result.note||'Submitted for moderation');
       await load();
     }catch(e){setError(e.message);}finally{setBusy(false);}
+  };
+  const save=async(id)=>{
+    setError('');
+    try{
+      const result=await productionAction('toggle_saved_post',{post_id:id});
+      setSavedIds(previous=>result.saved?[...new Set([...previous,id])]:previous.filter(v=>v!==id));
+    }catch(e){setError(e.message);}
   };
   const follow=async(target)=>{
     setError('');
@@ -85,11 +99,12 @@ export default function CommunityHub({paid=false,userId}){
       <textarea className={control} rows={4} minLength={5} maxLength={3000} value={body} onChange={e=>setBody(e.target.value)} required placeholder="Share a project update, a travel notice or a collaboration opportunity. Do not post private ID or medical records."/>
       <div className="flex justify-between items-center gap-3"><p className="text-xs text-[#9AA6BC]"><ShieldCheck size={14} className="inline mr-1"/>Moderated before publishing</p><button className={button} disabled={busy}>Submit post</button></div>
     </form>}
-    <div className="space-y-4 max-w-3xl">{posts.map(post=><article className={panel} key={post.id}>
+    <div className="flex flex-wrap gap-2"><button className={mode==='latest'?button:'rounded-lg bg-[#273449] px-3 py-2 text-sm'} onClick={()=>setMode('latest')}>Latest</button><button className={mode==='following'?button:'rounded-lg bg-[#273449] px-3 py-2 text-sm'} onClick={()=>setMode('following')}>Following</button><button className={savedOnly?button:'rounded-lg bg-[#273449] px-3 py-2 text-sm'} onClick={()=>setSavedOnly(!savedOnly)}>Saved posts</button></div>
+    <div className="space-y-4 max-w-3xl">{posts.filter(post=>!savedOnly||savedIds.includes(post.id)).map(post=><article className={panel} key={post.id}>
       <div className="flex justify-between gap-2 mb-3"><div><p className="font-semibold">{post.author?.display_name||'Verified creator'}</p><p className="text-xs text-[#9AA6BC]">{post.author?.role_type||'Creator'} · {post.author?.city||'Professional network'}</p>{post.author_id!==userId&&<button className="text-xs text-blue-400 mt-1" onClick={()=>follow(post.author_id)}>{post.followed?'Following · Unfollow':'+ Follow creator'}</button>}</div><p className="text-xs text-[#9AA6BC]">{new Date(post.published_at||post.created_at).toLocaleDateString()}</p></div>
       <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{post.body}</p>
       <button className={'mt-4 inline-flex items-center gap-2 text-sm '+(post.liked?'text-pink-400':'text-[#9AA6BC]')} onClick={()=>like(post.id)}><Heart size={16} fill={post.liked?'currentColor':'none'}/>{post.reactions||0}</button>
-      <Comments paid={paid} post={post}/>
+      <button className="text-xs text-blue-300 mt-2" onClick={()=>save(post.id)}>{savedIds.includes(post.id)?'Saved · Remove bookmark':'Save post'}</button><Comments paid={paid} post={post}/>
     </article>)}
     {!posts.length&&<div className={panel}><p className="text-[#9AA6BC]">No approved community posts are published yet.</p></div>}
     </div>

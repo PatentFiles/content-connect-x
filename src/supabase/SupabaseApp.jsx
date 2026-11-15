@@ -225,8 +225,8 @@ export default function SupabaseApp() {
     if(paid && visibleFeatures?.availability) menu.push(['schedule','Availability',CalendarDays]);
     menu.push(['production','Production Manager',UsersRound]);
     if(paid){
-      menu.push(['reputation','Verified Reviews',Star]);
-      menu.push(['agreements','Agreements',FileSignature]);
+      if(visibleFeatures?.verified_reviews)menu.push(['reputation','Verified Reviews',Star]);
+      if(visibleFeatures?.contracts)menu.push(['agreements','Agreements',FileSignature]);
     }
   }
   if(paid && approved) {
