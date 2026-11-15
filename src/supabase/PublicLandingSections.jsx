@@ -101,10 +101,10 @@ export default function PublicLandingSections(){
           </div>
           <div className="ccx-public-trust-stack">
             {[
-             [ScanFace,'Independent identity checks','Hosted provider checks and reviewer-based verification'],
-             [FileSignature,'Clear agreements','Signature and retained-document workflows'],
-             [LockKeyhole,'Role-based privacy','Sensitive files are scoped to approved participants']
-            ].map(([Icon,title,description])=><div className="ccx-public-trust-row" key={title}>
+             {Icon:ScanFace,title:'Independent identity checks',description:'Hosted provider checks and reviewer-based verification'},
+             {Icon:FileSignature,title:'Clear agreements',description:'Signature and retained-document workflows'},
+             {Icon:LockKeyhole,title:'Role-based privacy',description:'Sensitive files are scoped to approved participants'}
+            ].map(({Icon,title,description})=><div className="ccx-public-trust-row" key={title}>
              <span className="ccx-icon-wrap"><Icon size={22}/></span><div><h3>{title}</h3><p>{description}</p></div>
             </div>)}
           </div>
@@ -143,11 +143,11 @@ export default function PublicLandingSections(){
       </div>
       <div className="ccx-public-role-grid">
        {[
-        [Camera,'Creators & performers','Build your professional presence and manage trusted connections.'],
-        [Clapperboard,'Videographers & photographers','Connect with talent, plan work and manage agreements.'],
-        [Layers,'Studios & production teams','Coordinate people, locations, schedules and private workflows.'],
-        [MessageSquare,'Agents & collaborators','Keep communication and project responsibilities organized.']
-       ].map(([Icon,title,description])=><article className="ccx-public-role" key={title}>
+        {Icon:Camera,title:'Creators & performers',description:'Build your professional presence and manage trusted connections.'},
+        {Icon:Clapperboard,title:'Videographers & photographers',description:'Connect with talent, plan work and manage agreements.'},
+        {Icon:Layers,title:'Studios & production teams',description:'Coordinate people, locations, schedules and private workflows.'},
+        {Icon:MessageSquare,title:'Agents & collaborators',description:'Keep communication and project responsibilities organized.'}
+       ].map(({Icon,title,description})=><article className="ccx-public-role" key={title}>
         <Icon size={23} className="text-[#FF8DD9]"/><h3>{title}</h3><p>{description}</p>
        </article>)}
       </div>
