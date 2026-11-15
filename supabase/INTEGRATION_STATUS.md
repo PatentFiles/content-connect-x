@@ -25,7 +25,7 @@ The user requested integration of ten upstream open-source projects. We have **n
 - Verified free users can read moderated posts, submit feature ideas/votes, react and access limited discovery.
 - Premium creators can list availability, publish posts for review, comment, connect/messsage, and submit private media for manual review.
 - Signed contracts and media-use permissions remain separate from consent. Consent withdrawal survives subscription cancellation.
-- Private media, ID records, STI clearance details and background reports must never be sent to general analytics or public channels.
+- Private media, ID records, STI clearance details and background reports must never be sent to general analytics or public channels. Media approval is additionally blocked unless the trusted server setting `ADULT_MEDIA_PUBLICATION_READY=true` is set after approved release/retention procedures; member private uploads and review requests remain available for staging.
 - An OpenModerate classifier is **not** proof that a person is 18+, that content is consensual, or that publication is permitted.
 - Feature flags are *not* authorization; signed-in endpoints enforce age, bans and actual subscription statuses in Supabase.
 
@@ -46,7 +46,7 @@ The user requested integration of ten upstream open-source projects. We have **n
 - No existing Base44 accounts or media have been migrated. The legacy frontend still has a separate typecheck backlog.
 - No DocuSign access, approved merchant payments, external age provider, clinical clearance provider, optional background-screening provider, hosted OpenModerate service, or production Sentry/Flagsmith organizations are connected.
 - Media rights/recordkeeping, international privacy, moderation escalation, content appeals, retention and adult-industry policies need reviewed production procedures.
-- The older Base44/Vite dependency tree has remaining npm audit advisories; safe nonbreaking updates have been applied. Its critical jsPDF dependency and other breaking upgrades require a separate compatibility-tested remediation.
+- The older Base44/Vite dependency tree still has 10 npm audit advisories (7 moderate, 2 high and 1 critical) after safe nonbreaking updates have been applied. Its critical jsPDF dependency and other breaking upgrades require a separate compatibility-tested remediation.
 - The current UI is a Supabase-only preview shell; the original full Base44 visual site has not been completely migrated.
 
 ## Verification evidence
