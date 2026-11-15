@@ -3,8 +3,8 @@
  */
 import React,{useCallback,useEffect,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
-import {Home,Camera,MapPin,Users,ShieldCheck,CalendarDays,ArrowUpRight,ArrowRight,Star,
- LogOut,Search,Check,Building2,RefreshCw,LockKeyhole,Menu} from 'lucide-react';
+import {Home,Camera,MapPin,Users,ShieldCheck,CalendarDays,ArrowUpRight,ArrowRight,
+ LogOut,Search,Building2} from 'lucide-react';
 import HostingMarketplace from './HostingMarketplace';
 import YotiVerification from './YotiVerification';
 import {integrationAction} from './integrationApi';
