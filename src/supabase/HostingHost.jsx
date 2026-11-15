@@ -39,6 +39,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false})
  const [inspectionFile,setInspectionFile]=useState(null);
  const [inspectionPhase,setInspectionPhase]=useState('before');
  const [reviewQueue,setReviewQueue]=useState([]);
+ const [icalFile,setIcalFile]=useState(null);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
  const [notice,setNotice]=useState('');
@@ -109,6 +110,32 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false})
   e.preventDefault();
   const r=await mutate('host_block_dates',{id:selected,starts_at:new Date(blockStart).toISOString(),ends_at:new Date(blockEnd).toISOString()},'Time blocked.');
   if(r){setBlockStart('');setBlockEnd('');}
+ };
+ const importCalendar=async()=>{
+  if(!icalFile||!selected)return;
+  setBusy(true);setError('');setNotice('');
+  try{
+   if(icalFile.size>200000)throw new Error('Calendar must be smaller than 200 KB.');
+   const text=await icalFile.text();
+   const result=await hostingAction('host_ical_import',{id:selected,ics:text});
+   setNotice('Imported '+result.imported+' dates; skipped '+result.ignored+' unsupported or conflicting events.');
+   setIcalFile(null);await extra(selected);
+  }catch(e){setError(e.message);}finally{setBusy(false);}
+ };
+ const exportCalendar=()=>{
+  if(!selected)return;
+  const utc=value=>new Date(value).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+  const blocksOnProperty=blocks.map(b=>({id:b.id,starts_at:b.starts_at,ends_at:b.ends_at}));
+  const bookingsOnProperty=reservations.filter(b=>b.property_id===selected&&['requested','accepted'].includes(b.status));
+  const events=[...blocksOnProperty,...bookingsOnProperty].map(x=>[
+   'BEGIN:VEVENT','UID:'+x.id+'@contentconnectx.com','DTSTAMP:'+utc(new Date()),
+   'DTSTART:'+utc(x.starts_at),'DTEND:'+utc(x.ends_at),
+   'SUMMARY:Unavailable for filming','END:VEVENT'
+  ].join('\r\n')).join('\r\n');
+  const content='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Content Connect X//Private Hosting Calendar//EN\r\n'+events+'\r\nEND:VCALENDAR\r\n';
+  const url=URL.createObjectURL(new Blob([content],{type:'text/calendar;charset=utf-8'}));
+  const link=document.createElement('a');link.href=url;link.download='contentconnectx-hosting.ics';link.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
  };
  const newTurnover=async()=>{
   const r=await mutate('turnover_create',{id:selected,due_at:turnoverDue?new Date(turnoverDue).toISOString():null},'Turnover checklist created.');
@@ -236,7 +263,13 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false})
         {selected&&<div className={panel+' space-y-3'}>
           <h3 className="font-semibold flex items-center gap-2"><CalendarDays size={18}/>Blackout dates</h3>
           <form onSubmit={block} className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]"><label className="text-sm">From<input className={input+' mt-1'} type="datetime-local" required value={blockStart} onChange={e=>setBlockStart(e.target.value)}/></label><label className="text-sm">To<input className={input+' mt-1'} type="datetime-local" required value={blockEnd} onChange={e=>setBlockEnd(e.target.value)}/></label><button className={button+' self-end'} disabled={busy}>Block dates</button></form>
-          {blocks.map(block=><div className="flex justify-between gap-3 border-t border-[#34465E] pt-2 text-xs" key={block.id}><span>{dateTime(block.starts_at)} – {dateTime(block.ends_at)}</span><button onClick={()=>mutate('host_remove_block',{id:block.id},'Block removed.')} className="text-red-300">Remove</button></div>)}
+          <div className="rounded-lg border border-[#34465E] bg-[#0B1422] p-3 space-y-3">
+            <p className="font-semibold text-sm">External calendar files (iCalendar)</p>
+            <p className="text-xs text-[#9FB4CE]">Import event times from an exported .ics file to block rentals. Guest names and contact details are not stored. UTC and all-day events are supported; other timezone forms are skipped.</p>
+            <input type="file" accept=".ics,text/calendar" className="block w-full text-xs" onChange={e=>setIcalFile(e.target.files?.[0]||null)}/>
+            <div className="flex flex-wrap gap-2"><button className={button} disabled={busy||!icalFile} onClick={importCalendar}>Import calendar blocks</button><button className={secondary} onClick={exportCalendar} disabled={busy}>Export unavailable dates (.ics)</button></div>
+          </div>
+          {blocks.map(block=><div className="flex justify-between gap-3 border-t border-[#34465E] pt-2 text-xs" key={block.id}><span>{dateTime(block.starts_at)} – {dateTime(block.ends_at)} · {block.source||"manual"}</span><button onClick={()=>mutate('host_remove_block',{id:block.id},'Block removed.')} className="text-red-300">Remove</button></div>)}
         </div>}
 
         {selected&&<div className={panel+' space-y-3'}>

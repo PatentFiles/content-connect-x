@@ -22,7 +22,7 @@ These projects use different frameworks and data stores. Their entire applicatio
 5. Host submits listing and images for independent administrator review. Administrator must use MFA and cannot approve their own listing.
 6. Admin approves images before publishing the property. Database triggers require approval metadata and declared permitted uses for an active listing.
 7. Material public listing edits return the listing to private draft/pending review.
-8. Host can block dates and manage incoming reservation requests, completing bookings after their end time.
+8. Host can block dates manually, import .ics event blocks (without guest PII), export an availability iCalendar feed and manage incoming reservation requests, completing bookings after their end time.
 9. Host can schedule turnovers, tick checklists and upload private before/after inspection images to the property-inspections bucket.
 
 ## Guest workflow
@@ -39,7 +39,7 @@ These projects use different frameworks and data stores. Their entire applicatio
 
 - **Not yet end-to-end tested with multiple verified accounts:** Supabase currently has no independently verified test members.
 - **No merchant checkout:** estimated amounts are informational. An adult-industry-approved payment provider, invoices, refunds and deposits still need implementation and tests.
-- **No external channel sync:** Airbnb/VRBO/Booking.com iCalendar imports and Google/Microsoft/iCloud OAuth calendars are not connected. Hosts can block dates manually.
+- **No automatic external channel sync:** Manual iCalendar upload and export are supported for UTC/all-day events. Automatic polling of Airbnb/VRBO/Booking.com feeds and Google/Microsoft/iCloud OAuth calendars are not connected.
 - **No exact-pin public map:** only general city map links are shown; we intentionally do not publish a property's precise location. A production map needs an approved city-level geocoder/tiles provider.
 - **No automated host identity/ownership validation:** admins must manually review authority to rent, property use and publication evidence. Booking terms and property release templates need appropriate review.
 - **No autonomous cleaners:** turnover checklists and private inspection uploads are implemented; staff invitation/permissions, supply tracking and cleaning scheduling remain extensions.
@@ -51,10 +51,14 @@ These projects use different frameworks and data stores. Their entire applicatio
 - `supabase/sql/028_hosting_marketplace.sql`
 - `supabase/sql/029_hosting_privacy_reviews.sql`
 - `supabase/sql/030_hosting_internal_policies.sql`
+- `supabase/sql/031_hosting_buffer_blackouts.sql`
+- `supabase/sql/032_hosting_ical_metadata.sql`
+- `supabase/sql/033_hosting_ical_upsert_constraint.sql`
 - `supabase/functions/hosting-marketplace/index.ts` — verified JWT entrypoint
 - `src/supabase/hostingApi.js` — frontend API with signed upload helper
 - `src/supabase/HostingMarketplace.jsx` — discovery, listing details, reservations and favorites
-- `src/supabase/HostingHost.jsx` — host operations, admin queue, turnarounds, private address
+- `src/supabase/HostingHost.jsx` — host operations, calendar imports, admin queue, turnarounds, private address
+- `src/supabase/HostingCalendar.jsx` — occupancy calendar view
 
 ## Validation
 

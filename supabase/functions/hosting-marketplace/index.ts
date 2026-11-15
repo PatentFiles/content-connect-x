@@ -64,7 +64,7 @@ Deno.serve(async req=>{
  if(!await feature('hosting_marketplace',paid?'premium':'free'))return denial('Marketplace is unavailable',403);
  const adminAction=action.startsWith('admin_');
  if(adminAction&&(!admin||hashClaim(token)!=='aal2'))return denial('Verified administrator MFA required',403);
- const hostAction=new Set(['host_create','host_update','host_submit','host_block_dates','host_remove_block','host_photos_token','host_photos_register','host_photo_delete','host_private_details','host_bookings','host_booking_respond','turnover_create','turnover_list','turnover_task','turnover_upload_token','turnover_upload_register','turnover_photos','host_booking_complete']);
+ const hostAction=new Set(['host_create','host_update','host_submit','host_block_dates','host_remove_block','host_ical_import','host_photos_token','host_photos_register','host_photo_delete','host_private_details','host_bookings','host_booking_respond','turnover_create','turnover_list','turnover_task','turnover_upload_token','turnover_upload_register','turnover_photos','host_booking_complete']);
  const paidAction=hostAction.has(action)||['booking_request','booking_cancel'].includes(action);
  if(paidAction&&(!paid||!await feature('hosting_marketplace','premium')))return denial('Premium membership required',403);
  if(['booking_request','booking_cancel','host_bookings','host_booking_respond','host_booking_complete'].includes(action)&&!await feature('hosting_requests','premium'))return denial('Hosting requests are paused',403);
@@ -298,6 +298,46 @@ Deno.serve(async req=>{
   const {data,error}=await db.from('property_unavailable').insert({property_id:owner.id,blocked_by:uid,starts_at:start,ends_at:end,reason:safe(payload.reason,200)}).select('id').single();
   if(error)throw error;return reply({item:data},201);
  }
+
+ case 'host_ical_import':{
+  if(!uuid(payload.id)||!await ownProperty(payload.id))return denial('Not your listing',403);
+  const raw=payload.ics;
+  if(typeof raw!=='string'||raw.length>200000||!raw.includes('BEGIN:VCALENDAR'))return denial('A valid iCalendar file under 200 KB is required',400);
+  const normalized=raw.replace(/\r\n/g,'\n').replace(/\n[ \t]/g,'').replace(/\r/g,'');
+  const rawEvents=normalized.split('BEGIN:VEVENT').slice(1).map(v=>v.split('END:VEVENT')[0]);
+  if(!rawEvents.length||rawEvents.length>150)return denial('Calendar must contain between 1 and 150 events',400);
+  const parseDate=(v:string)=>{
+    const value=v.trim();
+    if(/^\d{8}$/.test(value))
+      {const date=new Date(value.slice(0,4)+'-'+value.slice(4,6)+'-'+value.slice(6,8)+'T00:00:00Z');return Number.isFinite(date.getTime())?date.toISOString():null;}
+    if(/^\d{8}T\d{6}Z$/.test(value))
+      {const date=new Date(value.slice(0,4)+'-'+value.slice(4,6)+'-'+value.slice(6,8)+'T'+value.slice(9,11)+':'+value.slice(11,13)+':'+value.slice(13,15)+'Z');return Number.isFinite(date.getTime())?date.toISOString():null;}
+    return null;
+  };
+  let added=0,ignored=0;
+  for(const event of rawEvents){
+    const lines=event.split('\n');
+    const startLine=lines.find(v=>v.startsWith('DTSTART:')||v.startsWith('DTSTART;VALUE=DATE:'));
+    const endLine=lines.find(v=>v.startsWith('DTEND:')||v.startsWith('DTEND;VALUE=DATE:'));
+    const uidLine=lines.find(v=>v.startsWith('UID:'));
+    if(!startLine||!endLine){ignored++;continue;}
+    const start=parseDate(startLine.slice(startLine.indexOf(':')+1));
+    const end=parseDate(endLine.slice(endLine.indexOf(':')+1));
+    if(!start||!end||Date.parse(end)<=Date.parse(start)||Date.parse(end)-Date.parse(start)>90*86400000){ignored++;continue;}
+    if(Date.parse(end)<Date.now()-30*86400000){ignored++;continue;}
+    const identity=uidLine?uidLine.slice(4).trim():(start+end);
+    const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(identity));
+    const key=[...new Uint8Array(digest)].map(x=>x.toString(16).padStart(2,'0')).join('');
+    const {error}=await db.from('property_unavailable').upsert({
+      property_id:payload.id,blocked_by:uid,starts_at:start,ends_at:end,
+      reason:'Imported calendar block',source:'ics_upload',source_uid_hash:key
+    },{onConflict:'property_id,source_uid_hash'});
+    // A conflicting booking is not overwritten. Hosts must resolve it manually.
+    if(error)ignored++;else added++;
+  }
+  await audit('hosting_ical_import',payload.id,{added,ignored});
+  return reply({imported:added,ignored,note:'Imported events block booking dates. Unsupported timezones or conflicting entries were skipped.'});
+ }
  case 'host_remove_block':{
   if(!uuid(payload.id))return denial('Invalid block');
   const {data:blocked,error}=await db.from('property_unavailable').delete().eq('id',payload.id).eq('blocked_by',uid).select('id').maybeSingle();
@@ -305,7 +345,7 @@ Deno.serve(async req=>{
  }
  case 'host_blocks':{
   if(!uuid(payload.id)||!await ownProperty(payload.id))return denial('Not your listing',403);
-  const {data,error}=await db.from('property_unavailable').select('id,starts_at,ends_at,reason').eq('property_id',payload.id).order('starts_at').limit(200);
+  const {data,error}=await db.from('property_unavailable').select('id,starts_at,ends_at,reason,source').eq('property_id',payload.id).order('starts_at').limit(200);
   if(error)throw error;return reply({items:data});
  }
  case 'booking_request':{
