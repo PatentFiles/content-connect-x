@@ -1,4 +1,4 @@
-name: Frontend quality gate
+name: Content Connect X quality gate
 on:
   push:
   pull_request:
@@ -13,29 +13,11 @@ jobs:
           node-version: '20'
           cache: npm
       - run: npm ci
-      - name: Check lint
+      - name: Lint frontend
         run: npm run lint
-      - name: Verify legacy site build
+      - name: Type-check entire application
+        run: npm run typecheck
+      - name: Build Supabase application
         run: npm run build
-      - name: Strict Supabase type check
-        run: npm run typecheck:supabase
-      - name: Verify Supabase/Bolt build
-        run: npm run build:supabase
-      - name: Verify unauthenticated Supabase gateway restrictions
+      - name: Verify protected Edge Function gateway
         run: npm run smoke:supabase
-      - name: Prevent TypeScript regression
-        shell: bash
-        run: |
-          set +e
-          npm run typecheck > typecheck-report.txt 2>&1
-          set -e
-          count=$(grep -c 'error TS' typecheck-report.txt || true)
-          echo "Current type-check diagnostics: $count (baseline: 2639)"
-          if [ "$count" -gt 2639 ]; then
-            cat typecheck-report.txt
-            echo "::error::Type-check diagnostics increased. Fix the new errors before merging."
-            exit 1
-          fi
-          if [ "$count" -ne 0 ]; then
-            echo "::warning::$count existing type-check diagnostics remain. Reduce baseline as they are fixed."
-          fi
