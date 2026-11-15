@@ -270,7 +270,7 @@ export default function SupabaseApp() {
       </div>
     </header>
     <main id="main-content" className="mx-auto max-w-7xl px-4 pb-12 pt-5 md:px-6">
-      <nav aria-label="Main workspace navigation" className="mb-6 flex flex-wrap gap-2">
+      <nav aria-label="Main workspace navigation" className="mb-6 flex flex-nowrap gap-2 overflow-x-auto pb-2 scrollbar-hide md:flex-wrap md:overflow-visible">
         {menu.map(([key,label,Icon])=>
           <button key={key} onClick={()=>{setTab(key);setError('');}} aria-current={tab===key?'page':undefined}
             className={'ccx-nav-pill inline-flex items-center gap-2 '+(tab===key?'is-active':'')}>
