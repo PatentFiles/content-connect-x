@@ -260,6 +260,13 @@ Deno.serve(async request=>{
   }).eq('booking_id',body.booking_id).eq('user_id',uid).eq('status','invited')
    .select('booking_id,role,status').maybeSingle();
   if(error||!data)return deny('Invitation unavailable',404);
+  if(body.status==='active'){
+   const {data:conversation}=await db.from('hosting_booking_conversations')
+    .select('conversation_id').eq('booking_id',body.booking_id).maybeSingle();
+   if(conversation)await db.from('conversation_members').upsert({
+    conversation_id:conversation.conversation_id,user_id:uid
+   },{onConflict:'conversation_id,user_id',ignoreDuplicates:true});
+  }
   return reply({item:data});
  }
  case 'booking_access_revoke':{
@@ -284,6 +291,12 @@ Deno.serve(async request=>{
    .select('user_id,role,can_view_entry').maybeSingle();
   if(error||!data)return deny('Active crew member not found',404);
   return reply({item:data});
+ }
+ case 'my_crew_invites':{
+  const {data,error}=await db.from('hosting_booking_access').select('booking_id,role,status,created_at')
+   .eq('user_id',uid).in('status',['invited','active']).order('created_at',{ascending:false}).limit(100);
+  if(error)throw error;
+  return reply({items:data||[]});
  }
  case 'booking_access_list':{
   const b=await booking(body.booking_id);
@@ -372,6 +385,18 @@ Deno.serve(async request=>{
   },{onConflict:'booking_id'}).select('booking_id,status').single();
   if(error)throw error;await notify(b.owner_id,'Booking insurance submitted',b.id);
   return reply({item:data},201);
+ }
+ case 'insurance_view':{
+  const b=await booking(body.booking_id);
+  if(!b||![b.owner_id,b.requester_id].includes(uid))return deny('Booking participant required',403);
+  const {data:document,error}=await db.from('hosting_booking_insurance')
+   .select('document_path,status,policy_holder,expiry_date').eq('booking_id',b.id).maybeSingle();
+  if(error||!document)return deny('No insurance document is available',404);
+  const {data:urlResult,error:storageError}=await db.storage.from('hosting-compliance')
+   .createSignedUrl(document.document_path,90);
+  if(storageError)throw storageError;
+  await audit('hosting_private_insurance_viewed',b.id);
+  return reply({url:urlResult.signedUrl,expires_in:90,status:document.status,expiry_date:document.expiry_date});
  }
  case 'insurance_review':{
   const b=await booking(body.booking_id);
