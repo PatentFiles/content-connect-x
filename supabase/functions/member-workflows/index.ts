@@ -101,14 +101,14 @@ Deno.serve(async req=>{
         if(error)throw error;
         const ids=(members||[]).map(v=>v.collaboration_id);
         if(!ids.length)return respond({items:[]});
-        const {data,error:loadError}=await admin.from('collaborations').select('id,title,description,status,creator_id,created_at').in('id',ids).order('created_at',{ascending:false});
+        const {data,error:loadError}=await admin.from('collaborations').select('id,title,description,status,creator_id,requires_work_clearance,created_at').in('id',ids).order('created_at',{ascending:false});
         if(loadError)throw loadError;
         return respond({items:data});
       }
       case 'create_collaboration':{
         const title=text(body.title,140),description=text(body.description,3000);
         if(title.length<3)return fail('Collaboration title is required');
-        const {data:record,error}=await admin.from('collaborations').insert({creator_id:uid,title,description,status:'draft'}).select('id,title,status,created_at').single();
+        const {data:record,error}=await admin.from('collaborations').insert({creator_id:uid,title,description,status:'draft',requires_work_clearance:body.requires_work_clearance===true}).select('id,title,status,created_at').single();
         if(error)throw error;
         const {error:joinError}=await admin.from('collaboration_members').insert({collaboration_id:record.id,user_id:uid,membership_role:'owner'});
         if(joinError){await admin.from('collaborations').delete().eq('id',record.id);throw joinError;}
@@ -239,6 +239,21 @@ Deno.serve(async req=>{
         if(error||!contract||!await memberOf(contract.collaboration_id))return fail('Contract unavailable',403);
         if(!['draft','partially_signed'].includes(contract.status))return fail('Contract no longer signable',409);
         if(body.consent!==true)return fail('Explicit contract consent required');
+        // Signature alone is not permission to record or distribute a collaboration.
+        const {data:consentRecord,error:consentError}=await admin.from('collaboration_consents')
+          .select('participation_consent,recording_consent,revoked_at')
+          .eq('collaboration_id',contract.collaboration_id).eq('user_id',uid).maybeSingle();
+        if(consentError||!consentRecord||!consentRecord.participation_consent||!consentRecord.recording_consent||consentRecord.revoked_at)
+          return fail('Separate, current performer participation and recording consent required',403);
+        const {data:collabPolicy,error:policyError}=await admin.from('collaborations')
+          .select('requires_work_clearance,status').eq('id',contract.collaboration_id).maybeSingle();
+        if(policyError||!collabPolicy||collabPolicy.status==='paused')return fail('Collaboration is paused or unavailable',409);
+        if(collabPolicy.requires_work_clearance){
+          const {data:workClearance,error:clearanceError}=await admin.from('performer_work_clearances')
+            .select('clearance_confirmed,expires_at').eq('user_id',uid).maybeSingle();
+          if(clearanceError||!workClearance?.clearance_confirmed||!workClearance.expires_at||Date.parse(workClearance.expires_at)<Date.now())
+            return fail('Current verified work clearance required before signing',403);
+        }
         const hash=await hashContent(contract.content);
         const {data:already}=await admin.from('contract_signatures').select('id').eq('contract_id',contract_id).eq('signer_id',uid).maybeSingle();
         if(already)return fail('Already signed',409);
