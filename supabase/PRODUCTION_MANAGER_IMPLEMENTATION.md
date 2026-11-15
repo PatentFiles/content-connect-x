@@ -20,7 +20,7 @@ November 2026. Supabase project: yxuqbygykpfbioslljlf. GitHub: PatentFiles/conte
 1. Creator bookings use a dedicated protected booking workflow, not the property-rental booking table.
 2. Formal contract signing is DocuSign-based. The internal prototype cannot mark a contract legally completed.
 3. Messaging uses RLS-protected private realtime channels, not public chat broadcasts.
-4. Production Manager centralizes new team/event/case workflows. The original Base44 site is still preserved for migration and rollback.
+4. Production Manager centralizes team, event, booking and case workflows in Supabase.
 
 ## External dependencies and incomplete work
 
@@ -33,7 +33,7 @@ The source code does NOT represent full production sign-off. In particular:
 - WebRTC calls, Cloudflare TURN, live streaming, short-form stories/clips and video recording moderation are not deployed.
 - OpenModerate external service, approved publication procedures, Flagsmith environment, and Sentry DSN remain unconfigured.
 - Advanced semantic search, true multivariate experimentation and a full mobile design pass are pending.
-- Existing Base44 users and files have not been migrated. The legacy typecheck has 2,639 diagnostics, and some dependencies need security upgrades.
+- The new Supabase project must pass authenticated multi-account acceptance tests and any separately held historical records require an explicit migration process.
 - The adult-content recordkeeping and signed-release templates require specialized professional review before production use.
 
 ## Validation
@@ -55,4 +55,4 @@ Unauthenticated smoke tests verify that twelve protected Edge Functions return 4
 2. Test free/premium, suspended, banned and expired access for RLS, private media, events, bookings, chat, consent and complaints.
 3. Connect and test DocuSign sandbox signatures and provider evidence, then turn on verified reviews.
 4. Configure approved processor, calendar sync, mail/push and other external services.
-5. Validate mobile accessibility and migrate Base44 data with a rollback plan before changing the live domain.
+5. Validate mobile accessibility and verify historical data migration and a rollback plan before changing the live domain.
