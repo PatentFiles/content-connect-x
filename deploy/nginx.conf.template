@@ -1,0 +1,43 @@
+server {
+    listen ${PORT};
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+    server_tokens off;
+    client_max_body_size 12m;
+
+    # Only a process health result, not an application or payment readiness claim.
+    location = /healthz {
+        add_header Content-Type text/plain;
+        add_header Cache-Control "no-store";
+        return 200 "ok";
+    }
+
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header X-Frame-Options "DENY" always;
+    add_header Permissions-Policy "interest-cohort=()" always;
+    add_header Cross-Origin-Resource-Policy "same-origin" always;
+
+    # Versioned bundle assets are immutable. Do NOT cache index.html long term.
+    location /assets/ {
+        try_files $uri =404;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+        add_header X-Content-Type-Options "nosniff";
+    }
+    location = /index.html {
+        add_header Cache-Control "no-store, max-age=0";
+        try_files $uri =404;
+    }
+
+    # React SPA client routing; never rewrite static assets or service worker.
+    location = /sw-hosting.js {
+        add_header Cache-Control "no-store, max-age=0";
+        add_header Service-Worker-Allowed "/";
+        try_files $uri =404;
+    }
+    location / {
+        try_files $uri $uri/ /index.html;
+        add_header Cache-Control "no-store, max-age=0";
+    }
+}
