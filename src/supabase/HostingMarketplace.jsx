@@ -13,6 +13,9 @@ import {
   hostingAction, rentalCategories, rentalAmenities, rentalUses, usd, dateTime,
 } from './hostingApi';
 import HostingHost from './HostingHost';
+import HostingBookingOperations from './HostingBookingOperations';
+import {hostingBusiness} from './hostingBusinessApi';
+import HostingNotificationSettings from './HostingNotificationSettings';
 
 const panel='rounded-2xl border border-[#293649] bg-[#141D2B]';
 const input='w-full rounded-xl border border-[#34465E] bg-[#0B1422] px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500';
@@ -166,6 +169,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
   const [listings,setListings]=useState([]);
   const [favorites,setFavorites]=useState([]);
   const [myBookings,setMyBookings]=useState([]);
+  const [expandedBooking,setExpandedBooking]=useState('');
   const [entryDetails,setEntryDetails]=useState({});
   const [reviewRatings,setReviewRatings]=useState({});
   const [reviewTexts,setReviewTexts]=useState({});
@@ -196,7 +200,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
     if(!window.confirm('Cancel your booking request?'))return;
     setError('');setNotice('');
     try{
-      await hostingAction('booking_cancel',{id});setNotice('Your request has been cancelled.');
+      await hostingBusiness('cancel_booking',{booking_id:id});setNotice('Your booking is cancelled. Refunds, if eligible, remain pending provider confirmation.');
       const result=await hostingAction('my_bookings');setMyBookings(result.items||[]);
     }catch(e){setError(e.message);}
   };
@@ -235,7 +239,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
       </div>
     </div>
     <nav className="flex flex-wrap gap-2">
-      {/** @type {Array<[string, string, import('react').ElementType]>} */ ([['explore','Explore spaces',Search],['favorites','Saved',Heart],['bookings','My requests',CalendarDays],...(paid?[['host','Host dashboard',Home]]:[]),...(isAdmin?[['review','Listing approvals',ShieldCheck]]:[])])
+      {/** @type {Array<[string, string, import('react').ElementType]>} */ ([['explore','Explore spaces',Search],['favorites','Saved',Heart],['bookings','My requests',CalendarDays],...(paid?[['host','Host dashboard',Home]]:[]),...(isAdmin?[['review','Listing approvals',ShieldCheck]]:[]),['alerts','Notifications',CalendarDays]])
       .map(([key,label,Icon])=><button key={key} className={'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm '+(section===key?'bg-[#5078EE] text-white':'border border-[#31435C] bg-[#141D2B] text-[#BED0E6]')} onClick={()=>{setSection(key);setSelected('');setError('');}}><Icon size={16}/>{label}</button>)}
     </nav>
     {error&&<p className="rounded-xl border border-red-700/50 bg-red-900/20 p-3 text-sm text-red-300" role="alert">{error}</p>}
@@ -275,7 +279,8 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
       {myBookings.map(b=><div key={b.id} className="flex flex-wrap items-start justify-between gap-3 border-b border-[#33445C] py-4">
         <div className="space-y-1"><p className="text-sm font-semibold">{dateTime(b.starts_at)} – {dateTime(b.ends_at)}</p>
           <p className={empty}>Crew {b.crew_size} · {usageLabels[b.requested_use]||b.requested_use} · Estimated {usd(b.estimated_total)}</p>
-          <p className="text-xs text-[#8095B0]">Reference: {b.id}</p>
+          <p className="text-xs text-[#8095B0]">Reference: {b.id}</p><button onClick={()=>setExpandedBooking(expandedBooking===b.id?'':b.id)} className="mt-2 block text-sm text-blue-300">{expandedBooking===b.id?'Hide booking operations':'Agreement, payment, cancellation, claims'}</button>
+          {expandedBooking===b.id&&<div className="mt-4 max-w-3xl"><HostingBookingOperations bookingId={b.id} userId={user?.id}/></div>}
           {entryDetails[b.id]&&<div className="mt-2 rounded-lg border border-blue-500/30 bg-blue-500/10 p-3"><p className="font-semibold text-sm">Private access details</p><p className="text-sm">{entryDetails[b.id].exact_address||'Host has not supplied address yet.'}</p><p className="text-xs whitespace-pre-wrap text-[#AEC5E1]">{entryDetails[b.id].entry_instructions||''}</p></div>}
           {b.status==='completed'&&<div className="mt-3 flex flex-wrap gap-2"><select className={input+' max-w-[150px]'} value={reviewRatings[b.id]||5} onChange={e=>setReviewRatings(p=>({...p,[b.id]:Number(e.target.value)}))}>{[5,4,3,2,1].map(n=><option key={n} value={n}>{n}/5 stars</option>)}</select><input className={input+' min-w-[160px] flex-1'} placeholder="Public professional review" value={reviewTexts[b.id]||''} maxLength={1200} onChange={e=>setReviewTexts(p=>({...p,[b.id]:e.target.value}))}/><button className={button} onClick={()=>reviewBooking(b)}>Submit review</button></div>}
           </div>
@@ -284,6 +289,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
       </div>)}
     </div>}
 
-    {(section==='host'||section==='review')&&<HostingHost paid={paid} isAdmin={isAdmin} reviewMode={section==='review'}/>}
+    {section==='alerts'&&<HostingNotificationSettings/>}
+    {(section==='host'||section==='review')&&<HostingHost paid={paid} isAdmin={isAdmin} reviewMode={section==='review'} user={user}/>}
   </div>;
 }
