@@ -56,12 +56,18 @@ export default function Landing() {
     <MobileRefreshPage>
     <div className="min-h-screen bg-cc-bg">
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-32 pb-20 px-4">
-        {/* Background gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#4F8CFF]/10 via-transparent to-[#FF2DAA]/10" />
-        <div className="absolute top-1/4 -left-1/4 w-1/2 h-1/2 bg-[#4F8CFF]/20 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-[#FF2DAA]/20 rounded-full blur-3xl" />
-        
+      <section className="relative overflow-hidden min-h-[640px] flex items-center justify-center px-4 pt-32 pb-20">
+        {/* Hero banner image */}
+        <div className="absolute inset-0">
+          <img
+            src="/Content_Connect_Hero_Banner.png"
+            alt="Content Connect hero banner"
+            className="w-full h-full object-cover"
+          />
+          {/* Dark gradient overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-black/70" />
+        </div>
+
         <div className="relative max-w-6xl mx-auto text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -73,12 +79,12 @@ export default function Landing() {
               Free Age Verification · Explore Before Subscribing
             </span>
             
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold cc-text-fix-primary mb-6 leading-tight">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight drop-shadow-lg">
               The Professional Network for
               <span className="bg-gradient-to-r from-[#4F8CFF] to-[#FF2DAA] bg-clip-text text-transparent"> Content Creators</span>
             </h1>
             
-            <p className="text-lg md:text-xl cc-text-fix-secondary max-w-3xl mx-auto mb-10">
+            <p className="text-lg md:text-xl text-white/90 max-w-3xl mx-auto mb-10 drop-shadow-md">
               Connect with verified creators, photographers, videographers, video editors, agents, and studios. 
               Build collaborations with built-in contracts and consent management.
             </p>
