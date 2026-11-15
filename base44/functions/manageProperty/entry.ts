@@ -16,7 +16,8 @@ Deno.serve(async (req) => {
      const profiles = await base44.entities.UserProfile.filter({ user_id: user.email });
      const profile = profiles[0];
 
-     const isAdmin = profile?.is_admin === true || user?.role === 'admin' || user?.role_type === 'admin';
+     // Privileged access must derive from the authenticated platform role, not a user-editable profile.
+     const isAdmin = user?.role === 'admin';
 
      // HARD ENFORCEMENT: Age verification + subscription
      if (!isAdmin) {
