@@ -56,3 +56,7 @@ The user requested integration of ten upstream open-source projects. We have **n
 - Realtime publication includes private `public.messages`, governed by RLS.
 - Strict Supabase typecheck, eslint and Vite build pass locally.
 - Successful deployment and a 401 from unauthenticated API probes are **not** equivalent to successful multi-user acceptance tests.
+
+## November 2026 production workflow expansion
+
+New Supabase modules include private production teams, capacity-checked events, in-app Cron reminders, protected creator bookings, grouped messaging with realtime presence, moderated collaboration completion and reputation, confidential case reviews, TOTP MFA and DocuSign draft packet routing. See [PRODUCTION_MANAGER_IMPLEMENTATION.md](./PRODUCTION_MANAGER_IMPLEMENTATION.md). These features are not yet authenticated end-to-end tested.

@@ -36,7 +36,7 @@ This repository contains the original Base44 app plus a working, separate Supaba
 - Payment events must be verified server-side before enabling paid functionality.
 - Test creator, studio, agent, administrator, suspended, unverified, trial, cancelled and expired states.
 
-**Migration status:** Supabase preview shell and backend are active, with 36 RLS-protected application tables and several authenticated Edge Functions. No Base44 member data migrated; Supabase Auth still has no user accounts; no authenticated end-to-end test passed. Stripe checkout is disabled pending adult-industry merchant approval. Original production site still uses Base44. See `PRODUCT_SECURITY_ROADMAP.md` for the full scope and release criteria.
+**Migration status:** Supabase preview shell and backend are active, with 53 RLS-protected application tables and several authenticated Edge Functions. No Base44 member data migrated; Supabase Auth still has no user accounts; no authenticated end-to-end test passed. Stripe checkout is disabled pending adult-industry merchant approval. Original production site still uses Base44. See `PRODUCT_SECURITY_ROADMAP.md` for the full scope and release criteria.
 
 ## Integration status
 
@@ -47,3 +47,7 @@ Run `npm run smoke:supabase` for non-destructive JWT gateway checks. This does n
 The integration program is tracked in [GitHub issue #1](https://github.com/PatentFiles/content-connect-x/issues/1). The latest iteration adds creator travel overlap search, iCalendar exports, a moderated social feed and follow graph, feedback voting, private media review, optional Sentry/Flagsmith clients, and an admin integration-health screen. None of these modules grants paid access without a verified server entitlement.
 
 **Media publication safety gate:** admin review can reject content, but approval/publishing requires trusted Edge Function environment variable `ADULT_MEDIA_PUBLICATION_READY=true` after the required rights, producer recordkeeping and human-review procedures are validated. Do not set this for production without completing that work.
+
+## Production Manager expansion
+
+See [PRODUCTION_MANAGER_IMPLEMENTATION.md](./PRODUCTION_MANAGER_IMPLEMENTATION.md) for scheduling, teams, case review, MFA, group messaging, DocuSign draft routing, and the explicit remaining external integration and acceptance tests.

@@ -48,3 +48,7 @@ Use modular integrations, subject to their current status and suitability:
 - Fider for feedback and roadmap voting.
 
 Keep all member authorization, verified-age controls, consent, subscriptions, and private documents in Supabase. Do not integrate external providers without evaluating their restrictions on adult-industry usage.
+
+## Current draft packet interface
+
+The Agreement Center now prepares signing packets with signer, approver and viewer assignments and sequential routing. Formal sending remains disabled until a DocuSign account, authorized reviewed templates, HMAC webhook and evidence archive are configured and tested. Prepared drafts are not signed agreements.
