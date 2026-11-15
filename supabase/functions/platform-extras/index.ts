@@ -235,7 +235,13 @@ Deno.serve(async(req)=>{
           .select('id,author_id,body,created_at,published_at')
           .eq('status','published').order('published_at',{ascending:false}).limit(paid?55:15);
         if(error)throw error;
-        const items=(data||[]).filter((v:any)=>!blocked.has(v.author_id));
+        const authorIds=[...new Set((data||[]).map((v:any)=>v.author_id))];
+        const {data:restricted,error:restrictedError}=authorIds.length?
+          await db.from('account_security').select('user_id').in('user_id',authorIds)
+            .or('banned.eq.true,suspended.eq.true'):{data:[],error:null};
+        if(restrictedError)throw restrictedError;
+        const restrictedIds=new Set((restricted||[]).map((v:any)=>v.user_id));
+        const items=(data||[]).filter((v:any)=>!blocked.has(v.author_id)&&!restrictedIds.has(v.author_id));
         const ids=items.map((v:any)=>v.id);
         const authors=[...new Set(items.map((v:any)=>v.author_id))];
         const {data:profiles,error:profileError}=authors.length
@@ -280,7 +286,8 @@ Deno.serve(async(req)=>{
         const {data,error}=await db.from('community_comments').select('id,author_id,body,created_at')
           .eq('post_id',body.post_id).eq('status','published').order('created_at').limit(100);
         if(error)throw error;
-        return reply({items:data||[]});
+        const blocked=await blockedUsers();
+        return reply({items:(data||[]).filter((v:any)=>!blocked.has(v.author_id))});
       }
       case 'community_comment':{
         if(!paid||!await feature('community_publish'))return reject('Premium commenting required',403);

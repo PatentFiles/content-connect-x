@@ -94,6 +94,15 @@ Deno.serve(async req=>{
         .select('id,owner_id,caption,status,mime_type,visibility,created_at')
         .eq('owner_id',target).eq('status','approved').order('created_at',{ascending:false}).limit(50);
       const {data,error}=await q;if(error)throw error;
+      const [ownerAge,ownerSecurity]=await Promise.all([
+        db.from('age_verification_requests').select('status,expires_at').eq('user_id',target)
+          .order('created_at',{ascending:false}).limit(1),
+        db.from('account_security').select('banned,suspended').eq('user_id',target).maybeSingle()
+      ]);
+      if(ownerAge.error||ownerSecurity.error||ownerSecurity.data?.banned||
+        ownerSecurity.data?.suspended||ownerAge.data?.[0]?.status!=='approved'||
+        (ownerAge.data?.[0]?.expires_at&&Date.parse(ownerAge.data[0].expires_at)<Date.now()))
+        return reply({items:[]});
       const {data:blocks,error:blockError}=await db.from('member_blocks').select('blocker_id')
         .or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1);
       if(blockError)throw blockError;
@@ -115,6 +124,16 @@ Deno.serve(async req=>{
       if(error||!asset)return reply({error:'Media not found'},404);
       if(asset.owner_id!==uid&&asset.status!=='approved')return reply({error:'Media not available'},403);
       if(asset.owner_id!==uid){
+        const [ownerAge,ownerSecurity]=await Promise.all([
+          db.from('age_verification_requests').select('status,expires_at')
+            .eq('user_id',asset.owner_id).order('created_at',{ascending:false}).limit(1),
+          db.from('account_security').select('banned,suspended')
+            .eq('user_id',asset.owner_id).maybeSingle()
+        ]);
+        if(ownerAge.error||ownerSecurity.error||ownerSecurity.data?.banned||
+          ownerSecurity.data?.suspended||ownerAge.data?.[0]?.status!=='approved'||
+          (ownerAge.data?.[0]?.expires_at&&Date.parse(ownerAge.data[0].expires_at)<Date.now()))
+          return reply({error:'Media unavailable'},403);
         if(asset.visibility==='private')return reply({error:'Private media'},403);
         const {data:blocks,error:blockError}=await db.from('member_blocks').select('blocker_id')
           .or(`and(blocker_id.eq.${uid},blocked_id.eq.${asset.owner_id}),and(blocker_id.eq.${asset.owner_id},blocked_id.eq.${uid})`).limit(1);
@@ -149,6 +168,8 @@ Deno.serve(async req=>{
       const {data:media,error}=await db.from('member_media_assets')
         .select('id,storage_path,mime_type').eq('id',body.id).maybeSingle();
       if(error||!media)return reply({error:'Media not found'},404);
+      if(media.mime_type==='video/mp4')
+        return reply({error:'Video scanning requires a dedicated processing worker; manual moderation remains required'},503);
       const {data:file,error:downloadError}=await bucket.download(media.storage_path);
       if(downloadError||!file)return reply({error:'Media unavailable'},503);
       const form=new FormData();
