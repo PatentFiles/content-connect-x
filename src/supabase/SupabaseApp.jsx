@@ -240,7 +240,7 @@ export default function SupabaseApp() {
     if(visibleFeatures?.media_gallery)menu.push(['media','Creator Media',Images]);
     if(paid && visibleFeatures?.availability) menu.push(['schedule','Availability',CalendarDays]);
     menu.push(['production','Production Manager',UsersRound]);
-    menu.push(['hosting','Hosting Marketplace',Building2]);
+    if(visibleFeatures?.hosting_marketplace)menu.push(['hosting','Hosting Marketplace',Building2]);
     if(paid){
       if(visibleFeatures?.verified_reviews)menu.push(['reputation','Verified Reviews',Star]);
       if(visibleFeatures?.contracts)menu.push(['agreements','Agreements',FileSignature]);
