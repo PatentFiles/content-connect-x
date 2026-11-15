@@ -16,12 +16,12 @@
     "typecheck:supabase": "tsc -p jsconfig.json"
   },
   "dependencies": {
-    "@supabase/supabase-js": "2.95.0",
-    "@sentry/react": "11.12.0",
     "@flagsmith/flagsmith": "12.5.0",
+    "@sentry/react": "11.12.0",
+    "@supabase/supabase-js": "2.95.0",
+    "lucide-react": "^0.475.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "lucide-react": "^0.475.0"
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.19.0",
@@ -39,5 +39,8 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.2",
     "vite": "^6.1.0"
+  },
+  "overrides": {
+    "react-router": "7.18.5"
   }
 }
