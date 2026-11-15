@@ -65,10 +65,10 @@ export default function MarketingFeatureShowcase({ onlyPage = null }) {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-40px' }}
             transition={{ delay: i * 0.06, duration: 0.35 }}
-            className="group relative overflow-hidden rounded-2xl border border-cc-border bg-cc-bg p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-[#4F8CFF]/70 hover:shadow-[0_16px_40px_rgba(79,140,255,0.12)]"
+            className="group relative overflow-hidden rounded-2xl border border-cc-border bg-cc-bg p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-[#00D9FF]/80 hover:shadow-[0_16px_40px_rgba(0,217,255,0.2)]"
           >
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#4F8CFF] to-[#FF2DAA] opacity-70 transition-opacity group-hover:opacity-100" />
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#4F8CFF]/20 to-[#FF2DAA]/20 text-[#4F8CFF] ring-1 ring-[#4F8CFF]/20 transition-transform duration-300 group-hover:scale-110">
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#00D9FF] to-[#FF00C8] opacity-90 transition-opacity group-hover:opacity-100" />
+            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#00D9FF]/20 to-[#FF00C8]/25 text-[#63E9FF] ring-1 ring-[#00D9FF]/30 shadow-[0_0_24px_rgba(255,0,200,0.12)] transition-transform duration-300 group-hover:scale-110">
               <Icon className="h-7 w-7" aria-hidden="true" />
             </div>
             <h3 className="mb-2 text-lg font-semibold cc-text-fix-primary">{feature.label}</h3>

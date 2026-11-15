@@ -105,7 +105,7 @@ export default function Landing() {
 
       {/* Features Section — driven by live feature flags */}
       <section className="relative overflow-hidden bg-cc-surface px-4 py-20 sm:py-24">
-        <div className="pointer-events-none absolute left-1/2 top-0 h-64 w-[min(90vw,900px)] -translate-x-1/2 rounded-full bg-[#4F8CFF]/10 blur-3xl" />
+        <div className="pointer-events-none absolute left-1/2 top-0 h-64 w-[min(90vw,900px)] -translate-x-1/2 rounded-full bg-[#00D9FF]/20 blur-3xl" />
         <div className="relative mx-auto max-w-6xl">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -113,7 +113,7 @@ export default function Landing() {
             viewport={{ once: true }}
             className="mx-auto mb-12 max-w-3xl text-center sm:mb-16"
           >
-            <span className="mb-4 inline-flex rounded-full border border-[#4F8CFF]/30 bg-[#4F8CFF]/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#4F8CFF]">
+            <span className="mb-4 inline-flex rounded-full border border-[#00D9FF]/50 bg-[#00D9FF]/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#63E9FF] shadow-[0_0_24px_rgba(0,217,255,0.16)]">
               Built for better creative work
             </span>
             <h2 className="mb-5 text-3xl font-bold leading-tight cc-text-fix-primary sm:text-4xl md:text-5xl">
@@ -136,7 +136,7 @@ export default function Landing() {
             viewport={{ once: true }}
             className="mx-auto mb-12 max-w-3xl text-center sm:mb-16"
           >
-            <span className="mb-4 inline-flex rounded-full border border-[#FF2DAA]/30 bg-[#FF2DAA]/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#FF5FBD]">
+            <span className="mb-4 inline-flex rounded-full border border-[#FF00C8]/50 bg-[#FF00C8]/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#FF63D8] shadow-[0_0_24px_rgba(255,0,200,0.18)]">
               Your path to collaboration
             </span>
             <h2 className="mb-5 text-3xl font-bold leading-tight cc-text-fix-primary sm:text-4xl md:text-5xl">
@@ -163,15 +163,15 @@ export default function Landing() {
                 transition={{ delay: i * 0.1 }}
                 className="relative"
               >
-                <CCCard padding="lg" className="group h-full text-center hover:-translate-y-1 hover:border-[#4F8CFF]/60 hover:shadow-[0_16px_40px_rgba(79,140,255,0.1)]">
-                  <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#4F8CFF] to-[#FF2DAA] text-lg font-bold text-white shadow-lg shadow-[#4F8CFF]/20 transition-transform duration-300 group-hover:scale-110">
+                <CCCard padding="lg" className="group h-full text-center hover:-translate-y-1 hover:border-[#00D9FF]/70 hover:shadow-[0_16px_40px_rgba(0,217,255,0.16)]">
+                  <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-[#00D9FF] via-[#405CFF] to-[#FF00C8] text-lg font-bold text-white shadow-lg shadow-[#FF00C8]/30 transition-transform duration-300 group-hover:scale-110">
                     {item.step}
                   </div>
                   <h4 className="mb-2 font-semibold cc-text-fix-primary">{item.title}</h4>
                   <p className="text-sm leading-6 cc-text-fix-muted">{item.desc}</p>
                 </CCCard>
                 {i < 4 && (
-                  <div className="pointer-events-none absolute -right-4 top-1/2 hidden -translate-y-1/2 text-[#4F8CFF]/60 lg:block">
+                  <div className="pointer-events-none absolute -right-4 top-1/2 hidden -translate-y-1/2 text-[#FF63D8]/80 lg:block">
                     <ArrowRight className="h-5 w-5" />
                   </div>
                 )}
@@ -183,9 +183,9 @@ export default function Landing() {
 
       {/* CTA Section */}
       <section className="px-4 py-20 sm:py-24">
-        <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl border border-[#4F8CFF]/30 bg-gradient-to-br from-[#4F8CFF]/20 via-cc-surface to-[#FF2DAA]/20 px-6 py-14 text-center shadow-2xl shadow-[#4F8CFF]/10 sm:px-12 sm:py-16">
-          <div className="pointer-events-none absolute -right-24 -top-24 h-56 w-56 rounded-full bg-[#FF2DAA]/20 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-[#4F8CFF]/20 blur-3xl" />
+        <div className="relative mx-auto max-w-5xl overflow-hidden rounded-3xl border border-[#FF00C8]/50 bg-gradient-to-br from-[#06214A] via-[#120A3D] to-[#350022] px-6 py-14 text-center shadow-2xl shadow-[#FF00C8]/20 sm:px-12 sm:py-16">
+          <div className="pointer-events-none absolute -right-24 -top-24 h-56 w-56 rounded-full bg-[#FF00C8]/35 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-[#00D9FF]/30 blur-3xl" />
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -203,15 +203,16 @@ export default function Landing() {
             </p>
             <div className="flex flex-col justify-center gap-4 sm:flex-row">
               <CCButton 
-                variant="primary" 
-                size="xl" 
+                variant="primary"
+                size="xl"
+                className="!bg-[#FF00C8] !shadow-[0_0_30px_rgba(255,0,200,0.4)] hover:!bg-[#FF2BD4]"
                 iconRight={ArrowRight}
                 onClick={() => base44.auth.redirectToLogin(createPageUrl('Discovery'))}
               >
                 Create Free Account
               </CCButton>
               <Link to={createPageUrl('Pricing')}>
-                <CCButton variant="outline" size="xl">
+                <CCButton variant="outline" size="xl" className="!border-white/40 !text-white hover:!bg-white/10">
                   View Pricing
                 </CCButton>
               </Link>
