@@ -3,8 +3,8 @@ import React,{useEffect,useState} from 'react';
 import {Bell,ShieldCheck} from 'lucide-react';
 import {productionAction} from './productionApi';
 import {hostingBusiness} from './hostingBusinessApi';
-const panel='rounded-xl border border-[#34465D] bg-[#121E2D] p-5';
-const button='rounded-lg bg-[#547CF3] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50';
+const panel='ccx-surface p-5';
+const button='rounded-lg ccx-action-primary px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50';
 
 function decodeKey(value){
  const value64=value.replace(/-/g,'+').replace(/_/g,'/');

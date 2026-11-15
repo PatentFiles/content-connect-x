@@ -2,9 +2,9 @@
 import React,{useCallback,useEffect,useState} from 'react';
 import {UsersRound,MessageCircle,ShieldCheck,RefreshCw} from 'lucide-react';
 import {hostingProduction,formatDate} from './hostingBusinessApi';
-const panel='rounded-xl border border-[#34465F] bg-[#111C2C] p-4';
+const panel='ccx-surface p-4';
 const input='w-full rounded-lg border border-[#40546D] bg-[#0A1625] p-2.5 text-sm text-white';
-const button='rounded-lg bg-[#507AF4] px-4 py-2 text-xs font-semibold text-white disabled:opacity-50';
+const button='rounded-lg ccx-action-primary px-4 py-2 text-xs font-semibold text-white disabled:opacity-50';
 const secondary='rounded-lg bg-[#273D58] px-4 py-2 text-xs text-white disabled:opacity-50';
 
 export default function HostingCrewInbox(){

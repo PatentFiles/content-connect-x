@@ -1,9 +1,9 @@
 import React,{useEffect,useState} from 'react';
 import {Camera,Boxes} from 'lucide-react';
 import {hostingAdvanced} from './hostingBusinessApi';
-const panel='rounded-xl border border-[#334C67] bg-[#111C2C] p-4';
+const panel='ccx-surface p-4';
 const input='w-full rounded-lg border border-[#405773] bg-[#091625] px-3 py-2 text-sm text-white';
-const button='rounded-lg bg-[#527BF4] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
+const button='rounded-lg ccx-action-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
 const empty={label:'',category:'camera',description:'',quantity:1,hourly_cents:2500,daily_cents:null,condition:'good',active:true};
 export default function HostingEquipmentManager({propertyId}){
  const [assets,setAssets]=useState([]),[bundles,setBundles]=useState([]);

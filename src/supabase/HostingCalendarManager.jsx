@@ -1,9 +1,9 @@
 import React,{useEffect,useState} from 'react';
 import {CalendarDays,Link2,Trash2} from 'lucide-react';
 import {hostingCalendar,formatDate} from './hostingBusinessApi';
-const panel='rounded-xl border border-[#34465F] bg-[#101C2C] p-4';
+const panel='ccx-surface p-4';
 const input='w-full rounded-lg border border-[#40546E] bg-[#091726] px-3 py-2 text-sm text-white';
-const button='rounded-lg bg-[#507AF3] px-4 py-2.5 text-xs font-semibold text-white disabled:opacity-50';
+const button='rounded-lg ccx-action-primary px-4 py-2.5 text-xs font-semibold text-white disabled:opacity-50';
 export default function HostingCalendarManager({propertyId}){
  const [connections,setConnections]=useState([]),[tokens,setTokens]=useState([]);
  const [provider,setProvider]=useState('airbnb'),[source,setSource]=useState(''),[exportUrl,setExportUrl]=useState('');

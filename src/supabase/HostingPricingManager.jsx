@@ -2,9 +2,9 @@
 import React,{useEffect,useState} from 'react';
 import {Tags,CalendarDays,MapPin,Trash2} from 'lucide-react';
 import {hostingAdvanced} from './hostingBusinessApi';
-const panel='rounded-xl border border-[#31465E] bg-[#0D1929] p-4';
+const panel='ccx-surface p-4';
 const input='w-full rounded-lg border border-[#415672] bg-[#0A1626] px-3 py-2 text-sm text-white';
-const button='rounded-lg bg-[#527BF3] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50';
+const button='rounded-lg ccx-action-primary px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50';
 const subtle='rounded-lg border border-[#3A4F67] bg-[#21354C] px-3 py-2 text-xs text-white disabled:opacity-50';
 
 export default function HostingPricingManager({property}){

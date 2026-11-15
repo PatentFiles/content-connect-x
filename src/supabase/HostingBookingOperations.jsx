@@ -7,7 +7,7 @@ import {FileSignature,CreditCard,ShieldCheck,RefreshCw,CalendarClock,Banknote,Do
 import {hostingBusiness,hostingAgreement,hostingCheckout,formatUSD,formatDate,uploadDamageEvidence} from './hostingBusinessApi';
 import HostingProductionPacket from './HostingProductionPacket';
 
-const panel='rounded-xl border border-[#30435E] bg-[#111B29] p-4';
+const panel='ccx-surface p-4';
 const input='w-full rounded-lg border border-[#3C4E67] bg-[#0B1422] p-2.5 text-sm text-white';
 const button='rounded-lg bg-[#547EF8] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50';
 const secondary='rounded-lg bg-[#2D405A] px-4 py-2.5 text-sm text-white disabled:opacity-50';

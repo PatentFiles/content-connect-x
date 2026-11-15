@@ -2,8 +2,8 @@
 import React,{useCallback,useEffect,useState} from 'react';
 import {ShieldCheck,FileSignature,RefreshCw,AlertTriangle,ExternalLink} from 'lucide-react';
 import {hostingBusiness,hostingAgreement,hostingProduction,formatUSD,formatDate} from './hostingBusinessApi';
-const panel='rounded-xl border border-[#31445D] bg-[#111B29] p-5';
-const button='rounded-lg bg-[#557DF4] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
+const panel='ccx-surface p-5';
+const button='rounded-lg ccx-action-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
 const secondary='rounded-lg border border-[#40536B] bg-[#26384D] px-4 py-2 text-sm text-white disabled:opacity-50';
 const input='w-full rounded-lg border border-[#40536B] bg-[#091522] p-2.5 text-sm text-white';
 

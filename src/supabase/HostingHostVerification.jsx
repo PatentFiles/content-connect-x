@@ -2,9 +2,9 @@
 import React,{useEffect,useState} from 'react';
 import {ShieldCheck,UploadCloud,RefreshCw,AlertTriangle} from 'lucide-react';
 import {hostingBusiness,uploadHostingCompliance,formatDate} from './hostingBusinessApi';
-const panel='rounded-xl border border-[#31445C] bg-[#0D1827] p-5';
+const panel='ccx-surface p-5';
 const input='w-full rounded-lg border border-[#42546A] bg-[#0A1320] p-2.5 text-sm text-white';
-const button='rounded-lg bg-[#527BF3] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50';
+const button='rounded-lg ccx-action-primary px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50';
 
 export default function HostingHostVerification({propertyId,requiredInsurance=false}){
  const [businessName,setBusinessName]=useState('');

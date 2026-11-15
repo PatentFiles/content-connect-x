@@ -227,3 +227,23 @@
 .ccx-module-card[data-accent="workspace"] { --ccx-card-glow: rgba(181,93,246,.18); }
 .ccx-module-card[data-accent="schedule"] { --ccx-card-glow: rgba(79,140,255,.16); }
 .ccx-module-card[data-accent="account-security"] { --ccx-card-glow: rgba(255,73,182,.17); }
+
+/* The location marketplace reuses the homepage fuchsia → pink → blue language,
+   but avoids repeating the large photographic dashboard hero on every page. */
+.ccx-hosting-banner {
+  border: 1px solid rgba(255,91,202,.24);
+  background:
+    radial-gradient(circle at 88% 23%, rgba(79,140,255,.38), transparent 36%),
+    radial-gradient(circle at 4% 83%, rgba(233,0,197,.38), transparent 48%),
+    linear-gradient(112deg,#341343 0%,#27204D 46%,#172A59 100%);
+  box-shadow: 0 12px 40px rgba(8,6,36,.20);
+}
+.ccx-hosting-banner::after {
+  content:'';
+  position:absolute;
+  height:3px;
+  bottom:0;
+  left:0;
+  right:0;
+  background:var(--ccx-gradient);
+}

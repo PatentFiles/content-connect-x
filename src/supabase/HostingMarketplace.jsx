@@ -22,9 +22,9 @@ import HostingCrewInbox from './HostingCrewInbox';
 import HostingWorkforceManager from './HostingWorkforceManager';
 import {hostingProduction} from './hostingBusinessApi';
 
-const panel='rounded-2xl border border-[#293649] bg-[#141D2B]';
-const input='w-full rounded-xl border border-[#34465E] bg-[#0B1422] px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-blue-500';
-const button='rounded-xl bg-[#537FFF] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#3B69F0] disabled:opacity-50';
+const panel='ccx-surface';
+const input='w-full rounded-xl border border-[#34465E] bg-[#0B1422] px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-fuchsia-500';
+const button='rounded-xl ccx-action-primary px-5 py-3 text-sm font-semibold text-white transition  disabled:opacity-50';
 const pill='rounded-full border border-[#34465E] px-3 py-1.5 text-xs text-[#C4D3E5]';
 const empty='text-sm text-[#9AADC4]';
 const labels=Object.fromEntries(rentalCategories);
@@ -46,7 +46,7 @@ function ListingCard({listing,favorite,toggle,open}) {
         <Photo photos={listing.photos} alt={listing.title}/>
       </button>
       <button onClick={()=>toggle(listing.id)} aria-label={favorite?'Remove favorite':'Save property'}
-        className={'absolute right-3 top-3 rounded-full p-2.5 backdrop-blur '+(favorite?'bg-rose-500 text-white':'bg-[#0B1524]/80 text-white')}>
+        className={'absolute right-3 top-3 rounded-full p-2.5 backdrop-blur '+(favorite?'bg-[#E900C5] text-white':'bg-[#0B1524]/80 text-white')}>
         <Heart size={18} fill={favorite?'currentColor':'none'}/>
       </button>
       <div className="absolute left-3 top-3 pointer-events-none">
@@ -286,7 +286,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
   const visible=useMemo(()=>onlySaved?listings.filter(v=>favorites.includes(v.id)):listings,[listings,favorites,onlySaved]);
 
   return <div className="space-y-6 text-white">
-    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#1B355E] via-[#142944] to-[#0B172A] px-6 py-8 sm:px-10 sm:py-10">
+    <div className="ccx-hosting-banner relative overflow-hidden rounded-3xl px-6 py-8 sm:px-10 sm:py-10">
       <div className="absolute -right-12 -top-24 h-72 w-72 rounded-full bg-blue-500/15 blur-3xl"/>
       <div className="relative">
         <p className="text-xs font-semibold uppercase tracking-[0.21em] text-blue-300">CONTENT CONNECT X • HOSTING</p>
@@ -301,7 +301,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user}) {
     </div>
     <nav className="flex flex-wrap gap-2">
       {/** @type {Array<[string, string, import('react').ElementType]>} */ ([['explore','Explore spaces',Search],['favorites','Saved',Heart],['bookings','My requests',CalendarDays],...(paid?[['host','Host dashboard',Home]]:[]),...(isAdmin?[['review','Listing approvals',ShieldCheck]]:[]),['alerts','Notifications',CalendarDays],['crew','Crew invitations',Users],['cleaning','My cleaning jobs',Home]])
-      .map(([key,label,Icon])=><button key={key} className={'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm '+(section===key?'bg-[#5078EE] text-white':'border border-[#31435C] bg-[#141D2B] text-[#BED0E6]')} onClick={()=>{setSection(key);setSelected('');setError('');}}><Icon size={16}/>{label}</button>)}
+      .map(([key,label,Icon])=><button key={key} className={'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm '+(section===key?'ccx-action-primary text-white':'border border-[#31435C] bg-[#141D2B] text-[#BED0E6]')} onClick={()=>{setSection(key);setSelected('');setError('');}}><Icon size={16}/>{label}</button>)}
     </nav>
     {error&&<p className="rounded-xl border border-red-700/50 bg-red-900/20 p-3 text-sm text-red-300" role="alert">{error}</p>}
     {notice&&<p className="rounded-xl border border-green-700/50 bg-green-900/20 p-3 text-sm text-green-300" role="status">{notice}</p>}
