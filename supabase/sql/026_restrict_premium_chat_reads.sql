@@ -23,9 +23,9 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY INVOKER SET search_path='' AS $$
 $$;
 REVOKE ALL ON FUNCTION ccx_internal.can_read_premium_chat() FROM PUBLIC,anon;
 GRANT EXECUTE ON FUNCTION ccx_internal.can_read_premium_chat() TO authenticated;
-CREATE POLICY restrict_premium_message_history AS RESTRICTIVE ON public.messages
+CREATE POLICY restrict_premium_message_history ON public.messages AS RESTRICTIVE
  FOR SELECT TO authenticated USING ((SELECT ccx_internal.can_read_premium_chat()));
-CREATE POLICY restrict_premium_conversation_metadata AS RESTRICTIVE ON public.conversations
+CREATE POLICY restrict_premium_conversation_metadata ON public.conversations AS RESTRICTIVE
  FOR SELECT TO authenticated USING ((SELECT ccx_internal.can_read_premium_chat()));
-CREATE POLICY restrict_premium_conversation_members AS RESTRICTIVE ON public.conversation_members
+CREATE POLICY restrict_premium_conversation_members ON public.conversation_members AS RESTRICTIVE
  FOR SELECT TO authenticated USING ((SELECT ccx_internal.can_read_premium_chat()));
