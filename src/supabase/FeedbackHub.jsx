@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { ThumbsUp, Lightbulb, RefreshCw } from 'lucide-react';
 import { platformAction } from './platformApi';
 
-const panel='rounded-xl border border-[#263248] bg-[#151D2B] p-5';
+const panel='ccx-surface p-5';
 const control='w-full rounded-lg bg-[#0F1520] border border-[#34445D] text-white p-2';
-const button='rounded-lg bg-[#4F8CFF] px-4 py-2 text-white text-sm font-semibold disabled:opacity-50';
+const button='rounded-lg ccx-action-primary px-4 py-2 text-white text-sm font-semibold disabled:opacity-50';
 const stageLabels={submitted:'New',under_review:'Under review',planned:'Planned',in_progress:'In progress',shipped:'Shipped',declined:'Not planned'};
 const stages=Object.keys(stageLabels);
 

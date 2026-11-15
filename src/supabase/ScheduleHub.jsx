@@ -4,7 +4,7 @@ import { platformAction } from './platformApi';
 
 const panel='rounded-xl bg-[#151D2B] border border-[#263248] p-5';
 const control='rounded-lg bg-[#0F1520] text-white border border-[#34445D] p-2 w-full';
-const button='rounded-lg bg-[#4F8CFF] text-white font-semibold text-sm px-4 py-2 disabled:opacity-50';
+const button='rounded-lg ccx-action-primary text-white font-semibold text-sm px-4 py-2 disabled:opacity-50';
 
 export default function ScheduleHub({paid=false,userId,creatorBookingEnabled=false}){
   const [list,setList]=useState([]);

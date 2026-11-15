@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Image, ShieldCheck, Search, RefreshCw, Video } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 
-const panel='rounded-xl border border-[#263248] bg-[#151D2B] p-5';
+const panel='ccx-surface p-5';
 const input='w-full rounded-lg border border-[#34445D] bg-[#0F1520] p-2 text-sm';
-const button='rounded-lg bg-[#4F8CFF] text-white px-4 py-2 text-sm font-semibold disabled:opacity-50';
+const button='rounded-lg ccx-action-primary text-white px-4 py-2 text-sm font-semibold disabled:opacity-50';
 async function mediaRequest(action,data={}){
   const {data:result,error}=await supabase.functions.invoke('media-gateway',{body:{action,...data}});
   if(error||result?.error)throw new Error(result?.error||error?.message||'Media service unavailable');

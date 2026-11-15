@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/api/supabaseClient';
 
-const panel='rounded-xl border border-[#263248] bg-[#151D2B] p-5';
-const button='rounded-lg bg-[#4F8CFF] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
+const panel='ccx-surface p-5';
+const button='rounded-lg ccx-action-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
 
 export default function ConsentCenter({user,canGrant=false}){
   const [collabs,setCollabs]=useState([]);

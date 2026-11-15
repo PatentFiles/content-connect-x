@@ -2,9 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { FileSignature, ShieldCheck, RefreshCw, ExternalLink } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
-const panel='rounded-xl border border-[#263248] bg-[#151D2B] p-5';
+const panel='ccx-surface p-5';
 const input='w-full rounded-lg border border-[#34445D] bg-[#0F1520] p-2 text-sm';
-const button='rounded-lg bg-[#4F8CFF] px-4 py-2 text-white font-semibold text-sm disabled:opacity-50';
+const button='rounded-lg ccx-action-primary px-4 py-2 text-white font-semibold text-sm disabled:opacity-50';
 const roles=['signer','approver','viewer'];
 async function call(name,action,params={}){
   const {data,error}=await supabase.functions.invoke(name,{body:{action,...params}});

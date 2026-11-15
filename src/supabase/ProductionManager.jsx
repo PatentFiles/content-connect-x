@@ -6,9 +6,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { UsersRound, CalendarDays, ShieldAlert, Settings2, RefreshCw, MessageSquare } from 'lucide-react';
 import { productionAction } from './productionApi';
 
-const panel='rounded-xl border border-[#273449] bg-[#151D2B] p-5';
+const panel='ccx-surface p-5';
 const control='w-full rounded-lg border border-[#34445D] bg-[#0F1520] px-3 py-2 text-sm text-white';
-const button='rounded-lg bg-[#4F8CFF] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
+const button='rounded-lg ccx-action-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
 const secondary='rounded-lg bg-[#273449] px-3 py-2 text-sm text-white disabled:opacity-50';
 /** @type {Array<[string, string, import('react').ElementType]>} */
 const tabs=[['teams','Production Teams',UsersRound],['events','Shoot Events',CalendarDays],['cases','Disputes & Safety',ShieldAlert],['preferences','Notifications',Settings2]];

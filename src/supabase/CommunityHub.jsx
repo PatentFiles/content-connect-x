@@ -3,9 +3,9 @@ import { Heart, MessageCircle, ShieldCheck, Send, RefreshCw } from 'lucide-react
 import { platformAction } from './platformApi';
 import { productionAction } from './productionApi';
 
-const panel='rounded-xl border border-[#263248] bg-[#151D2B] p-5';
+const panel='ccx-surface p-5';
 const control='w-full rounded-lg bg-[#0F1520] border border-[#34445D] text-white p-2';
-const button='rounded-lg bg-[#4F8CFF] text-white font-semibold px-4 py-2 text-sm disabled:opacity-50';
+const button='rounded-lg ccx-action-primary text-white font-semibold px-4 py-2 text-sm disabled:opacity-50';
 
 function Comments({post,paid}){
   const [comments,setComments]=useState([]);

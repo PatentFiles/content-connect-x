@@ -35,7 +35,7 @@ export default function SafetyPanel(){
       <button className="rounded-lg bg-red-700 px-4 py-2 text-sm text-white disabled:opacity-50" disabled={working||!target} onClick={()=>action('block_user',{target_user_id:target})}>Block member</button>
       <label className="block text-sm">Reason for report<input value={reason} onChange={e=>setReason(e.target.value)} className="mt-1 w-full rounded-lg border border-[#34445D] bg-[#0F1520] px-3 py-2" placeholder="Explain the safety concern"/></label>
       <textarea className="w-full rounded-lg border border-[#34445D] bg-[#0F1520] px-3 py-2" rows={3} placeholder="Additional context, without passwords or private documents" value={details} onChange={e=>setDetails(e.target.value)}/>
-      <button className="rounded-lg bg-[#4F8CFF] px-4 py-2 text-sm text-white disabled:opacity-50" disabled={working||!target||reason.trim().length<5} onClick={()=>action('submit_report',{reported_id:target,reason,details})}>Submit report</button>
+      <button className="rounded-lg ccx-action-primary px-4 py-2 text-sm text-white disabled:opacity-50" disabled={working||!target||reason.trim().length<5} onClick={()=>action('submit_report',{reported_id:target,reason,details})}>Submit report</button>
     </div>
     <div className="rounded-xl bg-[#151D2B] border border-[#263248] p-5 space-y-3"><h3 className="font-semibold">Blocked members</h3>{blocked.map(b=><div className="flex flex-wrap justify-between gap-2 text-sm" key={b.blocked_id}><span className="break-all">{b.blocked_id}</span><button disabled={working} className="text-blue-400" onClick={()=>action('unblock_user',{target_user_id:b.blocked_id})}>Unblock</button></div>)}{!blocked.length&&<p className="text-sm text-[#9AA6BC]">No blocked members.</p>}</div>
   </section>;

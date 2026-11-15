@@ -29,7 +29,7 @@ export default function MfaChallenge({onVerified}){
     <h1 className="text-xl font-bold">Verify your authenticator</h1>
     <p className="text-sm text-[#9AA6BC]">Your account requires a second authentication factor before accessing Content Connect X.</p>
     {error&&<p role="alert" className="bg-red-950 text-red-200 rounded-lg p-3 text-sm">{error}</p>}
-    <form onSubmit={verify} className="space-y-3"><label className="block text-sm">Six-digit code<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" minLength={6} maxLength={6} required className="w-full mt-1 bg-[#0F1520] border border-[#34445D] p-3 rounded-lg" value={code} onChange={e=>setCode(e.target.value)}/></label><button disabled={busy||!factor} className="bg-[#4F8CFF] text-white rounded-lg px-4 py-2 w-full font-semibold">Verify</button></form>
+    <form onSubmit={verify} className="space-y-3"><label className="block text-sm">Six-digit code<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" minLength={6} maxLength={6} required className="w-full mt-1 bg-[#0F1520] border border-[#34445D] p-3 rounded-lg" value={code} onChange={e=>setCode(e.target.value)}/></label><button disabled={busy||!factor} className="ccx-action-primary text-white rounded-lg px-4 py-2 w-full font-semibold">Verify</button></form>
     <button className="text-sm text-[#9AA6BC]" onClick={()=>supabase.auth.signOut()}>Sign out instead</button>
   </div></main>;
 }

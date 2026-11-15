@@ -4,7 +4,7 @@ import { productionAction } from './productionApi';
 import { supabase } from '@/api/supabaseClient';
 const panel='rounded-xl bg-[#151D2B] border border-[#263248] p-5';
 const field='w-full border border-[#34445D] bg-[#0F1520] p-2 rounded-lg text-sm';
-const button='bg-[#4F8CFF] rounded-lg text-white px-4 py-2 text-sm font-semibold disabled:opacity-50';
+const button='ccx-action-primary rounded-lg text-white px-4 py-2 text-sm font-semibold disabled:opacity-50';
 export default function ReputationHub({isAdmin=false}){
   const [projects,setProjects]=useState([]);
   const [target,setTarget]=useState('');

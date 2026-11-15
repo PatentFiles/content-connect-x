@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Activity, RefreshCw } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 
-const panel='rounded-xl border border-[#263248] bg-[#151D2B] p-5';
+const panel='ccx-surface p-5';
 export default function IntegrationHealth(){
   const [data,setData]=useState(null);
   const [busy,setBusy]=useState(false);
@@ -17,7 +17,7 @@ export default function IntegrationHealth(){
   },[]);
   useEffect(()=>{load();},[load]);
   return <div className="space-y-4">
-    <div className="flex justify-between items-center gap-2"><div><h2 className="text-2xl font-semibold flex gap-2 items-center"><Activity size={22}/> Integration health</h2><p className="text-[#9AA6BC] text-sm mt-2">Credentials and service readiness, without exposing secrets. Configured does not mean tested.</p></div><button className="rounded-lg bg-[#4F8CFF] text-white px-3 py-2 text-sm" onClick={load} disabled={busy}><RefreshCw size={17}/></button></div>
+    <div className="flex justify-between items-center gap-2"><div><h2 className="text-2xl font-semibold flex gap-2 items-center"><Activity size={22}/> Integration health</h2><p className="text-[#9AA6BC] text-sm mt-2">Credentials and service readiness, without exposing secrets. Configured does not mean tested.</p></div><button className="rounded-lg ccx-action-primary text-white px-3 py-2 text-sm" onClick={load} disabled={busy}><RefreshCw size={17}/></button></div>
     {error&&<p role="alert" className="rounded-lg bg-red-950 text-red-200 p-3 text-sm">{error}</p>}
     {data&&<><div className="grid gap-3 md:grid-cols-2">{Object.entries(data.services||{}).map(([name,service])=><article className={panel} key={name}>
       <div className="flex justify-between gap-3 items-center"><h3 className="font-semibold capitalize">{name.replaceAll('_',' ')}</h3><span className={'text-xs rounded-full px-2 py-1 '+(service.configured?'bg-emerald-900 text-emerald-200':'bg-amber-900 text-amber-200')}>{service.configured?'Credentials present':'Needs setup'}</span></div><p className="text-sm text-[#9AA6BC] mt-3">{service.note}</p>
