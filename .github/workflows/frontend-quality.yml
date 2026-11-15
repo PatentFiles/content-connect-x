@@ -17,6 +17,8 @@ jobs:
         run: npm run lint
       - name: Type-check entire application
         run: npm run typecheck
+      - name: Hosting policy and geospatial tests
+        run: npm run test:hosting
       - name: Build Supabase application
         run: npm run build
       - name: Verify protected Edge Function gateway
