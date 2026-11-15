@@ -33,7 +33,8 @@ export default function SocialLinksDisplay({ userId, viewerContext = 'PUBLIC' })
   const { data: verifications = [] } = useQuery({
     queryKey: ['socialVerifications', userId],
     queryFn: () => base44.entities.SocialLinkVerification.filter({ user_id: userId }),
-    enabled: !!userId,
+    // Full verification proof may contain private records; only request it for the owner.
+    enabled: !!userId && viewerContext === 'OWNER',
   });
 
   const canViewLink = (link) => {
