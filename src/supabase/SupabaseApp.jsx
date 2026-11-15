@@ -17,13 +17,14 @@ import ReputationHub from './ReputationHub';
 import SecurityCenter from './SecurityCenter';
 import MfaChallenge from './MfaChallenge';
 import AgreementPackets from './AgreementPackets';
+import DashboardHome from './DashboardHome';
 const HostingMarketplace = React.lazy(() => import('./HostingMarketplace'));
 import { ShieldCheck, LockKeyhole, Search, UserRound, CreditCard, LogOut, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw, CalendarDays, MessageSquare, Lightbulb, Settings2, Images, UsersRound, Star, FileSignature, Building2 } from 'lucide-react';
 
-const shell = 'min-h-screen bg-[#0B0F14] text-[#E8EEF9]';
-const panel = 'rounded-xl border border-[#263248] bg-[#151D2B] p-5';
+const shell = 'ccx-app min-h-screen text-[#F5F3FF]';
+const panel = 'ccx-surface p-5';
 const input = 'w-full rounded-lg bg-[#0F1520] border border-[#34445D] px-3 py-2.5 text-white placeholder-[#7D8BA3] focus:outline-none focus:ring-2 focus:ring-blue-500';
-const primary = 'rounded-lg bg-[#4F8CFF] px-4 py-2.5 text-white font-semibold hover:bg-[#3978ED] disabled:opacity-50';
+const primary = 'ccx-primary rounded-xl px-4 py-2.5 text-white font-semibold disabled:opacity-50';
 const muted = 'text-[#9AA6BC]';
 function ErrorMessage({message}) { return message ? <p role="alert" className="rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-200">{message}</p> : null; }
 
@@ -165,17 +166,6 @@ export default function SupabaseApp() {
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
 
-  const checkout=async(cycle)=>{
-    setBusy(true);setError('');setNotice('');
-    try{
-      const {data,error:checkoutError}=await supabase.functions.invoke('create-checkout',{body:{cycle}});
-      if(checkoutError||data?.error||!data?.url)throw new Error(data?.error||checkoutError?.message||'Checkout is not configured');
-      const destination=new URL(data.url);
-      if(destination.protocol!=='https:'||!(destination.hostname==='checkout.stripe.com'||destination.hostname.endsWith('.stripe.com')))throw new Error('Checkout returned an untrusted URL');
-      window.location.assign(destination.toString());
-    }catch(e){setError(e.message);}finally{setBusy(false);}
-  };
-
   const findCreators=async()=>{
     setQueryRunning(true);setError('');
     try{
@@ -187,7 +177,37 @@ export default function SupabaseApp() {
   };
 
   if(loading||mfaChecking)return <div className={`${shell} grid place-items-center`}><Loader2 className="animate-spin"/></div>;
-  if(!user)return <div className={`${shell} flex min-h-screen items-center justify-center px-4 py-12`}><div className={`${panel} w-full max-w-md space-y-6`}><div className="text-center"><img src="/content_connect_logo.png" alt="Content Connect X logo" className="mx-auto h-24 w-24 rounded-2xl object-cover shadow-[0_0_32px_rgba(255,0,200,0.35)]"/><h1 className="mt-4 text-3xl font-bold tracking-tight">Content Connect <span className="text-[#FF00C8]">X</span></h1><p className={`${muted} mt-2`}>Free account creation and age verification. Subscribe only when you're ready for full access.</p></div><form onSubmit={authenticate} className="space-y-3"><label className="block text-sm">Email<input className={`${input} mt-1`} type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/></label><label className="block text-sm">Password<input className={`${input} mt-1`} type="password" value={password} onChange={e=>setPassword(e.target.value)} minLength={8} required autoComplete={signUp?'new-password':'current-password'}/></label><button className={`${primary} w-full`} disabled={busy}>{busy?'Working…':signUp?'Create free account':'Sign in'}</button></form><button className="w-full text-sm text-blue-400 underline" onClick={()=>{setSignUp(!signUp);setError('');}}>{signUp?'Already registered? Sign in':'New here? Create your free account'}</button><ErrorMessage message={error}/>{notice&&<p className="text-sm text-green-400">{notice}</p>}<a href="/" className="block text-center text-sm text-[#9AA6BC] underline transition hover:text-white">Back to home page</a></div></div>;
+  if(!user)return <div className={shell}>
+    <div className="ccx-brand-topline"/>
+    <div className="mx-auto flex min-h-[calc(100vh-4px)] max-w-6xl flex-col justify-center gap-6 px-4 py-8 lg:grid lg:grid-cols-[1.15fr_.85fr] lg:items-center lg:gap-8 lg:px-6">
+      <section className="ccx-login-art flex min-h-[245px] flex-col justify-end rounded-[26px] p-6 sm:min-h-[390px] sm:p-9">
+        <div className="relative z-10 max-w-md">
+          <p className="ccx-eyebrow">The creative connection</p>
+          <h1 className="mt-3 text-3xl font-extrabold leading-tight sm:text-[2.6rem]">Create. Collaborate. <span className="ccx-gradient-text">Connect.</span></h1>
+          <p className="mt-3 max-w-sm text-sm leading-6 text-[#E5E0F1]">Professional creators, production teams, studios and trusted locations—all in one private workspace.</p>
+          <div className="mt-5 flex flex-wrap gap-2 text-xs">
+            <span className="ccx-secondary rounded-full px-3 py-1.5">Verified professionals</span>
+            <span className="ccx-secondary rounded-full px-3 py-1.5">Production management</span>
+          </div>
+        </div>
+      </section>
+      <section className="ccx-surface w-full max-w-xl justify-self-center p-6 sm:p-8" aria-label={signUp?'Create a Content Connect X account':'Sign in to Content Connect X'}>
+        <div className="flex items-center gap-4">
+          <img src="/content_connect_logo.png" alt="Content Connect X" className="ccx-brand-mark h-16 w-16 shrink-0 rounded-2xl object-cover"/>
+          <div><p className="ccx-eyebrow">Content Connect X</p><h2 className="mt-1 text-2xl font-bold">{signUp?'Join the network':'Welcome back'}</h2></div>
+        </div>
+        <p className="mt-5 text-sm leading-6 text-[#B7C3DD]">Start with free registration and independent age verification. Membership and premium actions are available only when their services are activated.</p>
+        <form onSubmit={authenticate} className="mt-6 space-y-4">
+          <label className="block text-sm font-medium">Email address<input className={input+' mt-2'} type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/></label>
+          <label className="block text-sm font-medium">Password<input className={input+' mt-2'} type="password" value={password} onChange={e=>setPassword(e.target.value)} minLength={8} required autoComplete={signUp?'new-password':'current-password'}/></label>
+          <button className={primary+' w-full'} disabled={busy}>{busy?'Working…':signUp?'Create free account':'Sign in securely'}</button>
+        </form>
+        <button className="mt-4 w-full text-sm font-medium text-[#FF87D8] underline underline-offset-4" onClick={()=>{setSignUp(!signUp);setError('');}}>{signUp?'Already have an account? Sign in':'New here? Create your free account'}</button>
+        <div className="mt-5"><ErrorMessage message={error}/>{notice&&<p className="mt-3 text-sm text-emerald-300" role="status">{notice}</p>}</div>
+        <a href="/" className="mt-4 inline-flex text-sm text-[#B6C2D9] underline underline-offset-4 hover:text-white">Back to home</a>
+      </section>
+    </div>
+  </div>;
 
   if(mfaNeeded)return <MfaChallenge onVerified={async()=>{
     const {data}=await supabase.auth.getSession();
@@ -235,8 +255,32 @@ export default function SupabaseApp() {
     menu.push(['controls','Feature Controls',Settings2]);
     menu.push(['integrations','Integrations',Settings2]);
   }
-  return <div className={shell}><header className="border-b border-[#263248] bg-[#111826] px-4 py-4"><div className="mx-auto max-w-6xl flex flex-wrap items-center justify-between gap-3"><h1 className="text-lg font-bold">Content Connect X <span className="ml-2 text-xs text-blue-400">Supabase Preview</span></h1><button className="text-sm text-[#9AA6BC] hover:text-white inline-flex gap-2 items-center" onClick={()=>supabase.auth.signOut()}><LogOut size={16}/> Sign out</button></div></header><main className="mx-auto max-w-6xl px-4 py-6"><nav className="flex flex-wrap gap-2 mb-6">{menu.map(([key,label,Icon])=><button key={key} onClick={()=>{setTab(key);setError('');}} className={`${tab===key?'bg-[#4F8CFF]':'bg-[#1A2438]'} text-sm rounded-lg px-3 py-2 inline-flex items-center gap-2`}><Icon size={16}/>{label}</button>)}</nav><ErrorMessage message={error}/>{notice&&<p role="status" className="my-3 text-green-400">{notice}</p>}{suspended?<div className="space-y-4"><div className={panel}><AlertTriangle className="text-red-400 mb-2"/>Account access is suspended. You can still review or withdraw your existing consent.</div><ConsentCenter user={user} canGrant={false}/><ProductionManager user={user} paid={false} isAdmin={false}/></div>:<>
-    {tab==='dashboard'&&<div className="space-y-4"><h2 className="text-2xl font-semibold">Welcome{profile?.display_name?`, ${profile.display_name}`:''}</h2><div className="grid gap-3 sm:grid-cols-3"><div className={panel}><p className={muted}>Age verification</p><p className="mt-2 font-semibold">{approved?'Approved':verification?.status||'Not started'}</p></div><div className={panel}><p className={muted}>Membership</p><p className="mt-2 font-semibold">{paid?'Full access':'Free'}</p></div><div className={panel}><p className={muted}>Profile</p><p className="mt-2 font-semibold">{profile?.profile_complete?'Completed':'Finish setup'}</p></div></div><p className={muted}>Complete free age verification, fill out your profile, and explore verified members. Premium collaboration tools require an active membership and approved provider integrations.</p></div>}
+  return <div className={shell}>
+    <div className="ccx-brand-topline"/>
+    <header className="ccx-shell-header sticky top-0 z-40 px-4 py-3" role="banner">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
+        <button className="flex items-center gap-3 text-left" onClick={()=>{setTab('dashboard');setError('');}} aria-label="Go to the Content Connect X dashboard">
+          <img src="/content_connect_logo.png" alt="" className="ccx-brand-mark h-11 w-11 rounded-xl object-cover"/>
+          <span className="min-w-0"><span className="block text-lg font-bold tracking-tight text-white">Content Connect <span className="ccx-gradient-text">X</span></span><span className="block text-[10px] uppercase tracking-[.18em] text-[#BBAACD]">Creator & production network</span></span>
+        </button>
+        <div className="flex items-center gap-3">
+          <span className="hidden rounded-full border border-[#7A447F]/50 bg-[#341C43]/60 px-3 py-1.5 text-xs text-[#E3B8E8] sm:inline-flex">{approved?'Verified adult member':'Verification required'}</span>
+          <button className="ccx-secondary inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-sm" onClick={()=>supabase.auth.signOut()}><LogOut size={16}/>Sign out</button>
+        </div>
+      </div>
+    </header>
+    <main id="main-content" className="mx-auto max-w-7xl px-4 pb-12 pt-5 md:px-6">
+      <nav aria-label="Main workspace navigation" className="mb-6 flex flex-wrap gap-2">
+        {menu.map(([key,label,Icon])=>
+          <button key={key} onClick={()=>{setTab(key);setError('');}} aria-current={tab===key?'page':undefined}
+            className={'ccx-nav-pill inline-flex items-center gap-2 '+(tab===key?'is-active':'')}>
+            <Icon size={16} aria-hidden="true"/>{label}
+          </button>
+        )}
+      </nav>
+      <ErrorMessage message={error}/>{notice&&<p role="status" className="my-3 text-green-400">{notice}</p>}{suspended?<div className="space-y-4"><div className={panel}><AlertTriangle className="text-red-400 mb-2"/>Account access is suspended. You can still review or withdraw your existing consent.</div><ConsentCenter user={user} canGrant={false}/><ProductionManager user={user} paid={false} isAdmin={false}/></div>:<>
+    {tab==='dashboard'&&<DashboardHome profile={profile} verification={verification} approved={approved} paid={paid}
+      isAdmin={isAdmin} features={visibleFeatures||{}} onNavigate={key=>{setTab(key);setError('');}}/>}
     {tab==='profile'&&<form key={profile?.updated_at||'new'} onSubmit={saveProfile} className={`${panel} space-y-4 max-w-2xl`}><h2 className="text-xl font-semibold">Your profile</h2><label className="block text-sm">Display name<input name="display_name" className={`${input} mt-1`} defaultValue={profile?.display_name||''} required/></label><label className="block text-sm">Creator type<select name="role_type" className={`${input} mt-1`} defaultValue={profile?.role_type||'creator'}>{['creator','photographer','videographer','video_editor','agent','studio'].map(r=><option value={r} key={r}>{r.replaceAll('_',' ')}</option>)}</select></label><label className="block text-sm">About you<textarea name="bio" className={`${input} mt-1`} rows={4} defaultValue={profile?.bio||''}/></label><div className="grid grid-cols-2 gap-3"><label className="block text-sm">City<input name="city" className={`${input} mt-1`} defaultValue={profile?.city||''}/></label><label className="block text-sm">Country<input name="country" className={`${input} mt-1`} defaultValue={profile?.country||''}/></label></div><button className={primary} disabled={busy}>Save profile</button></form>}
     {tab==='verification'&&<div className={`${panel} space-y-4 max-w-2xl`}><h2 className="text-xl font-semibold">Free age verification</h2><p className={muted}>Identity documents are stored privately for authorized review. Upload your ID and a selfie; this does not grant immediate verified status.</p>{approved?<div className="flex gap-2 text-green-400"><CheckCircle2/>Verified</div>:verification?.status==='pending'?<p className="text-amber-300">Your documents are under review. No payment is required.</p>:<><label className="block text-sm">Government ID<input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={upload('id')} className="block mt-2 text-sm" disabled={busy}/></label><label className="block text-sm">Selfie<input type="file" accept="image/jpeg,image/png,image/webp" onChange={upload('selfie')} className="block mt-2 text-sm" disabled={busy}/></label><button className={`${primary} inline-flex gap-2 items-center`} disabled={busy||!documents.id||!documents.selfie} onClick={submitVerification}><UploadCloud size={16}/> Submit for review</button></>}</div>}
     {tab==='directory'&&<div className="space-y-4"><h2 className="text-xl font-semibold">Explore creators</h2>{!approved?<p className={panel}>Complete your free age verification to view the directory.</p>:<><div className="flex gap-2 max-w-xl"><input className={input} value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search display names"/><button className={primary} onClick={findCreators} disabled={queryRunning}>{queryRunning?'Searching…':'Search'}</button></div>{!paid&&<p className={muted}>Free preview: up to 12 creators. Subscribe to explore the full directory.</p>}<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{directory.map(p=><article key={p.id} className={panel}><h3 className="font-semibold">{p.display_name}</h3><p className="text-sm text-blue-400">{p.role_type.replaceAll('_',' ')}</p><p className={muted}>{[p.city,p.country].filter(Boolean).join(', ')}</p>{paid&&p.bio&&<p className="mt-2 text-sm">{p.bio}</p>}{paid&&<p className="mt-2 text-xs text-[#9AA6BC] break-all">Member ID: {p.id}</p>}</article>)}</div></>}</div>}
