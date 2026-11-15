@@ -33,7 +33,7 @@ Deno.serve(async request=>{
  const paid=admin||['active','trial'].includes(sub.data?.status)&&(!sub.data?.period_end||Date.parse(sub.data.period_end)>Date.now());
  const body=await request.json().catch(()=>null);if(!body||typeof body!=='object')return deny('Invalid JSON',400);
  const action=txt(body.action,65);
- const safety=new Set(['incident_report','incident_my','incident_evidence_token','incident_evidence_register','booking_access_revoke','my_crew_invites','booking_planning_packet','booking_chat_info','booking_chat_list','booking_chat_send','staff_respond','my_staff_invites','booking_access_respond','cleaning_jobs','cleaning_task','supplies','supply_adjust']);
+ const safety=new Set(['incident_report','incident_my','incident_evidence_token','incident_evidence_register','booking_access_revoke','my_crew_invites','booking_planning_packet','booking_chat_info','booking_chat_list','booking_chat_send','suitability_get','staff_respond','my_staff_invites','booking_access_respond','cleaning_jobs','cleaning_task','supplies','supply_adjust']);
  if((security.data?.banned||security.data?.suspended)&&!safety.has(action))return deny('Account restricted',403);
  if(!paid&&!safety.has(action))return deny('Active premium membership required',403);
  if(action.startsWith('admin_')&&(!admin||!keyAAL(bearer)))return deny('Administrator MFA required',403);
