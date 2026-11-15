@@ -26,7 +26,7 @@ const acceptedAmenities=new Set(['wifi','parking','private_entrance','makeup_roo
 const acceptedUses=new Set(['photography','filming','commercial','interviews','music_video','adult_production','events','equipment_rental']);
 const acceptedCategories=new Set(['film_studio','photo_studio','house','villa','loft','set','outdoor','equipment','other']);
 const hashClaim=(header:string)=>{try{const part=header.replace(/^Bearer\s+/i,'').split('.')[1];return JSON.parse(atob(part.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(part.length/4)*4,'=')))?.aal||'aal1';}catch{return 'aal1';}};
-const publicCols='id,owner_id,title,description,category,city,state,country,capacity,minimum_hours,hourly_rate,currency,amenities,permitted_uses,rules,setup_buffer_minutes,cleanup_buffer_minutes,cancellation_policy,deposit_percent,required_insurance,status,created_at';
+const publicCols='id,owner_id,title,description,category,city,state,country,capacity,minimum_hours,hourly_rate,currency,amenities,permitted_uses,rules,setup_buffer_minutes,cleanup_buffer_minutes,cancellation_policy,deposit_percent,required_insurance,public_area_id,timezone,min_notice_hours,weekend_bps,holiday_bps,overtime_bps,cleaning_fee_cents,status,created_at';
 const ownerCols=publicCols+',submitted_at,approved_at';
 const bookingCols='id,property_id,requester_id,owner_id,starts_at,ends_at,status,notes,requested_use,crew_size,estimated_total,hourly_rate_snapshot,created_at,updated_at';
 const denial=(message:string,status=400)=>reply({error:message},status);
@@ -354,36 +354,8 @@ Deno.serve(async req=>{
   const {data,error}=await db.from('property_unavailable').select('id,starts_at,ends_at,reason,source').eq('property_id',payload.id).order('starts_at').limit(200);
   if(error)throw error;return reply({items:data});
  }
- case 'booking_request':{
-  if(!uuid(payload.id))return denial('Invalid listing');
-  const {data:property,error}=await db.from('properties').select(publicCols).eq('id',payload.id).eq('status','active').not('approved_at','is',null).maybeSingle();
-  if(error||!property||property.owner_id===uid)return denial('Listing unavailable',404);
-  const start=moment(payload.starts_at),end=moment(payload.ends_at),crew=finite(payload.crew_size),purpose=safe(payload.requested_use,80);
-  const duration=start&&end?(Date.parse(end)-Date.parse(start))/3600000:NaN;
-  if(!start||!end||Date.parse(start)<=Date.now()||!Number.isFinite(duration)||
-    duration<property.minimum_hours||duration>72||!Number.isInteger(crew)||crew<1||crew>property.capacity||
-    !acceptedUses.has(purpose)||!property.permitted_uses.includes(purpose))return denial('Booking must fit availability, crew capacity and permitted uses',400);
-  const {data:ownerAge}=await db.from('age_verification_requests').select('status,expires_at').eq('user_id',property.owner_id).order('created_at',{ascending:false}).limit(1);
-  if(!verified(ownerAge?.[0]))return denial('Host unavailable',403);
-  const {data:ownerSec}=await db.from('account_security').select('banned,suspended').eq('user_id',property.owner_id).maybeSingle();
-  if(ownerSec?.banned||ownerSec?.suspended)return denial('Host unavailable',403);
-  const blocked=await blockedOwners();if(blocked.has(property.owner_id))return denial('Host unavailable',403);
-  const {count,error:limitError}=await db.from('property_booking_requests').select('id',{count:'exact',head:true})
-   .eq('requester_id',uid).eq('status','requested').gte('created_at',new Date(Date.now()-86400000).toISOString());
-  if(limitError)throw limitError;
-  if((count||0)>=10)return denial('Daily booking request limit reached',429);
-  const total=Math.round(duration*Number(property.hourly_rate)*100)/100;
-  const {data:booking,error:insertError}=await db.from('property_booking_requests').insert({
-   property_id:property.id,requester_id:uid,owner_id:property.owner_id,starts_at:start,ends_at:end,status:'requested',
-   notes:safe(payload.notes,1000),requested_use:purpose,crew_size:crew,
-   hourly_rate_snapshot:property.hourly_rate,estimated_total:total
-  }).select(bookingCols).single();
-  if(insertError)return denial('Requested interval is unavailable. Check the calendar and setup buffers.',409);
-  await notify(property.owner_id,'hosting_booking','New location booking request',property.id);
-  await audit('hosting_booking_requested',booking.id,{property_id:property.id});
-  return reply({item:booking,note:'Request only. No payment was collected and no location address disclosed.'},201);
- }
- case 'my_bookings':
+ case 'booking_request':return denial('Use the transactional dynamic-pricing reservation workflow',409);
+  case 'my_bookings':
  case 'host_bookings':{
   if(action==='host_bookings'&&!paid)return denial('Premium hosting required',403);
   let q=db.from('property_booking_requests').select(bookingCols).order('created_at',{ascending:false}).limit(150);
