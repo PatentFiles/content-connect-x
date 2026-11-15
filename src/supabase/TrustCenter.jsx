@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { ShieldCheck, ClipboardCheck, RefreshCw } from 'lucide-react';
+import PassClearanceHub from './PassClearanceHub';
 
 const panel='ccx-surface p-5';
 const input='w-full rounded-lg bg-[#0F1520] border border-[#34445D] px-3 py-2 text-sm';
@@ -81,5 +82,6 @@ export default function TrustCenter({isAdmin=false}){
       <label className="flex gap-2 items-start mt-3 text-sm"><input type="checkbox" className="mt-1" checked={verifiedOffsite} onChange={e=>setVerifiedOffsite(e.target.checked)}/>I checked the provider's clearance system.</label>
       <button className={button+' mt-3'} disabled={busy||!adminTarget||!provider||!reference||!expires||!verifiedOffsite} onClick={approve}>Record reviewed clearance</button>
     </section>}
+    <div className="mt-7 border-t border-[#34445C] pt-7"><PassClearanceHub isAdmin={isAdmin}/></div>
   </div>;
 }
