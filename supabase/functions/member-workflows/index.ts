@@ -229,7 +229,7 @@ Deno.serve(async req=>{
         if(error)throw error;
         const ids=(links||[]).map(v=>v.conversation_id);
         if(!ids.length)return respond({items:[]});
-        const {data,error:loadError}=await admin.from('conversations').select('id,created_at').in('id',ids).order('created_at',{ascending:false});
+        const {data,error:loadError}=await admin.from('conversations').select('id,created_at,title,kind').in('id',ids).order('created_at',{ascending:false});
         if(loadError)throw loadError;
         const enriched=await Promise.all((data||[]).map(async c=>{
           const cursor=links?.find(l=>l.conversation_id===c.id)?.last_read_at;
@@ -260,7 +260,7 @@ Deno.serve(async req=>{
         const {data:blocks,error:blockError}=await admin.from('member_blocks').select('blocker_id').or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1);
         if(blockError)throw blockError;
         if(blocks?.length)return fail('This conversation cannot be created',403);
-        const {data:convo,error}=await admin.from('conversations').insert({}).select('id,created_at').single();
+        const {data:convo,error}=await admin.from('conversations').insert({kind:'direct',created_by:uid}).select('id,created_at,title,kind').single();
         if(error)throw error;
         const {error:membersError}=await admin.from('conversation_members').insert([{conversation_id:convo.id,user_id:uid},{conversation_id:convo.id,user_id:target}]);
         if(membersError){await admin.from('conversations').delete().eq('id',convo.id);throw membersError;}
@@ -268,12 +268,81 @@ Deno.serve(async req=>{
         await audit('create_conversation',convo.id);
         return respond({item:convo},201);
       }
+      case 'create_group_conversation':{
+        if(!Array.isArray(body.member_ids)||body.member_ids.length<2||body.member_ids.length>9)
+          return fail('Group needs 2–9 other members',400);
+        const members=[...new Set(body.member_ids)];
+        if(members.length!==body.member_ids.length||members.some(id=>!isId(id)||id===uid))
+          return fail('Invalid group members',400);
+        const title=text(body.title,100);
+        if(title.length<3)return fail('Group name required',400);
+        for(const target of members){
+          const [a,s,b,r]=await Promise.all([
+            admin.from('age_verification_requests').select('status,expires_at').eq('user_id',target).order('created_at',{ascending:false}).limit(1),
+            admin.from('member_subscriptions').select('status,period_end').eq('user_id',target).maybeSingle(),
+            admin.from('member_blocks').select('blocker_id').or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1),
+            admin.from('member_connection_requests').select('id').eq('status','accepted').or(`and(requester_id.eq.${uid},recipient_id.eq.${target}),and(requester_id.eq.${target},recipient_id.eq.${uid})`).limit(1)
+          ]);
+          if(a.error||s.error||b.error||r.error||!isAdult(a.data||[])||!isActive(s.data)||b.data?.length||!r.data?.length)
+            return fail('Every participant must be verified, subscribed and mutually connected to the organizer',403);
+        }
+        const {data,error}=await admin.from('conversations').insert({title,kind:'group',created_by:uid}).select('id,title,kind').single();
+        if(error)throw error;
+        const {error:joinError}=await admin.from('conversation_members').insert([uid,...members].map(person=>({conversation_id:data.id,user_id:person})));
+        if(joinError){await admin.from('conversations').delete().eq('id',data.id);throw joinError;}
+        await audit('group_conversation_created',data.id,{members:members.length});
+        return respond({item:data},201);
+      }
       case 'list_messages':{
         const cid=body.conversation_id;
         if(!isId(cid)||!await conversationMember(cid))return fail('Conversation not available',403);
-        const {data,error}=await admin.from('messages').select('id,conversation_id,sender_id,body,created_at').eq('conversation_id',cid).order('created_at',{ascending:false}).limit(100);
+        const {data,error}=await admin.from('messages').select('id,conversation_id,sender_id,body,created_at,edited_at,deleted_at').eq('conversation_id',cid).order('created_at',{ascending:false}).limit(100);
         if(error)throw error;
         return respond({items:(data||[]).reverse()});
+      }
+      case 'edit_message':{
+        if(!isId(body.message_id))return fail('Invalid message',400);
+        const replacement=text(body.message,10000);
+        if(!replacement)return fail('Replacement message required',400);
+        const {data:prior,error}=await admin.from('messages').select('id,conversation_id,sender_id,body,created_at,deleted_at')
+          .eq('id',body.message_id).maybeSingle();
+        if(error||!prior||prior.sender_id!==uid||prior.deleted_at)return fail('Message unavailable',403);
+        if(Date.now()-Date.parse(prior.created_at)>15*60000)return fail('Message edit window has expired',409);
+        if(!await conversationMember(prior.conversation_id))return fail('Conversation unavailable',403);
+        const digest=await hashContent(prior.body);
+        const {data,error:saveError}=await admin.from('messages').update({body:replacement,edited_at:new Date().toISOString()})
+          .eq('id',prior.id).eq('sender_id',uid).is('deleted_at',null).select('id,body,edited_at').maybeSingle();
+        if(saveError||!data)return fail('Message changed during editing',409);
+        await admin.from('message_revision_audit').insert({message_id:prior.id,actor_id:uid,event_type:'edit',content_hash:digest});
+        return respond({item:data});
+      }
+      case 'delete_message':{
+        if(!isId(body.message_id))return fail('Invalid message',400);
+        const {data:prior,error}=await admin.from('messages').select('id,conversation_id,sender_id,body,deleted_at')
+          .eq('id',body.message_id).maybeSingle();
+        if(error||!prior||prior.sender_id!==uid)return fail('Message unavailable',403);
+        if(prior.deleted_at)return respond({ok:true,already_deleted:true});
+        if(!await conversationMember(prior.conversation_id))return fail('Conversation unavailable',403);
+        const digest=await hashContent(prior.body);
+        const {error:saveError}=await admin.from('messages').update({body:'[Message removed]',deleted_at:new Date().toISOString()})
+          .eq('id',prior.id).eq('sender_id',uid).is('deleted_at',null);
+        if(saveError)throw saveError;
+        await admin.from('message_revision_audit').insert({message_id:prior.id,actor_id:uid,event_type:'delete',content_hash:digest});
+        return respond({ok:true});
+      }
+      case 'react_message':{
+        if(!isId(body.message_id)||!['like','heart','laugh','support'].includes(body.reaction))return fail('Invalid reaction',400);
+        const {data:message,error}=await admin.from('messages').select('id,conversation_id,deleted_at').eq('id',body.message_id).maybeSingle();
+        if(error||!message||message.deleted_at||!await conversationMember(message.conversation_id))return fail('Message unavailable',403);
+        const {data:old}=await admin.from('message_reactions').select('reaction').eq('message_id',message.id).eq('reactor_id',uid).maybeSingle();
+        if(old?.reaction===body.reaction){
+          const {error:deletionError}=await admin.from('message_reactions').delete().eq('message_id',message.id).eq('reactor_id',uid);
+          if(deletionError)throw deletionError;
+          return respond({reaction:null});
+        }
+        const {error:saveError}=await admin.from('message_reactions').upsert({message_id:message.id,reactor_id:uid,reaction:body.reaction},{onConflict:'message_id,reactor_id'});
+        if(saveError)throw saveError;
+        return respond({reaction:body.reaction});
       }
       case 'mark_conversation_read':{
         const conversation_id=body.conversation_id;
