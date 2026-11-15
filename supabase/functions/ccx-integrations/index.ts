@@ -1,0 +1,278 @@
+/**
+ * CCX integration control plane:
+ * - staff-only MFA-gated server-side Supabase Vault secrets (never returned);
+ * - Yoti hosted Age Verification Service (not DIY face recognition);
+ * - PASS linking + privacy-preserving, explicit per-collaboration status sharing;
+ * - OnlyHost independent access identity for same Supabase property database.
+ * No unsupported PASS API protocol is invented. No lab reports are returned here.
+ */
+import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
+const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type','Access-Control-Allow-Methods':'POST,OPTIONS'};
+const out=(v:unknown,s=200)=>Response.json(v,{status:s,headers:{...cors,'Cache-Control':'no-store'}});
+const bad=(msg:string,s=400)=>out({error:msg},s);
+const id=(x:unknown):x is string=>typeof x==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(x);
+const txt=(v:unknown,n=300)=>typeof v==='string'?v.trim().slice(0,n):'';
+const secretFields:Record<string,string[]>={
+ yoti:['yoti_token','yoti_sdk_id'],pass:['pass_partner_token'],ccbill:['ccbill_client_account','ccbill_subaccount','ccbill_flex_id','ccbill_salt'],
+ docusign:['docusign_account_id','docusign_integration_key','docusign_private_key','docusign_hmac'],
+ email:['email_api_token','email_sender'],webpush:['webpush_vapid_private'],maps:['maps_server_key'],
+ openmoderate:['openmoderate_api_key'],sentry:['sentry_dsn'],flagsmith:['flagsmith_environment']
+};
+const verified=(row:any)=>row?.status==='approved'&&(!row.expires_at||Date.parse(row.expires_at)>Date.now());
+const assurance=(header:string)=>{
+ try{const part=header.replace(/^Bearer\s+/i,'').split('.')[1],b=part.replace(/-/g,'+').replace(/_/g,'/');
+  return JSON.parse(atob(b.padEnd(Math.ceil(b.length/4)*4,'=')))?.aal==='aal2';}
+ catch{return false;}
+};
+Deno.serve(async req=>{
+ if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
+ if(req.method!=='POST')return bad('POST required',405);
+ const url=Deno.env.get('SUPABASE_URL'),key=Deno.env.get('SUPABASE_ANON_KEY'),service=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+ if(!url||!key||!service)return bad('Service unavailable',503);
+ const header=req.headers.get('Authorization')||'',client=createClient(url,key,{global:{headers:{Authorization:header}}});
+ const {data:{user},error:authError}=await client.auth.getUser();
+ if(authError||!user)return bad('Sign in required',401);
+ const db=createClient(url,service),uid=user.id;
+ const body=await req.json().catch(()=>null);
+ if(!body||typeof body!=='object')return bad('Invalid JSON');
+ const action=txt(body.action,70);
+ const [sec,ages]=await Promise.all([
+  db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
+  db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1)
+ ]);
+ if(sec.error||ages.error)return bad('Cannot verify access',503);
+ const admin=sec.data?.admin===true;
+ if(sec.data?.banned||sec.data?.suspended){
+  if(!['pass_disconnect','pass_revoke','pass_link_status'].includes(action))return bad('Account restricted',403);
+ }
+ const adminAction=action.startsWith('admin_');
+ if(adminAction&&(!admin||!assurance(header)))return bad('Administrator MFA required',403);
+ const audit=async(what:string,target:string|null=null)=>{
+  await db.from('platform_action_audit').insert({actor_id:uid,action:what,target_type:'integration',target_id:id(target)?target:null});
+ };
+ const conf=async(provider:string)=>{
+  const {data,error}=await db.from('ccx_integrations').select('provider,enabled,setup_status,notes,updated_at')
+   .eq('provider',provider).maybeSingle();
+  if(error)throw error;return data;
+ };
+ const getSecret=async(name:string)=>{
+  const {data,error}=await db.rpc('ccx_secret_get',{p_name:name});
+  if(error)throw error;return typeof data==='string'?data:null;
+ };
+ const yotiReady=async()=>{
+  const [token,sdk,setting]=await Promise.all([getSecret('yoti_token'),getSecret('yoti_sdk_id'),conf('yoti')]);
+  return {token,sdk,setting,ready:Boolean(token&&sdk&&setting?.enabled)};
+ };
+ const yotiRequest=async(method:string,session:string|null,data?:object)=>{
+  const cfg=await yotiReady();
+  if(!cfg.ready)throw Error('Yoti is not connected or enabled');
+  const endpoint='https://age.yoti.com/api/v1/sessions'+(session?'/'+encodeURIComponent(session)+'/result':'');
+  const response=await fetch(endpoint,{
+   method,headers:{'Authorization':'Bearer '+cfg.token,
+    'Yoti-Sdk-Id':cfg.sdk!,'Content-Type':'application/json','Accept':'application/json'},
+   ...(data?{body:JSON.stringify(data)}:{}),redirect:'error',signal:AbortSignal.timeout(15000)
+  });
+  if(!response.ok)throw Error('Yoti session request failed; HTTP '+response.status);
+  return await response.json();
+ };
+ try{
+ switch(action){
+ case 'admin_list':{
+  const {data,error}=await db.from('ccx_integrations')
+   .select('provider,enabled,setup_status,notes,updated_at').order('provider');
+  if(error)throw error;
+  return out({providers:await Promise.all((data||[]).map(async p=>({
+    ...p,fields:await Promise.all((secretFields[p.provider]||[]).map(async name=>({
+     name,configured:Boolean(await getSecret(name))
+    })))
+   })))});
+ }
+ case 'admin_set_secret':{
+  const provider=txt(body.provider,32),name=txt(body.name,70),value=body.secret;
+  if(!secretFields[provider]?.includes(name)||typeof value!=='string'||value.trim().length<4||value.length>8192)
+   return bad('Provider, named key and nonempty secret are required');
+  const {data,error}=await db.rpc('ccx_secret_set',{p_name:name,p_secret:value});
+  if(error||!data)throw Error('Could not encrypt API credential');
+  await db.from('ccx_integrations').update({
+   setup_status:provider==='pass'?'awaiting_partner':'credentials_stored',updated_by:uid,updated_at:new Date().toISOString()
+  }).eq('provider',provider);
+  await audit('ccx_integration_secret_updated');
+  return out({ok:true,configured:true,note:'Credential stored encrypted in Supabase Vault. No secret value is returned.'});
+ }
+ case 'admin_provider_settings':{
+  const provider=txt(body.provider,32),on=body.enabled===true;
+  if(!secretFields[provider])return bad('Unsupported provider');
+  if(on&&body.provider_contract_reviewed!==true)return bad('Confirm the provider contract and supported use before activation',409);
+  if(on&&provider==='pass')return bad('PASS API requires approved partner access and documented protocol; no public API has been verified',409);
+  if(on&&provider==='yoti'&&!(await yotiReady()).token)return bad('Store Yoti credentials first',409);
+  const {data,error}=await db.from('ccx_integrations').update({
+   enabled:on,notes:txt(body.notes,400),updated_by:uid,updated_at:new Date().toISOString()
+  }).eq('provider',provider).select('provider,enabled,setup_status,notes').maybeSingle();
+  if(error||!data)throw Error('Integration setting unavailable');
+  await audit('ccx_integration_state_changed');
+  return out({item:data,note:'The configuration is saved. Provider readiness still needs live acceptance tests.'});
+ }
+ case 'status':{
+  const [yoti,pass]=await Promise.all([conf('yoti'),conf('pass')]);
+  return out({yoti_configured:yoti?.enabled===true,pass_partner_connected:pass?.enabled===true,
+   yoti_note:'Provider age checks are not sufficient to establish performer identity without additional evidence review.',
+   pass_note:'PASS partner access remains unverified. Only approved clearance status, never laboratory results, may be shared.'});
+ }
+ case 'yoti_start':{
+  const mode=body.mode==='performer_identity'?'performer_identity':'age_gate';
+  const cfg=await yotiReady();
+  if(!cfg.ready)return bad('Yoti is not configured. Use manual ID verification until onboarding is complete.',503);
+  const origin=txt(Deno.env.get('CCX_PUBLIC_ORIGIN'),260);
+  let trusted:URL;
+  try{trusted=new URL(origin);}catch{return bad('Yoti redirect origin is not configured',503);}
+  if(trusted.protocol!=='https:'||trusted.username||trusted.password||trusted.pathname!=='/'||trusted.search)return bad('Invalid Yoti return origin',503);
+  const {data:prior}=await db.from('ccx_age_provider_sessions').select('id')
+   .eq('user_id',uid).gte('created_at',new Date(Date.now()-3600000).toISOString()).limit(5);
+  if(prior&&prior.length>=5)return bad('Verification retry limit reached; try again later',429);
+  const reference=crypto.randomUUID();
+  const isID=mode==='performer_identity';
+  const payload={
+   type:'OVER',ttl:900,reference_id:reference,synchronous_checks:true,
+   age_estimation:{allowed:!isID,threshold:21,retry_limit:2,level:'PASSIVE',authenticity:'AUTO'},
+   digital_id:{allowed:!isID,threshold:18,age_estimation_allowed:false,retry_limit:2},
+   doc_scan:{allowed:true,threshold:18,retry_limit:2,level:'PASSIVE',authenticity:'AUTO',synchronous_checks:true},
+   credit_card:{allowed:false},mobile:{allowed:false},
+   callback:{auto:true,url:trusted.origin+'/?age_verification=complete'},
+   cancel_url:trusted.origin+'/?age_verification=cancelled',
+   block_biometric_consent:false
+  };
+  const response=await yotiRequest('POST',null,payload);
+  if(!id(response.id)||!response.expires_at)return bad('Provider returned an invalid session',503);
+  const {data,error}=await db.from('ccx_age_provider_sessions').insert({
+   user_id:uid,provider_session_id:response.id,reference_id:reference,mode,
+   expires_at:response.expires_at,status:'pending'
+  }).select('id').single();
+  if(error)throw error;
+  const view='https://age.yoti.com?sessionId='+encodeURIComponent(response.id)+'&sdkId='+encodeURIComponent(cfg.sdk!);
+  return out({session_id:data.id,url:view,note:'Complete verification on Yoti. Performer identity requires separate document review.'},201);
+ }
+ case 'yoti_status':{
+  const {data,error}=await db.from('ccx_age_provider_sessions')
+   .select('id,mode,status,method,expires_at,confirmed_at,provider_session_id,reference_id')
+   .eq('user_id',uid).order('created_at',{ascending:false}).limit(1);
+  if(error)throw error;
+  const latest=data?.[0];
+  if(!latest)return out({status:'not_started'});
+  if(!body.refresh||!['pending','processing','provider_error'].includes(latest.status))
+   return out({status:latest.status,mode:latest.mode,method:latest.method,confirmed_at:latest.confirmed_at});
+  if(Date.parse(latest.expires_at)<Date.now()){
+   await db.from('ccx_age_provider_sessions').update({status:'expired'}).eq('id',latest.id);
+   return out({status:'expired'});
+  }
+  const result=await yotiRequest('GET',latest.provider_session_id);
+  if(result.id!==latest.provider_session_id||result.reference_id!==latest.reference_id||result.type!=='OVER')
+   return bad('Yoti session identity did not match',503);
+  let status='processing';
+  if(result.status==='COMPLETE'){
+   // Age Verification Service proves only an over-age result, not professional
+   // identity or documentary compliance. Never auto-mark creator identity verified.
+   status=latest.mode==='performer_identity'?'review_required':'age_confirmed';
+  }else if(['FAIL','CANCELLED'].includes(result.status))status='rejected';
+  else if(result.status==='ERROR')status='provider_error';
+  const {error:saveError}=await db.from('ccx_age_provider_sessions').update({
+   status,method:txt(result.method,70)||null,
+   confirmed_at:result.status==='COMPLETE'?new Date().toISOString():null
+  }).eq('id',latest.id);
+  if(saveError)throw saveError;
+  await audit('ccx_yoti_session_checked',latest.id);
+  return out({status,mode:latest.mode,method:txt(result.method,70)||null,
+   identity_verified:false,note:status==='review_required'?'Over-18 confirmed; performer identity requires independent reviewer approval.':'Yoti status retrieved directly from provider.'});
+ }
+ case 'onlyhost_register':{
+  if(body.accept_terms!==true)return bad('You must accept the hosting marketplace terms',400);
+  const {data,error}=await db.from('onlyhost_accounts')
+   .upsert({user_id:uid,status:'active',agreed_to_hosting_terms_at:new Date().toISOString()},
+    {onConflict:'user_id'}).select('status,created_at').single();
+  if(error)throw error;
+  await audit('onlyhost_account_joined');
+  return out({item:data,note:'OnlyHost account enabled; renting still requires independent adult verification and accepted venue rules.'});
+ }
+ case 'onlyhost_status':{
+  const {data,error}=await db.from('onlyhost_accounts')
+   .select('status,created_at').eq('user_id',uid).maybeSingle();
+  if(error)throw error;
+  return out({registered:data?.status==='active',status:data?.status||'not_registered',
+   age_verified:verified(ages.data?.[0])});
+ }
+ case 'pass_link':{
+  if(body.allow_status_sync!==true)return bad('Explicit opt-in required',400);
+  if(!verified(ages.data?.[0]))return bad('Verified account required',403);
+  const cfg=await conf('pass');
+  const {data,error}=await db.from('ccx_pass_links').upsert({
+   user_id:uid,status:cfg?.enabled?'pending_confirmation':'awaiting_partner',
+   requested_at:new Date().toISOString(),consented_at:new Date().toISOString()
+  },{onConflict:'user_id'}).select('status,requested_at').single();
+  if(error)throw error;
+  await audit('ccx_pass_link_requested');
+  return out({item:data,note:'Link requested. PASS does not provide a confirmed public API; connection is pending partner onboarding.'});
+ }
+ case 'pass_link_status':{
+  const {data,error}=await db.from('ccx_pass_links')
+   .select('status,consented_at,last_sync_at').eq('user_id',uid).maybeSingle();
+  if(error)throw error;return out({item:data||{status:'not_linked'}});
+ }
+ case 'pass_disconnect':{
+  const {error}=await db.from('ccx_pass_links').update({status:'revoked',consented_at:null})
+   .eq('user_id',uid);
+  if(error)throw error;
+  await audit('ccx_pass_link_revoked');
+  return out({ok:true});
+ }
+ case 'pass_share':
+ case 'pass_revoke':{
+  const collaborationId=body.collaboration_id;
+  if(!id(collaborationId))return bad('Collaboration ID required',400);
+  const {data:member,error}=await db.from('collaboration_members')
+   .select('user_id').eq('collaboration_id',collaborationId).eq('user_id',uid).maybeSingle();
+  if(error||!member)return bad('You are not a collaboration participant',403);
+  if(action==='pass_revoke'){
+   await db.from('ccx_clearance_share_consents').update({revoked_at:new Date().toISOString()})
+    .eq('collaboration_id',collaborationId).eq('user_id',uid);
+   await audit('ccx_clearance_share_withdrawn',collaborationId);return out({shared:false});
+  }
+  if(body.allow_binary_clearance_share!==true)return bad('Explicit permission to share work-clearance status is required',400);
+  const {error:saveError}=await db.from('ccx_clearance_share_consents').upsert({
+   collaboration_id:collaborationId,user_id:uid,consented_at:new Date().toISOString(),revoked_at:null
+  },{onConflict:'collaboration_id,user_id'});
+  if(saveError)throw saveError;
+  await audit('ccx_clearance_share_granted',collaborationId);
+  return out({shared:true});
+ }
+ case 'pass_collaboration_status':{
+  if(!id(body.collaboration_id))return bad('Collaboration required');
+  const idCollab=body.collaboration_id;
+  const {data:member}=await db.from('collaboration_members')
+   .select('user_id').eq('collaboration_id',idCollab).eq('user_id',uid).maybeSingle();
+  if(!member)return bad('Not a collaboration member',403);
+  const [members,consents,clearances,hold]=await Promise.all([
+   db.from('collaboration_members').select('user_id').eq('collaboration_id',idCollab),
+   db.from('ccx_clearance_share_consents').select('user_id,revoked_at').eq('collaboration_id',idCollab),
+   db.from('performer_work_clearances').select('user_id,clearance_confirmed,expires_at,provider'),
+   db.from('ccx_integrations').select('enabled').eq('provider','pass').maybeSingle()
+  ]);
+  if(members.error||consents.error||clearances.error||hold.error)return bad('Provider status unavailable',503);
+  const opted=new Set((consents.data||[]).filter((v:any)=>!v.revoked_at).map((v:any)=>v.user_id));
+  const all=(members.data||[]).map((v:any)=>{
+   const userId=v.user_id;
+   const source=(clearances.data||[]).find((x:any)=>x.user_id===userId);
+   const allowed=opted.has(userId);
+   const current=Boolean(source?.clearance_confirmed&&source.expires_at&&Date.parse(source.expires_at)>Date.now());
+   return {user_id:userId,sharing:allowed,
+    clearance:allowed?(current?'current':'not_current'):'not_shared',
+    // No lab diagnosis, test panel or medical PDF is ever disclosed.
+    provider:allowed&&source?.provider==='pass'?'PASS':null};
+  });
+  return out({members:all,ready:all.length>0&&all.every((v:any)=>v.sharing&&v.clearance==='current'),
+   checked_at:new Date().toISOString(),
+   production_hold_unknown:hold.data?.enabled!==true,
+   note:'Only binary work-clearance status is visible after each performer opts in. PASS production holds are not automatically monitored without an approved partner API.'});
+ }
+ default:return bad('Unknown action',404);
+ }
+ }catch(error){console.error('ccx integrations',action,String(error).slice(0,200));return bad('Provider operation unavailable',503);}
+});
