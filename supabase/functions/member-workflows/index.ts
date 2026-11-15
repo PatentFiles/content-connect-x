@@ -151,6 +151,60 @@ Deno.serve(async req=>{
         await audit('respond_invitation',invitation_id,{status:body.status});
         return respond({item:{id:invitation_id,status:body.status}});
       }
+      case 'list_connection_requests':{
+        const {data,error}=await admin.from('member_connection_requests')
+          .select('id,requester_id,recipient_id,status,requested_at,responded_at')
+          .or(`requester_id.eq.${uid},recipient_id.eq.${uid}`)
+          .order('requested_at',{ascending:false}).limit(100);
+        if(error)throw error;
+        return respond({items:data||[]});
+      }
+      case 'request_connection':{
+        const target=body.target_user_id;
+        if(!isId(target)||target===uid)return fail('A valid recipient is required');
+        const {data:otherAge,error:ageError}=await admin.from('age_verification_requests')
+          .select('status,expires_at').eq('user_id',target)
+          .order('created_at',{ascending:false}).limit(1);
+        const {data:otherSub,error:subError}=await admin.from('member_subscriptions')
+          .select('status,period_end').eq('user_id',target).maybeSingle();
+        const {data:otherSec,error:secError}=await admin.from('account_security')
+          .select('banned,suspended').eq('user_id',target).maybeSingle();
+        if(ageError||subError||secError||!isAdult(otherAge||[])||!isActive(otherSub)||otherSec?.banned||otherSec?.suspended)
+          return fail('The recipient cannot receive requests',403);
+        const {data:blocks,error:blockError}=await admin.from('member_blocks').select('blocker_id')
+          .or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1);
+        if(blockError)throw blockError;
+        if(blocks?.length)return fail('Connection unavailable',403);
+        const {data:prior,error:priorError}=await admin.from('member_connection_requests').select('id,status')
+          .eq('requester_id',target).eq('recipient_id',uid).maybeSingle();
+        if(priorError)throw priorError;
+        if(prior&&['pending','accepted'].includes(prior.status))return fail('Respond to the existing request instead',409);
+        const {data,error}=await admin.from('member_connection_requests').upsert({
+          requester_id:uid,recipient_id:target,status:'pending',requested_at:new Date().toISOString(),responded_at:null
+        },{onConflict:'requester_id,recipient_id'}).select('id,status').single();
+        if(error)throw error;
+        await notification(target,'connection_request','New connection request',{request_id:data.id});
+        await audit('request_connection',data.id);
+        return respond({item:data},201);
+      }
+      case 'respond_connection':{
+        if(!isId(body.request_id)||!['accepted','declined'].includes(body.status))return fail('Invalid request');
+        const {data:request,error}=await admin.from('member_connection_requests')
+          .select('id,requester_id,recipient_id,status').eq('id',body.request_id).maybeSingle();
+        if(error||!request||request.recipient_id!==uid)return fail('Request unavailable',403);
+        if(request.status!=='pending')return fail('Request already handled',409);
+        const {data:blocks,error:blockError}=await admin.from('member_blocks').select('blocker_id')
+          .or(`and(blocker_id.eq.${uid},blocked_id.eq.${request.requester_id}),and(blocker_id.eq.${request.requester_id},blocked_id.eq.${uid})`).limit(1);
+        if(blockError)throw blockError;
+        if(blocks?.length)return fail('Connection unavailable',403);
+        const {data:saved,error:updateError}=await admin.from('member_connection_requests')
+          .update({status:body.status,responded_at:new Date().toISOString()})
+          .eq('id',request.id).eq('status','pending').select('id,status').maybeSingle();
+        if(updateError||!saved)return fail('Request could not be updated',409);
+        await notification(request.requester_id,'connection_request',`Connection request ${body.status}`,{request_id:request.id});
+        await audit('respond_connection',request.id,{status:body.status});
+        return respond({item:saved});
+      }
       case 'list_conversations':{
         const {data:links,error}=await admin.from('conversation_members').select('conversation_id').eq('user_id',uid).limit(150);
         if(error)throw error;
@@ -169,6 +223,13 @@ Deno.serve(async req=>{
         if(theirAgeError||!isAdult(theirAge||[]))return fail('Recipient is not verified',403);
         const {data:theirSubscription,error:subError}=await admin.from('member_subscriptions').select('status,period_end').eq('user_id',target).maybeSingle();
         if(subError||!isActive(theirSubscription))return fail('Recipient unavailable',403);
+        // Both people must have expressly accepted a connection before direct chat.
+        const {data:connections,error:connectError}=await admin.from('member_connection_requests')
+          .select('id,status')
+          .or(`and(requester_id.eq.${uid},recipient_id.eq.${target}),and(requester_id.eq.${target},recipient_id.eq.${uid})`)
+          .eq('status','accepted').limit(1);
+        if(connectError)throw connectError;
+        if(!connections?.length)return fail('A mutually accepted connection is required before messaging',403);
         // A block in either direction prevents new contact.
         const {data:blocks,error:blockError}=await admin.from('member_blocks').select('blocker_id').or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1);
         if(blockError)throw blockError;
