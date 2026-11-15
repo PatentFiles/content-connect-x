@@ -87,7 +87,7 @@ Deno.serve(async(req)=>{
   try{
     switch(action){
       case 'get_feature_flags':{
-        const keys=['creator_discovery','availability','community_feed','community_publish','product_feedback','media_gallery','creator_booking','messages','contracts','property_bookings','background_screening'];
+        const keys=['creator_discovery','availability','community_feed','community_publish','product_feedback','media_gallery','creator_booking','production_manager','creator_groups','event_rsvps','verified_reviews','messages','contracts','property_bookings','background_screening'];
         const entries=await Promise.all(keys.map(async(key)=>[key,await feature(key)]));
         return reply({flags:Object.fromEntries(entries),tier});
       }
@@ -337,7 +337,9 @@ Deno.serve(async(req)=>{
           .select('followed_id').eq('follower_id',uid).limit(200);
         if(followError)throw followError;
         const followSet=new Set((following||[]).map((f:any)=>f.followed_id));
-        return reply({items:items.map((v:any)=>({
+        const mode=body?.feed_mode==='following'?'following':'latest';
+        const shown=mode==='following'?items.filter((item:any)=>followSet.has(item.author_id)):items;
+        return reply({items:shown.map((v:any)=>({
           ...v,author:(profiles||[]).find((p:any)=>p.id===v.author_id)||null,
           reactions:(reactions||[]).filter((r:any)=>r.post_id===v.id).length,
           liked:(reactions||[]).some((r:any)=>r.post_id===v.id&&r.user_id===uid),
