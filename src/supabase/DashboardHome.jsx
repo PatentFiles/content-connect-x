@@ -32,7 +32,8 @@ const modules=[
   {key:'account-security',title:'Trust & account',description:'Control security, your account and access settings.',Icon:LockKeyhole,tag:'SECURITY',color:'rgba(255,73,182,.16)'},
 ];
 
-export default function DashboardHome({profile,verification,approved,paid,isAdmin,onNavigate,features={}}){
+export default function DashboardHome({profile,verification,approved,paid,onNavigate,features={}}){
+  const enabled = /** @type {Record<string, boolean>} */ (features);
   const name=profile?.display_name?.trim();
   const hasProfile=profile?.profile_complete===true;
   const canAccessWorkspace=Boolean(paid&&approved);
@@ -91,11 +92,11 @@ export default function DashboardHome({profile,verification,approved,paid,isAdmi
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {modules.filter(m=>
           m.key==='workspace'?canAccessWorkspace:
-          m.key==='schedule'?canAccessWorkspace&&features.availability===true:
+          m.key==='schedule'?canAccessWorkspace&&enabled.availability===true:
           m.key==='hosting'||m.key==='production'?approved:true
-        ).map(({key,title,description,Icon,tag,color})=>
+        ).map(({key,title,description,Icon,tag})=>
           <button key={key} className="ccx-module-card group"
-            style={{'--ccx-card-glow':color}} onClick={()=>onNavigate(key)}>
+            data-accent={key} onClick={()=>onNavigate(key)}>
             <span className="ccx-icon-wrap"><Icon size={22}/></span>
             <p className="mt-5 text-[10px] uppercase tracking-[.17em] font-bold text-[#FF89DB]">{tag}</p>
             <div className="mt-1 flex items-center gap-2">
