@@ -84,6 +84,42 @@ Deno.serve(async req=>{
         await audit('create_collaboration',record.id);
         return respond({item:record},201);
       }
+      case 'invite_collaborator':{
+        const cid=body.collaboration_id, invitee=body.invitee_id;
+        if(!isId(cid)||!isId(invitee)||invitee===uid)return fail('Valid collaboration and invitee required');
+        const {data:collab,error:collabError}=await admin.from('collaborations').select('id,creator_id,title').eq('id',cid).maybeSingle();
+        if(collabError||!collab||collab.creator_id!==uid)return fail('Only the collaboration owner can invite members',403);
+        if(await memberOf(cid,invitee))return fail('Already a member',409);
+        const {data:theirAge,error:ageError}=await admin.from('age_verification_requests').select('status,expires_at').eq('user_id',invitee).limit(50);
+        const {data:theirSubscription,error:subError}=await admin.from('member_subscriptions').select('status,period_end').eq('user_id',invitee).maybeSingle();
+        if(ageError||subError||!isAdult(theirAge||[])||!isActive(theirSubscription))return fail('Invitee must be verified and subscribed',403);
+        const {data,error}=await admin.from('collaboration_invitations').insert({collaboration_id:cid,invited_by:uid,invitee_id:invitee,status:'pending'}).select('id,collaboration_id,status').single();
+        if(error)return fail('Invitation already exists or cannot be created',409);
+        await notification(invitee,'collaboration_invite','New collaboration invitation',{invitation_id:data.id,collaboration_id:cid});
+        await audit('invite_collaborator',data.id);
+        return respond({item:data},201);
+      }
+      case 'list_invitations':{
+        const {data,error}=await admin.from('collaboration_invitations').select('id,collaboration_id,invited_by,invitee_id,status,created_at').eq('invitee_id',uid).order('created_at',{ascending:false}).limit(100);
+        if(error)throw error;
+        return respond({items:data});
+      }
+      case 'respond_invitation':{
+        const invitation_id=body.invitation_id;
+        if(!isId(invitation_id)||!['accepted','declined'].includes(body.status))return fail('Invalid invitation');
+        const {data:invite,error}=await admin.from('collaboration_invitations').select('id,collaboration_id,invitee_id,invited_by,status').eq('id',invitation_id).maybeSingle();
+        if(error||!invite||invite.invitee_id!==uid)return fail('Invitation unavailable',403);
+        if(invite.status!=='pending')return fail('Invitation already handled',409);
+        if(body.status==='accepted'){
+          const {error:insertError}=await admin.from('collaboration_members').insert({collaboration_id:invite.collaboration_id,user_id:uid,membership_role:'participant'});
+          if(insertError)return fail('Could not join collaboration',409);
+        }
+        const {error:saveError}=await admin.from('collaboration_invitations').update({status:body.status,responded_at:new Date().toISOString()}).eq('id',invitation_id).eq('status','pending');
+        if(saveError)throw saveError;
+        await notification(invite.invited_by,'collaboration_invite',`Collaboration invitation ${body.status}`,{collaboration_id:invite.collaboration_id});
+        await audit('respond_invitation',invitation_id,{status:body.status});
+        return respond({item:{id:invitation_id,status:body.status}});
+      }
       case 'list_conversations':{
         const {data:links,error}=await admin.from('conversation_members').select('conversation_id').eq('user_id',uid).limit(150);
         if(error)throw error;
