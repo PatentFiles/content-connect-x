@@ -37,8 +37,9 @@ jobs:
         run: |
           docker build -t content-connect-x:ci .
           docker run -d --name ccx-ci -p 18080:8080 content-connect-x:ci
-          trap 'docker rm -f ccx-ci || true' EXIT
-          curl --fail --retry 12 --retry-delay 2 --retry-connrefused http://127.0.0.1:18080/healthz
-          curl --fail http://127.0.0.1:18080/ | grep -q '<html'
+          trap 'docker logs ccx-ci || true; docker rm -f ccx-ci || true' EXIT
+          sleep 3
+          curl --fail --retry 15 --retry-delay 2 --retry-all-errors --max-time 5 http://127.0.0.1:18080/healthz
+          curl --fail --retry 5 --retry-delay 1 --retry-all-errors http://127.0.0.1:18080/ | grep -q '<html'
       - name: Verify protected Edge Function gateway
         run: npm run smoke:supabase
