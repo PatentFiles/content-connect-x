@@ -59,7 +59,12 @@ export default function SupabaseApp() {
       setTab('verification');
       params.delete('age_verification');
       const remainder=params.toString();
-      window.history.replaceState(null,'',window.location.pathname+(remainder?'?'+remainder:'')+window.location.hash);
+      // Only a navigation hint: this does not grant age or identity verification.
+      // The Yoti view will retrieve the real outcome from our protected backend.
+      window.history.replaceState({
+        ...(window.history.state||{}),
+        ccxYotiReturned:true
+      },'',window.location.pathname+(remainder?'?'+remainder:'')+window.location.hash);
     }
   },[]);
   const user = session?.user;

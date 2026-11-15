@@ -43,3 +43,14 @@ The frontend and database foundation compile. No complete authenticated multi-us
 ## Production location marketplace
 
 The private age-gated Hosting Marketplace supports filtered venue discovery, galleries, favorites, hourly booking requests, host dashboards, image moderation, protected addresses and entry instructions, availability buffers, turnovers and guest reviews. See [hosting implementation](supabase/HOSTING_MARKETPLACE.md). Requests do not process payments, and listings require human approval.
+
+
+## Identity provider integration controls
+
+The **Integrations** area is available to independently age-verified administrators with MFA (AAL2). API credentials are stored server-side using Supabase Vault and are never returned to the browser. In **Verification**, users can start a Yoti hosted age-threshold check, or use the private ID-and-selfie review fallback.
+
+Yoti needs **both** the API token and SDK ID, a trusted HTTPS Content Connect X return origin, administrator activation and real provider testing. OnlyHost uses a separate explicitly configured HTTPS return origin and **never** falls back to the Content Connect X website. Successful Yoti age threshold results do **not** automatically approve creator identity or protected access. The UI polls the provider after return and keeps independent document/identity review as a separate requirement.
+
+The **Trust & Readiness** area supports voluntary PASS link requests, per-collaboration binary clearance sharing with revocation, and private uploaded evidence reviewed by separate staff. An official PASS partner API is not connected; no clinical reports are exposed to collaboration partners.
+
+Run `npm run test:integrations` for brand return-origin, HTTPS safety and credential-readiness tests. Those tests exercise local policy; authenticated multi-user, provider sandbox and record-retention acceptance tests remain required before enabling live provider operations.
