@@ -15,9 +15,7 @@ export async function initializeOptionalIntegrations() {
         dsn:sentryDsn,
         environment:import.meta.env.MODE||'supabase',
         release:import.meta.env.VITE_RELEASE_SHA||undefined,
-        sendDefaultPii:false,
         tracesSampleRate:0,
-        profilesSampleRate:0,
         sampleRate:0.2,
         // No replay or user-session recordings are enabled for an adult platform.
         beforeBreadcrumb(){return null;},
