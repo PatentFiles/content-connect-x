@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { ShieldCheck, ClipboardCheck, RefreshCw } from 'lucide-react';
 
-const panel='rounded-xl border border-[#263248] bg-[#151D2B] p-5';
+const panel='ccx-surface p-5';
 const input='w-full rounded-lg bg-[#0F1520] border border-[#34445D] px-3 py-2 text-sm';
-const button='rounded-lg bg-[#4F8CFF] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
+const button='rounded-lg ccx-action-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
 
 export default function TrustCenter({isAdmin=false}){
   const [own,setOwn]=useState(null);

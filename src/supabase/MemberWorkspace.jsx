@@ -3,9 +3,9 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { Check, FileSignature, MessageSquare, Users, Bell, Loader2, RefreshCw } from 'lucide-react';
 
-const panel='rounded-xl border border-[#263248] bg-[#151D2B] p-4';
+const panel='ccx-surface p-4';
 const input='w-full rounded-md border border-[#34445D] bg-[#0F1520] p-2 text-sm text-white placeholder-[#8090A5]';
-const button='rounded-md bg-[#4F8CFF] px-3 py-2 text-sm font-semibold text-white hover:bg-[#3978ED] disabled:opacity-50';
+const button='rounded-md ccx-action-primary px-3 py-2 text-sm font-semibold text-white  disabled:opacity-50';
 const muted='text-[#9AA6BC]';
 /** @type {Array<[string, string, import('react').ElementType]>} */
 const sections=[['collaborations','Collaborations',Users],['invitations','Invitations',Check],['connections','Connections',Users],['messages','Messages',MessageSquare],['contracts','Contracts',FileSignature],['notifications','Notifications',Bell]];

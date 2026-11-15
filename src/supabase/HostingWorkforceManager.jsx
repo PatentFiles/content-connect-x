@@ -4,7 +4,7 @@ import {UsersRound,ClipboardCheck,Package,AlertTriangle,Star} from 'lucide-react
 import {hostingProduction,formatDate} from './hostingBusinessApi';
 const card='rounded-xl border border-[#344C66] bg-[#101D2F] p-4';
 const field='w-full rounded-lg border border-[#425773] bg-[#081625] p-2 text-sm text-white';
-const btn='rounded-lg bg-[#507CF4] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
+const btn='rounded-lg ccx-action-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
 const secondary='rounded-lg border border-[#39526B] bg-[#253A56] px-3 py-2 text-xs text-white disabled:opacity-50';
 
 export default function HostingWorkforceManager({propertyId=null,worker=false}){

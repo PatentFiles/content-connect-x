@@ -5,7 +5,7 @@ import {supabase} from '@/api/supabaseClient';
 import {hostingProduction,formatDate,hostingAdvanced} from './hostingBusinessApi';
 const card='rounded-xl border border-[#34475F] bg-[#101C2C] p-4';
 const input='w-full rounded-lg border border-[#3C506A] bg-[#091625] p-2 text-sm text-white';
-const button='rounded-lg bg-[#507AF4] px-4 py-2 text-xs font-semibold text-white disabled:opacity-50';
+const button='rounded-lg ccx-action-primary px-4 py-2 text-xs font-semibold text-white disabled:opacity-50';
 const second='rounded-lg border border-[#3A526E] bg-[#233A54] px-3 py-2 text-xs text-white disabled:opacity-50';
 
 
