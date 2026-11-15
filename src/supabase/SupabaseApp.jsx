@@ -15,6 +15,7 @@ import CommunityHub from './CommunityHub';
 import FeedbackHub from './FeedbackHub';
 import AdminProductControls from './AdminProductControls';
 import MediaGallery from './MediaGallery';
+import IntegrationHealth from './IntegrationHealth';
 import { ShieldCheck, LockKeyhole, Search, UserRound, CreditCard, LogOut, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw, CalendarDays, MessageSquare, Lightbulb, Settings2, Images } from 'lucide-react';
 
 const shell = 'min-h-screen bg-[#0B0F14] text-[#E8EEF9]';
@@ -188,7 +189,10 @@ export default function SupabaseApp() {
     menu.push(['trust','Trust & Readiness',ShieldCheck]);
   }
   if(isAdmin && approved) menu.push(['reviews','Age Reviews',ShieldCheck]);
-  if(isAdmin && approved) menu.push(['controls','Feature Controls',Settings2]);
+  if(isAdmin && approved){
+    menu.push(['controls','Feature Controls',Settings2]);
+    menu.push(['integrations','Integrations',Settings2]);
+  }
   return <div className={shell}><header className="border-b border-[#263248] bg-[#111826] px-4 py-4"><div className="mx-auto max-w-6xl flex flex-wrap items-center justify-between gap-3"><h1 className="text-lg font-bold">Content Connect X <span className="ml-2 text-xs text-blue-400">Supabase Preview</span></h1><button className="text-sm text-[#9AA6BC] hover:text-white inline-flex gap-2 items-center" onClick={()=>supabase.auth.signOut()}><LogOut size={16}/> Sign out</button></div></header><main className="mx-auto max-w-6xl px-4 py-6"><nav className="flex flex-wrap gap-2 mb-6">{menu.map(([key,label,Icon])=><button key={key} onClick={()=>{setTab(key);setError('');}} className={`${tab===key?'bg-[#4F8CFF]':'bg-[#1A2438]'} text-sm rounded-lg px-3 py-2 inline-flex items-center gap-2`}><Icon size={16}/>{label}</button>)}</nav><ErrorMessage message={error}/>{notice&&<p role="status" className="my-3 text-green-400">{notice}</p>}{suspended?<div className="space-y-4"><div className={panel}><AlertTriangle className="text-red-400 mb-2"/>Account access is suspended. You can still review or withdraw your existing consent.</div><ConsentCenter user={user} canGrant={false}/></div>:<>
     {tab==='dashboard'&&<div className="space-y-4"><h2 className="text-2xl font-semibold">Welcome{profile?.display_name?`, ${profile.display_name}`:''}</h2><div className="grid gap-3 sm:grid-cols-3"><div className={panel}><p className={muted}>Age verification</p><p className="mt-2 font-semibold">{approved?'Approved':verification?.status||'Not started'}</p></div><div className={panel}><p className={muted}>Membership</p><p className="mt-2 font-semibold">{paid?'Full access':'Free'}</p></div><div className={panel}><p className={muted}>Profile</p><p className="mt-2 font-semibold">{profile?.profile_complete?'Completed':'Finish setup'}</p></div></div><p className={muted}>Complete free age verification, fill out your profile, and explore verified members. Messaging, contracts and bookings will unlock once those services are migrated and billing is connected.</p></div>}
     {tab==='profile'&&<form key={profile?.updated_at||'new'} onSubmit={saveProfile} className={`${panel} space-y-4 max-w-2xl`}><h2 className="text-xl font-semibold">Your profile</h2><label className="block text-sm">Display name<input name="display_name" className={`${input} mt-1`} defaultValue={profile?.display_name||''} required/></label><label className="block text-sm">Creator type<select name="role_type" className={`${input} mt-1`} defaultValue={profile?.role_type||'creator'}>{['creator','photographer','videographer','video_editor','agent','studio'].map(r=><option value={r} key={r}>{r.replaceAll('_',' ')}</option>)}</select></label><label className="block text-sm">About you<textarea name="bio" className={`${input} mt-1`} rows={4} defaultValue={profile?.bio||''}/></label><div className="grid grid-cols-2 gap-3"><label className="block text-sm">City<input name="city" className={`${input} mt-1`} defaultValue={profile?.city||''}/></label><label className="block text-sm">Country<input name="country" className={`${input} mt-1`} defaultValue={profile?.country||''}/></label></div><button className={primary} disabled={busy}>Save profile</button></form>}
@@ -204,6 +208,7 @@ export default function SupabaseApp() {
     {tab==='media' && approved && <MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
     {tab==='schedule' && approved && paid && <ScheduleHub paid={paid}/>}
     {tab==='controls' && approved && isAdmin && <AdminProductControls/>}
+    {tab==='integrations' && approved && isAdmin && <IntegrationHealth/>}
     {tab==='membership'&&<div className={`${panel} max-w-2xl space-y-3`}><h2 className="text-xl font-semibold">Free today. Unlock more when ready.</h2><p className={muted}>Your free account includes age verification, profile setup and limited directory previews.</p><div className="p-4 rounded-lg bg-[#1A2438]"><LockKeyhole className="text-blue-400 mb-2"/>Full discovery, direct messages, contracts, collaboration rooms, property booking and advanced tools require membership.</div><p className="text-sm text-amber-200">Checkout only becomes available after verified Stripe configuration. Payment is never collected by this website directly.</p><div className="flex flex-wrap gap-2"><p className={muted}>Paid checkout is paused until an adult-industry merchant processor approves this business model. No subscription charges are possible from this preview.</p></div></div>}
   </>}</main></div>;
 }
