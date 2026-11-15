@@ -69,20 +69,33 @@ Deno.serve(async req=>{
 
   if(action==='check_collaboration_clearance'){
     if(!uuid(body.collaboration_id))return reply({error:'Collaboration required'},400);
-    const {data:membership,error:membershipError}=await admin.from('collaboration_members').select('user_id').eq('collaboration_id',body.collaboration_id).eq('user_id',uid).maybeSingle();
-    if(membershipError||!membership)return reply({error:'Not a collaboration member'},403);
-    const {data:members,error:memberError}=await admin.from('collaboration_members').select('user_id').eq('collaboration_id',body.collaboration_id);
-    if(memberError)return reply({error:'Member lookup unavailable'},503);
-    const ids=(members||[]).map((m:any)=>m.user_id);
+    const {data:membership}=await admin.from('collaboration_members').select('user_id')
+      .eq('collaboration_id',body.collaboration_id).eq('user_id',uid).maybeSingle();
+    if(!membership)return reply({error:'Not a collaboration participant'},403);
+    const {data:members,error:memberError}=await admin.from('collaboration_members')
+      .select('user_id').eq('collaboration_id',body.collaboration_id);
+    if(memberError)return reply({error:'Cannot verify collaborators'},503);
+    const ids=(members||[]).map((v:any)=>v.user_id);
     if(!ids.length)return reply({members:[],ready:false});
-    const {data:clearances,error:checkError}=await admin.from('performer_work_clearances').select('user_id,clearance_confirmed,expires_at').in('user_id',ids);
-    if(checkError)return reply({error:'Clearance check unavailable'},503);
-    const items=ids.map((id:string)=>{
-      const found=(clearances||[]).find((x:any)=>x.user_id===id);
-      const confirmed=Boolean(found?.clearance_confirmed&&found.expires_at&&Date.parse(found.expires_at)>Date.now());
-      return {user_id:id,clearance_confirmed:confirmed};
+    const [shares,clearances]=await Promise.all([
+     admin.from('ccx_clearance_share_consents').select('user_id,revoked_at')
+      .eq('collaboration_id',body.collaboration_id).in('user_id',ids),
+     admin.from('performer_work_clearances').select('user_id,clearance_confirmed,expires_at')
+      .in('user_id',ids)
+    ]);
+    if(shares.error||clearances.error)return reply({error:'Clearance check currently unavailable'},503);
+    const allowed=new Set((shares.data||[]).filter((s:any)=>!s.revoked_at).map((s:any)=>s.user_id));
+    const items=ids.map((person:string)=>{
+      const value=(clearances.data||[]).find((x:any)=>x.user_id===person);
+      const consented=allowed.has(person);
+      const current=Boolean(value?.clearance_confirmed&&value.expires_at&&Date.parse(value.expires_at)>Date.now());
+      return {user_id:person,shared:consented,
+       clearance_status:consented?(current?'current':'not_current'):'not_shared',
+       clearance_confirmed:consented&&current};
     });
-    return reply({members:items,ready:items.every((m:any)=>m.clearance_confirmed),checked_at:new Date().toISOString()});
+    return reply({members:items,ready:items.every((v:any)=>v.clearance_confirmed),
+      checked_at:new Date().toISOString(),
+      note:'Only consented binary work-clearance status is shared. No private lab results or diagnoses.'});
   }
 
   if(action==='request_background_screening'){
