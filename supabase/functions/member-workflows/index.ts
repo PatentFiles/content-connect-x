@@ -433,14 +433,9 @@ Deno.serve(async req=>{
         return respond({items:data});
       }
       case 'create_property':{
-        const title=text(body.title,140);
-        if(title.length<3)return fail('Property title is required');
-        const rate=Number(body.hourly_rate)||0;
-        if(rate<0||rate>100000)return fail('Invalid hourly rate');
-        const {data,error}=await admin.from('properties').insert({owner_id:uid,status:'draft',title,description:text(body.description,3000),city:text(body.city,100),state:text(body.state,100),country:text(body.country,80),hourly_rate:rate}).select('id,title,status').single();
-        if(error)throw error;
-        await audit('create_property',data.id);
-        return respond({item:data},201);
+        // Retired route: never bypass protected host verification, dynamic pricing,
+        // contract/payment readiness or equipment inventory in the current API.
+        return fail('This booking action moved to Hosting Marketplace. Use the verified hosting workflow.',409);
       }
       case 'list_bookings':{
         const {data,error}=await admin.from('property_booking_requests').select('id,property_id,requester_id,owner_id,starts_at,ends_at,status,created_at,notes').or(`requester_id.eq.${uid},owner_id.eq.${uid}`).order('created_at',{ascending:false}).limit(100);
@@ -448,33 +443,14 @@ Deno.serve(async req=>{
         return respond({items:data});
       }
       case 'book_property':{
-        const property_id=body.property_id;
-        if(!isId(property_id))return fail('Property ID required');
-        const {data:property,error}=await admin.from('properties').select('id,owner_id,status').eq('id',property_id).maybeSingle();
-        if(error||!property||property.status!=='active')return fail('Property unavailable',404);
-        if(property.owner_id===uid)return fail('Cannot book your own property');
-        const start=new Date(body.starts_at),end=new Date(body.ends_at);
-        if(!Number.isFinite(start.getTime())||!Number.isFinite(end.getTime())||start.getTime()<=Date.now()||end<=start||end.getTime()-start.getTime()>86400000||start.getTime()>Date.now()+180*86400000)return fail('Invalid booking interval');
-        const {data:existing,error:overlapError}=await admin.from('property_booking_requests').select('id').eq('property_id',property_id).in('status',['accepted','requested']).lt('starts_at',end.toISOString()).gt('ends_at',start.toISOString()).limit(1);
-        if(overlapError)throw overlapError;
-        if(existing?.length)return fail('Requested interval is not available',409);
-        const {data,error:insertError}=await admin.from('property_booking_requests').insert({property_id,owner_id:property.owner_id,requester_id:uid,starts_at:start.toISOString(),ends_at:end.toISOString(),notes:text(body.notes,1000),status:'requested'}).select('id,status,starts_at,ends_at').single();
-        if(insertError)throw insertError;
-        await notification(property.owner_id,'booking','New property booking request',{booking_id:data.id});
-        await audit('book_property',data.id);
-        return respond({item:data},201);
+        // Retired route: never bypass protected host verification, dynamic pricing,
+        // contract/payment readiness or equipment inventory in the current API.
+        return fail('This booking action moved to Hosting Marketplace. Use the verified hosting workflow.',409);
       }
       case 'respond_booking':{
-        const id=body.booking_id;
-        if(!isId(id)||!['accepted','declined'].includes(body.status))return fail('Invalid response');
-        const {data:booking,error}=await admin.from('property_booking_requests').select('id,owner_id,requester_id,status').eq('id',id).maybeSingle();
-        if(error||!booking||booking.owner_id!==uid)return fail('Booking unavailable',403);
-        if(booking.status!=='requested')return fail('Booking already handled',409);
-        const {data,error:saveError}=await admin.from('property_booking_requests').update({status:body.status}).eq('id',id).eq('status','requested').select('id,status').maybeSingle();
-        if(saveError||!data)return fail('Booking update conflict',409);
-        await notification(booking.requester_id,'booking',`Booking ${body.status}`,{booking_id:id});
-        await audit('respond_booking',id,{status:body.status});
-        return respond({item:data});
+        // Retired route: never bypass protected host verification, dynamic pricing,
+        // contract/payment readiness or equipment inventory in the current API.
+        return fail('This booking action moved to Hosting Marketplace. Use the verified hosting workflow.',409);
       }
       case 'list_notifications':{
         const {data,error}=await admin.from('member_notifications').select('id,kind,title,details,read_at,created_at').eq('recipient_id',uid).order('created_at',{ascending:false}).limit(50);
