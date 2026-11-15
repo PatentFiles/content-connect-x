@@ -26,9 +26,16 @@ Deno.serve(async req => {
   const body=await req.json().catch(()=>({}));
   const query=typeof body.query==='string'?body.query.trim().slice(0,80):'';
   const max=paid?100:12;
-  const {data:verified, error:verificationError} = await admin.from('age_verification_requests').select('user_id').eq('status','approved').limit(2000);
+  const {data:verified, error:verificationError} = await admin.from('age_verification_requests').select('user_id,status,expires_at,created_at').order('created_at',{ascending:false}).limit(5000);
   if (verificationError) return json({error:'Unable to load directory'},500);
-  const ids=[...new Set((verified||[]).map(v=>v.user_id))];
+  // A user's most recent review determines eligibility; older approvals are not enough.
+  const newest=new Map<string,{status:string,expires_at:string|null}>();
+  for(const v of verified||[])if(!newest.has(v.user_id))newest.set(v.user_id,v);
+  const validIds=[...newest.entries()].filter(([,v])=>v.status==='approved'&&(!v.expires_at||Date.parse(v.expires_at)>Date.now())).map(([id])=>id);
+  const {data:restricted,error:restrictionError}=await admin.from('account_security').select('user_id').or('banned.eq.true,suspended.eq.true');
+  if(restrictionError)return json({error:'Unable to load directory'},500);
+  const restrictedIds=new Set((restricted||[]).map(v=>v.user_id));
+  const ids=validIds.filter(id=>!restrictedIds.has(id));
   if (!ids.length) return json({results:[],preview:!paid,limit:max});
   let builder=admin.from('member_profiles').select('id,display_name,role_type,bio,avatar_path,city,country').eq('profile_complete',true).in('id',ids).limit(max);
   if (query) builder=builder.ilike('display_name',`%${query.replace(/[%_,]/g,'')}%`);

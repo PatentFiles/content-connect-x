@@ -28,6 +28,7 @@ Deno.serve(async(req)=>{
     if(!path)return respond({error:'Unknown document'},400);
     const {data,error}=await admin.storage.from('age-verification').createSignedUrl(path,120);
     if(error)return respond({error:'Could not open document'},500);
+    await admin.from('platform_action_audit').insert({actor_id:user.id,action:'view_age_document',target_type:'age_verification',target_id:record.id,metadata:{document_type:body.document_type}});
     return respond({url:data.signedUrl,expires_in:120});
   }
   if(record.status!=='pending')return respond({error:'Request already resolved'},409);
@@ -38,5 +39,6 @@ Deno.serve(async(req)=>{
   const {data,error}=await admin.from('age_verification_requests').update({status,reviewer_id:user.id,reviewed_at:now,verified_at:status==='approved'?now:null}).eq('id',record.id).eq('status','pending').select('id,status').maybeSingle();
   if(error)return respond({error:'Unable to update request'},500);
   if(!data)return respond({error:'Request updated by another reviewer'},409);
+  await admin.from('platform_action_audit').insert({actor_id:user.id,action:'review_age_verification',target_type:'age_verification',target_id:record.id,metadata:{status}});
   return respond(data);
 });
