@@ -4,6 +4,7 @@ import SupabaseApp from './SupabaseApp';
 import OnlyHostApp from './OnlyHostApp';
 import './brand-theme.css';
 import './onlyhost-theme.css';
+import './public-landing.css';
 import { initializeOptionalIntegrations } from './integrations';
 
 document.documentElement.classList.add('dark');
