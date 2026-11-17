@@ -147,3 +147,4 @@ export default function CreatorProfileEditor({user,profile,onSaved}){
   <button type="submit" disabled={saving||loading} className="ccx-primary rounded-xl px-6 py-3 font-semibold disabled:opacity-50">
    {saving?'Saving…':loading?'Loading profile…':'Save complete profile'}</button>
  </form>;
+}
