@@ -65,7 +65,8 @@ export const rentalAmenities = [
 export const rentalUses = [
   ['photography','Photography'],['filming','Filming'],['commercial','Commercial production'],
   ['interviews','Interviews'],['music_video','Music videos'],
-  ['adult_production','Adult content production'],['events','Events'],
+  ['nude_photography','Nude / implied-nude photography'],['explicit_adult_video','Sexually explicit adult video'],
+  ['adult_production','Other permitted adult content production'],['events','Events'],
   ['equipment_rental','Equipment rental'],
 ];
 
