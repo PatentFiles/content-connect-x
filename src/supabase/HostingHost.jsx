@@ -72,7 +72,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
     setPending(moderation.items||[]);setPendingImages(moderation.pending_images||[]);
     if(isAdmin){const reviews=await hostingAction('admin_review_queue');setReviewQueue(reviews.items||[]);}
    }catch(e){setError(e.message);}finally{setBusy(false);}
- },[paid,isAdmin]);
+ },[paid,isAdmin,reviewMode]);
  useEffect(()=>{load();},[load]);
 
  const extra=useCallback(async(id)=>{
@@ -267,7 +267,11 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
             <label className="text-sm">Country<input required className={input+' mt-1'} value={form.country} onChange={e=>field('country',e.target.value)}/></label>
             <label className="text-sm">Hourly rate (USD)<input className={input+' mt-1'} type="number" min={1} max={100000} value={form.hourly_rate} onChange={e=>field('hourly_rate',Number(e.target.value))}/></label>
             <label className="text-sm">Maximum crew size<input className={input+' mt-1'} type="number" min={1} max={500} value={form.capacity} onChange={e=>field('capacity',Number(e.target.value))}/></label>
-            <label className="text-sm">Minimum hours<input className={input+' mt-1'} type="number" min={1} max={72} value={form.minimum_hours} onChange={e=>field('minimum_hours',Number(e.target.value))}/></label>
+            <label className="text-sm">Minimum booking duration
+             <input className={input+' mt-1'} type="number" min={1} max={72} value={form.minimum_hours} onChange={e=>field('minimum_hours',Number(e.target.value))}/>
+             <span className="mt-2 flex flex-wrap gap-1">{[2,4,6,12,24,48,72].map(hours=><button type="button" key={hours} className={'rounded-lg border px-2 py-1 text-xs '+(form.minimum_hours===hours?'border-[#73E1FA] bg-[#225B84]':'border-[#374A68] text-[#B0D0E8]')} onClick={()=>field('minimum_hours',hours)}>{hours}h</button>)}</span>
+             <span className="mt-1 block text-xs text-[#9AB5D1]">Set a 6-hour, 12-hour, full-day (24-hour), or multi-day minimum. Current booking quotes support up to 72 hours; overnight check-in/out presets require a later pricing-engine upgrade.</span>
+            </label>
             <label className="text-sm">Cancellation policy<select className={input+' mt-1'} value={form.cancellation_policy||'flexible'} onChange={e=>field('cancellation_policy',e.target.value)}>
               <option value="flexible">Flexible (24h refund window)</option><option value="moderate">Moderate (72h/24h)</option><option value="strict">Strict (7-day/72h)</option>
             </select></label>
@@ -277,7 +281,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           <label className="block text-sm">Full description<textarea className={input+' mt-1'} rows={4} maxLength={4000} value={form.description} onChange={e=>field('description',e.target.value)}/></label>
           <label className="block text-sm">Host rules and restrictions<textarea className={input+' mt-1'} rows={3} maxLength={3000} value={form.rules} onChange={e=>field('rules',e.target.value)}/></label>
           <div><h4 className="mb-2 text-sm font-semibold">Production amenities</h4><CheckboxGrid values={form.amenities} options={rentalAmenities} update={v=>field('amenities',v)}/></div>
-          <div><h4 className="mb-2 text-sm font-semibold">Permitted activities — set deliberately</h4><p className="mb-3 text-xs text-[#AABED8]">Adult productions are not automatically permitted. Only choose uses you have authority to host.</p><CheckboxGrid values={form.permitted_uses} options={rentalUses} update={v=>field('permitted_uses',v)}/></div>
+          <div><h4 className="mb-2 text-sm font-semibold">Permitted activities — set deliberately</h4><p className="mb-3 text-xs text-[#AABED8]">Select exactly what you are comfortable allowing. Nude photography and explicit adult videos are separate opt-ins; guests should never assume either is permitted. You must have written owner authority for each approved use.</p><CheckboxGrid values={form.permitted_uses} options={rentalUses} update={v=>field('permitted_uses',v)}/></div>
           <button disabled={busy||!paid||!form.permitted_uses.length} className={button}>{selected?'Save as draft and request new review':'Create private draft'}</button>
           <p className="text-xs text-[#AABED8]">Only city-level location information is used in search. Your exact address is not collected by the public listing form.</p>
         </form>
