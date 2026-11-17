@@ -16,17 +16,18 @@ const other={
 };
 function SetEditor({name,values=[],onChange}){
  const choices=originalCreatorCatalog[name]||[];
- const update=(value,checked)=>onChange(checked?[...values,value]:values.filter(x=>x!==value));
+ const update=value=>onChange(values.includes(value)?values.filter(item=>item!==value):[...values,value]);
  return <section className={box} style={surface}>
   <h3 className="mb-4 text-lg font-semibold">{creatorFieldLabels[name]}</h3>
   <div className="flex flex-wrap gap-2">
-   {choices.map(choice=><label key={choice} className="flex min-w-0 cursor-pointer items-start rounded-lg border px-3 py-2 text-sm leading-5"
-    style={{background:values.includes(choice)?'rgba(79,140,255,.12)':'transparent',
-     borderColor:values.includes(choice)?'#4F8CFF':'var(--cc-border)',
-     color:values.includes(choice)?'var(--cc-blue)':'var(--cc-text-secondary)'}}>
-    <input type="checkbox" checked={values.includes(choice)} className="mr-2 mt-1 shrink-0"
-     onChange={event=>update(choice,event.target.checked)}/><span className="min-w-0 break-words">{friendlyChoice(choice)}</span>
-   </label>)}
+   {choices.map(choice=>{
+    const active=values.includes(choice);
+    return <button type="button" key={choice} aria-pressed={active} onClick={()=>update(choice)}
+     className="min-w-0 rounded-lg border px-3 py-2 text-sm leading-5 transition hover:-translate-y-0.5"
+     style={{background:active?'rgba(79,140,255,.12)':'transparent',
+      borderColor:active?'#4F8CFF':'var(--cc-border)',
+      color:active?'var(--cc-blue)':'var(--cc-text-secondary)'}}>{friendlyChoice(choice)}</button>;
+   })}
   </div>
  </section>;
 }

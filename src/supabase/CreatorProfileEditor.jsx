@@ -21,12 +21,14 @@ const initial={gender_identity:'',sexual_orientation:'',pronouns:'',gender_self_
  scene_pairings:[],specialties:[],available_to_travel:false,
  show_gender_in_discovery:false,show_categories_in_discovery:false};
 function CheckList({label,options,selected,change}){
+ const toggle=value=>change(selected.includes(value)?selected.filter(item=>item!==value):[...selected,value]);
  return <fieldset><legend className="mb-2 text-sm font-semibold text-white">{label}</legend>
-  <div className="grid gap-2 sm:grid-cols-2">{options.map(([value,name])=>
-   <label key={value} className="flex min-w-0 items-start gap-2 rounded-lg border border-[#31425D] px-3 py-2 text-sm leading-5 text-[#CED8ED]">
-    <input type="checkbox" className="mt-1 shrink-0" checked={selected.includes(value)}
-     onChange={e=>change(e.target.checked?[...selected,value]:selected.filter(v=>v!==value))}/>
-    <span className="min-w-0 break-words">{name}</span></label>)}</div></fieldset>;
+  <div className="flex flex-wrap gap-2">{options.map(([value,name])=>{
+   const active=selected.includes(value);
+   return <button type="button" key={value} aria-pressed={active} onClick={()=>toggle(value)}
+    className="rounded-lg border px-3 py-2 text-sm leading-5 transition hover:-translate-y-0.5"
+    style={{background:active?'rgba(79,140,255,.15)':'transparent',borderColor:active?'#4F8CFF':'var(--cc-border)',color:active?'var(--cc-blue)':'var(--cc-text-secondary)'}}>{name}</button>;
+  })}</div></fieldset>;
 }
 export default function CreatorProfileEditor({user,profile,onSaved,approved=false,paid=false,isAdmin=false,onNavigate}){
  const [form,setForm]=useState({display_name:profile?.display_name||'',
@@ -249,8 +251,9 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
         selected={prefs.scene_pairings} change={v=>preference('scene_pairings',v)}/>}
        <CheckList label="Professional specialties" options={specialties}
         selected={prefs.specialties} change={v=>preference('specialties',v)}/>
-       <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={prefs.available_to_travel}
-        onChange={e=>preference('available_to_travel',e.target.checked)}/>Available to travel for collaborations</label>
+       <button type="button" aria-pressed={prefs.available_to_travel} onClick={()=>preference('available_to_travel',!prefs.available_to_travel)}
+        className="rounded-lg border px-3 py-2 text-left text-sm transition"
+        style={{background:prefs.available_to_travel?'rgba(16,185,129,.15)':'transparent',borderColor:prefs.available_to_travel?'#10B981':'var(--cc-border)',color:prefs.available_to_travel?'#6EE7B7':'var(--cc-text-secondary)'}}>Available to travel for collaborations</button>
       </section>}
       {id==='production'&&form.role_type==='creator'&&<OriginalCreatorPreferences value={creatorPrefs}
         genderIdentity={prefs.gender_identity} onChange={setCreatorPrefs} onNavigate={onNavigate}/>}
@@ -262,12 +265,14 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
       </section>}
       {id==='privacy'&&<section className={panel}><h3 className="text-lg font-semibold">Discoverability & privacy</h3>
        <p className="text-sm text-[#AABBD4]">Your name, professional role and general location appear only to eligible verified members. Sensitive matching details are never exposed unless you choose to share them.</p>
-       <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={prefs.show_gender_in_discovery}
-        onChange={e=>preference('show_gender_in_discovery',e.target.checked)}/>
-        Show my gender identity in verified creator searches</label>
-       <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={prefs.show_categories_in_discovery}
-        onChange={e=>preference('show_categories_in_discovery',e.target.checked)}/>
-        Show my content categories and specialties in verified creator searches</label>
+       <div className="flex flex-wrap gap-2">
+        <button type="button" aria-pressed={prefs.show_gender_in_discovery} onClick={()=>preference('show_gender_in_discovery',!prefs.show_gender_in_discovery)}
+         className="rounded-lg border px-3 py-2 text-left text-sm transition"
+         style={{background:prefs.show_gender_in_discovery?'rgba(20,184,166,.15)':'transparent',borderColor:prefs.show_gender_in_discovery?'#14B8A6':'var(--cc-border)',color:prefs.show_gender_in_discovery?'#5EEAD4':'var(--cc-text-secondary)'}}>Show my gender identity in verified creator searches</button>
+        <button type="button" aria-pressed={prefs.show_categories_in_discovery} onClick={()=>preference('show_categories_in_discovery',!prefs.show_categories_in_discovery)}
+         className="rounded-lg border px-3 py-2 text-left text-sm transition"
+         style={{background:prefs.show_categories_in_discovery?'rgba(20,184,166,.15)':'transparent',borderColor:prefs.show_categories_in_discovery?'#14B8A6':'var(--cc-border)',color:prefs.show_categories_in_discovery?'#5EEAD4':'var(--cc-text-secondary)'}}>Show my content categories and specialties in verified creator searches</button>
+       </div>
        <p className="text-xs text-[#93A4BE]">Your sexual orientation, self-descriptions and collaborator preferences are not published in discovery.</p>
       </section>}
      </div>}
