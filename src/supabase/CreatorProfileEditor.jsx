@@ -9,6 +9,7 @@ import {Image,Activity,User,Edit2,ShieldCheck} from 'lucide-react';
 import MediaGallery from './MediaGallery';
 import OriginalCreatorPreferences,{initialCreatorPreferences} from './OriginalCreatorPreferences';
 import {originalCreatorCatalog,creatorFieldLabels,friendlyChoice} from './originalCreatorCatalog';
+import {originalUSCities,originalUSStateCodes} from './originalLocationData';
 import {countries,countryCode,countryName,regionOptions,roleOptions,
  genderOptions,orientationOptions,contentCategories,scenePairings,specialties} from './profileOptions';
 
@@ -195,8 +196,16 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
        {regionOptions[form.country].map(s=><option key={s} value={s}>{s}</option>)}
       </select>:<input className={input+' mt-2'} value={form.state} onChange={e=>update('state',e.target.value)}
        placeholder="State / region" maxLength={100}/>}</label>
-    <label className="block text-sm">City<input className={input+' mt-2'} value={form.city}
-     onChange={e=>update('city',e.target.value)} maxLength={100} placeholder="City"/></label>
+    <label className="block text-sm">City
+     {form.country==='US'&&originalUSCities[originalUSStateCodes[form.state]]?.length>0&&
+      <select className={input+' mt-2'} value={originalUSCities[originalUSStateCodes[form.state]].includes(form.city)?form.city:''}
+       onChange={e=>update('city',e.target.value)}>
+       <option value="">Select a city or enter another below</option>
+       {originalUSCities[originalUSStateCodes[form.state]].map(city=><option key={city} value={city}>{city}</option>)}
+      </select>}
+     <input className={input+' mt-2'} value={form.city}
+      onChange={e=>update('city',e.target.value)} maxLength={100} placeholder="City or other city"/>
+    </label>
    </div>
   </section>
   <section className={panel}><h3 className="text-lg font-semibold">Personal identity</h3>
