@@ -27,6 +27,7 @@ test('same-city and mapped-city access use a strict 25 mile cutoff',()=>{
  assert.equal(localContactStatus(la,nearby,areas).allowed,true);
  assert.equal(localContactStatus(la,far,areas).allowed,false);
  assert.equal(localContactStatus(la,{...la},[]).allowed,true);
+ assert.equal(localContactStatus({...la,state:''},{...la,state:''},[]).allowed,false);
  assert.ok(milesBetween(areas[0],areas[2])>25);
 });
 test('unverified users see only non-dismissable onboarding and verified users are checked by Edge',()=>{
