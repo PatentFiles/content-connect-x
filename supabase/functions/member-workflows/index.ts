@@ -4,6 +4,7 @@
  * and resource membership checks. Raw tables do not expose client insert policies.
  */
 import { createClient } from 'npm:@supabase/supabase-js@2.95.0';
+import {isFreeAction,localContactStatus} from './contactPolicy.mjs';
 const cors={
   'Access-Control-Allow-Origin':'*',
   'Access-Control-Allow-Headers':'authorization, apikey, content-type',
@@ -60,9 +61,11 @@ Deno.serve(async req=>{
   if(!verified)return fail('Approved age verification required',403);
   const freeSafetyActions=new Set(['block_user','unblock_user','submit_report','list_blocks']);
   if(adminRole&&!freeSafetyActions.has(action)&&assurance(req.headers.get('Authorization')||'')!=='aal2')return fail('Administrator MFA required',403);
-  if(!paid&&!freeSafetyActions.has(action))return fail('Active paid membership required',402);
+  if(!paid&&!freeSafetyActions.has(action)&&!isFreeAction(action))return fail('Active paid membership required',402);
   // Real feature flags are evaluated on the server, never trusted from UI.
   const actionFeatures:Record<string,string>={
+    request_connection:'connections',respond_connection:'connections',
+    list_connection_requests:'connections',
     start_conversation:'messages',create_conversation:'messages',
     list_conversations:'messages',list_messages:'messages',send_message:'messages',
     mark_conversation_read:'messages',create_group_conversation:'messages',
@@ -84,6 +87,21 @@ Deno.serve(async req=>{
     let hash=0;for(const char of uid+featureKey)hash=(hash*31+char.charCodeAt(0))>>>0;
     if(hash%100>=flag.rollout_percent)return fail('This feature is not enabled for your account yet',403);
   }
+  const enforceFreeContact=async(target:string)=>{
+    if(paid)return null;
+    const [profiles,areas]=await Promise.all([
+      admin.from('member_profiles').select('id,city,state,country').in('id',[uid,target]),
+      admin.from('hosting_public_areas').select('city,region,country,latitude,longitude').eq('approved',true)
+    ]);
+    if(profiles.error||areas.error)return 'Local contact eligibility is temporarily unavailable';
+    const my=profiles.data?.find(p=>p.id===uid),other=profiles.data?.find(p=>p.id===target);
+    const location=localContactStatus(my,other,areas.data||[]);
+    if(!location.allowed)return 'Free introductions are limited to 25 miles using city-level areas. Long-distance profiles can still be saved. '+(location.reason||'');
+    const {data:reserved,error}=await admin.rpc('ccx_reserve_free_contact',{p_actor:uid,p_target:target});
+    if(error)return 'Unable to check your free contact allowance right now';
+    if(reserved!==true)return 'You have reached five different local contacts in the rolling seven-day period. Upgrade to Premium for unlimited contacts.';
+    return null;
+  };
   const audit=async(type:string,id?:string,metadata:Record<string,unknown>={})=>{
     await admin.from('platform_action_audit').insert({actor_id:uid,action:type,target_type:type.split('_')[0],target_id:isId(id)?id:null,metadata});
   };
@@ -204,7 +222,7 @@ Deno.serve(async req=>{
           .select('status,period_end').eq('user_id',target).maybeSingle();
         const {data:otherSec,error:secError}=await admin.from('account_security')
           .select('banned,suspended').eq('user_id',target).maybeSingle();
-        if(ageError||subError||secError||!isAdult(otherAge||[])||!isActive(otherSub)||otherSec?.banned||otherSec?.suspended)
+        if(ageError||subError||secError||!isAdult(otherAge||[])||otherSec?.banned||otherSec?.suspended)
           return fail('The recipient cannot receive requests',403);
         const {data:blocks,error:blockError}=await admin.from('member_blocks').select('blocker_id')
           .or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1);
@@ -214,6 +232,8 @@ Deno.serve(async req=>{
           .eq('requester_id',target).eq('recipient_id',uid).maybeSingle();
         if(priorError)throw priorError;
         if(prior&&['pending','accepted'].includes(prior.status))return fail('Respond to the existing request instead',409);
+        const localBlock=await enforceFreeContact(target);
+        if(localBlock)return fail(localBlock,403);
         const {data,error}=await admin.from('member_connection_requests').upsert({
           requester_id:uid,recipient_id:target,status:'pending',requested_at:new Date().toISOString(),responded_at:null
         },{onConflict:'requester_id,recipient_id'}).select('id,status').single();
@@ -232,6 +252,10 @@ Deno.serve(async req=>{
           .or(`and(blocker_id.eq.${uid},blocked_id.eq.${request.requester_id}),and(blocker_id.eq.${request.requester_id},blocked_id.eq.${uid})`).limit(1);
         if(blockError)throw blockError;
         if(blocks?.length)return fail('Connection unavailable',403);
+        if(body.status==='accepted'){
+          const localBlock=await enforceFreeContact(request.requester_id);
+          if(localBlock)return fail(localBlock,403);
+        }
         const {data:saved,error:updateError}=await admin.from('member_connection_requests')
           .update({status:body.status,responded_at:new Date().toISOString()})
           .eq('id',request.id).eq('status','pending').select('id,status').maybeSingle();
@@ -264,7 +288,7 @@ Deno.serve(async req=>{
         const {data:theirAge,error:theirAgeError}=await admin.from('age_verification_requests').select('status,expires_at').eq('user_id',target).order('created_at',{ascending:false}).limit(1);
         if(theirAgeError||!isAdult(theirAge||[]))return fail('Recipient is not verified',403);
         const {data:theirSubscription,error:subError}=await admin.from('member_subscriptions').select('status,period_end').eq('user_id',target).maybeSingle();
-        if(subError||!isActive(theirSubscription))return fail('Recipient unavailable',403);
+        if(subError)return fail('Recipient subscription status unavailable',503);
         // Both people must have expressly accepted a connection before direct chat.
         const {data:connections,error:connectError}=await admin.from('member_connection_requests')
           .select('id,status')
@@ -276,6 +300,8 @@ Deno.serve(async req=>{
         const {data:blocks,error:blockError}=await admin.from('member_blocks').select('blocker_id').or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1);
         if(blockError)throw blockError;
         if(blocks?.length)return fail('This conversation cannot be created',403);
+        const localBlock=await enforceFreeContact(target);
+        if(localBlock)return fail(localBlock,403);
         const {data:convo,error}=await admin.from('conversations').insert({kind:'direct',created_by:uid}).select('id,created_at,title,kind').single();
         if(error)throw error;
         const {error:membersError}=await admin.from('conversation_members').insert([{conversation_id:convo.id,user_id:uid},{conversation_id:convo.id,user_id:target}]);
@@ -285,6 +311,7 @@ Deno.serve(async req=>{
         return respond({item:convo},201);
       }
       case 'create_group_conversation':{
+        if(!paid)return fail('Group conversations require Premium membership',403);
         if(!Array.isArray(body.member_ids)||body.member_ids.length<2||body.member_ids.length>9)
           return fail('Group needs 2–9 other members',400);
         const members=[...new Set(body.member_ids)];
@@ -386,7 +413,10 @@ Deno.serve(async req=>{
           const {data:blocks,error:blockError}=await admin.from('member_blocks').select('blocker_id').or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1);
           if(blockError)throw blockError;
           if(blocks?.length)return fail('Conversation unavailable',403);
+          const localBlock=await enforceFreeContact(target);
+          if(localBlock)return fail(localBlock,403);
         }
+        if(!paid&&recipients.length!==1)return fail('Free messaging is for direct local connections only',403);
         const {data,error}=await admin.from('messages').insert({conversation_id:cid,sender_id:uid,body:message}).select('id,conversation_id,sender_id,body,created_at').single();
         if(error)throw error;
         const {data:participants,error:participantError}=await admin.from('conversation_members').select('user_id').eq('conversation_id',cid);
@@ -479,6 +509,30 @@ Deno.serve(async req=>{
         // Retired route: never bypass protected host verification, dynamic pricing,
         // contract/payment readiness or equipment inventory in the current API.
         return fail('This booking action moved to Hosting Marketplace. Use the verified hosting workflow.',409);
+      }
+      case 'view_social_links':{
+        if(!paid)return fail('Professional social links require Premium membership',403);
+        const target=body.target_user_id;
+        if(!isId(target))return fail('Valid member required',400);
+        const [ageCheck,settings,securityCheck,blocks]=await Promise.all([
+          admin.from('age_verification_requests').select('status,expires_at').eq('user_id',target).order('created_at',{ascending:false}).limit(1),
+          admin.from('creator_production_preferences').select('show_socials_to_premium,socials').eq('user_id',target).maybeSingle(),
+          admin.from('account_security').select('banned,suspended').eq('user_id',target).maybeSingle(),
+          admin.from('member_blocks').select('blocker_id').or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1)
+        ]);
+        if(ageCheck.error||settings.error||securityCheck.error||blocks.error||
+          !isAdult(ageCheck.data||[])||securityCheck.data?.banned||securityCheck.data?.suspended||
+          blocks.data?.length||!settings.data?.show_socials_to_premium)
+          return respond({socials:{}});
+        const clean:Record<string,string>={};
+        for(const provider of ['onlyfans','fansly','twitter','instagram']){
+          const raw=settings.data.socials?.[provider];
+          if(typeof raw!=='string'||raw.length>500)continue;
+          try{const url=new URL(raw);
+            if(url.protocol==='https:'&&!url.username&&!url.password)clean[provider]=url.toString();
+          }catch{}
+        }
+        return respond({socials:clean});
       }
       case 'list_notifications':{
         const {data,error}=await admin.from('member_notifications').select('id,kind,title,details,read_at,created_at').eq('recipient_id',uid).order('created_at',{ascending:false}).limit(50);
