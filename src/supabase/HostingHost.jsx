@@ -283,6 +283,16 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
       </div>)}
       {!pendingImages.length&&<p className={muted}>No pending property photos.</p>}
     </div>
+    <div className={panel+' space-y-4'}><h3 className="font-semibold">Private videos awaiting approval ({pendingVideos.length})</h3>
+      {pendingVideos.map(video=><div key={video.id} className="flex flex-wrap items-center gap-4 border-b border-[#34465E] pb-3">
+        {video.url?<video className="h-28 w-44 rounded-lg bg-black object-cover" src={video.url} controls preload="metadata" playsInline aria-label="Private listing video pending review"/>:<Film size={32}/>}
+        <div className="min-w-[180px] flex-1"><p className="text-xs text-[#AAC6E6]">Property {video.property_id}</p>
+          <div className="mt-3 flex flex-wrap gap-2"><button disabled={busy||!approvalChecked} className={button} onClick={()=>reviewVideo(video.id,'approved')}>Approve video</button>
+          <button disabled={busy||!approvalChecked} className={secondary} onClick={()=>reviewVideo(video.id,'rejected')}>Reject video</button></div>
+        </div>
+      </div>)}
+      {!pendingVideos.length&&<p className={muted}>No pending property videos.</p>}
+    </div>
     <div className={panel+' space-y-4'}><h3 className="font-semibold">Property listings awaiting review ({pending.length})</h3>
       {pending.map(p=><div key={p.id} className="border-b border-[#34465E] pb-4">
         <div className="flex gap-3">
@@ -302,22 +312,71 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
     <div className="grid gap-5 lg:grid-cols-[300px_1fr]">
       <aside className={panel+' h-fit space-y-3 p-4'}>
         <h3 className="font-semibold flex items-center gap-2"><Building2 size={18}/>Your listings ({listings.length})</h3>
-        <button className={button+' flex w-full items-center justify-center gap-2'} onClick={()=>selectListing(null)}><Plus size={17}/>New space</button>
-        {listings.map(item=><button key={item.id} onClick={()=>selectListing(item)} className={'block w-full rounded-xl border p-3 text-left '+(selected===item.id?'border-blue-500 bg-blue-500/10':'border-[#31445C] bg-[#0C1726]')}>
-          <div className="flex items-center gap-2">{item.photos?.[0]?.url?<img alt="" className="h-12 w-14 rounded-lg object-cover" src={item.photos[0].url}/>:<ImageIcon className="text-[#7B94AF]" size={25}/>}
-            <div className="min-w-0"><p className="truncate text-sm font-semibold">{item.title}</p><p className="text-xs capitalize text-[#92A8C5]">{item.status.replaceAll('_',' ')}</p></div>
+        <button type="button" className={button+' flex w-full items-center justify-center gap-2'} onClick={()=>selectListing(null)}><Plus size={17}/>New Space</button>
+        <button type="button" className={secondary+' flex w-full items-center justify-center gap-2'} onClick={()=>{
+          setShowDefaults(true);setEditing(false);setSelected('');setError('');setNotice('');
+        }}><Settings2 size={17}/>Set My Default Rules</button>
+        {listings.map(item=><button type="button" key={item.id} onClick={()=>selectListing(item)}
+          className={'oh-host-listing-tile block w-full overflow-hidden rounded-2xl border text-left '+(selected===item.id&&editing?'border-[#7BE4F7] ring-1 ring-[#6BDFFA]/50':'border-[#31445C]')}>
+          {item.photos?.[0]?.url?<img alt={item.title} className="h-32 w-full object-cover" src={item.photos[0].url} loading="lazy"/>:
+           <div className="flex h-32 items-center justify-center bg-[#182940]"><ImageIcon size={30} className="text-[#8BAAC7]"/></div>}
+          <div className="p-3"><p className="truncate text-sm font-bold">{item.title}</p>
+            <p className="mt-1 truncate text-xs text-[#A9C3DE]">{[item.city,item.state,item.country].filter(Boolean).join(', ')}</p>
+            <span className="mt-2 inline-flex rounded-full bg-[#274064] px-2 py-1 text-[11px] capitalize text-[#B6D5F2]">{(item.status||'draft').replaceAll('_',' ')}</span>
+            <span className="ml-2 text-xs text-[#80DDEE]">{usd(item.hourly_rate)}/hr</span>
           </div>
         </button>)}
       </aside>
       <div className="space-y-5">
-        <form onSubmit={save} className={panel+' space-y-4'}>
-          <div className="flex justify-between gap-2 items-center"><h3 className="text-lg font-semibold">{selected?'Edit property':'Create a hosting listing'}</h3>{selected&&<span className="rounded-full bg-blue-500/10 px-3 py-1.5 text-xs capitalize text-blue-300">{own?.status||'draft'}</span>}</div>
+        {showDefaults&&<section className={panel+' space-y-4'} aria-label="Reusable host listing defaults">
+          <div className="flex items-start justify-between gap-4">
+            <div><h3 className="text-xl font-bold">Default Rules & Pricing</h3>
+              <p className={muted}>These prefill future listings. Each property can override any rule independently. Addresses and titles are always property-specific.</p></div>
+            <button type="button" className={secondary} onClick={()=>setShowDefaults(false)} aria-label="Close defaults"><X size={17}/></button>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="text-sm">Default property type<select className={input+' mt-1'} value={defaultForm.category} onChange={e=>setDefaultForm(v=>({...v,category:e.target.value}))}>{rentalCategories.map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
+            <label className="text-sm">Default hourly rate ($)<input type="number" min="1" max="100000" className={input+' mt-1'} value={defaultForm.hourly_rate} onChange={e=>setDefaultForm(v=>({...v,hourly_rate:Number(e.target.value)}))}/></label>
+            <label className="text-sm">Default crew capacity<input type="number" min="1" max="500" className={input+' mt-1'} value={defaultForm.capacity} onChange={e=>setDefaultForm(v=>({...v,capacity:Number(e.target.value)}))}/></label>
+            <label className="text-sm">Minimum hours<input type="number" min="1" max="72" className={input+' mt-1'} value={defaultForm.minimum_hours} onChange={e=>setDefaultForm(v=>({...v,minimum_hours:Number(e.target.value)}))}/></label>
+            <label className="text-sm">Cancellation policy<select className={input+' mt-1'} value={defaultForm.cancellation_policy} onChange={e=>setDefaultForm(v=>({...v,cancellation_policy:e.target.value}))}>
+              {['flexible','moderate','strict'].map(v=><option value={v} key={v}>{v}</option>)}</select></label>
+            <label className="text-sm">Deposit percent<input type="number" min="0" max="50" className={input+' mt-1'} value={defaultForm.deposit_percent} onChange={e=>setDefaultForm(v=>({...v,deposit_percent:Number(e.target.value)}))}/></label>
+          </div>
+          <label className="block text-sm">Default house rules<textarea className={input+' mt-1'} rows={4} value={defaultForm.rules||''} maxLength={3000} onChange={e=>setDefaultForm(v=>({...v,rules:e.target.value}))}/></label>
+          <button type="button" role="checkbox" aria-checked={!!defaultForm.required_insurance}
+            className={'oh-option-tile flex w-full items-center justify-between rounded-xl border p-3 text-left '+(defaultForm.required_insurance?'oh-option-selected':'oh-option-idle')}
+            onClick={()=>setDefaultForm(v=>({...v,required_insurance:!v.required_insurance}))}>Require production insurance <span className="oh-option-check">{defaultForm.required_insurance?<Check size={15}/>:null}</span></button>
+          <div><h4 className="mb-2 font-semibold">Default amenities</h4><CheckboxGrid values={defaultForm.amenities||[]} options={rentalAmenities}
+            update={values=>setDefaultForm(v=>({...v,amenities:values}))}/></div>
+          <div><h4 className="mb-2 font-semibold">Default allowed productions</h4><CheckboxGrid values={defaultForm.permitted_uses||[]} options={rentalUses}
+            update={values=>setDefaultForm(v=>({...v,permitted_uses:values}))}/></div>
+          <button type="button" disabled={busy} className={button+' inline-flex items-center gap-2'} onClick={saveDefaults}><Save size={17}/>Save My Defaults</button>
+        </section>}
+        {!editing&&!showDefaults&&<section className={panel+' space-y-4 text-center'}>
+          <Building2 size={42} className="mx-auto text-[#79DFFE]"/>
+          <h3 className="text-2xl font-bold">Your properties, all in one place</h3>
+          <p className="mx-auto max-w-xl text-sm text-[#ADC6E0]">Select a property thumbnail to manage its listing, images, videos, availability and booking rules—or create a new space using your saved defaults.</p>
+          <div className="flex justify-center gap-3 flex-wrap">
+            <button type="button" className={button} onClick={()=>selectListing(null)}>Create a New Space</button>
+            <button type="button" className={secondary} onClick={()=>setShowDefaults(true)}>Set Default Rules</button>
+          </div>
+        </section>}
+        {editing&&<form onSubmit={save} className={panel+' space-y-4'}>
+          <div className="flex justify-between gap-2 items-center"><h3 className="text-lg font-semibold">{selected?'Edit Property':'Add a New Property'}</h3>
+            <button type="button" className={secondary+' inline-flex items-center gap-2'} onClick={closeEditor}><X size={16}/>Close</button>
+          </div>
+          <p className="text-xs text-[#A6C4E0]">{selected?'Changes to published listings may require a new review.':'Start with the saved host defaults, then customize this one property.'}</p>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-sm">Listing title<input required minLength={5} maxLength={140} className={input+' mt-1'} value={form.title} onChange={e=>field('title',e.target.value)}/></label>
             <label className="text-sm">Location type<select className={input+' mt-1'} value={form.category} onChange={e=>field('category',e.target.value)}>{rentalCategories.map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label>
             <label className="text-sm">City<input required className={input+' mt-1'} value={form.city} onChange={e=>field('city',e.target.value)}/></label>
             <label className="text-sm">State/region<input className={input+' mt-1'} value={form.state||''} onChange={e=>field('state',e.target.value)}/></label>
             <label className="text-sm">Country<input required className={input+' mt-1'} value={form.country} onChange={e=>field('country',e.target.value)}/></label>
+            {!selected&&<label className="text-sm sm:col-span-2">Full street address (private, required)
+              <input required minLength={8} maxLength={400} autoComplete="street-address"
+                className={input+' mt-1'} value={privateDetails.exact_address||''} onChange={e=>setPrivateDetails(v=>({...v,exact_address:e.target.value}))}
+                placeholder="Street number, street name, unit number"/></label>}
             <label className="text-sm">Hourly rate (USD)<input className={input+' mt-1'} type="number" min={1} max={100000} value={form.hourly_rate} onChange={e=>field('hourly_rate',Number(e.target.value))}/></label>
             <label className="text-sm">Maximum crew size<input className={input+' mt-1'} type="number" min={1} max={500} value={form.capacity} onChange={e=>field('capacity',Number(e.target.value))}/></label>
             <label className="text-sm">Minimum booking duration
@@ -335,9 +394,15 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           <label className="block text-sm">Host rules and restrictions<textarea className={input+' mt-1'} rows={3} maxLength={3000} value={form.rules} onChange={e=>field('rules',e.target.value)}/></label>
           <div><h4 className="mb-2 text-sm font-semibold">Production amenities</h4><CheckboxGrid values={form.amenities} options={rentalAmenities} update={v=>field('amenities',v)}/></div>
           <div><h4 className="mb-2 text-sm font-semibold">Permitted activities — set deliberately</h4><p className="mb-3 text-xs text-[#AABED8]">Select exactly what you are comfortable allowing. Nude photography and explicit adult videos are separate opt-ins; guests should never assume either is permitted. You must have written owner authority for each approved use.</p><CheckboxGrid values={form.permitted_uses} options={rentalUses} update={v=>field('permitted_uses',v)}/></div>
-          <button disabled={busy||!paid||!form.permitted_uses.length} className={button}>{selected?'Save as draft and request new review':'Create private draft'}</button>
-          <p className="text-xs text-[#AABED8]">Only city-level location information is used in search. Your exact address is not collected by the public listing form.</p>
-        </form>
+          {!selected&&<div className="oh-media-queue grid gap-3 sm:grid-cols-2">
+            <label className="text-sm">Property cover photo (optional at draft stage)
+              <input type="file" accept="image/jpeg,image/png,image/webp" className="mt-2 block w-full text-xs" onChange={e=>setImage(e.target.files?.[0]||null)}/></label>
+            <label className="text-sm">Property walkthrough video (optional, MP4/WebM, up to 40MB)
+              <input type="file" accept="video/mp4,video/webm" className="mt-2 block w-full text-xs" onChange={e=>setVideo(e.target.files?.[0]||null)}/></label>
+          </div>}
+          <button disabled={busy||!paid||!form.permitted_uses.length} className={button}>{selected?'Save Property Changes':'Create Private Draft & Continue'}</button>
+          <p className="text-xs text-[#AABED8]">Your exact address is saved privately and never included in public property cards or the area map.</p>
+        </form>}
 
         {selected&&<HostingHostVerification propertyId={selected} requiredInsurance={Boolean(own?.required_insurance)}/>}
         {selected&&<section className="space-y-4">
