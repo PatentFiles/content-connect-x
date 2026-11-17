@@ -437,6 +437,12 @@ export default function SupabaseApp() {
       pre-migration reference branch.</div>}
     {tab==='reputation' && approved && paid && <ReputationHub isAdmin={isAdmin}/>}
     {tab==='agreements' && approved && paid && <AgreementPackets/>}
+    {['controls','integrations','testing-reviews'].includes(tab) && isAdmin && !approved &&
+      <section className={panel+' space-y-3'}>
+       <h2 className="text-xl font-semibold">Administrator account activated</h2>
+       <p className="text-sm text-[#B7C5DA]">You can preview all role dashboards now. API keys, private testing reviews and platform-wide settings require independent age verification and administrator MFA before they can be changed.</p>
+       <button type="button" className={primary} onClick={()=>navigateInWorkspace('verification')}>Complete age verification</button>
+      </section>}
     {['controls','integrations','testing-reviews'].includes(tab) && approved && isAdmin &&
       <AdminConsole key={tab} initialSection={tab==='integrations'?'integrations':tab==='testing-reviews'?'testing':'features'}
        onFeatureChange={()=>refreshFeatureFlags().catch(()=>setVisibleFeatures({}))}/>}
