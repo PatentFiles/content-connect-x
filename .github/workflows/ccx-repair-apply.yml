@@ -1,0 +1,39 @@
+name: Apply reviewed CCX source repairs once
+on:
+  push:
+    branches: [fix/custom-dashboard-workflow-access-20261117]
+    paths: [.ccx-repair/apply.py, .github/workflows/ccx-repair-apply.yml]
+permissions:
+  contents: write
+jobs:
+  apply-reviewed-patch:
+    if: github.ref == 'refs/heads/fix/custom-dashboard-workflow-access-20261117'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/custom-dashboard-workflow-access-20261117
+      - name: Apply only exact reviewed source replacements
+        run: python3 .ccx-repair/apply.py
+      - name: Remove this one-time helper and commit the actual source changes
+        run: |
+          rm .ccx-repair/apply.py .github/workflows/ccx-repair-apply.yml
+          rmdir .ccx-repair
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/supabase/SupabaseApp.jsx src/supabase/OriginalShell.jsx src/supabase/MemberWorkspace.jsx src/supabase/CreatorDiscovery.jsx tests/membership-policy.test.mjs .github/workflows/frontend-quality.yml supabase/functions/member-workflows/index.ts .ccx-repair/apply.py .github/workflows/ccx-repair-apply.yml
+          git commit -m 'fix(workflows): separate module availability from verification and repair member UI contracts'
+          git push origin HEAD:fix/custom-dashboard-workflow-access-20261117
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: node --test tests/dashboard-access.test.mjs
+      - run: npm run test:modules && npm run test:memberships && npm run test:analytics
+      - run: node scripts/test-role-workspace-render.mjs
+      - run: npm run verify:frontend-contract && npm run verify:edge-imports
+      - run: npm run build
