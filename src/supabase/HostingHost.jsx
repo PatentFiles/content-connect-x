@@ -4,8 +4,8 @@
  */
 import React,{useCallback,useEffect,useState} from 'react';
 import { supabase } from '@/api/supabaseClient';
-import {Building2,Plus,UploadCloud,CalendarDays,ClipboardCheck,ImageIcon,RefreshCw,Trash2,Settings2,ShieldCheck} from 'lucide-react';
-import {hostingAction,uploadHostingPhoto,rentalCategories,rentalAmenities,rentalUses,usd,dateTime} from './hostingApi';
+import {Building2,Plus,UploadCloud,CalendarDays,ClipboardCheck,ImageIcon,RefreshCw,Trash2,Settings2,ShieldCheck,Check,Save,Film, X} from 'lucide-react';
+import {hostingAction,uploadHostingPhoto,uploadHostingVideo,rentalCategories,rentalAmenities,rentalUses,usd,dateTime} from './hostingApi';
 import HostingHostVerification from './HostingHostVerification';
 import HostingBookingOperations from './HostingBookingOperations';
 import HostingAdminOperations from './HostingAdminOperations';
@@ -21,11 +21,15 @@ const secondary='rounded-xl border border-[#42536A] bg-[#1F2D40] px-4 py-2.5 tex
 const muted='text-sm text-[#A7B9D0]';
 const blank={title:'',description:'',category:'film_studio',city:'',state:'',country:'United States',capacity:4,minimum_hours:2,hourly_rate:100,cancellation_policy:'flexible',deposit_percent:0,required_insurance:false,rules:'',amenities:[],permitted_uses:[]};
 
-function CheckboxGrid({options,values,update}) {
- return <div className="grid gap-2 sm:grid-cols-2">{options.map(([id,label])=>
-  <label key={id} className={'flex items-center gap-2 rounded-lg border p-2.5 text-xs '+(values.includes(id)?'border-blue-500 bg-blue-500/10':'border-[#34465E] bg-[#0B1422]')}>
-    <input type="checkbox" checked={values.includes(id)} onChange={e=>update(e.target.checked?[...values,id]:values.filter(v=>v!==id))}/>{label}
-  </label>)}</div>;
+function CheckboxGrid({options,values=[],update}) {
+ return <div className="grid gap-2 sm:grid-cols-2">{options.map(([id,label])=>{
+  const selected=values.includes(id);
+  return <button key={id} type="button" role="checkbox" aria-checked={selected}
+    onClick={()=>update(selected?values.filter(v=>v!==id):[...values,id])}
+    className={'oh-option-tile flex w-full items-center justify-between gap-3 rounded-xl border p-3 text-left text-sm '+(selected?'oh-option-selected':'oh-option-idle')}>
+    <span>{label}</span><span className="oh-option-check" aria-hidden="true">{selected?<Check size={15}/>:null}</span>
+   </button>;
+ })}</div>;
 }
 
 export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,user,brand='content_connect'}) {
@@ -33,11 +37,18 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
  const [hostMetrics,setHostMetrics]=useState(null);
  const [pending,setPending]=useState([]);
  const [pendingImages,setPendingImages]=useState([]);
+ const [pendingVideos,setPendingVideos]=useState([]);
  const [reservations,setReservations]=useState([]);
  const [selected,setSelected]=useState('');
+ const [editing,setEditing]=useState(false);
+ const [defaults,setDefaults]=useState(blank);
+ const [defaultForm,setDefaultForm]=useState(blank);
+ const [showDefaults,setShowDefaults]=useState(false);
  const [form,setForm]=useState(blank);
  const [image,setImage]=useState(null);
  const [caption,setCaption]=useState('');
+ const [video,setVideo]=useState(null);
+ const [videoCaption,setVideoCaption]=useState('');
  const [blocks,setBlocks]=useState([]);
  const [blockStart,setBlockStart]=useState('');
  const [blockEnd,setBlockEnd]=useState('');
@@ -59,17 +70,22 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
  const load=useCallback(async()=>{
    setBusy(true);setError('');
    try{
-    const [mine,bookings,moderation]=await Promise.all([
+    const [mine,bookings,moderation,defaultsResult]=await Promise.all([
       paid?hostingAction('my_listings'):Promise.resolve({items:[]}),
       paid?hostingAction('host_bookings'):Promise.resolve({items:[]}),
-      isAdmin?hostingAction('admin_queue'):Promise.resolve({items:[],pending_images:[]}),
+      isAdmin?hostingAction('admin_queue'):Promise.resolve({items:[],pending_images:[],pending_videos:[]}),
+      paid&&!reviewMode?hostingAction('host_defaults_get'):Promise.resolve({settings:null}),
     ]);
+    if(defaultsResult.settings){
+      const next={...blank,...defaultsResult.settings};
+      setDefaults(next);setDefaultForm(next);
+    }
     setListings(mine.items||[]);setReservations(bookings.items||[]);
     if(!reviewMode&&paid){
       const report=await hostingAction('host_dashboard_summary').catch(()=>null);
       setHostMetrics(report);
     }
-    setPending(moderation.items||[]);setPendingImages(moderation.pending_images||[]);
+    setPending(moderation.items||[]);setPendingImages(moderation.pending_images||[]);setPendingVideos(moderation.pending_videos||[]);
     if(isAdmin){const reviews=await hostingAction('admin_review_queue');setReviewQueue(reviews.items||[]);}
    }catch(e){setError(e.message);}finally{setBusy(false);}
  },[paid,isAdmin,reviewMode]);
@@ -86,10 +102,22 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
  },[paid]);
 
  const selectListing=async(item)=>{
-   setSelected(item?.id||'');
-   setForm(item?{...blank,...item,amenities:item.amenities||[],permitted_uses:item.permitted_uses||[]}:blank);
-   setImage(null);setCaption('');setApprovalChecked(false);
+   setSelected(item?.id||'');setEditing(true);setShowDefaults(false);setError('');setNotice('');
+   // Every new listing inherits editable host defaults, never another property's address.
+   setForm(item?{...blank,...item,amenities:item.amenities||[],permitted_uses:item.permitted_uses||[]}:
+     {...blank,...defaults,amenities:[...(defaults.amenities||[])],permitted_uses:[...(defaults.permitted_uses||[])]});
+   setImage(null);setCaption('');setVideo(null);setVideoCaption('');setApprovalChecked(false);
+   setPrivateDetails({exact_address:'',entry_instructions:'',internal_notes:''});
    await extra(item?.id||'');
+ };
+ const closeEditor=()=>{setEditing(false);setSelected('');setImage(null);setVideo(null);setError('');setNotice('');};
+ const saveDefaults=async()=>{
+  setBusy(true);setError('');setNotice('');
+  try{
+    const result=await hostingAction('host_defaults_set',{settings:defaultForm});
+    setDefaults({...blank,...result.settings});setDefaultForm({...blank,...result.settings});
+    setShowDefaults(false);setNotice('Host defaults saved. They will prefill future listings; existing listings are unchanged.');
+  }catch(e){setError(e.message);}finally{setBusy(false);}
  };
  const field=(name,value)=>setForm(current=>({...current,[name]:value}));
  const mutate=async(action,args,message)=>{
@@ -103,12 +131,23 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
  };
  const save=async(e)=>{
   e.preventDefault();
+  if(!selected&&privateDetails.exact_address.trim().length<8){
+    setError('Enter the full private street address before creating this property. It will not appear publicly.');return;
+  }
   const result=await mutate(selected?'host_update':'host_create',{...form,source_brand:brand,...(selected?{id:selected}:{})},
-    selected?'Listing saved as draft. Resubmit for approval.':'Draft listing created.');
+    selected?'Listing saved as draft. Resubmit for approval.':'Private draft created. Add approved media and submit for review.');
   if(result){
     const chosen=result.item?.id||selected;
+    try{
+      if(!selected)await hostingAction('host_private_details',{id:chosen,...privateDetails});
+      // Optional queued media makes the first-time creation flow work like a
+      // property wizard, without sharing unreviewed files with visitors.
+      if(image)await uploadHostingPhoto(chosen,image,caption);
+      if(video)await uploadHostingVideo(chosen,video,videoCaption);
+    }catch(e){setError('The draft was saved, but address/media setup needs attention: '+e.message);}
     const item=(await hostingAction('my_listings')).items.find(v=>v.id===chosen);
     await selectListing(item||{...form,id:chosen,status:'draft'});
+    await load();
   }
  };
  const upload=async(e)=>{
@@ -120,6 +159,20 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
     setImage(null);setCaption('');setNotice(r.note||'Private upload received.');
     await load();
   }catch(e){setError(e.message);}finally{setBusy(false);}
+ };
+ const uploadVideo=async(e)=>{
+  e.preventDefault();
+  if(!selected||!video)return;
+  setBusy(true);setError('');setNotice('');
+  try{
+    const result=await uploadHostingVideo(selected,video,videoCaption);
+    setVideo(null);setVideoCaption('');setNotice(result.note||'Private video uploaded for review.');
+    await load();
+  }catch(e){setError(e.message);}finally{setBusy(false);}
+ };
+ const reviewVideo=async(id,status)=>{
+  if(!approvalChecked){setError('Confirm independent human review first.');return;}
+  await mutate('admin_video_review',{id,status,human_review_confirmed:true},'Video review recorded.');
  };
  const block=async(e)=>{
   e.preventDefault();
