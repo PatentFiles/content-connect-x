@@ -106,7 +106,7 @@ export default function PassClearanceHub({isAdmin=false}){
     <p className="text-xs text-[#9FAFC9]">This is work availability only, not a clinical test result or a medical diagnosis.</p>
    </div>
    <div className="flex flex-wrap gap-2">
-    <button className={button} disabled={busy} onClick={()=>execute('pass_link',{allow_status_sync:true})}>Request PASS account linking</button>
+    <button className={button} disabled={busy} onClick={()=>execute('pass_link',{allow_status_sync:true})}>Consent to future PASS linking</button>
     <button className="ccx-secondary rounded-xl px-4 py-2.5 text-sm" disabled={busy} onClick={()=>execute('pass_disconnect',{},'PASS linking consent withdrawn.')}>Disconnect</button>
    </div>
   </section>
@@ -182,12 +182,12 @@ export default function PassClearanceHub({isAdmin=false}){
     <button className="ccx-secondary inline-flex gap-2 items-center rounded-xl px-4 py-2.5 text-sm" disabled={busy||!collab} onClick={collaborationStatus}><RefreshCw size={16}/>Refresh all status</button>
    </div>
    {shared&&<div className="space-y-2 rounded-xl bg-[#101B2F] p-3">
-    <p className="text-xs text-[#B5C5DC]">{shared.ready?'All opted-in members currently cleared.':'Production clearance is incomplete or hidden.'}</p>
+    <p className="text-xs text-[#B5C5DC]">{shared.participants_ready?'All opted-in participants have current recorded clearance, but live PASS production-hold status still requires independent verification.':'Some participant clearance is missing, expired or not shared.'}</p>
     {(shared.members||[]).map(m=><div key={m.user_id} className="flex justify-between gap-2 border-b border-[#35435F] py-1 text-xs">
       <span className="truncate">{m.user_id.slice(0,8)}…</span>
       <strong className={m.clearance==='current'?'text-emerald-300':'text-amber-200'}>{m.clearance.replaceAll('_',' ')}</strong>
     </div>)}
-    {shared.production_hold_unknown&&<p className="flex gap-2 items-center text-xs text-amber-200"><AlertCircle size={16}/>PASS production holds are not monitored until official partner access is active.</p>}
+    {shared.production_hold_unknown&&<p className="flex gap-2 items-center text-xs text-amber-200"><AlertCircle size={16}/>PASS production holds are not monitored here. Check the official PASS system directly before arranging a shoot.</p>}
    </div>}
   </section>
   {isAdmin&&<section className="ccx-surface space-y-3 p-5">
