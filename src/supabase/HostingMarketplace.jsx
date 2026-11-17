@@ -286,18 +286,12 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
   const visible=useMemo(()=>onlySaved?listings.filter(v=>favorites.includes(v.id)):listings,[listings,favorites,onlySaved]);
 
   return <div className="space-y-6 text-white">
-    <div className="ccx-hosting-banner relative overflow-hidden rounded-3xl px-6 py-8 sm:px-10 sm:py-10">
-      <div className="absolute -right-12 -top-24 h-72 w-72 rounded-full bg-blue-500/15 blur-3xl"/>
-      <div className="relative">
-        <p className="text-xs font-semibold uppercase tracking-[0.21em] text-blue-300">CONTENT CONNECT X • HOSTING</p>
-        <h1 className="mt-3 max-w-3xl text-3xl font-semibold leading-tight sm:text-4xl">The right space for every production.</h1>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-[#B7CBE4]">Discover professionally listed studios, locations, sets and equipment. Book by the hour, coordinate with verified hosts, and keep production details private.</p>
-        <div className="mt-6 flex flex-wrap gap-2">
-          <span className={pill+' bg-white/5'}><ShieldCheck size={14} className="inline mr-1"/>Age-verified marketplace</span>
-          <span className={pill+' bg-white/5'}><Film size={14} className="inline mr-1"/>Production-first rentals</span>
-          <span className={pill+' bg-white/5'}><CalendarDays size={14} className="inline mr-1"/>Hourly reservations</span>
-        </div>
-      </div>
+    <div className="overflow-hidden rounded-3xl border border-[#2D5A88] bg-[#07182B] shadow-[0_18px_60px_rgba(0,0,0,.28)]">
+      <img
+        src="/Host_Connect_Banner.png"
+        alt="Host Connect Studios, Locations, Sets — The right space for every production. Discover professionally listed studios, locations, sets and equipment, coordinate with verified hosts, and keep production details private."
+        className="block h-auto w-full"
+      />
     </div>
     <nav className="flex flex-wrap gap-2">
       {/** @type {Array<[string, string, import('react').ElementType]>} */ ([['explore','Explore spaces',Search],['favorites','Saved',Heart],['bookings','My requests',CalendarDays],...(paid?[['host','Host dashboard',Home]]:[]),...(isAdmin?[['review','Listing approvals',ShieldCheck]]:[]),['alerts','Notifications',CalendarDays],['crew','Crew invitations',Users],['cleaning','My cleaning jobs',Home]])
