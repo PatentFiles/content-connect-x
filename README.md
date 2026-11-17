@@ -70,6 +70,20 @@ Profile Analytics now records actual modal-open events in a private, RLS-protect
 
 The Yoti provider remains disabled until you enter its **Yoti Hub API token and SDK ID**, configure the approved HTTPS return origins, and complete provider testing. The private ID/selfie manual review is separate and stays available; an age threshold result does not grant performer identity verification automatically.
 
+## Mandatory adult onboarding, memberships and free access
+
+The authenticated application now renders a standalone, non-dismissible onboarding panel before mounting ANY protected creator screen: first a minimal professional profile, then independent 18+ verification. The only early escape is Log out, with verification still required next login. Verified age is checked again in Supabase Edge Functions; hiding a page in React is not a substitute for backend authorization. The onboarding panel rechecks verification periodically and after Yoti returns. The existing ID/selfie evidence is private; only a qualified reviewer can approve a manual request, and an administrator cannot approve their own documents.
+
+Yoti's authenticated OVER session result must return COMPLETE, a matching session/reference, a recognized method and an appropriate threshold. The verified result is recorded with provider method, reference ID, evidence ID and SHA-256 digest without storing raw biometric images in membership tables. Yoti credentials and the approved callback origin must still be configured before live checks can start. Provider age verification does not replace separate professional identity and consent checks.
+
+Professional membership prices are stored in `membership_plan_catalog` and can be edited by independently age-verified MFA administrators. The Content Connect X pricing page excludes the separate OnlyHost Host role. Role prices: Creator $19.99, Photographer $29.99, Videographer and Video Editor $49.99, Agent $49.99 (10), $99.99 (25), $249.99 (100+), Studio from $249.99 monthly. Higher agent prices are configurable proposals.
+
+Free members may browse and save age-verified profiles worldwide, but new outgoing contacts are limited to five distinct people during a rolling seven days and within 25 miles, based on configured **city centers** rather than household coordinates. If city coordinates are unavailable, the backend permits same-city interactions only; this is an approximation and not a physical distance/identity verification service. Each accepted direct contact uses a transactional per-user quota reservation to prevent concurrent requests exceeding five. Group chat and full global contact require Premium, and private social links are disclosed through a protected API only to verified premium users when the profile owner opts in. Core safety and antispam restrictions remain for all tiers.
+
+**Payments are not enabled.** Stripe currently prohibits adult content/services. Prices and a secure admin pricing editor are implemented, but charging and granting premium status require an adult-industry-approved merchant contract, verified subscription webhooks, and successful payment lifecycle tests. Do not mark users premium merely because they selected a plan.
+
+The existing Supabase migrations `20261117132004_membership_catalog_age_evidence_free_contacts.sql` and `20261117132747_member_social_links_opt_in.sql` are applied. Run `npm run test:memberships`, lint, typecheck and build before promoting frontend releases.
+
 ## Hands-on tests before launch
 
 The production configuration console is restricted to independently age-verified MFA administrators. It shows provider prerequisites and missing server settings without exposing credentials; a configured provider is not proof of a working provider transaction. Follow [the at-home acceptance test matrix](ops/AT_HOME_TEST_MATRIX.md), capture the tested commit SHA and use a dedicated staging environment for any test data.

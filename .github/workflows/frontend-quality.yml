@@ -31,6 +31,8 @@ jobs:
         run: npm run test:integrations
       - name: Modular feature registry tests
         run: npm run test:modules
+      - name: Adult onboarding and membership policy tests
+        run: npm run test:memberships
       - name: Private profile analytics protections
         run: npm run test:analytics
       - name: Bolt preview and Supabase public configuration tests
