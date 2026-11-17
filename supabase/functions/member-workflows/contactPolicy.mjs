@@ -31,7 +31,7 @@ export function localContactStatus(me,them,areas=[]){
   (!state(p.state)||state(a.region)===state(p.state)));
  const a=findArea(me),b=findArea(them);
  if(a&&b)return {allowed:milesBetween(a,b)<=25,reason:'Distance is calculated from city centers.'};
- if(norm(me.city)===norm(them.city)&&state(me.state)===state(them.state))
+ if(norm(me.city)===norm(them.city)&&state(me.state)&&state(them.state)&&state(me.state)===state(them.state))
   return {allowed:true,reason:'Same-city approximation.'};
  return {allowed:false,reason:'Nearby-city coordinates are unavailable; add an approved map area or use Premium.'};
 }
