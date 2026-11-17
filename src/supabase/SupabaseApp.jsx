@@ -101,7 +101,7 @@ export default function SupabaseApp() {
     if (!activeSession?.user) {setProfile(null);setVerification(null);setBilling(null);setSecurity(null);return;}
     const uid=activeSession.user.id;
     const [pr,ve,bi,se] = await Promise.all([
-      supabase.from('member_profiles').select('id,display_name,role_type,bio,city,state,country,avatar_path,profile_complete,updated_at').eq('id',uid).maybeSingle(),
+      supabase.from('member_profiles').select('id,display_name,role_type,bio,city,state,country,avatar_path,cover_path,profile_complete,updated_at').eq('id',uid).maybeSingle(),
       supabase.from('age_verification_requests').select('id,status,created_at,verified_at,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
       supabase.from('member_subscriptions').select('status,plan_id,period_end').eq('user_id',uid).maybeSingle(),
       supabase.from('account_security').select('banned,suspended,admin').eq('user_id',uid).maybeSingle(),
@@ -407,7 +407,7 @@ export default function SupabaseApp() {
     )}
     {tab==='trust' && paid && approved && <TrustCenter isAdmin={isAdmin}/> }
     {tab==='consent' && <ConsentCenter user={user} canGrant={Boolean(paid && approved)}/> }
-    {tab==='account-security' && <SecurityCenter/>}
+    {tab==='account-security' && <SecurityCenter isAdmin={isAdmin}/>}
     {tab==='safety' && approved && <SafetyPanel/>}
     {tab==='community' && approved && <CommunityHub paid={paid} userId={user.id}/>}
     {tab==='feedback' && approved && <FeedbackHub admin={isAdmin}/>}
@@ -423,7 +423,8 @@ export default function SupabaseApp() {
        </React.Suspense>)}
     {tab==='portfolio'&&approved&&<MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
     {tab==='testing'&&approved&&<PassClearanceHub isAdmin={isAdmin}/>}
-    {tab==='settings'&&<SecurityCenter/>}
+    {tab==='settings'&&(isAdmin&&!rolePreview?<AdminConsole key={tab} initialSection="features"
+       onFeatureChange={()=>refreshFeatureFlags().catch(()=>setVisibleFeatures({}))}/>:<SecurityCenter isAdmin={isAdmin}/>)}
     {tab==='roster'&&approved&&<ProductionManager user={user} paid={paid} isAdmin={isAdmin}/>}
     {tab==='representations'&&<div className={panel+' space-y-2'}>
       <h2 className="text-xl font-semibold">Representations</h2>

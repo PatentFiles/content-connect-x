@@ -1,0 +1,77 @@
+[functions.media-gateway]
+verify_jwt = true
+
+[functions.admin-age-review]
+verify_jwt = true
+
+[functions.agreement-packets]
+verify_jwt = true
+
+[functions.ccx-integrations]
+verify_jwt = true
+
+[functions.collaboration-consent]
+verify_jwt = true
+
+[functions.create-checkout]
+verify_jwt = true
+
+[functions.directory]
+verify_jwt = true
+
+[functions.hosting-advanced]
+verify_jwt = true
+
+[functions.hosting-calendar]
+verify_jwt = true
+
+[functions.hosting-ccbill]
+verify_jwt = true
+
+[functions.hosting-ccbill-webhook]
+verify_jwt = false
+
+[functions.hosting-docusign]
+verify_jwt = true
+
+[functions.hosting-docusign-webhook]
+verify_jwt = false
+
+[functions.hosting-marketplace]
+verify_jwt = true
+
+[functions.hosting-notification-worker]
+verify_jwt = true
+
+[functions.hosting-operations]
+verify_jwt = true
+
+[functions.hosting-production]
+verify_jwt = true
+
+[functions.integration-health]
+verify_jwt = true
+
+[functions.member-workflows]
+verify_jwt = true
+
+[functions.onlyhost-public]
+verify_jwt = false
+
+[functions.performer-readiness]
+verify_jwt = true
+
+[functions.platform-extras]
+verify_jwt = true
+
+[functions.production-manager]
+verify_jwt = true
+
+[functions.profile-analytics]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.submit-age-verification]
+verify_jwt = true

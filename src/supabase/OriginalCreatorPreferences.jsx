@@ -20,12 +20,12 @@ function SetEditor({name,values=[],onChange}){
  return <section className={box} style={surface}>
   <h3 className="mb-4 text-lg font-semibold">{creatorFieldLabels[name]}</h3>
   <div className="flex flex-wrap gap-2">
-   {choices.map(choice=><label key={choice} className="cursor-pointer rounded-lg border px-3 py-2 text-sm"
+   {choices.map(choice=><label key={choice} className="flex min-w-0 cursor-pointer items-start rounded-lg border px-3 py-2 text-sm leading-5"
     style={{background:values.includes(choice)?'rgba(79,140,255,.12)':'transparent',
      borderColor:values.includes(choice)?'#4F8CFF':'var(--cc-border)',
      color:values.includes(choice)?'var(--cc-blue)':'var(--cc-text-secondary)'}}>
-    <input type="checkbox" checked={values.includes(choice)} className="mr-2"
-     onChange={event=>update(choice,event.target.checked)}/>{friendlyChoice(choice)}
+    <input type="checkbox" checked={values.includes(choice)} className="mr-2 mt-1 shrink-0"
+     onChange={event=>update(choice,event.target.checked)}/><span className="min-w-0 break-words">{friendlyChoice(choice)}</span>
    </label>)}
   </div>
  </section>;
@@ -37,7 +37,7 @@ export const initialCreatorPreferences={
  looking_for_genders:[],physical_details:{},availability_type:'local_only',
  travel_regions:[],rates_text:'',socials:{},stats:{}
 };
-export default function OriginalCreatorPreferences({value=initialCreatorPreferences,onChange,onNavigate}){
+export default function OriginalCreatorPreferences({value=initialCreatorPreferences,genderIdentity='',onChange,onNavigate}){
  const update=(key,next)=>onChange({...value,[key]:next});
  const setObject=(key,field,next)=>update(key,{...(value[key]||{}),[field]:next});
  return <div className="space-y-6">
@@ -56,21 +56,41 @@ export default function OriginalCreatorPreferences({value=initialCreatorPreferen
    <p className="mb-4 text-xs" style={{color:'var(--cc-text-muted)'}}>
     All physical information remains private to your account unless a separate authorized sharing flow is completed.</p>
    <div className="grid gap-3 sm:grid-cols-2">
-    {[['height','Height'],['hair_color','Hair color'],['eye_color','Eye color'],
-      ['measurements','Measurements'],['dress_size','Dress size'],
-      ['breast_size','Breast size'],['endowment_size','Endowment (inches)']].map(([id,label])=>
+    {[['height','Height'],['weight','Weight (lbs)'],['hair_color','Hair color'],['eye_color','Eye color'],
+      ['measurements','Measurements']].map(([id,label])=>
       <label key={id} className="block text-sm">{label}
        <input className={field+' mt-2'} style={control} maxLength={100}
-        value={(id==='height'||id==='hair_color'||id==='eye_color'?
+        value={(id==='height'||id==='weight'||id==='hair_color'||id==='eye_color'?
           value.stats?.[id]:value.physical_details?.[id])||''}
-        onChange={e=>(id==='height'||id==='hair_color'||id==='eye_color'?
+        onChange={e=>(id==='height'||id==='weight'||id==='hair_color'||id==='eye_color'?
           setObject('stats',id,e.target.value):setObject('physical_details',id,e.target.value))}/></label>)}
-    <label className="block text-sm">Circumcision
+    {(genderIdentity==='woman'||genderIdentity==='trans_woman')&&[
+      ['breast_size','Bust size'],['breast_natural','Breast type'],['hip_size','Hip size'],['dress_size','Dress size']
+    ].map(([id,label])=>
+      id==='breast_natural'?
+      <label key={id} className="block text-sm">{label}
+       <select className={field+' mt-2'} style={control}
+        value={value.physical_details?.breast_natural||''}
+        onChange={e=>setObject('physical_details','breast_natural',e.target.value)}>
+        <option value="">Not specified</option><option value="natural">Natural</option>
+        <option value="enhanced">Enhanced</option></select></label>:
+      <label key={id} className="block text-sm">{label}
+       <input className={field+' mt-2'} style={control} maxLength={100}
+        value={value.physical_details?.[id]||''}
+        onChange={e=>setObject('physical_details',id,e.target.value)}/></label>)}
+    {(genderIdentity==='man'||genderIdentity==='trans_man')&&[
+      ['endowment_size','Endowment (inches)']
+    ].map(([id,label])=>
+      <label key={id} className="block text-sm">{label}
+       <input className={field+' mt-2'} style={control} maxLength={100}
+        value={value.physical_details?.[id]||''}
+        onChange={e=>setObject('physical_details',id,e.target.value)}/></label>)}
+    {(genderIdentity==='man'||genderIdentity==='trans_man')&&<label className="block text-sm">Circumcision
      <select className={field+' mt-2'} style={control}
       value={value.physical_details?.circumcision_status||''}
       onChange={e=>setObject('physical_details','circumcision_status',e.target.value)}>
-      <option value="">Not specified</option><option value="cut">Cut</option>
-      <option value="uncut">Uncut</option></select></label>
+      <option value="">Not specified</option><option value="cut">Circumcised</option>
+      <option value="uncut">Not circumcised</option></select></label>}
    </div>
   </section>
   <section className={box} style={surface}>

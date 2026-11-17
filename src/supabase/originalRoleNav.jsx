@@ -63,6 +63,7 @@ export const roleNavigation = {
   ],
   photographer: [
     { path: 'Dashboard', label: 'Dashboard', icon: Home },
+    { path: 'Testing', label: 'Testing', icon: Cross },
     { path: 'Discovery', label: 'Discover', icon: Compass },
     { path: 'Search', label: 'Search', icon: Search },
     { path: 'Favorites', label: 'Favorites', icon: Heart },
@@ -74,6 +75,7 @@ export const roleNavigation = {
   ],
   videographer: [
     { path: 'Dashboard', label: 'Dashboard', icon: Home },
+    { path: 'Testing', label: 'Testing', icon: Cross },
     { path: 'Discovery', label: 'Discover', icon: Compass },
     { path: 'Search', label: 'Search', icon: Search },
     { path: 'Favorites', label: 'Favorites', icon: Heart },
@@ -85,6 +87,7 @@ export const roleNavigation = {
   ],
   video_editor: [
     { path: 'Dashboard', label: 'Dashboard', icon: Home },
+    { path: 'Testing', label: 'Testing', icon: Cross },
     { path: 'Discovery', label: 'Discover', icon: Compass },
     { path: 'Search', label: 'Search', icon: Search },
     { path: 'Favorites', label: 'Favorites', icon: Heart },
@@ -96,6 +99,7 @@ export const roleNavigation = {
   ],
   host: [
     { path: 'HostDashboard', label: 'Dashboard', icon: Home },
+    { path: 'Testing', label: 'Testing', icon: Cross },
     { path: 'HostingMarketplace', label: 'Host Properties', icon: Building2 },
     { path: 'Messages', label: 'Messages', icon: MessageCircle },
     { path: 'HostProfile', label: 'My Profile', icon: User },

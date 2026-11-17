@@ -298,6 +298,32 @@ Deno.serve(async req=>{
    .select('id,status,created_at,reviewed_at,review_note').eq('user_id',uid).order('created_at',{ascending:false}).limit(50);
   if(error)throw error;return out({items:data||[]});
  }
+ case 'clearance_history':{
+  let docQ=db.from('ccx_clearance_document_submissions')
+   .select('id,status,created_at,reviewed_at,review_note').eq('user_id',uid);
+  let evtQ=db.from('ccx_clearance_events')
+   .select('id,source,clearance_confirmed,expires_at,provider_reference,created_at').eq('user_id',uid);
+  const from=txt(body.from,30),to=txt(body.to,30);
+  if(from&&/^\d{4}-\d{2}-\d{2}$/.test(from)){
+    docQ=docQ.gte('created_at',from+'T00:00:00Z');
+    evtQ=evtQ.gte('created_at',from+'T00:00:00Z');
+  }
+  if(to&&/^\d{4}-\d{2}-\d{2}$/.test(to)){
+    docQ=docQ.lte('created_at',to+'T23:59:59Z');
+    evtQ=evtQ.lte('created_at',to+'T23:59:59Z');
+  }
+  const [docs,evts]=await Promise.all([
+    docQ.order('created_at',{ascending:false}).limit(200),
+    evtQ.order('created_at',{ascending:false}).limit(200)
+  ]);
+  if(docs.error)throw docs.error;
+  if(evts.error)throw evts.error;
+  const documents=(docs.data||[]).map((d:any)=>({...d,kind:'document'}));
+  const events=(evts.data||[]).map((e:any)=>({...e,kind:'event'}));
+  const merged=[...documents,...events].sort((a,b)=>
+    new Date(b.created_at).getTime()-new Date(a.created_at).getTime());
+  return out({items:merged});
+ }
  case 'admin_clearance_queue':{
   const {data,error}=await db.from('ccx_clearance_document_submissions')
    .select('id,user_id,status,created_at').in('status',['pending','under_review'])

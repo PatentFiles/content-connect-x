@@ -10,8 +10,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2.95.0';
 
 const cors={
   'Access-Control-Allow-Origin':'*',
-  'Access-Control-Allow-Headers':'authorization, apikey, content-type',
-  'Access-Control-Allow-Methods':'POST, OPTIONS',
+  'Access-Control-Allow-Methods':'GET, POST, PUT, DELETE, OPTIONS',
+  'Access-Control-Allow-Headers':'Content-Type, Authorization, X-Client-Info, Apikey',
 };
 const reply=(data:unknown,status=200)=>Response.json(data,{status,headers:cors});
 const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
@@ -28,7 +28,7 @@ const assurance=(header:string)=>{
 };
 
 Deno.serve(async req=>{
-  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
+  if(req.method==='OPTIONS')return new Response(null,{status:200,headers:cors});
   if(req.method!=='POST')return reply({error:'Method not allowed'},405);
   const url=Deno.env.get('SUPABASE_URL'),anon=Deno.env.get('SUPABASE_ANON_KEY'),secret=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
   if(!url||!anon||!secret)return reply({error:'Backend unavailable'},503);
@@ -78,9 +78,14 @@ Deno.serve(async req=>{
       if(rateError)return reply({error:'Upload limit unavailable'},503);
       if((count||0)>=10)return reply({error:'Daily media submission limit reached'},429);
       const visibility=['verified','connections','private'].includes(body.visibility)?body.visibility:'verified';
+      let albumId:string|null=null;
+      if(uuid(body.album_id)){
+        const {data:album}=await db.from('member_media_albums').select('id').eq('id',body.album_id).eq('owner_id',uid).maybeSingle();
+        if(album)albumId=album.id;
+      }
       const {data,error}=await db.from('member_media_assets').insert({
         owner_id:uid,storage_path:path,mime_type:type,caption:plain(body.caption,500),
-        status:'pending',visibility,uploader_rights_attested:true,rights_attested_at:new Date().toISOString()
+        status:'pending',visibility,album_id:albumId,uploader_rights_attested:true,rights_attested_at:new Date().toISOString()
       }).select('id,status').single();
       if(error)return reply({error:'Media could not be registered'},400);
       const {error:queueError}=await db.from('content_moderation_queue').insert({
@@ -95,16 +100,71 @@ Deno.serve(async req=>{
     }
     if(action==='my_media'){
       const {data,error}=await db.from('member_media_assets')
-        .select('id,caption,status,visibility,mime_type,created_at').eq('owner_id',uid)
+        .select('id,caption,status,visibility,mime_type,album_id,created_at').eq('owner_id',uid)
         .order('created_at',{ascending:false}).limit(60);
       if(error)throw error;
       return reply({items:data||[]});
     }
+    if(action==='list_albums'){
+      const {data,error}=await db.from('member_media_albums')
+        .select('id,title,created_at,updated_at').eq('owner_id',uid)
+        .order('created_at',{ascending:false});
+      if(error)throw error;
+      const albums=(data||[]).map((a:any)=>({...a,count:0}));
+      if(albums.length){
+        const {data:counts}=await db.from('member_media_assets')
+          .select('album_id').in('album_id',albums.map((a:any)=>a.id));
+        const map:Record<string,number>={};
+        for(const c of counts||[]){if(c.album_id)map[c.album_id]=(map[c.album_id]||0)+1;}
+        for(const a of albums)a.count=map[a.id]||0;
+      }
+      return reply({items:albums});
+    }
+    if(action==='create_album'){
+      if(!paid)return reply({error:'Premium membership required for albums'},403);
+      const title=plain(body.title,120);
+      if(!title)return reply({error:'Album title is required'},400);
+      const {count}=await db.from('member_media_albums').select('id',{count:'exact',head:true}).eq('owner_id',uid);
+      if((count||0)>=20)return reply({error:'Album limit reached (20)'},429);
+      const {data,error}=await db.from('member_media_albums').insert({owner_id:uid,title})
+        .select('id,title,created_at').single();
+      if(error)return reply({error:'Could not create album'},400);
+      return reply({item:data},201);
+    }
+    if(action==='update_album'){
+      if(!uuid(body.album_id))return reply({error:'Invalid album'},400);
+      const title=plain(body.title,120);
+      if(!title)return reply({error:'Album title is required'},400);
+      const {data,error}=await db.from('member_media_albums').update({title,updated_at:new Date().toISOString()})
+        .eq('id',body.album_id).eq('owner_id',uid).select('id,title').maybeSingle();
+      if(error||!data)return reply({error:'Album not found'},404);
+      return reply({item:data});
+    }
+    if(action==='delete_album'){
+      if(!uuid(body.album_id))return reply({error:'Invalid album'},400);
+      const {error}=await db.from('member_media_albums').delete().eq('id',body.album_id).eq('owner_id',uid);
+      if(error)return reply({error:'Could not delete album'},400);
+      return reply({ok:true});
+    }
+    if(action==='assign_album'){
+      if(!uuid(body.media_id))return reply({error:'Invalid media'},400);
+      let albumId:string|null=null;
+      if(uuid(body.album_id)){
+        const {data:album}=await db.from('member_media_albums').select('id').eq('id',body.album_id).eq('owner_id',uid).maybeSingle();
+        if(!album)return reply({error:'Album not found'},404);
+        albumId=album.id;
+      }
+      const {error}=await db.from('member_media_assets').update({album_id:albumId})
+        .eq('id',body.media_id).eq('owner_id',uid);
+      if(error)return reply({error:'Could not assign album'},400);
+      return reply({ok:true});
+    }
     if(action==='gallery'){
       const target=uuid(body.owner_id)?body.owner_id:uid;
       let q=db.from('member_media_assets')
-        .select('id,owner_id,caption,status,mime_type,visibility,created_at')
+        .select('id,owner_id,caption,status,mime_type,visibility,album_id,created_at')
         .eq('owner_id',target).eq('status','approved').order('created_at',{ascending:false}).limit(50);
+      if(uuid(body.album_id))q=q.eq('album_id',body.album_id);
       const {data,error}=await q;if(error)throw error;
       const [ownerAge,ownerSecurity]=await Promise.all([
         db.from('age_verification_requests').select('status,expires_at').eq('user_id',target)

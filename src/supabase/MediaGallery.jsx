@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { Image, ShieldCheck, Search, RefreshCw, Video } from 'lucide-react';
+import React, { useEffect, useState, useMemo } from 'react';
+import { Image, ShieldCheck, Search, RefreshCw, Video, FolderPlus, Folder, Trash2, X, Check } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 
 const panel='ccx-surface p-5';
 const input='w-full rounded-lg border border-[#34445D] bg-[#0F1520] p-2 text-sm';
 const button='rounded-lg ccx-action-primary text-white px-4 py-2 text-sm font-semibold disabled:opacity-50';
+const ghostBtn='rounded-lg border px-3 py-2 text-sm font-medium disabled:opacity-50';
 async function mediaRequest(action,data={}){
   const {data:result,error}=await supabase.functions.invoke('media-gateway',{body:{action,...data}});
   if(error||result?.error)throw new Error(result?.error||error?.message||'Media service unavailable');
@@ -13,6 +14,7 @@ async function mediaRequest(action,data={}){
 export default function MediaGallery({userId,paid=false,admin=false}){
   const [assets,setAssets]=useState([]);
   const [owned,setOwned]=useState([]);
+  const [albums,setAlbums]=useState([]);
   const [review,setReview]=useState([]);
   const [target,setTarget]=useState('');
   const [image,setImage]=useState(null);
@@ -24,18 +26,25 @@ export default function MediaGallery({userId,paid=false,admin=false}){
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   const [notice,setNotice]=useState('');
+  const [showAlbumForm,setShowAlbumForm]=useState(false);
+  const [albumTitle,setAlbumTitle]=useState('');
+  const [selectedAlbum,setSelectedAlbum]=useState('');
+  const [uploadAlbumId,setUploadAlbumId]=useState('');
+  const [assignTarget,setAssignTarget]=useState({});
   const load=async()=>{
     setBusy(true);setError('');
     try{
       const results=await Promise.all([
-        mediaRequest('gallery',{owner_id:target||userId}),
+        mediaRequest('gallery',{owner_id:target||userId,album_id:selectedAlbum||undefined}),
         paid?mediaRequest('my_media'):Promise.resolve({items:[]}),
+        paid?mediaRequest('list_albums'):Promise.resolve({items:[]}),
         admin?mediaRequest('admin_queue'):Promise.resolve({items:[]})
       ]);
-      setAssets(results[0].items||[]);setOwned(results[1].items||[]);setReview(results[2].items||[]);
+      setAssets(results[0].items||[]);setOwned(results[1].items||[]);
+      setAlbums(results[2].items||[]);setReview(results[3].items||[]);
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
-  useEffect(()=>{load();},[]);
+  useEffect(()=>{load();},[selectedAlbum]);
   const upload=async(event)=>{
     event.preventDefault();setBusy(true);setError('');setNotice('');
     let path='';
@@ -50,15 +59,14 @@ export default function MediaGallery({userId,paid=false,admin=false}){
       });
       if(storageError)throw storageError;
       const r=await mediaRequest('register_upload',{
-        storage_path:path,mime_type:file.type,caption,visibility,attest_rights:true
+        storage_path:path,mime_type:file.type,caption,visibility,attest_rights:true,
+        album_id:uploadAlbumId||undefined
       });
-      setFile(null);setCaption('');setRights(false);
+      setFile(null);setCaption('');setRights(false);setUploadAlbumId('');
       setNotice(r.note||'Media submitted for human review.');
       await load();
     }catch(e){
       setError(e.message);
-      // A failed registration can leave a private orphan. It never becomes public.
-      // Cleanup is handled separately by an administrator/retention job.
     }finally{setBusy(false);}
   };
   const open=async(id)=>{
@@ -84,16 +92,59 @@ export default function MediaGallery({userId,paid=false,admin=false}){
       setHumanReviewed(false);await load();
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
+  const createAlbum=async(e)=>{
+    e.preventDefault();setBusy(true);setError('');
+    try{
+      await mediaRequest('create_album',{title:albumTitle});
+      setAlbumTitle('');setShowAlbumForm(false);
+      await load();
+    }catch(e){setError(e.message);}finally{setBusy(false);}
+  };
+  const deleteAlbum=async(id)=>{
+    setBusy(true);setError('');
+    try{
+      await mediaRequest('delete_album',{album_id:id});
+      if(selectedAlbum===id)setSelectedAlbum('');
+      await load();
+    }catch(e){setError(e.message);}finally{setBusy(false);}
+  };
+  const assignAlbum=async(mediaId,albumId)=>{
+    setBusy(true);setError('');
+    try{
+      await mediaRequest('assign_album',{media_id:mediaId,album_id:albumId||null});
+      setAssignTarget(p=>({...p,[mediaId]:''}));
+      await load();
+    }catch(e){setError(e.message);}finally{setBusy(false);}
+  };
+  const albumName=id=>albums.find(a=>a.id===id)?.title||'Unassigned';
   return <section className="space-y-5">
-    <div className="flex justify-between gap-2 items-center"><div><h2 className="text-2xl font-semibold">Creator media</h2><p className="text-sm text-[#9AA6BC] mt-1">Age-gated private storage, rights attestation and human moderation before publishing.</p></div><button onClick={load} disabled={busy} className={button} aria-label="Refresh media"><RefreshCw size={16}/></button></div>
+    <div className="flex justify-between gap-2 items-center"><div><h2 className="text-2xl font-semibold">Creator media</h2><p className="text-sm text-[#9AA6BC] mt-1">Age-gated private storage, rights attestation and human moderation before publishing.</p></div><div className="flex gap-2"><button onClick={load} disabled={busy} className={button} aria-label="Refresh media"><RefreshCw size={16}/></button></div></div>
     {error&&<p className="rounded-lg bg-red-950 p-3 text-sm text-red-200" role="alert">{error}</p>}
     {notice&&<p className="rounded-lg bg-emerald-950 p-3 text-sm text-emerald-200" role="status">{notice}</p>}
+    {paid&&<section className={panel+' space-y-4'}>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <h3 className="font-semibold flex gap-2 items-center"><Folder size={18}/> Albums</h3>
+        <button className={button} disabled={busy} onClick={()=>setShowAlbumForm(v=>!v)}><FolderPlus size={16} className="inline mr-1"/>New album</button>
+      </div>
+      {showAlbumForm&&<form onSubmit={createAlbum} className="flex gap-2 items-end">
+        <label className="flex-1 text-sm">Album name<input className={input+' mt-1'} maxLength={120} value={albumTitle} onChange={e=>setAlbumTitle(e.target.value)} placeholder="e.g. Studio shoots 2026"/></label>
+        <button className={button} disabled={busy||!albumTitle.trim()}>Create</button>
+      </form>}
+      <div className="flex flex-wrap gap-2">
+        <button className={ghostBtn} style={{borderColor:selectedAlbum===''?'var(--cc-blue)':'var(--cc-border)',color:selectedAlbum===''?'var(--cc-blue)':'var(--cc-text-secondary)'}} onClick={()=>setSelectedAlbum('')}>All media ({assets.length})</button>
+        {albums.map(a=><div key={a.id} className="flex items-center gap-1 rounded-lg border" style={{borderColor:selectedAlbum===a.id?'var(--cc-blue)':'var(--cc-border)'}}>
+          <button className="px-3 py-2 text-sm font-medium" style={{color:selectedAlbum===a.id?'var(--cc-blue)':'var(--cc-text-secondary)'}} onClick={()=>setSelectedAlbum(a.id)}>{a.title} ({a.count})</button>
+          <button className="px-1.5 py-2 text-red-400 hover:text-red-300" disabled={busy} onClick={()=>deleteAlbum(a.id)} aria-label={`Delete ${a.title}`}><Trash2 size={14}/></button>
+        </div>)}
+        {!albums.length&&!showAlbumForm&&<p className="text-xs text-[#9AA6BC]">No albums yet — create one to organize your photos.</p>}
+      </div>
+    </section>}
     <form onSubmit={e=>{e.preventDefault();load();}} className={panel+' flex flex-wrap gap-3 items-end'}>
       <label className="flex-1 text-sm min-w-[200px]">Creator's public member ID<input className={input+' mt-1'} value={target} onChange={e=>setTarget(e.target.value)} placeholder="Blank = my gallery"/></label>
       <button className={button}><Search size={16} className="inline mr-1"/>Find</button>
     </form>
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {assets.map(asset=><article className={panel} key={asset.id}><div className="flex items-center gap-2"><Image size={17} className="text-blue-400"/><p className="font-semibold">Approved media</p></div><p className="text-xs mt-1 text-[#9AA6BC]">{new Date(asset.created_at).toLocaleDateString()}</p><p className="my-3 text-sm break-words">{asset.caption||'Creator gallery'}</p><button className={button} disabled={busy} onClick={()=>open(asset.id)}>View private media</button></article>)}
+      {assets.map(asset=><article className={panel} key={asset.id}><div className="flex items-center gap-2"><Image size={17} className="text-blue-400"/><p className="font-semibold">Approved media</p></div><p className="text-xs mt-1 text-[#9AA6BC]">{new Date(asset.created_at).toLocaleDateString()}</p>{asset.album_id&&<p className="text-xs text-[#7A8BA5]">Album: {albumName(asset.album_id)}</p>}<p className="my-3 text-sm break-words">{asset.caption||'Creator gallery'}</p><button className={button} disabled={busy} onClick={()=>open(asset.id)}>View private media</button></article>)}
     </div>
     {!assets.length&&<div className={panel}><p className="text-[#9AA6BC] text-sm">No approved media entries are available for this member.</p></div>}
     {image&&<div className={panel+' space-y-3'}><div className="flex gap-2 items-center text-sm text-[#9AA6BC]">{image.mime_type.startsWith('video')?<Video size={17}/>:<Image size={17}/>}Temporary media preview (link expires in 60 seconds)</div>
@@ -105,18 +156,32 @@ export default function MediaGallery({userId,paid=false,admin=false}){
       <label className="block text-sm">Image or short video (20 MB maximum)<input type="file" accept="image/jpeg,image/png,image/webp,video/mp4" onChange={e=>setFile(e.target.files?.[0]||null)} className="block mt-2 text-sm"/></label>
       <label className="block text-sm">Caption<input className={input+' mt-1'} maxLength={500} value={caption} onChange={e=>setCaption(e.target.value)}/></label>
       <label className="block text-sm">Visibility after approval<select className={input+' mt-1'} value={visibility} onChange={e=>setVisibility(e.target.value)}><option value="verified">Verified adults</option><option value="connections">Mutual connections</option><option value="private">Me only</option></select></label>
-      <label className="flex gap-2 text-sm items-start"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)} className="mt-1"/><span>I have the authority to submit this media and confirm that everyone depicted is an adult and that required permissions and releases exist. This attestation will be reviewed; it is not proof by itself.</span></label>
+      <label className="block text-sm">Add to album (optional)<select className={input+' mt-1'} value={uploadAlbumId} onChange={e=>setUploadAlbumId(e.target.value)}><option value="">No album</option>{albums.map(a=><option key={a.id} value={a.id}>{a.title}</option>)}</select></label>
+      <label className="flex min-w-0 items-start gap-2 text-sm"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)} className="mt-1 shrink-0"/><span className="min-w-0 break-words">I have the authority to submit this media and confirm that everyone depicted is an adult and that required permissions and releases exist. This attestation will be reviewed; it is not proof by itself.</span></label>
       <button className={button} disabled={busy||!file||!rights}>Submit for review</button>
-      <div className="space-y-2 border-t border-[#263248] pt-3">
-        <h4 className="font-semibold text-sm">My submissions</h4>
-        {owned.map(v=><p className="text-xs text-[#9AA6BC]" key={v.id}>{v.caption||v.mime_type} · {v.status}</p>)}
-        {!owned.length&&<p className="text-[#9AA6BC] text-xs">No submissions.</p>}
+      <div className="space-y-3 border-t border-[#263248] pt-3">
+        <h4 className="font-semibold text-sm">My submissions ({owned.length})</h4>
+        {owned.map(v=><div key={v.id} className="rounded-lg border border-[#263248] p-3 space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm break-words flex-1 min-w-0">{v.caption||v.mime_type} · <span className="capitalize">{v.status}</span></p>
+            <span className="text-xs text-[#7A8BA5] shrink-0">{new Date(v.created_at).toLocaleDateString()}</span>
+          </div>
+          {v.album_id&&<p className="text-xs text-[#7A8BA5]">Album: {albumName(v.album_id)}</p>}
+          {v.status==='approved'&&<div className="flex gap-2 items-center">
+            <select className={input+' max-w-[180px]'} value={assignTarget[v.id]||v.album_id||''} onChange={e=>setAssignTarget(p=>({...p,[v.id]:e.target.value}))}>
+              <option value="">Unassigned</option>
+              {albums.map(a=><option key={a.id} value={a.id}>{a.title}</option>)}
+            </select>
+            <button className={ghostBtn} disabled={busy} onClick={()=>assignAlbum(v.id,assignTarget[v.id]||null)}><Check size={14} className="inline mr-1"/>Assign</button>
+          </div>}
+        </div>)}
+        {!owned.length&&<p className="text-[#9AA6BC] text-xs">No submissions yet.</p>}
       </div>
     </form>}
     {admin&&<div className={panel+' space-y-3'}>
       <h3 className="font-semibold">Media moderation queue ({review.length})</h3>
       <p className="text-xs text-[#9AA6BC]">OpenModerate scanning requires a configured self-hosted service and does not establish age or consent. Final publication stays disabled until adult-content release and recordkeeping processes are approved. Never auto-approve media based solely on a model score.</p>
-      <label className="flex gap-2 text-sm items-start"><input type="checkbox" className="mt-1" checked={humanReviewed} onChange={e=>setHumanReviewed(e.target.checked)}/>I personally reviewed the content and rights evidence before deciding.</label>
+      <label className="flex min-w-0 items-start gap-2 text-sm"><input type="checkbox" className="mt-1 shrink-0" checked={humanReviewed} onChange={e=>setHumanReviewed(e.target.checked)}/><span className="min-w-0 break-words">I personally reviewed the content and rights evidence before deciding.</span></label>
       {review.map(item=><div className="border-t border-[#263248] py-3 space-y-2" key={item.id}><p className="text-sm break-all">ID: {item.id}</p><p className="text-sm text-[#9AA6BC]">{item.caption||item.mime_type} · Rights attested: {String(item.uploader_rights_attested)}</p>
         <div className="flex flex-wrap gap-2"><button className={button} disabled={busy} onClick={()=>open(item.id)}>Inspect</button><button className={button} disabled={busy} onClick={()=>scan(item.id)}>OpenModerate scan</button><button className={button} disabled={busy||!humanReviewed} onClick={()=>decide(item.id,'approved')}>Approve</button><button className="rounded-lg bg-red-700 text-white px-4 py-2 text-sm disabled:opacity-50" disabled={busy||!humanReviewed} onClick={()=>decide(item.id,'rejected')}>Reject</button></div>
       </div>)}

@@ -177,7 +177,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
    </div>
    {isAdmin&&<RoleDashboardSwitcher value={adminRole} onChange={switchDashboard}/>} 
    <nav aria-label="Role navigation" className="flex-1 space-y-1 overflow-y-auto p-4">
-    {isAdmin&&<>
+    {isAdmin&&adminRole==='admin'&&<>
      <div className="mb-2 px-3 text-xs font-medium uppercase tracking-wider"
       style={{color:'var(--cc-text-muted)'}}>Admin</div>
      {adminNav.map(item=><MenuLink key={item.path} item={item} tab={tab} onNavigate={onNavigate}/>)}
@@ -205,9 +205,14 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
     </div>
     {isAdmin&&<RoleDashboardSwitcher mobile value={adminRole} onChange={switchDashboard}/>}
     <nav aria-label="Mobile navigation" className="space-y-1 p-4">
+     {isAdmin&&adminRole==='admin'&&<>
+      <div className="mb-2 px-3 text-xs font-medium uppercase tracking-wider"
+       style={{color:'var(--cc-text-muted)'}}>Admin</div>
+      {adminNav.map(item=><MenuLink key={item.path} item={item} tab={tab} onNavigate={onNavigate}
+       onClose={()=>setMobileOpen(false)} mobile/>)}
+      <div className="my-2 border-b" style={{borderColor:'var(--cc-border)'}}/>
+     </>}
      {nav.map(item=><MenuLink key={item.path} item={item} tab={tab} onNavigate={onNavigate}
-      onClose={()=>setMobileOpen(false)} mobile/>)}
-     {isAdmin&&adminNav.map(item=><MenuLink key={item.path} item={item} tab={tab} onNavigate={onNavigate}
       onClose={()=>setMobileOpen(false)} mobile/>)}
      <div className="mt-4 border-t pt-3" style={{borderColor:'var(--cc-border)'}}>
       <button type="button" aria-label="Sign out" className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold"
