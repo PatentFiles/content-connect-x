@@ -191,7 +191,7 @@ export default function PassClearanceHub({isAdmin=false}){
    </div>}
   </section>
   {isAdmin&&<section className="ccx-surface space-y-3 p-5">
-   <h3 className="font-semibold">Private provider-document review (MFA required)</h3>
+   <h3 className="font-semibold">Private provider-document review (administrator only)</h3>
    <p className="text-xs text-amber-200">A PDF does not prove that a performer is cleared. Independently contact/verify the approved lab or PASS partner before recording any manual clearance.</p>
    {reviewItems.map(v=><article key={v.id} className="rounded-xl border border-[#32445E] p-3 text-xs space-y-2">
     <p>Performer {v.user_id} · {v.status}</p>

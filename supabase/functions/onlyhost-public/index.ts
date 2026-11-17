@@ -31,7 +31,7 @@ Deno.serve(async req=>{
   const venueIds=listings.map(x=>x.id);
   const [verifiedHosts,ageRows,hostAccounts,bannedRows,photos,areas]=await Promise.all([
    db.from('host_verification_requests').select('property_id,owner_id,expires_at').in('property_id',venueIds).eq('status','approved'),
-   db.from('age_verification_requests').select('user_id,status,expires_at,created_at').in('user_id',ownerIds).order('created_at',{ascending:false}).limit(500),
+   db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').in('user_id',ownerIds).order('created_at',{ascending:false}).limit(500),
    db.from('onlyhost_accounts').select('user_id,status,terms_version').in('user_id',ownerIds),
    db.from('account_security').select('user_id,banned,suspended').in('user_id',ownerIds),
    db.from('property_images').select('id,property_id,storage_path,caption,position').in('property_id',venueIds).eq('status','approved').order('position').limit(200),
@@ -46,8 +46,7 @@ Deno.serve(async req=>{
   const areaById=new Map((areas.data||[]).map(v=>[v.id,v]));
   const approved=listings.filter(v=>{
    const age=ages.get(v.owner_id);
-   return hostVenues.has(v.id)&&!bad.has(v.owner_id)&&(acceptedHosts.has(v.owner_id)||age?.status==='approved'&&
-    (!age.expires_at||Date.parse(age.expires_at)>now));
+   return hostVenues.has(v.id)&&!bad.has(v.owner_id)&&(acceptedHosts.has(v.owner_id)||Boolean(age?.admitted_at));
   });
   const images=(photos.data||[]);
   const items=await Promise.all(approved.map(async v=>{

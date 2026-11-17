@@ -1,7 +1,7 @@
 /**
  * Read-only authenticated release acceptance check. This intentionally DOES
  * NOT create IDs, change billing, create charges, send invitations or approve
- * anyone. Provide TWO independently verified test users via environment.
+ * anyone. Provide independent host and admitted-guest test accounts via environment.
  *
  * Usage: CCX_E2E_SUPABASE_URL=... CCX_E2E_PUBLISHABLE_KEY=...
  *        CCX_E2E_HOST_EMAIL=... CCX_E2E_HOST_PASSWORD=...
@@ -39,13 +39,11 @@ test('two independent test adults authenticated',async()=>{
  assert.equal(a.error,null);assert.equal(b.error,null);
  assert.equal(a.data.user.id,h.id);assert.equal(b.data.user.id,g.id);
 });
-test('both accounts can query their own age approval records',async()=>{
- for(const [member,id] of [[host,h.id],[guest,g.id]]){
-  const {data,error}=await member.from('age_verification_requests').select('status')
-   .eq('user_id',id).order('created_at',{ascending:false}).limit(1);
-  assert.equal(error,null);
-  assert.equal(data?.[0]?.status,'approved','Each member must be independently age verified.');
- }
+test('guest completed signup and host has the required owner agreement',async()=>{
+ const {data:entry,error}=await guest.from('member_admissions').select('admitted_at').eq('user_id',g.id).maybeSingle();
+ assert.equal(error,null);assert.ok(entry?.admitted_at,'Guest signup must be complete.');
+ const hostStatus=await ask(host,'ccx-integrations','onlyhost_status');
+ assert.equal(hostStatus.host_terms_current,true,'Host must accept the current property-owner agreement.');
 });
 test('host and guest cannot view or mutate a foreign booking by guessing UUID',async()=>{
  const random=crypto.randomUUID();

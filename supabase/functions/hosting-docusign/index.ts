@@ -6,7 +6,6 @@ const out=(body:unknown,status=200)=>Response.json(body,{status,headers:cors});
 const reject=(e:string,s=400)=>out({error:e},s);
 const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 const brief=(v:unknown,max=200)=>typeof v==='string'?v.trim().slice(0,max):'';
-const aal2=(h:string)=>{try{const b=h.replace(/^Bearer\s+/i,'').split('.')[1].replace(/-/g,'+').replace(/_/g,'/');return JSON.parse(atob(b.padEnd(Math.ceil(b.length/4)*4,'=')))?.aal==='aal2';}catch{return false;}};
 
 Deno.serve(async(req)=>{
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
@@ -20,18 +19,18 @@ Deno.serve(async(req)=>{
  const db=createClient(url,secret),uid=user.id;
  const [security,age,plan,ohAccount]=await Promise.all([
   db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
-  db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
+  db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
   db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
   db.from('onlyhost_accounts').select('status').eq('user_id',uid).maybeSingle()
  ]);
  if(security.error||age.error||plan.error||ohAccount.error)return reject('Account unavailable',503);
- if(security.data?.banned||security.data?.suspended||age.data?.[0]?.status!=='approved'||age.data?.[0]?.expires_at&&Date.parse(age.data[0].expires_at)<=Date.now())
-  return reject('Verified adult account required',403);
+ if(security.data?.banned||security.data?.suspended||!age.data?.[0]?.admitted_at)
+  return reject('Complete account onboarding first',403);
  const admin=security.data?.admin===true,paid=admin||ohAccount.data?.status==='active'||(['active','trial'].includes(plan.data?.status)&&(!plan.data?.period_end||Date.parse(plan.data.period_end)>Date.now()));
  const body=await req.json().catch(()=>({}));
  const action=brief(body.action,55);
  if(!paid)return reject('Premium membership required',403);
- if(action.startsWith('admin_')&&(!admin||!aal2(header)))return reject('Administrator MFA required',403);
+ if(action.startsWith('admin_')&&!admin)return reject('Administrator access required',403);
  const booking=async(id:unknown)=>{
   if(!uuid(id))return null;
   const {data,error}=await db.from('property_booking_requests')
@@ -53,9 +52,9 @@ Deno.serve(async(req)=>{
   case 'admin_register_signer_name':{
    if(!uuid(body.user_id)||body.user_id===uid||brief(body.legal_name,180).length<3||body.independent_review_confirmed!==true)
     return reject('Independent approved legal-name review required');
-   const {data:verification}=await db.from('age_verification_requests').select('status,expires_at')
+   const {data:verification}=await db.from('member_admissions').select('id,user_id,admitted_at,source,created_at')
     .eq('user_id',body.user_id).order('created_at',{ascending:false}).limit(1);
-   if(verification?.[0]?.status!=='approved'||verification[0]?.expires_at&&Date.parse(verification[0].expires_at)<=Date.now())
+   if(!verification?.[0]?.admitted_at)
     return reject('Target member must be independently age verified',403);
    const method=['reviewed_government_id','approved_identity_provider'].includes(body.method)?body.method:'reviewed_government_id';
    const {data,error}=await db.from('hosting_verified_signer_names')

@@ -51,7 +51,7 @@ export default function HostingAdminOperations(){
  const confirm=(message)=>reviewed&&window.confirm(message);
  return <section className="space-y-5 text-white">
   <div className="flex justify-between gap-3 items-start">
-    <div><h2 className="text-2xl font-semibold">Hosting compliance and finance reviews</h2><p className="text-sm text-[#A2B6CF] mt-2">Sensitive admin operations require MFA. Financial approvals do not move money without a provider.</p></div>
+    <div><h2 className="text-2xl font-semibold">Hosting compliance and finance reviews</h2><p className="text-sm text-[#A2B6CF] mt-2">Sensitive admin operations require administrator permissions. Financial approvals do not move money without a provider.</p></div>
     <button className={secondary} disabled={busy} onClick={refresh}><RefreshCw size={16}/></button>
   </div>
   {error&&<p role="alert" className="rounded-lg bg-red-950 p-3 text-sm text-red-200">{error}</p>}

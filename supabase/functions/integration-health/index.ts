@@ -7,15 +7,6 @@ import {PROVIDERS,inspectProvider,trustedOrigin} from './providerChecks.mjs';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type',
   'Access-Control-Allow-Methods':'POST, OPTIONS'};
 const reply=(body:unknown,status=200)=>Response.json(body,{status,headers:cors});
-const assurance=(header:string)=>{
-  try{
-    const jwt=header.replace(/^Bearer\s+/i,'');
-    const p=jwt.split('.')[1];
-    const decoded=atob(p.replace(/-/g,'+').replace(/_/g,'/')
-      .padEnd(Math.ceil(p.length/4)*4,'='));
-    return JSON.parse(decoded)?.aal==='aal2';
-  }catch{return false;}
-};
 Deno.serve(async req=>{
   if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
   if(req.method!=='POST')return reply({error:'Method not allowed'},405);
@@ -30,12 +21,11 @@ Deno.serve(async req=>{
     .select('admin,banned,suspended').eq('user_id',user.id).maybeSingle();
   if(accountError||!account?.admin||account.banned||account.suspended)
     return reply({error:'Administrator required'},403);
-  if(!assurance(token))return reply({error:'Administrator MFA required'},403);
-  const {data:age,error:ageError}=await db.from('age_verification_requests')
-    .select('status,expires_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(1);
-  if(ageError||age?.[0]?.status!=='approved'||
-    (age?.[0]?.expires_at&&Date.parse(age[0].expires_at)<Date.now()))
-    return reply({error:'Independent administrator age verification required'},403);
+
+  const {data:age,error:ageError}=await db.from('member_admissions')
+    .select('admitted_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(1);
+  if(ageError||!age?.[0]?.admitted_at)
+    return reply({error:'Complete account onboarding first'},403);
 
   // Collect ONLY configuration presence; neither provider responses nor secrets
   // belong in this administrative diagnostics payload.

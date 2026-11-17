@@ -1,5 +1,7 @@
 # Content Connect X
 
+> **Current account-entry policy (2026-11-17):** New Content Connect X signups complete independent age verification once before entry. After admission, features do not impose additional age-verification or mandatory MFA gates. Two-factor enrollment is optional; a voluntarily enrolled factor still protects sign-in. Existing admin continuity is recorded separately from independent age evidence. See [account-entry policy](docs/ACCOUNT_ENTRY_AND_OPTIONAL_MFA.md). Older rollout/MFA descriptions below are historical.
+
 Content Connect X is an age-verified professional collaboration platform for adult creators, studios, agents, photographers, videographers and production teams.
 
 ## Architecture

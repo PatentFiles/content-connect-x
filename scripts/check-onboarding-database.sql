@@ -8,7 +8,7 @@ SELECT set_config('ccx.probe_user',gen_random_uuid()::text,true),set_config('ccx
 INSERT INTO auth.users(id,aud,role,email,created_at,updated_at)
  SELECT current_setting('ccx.probe_user')::uuid,'authenticated','authenticated','ccx-schema-probe-'||current_setting('ccx.probe_user')||'@example.invalid',now(),now()
  UNION ALL SELECT current_setting('ccx.probe_other')::uuid,'authenticated','authenticated','ccx-schema-probe-'||current_setting('ccx.probe_other')||'@example.invalid',now(),now();
-INSERT INTO public.member_profiles(id,display_name) VALUES(current_setting('ccx.probe_other')::uuid,'Synthetic other user');
+INSERT INTO public.member_profiles(id,display_name) VALUES(current_setting('ccx.probe_other')::uuid,'Synthetic other user') ON CONFLICT(id) DO NOTHING;
 INSERT INTO public.age_verification_requests(user_id,status,provider) VALUES(current_setting('ccx.probe_user')::uuid,'pending','manual'),(current_setting('ccx.probe_other')::uuid,'pending','manual');
 SELECT set_config('request.jwt.claims',jsonb_build_object('sub',current_setting('ccx.probe_user'),'role','authenticated','aal','aal1')::text,true);
 SET LOCAL ROLE authenticated;

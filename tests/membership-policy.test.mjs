@@ -30,14 +30,15 @@ test('same-city and mapped-city access use a strict 25 mile cutoff',()=>{
  assert.equal(localContactStatus({...la,state:''},{...la,state:''},[]).allowed,false);
  assert.ok(milesBetween(areas[0],areas[2])>25);
 });
-test('unverified users see only non-dismissable onboarding and verified users are checked by Edge',()=>{
+test('unfinished signups see only non-dismissable onboarding and admitted members are checked by Edge',()=>{
  const app=read('src/supabase/SupabaseApp.jsx');
  const gate=read('src/supabase/AgeGateOnboarding.jsx');
  const backend=read('supabase/functions/member-workflows/index.ts');
  assert.match(app,/if\(user&&!approved\)return <AgeGateOnboarding/);
  assert.match(gate,/aria-modal="true"/);
  assert.doesNotMatch(gate,/setModalOpen\(false\)/);
- assert.match(backend,/Approved age verification required/);
+ assert.match(backend,/Complete account onboarding first/);
+ assert.match(backend,/from\('member_admissions'\)/);
 });
 test('private socials require verified paid authorization, never free browser reads',()=>{
  const db=read('supabase/migrations/20261117132747_member_social_links_opt_in.sql');

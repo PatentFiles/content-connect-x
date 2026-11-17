@@ -8,7 +8,7 @@ const cors={
 };
 const respond=(body:unknown,status=200)=>Response.json(body,{status,headers:cors});
 const uuid=(v:unknown)=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
-const current=(record:any)=>record?.status==='approved'&&(!record.expires_at||Date.parse(record.expires_at)>Date.now());
+const isAdmitted=(record:any)=>Boolean(record?.admitted_at);
 Deno.serve(async(req)=>{
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
  if(req.method!=='POST')return respond({error:'POST required'},405);
@@ -34,8 +34,8 @@ Deno.serve(async(req)=>{
  const owner=body.profile_owner_id;
  if(!uuid(owner)||owner===uid)return respond({ok:true,recorded:false});
  const [viewerAge,ownerAge,ownerProfile,ownerSecurity,viewerSubscription,flag,blocked]=await Promise.all([
-  db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
-  db.from('age_verification_requests').select('status,expires_at').eq('user_id',owner).order('created_at',{ascending:false}).limit(1),
+  db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
+  db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',owner).order('created_at',{ascending:false}).limit(1),
   db.from('member_profiles').select('id,profile_complete').eq('id',owner).maybeSingle(),
   db.from('account_security').select('banned,suspended').eq('user_id',owner).maybeSingle(),
   db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
@@ -48,7 +48,7 @@ Deno.serve(async(req)=>{
  const premium=security?.admin===true||(['active','trial'].includes(sub?.status)&&(!sub?.period_end||Date.parse(sub.period_end)>Date.now()));
  const feature=flag.data;
  let hash=0;for(const char of uid+'creator_discovery')hash=(hash*31+char.charCodeAt(0))>>>0;
- if(!current(viewerAge.data?.[0])||!current(ownerAge.data?.[0])||
+ if(!isAdmitted(viewerAge.data?.[0])||!isAdmitted(ownerAge.data?.[0])||
     !ownerProfile.data?.profile_complete||ownerSecurity.data?.banned||ownerSecurity.data?.suspended||
     blocked.data?.length||!feature?.enabled||!feature.allowed_tiers?.includes(premium?'premium':'free')||
     hash%100>=feature.rollout_percent)return respond({error:'Profile not available'},403);

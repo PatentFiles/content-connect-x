@@ -37,7 +37,7 @@ try{
  for(const role of ['photographer','videographer','video_editor']){const html=renderToStaticMarkup(React.createElement(Portfolio,{userId:user.id,role,preview:true}));assert.ok(html.includes('Portfolio')&&html.includes('Add work'));checks++;}
  const card=renderToStaticMarkup(React.createElement(Card,{person:{id:user.id,display_name:'Synthetic sample',role_type:'creator',city:'Phoenix',age_verified:true},saved:true,onClick:()=>{},onFavorite:()=>{}}));
  assert.ok(card.includes('Remove favorite: Synthetic sample')&&card.includes('aria-pressed="true"')&&card.includes('right-3 top-3'));checks++;
- for(const [reason,title] of [['verification_required','Complete your age verification'],['mfa_required','two-factor authentication'],['role_required','matching professional account'],['membership_required','Premium membership'],['unavailable','could not be loaded']]){
+ for(const [reason,title] of [['onboarding_required','Complete your signup'],['role_required','matching professional account'],['membership_required','Premium membership'],['unavailable','could not be loaded']]){
   const state={roster:true,__ccxLoaded:true,__ccxAccess:{roster:{eligible:false,reason}}};
   const html=renderToStaticMarkup(React.createElement(Boundary,{tab:'roster',flags:state,onNavigate:()=>{}},'MUST NOT MOUNT'));
   assert.ok(html.includes(title));assert.ok(!html.includes('MUST NOT MOUNT'));assert.ok(!html.includes('module is turned off'));checks++;

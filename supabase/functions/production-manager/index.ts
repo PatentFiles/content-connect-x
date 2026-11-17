@@ -11,16 +11,6 @@ const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{
 const safe=(v:unknown,n=1000)=>typeof v==='string'?v.trim().slice(0,n):'';
 const active=(s:any)=>['active','trial'].includes(s?.status)&&(!s.period_end||Date.parse(s.period_end)>Date.now());
 
-// The JWT has already been validated by Supabase Auth.getUser before this is used.
-const assurance=(header:string)=>{
-  try {
-    const jwt=header.replace(/^Bearer\s+/i,'');
-    const payload=jwt.split('.')[1];
-    const base64=payload.replace(/-/g,'+').replace(/_/g,'/');
-    const claims=JSON.parse(atob(base64.padEnd(Math.ceil(base64.length/4)*4,'=')));
-    return claims?.aal==='aal2'?'aal2':'aal1';
-  } catch {return 'aal1';}
-};
 
 Deno.serve(async req=>{
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
@@ -33,18 +23,17 @@ Deno.serve(async req=>{
  const db=createClient(url,secret),uid=user.id;
  const [security,age,subscription]=await Promise.all([
    db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
-   db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
+   db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
    db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle()
  ]);
  if(security.error||age.error||subscription.error)return json({error:'Account status unavailable'},503);
  const body=await req.json().catch(()=>null);
  if(!body||typeof body!=='object')return json({error:'Invalid payload'},400);
  const action=safe(body.action,55),isAdmin=security.data?.admin===true;
- const approved=age.data?.[0]?.status==='approved'&&(!age.data[0].expires_at||Date.parse(age.data[0].expires_at)>Date.now());
+ const approved=Boolean(age.data?.[0]?.admitted_at);
  const paid=isAdmin||active(subscription.data);
- if(!approved)return json({error:'Verified adult account required'},403);
+ if(!approved)return json({error:'Complete account onboarding first'},403);
  const safetyActions=new Set(['create_case','my_cases','case_history','case_add_note','notification_preferences','set_notification_preferences','saved_posts','toggle_saved_post']);
- if(isAdmin&&!safetyActions.has(action)&&assurance(req.headers.get('Authorization')||'')!=='aal2')return json({error:'Administrator MFA required'},403);
  if((security.data?.banned||security.data?.suspended)&&!safetyActions.has(action))return json({error:'Account restricted'},403);
  if(!paid&&!safetyActions.has(action))return json({error:'Paid membership required'},403);
  const key=action.startsWith('teams_')||action==='team_members'?'creator_groups':
@@ -103,12 +92,12 @@ Deno.serve(async req=>{
        const me=await memberOf(body.team_id);
        if(!me||me.status!=='active'||!['owner','manager'].includes(me.role))return json({error:'Team management permission required'},403);
        const [targetAge,block,targetSub,targetSecurity]=await Promise.all([
-         db.from('age_verification_requests').select('status,expires_at').eq('user_id',body.member_id).order('created_at',{ascending:false}).limit(1),
+         db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',body.member_id).order('created_at',{ascending:false}).limit(1),
          db.from('member_blocks').select('blocker_id').or(`and(blocker_id.eq.${uid},blocked_id.eq.${body.member_id}),and(blocker_id.eq.${body.member_id},blocked_id.eq.${uid})`).limit(1),
          db.from('member_subscriptions').select('status,period_end').eq('user_id',body.member_id).maybeSingle(),
          db.from('account_security').select('banned,suspended').eq('user_id',body.member_id).maybeSingle()
        ]);
-       if(targetAge.error||targetAge.data?.[0]?.status!=='approved'||block.error||block.data?.length||targetSub.error||!active(targetSub.data)||targetSecurity.error||targetSecurity.data?.banned||targetSecurity.data?.suspended)return json({error:'Member cannot be invited'},403);
+       if(targetAge.error||!targetAge.data?.[0]?.admitted_at||block.error||block.data?.length||targetSub.error||!active(targetSub.data)||targetSecurity.error||targetSecurity.data?.banned||targetSecurity.data?.suspended)return json({error:'Member cannot be invited'},403);
        const {data:existing}=await db.from('production_team_members').select('status').eq('team_id',body.team_id).eq('member_id',body.member_id).maybeSingle();
        if(existing&&['active','invited'].includes(existing.status))return json({error:'Already invited or joined'},409);
        const {error}=await db.from('production_team_members').upsert({team_id:body.team_id,member_id:body.member_id,role:'member',status:'invited',invited_by:uid,joined_at:null},{onConflict:'team_id,member_id'});
@@ -169,8 +158,8 @@ Deno.serve(async req=>{
        if(!uuid(body.event_id)||!uuid(body.member_id))return json({error:'Invalid event or recipient'},400);
        const event=await eventAccess(body.event_id);
        if(!event||event.organizer_id!==uid)return json({error:'Only the organizer may invite'},403);
-       const {data:ageCheck}=await db.from('age_verification_requests').select('status').eq('user_id',body.member_id).order('created_at',{ascending:false}).limit(1);
-       if(ageCheck?.[0]?.status!=='approved')return json({error:'Recipient must be verified'},403);
+       const {data:ageCheck}=await db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',body.member_id).order('created_at',{ascending:false}).limit(1);
+       if(!ageCheck?.[0]?.admitted_at)return json({error:'Recipient must have completed signup'},403);
        const {error}=await db.from('production_event_rsvps').upsert({event_id:event.id,user_id:body.member_id,status:'invited'},{onConflict:'event_id,user_id',ignoreDuplicates:true});
        if(error)throw error;
        await db.from('member_notifications').insert({recipient_id:body.member_id,kind:'event_invite',title:'New shoot invitation',details:{event_id:event.id}});

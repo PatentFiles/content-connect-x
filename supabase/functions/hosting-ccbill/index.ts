@@ -14,13 +14,13 @@ Deno.serve(async req=>{
  if(authError||!user)return send({error:'Unauthorized'},401);
  const db=createClient(url,secret),uid=user.id;
  const [age,security,sub]=await Promise.all([
-  db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
+  db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
   db.from('account_security').select('banned,suspended').eq('user_id',uid).maybeSingle(),
   db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle()
  ]);
  if(age.error||security.error||sub.error||security.data?.banned||security.data?.suspended||
-   age.data?.[0]?.status!=='approved'||age.data[0]?.expires_at&&Date.parse(age.data[0].expires_at)<=Date.now())
-  return send({error:'Verified adult account required'},403);
+   !age.data?.[0]?.admitted_at)
+  return send({error:'Complete account onboarding first'},403);
  if(!['active','trial'].includes(sub.data?.status)||sub.data?.period_end&&Date.parse(sub.data.period_end)<=Date.now())
   return send({error:'Active premium membership required'},403);
  const payload=await req.json().catch(()=>({}));

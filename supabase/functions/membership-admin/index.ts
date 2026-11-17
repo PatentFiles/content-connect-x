@@ -1,4 +1,4 @@
-/** Membership plan administration. Public prices are read through RLS; writes require AAL2 administrators. */
+/** Membership plan administration. Public prices are read through RLS; writes require admitted database-authorized administrators. */
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
 const cors={'Access-Control-Allow-Origin':'*',
  'Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info,x-supabase-client-platform,x-supabase-client-platform-version,x-supabase-client-runtime,x-supabase-client-runtime-version',
@@ -18,12 +18,12 @@ Deno.serve(async req=>{
   !Number.isSafeInteger(body.monthly_cents)||body.monthly_cents<0||body.monthly_cents>1000000)
    return reply({error:'Invalid plan or monthly price'},400);
  const db=createClient(url,secret),uid=user.id;
- const [role,aal]=await Promise.all([
+ const [role,admission]=await Promise.all([
   db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
-  auth.auth.mfa.getAuthenticatorAssuranceLevel()
+  db.from('member_admissions').select('id').eq('user_id',uid).maybeSingle()
  ]);
- if(role.error||aal.error||!role.data?.admin||role.data.banned||role.data.suspended||aal.data?.currentLevel!=='aal2')
-  return reply({error:'Administrator MFA required'},403);
+ if(role.error||admission.error||!admission.data||!role.data?.admin||role.data.banned||role.data.suspended)
+  return reply({error:'Administrator access required'},403);
  const {data:plan,error:findError}=await db.from('membership_plan_catalog')
   .select('plan_code,role_type').eq('plan_code',body.plan_code).eq('active',true).maybeSingle();
  if(findError||!plan)return reply({error:'Plan unavailable'},404);

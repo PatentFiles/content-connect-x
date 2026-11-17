@@ -21,13 +21,13 @@ Deno.serve(async req=>{
  const {data:{user},error:e}=await auth.auth.getUser();if(e||!user)return deny('Unauthorized',401);
  const db=createClient(url,secret),uid=user.id;
  const [verification,security,sub,ohAccount]=await Promise.all([
-  db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
+  db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
   db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
   db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
   db.from('onlyhost_accounts').select('status').eq('user_id',uid).maybeSingle()
  ]);
  if(verification.error||security.error||sub.error||ohAccount.error)return deny('Account status unavailable',503);
- const adult=verification.data?.[0]?.status==='approved'&&(!verification.data[0].expires_at||Date.parse(verification.data[0].expires_at)>Date.now());
+ const adult=Boolean(verification.data?.[0]?.admitted_at);
  if(security.data?.banned||security.data?.suspended)return deny('Account restricted',403);
  const paid=security.data?.admin||['active','trial'].includes(sub.data?.status)&&(!sub.data?.period_end||Date.parse(sub.data.period_end)>Date.now());
  const {data:hostTerms,error:hostTermsError}=await db.from('onlyhost_accounts')
@@ -42,7 +42,7 @@ Deno.serve(async req=>{
   'discount_create','discount_list','discount_disable','host_addons_list','addon_upsert','bundle_create','addon_condition']);
  if(!adult&&!(onlyHostEligible&&hostOnlyActions.has(action))&&
     !['areas_public','addons_public','commute_estimates'].includes(action))
-   return deny('Creator verification or current Host Connect host agreement required',403);
+   return deny('Complete creator signup or accept the current Host Connect host agreement',403);
  if(hostOnlyActions.has(action)&&!onlyHostEligible)
    return deny('Accept the current Host Connect property agreement to manage property pricing',403);
  const own=async(propertyId:unknown)=>{

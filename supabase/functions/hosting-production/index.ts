@@ -9,7 +9,6 @@ const reply=(body:unknown,status=200)=>Response.json(body,{status,headers:cors})
 const deny=(error:string,status=400)=>reply({error},status);
 const valid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 const txt=(v:unknown,n=100)=>typeof v==='string'?v.trim().slice(0,n):'';
-const keyAAL=(token:string)=>{try{const x=token.replace(/^Bearer\s+/i,'').split('.')[1];const d=atob(x.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(x.length/4)*4,'='));return JSON.parse(d)?.aal==='aal2';}catch{return false;}};
 const nonEmpty=['assistant','coordinator','security','cleaner','crew'];
 Deno.serve(async request=>{
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
@@ -22,13 +21,13 @@ Deno.serve(async request=>{
  if(authError||!user)return deny('Unauthorized',401);
  const db=createClient(url,secret),uid=user.id;
  const [age,security,sub,hostAccount]=await Promise.all([
-  db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
+  db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
   db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
   db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
   db.from('onlyhost_accounts').select('status,terms_version,legal_capacity_confirmed,property_authority_confirmed,adult_production_understood').eq('user_id',uid).maybeSingle()
  ]);
  if(age.error||security.error||sub.error||hostAccount.error)return deny('Account eligibility unavailable',503);
- const verified=age.data?.[0]?.status==='approved'&&(!age.data[0].expires_at||Date.parse(age.data[0].expires_at)>Date.now());
+ const verified=Boolean(age.data?.[0]?.admitted_at);
  const hostEligible=hostAccount.data?.status==='active'&&hostAccount.data?.terms_version==='host-2026-11-17'&&
   hostAccount.data?.legal_capacity_confirmed===true&&hostAccount.data?.property_authority_confirmed===true&&
   hostAccount.data?.adult_production_understood===true;
@@ -43,11 +42,11 @@ Deno.serve(async request=>{
   'insurance_submit','insurance_view','booking_check','incident_report','incident_my',
   'incident_evidence_token','incident_evidence_register','suitability_save','suitability_get']);
  if(!verified&&!(hostEligible&&hostActions.has(action)))
-  return deny('Creator verification or current property-host agreement required',403);
+  return deny('Complete creator signup or accept the current property-host agreement',403);
  const safety=new Set(['incident_report','incident_my','incident_evidence_token','incident_evidence_register','booking_access_revoke','my_crew_invites','booking_planning_packet','booking_chat_info','booking_chat_list','booking_chat_send','suitability_get','staff_respond','my_staff_invites','booking_access_respond','cleaning_jobs','cleaning_task','supplies','supply_adjust']);
  if((security.data?.banned||security.data?.suspended)&&!safety.has(action))return deny('Account restricted',403);
  if(!paid&&!safety.has(action))return deny('Active premium membership required',403);
- if(action.startsWith('admin_')&&(!admin||!keyAAL(bearer)))return deny('Administrator MFA required',403);
+ if(action.startsWith('admin_')&&!admin)return deny('Administrator access required',403);
  const own=async(id:unknown)=>{
   if(!valid(id))return null;
   const {data,error}=await db.from('properties').select('id,owner_id,title,required_insurance,permitted_uses,city,state,country')
@@ -73,10 +72,10 @@ Deno.serve(async request=>{
   if(error)throw error;return data;
  };
  const isVerified=async(userId:string)=>{
-  const {data,error}=await db.from('age_verification_requests').select('status,expires_at')
+  const {data,error}=await db.from('member_admissions').select('id,user_id,admitted_at,source,created_at')
    .eq('user_id',userId).order('created_at',{ascending:false}).limit(1);
   if(error)throw error;
-  return data?.[0]?.status==='approved'&&(!data[0].expires_at||Date.parse(data[0].expires_at)>Date.now());
+  return Boolean(data?.[0]?.admitted_at);
  };
  const notify=async(target:string,title:string,bookId:string)=>{
   await db.from('member_notifications').insert({recipient_id:target,kind:'hosting_production',title,details:{booking_id:bookId}});
@@ -605,15 +604,15 @@ Deno.serve(async request=>{
   return reply({item:data,note:'Host-declared suitability; professional verification requires independent review.'});
  }
  case 'admin_suitability_queue':{
-  if(!admin||!keyAAL(bearer))return deny('MFA administrator required',403);
+  if(!admin)return deny('Administrator access required',403);
   const {data,error}=await db.from('hosting_suitability')
    .select('property_id,adult_production_permitted,privacy_level,soundproof_confirmed,parking_spaces,separate_dressing_rooms,noise_restrictions,permits_verified')
    .eq('permits_verified',false).limit(80);
   if(error)throw error;return reply({items:data||[]});
  }
  case 'admin_suitability_review':{
-  if(!admin||!keyAAL(bearer)||!valid(body.property_id)||body.review_confirmed!==true||typeof body.approved!=='boolean')
-   return deny('Independent MFA review required',403);
+  if(!admin||!valid(body.property_id)||body.review_confirmed!==true||typeof body.approved!=='boolean')
+   return deny('Independent administrator review required',403);
   const {data:prop}=await db.from('properties').select('id,owner_id').eq('id',body.property_id).maybeSingle();
   if(!prop||prop.owner_id===uid)return deny('Self-approval prohibited',403);
   const {data,error}=await db.from('hosting_suitability').update({

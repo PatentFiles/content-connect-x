@@ -1,6 +1,6 @@
 /**
  * Content Connect X trusted workflow gateway.
- * All writes of premium records run after explicit account, age, subscription,
+ * All writes of premium records run after explicit account admission, subscription,
  * and resource membership checks. Raw tables do not expose client insert policies.
  */
 import { createClient } from 'npm:@supabase/supabase-js@2.95.0';
@@ -14,22 +14,12 @@ const respond=(data:unknown,status=200)=>new Response(JSON.stringify(data),{stat
 const isId=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 const text=(v:unknown,max=1000)=>typeof v==='string'?v.trim().slice(0,max):'';
 const isActive=(v:any)=>v&&['active','trial'].includes(v.status)&&(!v.period_end||new Date(v.period_end)>new Date());
-const isAdult=(rows:any[])=>rows.length>0&&rows[0].status==='approved'&&(!rows[0].expires_at||new Date(rows[0].expires_at)>new Date());
+const isAdmitted=(rows:any[])=>Boolean(rows?.[0]?.admitted_at);
 const fail=(message:string,status=400)=>respond({error:message},status);
 const hashContent=async(content:unknown)=>{
   const bytes=new TextEncoder().encode(JSON.stringify(content));
   const digest=await crypto.subtle.digest('SHA-256',bytes);
   return [...new Uint8Array(digest)].map(v=>v.toString(16).padStart(2,'0')).join('');
-};
-// The JWT has already been validated by Supabase Auth.getUser before this is used.
-const assurance=(header:string)=>{
-  try {
-    const jwt=header.replace(/^Bearer\s+/i,'');
-    const payload=jwt.split('.')[1];
-    const base64=payload.replace(/-/g,'+').replace(/_/g,'/');
-    const claims=JSON.parse(atob(base64.padEnd(Math.ceil(base64.length/4)*4,'=')));
-    return claims?.aal==='aal2'?'aal2':'aal1';
-  } catch {return 'aal1';}
 };
 
 Deno.serve(async req=>{
@@ -45,22 +35,21 @@ Deno.serve(async req=>{
   const uid=user.id;
   const [securityResult,verificationResult,subscriptionResult]=await Promise.all([
     admin.from('account_security').select('banned,suspended,admin').eq('user_id',uid).maybeSingle(),
-    admin.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
+    admin.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
     admin.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
   ]);
   if(securityResult.error||verificationResult.error||subscriptionResult.error)return fail('Account status unavailable',503);
   const security=securityResult.data;
   if(security?.banned||security?.suspended)return fail('Account unavailable',403);
   const adminRole=security?.admin===true;
-  // Every member, including administrators, needs independently approved age verification.
-  const verified=isAdult(verificationResult.data||[]);
+  // One persisted signup admission grants entry; no feature-specific age or MFA gate.
+  const verified=isAdmitted(verificationResult.data||[]);
   const paid=adminRole||isActive(subscriptionResult.data);
   const body=await req.json().catch(()=>null);
   if(!body||typeof body!=='object')return fail('Invalid JSON',400);
   const action=text(body.action,65);
-  if(!verified)return fail('Approved age verification required',403);
+  if(!verified)return fail('Complete account onboarding first',403);
   const freeSafetyActions=new Set(['block_user','unblock_user','submit_report','list_blocks']);
-  if(adminRole&&!freeSafetyActions.has(action)&&assurance(req.headers.get('Authorization')||'')!=='aal2')return fail('Administrator MFA required',403);
   if(!paid&&!freeSafetyActions.has(action)&&!isFreeAction(action))return fail('Active paid membership required',402);
   // Real feature flags are evaluated on the server, never trusted from UI.
   const actionFeatures:Record<string,string>={
@@ -174,9 +163,9 @@ Deno.serve(async req=>{
         const {data:collab,error:collabError}=await admin.from('collaborations').select('id,creator_id,title').eq('id',cid).maybeSingle();
         if(collabError||!collab||collab.creator_id!==uid)return fail('Only the collaboration owner can invite members',403);
         if(await memberOf(cid,invitee))return fail('Already a member',409);
-        const {data:theirAge,error:ageError}=await admin.from('age_verification_requests').select('status,expires_at').eq('user_id',invitee).order('created_at',{ascending:false}).limit(1);
+        const {data:theirAge,error:ageError}=await admin.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',invitee).order('created_at',{ascending:false}).limit(1);
         const {data:theirSubscription,error:subError}=await admin.from('member_subscriptions').select('status,period_end').eq('user_id',invitee).maybeSingle();
-        if(ageError||subError||!isAdult(theirAge||[])||!isActive(theirSubscription))return fail('Invitee must be verified and subscribed',403);
+        if(ageError||subError||!isAdmitted(theirAge||[])||!isActive(theirSubscription))return fail('Invitee must be verified and subscribed',403);
         const {data,error}=await admin.from('collaboration_invitations').insert({collaboration_id:cid,invited_by:uid,invitee_id:invitee,status:'pending'}).select('id,collaboration_id,status').single();
         if(error)return fail('Invitation already exists or cannot be created',409);
         await notification(invitee,'collaboration_invite','New collaboration invitation',{invitation_id:data.id,collaboration_id:cid});
@@ -215,14 +204,14 @@ Deno.serve(async req=>{
       case 'request_connection':{
         const target=body.target_user_id;
         if(!isId(target)||target===uid)return fail('A valid recipient is required');
-        const {data:otherAge,error:ageError}=await admin.from('age_verification_requests')
-          .select('status,expires_at').eq('user_id',target)
+        const {data:otherAge,error:ageError}=await admin.from('member_admissions')
+          .select('id,user_id,admitted_at,source,created_at').eq('user_id',target)
           .order('created_at',{ascending:false}).limit(1);
         const {data:otherSub,error:subError}=await admin.from('member_subscriptions')
           .select('status,period_end').eq('user_id',target).maybeSingle();
         const {data:otherSec,error:secError}=await admin.from('account_security')
           .select('banned,suspended').eq('user_id',target).maybeSingle();
-        if(ageError||subError||secError||!isAdult(otherAge||[])||otherSec?.banned||otherSec?.suspended)
+        if(ageError||subError||secError||!isAdmitted(otherAge||[])||otherSec?.banned||otherSec?.suspended)
           return fail('The recipient cannot receive requests',403);
         const {data:blocks,error:blockError}=await admin.from('member_blocks').select('blocker_id')
           .or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1);
@@ -285,8 +274,8 @@ Deno.serve(async req=>{
         if(!isId(target)||target===uid)return fail('Valid recipient required');
         const {data:targetSecurity,error:targetError}=await admin.from('account_security').select('banned,suspended').eq('user_id',target).maybeSingle();
         if(targetError||targetSecurity?.banned||targetSecurity?.suspended)return fail('Recipient unavailable',403);
-        const {data:theirAge,error:theirAgeError}=await admin.from('age_verification_requests').select('status,expires_at').eq('user_id',target).order('created_at',{ascending:false}).limit(1);
-        if(theirAgeError||!isAdult(theirAge||[]))return fail('Recipient is not verified',403);
+        const {data:theirAge,error:theirAgeError}=await admin.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',target).order('created_at',{ascending:false}).limit(1);
+        if(theirAgeError||!isAdmitted(theirAge||[]))return fail('Recipient has not completed signup',403);
         const {data:theirSubscription,error:subError}=await admin.from('member_subscriptions').select('status,period_end').eq('user_id',target).maybeSingle();
         if(subError)return fail('Recipient subscription status unavailable',503);
         // Both people must have expressly accepted a connection before direct chat.
@@ -321,12 +310,12 @@ Deno.serve(async req=>{
         if(title.length<3)return fail('Group name required',400);
         for(const target of members){
           const [a,s,b,r]=await Promise.all([
-            admin.from('age_verification_requests').select('status,expires_at').eq('user_id',target).order('created_at',{ascending:false}).limit(1),
+            admin.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',target).order('created_at',{ascending:false}).limit(1),
             admin.from('member_subscriptions').select('status,period_end').eq('user_id',target).maybeSingle(),
             admin.from('member_blocks').select('blocker_id').or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1),
             admin.from('member_connection_requests').select('id').eq('status','accepted').or(`and(requester_id.eq.${uid},recipient_id.eq.${target}),and(requester_id.eq.${target},recipient_id.eq.${uid})`).limit(1)
           ]);
-          if(a.error||s.error||b.error||r.error||!isAdult(a.data||[])||!isActive(s.data)||b.data?.length||!r.data?.length)
+          if(a.error||s.error||b.error||r.error||!isAdmitted(a.data||[])||!isActive(s.data)||b.data?.length||!r.data?.length)
             return fail('Every participant must be verified, subscribed and mutually connected to the organizer',403);
         }
         const {data,error}=await admin.from('conversations').insert({title,kind:'group',created_by:uid}).select('id,title,kind').single();
@@ -515,13 +504,13 @@ Deno.serve(async req=>{
         const target=body.target_user_id;
         if(!isId(target))return fail('Valid member required',400);
         const [ageCheck,settings,securityCheck,blocks]=await Promise.all([
-          admin.from('age_verification_requests').select('status,expires_at').eq('user_id',target).order('created_at',{ascending:false}).limit(1),
+          admin.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',target).order('created_at',{ascending:false}).limit(1),
           admin.from('member_social_links').select('share_with_premium,links').eq('user_id',target).maybeSingle(),
           admin.from('account_security').select('banned,suspended').eq('user_id',target).maybeSingle(),
           admin.from('member_blocks').select('blocker_id').or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1)
         ]);
         if(ageCheck.error||settings.error||securityCheck.error||blocks.error||
-          !isAdult(ageCheck.data||[])||securityCheck.data?.banned||securityCheck.data?.suspended||
+          !isAdmitted(ageCheck.data||[])||securityCheck.data?.banned||securityCheck.data?.suspended||
           blocks.data?.length||!settings.data?.share_with_premium)
           return respond({socials:{}});
         const clean:Record<string,string>={};

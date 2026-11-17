@@ -15,12 +15,15 @@ test('the repair declares each identity and profile-media column idempotently',(
  assert.match(migration,/NOTIFY pgrst, 'reload schema'/);
  assert.doesNotMatch(migration,/DROP\s+(TABLE|COLUMN)|DISABLE ROW LEVEL SECURITY/i);
 });
-test('every field saved by the onboarding popup is covered by the migration assertion',()=>{
- const payload=gate.match(/from\('member_profiles'\)\.upsert\(\{([\s\S]*?)\},\{onConflict:'id'\}/);
- assert.ok(payload,'Find the actual onboarding write, not a separately maintained field list');
- const fields=[...payload[1].matchAll(/\b([a-z_]+):/g)].map(match=>match[1]);
- assert.ok(fields.length>=12,'Expected the complete signup profile payload');
- for(const name of fields)assert.ok(migration.includes("'"+name+"'"),'Missing database assertion for '+name);
+test('email signup goes directly to age review without a required profile form',()=>{
+ assert.doesNotMatch(gate,/from\('member_profiles'\)\.upsert|profile_complete|saveProfile/);
+ assert.match(gate,/Your account is created/);
+ assert.match(gate,/finish your profile after verification/);
+ const entry=read('supabase/migrations/20261117232051_one_time_signup_admission_optional_mfa.sql');
+ assert.match(entry,/bootstrap_signup_account/);
+ assert.match(entry,/INSERT INTO public.account_security/i);
+ assert.match(entry,/INSERT INTO public.member_profiles/i);
+ assert.match(entry,/VALUES\(NEW.id,false,false,false\)/i);
 });
 test('profile reload includes all names and only selects known contract columns',()=>{
  const select=app.match(/from\('member_profiles'\)\.select\('([^']+)'\)/);

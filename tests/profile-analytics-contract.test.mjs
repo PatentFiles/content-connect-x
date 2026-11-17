@@ -13,7 +13,7 @@ test('profile-view table is private with per-member daily deduplication',()=>{
 test('statistics are owner-scoped and raw visitor information is not published',()=>{
  assert.match(edge,/p_owner:uid/);
  assert.match(edge,/db\.rpc\('ccx_profile_view_summary'/);
- assert.match(edge,/!current\(viewerAge\.data\?\.\[0\]\)/);
+ assert.match(edge,/!isAdmitted\(viewerAge\.data\?\.\[0\]\)/);
  assert.match(edge,/blocked\.data\?\.length/);
  assert.match(sql,/grant execute on function public\.ccx_profile_view_summary\(uuid\) to service_role/i);
 });

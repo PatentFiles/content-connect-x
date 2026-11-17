@@ -2,16 +2,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.95.0';
 const cors={ 'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version','Access-Control-Allow-Methods':'POST, OPTIONS' };
 const respond=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,'Content-Type':'application/json'}});
-// The JWT has already been validated by Supabase Auth.getUser before this is used.
-const assurance=(header:string)=>{
-  try {
-    const jwt=header.replace(/^Bearer\s+/i,'');
-    const payload=jwt.split('.')[1];
-    const base64=payload.replace(/-/g,'+').replace(/_/g,'/');
-    const claims=JSON.parse(atob(base64.padEnd(Math.ceil(base64.length/4)*4,'=')));
-    return claims?.aal==='aal2'?'aal2':'aal1';
-  } catch {return 'aal1';}
-};
 
 Deno.serve(async(req)=>{
   if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
@@ -24,7 +14,8 @@ Deno.serve(async(req)=>{
   const admin=createClient(url,secret);
   const {data:role,error:roleError}=await admin.from('account_security').select('admin,banned,suspended').eq('user_id',user.id).maybeSingle();
   if(roleError||!role?.admin||role.banned||role.suspended)return respond({error:'Forbidden'},403);
-  if(assurance(req.headers.get('Authorization')||'')!=='aal2')return respond({error:'Administrator MFA required'},403);
+  const {data:admission,error:admissionError}=await admin.from('member_admissions').select('id').eq('user_id',user.id).maybeSingle();
+  if(admissionError||!admission)return respond({error:'Complete account onboarding first'},403);
   // Administrators may review age-verification requests without submitting their own documents.
   const body=await req.json().catch(()=>({}));
   if(body.action==='list'){

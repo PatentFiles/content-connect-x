@@ -1,6 +1,6 @@
 /**
  * CCX integration control plane:
- * - staff-only MFA-gated server-side Supabase Vault secrets (never returned);
+ * - staff-only server-side Supabase Vault secrets (never returned);
  * - Yoti hosted Age Verification Service (not DIY face recognition);
  * - PASS linking + privacy-preserving, explicit per-collaboration status sharing;
  * - OnlyHost independent access identity for same Supabase property database.
@@ -20,11 +20,6 @@ const secretFields:Record<string,string[]>={
  openmoderate:['openmoderate_api_key'],sentry:['sentry_dsn'],flagsmith:['flagsmith_environment']
 };
 const verified=(row:any)=>row?.status==='approved'&&(!row.expires_at||Date.parse(row.expires_at)>Date.now());
-const assurance=(header:string)=>{
- try{const part=header.replace(/^Bearer\s+/i,'').split('.')[1],b=part.replace(/-/g,'+').replace(/_/g,'/');
-  return JSON.parse(atob(b.padEnd(Math.ceil(b.length/4)*4,'=')))?.aal==='aal2';}
- catch{return false;}
-};
 Deno.serve(async req=>{
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
  if(req.method!=='POST')return bad('POST required',405);
@@ -37,21 +32,22 @@ Deno.serve(async req=>{
  const body=await req.json().catch(()=>null);
  if(!body||typeof body!=='object')return bad('Invalid JSON');
  const action=txt(body.action,70);
- const [sec,ages]=await Promise.all([
+ const [sec,ages,admission]=await Promise.all([
   db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
-  db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1)
+  db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
+  db.from('member_admissions').select('admitted_at').eq('user_id',uid).maybeSingle()
  ]);
- if(sec.error||ages.error)return bad('Cannot verify access',503);
+ if(sec.error||ages.error||admission.error)return bad('Cannot verify access',503);
  const admin=sec.data?.admin===true;
  if(sec.data?.banned||sec.data?.suspended){
   if(!['pass_disconnect','pass_revoke','pass_link_status'].includes(action))return bad('Account restricted',403);
  }
  const adminAction=action.startsWith('admin_');
- if(adminAction&&(!admin||!assurance(header)))return bad('Administrator MFA required',403);
+ if(adminAction&&(!admin||!admission.data?.admitted_at))return bad('Administrator access required',403);
  // New sensitive operations respect the Testing module flag. Existing documents,
  // medical data access, withdrawal of consent and admin review remain available.
  if(['clearance_upload_token','clearance_submit','pass_link','pass_share'].includes(action)){
-  if(!verified(ages.data?.[0]))return bad('Approved age verification required',403);
+  if(!admission.data?.admitted_at)return bad('Complete account onboarding first',403);
   const {data:flag,error:flagError}=await db.from('product_feature_flags')
    .select('enabled,allowed_tiers,rollout_percent').eq('key','testing').maybeSingle();
   const {data:sub,error:subError}=await db.from('member_subscriptions')
@@ -337,7 +333,7 @@ Deno.serve(async req=>{
    age_verified:verified(ages.data?.[0])});
  }
  case 'clearance_upload_token':{
-  if(!verified(ages.data?.[0]))return bad('Age verification required',403);
+  if(!admission.data?.admitted_at)return bad('Complete account onboarding first',403);
   const type=txt(body.mime_type,80);
   const extension={'application/pdf':'pdf','image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[type];
   if(!extension)return bad('PDF, JPEG, PNG or WebP required',400);
@@ -347,7 +343,7 @@ Deno.serve(async req=>{
   return out({path,token:data.token});
  }
  case 'clearance_submit':{
-  if(!verified(ages.data?.[0]))return bad('Age verification required',403);
+  if(!admission.data?.admitted_at)return bad('Complete account onboarding first',403);
   const path=txt(body.path,600);
   if(!path.startsWith(uid+'/clearance/')||path.includes('..'))return bad('Invalid private testing document',403);
   const {data:info,error:fileError}=await db.storage.from('ccx-private-clearance').info(path);
@@ -444,7 +440,7 @@ Deno.serve(async req=>{
  }
  case 'pass_link':{
   if(body.allow_status_sync!==true)return bad('Explicit opt-in required',400);
-  if(!verified(ages.data?.[0]))return bad('Verified account required',403);
+  if(!admission.data?.admitted_at)return bad('Verified account required',403);
   const cfg=await conf('pass');
   const {data,error}=await db.from('ccx_pass_links').upsert({
    user_id:uid,status:cfg?.enabled?'pending_confirmation':'awaiting_partner',

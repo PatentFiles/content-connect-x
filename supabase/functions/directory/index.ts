@@ -17,13 +17,13 @@ Deno.serve(async req=>{
  const db=createClient(url,secret);
  const [securityResult,ageResult,subscriptionResult]=await Promise.all([
   db.from('account_security').select('banned,suspended,admin').eq('user_id',user.id).maybeSingle(),
-  db.from('age_verification_requests').select('status,expires_at').eq('user_id',user.id).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(1),
+  db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',user.id).order('created_at',{ascending:false}).order('id',{ascending:false}).limit(1),
   db.from('member_subscriptions').select('status,period_end').eq('user_id',user.id).maybeSingle()
  ]);
  if(securityResult.error||ageResult.error||subscriptionResult.error)return json({error:'Unable to verify membership access'},503);
  if(!securityResult.data||securityResult.data.banned||securityResult.data.suspended)return json({error:'Account unavailable'},403);
  const latest=ageResult.data?.[0];
- if(latest?.status!=='approved'||latest.expires_at&&Date.parse(latest.expires_at)<=Date.now())return json({error:'Independent adult verification required'},403);
+ if(!latest?.admitted_at)return json({error:'Complete account onboarding first'},403);
  const subscription=subscriptionResult.data;
  const premium=Boolean(securityResult.data.admin||subscription&&['active','trial'].includes(subscription.status)&&(!subscription.period_end||Date.parse(subscription.period_end)>Date.now()));
  const body=await req.json().catch(()=>({}));
@@ -33,9 +33,9 @@ Deno.serve(async req=>{
  let hash=0;for(const char of user.id+featureKey)hash=(hash*31+char.charCodeAt(0))>>>0;
  if(hash%100>=flag.rollout_percent)return json({error:'This directory module is not enabled for this account'},403);
  let filters;try{filters=directoryFilters(body,premium);}catch{return json({error:'Invalid directory filter'},400);}
- const {data:verified,error:verificationError}=await db.from('age_verification_requests').select('id,user_id,status,expires_at,created_at').order('created_at',{ascending:false}).order('id',{ascending:false}).limit(5000);
+ const {data:verified,error:verificationError}=await db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').order('created_at',{ascending:false}).order('id',{ascending:false}).limit(5000);
  if(verificationError)return json({error:'Unable to load directory'},503);
- const newest=new Map<string,{status:string,expires_at:string|null}>();
+ const newest=new Map<string,{admitted_at:string,source:string}>();
  for(const value of verified||[])if(!newest.has(value.user_id))newest.set(value.user_id,value);
  const [security,blocks]=await Promise.all([
   db.from('account_security').select('user_id,banned,suspended'),
@@ -44,7 +44,7 @@ Deno.serve(async req=>{
  if(security.error||blocks.error)return json({error:'Unable to load directory'},503);
  const allowed=new Set((security.data||[]).filter(row=>!row.banned&&!row.suspended).map(row=>row.user_id));
  const blocked=new Set((blocks.data||[]).map(row=>row.blocker_id===user.id?row.blocked_id:row.blocker_id));
- let eligible=[...newest.entries()].filter(([id,value])=>allowed.has(id)&&!blocked.has(id)&&value.status==='approved'&&(!value.expires_at||Date.parse(value.expires_at)>Date.now())).map(([id])=>id);
+ let eligible=[...newest.entries()].filter(([id,value])=>allowed.has(id)&&!blocked.has(id)&&Boolean(value.admitted_at)).map(([id])=>id);
  if(filters.ids)eligible=eligible.filter(id=>filters.ids.includes(id));
  if(!eligible.length)return json({results:[],preview:!premium,limit:filters.limit,has_more:false});
  // Opt-in matching only. Never use private orientation, clinical or identity data.
@@ -70,13 +70,17 @@ Deno.serve(async req=>{
  const ids=page.slice(0,filters.limit).map(row=>row.id);
  const prefs=new Map<string,any>();
  if(ids.length){const {data:choices,error:choiceError}=await db.from('member_profile_preferences').select('user_id,gender_identity,content_categories,show_gender_in_discovery,show_categories_in_discovery').in('user_id',ids);if(choiceError)return json({error:'Unable to load directory'},503);for(const choice of choices||[])prefs.set(choice.user_id,choice);}
+ const {data:ageRows,error:badgeError}=await db.from('age_verification_requests').select('user_id,status,expires_at,created_at').in('user_id',ids).order('created_at',{ascending:false});
+ if(badgeError)return json({error:'Unable to load verification badges'},503);
+ const badges=new Map();for(const row of ageRows||[])if(!badges.has(row.user_id))badges.set(row.user_id,row);
  const results=await Promise.all(page.slice(0,filters.limit).map(async row=>{
+  const badge=badges.get(row.id);
   const choice=prefs.get(row.id);let avatarUrl=null;
   const path=safeProfileAvatarPath(row.id,row.avatar_path);
   if(path){const {data:link,error:linkError}=await db.storage.from('member-private').createSignedUrl(path,900);if(!linkError)avatarUrl=link?.signedUrl||null;}
   // A signed avatar is issued only after all viewer/member authorization checks.
   // Raw private storage paths, health reports, legal names and emails stay private.
-  return {id:row.id,display_name:row.display_name,role_type:row.role_type,bio:row.bio,avatar_url:avatarUrl,city:row.city,state:row.state,country:row.country,age_verified:true,gender_identity:choice?.show_gender_in_discovery?choice.gender_identity:null,content_categories:choice?.show_categories_in_discovery?choice.content_categories:[]};
+  return {id:row.id,display_name:row.display_name,role_type:row.role_type,bio:row.bio,avatar_url:avatarUrl,city:row.city,state:row.state,country:row.country,age_verified:badge?.status==='approved'&&(!badge.expires_at||Date.parse(badge.expires_at)>Date.now()),gender_identity:choice?.show_gender_in_discovery?choice.gender_identity:null,content_categories:choice?.show_categories_in_discovery?choice.content_categories:[]};
  }));
  return json({results,preview:!premium,limit:filters.limit,has_more:hasMore,offset:filters.offset});
  }catch{return json({error:'Directory service is temporarily unavailable'},503);}

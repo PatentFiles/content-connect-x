@@ -1,4 +1,4 @@
-/** MFA-only API key control panel. All credential values travel directly to a trusted Edge Function / encrypted Vault. */
+/** Administrator-only API key control panel. All credential values travel directly to a trusted Edge Function / encrypted Vault. */
 import React,{useEffect,useState} from 'react';
 import {ShieldCheck,KeyRound,Eye,EyeOff,RefreshCw,PlugZap,AlertTriangle} from 'lucide-react';
 import {integrationAction} from './integrationApi';
@@ -43,7 +43,7 @@ export default function IntegrationSettings(){
  };
  return <div className="space-y-5">
   <header className="flex items-start justify-between gap-3"><div><h2 className="text-2xl font-bold">API & integration settings</h2>
-   <p className="mt-2 text-sm text-[#AFBDD4]">Enter your provider keys once. Secret values are encrypted in Supabase Vault and are never displayed again. Changing credentials requires an authenticated administrator with MFA.</p></div>
+   <p className="mt-2 text-sm text-[#AFBDD4]">Enter your provider keys once. Secret values are encrypted in Supabase Vault and are never displayed again. Changing credentials requires an authenticated administrator. Two-factor authentication is optional.</p></div>
    <button onClick={load} disabled={busy} className="ccx-secondary rounded-xl p-3" aria-label="Refresh provider status"><RefreshCw size={19}/></button>
   </header>
   <div className="ccx-surface flex items-start gap-3 p-4">

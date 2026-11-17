@@ -18,7 +18,7 @@ export default function AdminConsole({initialSection='features',onFeatureChange}
   <header className="space-y-2">
    <p className="text-xs font-semibold uppercase tracking-widest text-[#FF84D7]">Content Connect X administration</p>
    <h1 className="text-2xl font-bold">Platform control center</h1>
-   <p className="text-sm text-[#ACBED6]">Turn individual modules on or off, control membership rollouts, connect providers, and review private testing submissions. Privileged changes require administrator MFA. Credentials are never stored in browser settings.</p>
+   <p className="text-sm text-[#ACBED6]">Turn individual modules on or off, control membership rollouts, connect providers, and review private testing submissions. Privileged changes require administrator permissions. Two-factor authentication is optional. Credentials are never stored in browser settings.</p>
   </header>
   <div role="tablist" aria-label="Administration areas" className="flex flex-wrap gap-2">
    {sections.map(item=><button key={item.key} type="button" role="tab" aria-selected={section===item.key}

@@ -19,27 +19,21 @@ export default function AdminProductControls({onFeatureChange}){
   const [filter,setFilter]=useState('');
   const [category,setCategory]=useState('all');
   const [queue,setQueue]=useState([]);
-  const [settings,setSettings]=useState({age_verification_required:true});
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   const [notice,setNotice]=useState('');
   const load=useCallback(async()=>{
     setBusy(true);setError('');
     try{
-      const [features,moderation,settingsResult]=await Promise.allSettled([
-        platformAction('admin_list_feature_flags'),platformAction('admin_moderation_queue'),platformAction('admin_get_settings')
+      const [features,moderation]=await Promise.allSettled([
+        platformAction('admin_list_feature_flags'),platformAction('admin_moderation_queue')
       ]);
       // One failed admin subsystem must not hide the others. Report the
       // actual denial instead of misleadingly showing "0 modules".
       if(features.status==='fulfilled')setFlags(features.value.items||[]);
       if(moderation.status==='fulfilled')setQueue(moderation.value.items||[]);
-      if(settingsResult.status==='fulfilled'){
-        const map={};for(const item of settingsResult.value.items||[])map[item.key]=item.value!==false;
-        setSettings(prev=>({...prev,...map}));
-      }
-      const failures=[features,settingsResult].filter(x=>x.status==='rejected');
+      const failures=[features,moderation].filter(x=>x.status==='rejected');
       if(failures.length)throw failures[0].reason;
-      if(moderation.status==='rejected')setNotice('Feature controls loaded. Administrator MFA is required to open the private moderation queue.');
     }catch(e){setError(e.message);}finally{setBusy(false);}
   },[]);
   useEffect(()=>{load();},[load]);
@@ -61,38 +55,17 @@ export default function AdminProductControls({onFeatureChange}){
     try{await platformAction('admin_moderation_decide',{queue_id:id,decision});setNotice('Moderation review recorded.');await load();}
     catch(e){setError(e.message);}finally{setBusy(false);}
   };
-  const toggleAgeGate=async(enabled)=>{
-    setBusy(true);setError('');setNotice('');
-    try{
-      await platformAction('admin_set_setting',{key:'age_verification_required',value:enabled});
-      setSettings(prev=>({...prev,age_verification_required:enabled}));
-      window.dispatchEvent(new Event('ccx-platform-settings-changed'));
-      setNotice(enabled?'Age verification gate turned ON.':'Age verification gate turned OFF — all pages accessible for testing.');
-      onFeatureChange?.();
-    }catch(e){setError(e.message);}finally{setBusy(false);}
-  };
   const filteredFlags=flags.filter(f=>(category==='all'||categoryFor(f.key)===category)&&
     (f.key+' '+f.description).toLowerCase().includes(filter.trim().toLowerCase()));
   return <div className="space-y-5">
     <div className="flex items-center justify-between"><h2 className="text-2xl font-semibold flex items-center gap-2"><Settings size={22}/> Platform controls</h2><button className={button} onClick={load} disabled={busy} aria-label="Refresh controls"><RefreshCw size={17}/></button></div>
     <p className="text-sm text-[#9AA6BC]">Admin-controlled rollouts inspired by Flagsmith. Server subscription and age permissions are enforced separately; turning on a flag cannot bypass them.</p>
-    {error&&<p role="alert" className="bg-red-950 text-red-200 rounded-lg p-3 text-sm">
-      {error}{/mfa|authenticator|assurance/i.test(error)&&<>
-        {' '}Configure or complete your administrator authenticator in <a href="/AccountSecurity" className="font-bold underline underline-offset-2">Account Security</a>, then retry.
-      </>}
-    </p>}
+    {error&&<p role="alert" className="bg-red-950 text-red-200 rounded-lg p-3 text-sm">{error}</p>}
     {notice&&<p role="status" className="bg-emerald-950 text-emerald-200 rounded-lg p-3 text-sm">{notice}</p>}
-    <section className={panel+' space-y-3'}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div><h3 className="text-lg font-semibold flex items-center gap-2"><ShieldAlert size={19}/> Age verification gate</h3>
-        <p className="text-sm text-[#9AA6BC] mt-1">This is a temporary UI/testing switch for member navigation. It does not bypass independent age, consent, payment, or role checks for protected operations. Admin changes require MFA.</p></div>
-        <label className="flex items-center gap-3 text-sm font-semibold">
-          <input type="checkbox" disabled={busy} checked={settings.age_verification_required}
-            onChange={e=>toggleAgeGate(e.target.checked)}/>
-          {settings.age_verification_required?'Enabled':'Disabled (testing mode)'}
-        </label>
-      </div>
-      {!settings.age_verification_required&&<p className="rounded-lg bg-amber-950/60 border border-amber-700/50 px-3 py-2 text-sm text-amber-200">Member UI age onboarding is disabled for testing. Protected creator and production operations still require their own server authorization. Restore the gate before public release.</p>}
+    <section className={panel+' space-y-3'} aria-label="Account entry policy">
+      <h3 className="text-lg font-semibold flex items-center gap-2"><ShieldAlert size={19}/>Signup verification</h3>
+      <p className="text-sm text-[#9AA6BC]">New Content Connect X accounts complete age verification once, before entering the site. Returning to an unfinished signup resumes verification. Admitted accounts are not blocked by additional age or MFA requirements on individual features.</p>
+      <p className="text-sm text-[#9AA6BC]">Two-factor authentication is optional in Account Security. Existing administrator access is preserved separately from age-verification evidence.</p>
     </section>
     <section className="space-y-3">
       <h3 className="text-lg font-semibold">Feature availability ({flags.filter(f=>f.enabled).length}/{flags.length} enabled)</h3>

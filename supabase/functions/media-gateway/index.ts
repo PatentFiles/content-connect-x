@@ -17,16 +17,6 @@ const cors={
 const reply=(data:unknown,status=200)=>Response.json(data,{status,headers:cors});
 const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 const plain=(v:unknown,max=100)=>typeof v==='string'?v.trim().slice(0,max):'';
-// The JWT has already been validated by Supabase Auth.getUser before this is used.
-const assurance=(header:string)=>{
-  try {
-    const jwt=header.replace(/^Bearer\s+/i,'');
-    const payload=jwt.split('.')[1];
-    const base64=payload.replace(/-/g,'+').replace(/_/g,'/');
-    const claims=JSON.parse(atob(base64.padEnd(Math.ceil(base64.length/4)*4,'=')));
-    return claims?.aal==='aal2'?'aal2':'aal1';
-  } catch {return 'aal1';}
-};
 
 Deno.serve(async req=>{
   if(req.method==='OPTIONS')return new Response(null,{status:200,headers:cors});
@@ -39,15 +29,15 @@ Deno.serve(async req=>{
   const db=createClient(url,secret),uid=user.id;
   const [sec,age,sub,flag]=await Promise.all([
     db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
-    db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
+    db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
     db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
     db.from('product_feature_flags').select('enabled,allowed_tiers').eq('key','media_gallery').maybeSingle()
   ]);
   if(sec.error||age.error||sub.error||flag.error)return reply({error:'Account status unavailable'},503);
   if(sec.data?.banned||sec.data?.suspended)return reply({error:'Account unavailable'},403);
   const latest=age.data?.[0];
-  if(latest?.status!=='approved'||(latest.expires_at&&Date.parse(latest.expires_at)<Date.now()))
-    return reply({error:'Age verification required'},403);
+  if(!latest?.admitted_at)
+    return reply({error:'Complete account onboarding first'},403);
   const admin=sec.data?.admin===true;
   const paid=admin||['active','trial'].includes(sub.data?.status)&&(!sub.data?.period_end||Date.parse(sub.data.period_end)>Date.now());
   if(!flag.data?.enabled)return reply({error:'Media gallery is disabled'},403);
@@ -55,7 +45,7 @@ Deno.serve(async req=>{
   if(!allowed.includes(paid?'premium':'free'))return reply({error:'Media gallery unavailable to this membership'},403);
   const body=await req.json().catch(()=>({}));
   const action=body.action;
-  if(admin&&String(action).startsWith('admin_')&&assurance(req.headers.get('Authorization')||'')!=='aal2')return reply({error:'Administrator MFA required'},403);
+  if(String(action).startsWith('admin_')&&!admin)return reply({error:'Administrator access required'},403);
   const bucket=db.storage.from('member-private');
   const audit=async(event:string,target:string,details:Record<string,unknown>={})=>{
     await db.from('platform_action_audit').insert({actor_id:uid,action:event,target_type:'media',target_id:target,metadata:details});
@@ -168,13 +158,12 @@ Deno.serve(async req=>{
       if(uuid(body.album_id))q=q.eq('album_id',body.album_id);
       const {data,error}=await q;if(error)throw error;
       const [ownerAge,ownerSecurity]=await Promise.all([
-        db.from('age_verification_requests').select('status,expires_at').eq('user_id',target)
+        db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',target)
           .order('created_at',{ascending:false}).limit(1),
         db.from('account_security').select('banned,suspended').eq('user_id',target).maybeSingle()
       ]);
       if(ownerAge.error||ownerSecurity.error||ownerSecurity.data?.banned||
-        ownerSecurity.data?.suspended||ownerAge.data?.[0]?.status!=='approved'||
-        (ownerAge.data?.[0]?.expires_at&&Date.parse(ownerAge.data[0].expires_at)<Date.now()))
+        ownerSecurity.data?.suspended||!ownerAge.data?.[0]?.admitted_at)
         return reply({items:[]});
       const {data:blocks,error:blockError}=await db.from('member_blocks').select('blocker_id')
         .or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1);
@@ -198,14 +187,13 @@ Deno.serve(async req=>{
       if(asset.owner_id!==uid&&asset.status!=='approved')return reply({error:'Media not available'},403);
       if(asset.owner_id!==uid){
         const [ownerAge,ownerSecurity]=await Promise.all([
-          db.from('age_verification_requests').select('status,expires_at')
+          db.from('member_admissions').select('id,user_id,admitted_at,source,created_at')
             .eq('user_id',asset.owner_id).order('created_at',{ascending:false}).limit(1),
           db.from('account_security').select('banned,suspended')
             .eq('user_id',asset.owner_id).maybeSingle()
         ]);
         if(ownerAge.error||ownerSecurity.error||ownerSecurity.data?.banned||
-          ownerSecurity.data?.suspended||ownerAge.data?.[0]?.status!=='approved'||
-          (ownerAge.data?.[0]?.expires_at&&Date.parse(ownerAge.data[0].expires_at)<Date.now()))
+          ownerSecurity.data?.suspended||!ownerAge.data?.[0]?.admitted_at)
           return reply({error:'Media unavailable'},403);
         if(asset.visibility==='private')return reply({error:'Private media'},403);
         const {data:blocks,error:blockError}=await db.from('member_blocks').select('blocker_id')

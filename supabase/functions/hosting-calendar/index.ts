@@ -129,12 +129,12 @@ Deno.serve(async req=>{
   if(error||!user)return err('Unauthorized',401);
   uid=user.id;
   const [age,security,sub,hostAccount]=await Promise.all([
-   db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
+   db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
    db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
    db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
    db.from('onlyhost_accounts').select('status,terms_version,legal_capacity_confirmed,property_authority_confirmed,adult_production_understood').eq('user_id',uid).maybeSingle()
   ]);
-  const adultVerified=age.data?.[0]?.status==='approved'&&(!age.data?.[0]?.expires_at||Date.parse(age.data[0].expires_at)>Date.now());
+  const adultVerified=Boolean(age.data?.[0]?.admitted_at);
   const hostEligible=hostAccount.data?.status==='active'&&hostAccount.data?.terms_version==='host-2026-11-17'&&
    hostAccount.data?.legal_capacity_confirmed===true&&hostAccount.data?.property_authority_confirmed===true&&
    hostAccount.data?.adult_production_understood===true;

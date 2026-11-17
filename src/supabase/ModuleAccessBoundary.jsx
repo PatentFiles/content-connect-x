@@ -11,7 +11,7 @@ export default function ModuleAccessBoundary({tab,flags,onNavigate,children}){
  if(reason==='ready')return children;
  // Existing role-specific preview components suppress all reads and writes.
  // A layout preview must never be confused with an editable second account.
- if(workspace.preview&&['roster','portfolio'].includes(tab)&&['role_required','verification_required','mfa_required','membership_required'].includes(reason))return children;
+ if(workspace.preview&&['roster','portfolio'].includes(tab)&&['role_required','membership_required'].includes(reason))return children;
  const copy=accessCopy(reason);
  const retry=()=>window.dispatchEvent(new Event('focus'));
  return <section className="ccx-surface space-y-4 p-5" role={reason==='loading'?'status':'alert'}>

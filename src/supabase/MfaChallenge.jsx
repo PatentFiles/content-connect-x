@@ -1,4 +1,4 @@
-/** Sign-in 2FA challenge. Sensitive workflows remain hidden until AAL2. */
+/** Sign-in challenge only for accounts that voluntarily enrolled an authenticator. */
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/api/supabaseClient';
 export default function MfaChallenge({onVerified}){

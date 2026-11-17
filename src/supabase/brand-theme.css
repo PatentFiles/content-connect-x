@@ -393,3 +393,10 @@
   .ccx-public-nav-button, .ccx-public-hero-actions .ccx-primary { animation: none !important; transition: none !important; }
   .ccx-public-nav-button:hover { transform: none; }
 }
+
+/* Authenticated admin cross-brand navigation; no changes to public navigation. */
+.ccx-admin-host-link{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 14px;border-radius:12px;border:1px solid rgba(93,204,247,.42);background:linear-gradient(110deg,#149bbd,#6556c5 70%,#8b50c8);color:#fff;font-size:12px;font-weight:750;white-space:nowrap;box-shadow:0 4px 18px rgba(55,119,210,.18);transition:filter .2s,box-shadow .2s}
+.ccx-admin-host-link:hover{filter:brightness(1.12);box-shadow:0 7px 22px rgba(105,85,220,.3)}
+.ccx-admin-host-link:focus-visible{outline:3px solid #73e6ff;outline-offset:3px}
+@media(max-width:480px){.ccx-admin-host-link{padding:8px;font-size:11px}}
+@media(prefers-reduced-motion:reduce){.ccx-admin-host-link{transition:none}}

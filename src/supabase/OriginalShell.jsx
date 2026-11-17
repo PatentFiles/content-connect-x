@@ -67,6 +67,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
      <img src="/content_connect_logo.png" alt="" className="h-8 w-8 shrink-0 rounded-lg object-cover"/><span className="hidden text-lg font-semibold sm:block">Content Connect X</span>
     </button>
     <div className="flex items-center gap-2">
+     {isAdmin&&<a href="/hostconnect" className="ccx-admin-host-link" aria-label="Open Host Connect">Host Connect</a>}
      <button type="button" onClick={()=>onNavigate('membership')} aria-label={'Membership: '+(isPremiumMember?'Premium Account':'Free Account')+'; view plans'} className="inline-flex min-h-10 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-semibold sm:px-3" style={{borderColor:'var(--cc-border)',background:'var(--cc-surface)',color:'var(--cc-text-primary)'}}>
       <CreditCard size={15} className="text-[#FF8AD8]"/><span className="hidden sm:inline">Membership</span><span>{isPremiumMember?'Premium':'Free'}</span>
      </button>

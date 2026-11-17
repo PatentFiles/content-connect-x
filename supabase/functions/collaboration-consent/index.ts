@@ -49,13 +49,13 @@ Deno.serve(async req=>{
   if(body.action==='grant'){
     const [account,ages,subscription]=await Promise.all([
       admin.from('account_security').select('banned,suspended,admin').eq('user_id',uid).maybeSingle(),
-      admin.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
+      admin.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
       admin.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle()
     ]);
     if(account.error||ages.error||subscription.error)return respond({error:'Eligibility not available'},503);
     if(account.data?.banned||account.data?.suspended)return respond({error:'Account restricted'},403);
-    const verified=ages.data?.[0]?.status==='approved'&&(!ages.data[0].expires_at||Date.parse(ages.data[0].expires_at)>Date.now());
-    if(!verified)return respond({error:'Age verification required'},403);
+    const verified=Boolean(ages.data?.[0]?.admitted_at);
+    if(!verified)return respond({error:'Complete account onboarding first'},403);
     if(!account.data?.admin&&!current(subscription.data))return respond({error:'Paid membership required for new collaborations'},403);
     if(body.participation_consent!==true||body.recording_consent!==true)return respond({error:'Explicit participation and recording consent required'},400);
     if(typeof body.distribution_consent!=='boolean'||typeof body.download_consent!=='boolean')return respond({error:'Separate distribution and download choices required'},400);

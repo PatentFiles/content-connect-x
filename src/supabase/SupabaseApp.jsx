@@ -17,6 +17,7 @@ import ProductionManager from './ProductionManager';
 import ReputationHub from './ReputationHub';
 import SecurityCenter from './SecurityCenter';
 import MfaChallenge from './MfaChallenge';
+import {hasAdmission,needsOptedInMfa} from './accountEntryPolicy.mjs';
 import AgreementPackets from './AgreementPackets';
 import OriginalShell,{tabFromLegacyPath,legacyPathForTab} from './OriginalShell';
 import OriginalRoleDashboard from './OriginalRoleDashboard';
@@ -60,8 +61,12 @@ export default function SupabaseApp() {
   const [reviews,setReviews] = useState([]);
   const [mfaChecking,setMfaChecking] = useState(true);
   const [mfaNeeded,setMfaNeeded] = useState(false);
+  const [mfaError,setMfaError] = useState('');
+  const [mfaRetry,setMfaRetry] = useState(0);
   const [visibleFeatures,setVisibleFeatures] = useState(null);
-  const [ageGateEnabled,setAgeGateEnabled] = useState(true);
+  const [admission,setAdmission] = useState(null);
+  const entryWasPending=React.useRef(false);
+  const refreshGeneration=React.useRef(0);
   const [accountLoaded,setAccountLoaded] = useState(false);
   const refreshFeatureFlags=useCallback(async()=>{
     const result=await platformAction('get_feature_flags');
@@ -86,38 +91,43 @@ export default function SupabaseApp() {
   const user = session?.user;
   const authPage = window.location.pathname==='/login'||window.location.pathname==='/signup';
   const pricingPage = /^\/pricing\/?$/i.test(window.location.pathname);
-  // After a successful sign-in, show the authenticated dashboard URL and sidebar.
-  // This also covers users who refresh a stale /login or /signup link while signed in.
-  useEffect(()=>{
-    if(!user?.id)return;
-    if(/^\/(login|signup)\/?$/i.test(window.location.pathname)){
-      window.history.replaceState({...window.history.state},'', '/Dashboard');
-      setTab('dashboard');
-    }
-  },[user?.id]);
   const isAdmin = security?.admin === true;
-  const approved = !ageGateEnabled || isAdmin || (verification?.status === 'approved' && (!verification.expires_at || new Date(verification.expires_at) > new Date()));
+  // Entry is completed once on the server. Admin continuity is an explicit
+  // admission record, never a fabricated age-verification approval.
+  const approved = hasAdmission(admission);
+  const ageVerified=verification?.status==='approved'&&(!verification.expires_at||Date.parse(verification.expires_at)>Date.now());
+  useEffect(()=>{
+    if(!user?.id||!accountLoaded)return;
+    if(!approved){
+      entryWasPending.current=true;setTab('verification');
+      if(window.location.pathname!=='/Verification')window.history.replaceState({},'', '/Verification');
+      return;
+    }
+    if(entryWasPending.current||/^\/(login|signup)\/?$/i.test(window.location.pathname)){
+      entryWasPending.current=false;
+      window.history.replaceState({},'', '/Dashboard');setTab('dashboard');
+    }
+  },[user?.id,accountLoaded,approved]);
   const activePaid = (billing?.status === 'active' || billing?.status === 'trial') && (!billing?.period_end || new Date(billing.period_end) > new Date());
   const paid = activePaid || isAdmin;
   const suspended = security?.banned || security?.suspended;
 
   const refresh = useCallback(async (activeSession) => {
-    if (!activeSession?.user) {setProfile(null);setVerification(null);setBilling(null);setSecurity(null);setAccountLoaded(true);return;}
+    const generation=++refreshGeneration.current;
+    if (!activeSession?.user) {setProfile(null);setVerification(null);setAdmission(null);setBilling(null);setSecurity(null);setAccountLoaded(true);return;}
     const uid=activeSession.user.id;
-    const [pr,ve,bi,se,gs] = await Promise.all([
+    const [pr,ve,bi,se,entry] = await Promise.all([
       supabase.from('member_profiles').select('id,display_name,role_type,bio,city,state,country,avatar_path,cover_path,real_name,stage_name,company_name,representative_name,profile_complete,updated_at').eq('id',uid).maybeSingle(),
       supabase.from('age_verification_requests').select('id,status,created_at,verified_at,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
       supabase.from('member_subscriptions').select('status,plan_id,period_end').eq('user_id',uid).maybeSingle(),
       supabase.from('account_security').select('banned,suspended,admin').eq('user_id',uid).maybeSingle(),
-      supabase.from('platform_settings').select('key,value').eq('key','age_verification_required').maybeSingle(),
+      supabase.from('member_admissions').select('admitted_at,source').eq('user_id',uid).maybeSingle(),
     ]);
     if (pr.error || ve.error || bi.error || se.error) throw new Error(pr.error?.message || ve.error?.message || bi.error?.message || se.error?.message);
-    // Never replace a verified admin session with an apparently unverified
-    // account while a refresh is in flight. RLS errors must not masquerade
-    // as a deliberate global age-gate setting.
-    if(gs.error)throw new Error('Unable to load global age verification settings: '+gs.error.message);
+    if(entry.error)throw new Error('Unable to load account onboarding status: '+entry.error.message);
+    if(generation!==refreshGeneration.current||sessionRef.current!==uid)return;
     setProfile(pr.data);setVerification(ve.data?.[0]||null);setBilling(bi.data);setSecurity(se.data);
-    setAgeGateEnabled(gs.data?.value!==false);setAccountLoaded(true);
+    setAdmission(entry.data);setAccountLoaded(true);
   },[]);
 
   useEffect(()=>{
@@ -126,6 +136,7 @@ export default function SupabaseApp() {
     supabase.auth.getSession().then(async ({data,error:sessionError})=>{
       if(!active) return;
       if(sessionError) throw sessionError;
+      sessionRef.current=data.session?.user?.id||null;
       setSession(data.session);
       await refresh(data.session);
     }).catch(e=>active&&setError(e.message)).finally(()=>active&&setLoading(false));
@@ -135,9 +146,9 @@ export default function SupabaseApp() {
       if(active){
         if(event==='PASSWORD_RECOVERY')setPasswordRecoverySession(true);
         if(event==='SIGNED_OUT'){
-          sessionRef.current=null;
+          sessionRef.current=null;refreshGeneration.current++;entryWasPending.current=false;
           setPasswordRecoverySession(false);
-          setSession(null);setProfile(null);setVerification(null);setBilling(null);setSecurity(null);
+          setSession(null);setProfile(null);setVerification(null);setAdmission(null);setBilling(null);setSecurity(null);
           setAccountLoaded(true);
         }else{
           // Supabase fires TOKEN_REFRESHED and INITIAL_SESSION events.
@@ -145,7 +156,7 @@ export default function SupabaseApp() {
           // onboarding screen to flash on ordinary page navigation.
           if(next?.user?.id!==sessionRef.current){
             sessionRef.current=next?.user?.id||null;
-            setAccountLoaded(false);
+            setAccountLoaded(false);setAdmission(null);setProfile(null);setVerification(null);setSecurity(null);setBilling(null);
           }
           setSession(next);
         }
@@ -176,15 +187,15 @@ export default function SupabaseApp() {
 
   useEffect(()=>{
     let alive=true;
-    if(!session?.user){setMfaNeeded(false);setMfaChecking(false);return;}
-    setMfaChecking(true);
+    if(!session?.user){setMfaNeeded(false);setMfaChecking(false);setMfaError('');return;}
+    setMfaChecking(true);setMfaError('');
     supabase.auth.mfa.getAuthenticatorAssuranceLevel().then(({data,error})=>{
       if(!alive)return;
-      if(error){setError('Unable to verify the authentication level.');setMfaNeeded(true);}
-      else setMfaNeeded(data.currentLevel==='aal1'&&data.nextLevel==='aal2');
-    }).catch(()=>{if(alive)setMfaNeeded(true);}).finally(()=>{if(alive)setMfaChecking(false);});
+      if(error){setMfaError('Your saved sign-in protection could not be checked. Please retry.');}
+      else setMfaNeeded(needsOptedInMfa(data));
+    }).catch(()=>{if(alive)setMfaError('Your saved sign-in protection could not be checked. Please retry.');}).finally(()=>{if(alive)setMfaChecking(false);});
     return()=>{alive=false;};
-  },[session?.access_token]);
+  },[session?.access_token,mfaRetry]);
 
   useEffect(()=>{
     const onPopState=()=>{setTab(tabFromLegacyPath(window.location.pathname));setError('');};
@@ -208,7 +219,7 @@ export default function SupabaseApp() {
         : await client.auth.signInWithPassword({email,password});
       if(authError) throw authError;
       if(signUp && !data.session) setNotice('Check your inbox to confirm your email, then sign in.');
-      else if(data.session){setSession(data.session);await refresh(data.session);}
+      else if(data.session){sessionRef.current=data.session.user.id;setSession(data.session);await refresh(data.session);}
     } catch(e){setError(e.message);}finally{setBusy(false);}
   };
 
@@ -345,7 +356,7 @@ export default function SupabaseApp() {
           </button>}
         </>}
         <div className="mt-5"><ErrorMessage message={error}/>{notice&&<p className="mt-3 text-sm text-emerald-300" role="status">{notice}</p>}</div>
-        <p className="mt-5 text-center text-xs text-[#99A9C4]">Independent adult verification is required before accessing protected creator and location features.</p>
+        <p className="mt-5 text-center text-xs text-[#99A9C4]">New accounts complete independent age verification once during signup before entering Content Connect X.</p>
         <a href="/" className="mt-4 block text-center text-sm text-[#FF87D8] underline underline-offset-4">Back to home page</a>
         <a href="/pricing" className="mt-2 block text-center text-sm text-[#B7C3DD] underline underline-offset-4">View membership pricing</a>
       </section>
@@ -371,6 +382,14 @@ export default function SupabaseApp() {
     </form>
   </div>;
 
+  if(mfaError)return <div className={shell+' grid min-h-screen place-items-center px-5'}>
+    <section role="alert" className={panel+' max-w-md space-y-4 text-center'}>
+      <h2 className="text-xl font-bold">Sign-in check unavailable</h2><p>{mfaError}</p>
+      <p className="text-sm text-[#B4C6DF]">No two-factor setup is required. This check only honors protection you already chose for your account.</p>
+      <button className={primary} onClick={()=>setMfaRetry(v=>v+1)}>Retry sign-in check</button>
+      <button className="block w-full text-sm underline" onClick={()=>supabase.auth.signOut()}>Sign out</button>
+    </section>
+  </div>;
   if(mfaNeeded)return <MfaChallenge onVerified={async()=>{
     const {data}=await supabase.auth.getSession();
     setSession(data.session);
@@ -380,8 +399,7 @@ export default function SupabaseApp() {
   // 18+ approval. URL navigation, Escape, refresh and backdrop clicks cannot
   // dismiss this required onboarding. Log out is the only exit.
   if(user&&!approved)return <AgeGateOnboarding
-    user={user} profile={profile} verification={verification}
-    onSaved={()=>refresh(session)} onReload={()=>refresh(session)}
+    user={user} verification={verification} onReload={()=>refresh(session)}
     onSignOut={async()=>{
       const {error:signoutError}=await supabase.auth.signOut();
       if(signoutError)throw signoutError;
@@ -433,20 +451,20 @@ export default function SupabaseApp() {
       <p className="text-sm text-[#B7C5DA]">Your existing records remain stored. An administrator can enable this feature from Platform Controls.</p>
       <button className={primary} onClick={()=>navigateInWorkspace('dashboard')}>Return to dashboard</button>
     </section>:<>
-    {tab==='dashboard'&&<OriginalRoleDashboard profile={profile} verified={approved}
+    {tab==='dashboard'&&<OriginalRoleDashboard profile={profile} verified={ageVerified}
       paid={paid} onNavigate={navigateInWorkspace}
       roleOverride={isAdmin?rolePreview:null} features={visibleFeatures}/>}
-    {tab==='profile'&&<CreatorProfileEditor user={user} profile={profile} approved={approved}
+    {tab==='profile'&&<CreatorProfileEditor user={user} profile={profile} approved={ageVerified}
       paid={paid} isAdmin={isAdmin} onNavigate={navigateInWorkspace}
       onSaved={()=>refresh(session)}/>}
-    {tab==='verification'&&<div className={`${panel} space-y-4 max-w-2xl`}><h2 className="text-xl font-semibold">Free age verification</h2><p className={muted}>Identity documents are stored privately for authorized review. Upload your ID and a selfie; this does not grant immediate verified status.</p>{approved?<div className="flex gap-2 text-green-400"><CheckCircle2/>Verified</div>:verification?.status==='pending'?<p className="text-amber-300">Your documents are under review. No payment is required.</p>:<><label className="block text-sm">Government ID<input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={upload('id')} className="block mt-2 text-sm" disabled={busy}/></label><label className="block text-sm">Selfie<input type="file" accept="image/jpeg,image/png,image/webp" onChange={upload('selfie')} className="block mt-2 text-sm" disabled={busy}/></label><button className={`${primary} inline-flex gap-2 items-center`} disabled={busy||!documents.id||!documents.selfie} onClick={submitVerification}><UploadCloud size={16}/> Submit for review</button></>}</div>}
+    {tab==='verification'&&<div className={`${panel} space-y-4 max-w-2xl`}><h2 className="text-xl font-semibold">Free age verification</h2><p className={muted}>Identity documents are stored privately for authorized review. Upload your ID and a selfie; this does not grant immediate verified status.</p>{ageVerified?<div className="flex gap-2 text-green-400"><CheckCircle2/>Verified</div>:verification?.status==='pending'?<p className="text-amber-300">Your documents are under review. No payment is required.</p>:<><label className="block text-sm">Government ID<input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={upload('id')} className="block mt-2 text-sm" disabled={busy}/></label><label className="block text-sm">Selfie<input type="file" accept="image/jpeg,image/png,image/webp" onChange={upload('selfie')} className="block mt-2 text-sm" disabled={busy}/></label><button className={`${primary} inline-flex gap-2 items-center`} disabled={busy||!documents.id||!documents.selfie} onClick={submitVerification}><UploadCloud size={16}/> Submit for review</button></>}</div>}
     {tab==='verification'&&<div className="mt-5 max-w-2xl"><YotiVerification/></div>}
     {['directory','search','favorites'].includes(tab)&&
       <CreatorDiscovery key={tab} user={user} approved={approved} paid={paid}
        mode={tab==='directory'?'discovery':tab} onNavigate={navigateInWorkspace}/>}
     {tab==='reviews'&&isAdmin&&approved&&<div className="space-y-4"><div className="flex justify-between items-center"><h2 className="text-xl font-semibold">Age verification review queue</h2><button className={primary} onClick={loadReviews} disabled={busy}><RefreshCw size={16}/></button></div><p className={muted}>Only authorized administrators can open short-lived private document links or approve requests.</p>{reviews.map(request=><div key={request.id} className={`${panel} space-y-2`}><p className="text-sm">Request {request.id} · {request.status}</p><p className={muted}>{new Date(request.created_at).toLocaleString()}</p><div className="flex flex-wrap gap-2"><button className={primary} onClick={()=>openReviewDocument(request.id,'id')} disabled={busy}>View ID</button><button className={primary} onClick={()=>openReviewDocument(request.id,'selfie')} disabled={busy}>View selfie</button>{request.status==='pending'&&<><button className={primary} onClick={()=>reviewAge(request.id,'approve')} disabled={busy}>Approve</button><button className="rounded-lg bg-red-700 px-4 py-2.5 text-white disabled:opacity-50" onClick={()=>reviewAge(request.id,'reject')} disabled={busy}>Reject</button></>}</div></div>)}{reviews.length===0&&<p className={muted}>Select refresh to load recent review requests.</p>}</div>}
     {['workspace','messages','connections','collaborations','contracts','notifications'].includes(tab)&&(
-      !approved?<div className={panel}>Independent age verification is required to access this workspace.</div>:
+      !approved?<div className={panel}>Complete account onboarding to enter your workspace.</div>:
       !paid&&!['messages','connections','notifications'].includes(tab)?<div className={panel+' space-y-3'}>
         <h2 className="text-xl font-semibold">Premium member workspace</h2>
         <p className="text-sm text-[#AABBD4]">This workflow requires an active paid membership.
@@ -458,7 +476,7 @@ export default function SupabaseApp() {
     )}
     {tab==='trust' && paid && approved && <TrustCenter isAdmin={isAdmin}/> }
     {tab==='consent' && <ConsentCenter user={user} canGrant={Boolean(paid && approved)}/> }
-    {tab==='account-security' && <SecurityCenter isAdmin={isAdmin}/>}
+    {tab==='account-security' && <SecurityCenter/>}
     {tab==='safety' && approved && <SafetyPanel/>}
     {tab==='community' && approved && <CommunityHub paid={paid} userId={user.id}/>}
     {tab==='feedback' && approved && <FeedbackHub admin={isAdmin}/>}
@@ -466,7 +484,7 @@ export default function SupabaseApp() {
     {tab==='schedule' && approved && paid && <ScheduleHub paid={paid} userId={user.id} creatorBookingEnabled={Boolean(visibleFeatures?.creator_booking)}/>}
     {tab==='production' && approved && <ProductionManager user={user} paid={paid} isAdmin={isAdmin}/>}
     {['hosting','host','host-settings'].includes(tab)&&(
-       !approved?<div className={panel}>Independent age verification is required to browse filming spaces.</div>:
+       !approved?<div className={panel}>Complete account onboarding to enter the marketplace.</div>:
        <div className="host-connect-theme">
        <React.Suspense fallback={<div className={panel}>Loading hosting marketplace…</div>}>
         <HostingMarketplace key={tab} user={user} paid={paid} isAdmin={isAdmin}
@@ -477,7 +495,7 @@ export default function SupabaseApp() {
     {tab==='portfolio'&&approved&&<MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
     {tab==='testing'&&approved&&<PassClearanceHub isAdmin={isAdmin}/>}
     {tab==='settings'&&(isAdmin&&!rolePreview?<AdminConsole key={tab} initialSection="features"
-       onFeatureChange={()=>refreshFeatureFlags().catch(()=>setVisibleFeatures({}))}/>:<SecurityCenter isAdmin={isAdmin}/>)}
+       onFeatureChange={()=>refreshFeatureFlags().catch(()=>setVisibleFeatures({}))}/>:<SecurityCenter/>)}
     {tab==='roster'&&approved&&<ProductionManager user={user} paid={paid} isAdmin={isAdmin}/>}
     {tab==='representations'&&<div className={panel+' space-y-2'}>
       <h2 className="text-xl font-semibold">Representations</h2>
@@ -491,12 +509,6 @@ export default function SupabaseApp() {
       pre-migration reference branch.</div>}
     {tab==='reputation' && approved && paid && <ReputationHub isAdmin={isAdmin}/>}
     {tab==='agreements' && approved && paid && <AgreementPackets/>}
-    {['controls','integrations','testing-reviews'].includes(tab) && isAdmin && !approved &&
-      <section className={panel+' space-y-3'}>
-       <h2 className="text-xl font-semibold">Administrator account activated</h2>
-       <p className="text-sm text-[#B7C5DA]">You can preview all role dashboards now. API keys, private testing reviews and platform-wide settings require independent age verification and administrator MFA before they can be changed.</p>
-       <button type="button" className={primary} onClick={()=>navigateInWorkspace('verification')}>Complete age verification</button>
-      </section>}
     {['controls','integrations','testing-reviews'].includes(tab) && approved && isAdmin &&
       <AdminConsole key={tab} initialSection={tab==='integrations'?'integrations':tab==='testing-reviews'?'testing':'features'}
        onFeatureChange={()=>refreshFeatureFlags().catch(()=>setVisibleFeatures({}))}/>}

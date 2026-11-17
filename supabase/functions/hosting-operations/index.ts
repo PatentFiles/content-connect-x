@@ -11,9 +11,6 @@ const response=(body:unknown,status=200)=>Response.json(body,{status,headers});
 const reject=(error:string,status=400)=>response({error},status);
 const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 const short=(v:unknown,max=1000)=>typeof v==='string'?v.trim().slice(0,max):'';
-const assured=(token:string)=>{
- try{const payload=token.replace(/^Bearer\s+/i,'').split('.')[1];const b64=payload.replace(/-/g,'+').replace(/_/g,'/');return JSON.parse(atob(b64.padEnd(Math.ceil(b64.length/4)*4,'=')))?.aal==='aal2';}catch{return false;}
-};
 const iso=(v:unknown)=>{const d=new Date(typeof v==='string'?v:'');return Number.isFinite(d.getTime())?d.toISOString():null;};
 const safeCents=(v:unknown)=>Number.isSafeInteger(v)&&Number(v)>=0&&Number(v)<=100_000_000;
 
@@ -28,14 +25,14 @@ Deno.serve(async request=>{
  if(authError||!user)return reject('Unauthorized',401);
  const db=createClient(url,secret),uid=user.id;
  const [ages,sec,sub,ohAccount]=await Promise.all([
-  db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
+  db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
   db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
   db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
   db.from('onlyhost_accounts').select('status,terms_version,legal_capacity_confirmed,property_authority_confirmed,adult_production_understood').eq('user_id',uid).maybeSingle(),
  ]);
  if(ages.error||sec.error||sub.error||ohAccount.error)return reject('Unable to verify account status',503);
  const age=ages.data?.[0];
- const creatorVerified=age?.status==='approved'&&(!age.expires_at||Date.parse(age.expires_at)>Date.now());
+ const creatorVerified=Boolean(age?.admitted_at);
  const admin=sec.data?.admin===true,restricted=sec.data?.banned||sec.data?.suspended;
  const hostEligible=ohAccount.data?.status==='active'&&ohAccount.data?.terms_version==='host-2026-11-17'&&
    ohAccount.data?.legal_capacity_confirmed===true&&ohAccount.data?.property_authority_confirmed===true&&
@@ -49,10 +46,10 @@ Deno.serve(async request=>{
    'damage_claim','claim_evidence_token','claim_evidence_register','damage_dispute','payout_preview',
    'notification_preferences','push_register','push_unregister']);
  if(!creatorVerified&&!(hostEligible&&hostOps.has(action)))
-   return reject('Creator verification or active Host Connect host agreement required',403);
+   return reject('Complete creator signup or accept the Host Connect host agreement',403);
  const accessWhenRestricted=new Set(['booking_overview','cancel_quote','refund_request','damage_dispute','notification_preferences','push_unregister']);
  if(restricted&&!accessWhenRestricted.has(action))return reject('Account restricted',403);
- if(isAdminAction&&(!admin||!assured(bearer)))return reject('Administrator MFA required',403);
+ if(isAdminAction&&!admin)return reject('Administrator access required',403);
  const memberAction=new Set(['booking_overview','cancel_quote','refund_request','damage_dispute','notification_preferences','push_unregister']);
  if(!paid&&!memberAction.has(action))return reject('Active premium membership required',403);
  const log=async(name:string,target:string|null=null,meta:Record<string,unknown>={})=>{

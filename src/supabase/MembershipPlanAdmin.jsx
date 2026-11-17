@@ -1,4 +1,4 @@
-/** Adult-verified AAL2 administrator edits the persisted role/agency monthly catalog. */
+/** Admitted administrator edits the persisted role/agency monthly catalog. */
 import React,{useEffect,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
 export default function MembershipPlanAdmin(){

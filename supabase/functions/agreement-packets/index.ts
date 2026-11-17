@@ -18,14 +18,14 @@ Deno.serve(async req=>{
  if(authenticationError||!user)return reply({error:'Unauthorized'},401);
  const db=createClient(url,secret),uid=user.id;
  const [age,sec,sub]=await Promise.all([
-  db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
+  db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
   db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
   db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle()
  ]);
  if(age.error||sec.error||sub.error)return reply({error:'Account status unavailable'},503);
  if(sec.data?.banned||sec.data?.suspended)return reply({error:'Account restricted'},403);
- if(age.data?.[0]?.status!=='approved'||age.data[0]?.expires_at&&Date.parse(age.data[0].expires_at)<Date.now())
-  return reply({error:'Age verification required'},403);
+ if(!age.data?.[0]?.admitted_at)
+  return reply({error:'Complete account onboarding first'},403);
  const paid=sec.data?.admin||['active','trial'].includes(sub.data?.status)&&(!sub.data?.period_end||Date.parse(sub.data.period_end)>Date.now());
  if(!paid)return reply({error:'Premium account required'},403);
  const body=await req.json().catch(()=>({}));
@@ -101,10 +101,10 @@ Deno.serve(async req=>{
     if(!uuid(r?.member_id)||!people.includes(r.member_id)||!['signer','approver','viewer'].includes(r.role)||
       !Number.isInteger(r.routing_order)||r.routing_order<1||r.routing_order>25)
       return reply({error:'Invalid recipient identity, role or order'},400);
-    const {data:verified,error:verifyError}=await db.from('age_verification_requests').select('status,expires_at')
+    const {data:verified,error:verifyError}=await db.from('member_admissions').select('id,user_id,admitted_at,source,created_at')
      .eq('user_id',r.member_id).order('created_at',{ascending:false}).limit(1);
-    if(verifyError||verified?.[0]?.status!=='approved'||verified[0]?.expires_at&&Date.parse(verified[0].expires_at)<Date.now())
-     return reply({error:'Every signer must be independently age verified'},403);
+    if(verifyError||!verified?.[0]?.admitted_at)
+     return reply({error:'Every signer must have completed signup'},403);
    }
    if(!requested.some((r:any)=>r.role==='signer'))return reply({error:'At least one signer is required'},400);
    let templateId=null;

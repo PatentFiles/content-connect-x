@@ -22,7 +22,7 @@ test('reordering is bounded and does not mutate the saved layout',()=>{
 });
 test('authorization and load failures are never mislabeled disabled',()=>{
  assert.equal(accessReason('roster',null),'loading');assert.equal(accessReason('roster',{}),'unavailable');
- for(const reason of ['verification_required','mfa_required','membership_required','role_required','disabled','rollout_excluded','restricted'])assert.equal(accessReason('roster',{roster:true,__ccxLoaded:true,__ccxAccess:{roster:{reason,eligible:false}}}),reason);
+ for(const reason of ['onboarding_required','membership_required','role_required','disabled','rollout_excluded','restricted'])assert.equal(accessReason('roster',{roster:true,__ccxLoaded:true,__ccxAccess:{roster:{reason,eligible:false}}}),reason);
  assert.equal(accessReason('roster',{roster:true,__ccxLoaded:true,__ccxAccess:{roster:{reason:'ready',eligible:true}}}),'ready');
  assert.equal(accessReason('account-security',{}),'ready');
 });

@@ -24,7 +24,7 @@ Deno.serve(async req=>{
   const action=typeof body.action==='string'?body.action:'';
   const [security,age,host,flags,plan,blocked]=await Promise.all([
    db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
-   db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
+   db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
    db.from('onlyhost_accounts').select('status,terms_version,legal_capacity_confirmed,property_authority_confirmed,adult_production_understood').eq('user_id',uid).maybeSingle(),
    db.from('product_feature_flags').select('enabled,allowed_tiers,rollout_percent').eq('key','hosting_marketplace').maybeSingle(),
    db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
@@ -32,7 +32,7 @@ Deno.serve(async req=>{
   ]);
   if([security,age,host,flags,plan,blocked].some(v=>v.error))return reply({error:'Account eligibility unavailable'},503);
   if(!security.data||security.data.banned||security.data.suspended)return reply({error:'Account restricted'},403);
-  const hosting=hostCurrent(host.data),creator=approved(age.data?.[0]);
+  const hosting=hostCurrent(host.data),creator=Boolean(age.data?.[0]?.admitted_at);
   if(!hosting&&!creator)return reply({error:'Current host agreement or creator verification required'},403);
   const paid=hosting||security.data.admin||(['active','trial'].includes(plan.data?.status)&&(!plan.data?.period_end||Date.parse(plan.data.period_end)>Date.now()));
   let hash=0;for(const c of uid+'hosting_marketplace')hash=(hash*31+c.charCodeAt(0))>>>0;
@@ -51,7 +51,7 @@ Deno.serve(async req=>{
     db.from('account_security').select('user_id,banned,suspended').in('user_id',owners),
     db.from('host_verification_requests').select('property_id,owner_id,status,expires_at').in('property_id',ids).eq('status','approved'),
     db.from('onlyhost_accounts').select('user_id,status,terms_version,legal_capacity_confirmed,property_authority_confirmed,adult_production_understood').in('user_id',owners),
-    db.from('age_verification_requests').select('user_id,status,expires_at,created_at').in('user_id',owners).order('created_at',{ascending:false}).limit(2000)
+    db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').in('user_id',owners).order('created_at',{ascending:false}).limit(2000)
    ]);
    for(const result of [accounts,authority,hosts,ages])if(result.error)throw result.error;
    const safeOwners=new Set((accounts.data||[]).filter(v=>!v.banned&&!v.suspended).map(v=>v.user_id));
@@ -59,7 +59,7 @@ Deno.serve(async req=>{
    const latest=new Map();for(const v of ages.data||[])if(!latest.has(v.user_id))latest.set(v.user_id,v);
    const rights=new Set((authority.data||[]).filter(approved).map(v=>v.property_id+':'+v.owner_id));
    return items.filter(v=>v.owner_id===uid||v.status==='active'&&v.approved_at&&safeOwners.has(v.owner_id)&&
-    !blockedIds.has(v.owner_id)&&rights.has(v.id+':'+v.owner_id)&&(validHosts.has(v.owner_id)||approved(latest.get(v.owner_id))));
+    !blockedIds.has(v.owner_id)&&rights.has(v.id+':'+v.owner_id)&&(validHosts.has(v.owner_id)||Boolean(latest.get(v.owner_id)?.admitted_at)));
   };
   const media=async(property:any,start:number,limit:number)=>{
    let query=db.from('property_images').select('id,storage_path,caption,status,position,created_at',{count:'exact'})

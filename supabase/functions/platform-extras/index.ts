@@ -14,21 +14,11 @@ const cors={
 const reply=(data:unknown,status=200)=>Response.json(data,{status,headers:cors});
 const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 const str=(v:unknown,max=200)=>typeof v==='string'?v.trim().slice(0,max):'';
-const isCurrent=(row:any)=>row?.status==='approved'&&(!row.expires_at||Date.parse(row.expires_at)>Date.now());
+const isAdmitted=(row:any)=>Boolean(row?.admitted_at);
 const isPaid=(row:any)=>['active','trial'].includes(row?.status)&&(!row?.period_end||Date.parse(row.period_end)>Date.now());
 const iso=(v:unknown)=>{const d=new Date(typeof v==='string'?v:'');return Number.isFinite(d.valueOf())?d.toISOString():null;};
 const reject=(reason:string,status=400)=>reply({error:reason},status);
 
-// The JWT has already been validated by Supabase Auth.getUser before this is used.
-const assurance=(header:string)=>{
-  try {
-    const jwt=header.replace(/^Bearer\s+/i,'');
-    const payload=jwt.split('.')[1];
-    const base64=payload.replace(/-/g,'+').replace(/_/g,'/');
-    const claims=JSON.parse(atob(base64.padEnd(Math.ceil(base64.length/4)*4,'=')));
-    return claims?.aal==='aal2'?'aal2':'aal1';
-  } catch {return 'aal1';}
-};
 
 Deno.serve(async(req)=>{
   if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
@@ -41,7 +31,7 @@ Deno.serve(async(req)=>{
   const db=createClient(url,secret),uid=user.id;
   const [sec,age,sub,settingsRow]=await Promise.all([
     db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
-    db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
+    db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
     db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
     db.from('platform_settings').select('key,value').eq('key','age_verification_required').maybeSingle(),
   ]);
@@ -53,16 +43,13 @@ Deno.serve(async(req)=>{
   const body=await req.json().catch(()=>({}));
   const action=str(body?.action,70);
   const privilegedControl=action.startsWith('admin_');
-  // Admin role is database-authorized. Read-only module/settings inspection
-  // stays available for diagnostics; mutations and private moderation require MFA.
-  const publicAdminReads=new Set(['admin_list_feature_flags','admin_get_settings']);
+  // Database admin authorization stays mandatory; MFA is member-selected sign-in protection.
+
   if(privilegedControl&&!admin)return reject('Administrator access required',403);
-  if(privilegedControl&&!publicAdminReads.has(action)&&assurance(req.headers.get('Authorization')||'')!=='aal2')
-    return reject('Verified administrator MFA required',403);
-  // Admins must be able to repair a global gate without first passing that
-  // same gate. Creator/production operations still enforce their own checks.
-  if(ageGateEnabled&&!isCurrent(age.data?.[0])&&!privilegedControl)
-    return reject('Approved age verification required',403);
+
+  // Signup admission is persistent and cannot be overridden by a global UI switch.
+  if(!isAdmitted(age.data?.[0]))
+    return reject('Complete account onboarding first',403);
   const feature=async(key:string,requiredTier=tier)=>{
     const {data,error}=await db.from('product_feature_flags').select('enabled,allowed_tiers,rollout_percent').eq('key',key).maybeSingle();
     if(error||!data?.enabled||!data.allowed_tiers?.includes(requiredTier))return false;
@@ -143,7 +130,9 @@ Deno.serve(async(req)=>{
         if(!admin)return reject('Administrator access required',403);
         const key=str(body.key,80);
         if(!/^[a-z][a-z_]{2,79}$/.test(key))return reject('Invalid setting key',400);
-        const allowedKeys=['age_verification_required'];
+        // Signup admission is mandatory; a global flag cannot bypass it.
+        if(body.key==='age_verification_required')return reject('Age verification is part of signup and cannot be globally disabled',409);
+        const allowedKeys=[] as string[];
         if(!allowedKeys.includes(key))return reject('Unknown setting',404);
         const value=body.value;
         if(typeof value!=='boolean')return reject('Invalid value',400);
@@ -259,9 +248,9 @@ Deno.serve(async(req)=>{
         const target=body.user_id;
         const blocked=await blockedUsers();
         if(blocked.has(target))return reject('Member unavailable',403);
-        const {data:latestAge,error:ageError}=await db.from('age_verification_requests')
-          .select('status,expires_at').eq('user_id',target).order('created_at',{ascending:false}).limit(1);
-        if(ageError||!isCurrent(latestAge?.[0]))return reject('Member not verified',403);
+        const {data:latestAge,error:ageError}=await db.from('member_admissions')
+          .select('id,user_id,admitted_at,source,created_at').eq('user_id',target).order('created_at',{ascending:false}).limit(1);
+        if(ageError||!isAdmitted(latestAge?.[0]))return reject('Member has not completed signup',403);
         const {data:existing,error:priorError}=await db.from('member_follows')
           .select('followed_id').eq('follower_id',uid).eq('followed_id',target).maybeSingle();
         if(priorError)throw priorError;
@@ -292,13 +281,13 @@ Deno.serve(async(req)=>{
           Date.parse(end)-Date.parse(start)>8*3600000||Date.parse(end)-Date.parse(start)<30*60000||
           Date.parse(start)>Date.now()+120*86400000)return reject('Invalid creator booking window',400);
         const [ageCheck,subscriptionCheck,securityCheck,connected,blocked]=await Promise.all([
-          db.from('age_verification_requests').select('status,expires_at').eq('user_id',host).order('created_at',{ascending:false}).limit(1),
+          db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',host).order('created_at',{ascending:false}).limit(1),
           db.from('member_subscriptions').select('status,period_end').eq('user_id',host).maybeSingle(),
           db.from('account_security').select('banned,suspended').eq('user_id',host).maybeSingle(),
           db.from('member_connection_requests').select('id').eq('status','accepted').or(`and(requester_id.eq.${uid},recipient_id.eq.${host}),and(requester_id.eq.${host},recipient_id.eq.${uid})`).limit(1),
           db.from('member_blocks').select('blocker_id').or(`and(blocker_id.eq.${uid},blocked_id.eq.${host}),and(blocker_id.eq.${host},blocked_id.eq.${uid})`).limit(1)
         ]);
-        if(ageCheck.error||!isCurrent(ageCheck.data?.[0])||subscriptionCheck.error||!isPaid(subscriptionCheck.data)||
+        if(ageCheck.error||!isAdmitted(ageCheck.data?.[0])||subscriptionCheck.error||!isPaid(subscriptionCheck.data)||
           securityCheck.error||securityCheck.data?.banned||securityCheck.data?.suspended||connected.error||!connected.data?.length||
           blocked.error||blocked.data?.length)return reject('Creator is not available for booking',403);
         const {data:availability,error:availabilityError}=await db.from('member_availability')

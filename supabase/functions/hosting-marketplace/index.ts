@@ -19,7 +19,7 @@ const reply=(body:unknown,status=200)=>Response.json(body,{status,headers:cors})
 const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
 const safe=(v:unknown,max=200)=>typeof v==='string'?v.trim().slice(0,max):'';
 const finite=(v:unknown)=>typeof v==='number'?v:typeof v==='string'?Number(v):NaN;
-const verified=(record:any)=>record?.status==='approved'&&(!record.expires_at||Date.parse(record.expires_at)>Date.now());
+const isAdmitted=(record:any)=>Boolean(record?.admitted_at);
 const subscribed=(record:any)=>['active','trial'].includes(record?.status)&&(!record.period_end||Date.parse(record.period_end)>Date.now());
 const moment=(v:unknown)=>{const date=typeof v==='string'?new Date(v):new Date(NaN);return Number.isFinite(date.getTime())?date.toISOString():null;};
 const acceptedAmenities=new Set(['wifi','parking','private_entrance','makeup_room','dressing_room','shower','kitchen','restroom','soundproof','lighting','green_screen','power_220v','accessible','outdoor','security','air_conditioning','load_in','bedroom','pool']);
@@ -46,7 +46,6 @@ const safeDefaults=(source:any)=>{
   permitted_uses:Array.isArray(v.permitted_uses)?[...new Set(v.permitted_uses.filter((x:unknown)=>acceptedUses.has(x)))]:[],
  };
 };
-const hashClaim=(header:string)=>{try{const part=header.replace(/^Bearer\s+/i,'').split('.')[1];return JSON.parse(atob(part.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(part.length/4)*4,'=')))?.aal||'aal1';}catch{return 'aal1';}};
 const publicCols='id,owner_id,title,description,category,city,state,country,capacity,minimum_hours,hourly_rate,currency,amenities,permitted_uses,rules,setup_buffer_minutes,cleanup_buffer_minutes,cancellation_policy,deposit_percent,required_insurance,public_area_id,timezone,min_notice_hours,weekend_bps,holiday_bps,overtime_bps,cleaning_fee_cents,preferred_cleaning_minutes,status,created_at';
 const ownerCols=publicCols+',submitted_at,approved_at';
 const bookingCols='id,property_id,requester_id,owner_id,starts_at,ends_at,status,notes,requested_use,crew_size,estimated_total,hourly_rate_snapshot,created_at,updated_at';
@@ -64,7 +63,7 @@ Deno.serve(async req=>{
  const db=createClient(url,secret),uid=user.id;
  const [security,age,plan,ohAccount]=await Promise.all([
   db.from('account_security').select('banned,suspended,admin').eq('user_id',uid).maybeSingle(),
-  db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
+  db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
   db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
   db.from('onlyhost_accounts').select('status').eq('user_id',uid).maybeSingle()
  ]);
@@ -83,8 +82,8 @@ Deno.serve(async req=>{
  const payload=await req.json().catch(()=>null);
  if(!payload||typeof payload!=='object')return denial('Invalid JSON',400);
  const action=safe(payload.action,55);
- if(!verified(age.data?.[0])&&!(hostAction.has(action)&&onlyHostEligible))
-   return denial('Creator verification or accepted Host Connect property agreement required',403);
+ if(!isAdmitted(age.data?.[0])&&!(hostAction.has(action)&&onlyHostEligible))
+   return denial('Complete creator signup or accept the Host Connect property agreement',403);
  if(['host_create','host_update','host_submit'].includes(action)&&!onlyHostEligible)
    return denial('Accept the current Host Connect property agreement before creating or publishing listings',403);
  const feature=async(key:string, tier='premium')=>{
@@ -96,7 +95,7 @@ Deno.serve(async req=>{
  };
  if(!await feature('hosting_marketplace',paid?'premium':'free'))return denial('Marketplace is unavailable',403);
  const adminAction=action.startsWith('admin_');
- if(adminAction&&(!admin||hashClaim(token)!=='aal2'))return denial('Verified administrator MFA required',403);
+ if(adminAction&&!admin)return denial('Administrator access required',403);
  const paidAction=hostAction.has(action)||['booking_request','booking_cancel'].includes(action);
  if(paidAction&&(!paid||!await feature('hosting_marketplace','premium')))return denial('Premium membership required',403);
  if(['booking_request','booking_cancel','host_bookings','host_booking_respond','host_booking_complete'].includes(action)&&!await feature('hosting_requests','premium'))return denial('Hosting requests are paused',403);
@@ -176,7 +175,7 @@ Deno.serve(async req=>{
   const owners=[...new Set((data||[]).map((v:any)=>v.owner_id))];
   const [bad,ages]=await Promise.all([
     owners.length?db.from('account_security').select('user_id,banned,suspended').in('user_id',owners):Promise.resolve({data:[],error:null}),
-    owners.length?db.from('age_verification_requests').select('user_id,status,expires_at,created_at').in('user_id',owners).order('created_at',{ascending:false}).limit(1200):Promise.resolve({data:[],error:null})
+    owners.length?db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').in('user_id',owners).order('created_at',{ascending:false}).limit(1200):Promise.resolve({data:[],error:null})
   ]);
   if(bad.error||ages.error)throw bad.error||ages.error;
   const restricted=new Set((bad.data||[]).filter((v:any)=>v.banned||v.suspended).map((v:any)=>v.user_id));
@@ -184,7 +183,7 @@ Deno.serve(async req=>{
   const {data:hostAccounts,error:hostError}=owners.length?await db.from('onlyhost_accounts').select('user_id,status,terms_version').in('user_id',owners):{data:[],error:null};
   if(hostError)throw hostError;
   const approvedHosts=new Set((hostAccounts||[]).filter((v:any)=>v.status==='active'&&v.terms_version==='host-2026-11-17').map((v:any)=>v.user_id));
-  let visible=(data||[]).filter((v:any)=>!blocked.has(v.owner_id)&&!restricted.has(v.owner_id)&&(verified(latest.get(v.owner_id))||approvedHosts.has(v.owner_id)));
+  let visible=(data||[]).filter((v:any)=>!blocked.has(v.owner_id)&&!restricted.has(v.owner_id)&&(isAdmitted(latest.get(v.owner_id))||approvedHosts.has(v.owner_id)));
   // Date-filtered search is a convenience; the insert trigger remains authoritative.
   const from=moment(payload.from),to=moment(payload.to);
   if(from&&to){
@@ -224,8 +223,8 @@ Deno.serve(async req=>{
   const {data,error}=await db.from('properties').select(publicCols).eq('id',payload.id).eq('status','active').not('approved_at','is',null).maybeSingle();
   if(error||!data)return denial('Listing not available',404);
   const blocked=await blockedOwners();if(blocked.has(data.owner_id))return denial('Listing not available',404);
-  const {data:ownerAge}=await db.from('age_verification_requests').select('status,expires_at').eq('user_id',data.owner_id).order('created_at',{ascending:false}).limit(1);
-  if(!verified(ownerAge?.[0])){
+  const {data:ownerAge}=await db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',data.owner_id).order('created_at',{ascending:false}).limit(1);
+  if(!isAdmitted(ownerAge?.[0])){
     const {data:host}=await db.from('onlyhost_accounts').select('status,terms_version')
       .eq('user_id',data.owner_id).maybeSingle();
     if(host?.status!=='active'||host?.terms_version!=='host-2026-11-17')return denial('Listing not available',404);
