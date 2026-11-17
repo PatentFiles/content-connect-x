@@ -262,7 +262,7 @@ export default function SupabaseApp() {
         <a href="/login" className="ccx-public-nav-button ccx-secondary">Log in</a>
         <a href="/signup" className="ccx-public-nav-button ccx-primary">Sign up</a>
         <a href="/pricing" className="ccx-public-nav-button ccx-secondary">Pricing</a>
-        <a href="/hostconnect" className="ccx-public-nav-button ccx-host-connect-header">Host Connect <span aria-hidden="true">→</span></a>
+        <a href="/hostconnect" className="ccx-public-nav-button ccx-host-connect-header">Host Connect</a>
       </nav>
     </header>
     <section className="ccx-hero-image relative w-full overflow-hidden">
