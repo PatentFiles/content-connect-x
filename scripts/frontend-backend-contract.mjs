@@ -65,6 +65,22 @@ const member=get(root+'/MemberWorkspace.jsx');
 const bootstrap=get(root+'/bootstrap.jsx');
 assert.match(app,/OriginalRoleDashboard/,'Original role-specific dashboards must be mounted in app');
 assert.match(app,/OriginalShell/,'Original role-based sidebar and mobile shell must be mounted in app');
+const pricingView=get(root+'/PublicPricing.jsx');
+const originalShell=get(root+'/OriginalShell.jsx');
+assert.match(app,/if\(!user&&pricingPage\)/,'Public pricing must route independently from homepage');
+assert.match(app,/href="\/pricing"/,'Public header must link to pricing');
+assert.match(app,/PublicPricing signedIn/,'Members must see the same pricing information');
+assert.match(app,/\/content_conect_hero\.png/,'Desktop homepage hero must be preserved');
+assert.match(app,/ContentConnectX__Create,_Collaborate,_Grow\.png/,'Mobile homepage hero must be preserved');
+assert.match(pricingView,/Free Membership/,'Free pricing must remain visible');
+assert.match(pricingView,/Pricing pending/,'Do not manufacture unconfigured subscription prices');
+assert.match(originalShell,/hidden w-64 flex-col border-r md:flex/,'Desktop must use fixed sidebar');
+assert.match(originalShell,/aria-label="Open navigation menu"/,'Mobile must have a hamburger menu');
+assert.match(originalShell,/aria-label="Mobile navigation"/,'Mobile hamburger must open the navigation drawer');
+assert.match(originalShell,/aria-label="Sign out"/,'Mobile sign-out must be inside drawer');
+assert.doesNotMatch(originalShell, /Sign Out<\/button>[\s\S]*<header/, 
+ 'Never render a mobile sign-out in the top header');
+
 const originalNav=get(root+'/originalRoleNav.jsx');
 for(const role of ['creator','agent','studio','photographer','videographer','video_editor','host']){
  assert.ok(originalNav.includes(role+': ['),'Missing original role navigation: '+role);
