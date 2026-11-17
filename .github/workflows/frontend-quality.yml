@@ -35,6 +35,8 @@ jobs:
         run: node --test tests/mobile-form-keyboards.test.mjs
       - name: Adult onboarding and membership policy tests
         run: npm run test:memberships
+      - name: Onboarding profile and database schema contract
+        run: node --test tests/onboarding-schema-contract.test.mjs
       - name: Private profile analytics protections
         run: npm run test:analytics
       - name: Bolt preview and Supabase public configuration tests
