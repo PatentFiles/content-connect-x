@@ -352,7 +352,14 @@ export default function SupabaseApp() {
     if(window.location.pathname!==target)
       window.history.pushState({ccxTab:destination},'',target);
   };
-  const signOut=()=>{void supabase.auth.signOut();};
+  const signOut=()=>{
+    // Signed-out users always return to the unchanged public homepage.
+    void supabase.auth.signOut().then(({error:signoutError})=>{
+      if(signoutError){setError(signoutError.message);return;}
+      window.history.replaceState({...window.history.state},'', '/');
+      setTab('dashboard');
+    }).catch(e=>setError(e.message||'Unable to sign out.'));
+  };
   return <OriginalShell user={user} profile={profile} approved={approved}
     isAdmin={isAdmin} tab={tab}
     onNavigate={navigateInWorkspace} onSignOut={signOut}
