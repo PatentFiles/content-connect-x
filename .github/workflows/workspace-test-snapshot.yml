@@ -1,0 +1,20 @@
+name: Workspace test snapshot
+on:
+  push:
+    branches: [fix/dashboard-access-20261117]
+    paths: [.github/workflows/workspace-test-snapshot.yml]
+permissions:
+  contents: read
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: git archive --format=tar HEAD src supabase tests scripts docs ops public package.json package-lock.json vite.config.js jsconfig.json eslint.config.js tailwind.config.js postcss.config.js index.html README.md .github/workflows/frontend-quality.yml > workspace-source.tar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: workspace-source
+          path: workspace-source.tar
+          retention-days: 1
