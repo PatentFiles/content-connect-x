@@ -40,7 +40,7 @@ export default function PublicLandingSections(){
         <span className="ccx-public-mini-label">{v.category}</span>
         <div className="ccx-public-symbol"><v.Icon size={30} strokeWidth={1.6}/></div>
         <h3>{v.title}</h3><p>{v.text}</p>
-        <a href="#ccx-auth" className="ccx-public-link">Get started <ArrowUpRight size={17}/></a>
+        <a href="/signup" className="ccx-public-link">Get started <ArrowUpRight size={17}/></a>
        </article>)}</div>
     </div>
   </section>
@@ -68,7 +68,7 @@ export default function PublicLandingSections(){
             <p className="ccx-public-check"><CheckCircle2 size={19}/> Availability, bookings and location management</p>
             <p className="ccx-public-check"><CheckCircle2 size={19}/> Consent and document workflows</p>
           </div>
-          <a href="#ccx-auth" className="ccx-primary mt-8 inline-flex w-fit items-center gap-2 rounded-xl px-5 py-3 text-sm">Join the creative network <ArrowUpRight size={17}/></a>
+          <a href="/signup" className="ccx-primary mt-8 inline-flex w-fit items-center gap-2 rounded-xl px-5 py-3 text-sm">Join the creative network <ArrowUpRight size={17}/></a>
         </div>
       </div>
     </div>
@@ -120,7 +120,7 @@ export default function PublicLandingSections(){
           <p className="ccx-eyebrow">Locations, without the logistics headache</p>
           <h2 className="ccx-public-display mt-4">The right space changes <span className="ccx-gradient-text">everything.</span></h2>
           <p className="mt-5 max-w-xl text-sm leading-7 text-[#BBC6DC]">Our connected OnlyHost marketplace makes professional film and photography spaces easier to discover and manage. Hosts work from one inventory, with availability coordinated across both brands.</p>
-          <div className="mt-7 flex flex-wrap gap-3"><a href="/onlyhost" className="ccx-primary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm">Discover OnlyHost <ArrowUpRight size={18}/></a><a href="#ccx-auth" className="ccx-secondary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm">Join Content Connect X</a></div>
+          <div className="mt-7 flex flex-wrap gap-3"><a href="/onlyhost" className="ccx-primary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm">Discover OnlyHost <ArrowUpRight size={18}/></a><a href="/signup" className="ccx-secondary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm">Join Content Connect X</a></div>
         </div>
         <div className="ccx-public-onlyhost-art" aria-hidden="true">
           <div className="ccx-public-location-glow"/>
@@ -170,7 +170,7 @@ export default function PublicLandingSections(){
         <p className="ccx-eyebrow">What will you create next?</p>
         <h2 className="mt-5 text-4xl font-extrabold tracking-tight sm:text-5xl">Your next collaboration<br/> <span className="ccx-gradient-text">starts here.</span></h2>
         <p className="mt-5 max-w-xl text-sm leading-7 text-[#DDD9EC]">Join a network built around creative people, thoughtful safeguards and the work they want to make together.</p>
-        <a href="#ccx-auth" className="ccx-primary mt-7 inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm">Get started free <ArrowRight size={18}/></a>
+        <a href="/signup" className="ccx-primary mt-7 inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm">Get started free <ArrowRight size={18}/></a>
       </div>
     </div>
   </section>

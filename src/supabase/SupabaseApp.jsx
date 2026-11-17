@@ -43,7 +43,7 @@ export default function SupabaseApp() {
   const [security,setSecurity] = useState(null);
   const [email,setEmail] = useState('');
   const [password,setPassword] = useState('');
-  const [signUp,setSignUp] = useState(false);
+  const [signUp,setSignUp] = useState(window.location.pathname==='/signup');
   const [recovering,setRecovering] = useState(false);
   const [passwordRecoverySession,setPasswordRecoverySession] = useState(false);
   const [newPassword,setNewPassword] = useState('');
@@ -76,6 +76,7 @@ export default function SupabaseApp() {
     }
   },[]);
   const user = session?.user;
+  const authPage = window.location.pathname==='/login'||window.location.pathname==='/signup';
   const approved = verification?.status === 'approved' && (!verification.expires_at || new Date(verification.expires_at) > new Date());
   const activePaid = (billing?.status === 'active' || billing?.status === 'trial') && (!billing?.period_end || new Date(billing.period_end) > new Date());
   const isAdmin = security?.admin === true;
@@ -241,7 +242,21 @@ export default function SupabaseApp() {
   };
 
   if(loading||mfaChecking)return <div className={`${shell} grid place-items-center`}><Loader2 className="animate-spin"/></div>;
-  if(!user)return <div className={shell}>
+  if(!user&&!authPage)return <div className={shell}>
+    <div className="ccx-brand-topline"/>
+    <section className="ccx-hero flex min-h-[min(78vh,720px)] w-full items-end rounded-none border-x-0 px-5 py-12 sm:px-10 sm:py-16 lg:px-20">
+      <div className="mx-auto w-full max-w-7xl">
+        <div className="max-w-2xl">
+          <p className="ccx-eyebrow">The creative connection</p>
+          <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">Create. Collaborate. <span className="ccx-gradient-text">Connect.</span></h1>
+          <p className="mt-6 max-w-xl text-base leading-7 text-[#E5E0F1] sm:text-lg">Professional creators, production teams, studios and trusted locations—all in one private workspace.</p>
+          <div className="mt-8 flex flex-wrap gap-3"><a href="/signup" className="ccx-primary inline-flex items-center rounded-xl px-5 py-3 text-sm">Create your free account</a><a href="/login" className="ccx-secondary inline-flex items-center rounded-xl px-5 py-3 text-sm">Sign in</a></div>
+        </div>
+      </div>
+    </section>
+    <PublicLandingSections/>
+  </div>;
+  if(!user&&authPage)return <div className={shell}>
     <div className="ccx-brand-topline"/>
     <div className="mx-auto flex min-h-[calc(100vh-4px)] max-w-6xl flex-col justify-center gap-6 px-4 py-8 lg:grid lg:grid-cols-[1.15fr_.85fr] lg:items-center lg:gap-8 lg:px-6">
       <section className="ccx-login-art flex min-h-[245px] flex-col justify-end rounded-[26px] p-6 sm:min-h-[390px] sm:p-9">
@@ -293,9 +308,9 @@ export default function SupabaseApp() {
         </>}
         <div className="mt-5"><ErrorMessage message={error}/>{notice&&<p className="mt-3 text-sm text-emerald-300" role="status">{notice}</p>}</div>
         <p className="mt-5 text-center text-xs text-[#99A9C4]">Independent adult verification is required before accessing protected creator and location features.</p>
+        <a href="/" className="mt-4 block text-center text-sm text-[#FF87D8] underline underline-offset-4">Back to home page</a>
       </section>
     </div>
-    <PublicLandingSections/>
   </div>;
 
   if(passwordRecoverySession)return <div className={shell+' grid min-h-screen place-items-center px-4'}>
