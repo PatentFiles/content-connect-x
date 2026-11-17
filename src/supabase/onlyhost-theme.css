@@ -144,3 +144,9 @@
 .oh-terms-check input{flex-shrink:0;margin-top:4px;width:16px;height:16px;accent-color:#50bfec}
 .oh-terms-check:focus-within{outline:2px solid #56dafa;outline-offset:2px}
 .oh-landing-card:hover .oh-landing-card-icon{box-shadow:0 0 27px rgba(87,179,244,.17)}
+
+/* Recorded host performance; never show fictitious stats. */
+.oh-host-metric{border:1px solid rgba(125,175,248,.28);border-radius:18px;padding:20px 17px;background:radial-gradient(circle at 95% 10%,rgba(77,130,237,.14),transparent 45%),linear-gradient(145deg,rgba(23,38,70,.95),rgba(11,18,38,.96));box-shadow:0 8px 30px rgba(0,0,0,.16)}
+.oh-host-metric strong{display:block;margin-top:12px;line-height:1.2}
+.oh-host-listing-breakdown{border:1px solid rgba(125,175,248,.25);padding:15px;border-radius:14px;color:#bdd9f2}
+.oh-host-listing-breakdown summary{cursor:pointer;color:#8ddafa;font-size:13px;font-weight:750}
