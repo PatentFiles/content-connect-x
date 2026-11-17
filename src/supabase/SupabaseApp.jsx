@@ -18,10 +18,12 @@ import SecurityCenter from './SecurityCenter';
 import MfaChallenge from './MfaChallenge';
 import AgreementPackets from './AgreementPackets';
 import DashboardHome from './DashboardHome';
+import CreatorProfileEditor from './CreatorProfileEditor';
+import CreatorDiscovery from './CreatorDiscovery';
 import YotiVerification from './YotiVerification';
 import PublicLandingSections from './PublicLandingSections';
 const HostingMarketplace = React.lazy(() => import('./HostingMarketplace'));
-import { ShieldCheck, LockKeyhole, Search, UserRound, CreditCard, LogOut, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw, CalendarDays, MessageSquare, Lightbulb, Settings2, Images, UsersRound, Star, FileSignature, Building2, Menu, X } from 'lucide-react';
+import { ShieldCheck, LockKeyhole, Search, Heart, UserRound, CreditCard, LogOut, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw, CalendarDays, MessageSquare, Lightbulb, Settings2, Images, UsersRound, Star, FileSignature, Building2, Menu, X } from 'lucide-react';
 
 const shell = 'ccx-app min-h-screen text-[#F5F3FF]';
 const panel = 'ccx-surface p-5';
@@ -49,13 +51,6 @@ export default function SupabaseApp() {
   const [passwordRecoverySession,setPasswordRecoverySession] = useState(false);
   const [newPassword,setNewPassword] = useState('');
   const [confirmNewPassword,setConfirmNewPassword] = useState('');
-  const [directory,setDirectory] = useState([]);
-  const [search,setSearch] = useState('');
-  const [directoryFilters,setDirectoryFilters]=useState({role:'',city:'',country:''});
-  const [directoryOffset,setDirectoryOffset]=useState(0);
-  const [directoryHasMore,setDirectoryHasMore]=useState(false);
-  const [directorySearched,setDirectorySearched]=useState(false);
-  const [queryRunning,setQueryRunning] = useState(false);
   const [documents,setDocuments] = useState({id:null,selfie:null});
   const [reviews,setReviews] = useState([]);
   const [mfaChecking,setMfaChecking] = useState(true);
@@ -88,7 +83,7 @@ export default function SupabaseApp() {
     if (!activeSession?.user) {setProfile(null);setVerification(null);setBilling(null);setSecurity(null);return;}
     const uid=activeSession.user.id;
     const [pr,ve,bi,se] = await Promise.all([
-      supabase.from('member_profiles').select('id,display_name,role_type,bio,city,country,profile_complete').eq('id',uid).maybeSingle(),
+      supabase.from('member_profiles').select('id,display_name,role_type,bio,city,state,country,profile_complete,updated_at').eq('id',uid).maybeSingle(),
       supabase.from('age_verification_requests').select('id,status,created_at,verified_at,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
       supabase.from('member_subscriptions').select('status,plan_id,period_end').eq('user_id',uid).maybeSingle(),
       supabase.from('account_security').select('banned,suspended,admin').eq('user_id',uid).maybeSingle(),
@@ -189,18 +184,6 @@ export default function SupabaseApp() {
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
 
-  const saveProfile=async(event)=>{
-    event.preventDefault();setBusy(true);setError('');setNotice('');
-    try{
-      const form=new FormData(event.currentTarget);
-      const data={id:user.id,display_name:String(form.get('display_name')||'').trim().slice(0,100),role_type:String(form.get('role_type')||'creator'),bio:String(form.get('bio')||'').slice(0,2000),city:String(form.get('city')||'').slice(0,100),country:String(form.get('country')||'').slice(0,100),profile_complete:!!String(form.get('display_name')||'').trim(),updated_at:new Date().toISOString()};
-      if(!data.display_name) throw new Error('Display name is required.');
-      const {error:saveError}=await supabase.from('member_profiles').upsert(data,{onConflict:'id'});
-      if(saveError) throw saveError;
-      await refresh(session);setNotice('Profile saved.');
-    }catch(e){setError(e.message);}finally{setBusy(false);}
-  };
-
   const upload=(kind)=>async(event)=>{
     const file=event.target.files?.[0];if(!file)return;
     setBusy(true);setError('');setNotice('');
@@ -223,23 +206,6 @@ export default function SupabaseApp() {
       if(data?.error)throw new Error(data.error);
       setDocuments({id:null,selfie:null});await refresh(session);setNotice('Your age-verification request was submitted for review.');
     }catch(e){setError(e.message);}finally{setBusy(false);}
-  };
-
-  const findCreators=async(loadMore=false)=>{
-    setQueryRunning(true);setError('');
-    try{
-      const offset=loadMore?directoryOffset:0;
-      const {data,error:searchError}=await supabase.functions.invoke('directory',{
-        body:{query:search,...directoryFilters,offset}
-      });
-      if(searchError)throw searchError;
-      if(data?.error)throw new Error(data.error);
-      const found=data?.results||[];
-      setDirectory(previous=>loadMore?[...previous,...found]:found);
-      setDirectoryOffset(offset+found.length);
-      setDirectoryHasMore(data?.has_more===true);
-      setDirectorySearched(true);
-    }catch(e){setError(e.message);}finally{setQueryRunning(false);}
   };
 
   if(loading||mfaChecking)return <div className={`${shell} grid place-items-center`}><Loader2 className="animate-spin"/></div>;
@@ -349,7 +315,15 @@ export default function SupabaseApp() {
   };
 
   /** @type {Array<[string, string, import('react').ElementType]>} */
-  const menu=[['dashboard','Dashboard',UserRound],['profile','My Profile',UserRound],['verification','Free Age Verification',ShieldCheck],['directory','Discovery',Search],['membership','Membership',CreditCard]];
+  const menu=[
+    ['dashboard','Dashboard',UserRound],
+    ['directory','Discovery',Search],['search','Advanced Search',Search],['favorites','Favorites',Heart],
+    ['messages','Direct Messages',MessageSquare],['connections','Connections',UsersRound],
+    ['collaborations','Collaborations',UsersRound],['contracts','Contracts',FileSignature],
+    ['hosting','Book Spaces',Building2],['host','Host Dashboard',Building2],
+    ['profile','My Profile',UserRound],['verification','Free Age Verification',ShieldCheck],
+    ['membership','Membership',CreditCard]
+  ];
   menu.push(['consent','My Consent & Rights',ShieldCheck]);
   menu.push(['account-security','Account Security',LockKeyhole]);
   if(approved) {
@@ -359,7 +333,6 @@ export default function SupabaseApp() {
     if(visibleFeatures?.media_gallery)menu.push(['media','Creator Media',Images]);
     if(paid && visibleFeatures?.availability) menu.push(['schedule','Availability',CalendarDays]);
     menu.push(['production','Production Manager',UsersRound]);
-    if(visibleFeatures?.hosting_marketplace)menu.push(['hosting','Hosting Marketplace',Building2]);
     if(paid){
       if(visibleFeatures?.verified_reviews)menu.push(['reputation','Verified Reviews',Star]);
       if(visibleFeatures?.contracts)menu.push(['agreements','Agreements',FileSignature]);
@@ -404,70 +377,25 @@ export default function SupabaseApp() {
       <ErrorMessage message={error}/>{notice&&<p role="status" className="my-3 text-green-400">{notice}</p>}{suspended?<div className="space-y-4"><div className={panel}><AlertTriangle className="text-red-400 mb-2"/>Account access is suspended. You can still review or withdraw your existing consent.</div><ConsentCenter user={user} canGrant={false}/><ProductionManager user={user} paid={false} isAdmin={false}/></div>:<>
     {tab==='dashboard'&&<DashboardHome profile={profile} verification={verification} approved={approved} paid={paid}
       features={visibleFeatures||{}} onNavigate={key=>{setTab(key);setError('');}}/>}
-    {tab==='profile'&&<form key={profile?.updated_at||'new'} onSubmit={saveProfile} className={`${panel} space-y-4 max-w-2xl`}><h2 className="text-xl font-semibold">Your profile</h2><label className="block text-sm">Display name<input name="display_name" className={`${input} mt-1`} defaultValue={profile?.display_name||''} required/></label><label className="block text-sm">Creator type<select name="role_type" className={`${input} mt-1`} defaultValue={profile?.role_type||'creator'}>{['creator','photographer','videographer','video_editor','agent','studio'].map(r=><option value={r} key={r}>{r.replaceAll('_',' ')}</option>)}</select></label><label className="block text-sm">About you<textarea name="bio" className={`${input} mt-1`} rows={4} defaultValue={profile?.bio||''}/></label><div className="grid grid-cols-2 gap-3"><label className="block text-sm">City<input name="city" className={`${input} mt-1`} defaultValue={profile?.city||''}/></label><label className="block text-sm">Country<input name="country" className={`${input} mt-1`} defaultValue={profile?.country||''}/></label></div><button className={primary} disabled={busy}>Save profile</button></form>}
+    {tab==='profile'&&<CreatorProfileEditor user={user} profile={profile}
+      onSaved={()=>refresh(session)}/>}
     {tab==='verification'&&<div className={`${panel} space-y-4 max-w-2xl`}><h2 className="text-xl font-semibold">Free age verification</h2><p className={muted}>Identity documents are stored privately for authorized review. Upload your ID and a selfie; this does not grant immediate verified status.</p>{approved?<div className="flex gap-2 text-green-400"><CheckCircle2/>Verified</div>:verification?.status==='pending'?<p className="text-amber-300">Your documents are under review. No payment is required.</p>:<><label className="block text-sm">Government ID<input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={upload('id')} className="block mt-2 text-sm" disabled={busy}/></label><label className="block text-sm">Selfie<input type="file" accept="image/jpeg,image/png,image/webp" onChange={upload('selfie')} className="block mt-2 text-sm" disabled={busy}/></label><button className={`${primary} inline-flex gap-2 items-center`} disabled={busy||!documents.id||!documents.selfie} onClick={submitVerification}><UploadCloud size={16}/> Submit for review</button></>}</div>}
     {tab==='verification'&&<div className="mt-5 max-w-2xl"><YotiVerification/></div>}
-    {tab==='directory'&&<section className="space-y-4">
-      <div><h2 className="text-xl font-semibold">Discovery</h2>
-        <p className="mt-1 text-sm text-[#AABCD2]">Find verified professionals by role, name and approximate public location.</p>
-      </div>
-      {!approved?<p className={panel}>Complete your free age verification to view the directory.</p>:<>
-        <form onSubmit={e=>{e.preventDefault();void findCreators(false);}} className={panel+' grid gap-3 sm:grid-cols-2 lg:grid-cols-4'}>
-          <label className="block text-sm">Name
-            <input className={input+' mt-1'} value={search} onChange={e=>setSearch(e.target.value)}
-              placeholder="Search display names"/>
-          </label>
-          <label className="block text-sm">Creator type
-            <select className={input+' mt-1'} value={directoryFilters.role}
-              onChange={e=>setDirectoryFilters(v=>({...v,role:e.target.value}))}>
-              <option value="">All roles</option>
-              {['creator','photographer','videographer','video_editor','agent','studio'].map(role=>
-                <option key={role} value={role}>{role.replaceAll('_',' ')}</option>)}
-            </select>
-          </label>
-          <label className="block text-sm">City
-            <input className={input+' mt-1'} value={directoryFilters.city}
-              onChange={e=>setDirectoryFilters(v=>({...v,city:e.target.value}))}
-              placeholder="e.g. Los Angeles"/>
-          </label>
-          <label className="block text-sm">Country
-            <input className={input+' mt-1'} value={directoryFilters.country}
-              onChange={e=>setDirectoryFilters(v=>({...v,country:e.target.value}))}
-              placeholder="e.g. United States"/>
-          </label>
-          <div className="flex flex-wrap gap-2 sm:col-span-2 lg:col-span-4">
-            <button className={primary+' inline-flex items-center gap-2'} type="submit" disabled={queryRunning}>
-              <Search size={17}/>{queryRunning?'Searching…':'Find creators'}
-            </button>
-            <button type="button" className="ccx-secondary rounded-lg px-4 py-2.5 text-sm"
-              onClick={()=>{setSearch('');setDirectoryFilters({role:'',city:'',country:''});
-                setDirectory([]);setDirectoryOffset(0);setDirectoryHasMore(false);setDirectorySearched(false);}}>
-              Clear filters
-            </button>
-          </div>
-        </form>
-        {!paid&&<p className={muted}>Free verified preview: up to 12 creators. Premium discovery includes additional result pages.</p>}
-        {directorySearched&&!directory.length&&<p className={panel+' text-sm text-[#AABCD2]'}>
-          No matching verified profiles were found. Try a different role or wider location.
-        </p>}
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{directory.map(p=>
-          <article key={p.id} className={panel+' space-y-2'}>
-            <h3 className="font-semibold text-white">{p.display_name}</h3>
-            <p className="text-sm text-[#FF87D8]">{p.role_type.replaceAll('_',' ')}</p>
-            <p className={muted}>{[p.city,p.country].filter(Boolean).join(', ')||'Location not specified'}</p>
-            {paid&&p.bio&&<p className="mt-2 text-sm">{p.bio}</p>}
-            <p className="text-xs text-emerald-200">Age verified</p>
-            {paid&&<p className="mt-2 text-xs text-[#9AA6BC] break-all">Member ID: {p.id}</p>}
-          </article>)}
-        </div>
-        {paid&&directoryHasMore&&<button className={primary} type="button"
-          disabled={queryRunning} onClick={()=>findCreators(true)}>
-          {queryRunning?'Loading…':'Show more creators'}
-        </button>}
-      </>}
-    </section>}
+    {['directory','search','favorites'].includes(tab)&&
+      <CreatorDiscovery key={tab} user={user} approved={approved} paid={paid}
+       mode={tab==='directory'?'discovery':tab}/>}
     {tab==='reviews'&&isAdmin&&approved&&<div className="space-y-4"><div className="flex justify-between items-center"><h2 className="text-xl font-semibold">Age verification review queue</h2><button className={primary} onClick={loadReviews} disabled={busy}><RefreshCw size={16}/></button></div><p className={muted}>Only authorized administrators can open short-lived private document links or approve requests.</p>{reviews.map(request=><div key={request.id} className={`${panel} space-y-2`}><p className="text-sm">Request {request.id} · {request.status}</p><p className={muted}>{new Date(request.created_at).toLocaleString()}</p><div className="flex flex-wrap gap-2"><button className={primary} onClick={()=>openReviewDocument(request.id,'id')} disabled={busy}>View ID</button><button className={primary} onClick={()=>openReviewDocument(request.id,'selfie')} disabled={busy}>View selfie</button>{request.status==='pending'&&<><button className={primary} onClick={()=>reviewAge(request.id,'approve')} disabled={busy}>Approve</button><button className="rounded-lg bg-red-700 px-4 py-2.5 text-white disabled:opacity-50" onClick={()=>reviewAge(request.id,'reject')} disabled={busy}>Reject</button></>}</div></div>)}{reviews.length===0&&<p className={muted}>Select refresh to load recent review requests.</p>}</div>}
-    {tab==='workspace' && paid && approved && <MemberWorkspace user={user} flags={visibleFeatures||{}}/> }
+    {['workspace','messages','connections','collaborations','contracts'].includes(tab)&&(
+      !approved?<div className={panel}>Complete independent age verification to access this workspace.</div>:
+      !paid?<div className={panel+' space-y-3'}>
+        <h2 className="text-xl font-semibold">{menu.find(([key])=>key===tab)?.[1]||'Full Workspace'}</h2>
+        <p className="text-sm text-[#AABBD4]">This feature is protected by the membership entitlement.
+          Your existing conversations, contracts and collaboration records are preserved.</p>
+        <button className={primary} onClick={()=>setTab('membership')}>Membership details</button>
+      </div>:
+      <MemberWorkspace key={tab} user={user} flags={visibleFeatures||{}}
+       initialSection={['messages','connections','collaborations','contracts'].includes(tab)?tab:'collaborations'}/>
+    )}
     {tab==='trust' && paid && approved && <TrustCenter isAdmin={isAdmin}/> }
     {tab==='consent' && <ConsentCenter user={user} canGrant={Boolean(paid && approved)}/> }
     {tab==='account-security' && <SecurityCenter/>}
@@ -477,7 +405,12 @@ export default function SupabaseApp() {
     {tab==='media' && approved && <MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
     {tab==='schedule' && approved && paid && <ScheduleHub paid={paid} userId={user.id} creatorBookingEnabled={Boolean(visibleFeatures?.creator_booking)}/>}
     {tab==='production' && approved && <ProductionManager user={user} paid={paid} isAdmin={isAdmin}/>}
-    {tab==='hosting' && approved && <React.Suspense fallback={<div className={panel}>Loading hosting marketplace…</div>}><HostingMarketplace user={user} paid={paid} isAdmin={isAdmin}/></React.Suspense>}
+    {['hosting','host'].includes(tab)&&(!approved?
+      <div className={panel}>Complete independent age verification to browse verified hosting spaces.</div>:
+      <React.Suspense fallback={<div className={panel}>Loading hosting marketplace…</div>}>
+       <HostingMarketplace key={tab} user={user} paid={paid} isAdmin={isAdmin}
+        initialSection={tab==='host'&&paid?'host':'explore'}/>
+      </React.Suspense>)}
     {tab==='reputation' && approved && paid && <ReputationHub isAdmin={isAdmin}/>}
     {tab==='agreements' && approved && paid && <AgreementPackets/>}
     {tab==='controls' && approved && isAdmin && <AdminProductControls/>}
