@@ -84,8 +84,8 @@ export default function PublicPricing({signedIn=false,onNavigate=(destination)=>
     <p className="mt-2 text-sm leading-6 text-[#B6C3D8]">Every member must complete independent 18+ verification before entering the professional network.</p></div>
    <div className="ccx-surface p-5"><UsersRound size={22} className="text-[#FF83D5]"/><h3 className="mt-3 font-semibold text-white">Free local introductions</h3>
     <p className="mt-2 text-sm leading-6 text-[#B6C3D8]">Up to five distinct local contacts within a rolling seven days; long-distance profiles remain searchable and savable.</p></div>
-   <div className="ccx-surface p-5"><Building2 size={22} className="text-[#FF83D5]"/><h3 className="mt-3 font-semibold text-white">OnlyHost locations</h3>
-    <p className="mt-2 text-sm leading-6 text-[#B6C3D8]">Property listings and booking-based host fees belong to the independent OnlyHost marketplace.</p></div>
+   <div className="ccx-surface p-5"><Building2 size={22} className="text-[#FF83D5]"/><h3 className="mt-3 font-semibold text-white">Host Connect locations</h3>
+    <p className="mt-2 text-sm leading-6 text-[#B6C3D8]">Property listings and booking-based host fees belong to the independent Host Connect marketplace.</p></div>
   </section>
   <div className="mx-auto mt-7 max-w-5xl rounded-2xl border border-[#354360] bg-[#10192A] p-5 text-sm leading-7 text-[#B5C5DC]">
    <div className="flex items-center gap-2 font-semibold text-white"><LockKeyhole size={19}/> Billing status</div>

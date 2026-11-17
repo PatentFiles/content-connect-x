@@ -39,3 +39,36 @@
 .oh-modal-backdrop{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;background:rgba(0,6,17,.82);backdrop-filter:blur(12px);padding:15px;overflow:auto}
 .oh-modal{position:relative;width:100%;max-width:650px;max-height:95vh;overflow:auto;border:1px solid rgba(140,195,234,.3);border-radius:24px;background:#14213B;padding:26px;box-shadow:0 35px 90px rgba(0,0,0,.38)}
 @media(prefers-reduced-motion:reduce){.oh-primary,.oh-property-card,.oh-category-card{transition:none}.oh-primary:hover,.oh-property-card:hover,.oh-category-card:hover{transform:none}}
+
+/* Host Connect blue theme override for the CCX hosting/properties tab.
+   Wraps the hosting marketplace in .host-connect-theme so fuchsia CCX
+   classes resolve to the Host Connect blue palette. */
+.host-connect-theme {
+  --ccx-fuchsia: #17A8D9;
+  --ccx-pink: #5B75EE;
+  --ccx-blue: #4F8CFF;
+  --ccx-deep-blue: #2548DB;
+  --ccx-gradient: linear-gradient(112deg, #17A8D9 0%, #5B75EE 55%, #9378F6 100%);
+}
+.host-connect-theme .ccx-surface {
+  border-color: rgba(161,188,220,.17);
+  background: linear-gradient(145deg, rgba(26,43,65,.86), rgba(13,26,47,.92));
+}
+.host-connect-theme .ccx-action-primary {
+  background: linear-gradient(112deg, #17A8D9, #5B75EE 68%, #9378F6);
+  border-color: rgba(197,242,255,.2);
+  box-shadow: 0 5px 23px rgba(22,120,216,.12);
+}
+.host-connect-theme .ccx-action-primary:hover:not(:disabled) {
+  box-shadow: 0 8px 28px rgba(91,117,238,.22);
+}
+.host-connect-theme input:focus-visible,
+.host-connect-theme select:focus-visible,
+.host-connect-theme textarea:focus-visible {
+  outline-color: rgba(91,117,238,.7);
+}
+.host-connect-theme .text-fuchsia-500,
+.host-connect-theme .text-pink-400,
+.host-connect-theme .text-pink-500 { color: #5B75EE !important; }
+.host-connect-theme .bg-fuchsia-500,
+.host-connect-theme .bg-\[\#E900C5\] { background: #5B75EE !important; }

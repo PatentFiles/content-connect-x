@@ -44,7 +44,9 @@ if(!mount)throw new Error('Content Connect X root element is missing');
 initializeFormKeyboardHints(mount);
 const knownHosts=(import.meta.env.VITE_ONLYHOST_HOSTNAMES||'')
  .split(',').map(v=>v.trim().toLowerCase()).filter(Boolean);
-const showOnlyHost=window.location.pathname==='/onlyhost'||
+const showHostConnect=window.location.pathname==='/hostconnect'||
+ window.location.pathname.startsWith('/hostconnect/')||
+ window.location.pathname==='/onlyhost'||
  window.location.pathname.startsWith('/onlyhost/')||
  knownHosts.includes(window.location.hostname.toLowerCase());
 

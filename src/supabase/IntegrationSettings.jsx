@@ -58,7 +58,7 @@ export default function IntegrationSettings(){
     <div className="grid gap-3 sm:grid-cols-2">
       <label className="text-xs">Content Connect X website origin<input className={styles.input+' mt-1'} type="url" placeholder="https://contentconnectx.com" value={origins.ccx_origin}
         onChange={e=>setOrigins(v=>({...v,ccx_origin:e.target.value}))}/></label>
-      <label className="text-xs">OnlyHost website origin<input className={styles.input+' mt-1'} type="url" placeholder="https://your-onlyhost-domain.example" value={origins.onlyhost_origin}
+      <label className="text-xs">Host Connect website origin<input className={styles.input+' mt-1'} type="url" placeholder="https://your-host-connect-domain.example" value={origins.onlyhost_origin}
         onChange={e=>setOrigins(v=>({...v,onlyhost_origin:e.target.value}))}/></label>
     </div>
     <button className={styles.button} disabled={busy||!origins.ccx_origin} onClick={async()=>{setBusy(true);setError('');setNotice('');

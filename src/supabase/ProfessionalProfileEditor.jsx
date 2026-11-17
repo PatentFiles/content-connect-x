@@ -35,7 +35,7 @@ export default function ProfessionalProfileEditor({user,profile,onSaved,approved
  const text=(key,label,area=false)=> <label className="block text-sm" key={key}>{label}{area?<textarea className={field} rows={3} maxLength={key==='software'||key==='specialties'?1000:2000} value={details[key]} onChange={e=>detail(key,e.target.value)}/>:<input className={field} type={key==='website'?'url':'text'} value={details[key]} maxLength={1000} onChange={e=>detail(key,e.target.value)}/>}</label>;
  const number=(key,label,max=99999999)=> <label className="block text-sm" key={key}>{label}<input className={field} type="number" inputMode={key==='turnaround_days'?'numeric':'decimal'} min={0} max={max} step={key==='turnaround_days'?1:'0.01'} value={details[key]} onChange={e=>detail(key,e.target.value)}/></label>;
  const business=ROSTER_ROLES.includes(role),service=PORTFOLIO_ROLES.includes(role);
- if(!business&&!service)return <section className="ccx-surface p-5">Host account tools are managed on the separate OnlyHost website.</section>;
+ if(!business&&!service)return <section className="ccx-surface p-5">Host account tools are managed on the separate Host Connect website.</section>;
  const sections=professionalSections(role);
  return <div className="space-y-6">
   <div className="overflow-hidden rounded-2xl border" style={{borderColor:'var(--cc-border)'}}>

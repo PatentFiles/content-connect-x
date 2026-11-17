@@ -212,7 +212,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
   </div>;
 }
 
-export default function HostingMarketplace({paid=false,isAdmin=false,user,brand='content_connect',initialSection='explore'}) {
+export default function HostingMarketplace({paid=false,isAdmin=false,user,brand='content_connect',initialSection='explore',hostOnly=false}) {
   const [section,setSection]=useState(initialSection);
   const [selected,setSelected]=useState('');
   const [query,setQuery]=useState('');
@@ -248,7 +248,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
       setListings(browse.items||[]);setFavorites(favs.ids||[]);setMyBookings(bookings.items||[]);
     }catch(e){setError(e.message);}finally{setBusy(false);}
   },[query,city,category,maxPrice,crew,amenity,from,to,mapBounds]);
-  useEffect(()=>{search();hostingAdvanced('areas_public').then(r=>setAreas(r.items||[])).catch(()=>{});},[]);
+  useEffect(()=>{if(hostOnly)return;search();hostingAdvanced('areas_public').then(r=>setAreas(r.items||[])).catch(()=>{});},[hostOnly,search]);
 
   const toggle=async(id)=>{
     setError('');
@@ -294,7 +294,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
       />
     </div>
     <nav className="flex flex-wrap gap-2">
-      {/** @type {Array<[string, string, import('react').ElementType]>} */ ([['explore','Explore spaces',Search],['favorites','Saved',Heart],['bookings','My requests',CalendarDays],...(paid?[['host','Host dashboard',Home]]:[]),...(isAdmin?[['review','Listing approvals',ShieldCheck]]:[]),['alerts','Notifications',CalendarDays],['crew','Crew invitations',Users],['cleaning','My cleaning jobs',Home]])
+      {/** @type {Array<[string, string, import('react').ElementType]>} */ ((hostOnly?[['host','Property dashboard',Home],...(isAdmin?[['review','Listing approvals',ShieldCheck]]:[])]:[['explore','Explore spaces',Search],['favorites','Saved',Heart],['bookings','My requests',CalendarDays],...(paid?[['host','Host dashboard',Home]]:[]),...(isAdmin?[['review','Listing approvals',ShieldCheck]]:[]),['alerts','Notifications',CalendarDays],['crew','Crew invitations',Users],['cleaning','My cleaning jobs',Home]]))
       .map(([key,label,Icon])=><button key={key} className={'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm '+(section===key?'ccx-action-primary text-white':'border border-[#31435C] bg-[#141D2B] text-[#BED0E6]')} onClick={()=>{setSection(key);setSelected('');setError('');}}><Icon size={16}/>{label}</button>)}
     </nav>
     {error&&<p className="rounded-xl border border-red-700/50 bg-red-900/20 p-3 text-sm text-red-300" role="alert">{error}</p>}
@@ -323,7 +323,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
         {showMap&&<HostingAreaMap areas={areas} listings={listings} onSelect={setSelected}
            onSearchBounds={bounds=>{setMapBounds(bounds);search(bounds);}}/>}
         <div className="flex items-center justify-between gap-3">
-          <div><h2 className="text-xl font-semibold">{section==='favorites'?'Your saved locations':brand==='onlyhost'?'Browse OnlyHost spaces':'Explore professional spaces'}</h2><p className="mt-1 text-xs text-[#91A7C4]">{visible.length} approved {visible.length===1?'listing':'listings'} · Search returns only general location information</p></div>
+          <div><h2 className="text-xl font-semibold">{section==='favorites'?'Your saved locations':brand==='host_connect'||brand==='onlyhost'?'Browse Host Connect spaces':'Explore professional spaces'}</h2><p className="mt-1 text-xs text-[#91A7C4]">{visible.length} approved {visible.length===1?'listing':'listings'} · Search returns only general location information</p></div>
           <button className="flex items-center gap-2 text-sm text-blue-300" onClick={search} disabled={busy}><RefreshCw size={15}/>Refresh</button>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

@@ -11,7 +11,7 @@ import {ArrowUpRight,ArrowRight,Camera,Clapperboard,UsersRound,ShieldCheck,
 const categories=[
  {title:'Find your people',category:'DISCOVER',Icon:UsersRound,text:'Connect with creators, filmmakers, producers and production services in a private professional network.',theme:'fuchsia'},
  {title:'Make the plan',category:'PRODUCE',Icon:Clapperboard,text:'Build a shoot team, coordinate dates and bring approvals and documents together.',theme:'pink'},
- {title:'Book the location',category:'HOSTING',Icon:Building2,text:'Explore studios and film-friendly locations through the connected OnlyHost marketplace.',theme:'blue'}
+ {title:'Book the location',category:'HOSTING',Icon:Building2,text:'Explore studios and film-friendly locations through the connected Host Connect marketplace.',theme:'blue'}
 ];
 const steps=[
  {n:'01',title:'Create your professional profile',text:'Tell the community what you do, how you work and the people you want to collaborate with.',Icon:Fingerprint},
@@ -119,15 +119,15 @@ export default function PublicLandingSections(){
         <div className="flex flex-col justify-center">
           <p className="ccx-eyebrow">Locations, without the logistics headache</p>
           <h2 className="ccx-public-display mt-4">The right space changes <span className="ccx-gradient-text">everything.</span></h2>
-          <p className="mt-5 max-w-xl text-sm leading-7 text-[#BBC6DC]">Our connected OnlyHost marketplace makes professional film and photography spaces easier to discover and manage. Hosts work from one inventory, with availability coordinated across both brands.</p>
-          <div className="mt-7 flex flex-wrap gap-3"><a href="/onlyhost" className="ccx-primary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm">Discover OnlyHost <ArrowUpRight size={18}/></a><a href="/signup" className="ccx-secondary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm">Join Content Connect X</a></div>
+          <p className="mt-5 max-w-xl text-sm leading-7 text-[#BBC6DC]">Host Connect gives property owners one place to publish and manage professional film and photography spaces. Hosts work from one inventory, with availability coordinated with Content Connect X.</p>
+          <div className="mt-7 flex flex-wrap gap-3"><a href="/hostconnect" className="ccx-primary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm">Host Connect <ArrowUpRight size={18}/></a><a href="/signup" className="ccx-secondary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm">Join Content Connect X</a></div>
         </div>
         <div className="ccx-public-onlyhost-art" aria-hidden="true">
           <div className="ccx-public-location-glow"/>
           <div className="ccx-public-location-card">
             <span className="ccx-icon-wrap"><Building2 size={22}/></span>
             <p className="mt-8 text-xs font-semibold uppercase tracking-[.18em] text-[#B6C7E0]">The connected marketplace</p>
-            <p className="mt-2 text-3xl font-extrabold">Only<span className="ccx-gradient-text">Host</span></p>
+            <p className="mt-2 text-3xl font-extrabold">Host <span className="ccx-gradient-text">Connect</span></p>
             <p className="mt-3 text-sm text-[#B4C4DD]">Spaces · Studios · Productions</p>
           </div>
         </div>
