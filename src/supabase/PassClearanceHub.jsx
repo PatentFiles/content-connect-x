@@ -87,7 +87,7 @@ export default function PassClearanceHub({isAdmin=false}){
      {collaborations.map(project=><option key={project.id} value={project.id}>{project.title||'Untitled collaboration'} · {project.status}</option>)}
     </select>
    </label>
-   {!collaborations.length&&<p className="text-xs text-[#AABAD2]">Your collaborations will appear here once you join or create a production team.</p>
+   {!collaborations.length&&<p className="text-xs text-[#AABAD2]">Your collaborations will appear here once you join or create a production team.</p>}
    <div className="flex flex-wrap gap-2">
     <button className="ccx-primary rounded-xl px-4 py-2 text-sm" disabled={busy||!collab} onClick={async()=>{const r=await execute('pass_share',{collaboration_id:collab,allow_binary_clearance_share:true},'You opted in to sharing work-clearance status.');if(r)await collaborationStatus();}}>Share my status</button>
     <button className="ccx-secondary rounded-xl px-4 py-2 text-sm" disabled={busy||!collab} onClick={async()=>{const r=await execute('pass_revoke',{collaboration_id:collab},'Work-clearance sharing withdrawn.');if(r)await collaborationStatus();}}>Withdraw sharing</button>
