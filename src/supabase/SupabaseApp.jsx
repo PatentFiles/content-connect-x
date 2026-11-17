@@ -316,7 +316,6 @@ export default function SupabaseApp() {
     try{const {data,error}=await supabase.functions.invoke('admin-age-review',{body:{request_id:recordId,action:'document',document_type}});if(error||data?.error||!data?.url)throw new Error(data?.error||error?.message||'Document unavailable');window.open(data.url,'_blank','noopener,noreferrer');}catch(e){setError(e.message);}finally{setBusy(false);}
   };
 
-  /** @type {Array<[string, string, import('react').ElementType]>} */
   const navigateInWorkspace=(destination)=>{
     setTab(destination);setError('');setNotice('');
   };
