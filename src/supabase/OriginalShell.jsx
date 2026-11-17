@@ -31,7 +31,7 @@ const roleLabel={creator:'Creator',agent:'Agent',studio:'Studio',
 const navBackground='rgba(79,140,255,0.12)';
 const sideText='var(--cc-text-secondary)';
 
-function MenuLink({item,tab,onNavigate,onClose,mobile=false}){
+function MenuLink({item,tab,onNavigate,onClose=()=>{},mobile=false}){
  const Icon=item.icon;
  const isActive=tabMatches(tab,item.path);
  return <button type="button" onClick={()=>{onNavigate(keyFor(item.path));onClose?.();}}
