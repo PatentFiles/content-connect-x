@@ -11,6 +11,7 @@ import './brand-theme.css';
 import './onlyhost-theme.css';
 import './public-landing.css';
 import {initializeOptionalIntegrations} from './integrations';
+import {initializeFormKeyboardHints} from './formKeyboard.mjs';
 
 class StartupErrorBoundary extends React.Component{
  constructor(props){super(props);this.state={failed:false};}
@@ -39,6 +40,8 @@ void initializeOptionalIntegrations().catch(error=>{
 });
 const mount=document.getElementById('root');
 if(!mount)throw new Error('Content Connect X root element is missing');
+// Works for both brand shells and every lazily mounted React form.
+initializeFormKeyboardHints(mount);
 const knownHosts=(import.meta.env.VITE_ONLYHOST_HOSTNAMES||'')
  .split(',').map(v=>v.trim().toLowerCase()).filter(Boolean);
 const showOnlyHost=window.location.pathname==='/onlyhost'||
