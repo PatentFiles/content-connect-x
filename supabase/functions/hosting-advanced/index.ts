@@ -27,11 +27,23 @@ Deno.serve(async req=>{
  ]);
  if(verification.error||security.error||sub.error||ohAccount.error)return deny('Account status unavailable',503);
  const adult=verification.data?.[0]?.status==='approved'&&(!verification.data[0].expires_at||Date.parse(verification.data[0].expires_at)>Date.now());
- if(!adult||security.data?.banned||security.data?.suspended)return deny('Verified, unrestricted adult account required',403);
+ if(security.data?.banned||security.data?.suspended)return deny('Account restricted',403);
  const paid=security.data?.admin||['active','trial'].includes(sub.data?.status)&&(!sub.data?.period_end||Date.parse(sub.data.period_end)>Date.now());
- const onlyHostEligible=ohAccount.data?.status==='active';
+ const {data:hostTerms,error:hostTermsError}=await db.from('onlyhost_accounts')
+   .select('status,terms_version,legal_capacity_confirmed,property_authority_confirmed,adult_production_understood')
+   .eq('user_id',uid).maybeSingle();
+ if(hostTermsError)return deny('Host account status unavailable',503);
+ const onlyHostEligible=hostTerms?.status==='active'&&hostTerms.terms_version==='host-2026-11-17'&&
+   hostTerms.legal_capacity_confirmed===true&&hostTerms.property_authority_confirmed===true&&hostTerms.adult_production_understood===true;
  const body=await req.json().catch(()=>null);if(!body||typeof body!=='object')return deny('Invalid JSON',400);
  const action=str(body.action,60);
+ const hostOnlyActions=new Set(['host_set_area','host_rate_settings','rate_rules_list','rate_rule_create','rate_rule_delete',
+  'discount_create','discount_list','discount_disable','host_addons_list','addon_upsert','bundle_create','addon_condition']);
+ if(!adult&&!(onlyHostEligible&&hostOnlyActions.has(action))&&
+    !['areas_public','addons_public','commute_estimates'].includes(action))
+   return deny('Creator verification or current Host Connect host agreement required',403);
+ if(hostOnlyActions.has(action)&&!onlyHostEligible)
+   return deny('Accept the current Host Connect property agreement to manage property pricing',403);
  const own=async(propertyId:unknown)=>{
   if(!id(propertyId))return null;
   const {data,error}=await db.from('properties').select('id,owner_id,status,timezone').eq('id',propertyId).eq('owner_id',uid).maybeSingle();
