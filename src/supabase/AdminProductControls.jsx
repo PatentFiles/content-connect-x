@@ -75,7 +75,11 @@ export default function AdminProductControls({onFeatureChange}){
   return <div className="space-y-5">
     <div className="flex items-center justify-between"><h2 className="text-2xl font-semibold flex items-center gap-2"><Settings size={22}/> Platform controls</h2><button className={button} onClick={load} disabled={busy} aria-label="Refresh controls"><RefreshCw size={17}/></button></div>
     <p className="text-sm text-[#9AA6BC]">Admin-controlled rollouts inspired by Flagsmith. Server subscription and age permissions are enforced separately; turning on a flag cannot bypass them.</p>
-    {error&&<p role="alert" className="bg-red-950 text-red-200 rounded-lg p-3 text-sm">{error}</p>}
+    {error&&<p role="alert" className="bg-red-950 text-red-200 rounded-lg p-3 text-sm">
+      {error}{/mfa|authenticator|assurance/i.test(error)&&<>
+        {' '}Configure or complete your administrator authenticator in <a href="/AccountSecurity" className="font-bold underline underline-offset-2">Account Security</a>, then retry.
+      </>}
+    </p>}
     {notice&&<p role="status" className="bg-emerald-950 text-emerald-200 rounded-lg p-3 text-sm">{notice}</p>}
     <section className={panel+' space-y-3'}>
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -87,7 +91,7 @@ export default function AdminProductControls({onFeatureChange}){
           {settings.age_verification_required?'Enabled':'Disabled (testing mode)'}
         </label>
       </div>
-      {!settings.age_verification_required&&<p className="rounded-lg bg-amber-950/60 border border-amber-700/50 px-3 py-2 text-sm text-amber-200">Age verification is currently OFF. All pages are accessible without the verification popup. Turn it back on before releasing.</p>}
+      {!settings.age_verification_required&&<p className="rounded-lg bg-amber-950/60 border border-amber-700/50 px-3 py-2 text-sm text-amber-200">Member UI age onboarding is disabled for testing. Protected creator and production operations still require their own server authorization. Restore the gate before public release.</p>}
     </section>
     <section className="space-y-3">
       <h3 className="text-lg font-semibold">Feature availability ({flags.filter(f=>f.enabled).length}/{flags.length} enabled)</h3>
