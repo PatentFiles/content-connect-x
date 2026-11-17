@@ -5,7 +5,7 @@
  */
 import React,{useEffect,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
-import {Camera,Image,Activity,User,Edit2,ShieldCheck} from 'lucide-react';
+import {Image,Activity,User,Edit2,ShieldCheck} from 'lucide-react';
 import MediaGallery from './MediaGallery';
 import {countries,countryCode,countryName,regionOptions,roleOptions,
  genderOptions,orientationOptions,contentCategories,scenePairings,specialties} from './profileOptions';
