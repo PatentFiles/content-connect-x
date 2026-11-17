@@ -35,7 +35,7 @@ export default function AdminProductControls({onFeatureChange}){
       else setQueue([]);
       if(settingsResult.status==='fulfilled'){
         const map={};for(const s of settingsResult.value.items||[])map[s.key]=s.value!==false;
-        setSettings(map);
+        setSettings(prev=>({...prev,...map}));
       }
     }catch(e){setError(e.message);}finally{setBusy(false);}
   },[]);
