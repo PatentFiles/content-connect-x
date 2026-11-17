@@ -4,7 +4,7 @@
  */
 import React,{useCallback,useEffect,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
-import {Home,ArrowUpRight,ArrowRight,LogOut,MapPin,CalendarDays,ShieldCheck,Camera,Clapperboard,UsersRound,FileSignature,Sparkles,CheckCircle2,Clock3,Wallet,ClipboardList,MessageCircleMore,Eye,Brush,SlidersHorizontal,KeyRound} from 'lucide-react';
+import {Home,ArrowUpRight,ArrowRight,LogOut,CalendarDays,ShieldCheck,Clapperboard,UsersRound,FileSignature,Sparkles,CheckCircle2,Clock3,Wallet,MessageCircleMore,Eye,Brush,SlidersHorizontal,KeyRound} from 'lucide-react';
 import HostingMarketplace from './HostingMarketplace';
 import {HOST_TERMS,HOST_TERMS_VERSION} from './hostTerms';
 import {integrationAction} from './integrationApi';
