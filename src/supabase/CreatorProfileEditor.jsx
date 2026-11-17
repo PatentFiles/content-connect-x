@@ -129,7 +129,8 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
   <div className="mx-auto mt-6 max-w-4xl px-4">
    <div role="tablist" aria-label="Profile sections" className="mb-6 grid grid-cols-3 gap-2 border-b pb-2"
     style={{borderColor:'var(--cc-border)'}}>
-    {[[ 'profile','Profile',User ],['galleries','Galleries',Image],['analytics','Analytics',Activity]].map(([key,name,Icon])=>
+    {[{key:'profile',name:'Profile',Icon:User},{key:'galleries',name:'Galleries',Icon:Image},
+      {key:'analytics',name:'Analytics',Icon:Activity}].map(({key,name,Icon})=>
      <button type="button" key={key} role="tab" aria-selected={activeTab===key}
       className="flex items-center justify-center gap-2 rounded-lg px-3 py-3 text-sm font-medium"
       style={{background:activeTab===key?'rgba(79,140,255,.12)':'transparent',
