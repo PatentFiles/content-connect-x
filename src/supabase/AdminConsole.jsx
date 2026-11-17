@@ -4,8 +4,10 @@ import AdminProductControls from './AdminProductControls';
 import IntegrationHealth from './IntegrationHealth';
 import PassClearanceHub from './PassClearanceHub';
 import SecurityCenter from './SecurityCenter';
+import MembershipPlanAdmin from './MembershipPlanAdmin';
 const sections=[
  {key:'features',title:'Modules & rollouts'},
+ {key:'pricing',title:'Membership pricing'},
  {key:'integrations',title:'APIs & provider keys'},
  {key:'testing',title:'Testing & PASS reviews'},
  {key:'security',title:'Account security'}
@@ -24,6 +26,7 @@ export default function AdminConsole({initialSection='features',onFeatureChange}
   </div>
   <div role="tabpanel">
    {section==='features'&&<AdminProductControls onFeatureChange={onFeatureChange}/>}
+   {section==='pricing'&&<MembershipPlanAdmin/>}
    {section==='integrations'&&<IntegrationHealth/>}
    {section==='testing'&&<PassClearanceHub isAdmin/>}
    {section==='security'&&<SecurityCenter/>}
