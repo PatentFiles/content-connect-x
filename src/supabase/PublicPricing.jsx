@@ -21,7 +21,7 @@ function Card({eyebrow,title,price,features,subtitle,highlight=false,action,href
    <a href={href||'/signup'} className="ccx-primary mt-7 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white">{action}<ArrowRight size={17}/></a>}
  </article>;
 }
-export default function PublicPricing({signedIn=false,onNavigate=()=>{},initialRole='creator'}){
+export default function PublicPricing({signedIn=false,onNavigate=(destination)=>{void destination;},initialRole='creator'}){
  const [role,setRole]=useState(PROFESSIONAL_ROLES.some(x=>x.id===initialRole)?initialRole:'creator');
  const [plans,setPlans]=useState(DEFAULT_PREMIUM_PLANS);
  const [agentPlan,setAgentPlan]=useState('agent_10');
