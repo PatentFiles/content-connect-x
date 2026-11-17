@@ -37,8 +37,9 @@ export default function AdminProductControls({onFeatureChange}){
         const map={};for(const item of settingsResult.value.items||[])map[item.key]=item.value!==false;
         setSettings(prev=>({...prev,...map}));
       }
-      const failures=[features,moderation,settingsResult].filter(x=>x.status==='rejected');
+      const failures=[features,settingsResult].filter(x=>x.status==='rejected');
       if(failures.length)throw failures[0].reason;
+      if(moderation.status==='rejected')setNotice('Feature controls loaded. Administrator MFA is required to open the private moderation queue.');
     }catch(e){setError(e.message);}finally{setBusy(false);}
   },[]);
   useEffect(()=>{load();},[load]);
