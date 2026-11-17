@@ -432,7 +432,23 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           <p className={muted}>Upload up to 20 JPEG/PNG/WebP images. Each image remains private until an administrator approves it.</p>
           <div className="grid grid-cols-3 gap-2">{(own?.photos||[]).map(photo=><div key={photo.id} className="relative"><img alt={photo.caption||'Private listing photo'} src={photo.url} className="h-28 w-full rounded-lg object-cover"/><span className="absolute bottom-1 left-1 rounded bg-[#101926]/90 px-1 py-0.5 text-[10px]">{photo.status}</span><button className="absolute right-1 top-1 rounded-full bg-red-900 p-1" onClick={()=>mutate('host_photo_delete',{id:photo.id},'Photo removed.')}><Trash2 size={13}/></button></div>)}</div>
           <form onSubmit={upload} className="flex flex-wrap items-end gap-3"><label className="text-sm">Photo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setImage(e.target.files?.[0]||null)} className="mt-1 block text-xs"/></label><label className="flex-1 text-sm">Caption<input className={input+' mt-1'} value={caption} onChange={e=>setCaption(e.target.value)} maxLength={250}/></label><button disabled={busy||!image} className={button}>Upload private image</button></form>
-          <button className={button} disabled={busy||!own?.photos?.length} onClick={()=>mutate('host_submit',{id:selected},'Listing submitted for human approval.')}>Submit listing for review</button>
+          <div className="border-t border-[#354662] pt-5 space-y-3">
+            <h3 className="flex items-center gap-2 font-semibold"><Film size={18}/>Property Walkthrough Videos</h3>
+            <p className={muted}>Upload up to five short MP4/WebM videos (40MB each). Unreviewed videos are visible only to the owner and authorized moderators; approved videos appear on the property detail page.</p>
+            <div className="grid gap-3 sm:grid-cols-2">{(own?.videos||[]).map(v=>
+              <div key={v.id} className="relative overflow-hidden rounded-xl border border-[#395071] bg-[#07111F]">
+                {v.url?<video controls preload="metadata" playsInline className="h-40 w-full object-cover" src={v.url} aria-label={v.caption||'Property walkthrough'}/>:<div className="grid h-40 place-items-center"><Film/></div>}
+                <div className="flex justify-between gap-2 px-3 py-2"><div className="min-w-0"><p className="truncate text-xs">{v.caption||'Property video'}</p><p className="text-xs capitalize text-[#88D8F1]">{v.status}</p></div>
+                  <button type="button" className="rounded-full bg-red-950 p-2" aria-label="Delete video" onClick={()=>mutate('host_video_delete',{id:v.id},'Video deleted')}><Trash2 size={15}/></button>
+                </div>
+              </div>)}</div>
+            <form onSubmit={uploadVideo} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+              <label className="text-sm">MP4/WebM video<input type="file" accept="video/mp4,video/webm" className="mt-2 block w-full text-xs" onChange={e=>setVideo(e.target.files?.[0]||null)}/></label>
+              <label className="text-sm">Video caption<input className={input+' mt-1'} maxLength={250} value={videoCaption} onChange={e=>setVideoCaption(e.target.value)}/></label>
+              <button disabled={busy||!video} className={button}>Upload Video</button>
+            </form>
+          </div>
+          <button type="button" className={button} disabled={busy||!own?.photos?.length} onClick={()=>mutate('host_submit',{id:selected},'Listing submitted for human approval.')}>Submit listing for review</button>
         </div>}
 
         {selected&&<div className={panel+' space-y-3'}>
