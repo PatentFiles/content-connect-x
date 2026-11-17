@@ -47,7 +47,7 @@ const safeDefaults=(source:any)=>{
  };
 };
 const hashClaim=(header:string)=>{try{const part=header.replace(/^Bearer\s+/i,'').split('.')[1];return JSON.parse(atob(part.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(part.length/4)*4,'=')))?.aal||'aal1';}catch{return 'aal1';}};
-const publicCols='id,owner_id,title,description,category,city,state,country,capacity,minimum_hours,hourly_rate,currency,amenities,permitted_uses,rules,setup_buffer_minutes,cleanup_buffer_minutes,cancellation_policy,deposit_percent,required_insurance,public_area_id,timezone,min_notice_hours,weekend_bps,holiday_bps,overtime_bps,cleaning_fee_cents,status,created_at';
+const publicCols='id,owner_id,title,description,category,city,state,country,capacity,minimum_hours,hourly_rate,currency,amenities,permitted_uses,rules,setup_buffer_minutes,cleanup_buffer_minutes,cancellation_policy,deposit_percent,required_insurance,public_area_id,timezone,min_notice_hours,weekend_bps,holiday_bps,overtime_bps,cleaning_fee_cents,preferred_cleaning_minutes,status,created_at';
 const ownerCols=publicCols+',submitted_at,approved_at';
 const bookingCols='id,property_id,requester_id,owner_id,starts_at,ends_at,status,notes,requested_use,crew_size,estimated_total,hourly_rate_snapshot,created_at,updated_at';
 const denial=(message:string,status=400)=>reply({error:message},status);
