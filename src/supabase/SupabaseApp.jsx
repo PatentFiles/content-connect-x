@@ -336,7 +336,8 @@ export default function SupabaseApp() {
       paid={paid} onNavigate={navigateInWorkspace}
       roleOverride={isAdmin?rolePreview:null}/>}
     {tab==='profile'&&<CreatorProfileEditor user={user} profile={profile} approved={approved}
-      paid={paid} isAdmin={isAdmin} onSaved={()=>refresh(session)}/>}
+      paid={paid} isAdmin={isAdmin} onNavigate={navigateInWorkspace}
+      onSaved={()=>refresh(session)}/>}
     {tab==='verification'&&<div className={`${panel} space-y-4 max-w-2xl`}><h2 className="text-xl font-semibold">Free age verification</h2><p className={muted}>Identity documents are stored privately for authorized review. Upload your ID and a selfie; this does not grant immediate verified status.</p>{approved?<div className="flex gap-2 text-green-400"><CheckCircle2/>Verified</div>:verification?.status==='pending'?<p className="text-amber-300">Your documents are under review. No payment is required.</p>:<><label className="block text-sm">Government ID<input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={upload('id')} className="block mt-2 text-sm" disabled={busy}/></label><label className="block text-sm">Selfie<input type="file" accept="image/jpeg,image/png,image/webp" onChange={upload('selfie')} className="block mt-2 text-sm" disabled={busy}/></label><button className={`${primary} inline-flex gap-2 items-center`} disabled={busy||!documents.id||!documents.selfie} onClick={submitVerification}><UploadCloud size={16}/> Submit for review</button></>}</div>}
     {tab==='verification'&&<div className="mt-5 max-w-2xl"><YotiVerification/></div>}
     {['directory','search','favorites'].includes(tab)&&
