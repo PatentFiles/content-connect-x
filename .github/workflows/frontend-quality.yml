@@ -31,6 +31,10 @@ jobs:
         run: npm run test:integrations
       - name: Modular feature registry tests
         run: npm run test:modules
+      - name: Restored role navigation and profile contracts
+        run: node --test tests/role-workspaces.test.mjs
+      - name: Render actual role workspaces and shared cards
+        run: node scripts/test-role-workspace-render.mjs
       - name: Mobile keyboard selection tests
         run: node --test tests/mobile-form-keyboards.test.mjs
       - name: Adult onboarding and membership policy tests
