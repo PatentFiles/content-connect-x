@@ -238,21 +238,60 @@ Deno.serve(async req=>{
   const result=await yotiRequest('GET',latest.provider_session_id);
   if(result.id!==latest.provider_session_id||result.reference_id!==latest.reference_id||result.type!=='OVER')
    return bad('Yoti session identity did not match',503);
+  // Yoti AVS COMPLETE for an OVER session is an independently returned
+  // above-threshold result. Verify the provider session, method and threshold
+  // before granting age access. A redirect itself is NEVER proof.
+  const method=txt(result.method,70).toUpperCase();
+  const doc=/DOC_SCAN|DOCUMENT|ID_VERIFICATION/.test(method);
+  const digital=/DIGITAL_ID|YOTI_APP/.test(method);
+  const estimate=/AGE_ESTIMATION|FACIAL_AGE/.test(method);
+  const threshold=doc?Number(result.doc_scan?.threshold)
+    :digital?Number(result.digital_id?.threshold)
+    :estimate?Number(result.age_estimation?.threshold):0;
+  const validMethod=doc||digital||estimate;
+  const agePass=result.status==='COMPLETE'&&result.result!==false&&
+   validMethod&&Number.isFinite(threshold)&&threshold>=(estimate?21:18);
+  const digestBytes=new TextEncoder().encode(JSON.stringify(result));
+  const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',digestBytes)))
+    .map(x=>x.toString(16).padStart(2,'0')).join('');
   let status='processing';
-  if(result.status==='COMPLETE'){
-   // Age Verification Service proves only an over-age result, not professional
-   // identity or documentary compliance. Never auto-mark creator identity verified.
-   status=latest.mode==='performer_identity'?'review_required':'age_confirmed';
-  }else if(['FAIL','CANCELLED'].includes(result.status))status='rejected';
+  if(result.status==='COMPLETE')status=agePass?'age_confirmed':'review_required';
+  else if(['FAIL','CANCELLED'].includes(result.status))status='rejected';
   else if(result.status==='ERROR')status='provider_error';
+  else if(result.status==='EXPIRED')status='expired';
+  const now=new Date().toISOString();
+  let requestId=null;
+  if(agePass){
+   // Provider-approved age is a separate assertion from creator document/
+   // identity checks required in production agreements.
+   const {data:current,error:lookupError}=await db.from('age_verification_requests')
+    .select('id,status').eq('user_id',uid).order('created_at',{ascending:false}).limit(1);
+   if(lookupError)throw lookupError;
+   if(current?.[0]?.status==='approved')requestId=current[0].id;
+   else{
+    const {data:record,error:verificationError}=await db.from('age_verification_requests')
+     .upsert({user_id:uid,status:'approved',provider:'yoti',
+       provider_session_id:latest.provider_session_id,verification_method:method,
+       evidence_reference:txt(result.evidence_id,100)||latest.reference_id,
+       verified_at:now,reviewed_at:now},
+       {onConflict:'provider_session_id'}).select('id').single();
+    if(verificationError)throw verificationError;
+    requestId=record.id;
+   }
+   await audit('ccx_age_verified_by_yoti',latest.id);
+  }
   const {error:saveError}=await db.from('ccx_age_provider_sessions').update({
-   status,method:txt(result.method,70)||null,
-   confirmed_at:result.status==='COMPLETE'?new Date().toISOString():null
+   status,method:method||null,evidence_id:txt(result.evidence_id,120)||null,
+   age_threshold_passed:agePass,provider_response_hash:hash,
+   verification_request_id:requestId,
+   confirmed_at:agePass?now:null
   }).eq('id',latest.id);
   if(saveError)throw saveError;
   await audit('ccx_yoti_session_checked',latest.id);
-  return out({status,mode:latest.mode,method:txt(result.method,70)||null,
-   identity_verified:false,note:status==='review_required'?'Over-18 confirmed; performer identity requires independent reviewer approval.':'Yoti status retrieved directly from provider.'});
+  return out({status,mode:latest.mode,method:method||null,
+   age_verified:agePass,identity_verified:false,
+   note:agePass?'Your age has been independently verified by Yoti. Additional performer identity evidence may still be required for certain productions.'
+    :'Access remains locked until a qualified age-verification method succeeds.'});
  }
  case 'onlyhost_register':{
   if(body.accept_terms!==true)return bad('You must accept the hosting marketplace terms',400);
