@@ -29,14 +29,16 @@ export default function AdminProductControls({onFeatureChange}){
       const [features,moderation,settingsResult]=await Promise.allSettled([
         platformAction('admin_list_feature_flags'),platformAction('admin_moderation_queue'),platformAction('admin_get_settings')
       ]);
-      if(features.status==='rejected')throw features.reason;
-      setFlags(features.value.items||[]);
+      // One failed admin subsystem must not hide the others. Report the
+      // actual denial instead of misleadingly showing "0 modules".
+      if(features.status==='fulfilled')setFlags(features.value.items||[]);
       if(moderation.status==='fulfilled')setQueue(moderation.value.items||[]);
-      else setQueue([]);
       if(settingsResult.status==='fulfilled'){
-        const map={};for(const s of settingsResult.value.items||[])map[s.key]=s.value!==false;
+        const map={};for(const item of settingsResult.value.items||[])map[item.key]=item.value!==false;
         setSettings(prev=>({...prev,...map}));
       }
+      const failures=[features,moderation,settingsResult].filter(x=>x.status==='rejected');
+      if(failures.length)throw failures[0].reason;
     }catch(e){setError(e.message);}finally{setBusy(false);}
   },[]);
   useEffect(()=>{load();},[load]);
@@ -63,6 +65,7 @@ export default function AdminProductControls({onFeatureChange}){
     try{
       await platformAction('admin_set_setting',{key:'age_verification_required',value:enabled});
       setSettings(prev=>({...prev,age_verification_required:enabled}));
+      window.dispatchEvent(new Event('ccx-platform-settings-changed'));
       setNotice(enabled?'Age verification gate turned ON.':'Age verification gate turned OFF — all pages accessible for testing.');
       onFeatureChange?.();
     }catch(e){setError(e.message);}finally{setBusy(false);}
@@ -77,7 +80,7 @@ export default function AdminProductControls({onFeatureChange}){
     <section className={panel+' space-y-3'}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div><h3 className="text-lg font-semibold flex items-center gap-2"><ShieldAlert size={19}/> Age verification gate</h3>
-        <p className="text-sm text-[#9AA6BC] mt-1">When enabled, every user must complete age verification before accessing the app. Turn off globally to test the site before launch, then turn it back on before going live.</p></div>
+        <p className="text-sm text-[#9AA6BC] mt-1">This is a temporary UI/testing switch for member navigation. It does not bypass independent age, consent, payment, or role checks for protected operations. Admin changes require MFA.</p></div>
         <label className="flex items-center gap-3 text-sm font-semibold">
           <input type="checkbox" disabled={busy} checked={settings.age_verification_required}
             onChange={e=>toggleAgeGate(e.target.checked)}/>
