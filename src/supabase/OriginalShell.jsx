@@ -8,6 +8,7 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {Bell,ChevronRight,ExternalLink,LogOut,Menu,Settings,Shield,X} from 'lucide-react';
 import {getNavigationForRole} from './originalRoleNav';
+import {supabase} from '@/api/supabaseClient';
 
 const routeMap=Object.freeze({
  Dashboard:'dashboard',Discovery:'directory',Search:'search',Favorites:'favorites',
@@ -57,11 +58,17 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
   {path:'AdminDashboard',label:'Admin Dashboard',icon:Shield},
   {path:'AgentManagement',label:'Agent Management',icon:Settings}
  ]:[],[isAdmin]);
- const title=(nav.find(item=>tabMatches(tab,item.path))||adminNav.find(item=>tabMatches(tab,item.path)))?.label||
-  ({host:'Host Dashboard',portfolio:'Portfolio',profile:'My Profile',schedule:'Availability',
-   search:'Search',favorites:'Favorites',representations:'Representations',
-   roster:'Roster & Portfolio',testing:'Testing',notifications:'Notifications'})[tab]||'Dashboard';
  useEffect(()=>{setMobileOpen(false);},[tab]);
+ useEffect(()=>{
+  let live=true;
+  if(!user?.id)return;
+  void (async()=>{
+   const {count,error}=await supabase.from('member_notifications')
+    .select('id',{count:'exact',head:true}).eq('user_id',user.id).is('read_at',null);
+   if(live&&!error)setUnread(count||0);
+  })().catch(()=>{});
+  return()=>{live=false;};
+ },[user?.id,tab]);
  useEffect(()=>{
   const handler=e=>{if(e.key==='Escape')setMobileOpen(false);};
   window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler);
@@ -173,12 +180,6 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
   <main id="main-content" className="min-h-screen px-4 pb-24 pt-24 md:pl-[calc(16rem+1.5rem)] md:pr-6 md:pb-10"
    style={{paddingTop:'calc(5.5rem + env(safe-area-inset-top,0px))'}}>
    <div className="mx-auto max-w-7xl">
-    <header className="mb-5 border-b pb-3" style={{borderColor:'var(--cc-border)'}}>
-     <p className="text-xs uppercase tracking-wider" style={{color:'var(--cc-text-muted)'}}>
-      {roleLabel[effectiveRole]||'Creator'} workspace {approved?'· Verified':''}
-     </p>
-     <h1 className="mt-1 text-2xl font-bold">{title}</h1>
-    </header>
     {children}
    </div>
   </main>
