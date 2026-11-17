@@ -2,13 +2,14 @@
 import React,{useEffect,useState} from 'react';
 import {ShieldCheck,Camera,RefreshCw,ExternalLink} from 'lucide-react';
 import {integrationAction} from './integrationApi';
-export default function YotiVerification({brand='content_connect'}){
+export default function YotiVerification({brand='content_connect',onApproval}){
  const [status,setStatus]=useState(null),[readiness,setReadiness]=useState(null);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const refresh=async(verify=false)=>{
   setBusy(true);setError('');
   try{const [a,b]=await Promise.all([integrationAction('status'),integrationAction('yoti_status',{refresh:verify})]);
    setReadiness(a);setStatus(b);
+   if(b?.status==='age_confirmed'||b?.status==='review_required')onApproval?.();
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
  // Yoti may finish document checks shortly after redirect. Poll only after
@@ -32,6 +33,7 @@ export default function YotiVerification({brand='content_connect'}){
     ]);
     if(!alive)return;
     setReadiness(configured);setStatus(result);
+    if(['age_confirmed','review_required'].includes(result?.status))onApproval?.();
     if(returned&&attempt<2&&['pending','processing'].includes(result?.status)){
      timer=window.setTimeout(()=>{void check(attempt+1);},5000);
     }

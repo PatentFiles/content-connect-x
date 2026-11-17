@@ -93,28 +93,9 @@ export default function OriginalRoleDashboard({profile,verified,paid,onNavigate,
     My Profile <ArrowRight size={16}/>
    </button>
   </header>
-  <div className="grid gap-4 sm:grid-cols-3">
-   <div className="rounded-xl border p-4" style={{borderColor:'var(--cc-border)',backgroundColor:'var(--cc-surface)'}}>
-    <p className="text-sm" style={{color:'var(--cc-text-secondary)'}}>Verification</p>
-    <p className="mt-2 text-lg font-semibold">{verified?'Verified':'Verification required'}</p>
-    <button onClick={()=>onNavigate('verification')} className="mt-3 text-sm" style={{color:'var(--cc-blue)'}}>
-     Review verification</button>
-   </div>
-   <div className="rounded-xl border p-4" style={{borderColor:'var(--cc-border)',backgroundColor:'var(--cc-surface)'}}>
-    <p className="text-sm" style={{color:'var(--cc-text-secondary)'}}>Membership</p>
-    <p className="mt-2 text-lg font-semibold">{paid?'Premium':'Free account'}</p>
-    <button onClick={()=>onNavigate('membership')} className="mt-3 text-sm" style={{color:'var(--cc-blue)'}}>
-     Membership details</button>
-   </div>
-   <div className="rounded-xl border p-4" style={{borderColor:'var(--cc-border)',backgroundColor:'var(--cc-surface)'}}>
-    <p className="text-sm" style={{color:'var(--cc-text-secondary)'}}>Your role</p>
-    <p className="mt-2 text-lg font-semibold">{roleNames[role]||role}</p>
-    <button onClick={()=>onNavigate('profile')} className="mt-3 text-sm" style={{color:'var(--cc-blue)'}}>
-     Edit role and profile</button>
-   </div>
-  </div>
   <section>
    <h3 className="mb-4 text-xl font-semibold">Your Workspace</h3>
+   {features===null&&<p className="text-sm" style={{color:'var(--cc-text-secondary)'}}>Loading your available modules…</p>}
    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
     {modules.map(({name,tab,icon:Icon,description})=><button type="button" key={name}
      onClick={()=>onNavigate(tab)} className="group rounded-xl border p-5 text-left transition-colors hover:border-[#4F8CFF]"

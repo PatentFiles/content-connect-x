@@ -25,6 +25,7 @@ import CreatorDiscovery from './CreatorDiscovery';
 import YotiVerification from './YotiVerification';
 import PublicLandingSections from './PublicLandingSections';
 import PublicPricing from './PublicPricing';
+import AgeGateOnboarding from './AgeGateOnboarding';
 const HostingMarketplace = React.lazy(() => import('./HostingMarketplace'));
 import { UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
 
@@ -95,6 +96,7 @@ export default function SupabaseApp() {
   const activePaid = (billing?.status === 'active' || billing?.status === 'trial') && (!billing?.period_end || new Date(billing.period_end) > new Date());
   const isAdmin = security?.admin === true;
   const paid = activePaid || isAdmin;
+  // Admin permissions are not a paid subscription; membership labels use activePaid.
   const suspended = security?.banned || security?.suspended;
 
   const refresh = useCallback(async (activeSession) => {
@@ -337,6 +339,18 @@ export default function SupabaseApp() {
     setSession(data.session);
     setMfaNeeded(false);
   }}/>;
+  // This branch renders NO authenticated workspace, links, roles, galleries or
+  // private creator data until an independently reviewed age proof is approved.
+  // It cannot be dismissed by Escape, backdrop click, URL changes or refresh.
+  if(user&&!approved)return <AgeGateOnboarding
+    user={user} profile={profile} verification={verification}
+    onSaved={()=>refresh(session)} onReload={()=>refresh(session)}
+    onSignOut={async()=>{
+      const {error:signoutError}=await supabase.auth.signOut();
+      if(signoutError)throw signoutError;
+      window.history.replaceState({},'', '/');
+    }}/>;
+
 
   const loadReviews=async()=>{
     setBusy(true);setError('');
@@ -367,7 +381,7 @@ export default function SupabaseApp() {
     }).catch(e=>setError(e.message||'Unable to sign out.'));
   };
   return <OriginalShell user={user} profile={profile} approved={approved}
-    isAdmin={isAdmin} tab={tab} featureFlags={visibleFeatures}
+    isAdmin={isAdmin} tab={tab} featureFlags={visibleFeatures} isPremiumMember={activePaid}
     onNavigate={navigateInWorkspace} onSignOut={signOut}
     onRolePreviewChange={setRolePreview}>
     <ErrorMessage message={error}/>
