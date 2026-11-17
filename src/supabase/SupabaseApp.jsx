@@ -264,17 +264,6 @@ export default function SupabaseApp() {
         <a href="/signup" className="ccx-primary pointer-events-auto inline-flex items-center rounded-full px-7 py-3 text-sm">Create your profile <span aria-hidden="true" className="ml-2 text-lg leading-none">→</span></a>
       </div>
     </section>
-    <div className="mx-auto max-w-7xl px-4 py-6 md:px-6">
-      <a href="/hostconnect" className="ccx-host-connect-cta group relative flex flex-col items-center justify-center gap-3 overflow-hidden rounded-3xl border border-[#2D5A88] bg-gradient-to-br from-[#0C1E33] via-[#102A47] to-[#0A1A2E] px-6 py-10 text-center shadow-[0_18px_60px_rgba(0,0,0,.28)] transition hover:border-[#4F8CFF]/60 hover:shadow-[0_22px_70px_rgba(79,140,255,.18)]">
-        <div className="absolute inset-0 opacity-30 [background:radial-gradient(circle_at_30%_20%,rgba(79,140,255,.25),transparent_55%),radial-gradient(circle_at_75%_80%,rgba(23,168,217,.18),transparent_50%)]"/>
-        <div className="relative z-10 flex flex-col items-center gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[.22em] text-[#76D9ED]">For property owners</p>
-          <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">Host <span className="bg-gradient-to-r from-[#76E4EF] via-[#8B9CFF] to-[#D3A1FF] bg-clip-text text-transparent">Connect</span></h2>
-          <p className="max-w-lg text-sm leading-7 text-[#B5C5DC]">List your studios, locations and sets. Manage your rules, equipment, availability, staff and booking requests — all connected to Content Connect X.</p>
-          <span className="mt-2 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#17A8D9] via-[#5B75EE] to-[#9378F6] px-7 py-3 text-sm font-bold text-white shadow-lg transition group-hover:scale-[1.03]">Open Host Connect <span aria-hidden="true" className="text-lg leading-none">→</span></span>
-        </div>
-      </a>
-    </div>
     <PublicLandingSections/>
   </div>;
   if(!user&&authPage)return <div className={shell}>
