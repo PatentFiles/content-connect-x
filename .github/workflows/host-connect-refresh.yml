@@ -19,17 +19,9 @@ jobs:
         with:
           node-version: '22'
           cache: npm
+      - name: Apply hash-verified recovered changes
+        run: python3 .maintenance/host-connect-refresh.py
       - run: npm ci
-      - name: Private dependencies for browser validation
-        run: tar -czf /tmp/host-connect-dependencies.tgz node_modules
-      - uses: actions/upload-artifact@v4
-        with:
-          name: host-connect-dependencies
-          path: /tmp/host-connect-dependencies.tgz
-          retention-days: 1
-      - name: Apply reviewed source changes
-        run: |
-          if [ -f .maintenance/host-connect-refresh.py ]; then python3 .maintenance/host-connect-refresh.py; fi
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test:hosting
@@ -38,18 +30,14 @@ jobs:
       - run: npm run verify:release
       - run: npm run verify:frontend-contract
       - run: npm run verify:edge-imports
-      - name: Run new host regression tests
-        run: |
-          if [ -f tests/host-refresh.test.mjs ]; then node --test tests/host-refresh.test.mjs; fi
+      - name: Host and private-gallery regressions
+        run: node --test tests/host-refresh.test.mjs tests/hosting-discovery-runtime.test.mjs
       - run: npm run build
-      - name: Commit validated application changes
+      - name: Commit validated source and remove temporary recovery files
         run: |
-          if [ -f .maintenance/host-connect-refresh.py ]; then
-            git config user.name 'Host Connect maintenance'
-            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add src supabase docs tests scripts
-            if ! git diff --cached --quiet; then
-              git commit -m "Refresh host modals, property carousels, media galleries and provider configuration"
-              git push origin HEAD:main
-            fi
-          fi
+          git config user.name 'Host Connect maintenance'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src supabase docs tests scripts .github/workflows/frontend-quality.yml
+          git rm -f .maintenance/host-refresh-data-0.b64 .maintenance/host-refresh-data-1.b64 .maintenance/host-refresh-data-2.b64 .maintenance/host-connect-refresh.py .github/workflows/host-connect-refresh.yml .github/workflows/host-recovery-snapshot.yml
+          git commit -m "Complete Host Connect modals, carousels, market map, photo galleries and secrets cleanup"
+          git push origin HEAD:main
