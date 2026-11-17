@@ -31,11 +31,22 @@ test('normalize query, location and ignored client-only fields',()=>{
   include_private:true,subscription:'premium'
  },true);
  assert.deepEqual(result,{query:'Joan Doe %',city:'Los Angeles',country:'US',
-  role:'videographer',limit:24,offset:0});
+  role:'videographer',state:'',category:'',gender:'',ids:null,limit:24,offset:0});
  assert.equal(directoryFilters({query:'X'.repeat(500)}).query.length,80);
 });
 
 test('escape LIKE wildcards and backslashes as literal user query text',()=>{
  assert.equal(escapeLikeLiteral('50%_\\abc'),'50\\%\\_\\\\abc');
  assert.equal(escapeLikeLiteral('hello'),'hello');
+});
+
+test('validate compatibility search values and privacy-safe IDs',()=>{
+ assert.deepEqual(directoryFilters({category:'FETISH',gender:'WOMAN'}).category,'fetish');
+ assert.equal(directoryFilters({gender:'trans_woman'}).gender,'trans_woman');
+ assert.throws(()=>directoryFilters({gender:'private-gender'}),/Unsupported gender identity/);
+ assert.throws(()=>directoryFilters({category:'unknown'}),/Unsupported content category/);
+ const id='11111111-1111-4111-8111-111111111111';
+ const result=directoryFilters({ids:[id,'invalid',id],state:' California '},true);
+ assert.deepEqual(result.ids,[id]);
+ assert.equal(result.state,'California');
 });
