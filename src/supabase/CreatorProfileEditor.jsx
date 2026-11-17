@@ -34,13 +34,16 @@ export default function CreatorProfileEditor({user,profile,onSaved}){
  const preference=(key,value)=>setPrefs(old=>({...old,[key]:value}));
  useEffect(()=>{
   let mounted=true;
-  supabase.from('member_profile_preferences').select('*').eq('user_id',user.id).maybeSingle()
-   .then(({data,error:readError})=>{
+  void (async()=>{
+   try{
+    const {data,error:readError}=await supabase.from('member_profile_preferences')
+     .select('*').eq('user_id',user.id).maybeSingle();
     if(!mounted)return;
     if(readError)setError(readError.message);
     else if(data)setPrefs({...initial,...data});
-   }).catch(e=>mounted&&setError(e.message))
-   .finally(()=>mounted&&setLoading(false));
+   }catch(e){if(mounted)setError(e.message);}
+   finally{if(mounted)setLoading(false);}
+  })();
   return()=>{mounted=false;};
  },[user.id]);
  const save=async(event)=>{
