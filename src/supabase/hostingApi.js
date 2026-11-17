@@ -45,6 +45,28 @@ export async function uploadHostingPhoto(propertyId, file, caption = '') {
   });
 }
 
+/**
+ * Videos remain in a private bucket and are never exposed until reviewed
+ * by an independent administrator. The host can preview pending uploads.
+ */
+export async function uploadHostingVideo(propertyId, file, caption = '') {
+  if (!['video/mp4','video/webm'].includes(file?.type)) {
+    throw new Error('Use an MP4 or WebM property walk-through video');
+  }
+  if (file.size > 40 * 1024 * 1024) throw new Error('Maximum video size is 40 MB');
+  const granted = await hostingAction('host_video_token', {
+    id: propertyId, mime_type: file.type,
+  });
+  const { error } = await supabase.storage.from('property-videos')
+    .uploadToSignedUrl(granted.path, granted.token, file, {
+      contentType: file.type, upsert: false,
+    });
+  if (error) throw error;
+  return hostingAction('host_video_register', {
+    id: propertyId, path: granted.path, mime_type: file.type, caption,
+  });
+}
+
 export const rentalCategories = [
   ['film_studio','Film studio'],['photo_studio','Photography studio'],
   ['house','House'],['villa','Villa'],['loft','Loft'],
