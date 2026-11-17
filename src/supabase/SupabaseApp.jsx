@@ -234,7 +234,6 @@ export default function SupabaseApp() {
       <nav className="mx-auto flex max-w-7xl flex-wrap justify-end gap-2">
         <a href="/login" className="ccx-secondary rounded-lg px-3 py-2 text-sm">Log in</a>
         <a href="/signup" className="ccx-primary rounded-lg px-3 py-2 text-sm">Sign up</a>
-        <a href="/pricing" className="ccx-secondary rounded-lg px-3 py-2 text-sm">Pricing</a>
         <a href="/pricing" aria-current="page" className="ccx-secondary rounded-lg border-[#FF8CDE] px-3 py-2 text-sm">Pricing</a>
       </nav>
     </header>
@@ -246,6 +245,7 @@ export default function SupabaseApp() {
       <div className="mx-auto flex max-w-7xl justify-end gap-2">
         <a href="/login" className="ccx-secondary rounded-lg px-3 py-2 text-sm">Log in</a>
         <a href="/signup" className="ccx-primary rounded-lg px-3 py-2 text-sm">Sign up</a>
+        <a href="/pricing" className="ccx-secondary rounded-lg px-3 py-2 text-sm">Pricing</a>
       </div>
     </header>
     <section className="ccx-hero-image relative w-full overflow-hidden">
