@@ -8,6 +8,7 @@ import {createClient} from '@supabase/supabase-js';
 import {resolveBrowserSupabaseConfig} from './publicSupabaseConfig.mjs';
 
 export const supabaseConfiguration=resolveBrowserSupabaseConfig(import.meta.env);
+if(supabaseConfiguration.warning)console.warn(supabaseConfiguration.warning);
 export const supabase=supabaseConfiguration.ready
  ?createClient(supabaseConfiguration.url,supabaseConfiguration.key,{
    auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
