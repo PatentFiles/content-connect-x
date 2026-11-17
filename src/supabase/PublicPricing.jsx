@@ -38,7 +38,7 @@ const premiumFeatures=[
  'Availability, production and hosting tools where enabled'
 ];
 
-function PlanCard({title,eyebrow,price,subtitle,features,highlight=false,action,href,disabled=false}){
+function PlanCard({title,eyebrow,price,subtitle,features,highlight=false,action,href='/signup',disabled=false}){
  return <article className={
   'flex h-full flex-col rounded-2xl border p-5 sm:p-7 '+
   (highlight?'border-[#D34DBB]/70 bg-[#20172F] shadow-xl shadow-black/20':'border-[#34445D] bg-[#111A2B]')
@@ -60,7 +60,7 @@ function PlanCard({title,eyebrow,price,subtitle,features,highlight=false,action,
  </article>;
 }
 
-export default function PublicPricing({signedIn=false,onNavigate}){
+export default function PublicPricing({signedIn=false,onNavigate=()=>{}}){
  const [role,setRole]=useState('creator');
  return <main className="mx-auto w-full max-w-7xl px-4 pb-20 pt-10 sm:px-6 sm:pt-14">
   <div className="mx-auto max-w-3xl text-center">
