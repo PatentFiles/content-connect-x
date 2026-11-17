@@ -1,6 +1,6 @@
 /** Non-dismissible, full-screen onboarding. No authenticated adult routes are mounted until 18+ is independently approved. */
 import React,{useEffect,useState} from 'react';
-import {ShieldCheck,UploadCloud,LogOut,RefreshCw,UserRound} from 'lucide-react';
+import {ShieldCheck,UploadCloud,LogOut,RefreshCw} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
 import YotiVerification from './YotiVerification';
 import {PROFESSIONAL_ROLES} from './membershipCatalog.mjs';

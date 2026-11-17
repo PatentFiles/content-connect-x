@@ -10,7 +10,6 @@ import MediaGallery from './MediaGallery';
 import MemberSocialLinks from './MemberSocialLinks';
 import ProfileAnalytics from './ProfileAnalytics';
 import OriginalCreatorPreferences,{initialCreatorPreferences} from './OriginalCreatorPreferences';
-import {originalCreatorCatalog,creatorFieldLabels,friendlyChoice} from './originalCreatorCatalog';
 import {originalUSCities,originalUSStateCodes} from './originalLocationData';
 import {countries,countryCode,countryName,regionOptions,roleOptions,
  genderOptions,orientationOptions,contentCategories,scenePairings,specialties} from './profileOptions';

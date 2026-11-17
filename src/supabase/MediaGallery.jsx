@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { Image, ShieldCheck, Search, RefreshCw, Video, FolderPlus, Folder, Trash2, X, Check } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Image, ShieldCheck, Search, RefreshCw, Video, FolderPlus, Folder, Trash2, Check } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 
 const panel='ccx-surface p-5';
