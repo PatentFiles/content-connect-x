@@ -102,7 +102,7 @@ export default function OnlyHostApp(){
   setView('workspace');
   window.scrollTo({top:0,behavior:'smooth'});
  };
- return <div className="oh-app min-h-screen text-[#F5F8FF]">
+ return <div className="oh-app host-connect-theme min-h-screen text-[#F5F8FF]">
   <div className="oh-topline"/>
   <header className="oh-header sticky top-0 z-40">
    <div className="oh-header-inner mx-auto flex w-full max-w-[1600px] items-center gap-3 px-4 py-3 md:px-8">
