@@ -105,3 +105,27 @@ Hosts explicitly choose allowed uses including nude photography, explicit adult 
 The 2026-11-17 frontend/API changes require independent verification with a real non-performer host test account; provider payments and signing depend on external approval. For each deployment, verify host registration without performer evidence, signed-terms gate, owner document upload, admin property approval, creator access still blocked for host-only identities, guest booking controls and dashboard view tracking.
 
 New schema: `supabase/sql/050_host_owner_terms_and_listing_views.sql` (applied to the active Supabase project on 2026-11-17).
+
+
+## November 17, 2026: Host dashboard and admin onboarding repair
+
+### Global age-verification control
+The `platform-extras` administrative settings actions are now available to database-authorized administrators who complete MFA, even if they have not completed performer age verification. This avoids circular denial when an administrator needs to inspect or change the global `age_verification_required` flag. It does NOT relax independent age/consent checks in creator and production APIs.
+
+`platform_settings` exposes only `age_verification_required` to authenticated readers via RLS, not public writes. Setting mutation is restricted to the verified admin/MFA server action; boolean `value` is sent to JSONB directly rather than JSON-string-encoded. The authenticated app no longer clears a loaded user’s admin/verification state on token refresh, and avoids treating account-loading failures as unverified status.
+
+### Reusable host rules and multi-property editing
+The `HostingHost` screen starts in a property overview with thumbnail cards. The full editor appears only after New Space or a property selection; mobile interactions scroll to the editor. Hosts can open **Set My Default Rules** to save common category, rate, cleaning fee, booking notice, turnover window, crew capacity, minimum hours, cancellation, deposits, insurance, house rules, amenities, and permitted adult-production uses. Defaults are stored per-user in `host_listing_defaults` through the protected `hosting-marketplace` actions `host_defaults_get`/`host_defaults_set` and prefill NEW listings; individual listings can override all defaults. Street addresses and titles are never copied into a default template.
+
+Amenities and permitted use selections are whole-card, multi-select buttons with keyboard and screen-reader checked states. Existing host listing data remains in the original `properties` table, and full addresses are stored separately in `property_private`. The guest-facing Content Connect X Properties tiles show the existing approved primary image, title, city/region, hourly rate, and capacity; exact addresses are never returned to directory cards.
+
+### Property media and moderation
+Existing property photos retain their private signed-upload and human-approval pipeline. New MP4/WebM walkthrough videos (max 40 MB each, max five per listing) upload to the PRIVATE `property-videos` bucket and are indexed by `property_videos`. Only the owner sees their own pending videos; guests see signed playback URLs for APPROVED videos on listing details, never auto-played. Administrators independently review pending videos through the hosting approval queue. A listing still needs an approved photo for its card thumbnail. If uploaded to an active property, media changes return the listing to the review queue.
+
+### Publication safety
+A listing may not be sent for review without its private complete address and permitted uses. Public publication requires an independently approved photo, explicit permitted uses, human review, and a current approved property-authority verification record (ownership or specific written permission) separate from creator age verification.
+
+New schema: `supabase/sql/051_platform_global_gate_read_policy.sql`, `supabase/sql/052_host_defaults_and_property_videos.sql`.
+
+### Validation boundaries
+Automated lint, type-check, build, repository checks and deployment checks cannot substitute for signing in as a real host/admin/verified creator. Validate: admin MFA settings toggling and persistence, navigation without age-gate flashes, host default save/reload, new-space creation, private address retention, photo/video uploads, administrator moderation, private signed video playback, authorized property publication, and guest thumbnail display. Full hotel-night check-in/out configuration and multi-night stays beyond the present 72-hour quote limit remain separate features.
