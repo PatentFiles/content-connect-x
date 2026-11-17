@@ -1,5 +1,6 @@
 /** Real Supabase premium workspace. All mutations use the server-side entitlement gateway. */
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {isModuleEnabled} from './featureModules.mjs';
 import { supabase } from '@/api/supabaseClient';
 import { Check, FileSignature, MessageSquare, Users, Bell, Loader2, RefreshCw } from 'lucide-react';
 
@@ -172,8 +173,11 @@ export default function MemberWorkspace({user,flags={},initialSection='collabora
     const result=await mutate('create_contract',{collaboration_id:selected,title,content:parsed},'Draft agreement created.');
     if(result){setTitle('');setContent('');}
   };
-  const enabled = /** @type {Record<string, boolean>} */ (flags);
-  const visibleSections=sections.filter(([key])=>(key==='messages'||key==='connections')?enabled.messages!==false:(key==='contracts')?enabled.contracts!==false:true);
+  const visibleSections=sections.filter(([key])=>isModuleEnabled(key,flags));
+  if(!visibleSections.some(([key])=>key===section))return <div className={panel+' space-y-3'}>
+    <p className="text-sm">This workspace module is switched off. Existing records remain protected.</p>
+    <button className={button} onClick={()=>setSection('notifications')}>View notifications</button>
+  </div>;
 
   return <div className="space-y-4">
     <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="text-xl font-semibold">Member workspace</h2><button className={button} onClick={()=>refresh()} disabled={working}><RefreshCw size={15}/></button></div>

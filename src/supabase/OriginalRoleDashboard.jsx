@@ -4,6 +4,7 @@
  * No speculative revenue, booking or verification figures are displayed.
  */
 import React from 'react';
+import {isModuleEnabled} from './featureModules.mjs';
 import {ArrowRight,Briefcase,Building2,Camera,CalendarDays,FileText,
  Heart,MessageCircle,Search,ShieldCheck,Users,Video,Film,UserRound} from 'lucide-react';
 
@@ -72,9 +73,10 @@ const roleModules={
  ],
 };
 
-export default function OriginalRoleDashboard({profile,verified,paid,onNavigate,roleOverride}){
+export default function OriginalRoleDashboard({profile,verified,paid,onNavigate,roleOverride,features}){
  const role=roleOverride||profile?.role_type||'creator';
- const modules=roleModules[role]||roleModules.creator;
+ const modules=(roleModules[role]||roleModules.creator)
+  .filter(module=>isModuleEnabled(module.tab,features));
  return <div className="space-y-6">
   <header className="flex flex-wrap items-center justify-between gap-3">
    <div>

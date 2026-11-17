@@ -52,6 +52,7 @@ export default function PassClearanceHub({isAdmin=false}){
   <section className="ccx-surface space-y-3 p-5">
    <h3 className="flex items-center gap-2 font-semibold"><ShieldCheck size={18} className="text-[#FF8ADE]"/>PASS work-clearance connection</h3>
    <p className="text-sm text-[#B4C4D9]">PASS is the adult-industry work-clearance standard. It tracks a 14-day yes/no status—not private lab panel results. Partner API access needs written approval and technical onboarding.</p>
+   <p className="text-xs text-[#B4C4D9]">Check your current clearance directly in the <a className="underline text-[#FF8ADE]" href="https://app.passcertified.org/" target="_blank" rel="noopener noreferrer">official PASS database</a>. Content Connect X cannot automatically check PASS clearance until PASS grants access to its documented partner interface.</p>
    <p className="text-sm">Connection: <strong className="capitalize">{(connection?.status||'not linked').replaceAll('_',' ')}</strong></p>
    <div className="flex flex-wrap gap-2">
     <button className="ccx-primary rounded-xl px-4 py-2.5 text-sm" disabled={busy} onClick={()=>execute('pass_link',{allow_status_sync:true})}>Request PASS account linking</button>
