@@ -147,16 +147,19 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
     selected?'Listing saved as draft. Resubmit for approval.':'Private draft created. Add approved media and submit for review.');
   if(result){
     const chosen=result.item?.id||selected;
+    let postSaveWarning='';
     try{
       if(!selected)await hostingAction('host_private_details',{id:chosen,...privateDetails});
       // Optional queued media makes the first-time creation flow work like a
       // property wizard, without sharing unreviewed files with visitors.
       if(image)await uploadHostingPhoto(chosen,image,caption);
       if(video)await uploadHostingVideo(chosen,video,videoCaption);
-    }catch(e){setError('The draft was saved, but address/media setup needs attention: '+e.message);}
+    }catch(e){postSaveWarning='The private draft exists, but address or media upload needs attention: '+e.message;}
     const item=(await hostingAction('my_listings')).items.find(v=>v.id===chosen);
     await selectListing(item||{...form,id:chosen,status:'draft'});
     await load();
+    if(postSaveWarning)setError(postSaveWarning);
+    else setNotice('Property draft saved. Review its media and submit it for independent approval when ready.');
   }
  };
  const upload=async(e)=>{
