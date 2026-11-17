@@ -35,6 +35,9 @@ const safeDefaults=(source:any)=>{
   capacity:Math.round(number('capacity',1,500,4)),
   minimum_hours:Math.round(number('minimum_hours',1,72,6)),
   hourly_rate:number('hourly_rate',1,100000,100),
+  cleaning_fee_cents:Math.round(number('cleaning_fee_cents',0,10000000,0)),
+  min_notice_hours:Math.round(number('min_notice_hours',0,720,24)),
+  preferred_cleaning_minutes:Math.round(number('preferred_cleaning_minutes',0,1440,120)),
   cancellation_policy:['flexible','moderate','strict'].includes(v.cancellation_policy)?v.cancellation_policy:'moderate',
   deposit_percent:Math.round(number('deposit_percent',0,50,0)),
   required_insurance:v.required_insurance===true,
@@ -345,6 +348,13 @@ Deno.serve(async req=>{
   const title=safe(payload.title,140),city=safe(payload.city,100),country=safe(payload.country,100);
   const rate=finite(payload.hourly_rate),crew=finite(payload.capacity),minHours=finite(payload.minimum_hours);
   const category=safe(payload.category,40);
+  const cleaning=Number(payload.cleaning_fee_cents??0),
+    notice=Number(payload.min_notice_hours??24),
+    cleaningMinutes=Number(payload.preferred_cleaning_minutes??120);
+  if(!Number.isSafeInteger(cleaning)||cleaning<0||cleaning>10000000||
+     !Number.isInteger(notice)||notice<0||notice>720||
+     !Number.isInteger(cleaningMinutes)||cleaningMinutes<0||cleaningMinutes>1440)
+    return denial('Invalid cleaning fee or booking notice settings');
   if(title.length<5||city.length<2||country.length<2||!acceptedCategories.has(category)||!Number.isFinite(rate)||rate<=0||rate>100000||
      !Number.isInteger(crew)||crew<1||crew>500||!Number.isInteger(minHours)||minHours<1||minHours>72)
    return denial('Valid title, location, category, rate, capacity and minimum booking hours required');
@@ -356,6 +366,7 @@ Deno.serve(async req=>{
    minimum_hours:minHours,description:safe(payload.description,4000),permitted_uses:[...new Set(permitted)],
    amenities:[...new Set(amenities)],rules:safe(payload.rules,3000),
    setup_buffer_minutes:30,cleanup_buffer_minutes:30,
+   cleaning_fee_cents:cleaning,min_notice_hours:notice,preferred_cleaning_minutes:cleaningMinutes,
    cancellation_policy:['flexible','moderate','strict'].includes(payload.cancellation_policy)?payload.cancellation_policy:'flexible',
    deposit_percent:Number.isInteger(payload.deposit_percent)&&payload.deposit_percent>=0&&payload.deposit_percent<=50?payload.deposit_percent:0,
    required_insurance:payload.required_insurance===true
@@ -370,6 +381,13 @@ Deno.serve(async req=>{
   const title=safe(payload.title,140),city=safe(payload.city,100),country=safe(payload.country,100),
    category=safe(payload.category,40),rate=finite(payload.hourly_rate),crew=finite(payload.capacity),
    minimum=finite(payload.minimum_hours);
+  const cleaning=Number(payload.cleaning_fee_cents??original.cleaning_fee_cents??0),
+    notice=Number(payload.min_notice_hours??original.min_notice_hours??24),
+    cleaningMinutes=Number(payload.preferred_cleaning_minutes??120);
+  if(!Number.isSafeInteger(cleaning)||cleaning<0||cleaning>10000000||
+     !Number.isInteger(notice)||notice<0||notice>720||
+     !Number.isInteger(cleaningMinutes)||cleaningMinutes<0||cleaningMinutes>1440)
+    return denial('Invalid cleaning fee or booking notice settings');
   if(title.length<5||city.length<2||country.length<2||!acceptedCategories.has(category)||!Number.isFinite(rate)||rate<=0||rate>100000||
      !Number.isInteger(crew)||crew<1||crew>500||!Number.isInteger(minimum)||minimum<1||minimum>72)return denial('Invalid listing details');
   const uses=Array.isArray(payload.permitted_uses)?payload.permitted_uses.filter((v:any)=>acceptedUses.has(v)):[];
@@ -379,6 +397,7 @@ Deno.serve(async req=>{
    status:'draft',approved_at:null,approved_by:null,
    title,city,country,state:safe(payload.state,100),category,hourly_rate:rate,
    capacity:crew,minimum_hours:minimum,description:safe(payload.description,4000),rules:safe(payload.rules,3000),
+   cleaning_fee_cents:cleaning,min_notice_hours:notice,preferred_cleaning_minutes:cleaningMinutes,
    permitted_uses:[...new Set(uses)],amenities:[...new Set(amenities)],updated_at:new Date().toISOString(),
    cancellation_policy:['flexible','moderate','strict'].includes(payload.cancellation_policy)?payload.cancellation_policy:'flexible',
    deposit_percent:Number.isInteger(payload.deposit_percent)&&payload.deposit_percent>=0&&payload.deposit_percent<=50?payload.deposit_percent:0,
@@ -392,6 +411,10 @@ Deno.serve(async req=>{
   const property=await ownProperty(payload.id);
   if(!property||!['draft','pending_review'].includes(property.status))return denial('Only draft listings can be submitted',403);
   if(!property.permitted_uses?.length)return denial('Select permitted uses');
+  const {data:privateInfo,error:privateError}=await db.from('property_private')
+    .select('exact_address').eq('property_id',property.id).maybeSingle();
+  if(privateError||!privateInfo?.exact_address||privateInfo.exact_address.trim().length<8)
+    return denial('Save the complete private street address before submitting this listing for review',400);
   const {data:photos,error:photosError}=await db.from('property_images').select('id').eq('property_id',property.id).in('status',['pending','approved']).limit(1);
   if(photosError||!photos?.length)return denial('At least one privately uploaded property photo required',400);
   const {data,error}=await db.from('properties').update({status:'pending_review',submitted_at:new Date().toISOString()}).eq('id',property.id).eq('owner_id',uid).select('id,status').single();
@@ -744,6 +767,11 @@ Deno.serve(async req=>{
   if(payload.status==='active'){
    const {data:images}=await db.from('property_images').select('id').eq('property_id',property.id).eq('status','approved').limit(1);
    if(!images?.length||!property.permitted_uses?.length)return denial('An approved photo and stated permitted uses are required',409);
+   const {data:authority,error:authorityError}=await db.from('host_verification_requests')
+     .select('status,expires_at').eq('property_id',property.id).eq('owner_id',property.owner_id)
+     .eq('status','approved').limit(3);
+   if(authorityError||!authority?.some((v:any)=>!v.expires_at||Date.parse(v.expires_at)>Date.now()))
+     return denial('Independent property authority approval required before publication',409);
   }
   const {data,error}=await db.from('properties').update({
     status:payload.status,approved_at:payload.status==='active'?new Date().toISOString():null,
