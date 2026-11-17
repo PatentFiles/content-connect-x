@@ -71,3 +71,37 @@ npm run smoke:supabase
 ```
 
 Authenticated scenario tests must cover account suspension, free versus premium, blocked host relationships, booking conflict races, unapproved media, admin MFA and independent review, accepted-reservation address access, and owner-only inspection uploads.
+
+## Host Connect property-owner experience (2026-11-17)
+
+### Product distinction
+
+Host Connect is the **property owner's marketplace**, specifically for adult-content productions. Content Connect X is the verified creator/production network. They share the same Supabase `properties`, booking, calendar and secure host-document records; neither brand maintains a second inventory.
+
+The Airbnb-style implementation was adapted natively from `wrujel/airbnb-clone`, `anvragsingh/StayFinder`, `antsal06/openstay` and `lkilpatrick/OpenSTR`, as documented above. This does **not** import their entire source trees or authentication services.
+
+### Host vs creator verification (critical)
+
+- Hosts **do not** need performer/Yoti identity verification merely to manage a lawful property-host account. This does not waive host eligibility or authorization requirements.
+- A host must attest to being at least 18 and legally competent, having ownership or explicit written permission for the property's adult filming uses, and acknowledging the adult-content nature of the service.
+- The full `hostTerms.js` agreement is versioned as `host-2026-11-17`. `ccx-integrations/onlyhost_register` records timestamps, agreement version and all confirmations in `onlyhost_accounts`. Backend access denies hosts whose terms are missing or outdated.
+- Approval to publish is **separate**: the `HostingHostVerification` workflow collects private authority documentation, ownership/management proof and optional required insurance, and an administrator reviews the submission before publication. Listing approval is not automatic.
+- Creator/guest/performer features continue to require their own independent verification. An unverified property host never gains creator access through host registration.
+
+### Host dashboard
+
+`HostingHost` obtains `host_dashboard_summary` from the protected `hosting-marketplace` Edge Function. Its true, per-host metrics are: property count, daily deduplicated signed-in property detail views over 30 days, pending booking requests, future accepted shoots and booking conversation **thread count**. These are not claimed to be unique human visitors across 30 days or unread messages. No fictional listing statistics or guest identities are shown. The view table `hosting_listing_views` is RLS enabled with direct browser permissions revoked; only service Edge Functions write/read its aggregate.
+
+### House rules, prices and eligible content
+
+Hosts explicitly choose allowed uses including nude photography, explicit adult video production, and other production categories. They configure hourly rates, minimum booking durations up to 72 hours, custom house rules, cleaning fee, buffers, deposits, weekend/holiday/overtime premiums, equipment and staff. Hosts self-arrange cleaners until a separate real local cleaning network is developed. A prospective guest must not assume adult production is permitted merely because a listing appears on Host Connect.
+
+**Current limitation:** The pricing SQL caps each reservation at 72 hours, and has no configurable per-property hotel-style daily check-in/out rules. Hourly minimum choices of 6, 12 and 24 hours are available, and up to 72-hour bookings are supported, but multi-day beyond 72 hours, nightly inventory semantics, and 3/4 p.m. check-in-to-11 a.m. checkout must be separately implemented and validated before marketing them as live.
+
+### Liability and release gate
+
+`hostTerms.js` is an operational legal draft, **not** a promise of complete liability immunity. The host is responsible for property authority, permits, venue suitability, insurance, approved uses, cleaning and their acts. The platform still has its own non-waivable duties, abuse-reporting obligations and moderation responsibilities. Obtain jurisdiction-specific counsel review before large-scale public release.
+
+The 2026-11-17 frontend/API changes require independent verification with a real non-performer host test account; provider payments and signing depend on external approval. For each deployment, verify host registration without performer evidence, signed-terms gate, owner document upload, admin property approval, creator access still blocked for host-only identities, guest booking controls and dashboard view tracking.
+
+New schema: `supabase/sql/050_host_owner_terms_and_listing_views.sql` (applied to the active Supabase project on 2026-11-17).
