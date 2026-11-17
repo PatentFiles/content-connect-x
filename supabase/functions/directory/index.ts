@@ -61,27 +61,58 @@ Deno.serve(async req=>{
   .select('user_id').or('banned.eq.true,suspended.eq.true');
  if(restrictedError)return json({error:'Unable to load directory'},503);
  const restrictedIds=new Set((restricted||[]).map(x=>x.user_id));
- const eligible=verifiedIds.filter(id=>!restrictedIds.has(id));
+ let eligible=verifiedIds.filter(id=>!restrictedIds.has(id));
+ if(filters.ids)eligible=eligible.filter(id=>filters.ids.includes(id));
  if(!eligible.length)return json({results:[],preview:!premium,limit:filters.limit,has_more:false});
+ // Identity and content searching is only possible when the target explicitly
+ // opted into exposing the matching field. The query itself must not be an
+ // indirect oracle for private gender, orientation or creative preferences.
+ if(filters.gender||filters.category){
+  let preferenceQuery=db.from('member_profile_preferences').select('user_id')
+   .in('user_id',eligible);
+  if(filters.gender)preferenceQuery=preferenceQuery.eq('show_gender_in_discovery',true)
+   .eq('gender_identity',filters.gender);
+  if(filters.category)preferenceQuery=preferenceQuery.eq('show_categories_in_discovery',true)
+   .contains('content_categories',[filters.category]);
+  const {data:matching,error:matchingError}=await preferenceQuery;
+  if(matchingError)return json({error:'Unable to load directory'},503);
+  eligible=(matching||[]).map(v=>v.user_id);
+  if(!eligible.length)return json({results:[],preview:!premium,limit:filters.limit,has_more:false});
+ }
  // Server selects only approved public profile fields. No birthdays, legal IDs,
  // private test results, exact addresses, email or private gallery paths.
  let query=db.from('member_profiles')
-  .select('id,display_name,role_type,bio,avatar_path,city,country')
+  .select('id,display_name,role_type,bio,avatar_path,city,state,country')
   .eq('profile_complete',true).in('id',eligible);
  if(filters.role)query=query.eq('role_type',filters.role);
  if(filters.query)query=query.ilike('display_name','%'+escapeLikeLiteral(filters.query)+'%');
  if(filters.city)query=query.ilike('city','%'+escapeLikeLiteral(filters.city)+'%');
+ if(filters.state)query=query.ilike('state','%'+escapeLikeLiteral(filters.state)+'%');
  if(filters.country)query=query.ilike('country','%'+escapeLikeLiteral(filters.country)+'%');
  query=query.order('display_name',{ascending:true}).order('id',{ascending:true})
   .range(filters.offset,filters.offset+filters.limit);
  const {data,error}=await query;
  if(error)return json({error:'Unable to load directory'},503);
  const page=data||[],hasMore=premium&&page.length>filters.limit&&filters.offset+filters.limit<500;
- const results=page.slice(0,filters.limit).map(v=>({
-  id:v.id,display_name:v.display_name,role_type:v.role_type,
-  bio:premium?v.bio:null,avatar_path:v.avatar_path,city:v.city,
-  country:v.country,age_verified:true
- }));
+ const ids=page.slice(0,filters.limit).map(v=>v.id);
+ const prefs=new Map<string,{gender_identity:string,content_categories:string[],
+   show_gender_in_discovery:boolean,show_categories_in_discovery:boolean}>();
+ if(ids.length){
+  const {data:optIns,error:optInError}=await db.from('member_profile_preferences')
+   .select('user_id,gender_identity,content_categories,show_gender_in_discovery,show_categories_in_discovery')
+   .in('user_id',ids);
+  if(optInError)return json({error:'Unable to load directory'},503);
+  for(const value of optIns||[])prefs.set(value.user_id,value);
+ }
+ const results=page.slice(0,filters.limit).map(v=>{
+  const choice=prefs.get(v.id);
+  return {id:v.id,display_name:v.display_name,role_type:v.role_type,
+   bio:premium?v.bio:null,avatar_path:v.avatar_path,city:v.city,state:v.state,
+   country:v.country,age_verified:true,
+   gender_identity:choice?.show_gender_in_discovery?choice.gender_identity:null,
+   content_categories:choice?.show_categories_in_discovery?choice.content_categories:[]
+  };
+ });
  return json({results,preview:!premium,limit:filters.limit,
   has_more:hasMore,offset:filters.offset});
 });
