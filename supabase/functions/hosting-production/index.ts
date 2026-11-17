@@ -21,18 +21,29 @@ Deno.serve(async request=>{
  const {data:{user},error:authError}=await userClient.auth.getUser();
  if(authError||!user)return deny('Unauthorized',401);
  const db=createClient(url,secret),uid=user.id;
- const [age,security,sub]=await Promise.all([
+ const [age,security,sub,hostAccount]=await Promise.all([
   db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
   db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
-  db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle()
+  db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
+  db.from('onlyhost_accounts').select('status,terms_version,legal_capacity_confirmed,property_authority_confirmed,adult_production_understood').eq('user_id',uid).maybeSingle()
  ]);
- if(age.error||security.error||sub.error)return deny('Account eligibility unavailable',503);
+ if(age.error||security.error||sub.error||hostAccount.error)return deny('Account eligibility unavailable',503);
  const verified=age.data?.[0]?.status==='approved'&&(!age.data[0].expires_at||Date.parse(age.data[0].expires_at)>Date.now());
- if(!verified)return deny('Independent 18+ verification required',403);
+ const hostEligible=hostAccount.data?.status==='active'&&hostAccount.data?.terms_version==='host-2026-11-17'&&
+  hostAccount.data?.legal_capacity_confirmed===true&&hostAccount.data?.property_authority_confirmed===true&&
+  hostAccount.data?.adult_production_understood===true;
  const admin=security.data?.admin===true;
- const paid=admin||['active','trial'].includes(sub.data?.status)&&(!sub.data?.period_end||Date.parse(sub.data.period_end)>Date.now());
+ const paid=admin||hostEligible||(['active','trial'].includes(sub.data?.status)&&(!sub.data?.period_end||Date.parse(sub.data.period_end)>Date.now()));
  const body=await request.json().catch(()=>null);if(!body||typeof body!=='object')return deny('Invalid JSON',400);
  const action=txt(body.action,65);
+ const hostActions=new Set(['staff_invite','staff_list','staff_remove','turnover_assign','cleaner_performance','cleaning_rate',
+  'supply_upsert','supplies','supply_adjust','booking_access_invite','booking_access_revoke',
+  'booking_access_grant_entry','booking_access_list','booking_conversation_open','booking_chat_info',
+  'booking_chat_list','booking_chat_send','booking_planning_packet','insurance_upload_token',
+  'insurance_submit','insurance_view','booking_check','incident_report','incident_my',
+  'incident_evidence_token','incident_evidence_register','suitability_save','suitability_get']);
+ if(!verified&&!(hostEligible&&hostActions.has(action)))
+  return deny('Creator verification or current property-host agreement required',403);
  const safety=new Set(['incident_report','incident_my','incident_evidence_token','incident_evidence_register','booking_access_revoke','my_crew_invites','booking_planning_packet','booking_chat_info','booking_chat_list','booking_chat_send','suitability_get','staff_respond','my_staff_invites','booking_access_respond','cleaning_jobs','cleaning_task','supplies','supply_adjust']);
  if((security.data?.banned||security.data?.suspended)&&!safety.has(action))return deny('Account restricted',403);
  if(!paid&&!safety.has(action))return deny('Active premium membership required',403);
