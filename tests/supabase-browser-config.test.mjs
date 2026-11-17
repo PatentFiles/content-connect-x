@@ -38,12 +38,20 @@ test('missing same-project half-pair uses the known safe public configuration',(
  assert.equal(byUrl.source,'environment-and-project-default');
  assert.equal(byKey.source,'environment-and-project-default');
 });
-test('never mix a different project URL with the built-in publishable key',()=>{
- const wrong=resolveBrowserSupabaseConfig({VITE_SUPABASE_URL:'https://another-project.supabase.co'});
- assert.equal(wrong.ready,false);
- assert.equal(wrong.key,null);
- const other=resolveBrowserSupabaseConfig({VITE_SUPABASE_ANON_KEY:'some-other-public-key'});
- assert.equal(other.ready,false);
+test('Bolt-native database variables cannot switch the application to an empty project',()=>{
+ const wrong=resolveBrowserSupabaseConfig({
+  VITE_SUPABASE_URL:'https://sotlluwlqxfrzexxidno.supabase.co',
+  VITE_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_BOLT_NATIVE_DIFFERENT_PROJECT'
+ });
+ assert.equal(wrong.ready,true);
+ assert.equal(wrong.url,CCX_SUPABASE_PUBLIC_URL);
+ assert.equal(wrong.key,CCX_SUPABASE_PUBLIC_KEY);
+ assert.equal(wrong.source,'canonical-override');
+ assert.ok(wrong.warning);
+ const partial=resolveBrowserSupabaseConfig({VITE_SUPABASE_ANON_KEY:'some-other-public-key'});
+ assert.equal(partial.ready,true);
+ assert.equal(partial.url,CCX_SUPABASE_PUBLIC_URL);
+ assert.equal(partial.source,'canonical-override');
 });
 test('fail closed for insecure URLs and server-only keys',()=>{
  for(const url of ['http://yxuqbygykpfbioslljlf.supabase.co',

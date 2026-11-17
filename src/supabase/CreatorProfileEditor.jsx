@@ -7,6 +7,7 @@ import React,{useEffect,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
 import {Image,Activity,User,Edit2,ShieldCheck} from 'lucide-react';
 import MediaGallery from './MediaGallery';
+import ProfileAnalytics from './ProfileAnalytics';
 import OriginalCreatorPreferences,{initialCreatorPreferences} from './OriginalCreatorPreferences';
 import {originalCreatorCatalog,creatorFieldLabels,friendlyChoice} from './originalCreatorCatalog';
 import {originalUSCities,originalUSStateCodes} from './originalLocationData';
@@ -256,12 +257,7 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
    {saving?'Saving…':loading?'Loading profile…':'Save complete profile'}</button>
  </form>)}
    {activeTab==='galleries'&&<MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
-   {activeTab==='analytics'&&<div className={panel}>
-    <h3 className="text-lg font-semibold">Profile Analytics</h3>
-    <p className="mt-2 text-sm" style={{color:'var(--cc-text-secondary)'}}>
-     Profile-view analytics from the original Base44 application are not yet migrated.
-     No visitor statistics are invented. Your original profile design remains preserved.</p>
-   </div>}
+   {activeTab==='analytics'&&<ProfileAnalytics/>}
   </div>
  </div>;
 }

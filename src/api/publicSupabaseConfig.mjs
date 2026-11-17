@@ -26,24 +26,34 @@ const failure=message=>({ready:false,url:null,key:null,source:'invalid',error:me
 /** @param {Record<string, unknown>} [env] */
 export function resolveBrowserSupabaseConfig(env={}){
   const raw=env&&typeof env==='object'?env:{};
-  const givenUrl=clean(raw.VITE_SUPABASE_URL);
-  const givenKey=clean(raw.VITE_SUPABASE_PUBLISHABLE_KEY)||clean(raw.VITE_SUPABASE_ANON_KEY);
-  // Safe fallback is limited to the single existing Content Connect X project.
-  const url=givenUrl||(!givenKey||givenKey===CCX_SUPABASE_PUBLIC_KEY?CCX_SUPABASE_PUBLIC_URL:'');
-  const key=givenKey||(!givenUrl||givenUrl===CCX_SUPABASE_PUBLIC_URL?CCX_SUPABASE_PUBLIC_KEY:'');
-  if(!url||!key)return failure(
-    'The Bolt build contains an incomplete Supabase URL/key pair for a different project. Use matching public credentials for the intended project.'
-  );
-  let parsed;
-  try{parsed=new URL(url);}catch{return failure('Invalid Supabase project URL in Bolt environment settings.');}
-  if(parsed.protocol!=='https:'||parsed.username||parsed.password||!parsed.hostname.includes('.')||
-     parsed.search||parsed.hash||parsed.pathname!=='/'){
-    return failure('The Supabase browser URL must be an HTTPS project origin without a path, query or credentials.');
+  const requestedUrl=clean(raw.VITE_SUPABASE_URL);
+  const requestedKey=clean(raw.VITE_SUPABASE_PUBLISHABLE_KEY)||clean(raw.VITE_SUPABASE_ANON_KEY);
+
+  // Bolt can automatically inject credentials for a SECOND, empty database.
+  // Never connect Content Connect X to that project: its auth.users, profile
+  // schema, Storage buckets, and Edge Functions are all independent.
+  // Keep a single canonical Supabase identity and database across deployments.
+  let parsed=null;
+  if(requestedUrl){
+    try{parsed=new URL(requestedUrl);}catch{return failure('Invalid Supabase project URL supplied by Bolt.');}
+    if(parsed.protocol!=='https:'||parsed.username||parsed.password||parsed.search||
+       parsed.hash||parsed.pathname!=='/'||!parsed.hostname.endsWith('.supabase.co')){
+      return failure('Supabase URL must be a valid HTTPS project origin.');
+    }
   }
-  if(key.startsWith('sb_secret_')||key.length<12){
-    return failure('Invalid browser API key. Use the public publishable/anon key, never a Supabase secret key.');
+  if(requestedKey.startsWith('sb_secret_')||requestedKey.toLowerCase().includes('service_role')){
+    return failure('Do not use a service-role/secret key in the browser.');
   }
-  const source=givenUrl&&givenKey?'environment':givenUrl||givenKey?'environment-and-project-default':'project-default';
-  const projectRef=parsed.hostname.endsWith('.supabase.co')?parsed.hostname.split('.')[0]:null;
-  return {ready:true,url:parsed.origin,key,source,projectRef,error:null};
+  const mismatchedProject=Boolean(parsed&&parsed.origin!==CCX_SUPABASE_PUBLIC_URL);
+  const unmatchedKey=Boolean(!parsed&&requestedKey&&requestedKey!==CCX_SUPABASE_PUBLIC_KEY);
+  if(mismatchedProject||unmatchedKey){
+    return {ready:true,url:CCX_SUPABASE_PUBLIC_URL,key:CCX_SUPABASE_PUBLIC_KEY,
+      source:'canonical-override',projectRef:CCX_SUPABASE_PROJECT_REF,error:null,
+      warning:'Bolt supplied settings for another Supabase project. Using the established Content Connect X database instead.'};
+  }
+  const key=requestedKey||CCX_SUPABASE_PUBLIC_KEY;
+  if(key.length<12)return failure('Invalid public Supabase API key.');
+  const source=parsed&&requestedKey?'environment':parsed||requestedKey?'environment-and-project-default':'project-default';
+  return {ready:true,url:CCX_SUPABASE_PUBLIC_URL,key,source,
+    projectRef:CCX_SUPABASE_PROJECT_REF,error:null};
 }

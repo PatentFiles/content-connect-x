@@ -1,6 +1,6 @@
 /** Administrative age verification review. All privileged operations check trusted database roles. */
 import { createClient } from 'npm:@supabase/supabase-js@2.95.0';
-const cors={ 'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type','Access-Control-Allow-Methods':'POST, OPTIONS' };
+const cors={ 'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version','Access-Control-Allow-Methods':'POST, OPTIONS' };
 const respond=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,'Content-Type':'application/json'}});
 // The JWT has already been validated by Supabase Auth.getUser before this is used.
 const assurance=(header:string)=>{

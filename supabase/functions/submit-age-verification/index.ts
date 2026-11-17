@@ -1,6 +1,6 @@
 /** Submit pending identity review: never approve identity or accept user-supplied status. */
 import { createClient } from 'npm:@supabase/supabase-js@2.95.0';
-const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type','Access-Control-Allow-Methods':'POST, OPTIONS'};
+const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const respond=(payload:unknown,status=200)=>new Response(JSON.stringify(payload),{status,headers:{...cors,'content-type':'application/json'}});
 Deno.serve(async req=>{
   if(req.method==='OPTIONS') return new Response(null,{status:204,headers:cors});

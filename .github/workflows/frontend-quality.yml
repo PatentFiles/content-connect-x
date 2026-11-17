@@ -31,6 +31,8 @@ jobs:
         run: npm run test:integrations
       - name: Modular feature registry tests
         run: npm run test:modules
+      - name: Private profile analytics protections
+        run: npm run test:analytics
       - name: Bolt preview and Supabase public configuration tests
         run: npm run test:bolt-config
       - name: Directory public-filter policy tests

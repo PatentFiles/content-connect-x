@@ -50,6 +50,23 @@ const roleLabel={creator:'Creator',agent:'Agent',studio:'Studio',
 const navBackground='rgba(79,140,255,0.12)';
 const sideText='var(--cc-text-secondary)';
 
+function RoleDashboardSwitcher({value,onChange,mobile=false}){
+ return <section aria-label="Admin dashboard switcher" className={'border-b p-4 '+(mobile?'space-y-3':'space-y-2')}
+  style={{borderColor:'var(--cc-border)'}}>
+  <p className="text-xs font-semibold uppercase tracking-wider" style={{color:'var(--cc-text-muted)'}}>Switch dashboard</p>
+  <p className="text-[11px] leading-4" style={{color:'var(--cc-text-secondary)'}}>
+   Admin preview only. It does not change your account role or bypass protected permissions.</p>
+  <div className="grid grid-cols-2 gap-1.5">
+   {[['admin','My dashboard'],...Object.entries(roleLabel)].map(([key,label])=>
+    <button key={key} type="button" aria-pressed={value===key}
+     onClick={()=>onChange(key)} className="min-h-9 rounded-md border px-2 py-1.5 text-left text-xs font-medium transition-colors"
+     style={{borderColor:value===key?'var(--cc-blue)':'var(--cc-border)',
+      backgroundColor:value===key?navBackground:'var(--cc-surface)',
+      color:value===key?'var(--cc-blue)':'var(--cc-text-secondary)'}}>{label}</button>)}
+  </div>
+ </section>;
+}
+
 function MenuLink({item,tab,onNavigate,onClose=()=>{},mobile=false}){
  const Icon=item.icon;
  const isActive=tabMatches(tab,item.path);
@@ -72,6 +89,12 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
  const [unread,setUnread]=useState(0);
  const role=profile?.role_type||'creator';
  const effectiveRole=isAdmin&&adminRole!=='admin'?adminRole:role;
+ const switchDashboard=next=>{
+  setAdminRole(next);
+  onRolePreviewChange?.(next==='admin'?null:next);
+  onNavigate('dashboard');
+  setMobileOpen(false);
+ };
  const nav=useMemo(()=>getNavigationForRole(effectiveRole)
   .filter(item=>isModuleEnabled(keyFor(item.path),featureFlags)),[effectiveRole,featureFlags]);
  const adminNav=useMemo(()=>isAdmin?[
@@ -152,17 +175,9 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
       <ExternalLink size={12}/> View Public Profile
     </button>
    </div>
-   {isAdmin&&<label className="border-b p-4 text-xs" style={{borderColor:'var(--cc-border)'}}>
-    Admin role preview
-    <select value={adminRole} onChange={e=>{setAdminRole(e.target.value);onRolePreviewChange?.(e.target.value==='admin'?null:e.target.value);}}
-     className="mt-2 w-full rounded-md border p-2 text-sm"
-     style={{background:'var(--cc-bg)',borderColor:'var(--cc-border)'}}>
-     <option value="admin">Admin</option>
-     {Object.entries(roleLabel).map(([value,label])=><option value={value} key={value}>{label}</option>)}
-    </select>
-   </label>}
+   {isAdmin&&<RoleDashboardSwitcher value={adminRole} onChange={switchDashboard}/>} 
    <nav aria-label="Role navigation" className="flex-1 space-y-1 overflow-y-auto p-4">
-    {isAdmin&&adminRole==='admin'&&<>
+    {isAdmin&&<>
      <div className="mb-2 px-3 text-xs font-medium uppercase tracking-wider"
       style={{color:'var(--cc-text-muted)'}}>Admin</div>
      {adminNav.map(item=><MenuLink key={item.path} item={item} tab={tab} onNavigate={onNavigate}/>)}
@@ -188,6 +203,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
       <div className="text-xs capitalize" style={{color:'var(--cc-text-muted)'}}>{roleLabel[role]||role}</div></div>
      <button className="p-2" onClick={()=>setMobileOpen(false)} aria-label="Close navigation"><X size={22}/></button>
     </div>
+    {isAdmin&&<RoleDashboardSwitcher mobile value={adminRole} onChange={switchDashboard}/>}
     <nav aria-label="Mobile navigation" className="space-y-1 p-4">
      {nav.map(item=><MenuLink key={item.path} item={item} tab={tab} onNavigate={onNavigate}
       onClose={()=>setMobileOpen(false)} mobile/>)}
