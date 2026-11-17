@@ -131,3 +131,16 @@
 @media(max-width:600px){.oh-header-inner{gap:7px;padding-inline:10px}.oh-wordmark{font-size:clamp(13px,3.9vw,19px)}.oh-mark{height:35px;width:35px;flex-shrink:0}.oh-ccx-link{padding:8px 7px;font-size:clamp(9px,2.7vw,12px)}.oh-list-space{padding:9px 8px;font-size:clamp(10px,2.7vw,12px)}.oh-list-space svg{display:none}.oh-header-actions{gap:5px}.oh-landing-container{width:min(100% - 30px,1260px)}.oh-landing-section{padding:54px 0}.oh-landing-heading{margin-bottom:28px}.oh-landing-cards{grid-template-columns:1fr}.oh-landing-card{min-height:240px;padding:22px}.oh-landing-card-icon{margin:15px 0}.oh-landing-steps{grid-template-columns:1fr 1fr;gap:9px}.oh-landing-step{padding:18px 15px;min-height:195px}.oh-landing-account-area{padding-top:10px;padding-bottom:60px}.oh-footer-inner{justify-content:center;text-align:center}}
 @media(max-width:380px){.oh-mark{display:none}.oh-wordmark{font-size:13px}.oh-list-space{font-size:10px}.oh-landing-steps{grid-template-columns:1fr}.oh-landing-step{min-height:130px}}
 @media(prefers-reduced-motion:reduce){.oh-landing-card,.oh-landing-card-icon,.oh-ccx-link,.host-connect-theme nav button{transition:none!important}.oh-landing-card:hover,.oh-landing-card:hover .oh-landing-card-icon,.oh-ccx-link:hover,.host-connect-theme nav button:hover{transform:none!important}}
+
+/* Property-owner contract acceptance — readable, keyboard-accessible, mobile-safe. */
+.oh-terms-details{border:1px solid rgba(127,179,244,.4);background:rgba(12,24,51,.76);border-radius:14px;overflow:hidden}
+.oh-terms-details summary{cursor:pointer;padding:15px 17px;color:#98e8fb;font-size:14px;font-weight:750}
+.oh-terms-details summary:hover{background:rgba(65,133,207,.15)}
+.oh-terms-content{max-height:340px;overflow:auto;padding:0 17px 17px;color:#c4d2e6;font-size:12px;line-height:1.8}
+.oh-terms-content>p{color:#89acd2;padding-bottom:12px}
+.oh-terms-content section{margin:14px 0 0;padding-top:12px;border-top:1px solid rgba(126,156,200,.19)}
+.oh-terms-content h3{font-size:13px;color:white;font-weight:750;margin-bottom:6px}
+.oh-terms-check{display:flex;align-items:flex-start;gap:12px;padding:13px;border:1px solid rgba(121,158,211,.22);border-radius:12px;color:#cbd9eb;font-size:13px;line-height:1.6;cursor:pointer}
+.oh-terms-check input{flex-shrink:0;margin-top:4px;width:16px;height:16px;accent-color:#50bfec}
+.oh-terms-check:focus-within{outline:2px solid #56dafa;outline-offset:2px}
+.oh-landing-card:hover .oh-landing-card-icon{box-shadow:0 0 27px rgba(87,179,244,.17)}
