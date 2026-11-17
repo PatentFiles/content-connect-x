@@ -233,8 +233,8 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
     selected={prefs.preferred_collaborators} change={v=>preference('preferred_collaborators',v)}/>
    <CheckList label="Content categories" options={contentCategories}
     selected={prefs.content_categories} change={v=>preference('content_categories',v)}/>
-   <CheckList label="Scene / creative formats" options={scenePairings}
-    selected={prefs.scene_pairings} change={v=>preference('scene_pairings',v)}/>
+   {form.role_type!=='creator'&&<CheckList label="Scene / creative formats" options={scenePairings}
+    selected={prefs.scene_pairings} change={v=>preference('scene_pairings',v)}/>}
    <CheckList label="Professional specialties" options={specialties}
     selected={prefs.specialties} change={v=>preference('specialties',v)}/>
    <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={prefs.available_to_travel}
