@@ -41,6 +41,14 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
  const [reservations,setReservations]=useState([]);
  const [selected,setSelected]=useState('');
  const [editing,setEditing]=useState(false);
+ const editorRef=React.useRef(null);
+ const defaultsRef=React.useRef(null);
+ useEffect(()=>{
+   const target=showDefaults?defaultsRef.current:editing?editorRef.current:null;
+   if(!target)return;
+   const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+   target.scrollIntoView({behavior:reduceMotion?'auto':'smooth',block:'start'});
+ },[editing,selected,showDefaults]);
  const [defaults,setDefaults]=useState(blank);
  const [defaultForm,setDefaultForm]=useState(blank);
  const [showDefaults,setShowDefaults]=useState(false);
@@ -328,7 +336,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
         </button>)}
       </aside>
       <div className="space-y-5">
-        {showDefaults&&<section className={panel+' space-y-4'} aria-label="Reusable host listing defaults">
+        {showDefaults&&<section ref={defaultsRef} className={panel+' space-y-4 scroll-mt-24'} aria-label="Reusable host listing defaults">
           <div className="flex items-start justify-between gap-4">
             <div><h3 className="text-xl font-bold">Default Rules & Pricing</h3>
               <p className={muted}>These prefill future listings. Each property can override any rule independently. Addresses and titles are always property-specific.</p></div>
@@ -365,7 +373,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
             <button type="button" className={secondary} onClick={()=>setShowDefaults(true)}>Set Default Rules</button>
           </div>
         </section>}
-        {editing&&<form onSubmit={save} className={panel+' space-y-4'}>
+        {editing&&<form ref={editorRef} onSubmit={save} className={panel+' space-y-4 scroll-mt-24'}>
           <div className="flex justify-between gap-2 items-center"><h3 className="text-lg font-semibold">{selected?'Edit Property':'Add a New Property'}</h3>
             <button type="button" className={secondary+' inline-flex items-center gap-2'} onClick={closeEditor}><X size={16}/>Close</button>
           </div>
