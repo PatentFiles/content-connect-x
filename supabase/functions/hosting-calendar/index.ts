@@ -127,14 +127,19 @@ Deno.serve(async req=>{
   const {data:{user},error}=await auth.auth.getUser();
   if(error||!user)return err('Unauthorized',401);
   uid=user.id;
-  const [age,security,sub]=await Promise.all([
+  const [age,security,sub,hostAccount]=await Promise.all([
    db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
    db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
-   db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle()
+   db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
+   db.from('onlyhost_accounts').select('status,terms_version,legal_capacity_confirmed,property_authority_confirmed,adult_production_understood').eq('user_id',uid).maybeSingle()
   ]);
-  if(age.error||security.error||sub.error||age.data?.[0]?.status!=='approved'||age.data[0]?.expires_at&&Date.parse(age.data[0].expires_at)<=Date.now()||
-   security.data?.banned||security.data?.suspended)return err('Account unavailable',403);
-  if(!security.data?.admin&&!['active','trial'].includes(sub.data?.status))return err('Premium required',403);
+  const adultVerified=age.data?.[0]?.status==='approved'&&(!age.data?.[0]?.expires_at||Date.parse(age.data[0].expires_at)>Date.now());
+  const hostEligible=hostAccount.data?.status==='active'&&hostAccount.data?.terms_version==='host-2026-11-17'&&
+   hostAccount.data?.legal_capacity_confirmed===true&&hostAccount.data?.property_authority_confirmed===true&&
+   hostAccount.data?.adult_production_understood===true;
+  if(age.error||security.error||sub.error||hostAccount.error||
+    security.data?.banned||security.data?.suspended||!adultVerified&&!hostEligible)return err('Account unavailable',403);
+  if(!hostEligible&&!security.data?.admin&&!['active','trial'].includes(sub.data?.status))return err('Premium required',403);
  }
  const own=async(propertyId:unknown)=>{
   if(!uid||!uuid(propertyId))return null;
