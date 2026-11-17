@@ -24,6 +24,22 @@ const routeMap=Object.freeze({
  ViewProfile:'directory',ViewContract:'contracts',PropertyDetail:'hosting'
 });
 const keyFor=path=>routeMap[path]||'dashboard';
+const reverseRoutes={
+ dashboard:'Dashboard',directory:'Discovery',search:'Search',favorites:'Favorites',
+ connections:'Connections',messages:'Messages',collaborations:'Collaborations',
+ contracts:'Contracts',testing:'Testing',verification:'Verification',hosting:'HostingMarketplace',
+ host:'HostDashboard',profile:'Profile',settings:'Settings',portfolio:'Portfolio',
+ notifications:'Notifications',schedule:'AvailabilitySchedule',
+ representations:'Representations',roster:'RosterPortfolio',
+ 'host-settings':'HostSettings',controls:'AdminDashboard'
+};
+/** Preserve the original Base44 URL names for refresh, deep links, and back/forward. */
+export const tabFromLegacyPath=pathname=>{
+ const part=decodeURIComponent(String(pathname||'').split('/').filter(Boolean)[0]||'');
+ const matched=Object.keys(routeMap).find(key=>key.toLowerCase()===part.toLowerCase());
+ return matched?routeMap[matched]:'dashboard';
+};
+export const legacyPathForTab=tab=>'/'+(reverseRoutes[tab]||'Dashboard');
 const tabMatches=(tab,path)=>tab===keyFor(path);
 const roleLabel={creator:'Creator',agent:'Agent',studio:'Studio',
  photographer:'Photographer',videographer:'Videographer',
