@@ -25,6 +25,24 @@ const moment=(v:unknown)=>{const date=typeof v==='string'?new Date(v):new Date(N
 const acceptedAmenities=new Set(['wifi','parking','private_entrance','makeup_room','dressing_room','shower','kitchen','restroom','soundproof','lighting','green_screen','power_220v','accessible','outdoor','security','air_conditioning','load_in','bedroom','pool']);
 const acceptedUses=new Set(['photography','filming','commercial','interviews','music_video','adult_production','nude_photography','explicit_adult_video','events','equipment_rental']);
 const acceptedCategories=new Set(['film_studio','photo_studio','house','villa','loft','set','outdoor','equipment','dungeon','other']);
+const safeDefaults=(source:any)=>{
+ const v=source&&typeof source==='object'&&!Array.isArray(source)?source:{};
+ const number=(key:string,min:number,max:number,fallback:number)=>{
+  const n=Number(v[key]);return Number.isFinite(n)&&n>=min&&n<=max?n:fallback;
+ };
+ return {
+  category:acceptedCategories.has(v.category)?v.category:'house',
+  capacity:Math.round(number('capacity',1,500,4)),
+  minimum_hours:Math.round(number('minimum_hours',1,72,6)),
+  hourly_rate:number('hourly_rate',1,100000,100),
+  cancellation_policy:['flexible','moderate','strict'].includes(v.cancellation_policy)?v.cancellation_policy:'moderate',
+  deposit_percent:Math.round(number('deposit_percent',0,50,0)),
+  required_insurance:v.required_insurance===true,
+  rules:safe(v.rules,3000),
+  amenities:Array.isArray(v.amenities)?[...new Set(v.amenities.filter((x:unknown)=>acceptedAmenities.has(x)))]:[],
+  permitted_uses:Array.isArray(v.permitted_uses)?[...new Set(v.permitted_uses.filter((x:unknown)=>acceptedUses.has(x)))]:[],
+ };
+};
 const hashClaim=(header:string)=>{try{const part=header.replace(/^Bearer\s+/i,'').split('.')[1];return JSON.parse(atob(part.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(part.length/4)*4,'=')))?.aal||'aal1';}catch{return 'aal1';}};
 const publicCols='id,owner_id,title,description,category,city,state,country,capacity,minimum_hours,hourly_rate,currency,amenities,permitted_uses,rules,setup_buffer_minutes,cleanup_buffer_minutes,cancellation_policy,deposit_percent,required_insurance,public_area_id,timezone,min_notice_hours,weekend_bps,holiday_bps,overtime_bps,cleaning_fee_cents,status,created_at';
 const ownerCols=publicCols+',submitted_at,approved_at';
@@ -49,7 +67,7 @@ Deno.serve(async req=>{
  ]);
  if(security.error||age.error||plan.error||ohAccount.error)return denial('Account status unavailable',503);
  if(security.data?.banned||security.data?.suspended)return denial('Account restricted',403);
- const hostAction=new Set(['host_create','host_update','host_submit','host_block_dates','host_remove_block','host_ical_import','host_photos_token','host_photos_register','host_photo_delete','host_private_details','host_bookings','host_booking_respond','turnover_create','turnover_list','turnover_task','turnover_upload_token','turnover_upload_register','turnover_photos','host_booking_complete','my_listings','host_dashboard_summary','host_blocks','host_private_get']);
+ const hostAction=new Set(['host_create','host_update','host_submit','host_block_dates','host_remove_block','host_ical_import','host_photos_token','host_photos_register','host_photo_delete','host_private_details','host_bookings','host_booking_respond','turnover_create','turnover_list','turnover_task','turnover_upload_token','turnover_upload_register','turnover_photos','host_booking_complete','my_listings','host_dashboard_summary','host_blocks','host_private_get','host_defaults_get','host_defaults_set','host_video_token','host_video_register','host_video_delete']);
  const admin=security.data?.admin===true;
  const {data:hostAgreement,error:termsError}=await db.from('onlyhost_accounts')
    .select('status,terms_version,legal_capacity_confirmed,property_authority_confirmed,adult_production_understood')
@@ -108,7 +126,20 @@ Deno.serve(async req=>{
     const {data:link,error:linkError}=await db.storage.from('property-images').createSignedUrl(p.storage_path,300);
     return linkError?null:{id:p.id,property_id:p.property_id,caption:p.caption,status:p.status,url:link.signedUrl};
   }));
-  return items.map((item:any)=>({...item,photos:enriched.filter(Boolean).filter((photo:any)=>photo.property_id===item.id)}));
+  const {data:videos,error:videoError}=await db.from('property_videos')
+    .select('id,property_id,uploader_id,storage_path,caption,mime_type,status,position')
+    .in('property_id',ids).order('position').limit(250);
+  if(videoError)throw videoError;
+  const allowedVideos=(videos||[]).filter((v:any)=>v.status==='approved'||(includeOwnerPending&&v.uploader_id===uid));
+  const videoLinks=await Promise.all(allowedVideos.map(async(v:any)=>{
+    const {data:link,error:linkError}=await db.storage.from('property-videos').createSignedUrl(v.storage_path,300);
+    return linkError?null:{id:v.id,property_id:v.property_id,caption:v.caption,status:v.status,
+      mime_type:v.mime_type,url:link.signedUrl};
+  }));
+  return items.map((item:any)=>({
+    ...item,photos:enriched.filter(Boolean).filter((photo:any)=>photo.property_id===item.id),
+    videos:videoLinks.filter(Boolean).filter((video:any)=>video.property_id===item.id)
+  }));
  };
  try{
  switch(action){
@@ -252,6 +283,63 @@ Deno.serve(async req=>{
     conversations:(threads.data||[]).length,
     by_property:(owned||[]).map((v:any)=>({id:v.id,title:v.title,views_30d:(views.data||[]).filter((x:any)=>x.property_id===v.id).length}))
   });
+ }
+ case 'host_defaults_get':{
+  const {data,error}=await db.from('host_listing_defaults').select('settings,updated_at').eq('user_id',uid).maybeSingle();
+  if(error)throw error;
+  return reply({settings:data?.settings?safeDefaults(data.settings):null,updated_at:data?.updated_at||null});
+ }
+ case 'host_defaults_set':{
+  const settings=safeDefaults(payload.settings);
+  const {data,error}=await db.from('host_listing_defaults')
+    .upsert({user_id:uid,settings,updated_at:new Date().toISOString()},{onConflict:'user_id'})
+    .select('settings,updated_at').single();
+  if(error)throw error;await audit('host_listing_defaults_updated');
+  return reply({settings:data.settings,updated_at:data.updated_at});
+ }
+ case 'host_video_token':{
+  if(!uuid(payload.id))return denial('Invalid property');
+  const owner=await ownProperty(payload.id);
+  if(!owner||!['draft','pending_review','active','paused'].includes(owner.status))return denial('Not your property',403);
+  const type=safe(payload.mime_type,50);
+  if(!['video/mp4','video/webm'].includes(type))return denial('Only MP4 or WebM video is supported');
+  const {data:existing,error:videosError}=await db.from('property_videos').select('id').eq('property_id',owner.id);
+  if(videosError||existing?.length>=5)return denial('Maximum five property videos',429);
+  const filename=uid+'/'+owner.id+'/'+crypto.randomUUID()+(type==='video/mp4'?'.mp4':'.webm');
+  const {data,error}=await db.storage.from('property-videos').createSignedUploadUrl(filename);
+  if(error)throw error;
+  return reply({path:filename,token:data.token});
+ }
+ case 'host_video_register':{
+  if(!uuid(payload.id)||typeof payload.path!=='string')return denial('Invalid video');
+  const owner=await ownProperty(payload.id);if(!owner)return denial('Not your property',403);
+  if(!payload.path.startsWith(uid+'/'+owner.id+'/')||payload.path.includes('..')||payload.path.length>350)
+    return denial('Invalid private video path',403);
+  const {data:object,error:storageError}=await db.storage.from('property-videos').info(payload.path);
+  if(storageError||!object)return denial('Uploaded video not found',404);
+  const type=object.metadata?.mimetype||safe(payload.mime_type,40);
+  if(!['video/mp4','video/webm'].includes(type)||Number(object.metadata?.size||0)>41943040)
+    return denial('Unsupported video or file too large',400);
+  const {data:existing,error:existingError}=await db.from('property_videos').select('id').eq('property_id',owner.id);
+  if(existingError||existing?.length>=5)return denial('Maximum five property videos',429);
+  const {data,error}=await db.from('property_videos').insert({
+    property_id:owner.id,uploader_id:uid,storage_path:payload.path,mime_type:type,
+    caption:safe(payload.caption,250),position:existing?.length||0,status:'pending'
+  }).select('id,status').single();
+  if(error)throw error;
+  if(owner.status==='active')await db.from('properties').update({status:'pending_review',approved_at:null,approved_by:null}).eq('id',owner.id);
+  await audit('host_video_uploaded',data.id);
+  return reply({item:data,note:'Video uploaded privately for human moderation; not public until approved.'},201);
+ }
+ case 'host_video_delete':{
+  if(!uuid(payload.id))return denial('Video required');
+  const {data:video}=await db.from('property_videos').select('id,property_id,storage_path')
+    .eq('id',payload.id).eq('uploader_id',uid).maybeSingle();
+  if(!video||!await ownProperty(video.property_id))return denial('Video unavailable',403);
+  const {error}=await db.from('property_videos').delete().eq('id',video.id);
+  if(error)throw error;
+  await db.storage.from('property-videos').remove([video.storage_path]);
+  return reply({ok:true});
  }
  case 'host_create':{
   const title=safe(payload.title,140),city=safe(payload.city,100),country=safe(payload.country,100);
@@ -615,7 +703,14 @@ Deno.serve(async req=>{
     const {data:link}=await db.storage.from('property-images').createSignedUrl(image.storage_path,180);
     return {id:image.id,property_id:image.property_id,url:link?.signedUrl||null};
   }));
-  return reply({items:await approvedPhotoLinks(data||[]),pending_images:previews});
+  const {data:pendingVideos,error:vError}=await db.from('property_videos')
+    .select('id,property_id,status,storage_path,mime_type').eq('status','pending').limit(100);
+  if(vError)throw vError;
+  const videoPreviews=await Promise.all((pendingVideos||[]).map(async(video:any)=>{
+    const {data:link}=await db.storage.from('property-videos').createSignedUrl(video.storage_path,180);
+    return {id:video.id,property_id:video.property_id,mime_type:video.mime_type,url:link?.signedUrl||null};
+  }));
+  return reply({items:await approvedPhotoLinks(data||[]),pending_images:previews,pending_videos:videoPreviews});
  }
  case 'admin_image_review':{
   if(!uuid(payload.id)||!['approved','rejected'].includes(payload.status))return denial('Invalid photo decision');
@@ -626,6 +721,18 @@ Deno.serve(async req=>{
   const {data,error}=await db.from('property_images').update({status:payload.status,reviewed_by:uid}).eq('id',photo.id).eq('status','pending').select('id,status').maybeSingle();
   if(error||!data)return denial('Review conflict',409);
   await audit('property_photo_review',data.id,{status:data.status});
+  return reply({item:data});
+ }
+ case 'admin_video_review':{
+  if(!uuid(payload.id)||!['approved','rejected'].includes(payload.status))return denial('Invalid video review');
+  const {data:video}=await db.from('property_videos').select('id,uploader_id,status').eq('id',payload.id).maybeSingle();
+  if(!video||video.status!=='pending')return denial('Video unavailable',409);
+  if(video.uploader_id===uid)return denial('Cannot review your own video',403);
+  if(payload.human_review_confirmed!==true)return denial('Independent human review required',403);
+  const {data,error}=await db.from('property_videos').update({status:payload.status,reviewed_by:uid})
+    .eq('id',video.id).eq('status','pending').select('id,status').maybeSingle();
+  if(error||!data)return denial('Video review conflict',409);
+  await audit('property_video_review',data.id,{status:data.status});
   return reply({item:data});
  }
  case 'admin_listing_review':{
