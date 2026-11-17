@@ -184,7 +184,7 @@ button[aria-label], button.icon-btn, [role="tab"], [role="menuitem"] { user-sele
    smaller than 16 CSS pixels. Preserve the site's compact mobile typography
    but render editable controls at 16px, including Tailwind text-xs/sm forms.
    Never disable pinch-zoom or user scaling: both are accessibility features. */
-@media (max-width: 767px) {
+@media (max-width: 767px), (pointer: coarse) {
   input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
   select,
   textarea {
