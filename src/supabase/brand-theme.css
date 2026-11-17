@@ -270,6 +270,16 @@
 .ccx-mobile-menu { backdrop-filter: blur(18px); }
 .ccx-mobile-menu .ccx-nav-pill { border-color: transparent; }
 .ccx-mobile-menu .ccx-nav-pill + .ccx-nav-pill { margin-top: .25rem; }
-.ccx-public-auth-links { pointer-events: none; }
+.ccx-public-auth-links {
+  background: rgba(9,13,25,.92);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
 .ccx-public-auth-links a { pointer-events: auto; }
+.ccx-public-hero-actions {
+  bottom: 22%;
+}
 .ccx-app #main-content > .w-full > * { margin-left: auto; margin-right: auto; }
+@media (max-width: 640px) {
+  .ccx-public-hero-actions { bottom: 24%; }
+  .ccx-public-auth-links > div { justify-content: center; }
+}

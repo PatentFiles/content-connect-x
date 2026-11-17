@@ -245,7 +245,7 @@ export default function SupabaseApp() {
   if(loading||mfaChecking)return <div className={`${shell} grid place-items-center`}><Loader2 className="animate-spin"/></div>;
   if(!user&&!authPage)return <div className={shell}>
     <div className="ccx-brand-topline"/>
-    <header className="ccx-public-auth-links absolute left-0 right-0 top-4 z-20 px-4 sm:px-6" aria-label="Account links">
+    <header className="ccx-public-auth-links px-4 py-3 sm:px-6" aria-label="Account links">
       <div className="mx-auto flex max-w-7xl justify-end gap-2">
         <a href="/login" className="ccx-secondary rounded-lg px-3 py-2 text-sm">Log in</a>
         <a href="/signup" className="ccx-primary rounded-lg px-3 py-2 text-sm">Sign up</a>
@@ -256,9 +256,8 @@ export default function SupabaseApp() {
         <source media="(max-width: 640px)" srcSet="/ContentConnectX__Create,_Collaborate,_Grow.png"/>
         <img src="/content_conect_hero.png" alt="Content Connect X — Create. Collaborate. Connect." className="block h-auto w-full object-cover"/>
       </picture>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-wrap justify-center gap-3 bg-gradient-to-t from-black/55 to-transparent px-5 pb-8 pt-20 sm:pb-12">
-        <a href="/signup" className="ccx-primary pointer-events-auto inline-flex items-center rounded-full px-7 py-3 text-sm">Complete your profile <span aria-hidden="true" className="ml-2 text-lg leading-none">→</span></a>
-        <a href="/login" className="ccx-secondary pointer-events-auto inline-flex items-center rounded-xl px-5 py-3 text-sm">Log in</a>
+      <div className="ccx-public-hero-actions pointer-events-none absolute inset-x-0 z-10 flex justify-center px-5">
+        <a href="/signup" className="ccx-primary pointer-events-auto inline-flex items-center rounded-full px-7 py-3 text-sm">Create your profile <span aria-hidden="true" className="ml-2 text-lg leading-none">→</span></a>
       </div>
     </section>
     <PublicLandingSections/>
