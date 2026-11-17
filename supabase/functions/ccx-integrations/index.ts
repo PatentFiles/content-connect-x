@@ -303,19 +303,37 @@ Deno.serve(async req=>{
     :'Access remains locked until a qualified age-verification method succeeds.'});
  }
  case 'onlyhost_register':{
-  if(body.accept_terms!==true)return bad('You must accept the hosting marketplace terms',400);
-  const {data,error}=await db.from('onlyhost_accounts')
-   .upsert({user_id:uid,status:'active',agreed_to_hosting_terms_at:new Date().toISOString()},
-    {onConflict:'user_id'}).select('status,created_at').single();
+  // Host-only registrations do NOT grant creator or performer privileges.
+  const version='host-2026-11-17';
+  if(body.accept_terms!==true||body.terms_version!==version||
+     body.legal_capacity_confirmed!==true||body.property_authority_confirmed!==true||
+     body.adult_production_understood!==true)
+    return bad('Review the current host agreement and confirm legal capacity, property authority and adult-production awareness',400);
+  const {data:prior,error:priorError}=await db.from('onlyhost_accounts')
+   .select('status').eq('user_id',uid).maybeSingle();
+  if(priorError)return bad('Host account unavailable',503);
+  if(prior?.status==='suspended'||prior?.status==='deleted')return bad('This host account cannot be reactivated without support review',403);
+  const now=new Date().toISOString();
+  const {data,error}=await db.from('onlyhost_accounts').upsert({
+   user_id:uid,status:'active',agreed_to_hosting_terms_at:now,
+   terms_accepted_at:now,terms_version:version,
+   legal_capacity_confirmed:true,property_authority_confirmed:true,
+   adult_production_understood:true
+  },{onConflict:'user_id'}).select('status,created_at,terms_version,terms_accepted_at').single();
   if(error)throw error;
-  await audit('onlyhost_account_joined');
-  return out({item:data,note:'OnlyHost account enabled; renting still requires independent adult verification and accepted venue rules.'});
+  await audit('onlyhost_host_terms_accepted');
+  return out({item:data,note:'Host account enabled. Property proof, permitted-use review and required approvals are still necessary before publication.'});
  }
  case 'onlyhost_status':{
   const {data,error}=await db.from('onlyhost_accounts')
-   .select('status,created_at').eq('user_id',uid).maybeSingle();
-  if(error)throw error;
+   .select('status,created_at,terms_version,terms_accepted_at,legal_capacity_confirmed,property_authority_confirmed,adult_production_understood')
+   .eq('user_id',uid).maybeSingle();
+  if(error)return bad('Host account unavailable',503);
+  const current=data?.status==='active'&&data.terms_version==='host-2026-11-17'&&
+    data.legal_capacity_confirmed===true&&data.property_authority_confirmed===true&&data.adult_production_understood===true;
   return out({registered:data?.status==='active',status:data?.status||'not_registered',
+   host_terms_current:Boolean(current),terms_version:data?.terms_version||null,
+   terms_accepted_at:data?.terms_accepted_at||null,
    age_verified:verified(ages.data?.[0])});
  }
  case 'clearance_upload_token':{
