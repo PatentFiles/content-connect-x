@@ -5,6 +5,7 @@ import {getNavigationForRole} from './originalRoleNav';
 import {isModuleVisible} from './featureModules.mjs';
 import {RoleWorkspaceContext} from './RoleWorkspaceContext';
 import {effectiveWorkspaceRole} from './roleWorkspacePolicy.mjs';
+import ModuleAccessBoundary from './ModuleAccessBoundary';
 import {supabase} from '@/api/supabaseClient';
 const routeMap=Object.freeze({
  Dashboard:'dashboard',Discovery:'directory',Search:'search',Favorites:'favorites',Connections:'connections',Messages:'messages',Collaborations:'collaborations',
@@ -54,9 +55,9 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
  const adminNav=useMemo(()=>isAdmin?[
   {path:'AdminDashboard',label:'Platform Controls',icon:Shield},{path:'CompliancePortal',label:'API & Integrations',icon:Settings},{path:'TestingReviews',label:'Testing Reviews',icon:Shield}
  ]:[],[isAdmin]);
- const workspace=useMemo(()=>({role:effectiveRole,actualRole:role,preview:isAdmin&&effectiveRole!==role,tab,profile,user,isAdmin,onNavigate}),[effectiveRole,role,isAdmin,tab,profile,user,onNavigate]);
+ const workspace=useMemo(()=>({role:effectiveRole,actualRole:role,preview:isAdmin&&effectiveRole!==role,tab,profile,user,isAdmin,onNavigate,account:featureFlags?.__ccxAccount,featureAccess:featureFlags?.__ccxAccess}),[effectiveRole,role,isAdmin,tab,profile,user,onNavigate,featureFlags]);
  useEffect(()=>{setMobileOpen(false);},[tab]);
- useEffect(()=>{let live=true;if(!user?.id)return;void(async()=>{const {count,error}=await supabase.from('member_notifications').select('id',{count:'exact',head:true}).eq('user_id',user.id).is('read_at',null);if(live&&!error)setUnread(count||0);})().catch(()=>{});return()=>{live=false;};},[user?.id,tab]);
+ useEffect(()=>{let live=true;if(!user?.id)return;void(async()=>{const {count,error}=await supabase.from('member_notifications').select('id',{count:'exact',head:true}).eq('recipient_id',user.id).is('read_at',null);if(live&&!error)setUnread(count||0);})().catch(()=>{});return()=>{live=false;};},[user?.id,tab]);
  useEffect(()=>{const handler=e=>{if(e.key==='Escape')setMobileOpen(false);};window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler);},[]);
  const toggleTheme=()=>{const next=theme==='dark'?'light':'dark';setTheme(next);document.documentElement.classList.toggle('dark',next==='dark');localStorage.setItem('cc_theme',next);};
  return <RoleWorkspaceContext.Provider value={workspace}><div className="ccx-original-shell min-h-screen" style={{background:'var(--cc-bg)',color:'var(--cc-text-primary)'}}>
@@ -103,7 +104,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
     </nav>
    </div>
   </div>}
-  <main id="main-content" className="min-h-screen px-4 pb-24 pt-24 md:pl-[calc(16rem+1.5rem)] md:pr-6 md:pb-10" style={{paddingTop:'calc(5.5rem + env(safe-area-inset-top,0px))'}}><div className="mx-auto max-w-7xl">{children}</div></main>
+  <main id="main-content" className="min-h-screen px-4 pb-24 pt-24 md:pl-[calc(16rem+1.5rem)] md:pr-6 md:pb-10" style={{paddingTop:'calc(5.5rem + env(safe-area-inset-top,0px))'}}><div className="mx-auto max-w-7xl"><ModuleAccessBoundary tab={tab} flags={featureFlags} onNavigate={onNavigate}>{children}</ModuleAccessBoundary></div></main>
   <nav aria-label="Mobile bottom navigation" className="fixed bottom-0 left-0 right-0 z-50 flex border-t backdrop-blur-xl md:hidden" style={{backgroundColor:'color-mix(in srgb,var(--cc-bg) 95%,transparent)',borderColor:'var(--cc-border)',paddingBottom:'env(safe-area-inset-bottom,0px)'}}>
    {nav.slice(0,5).map(item=>{const Icon=item.icon,active=tabMatches(tab,item.path);return <button key={item.path} onClick={()=>onNavigate(keyFor(item.path))} className="flex min-h-14 flex-1 flex-col items-center justify-center gap-1 px-1 py-2" aria-current={active?'page':undefined} style={{color:active?'var(--cc-blue)':'var(--cc-text-muted)'}}><Icon size={20}/><span className="max-w-full truncate text-[10px] font-medium">{item.label}</span></button>;})}
   </nav>

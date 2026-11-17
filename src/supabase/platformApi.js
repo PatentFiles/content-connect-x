@@ -1,12 +1,12 @@
 import {supabase} from '@/api/supabaseClient';
-/** Member navigation uses a small authenticated DB RPC. A failure is never
- * replaced with fabricated enabled flags. Privileged actions retain the Edge API. */
+/** Availability and account eligibility are separate. Preserve the server's
+ * explanation instead of presenting every failed prerequisite as a switch off. */
 export async function platformAction(action,data={}){
  if(action==='get_feature_flags'){
   const {data:result,error}=await supabase.rpc('ccx_member_feature_flags');
   if(error)throw new Error(error.message||'Unable to load module settings');
-  if(!result?.flags)throw new Error('Module settings response was incomplete');
-  return result;
+  if(!result?.flags||!result?.access||!result?.account)throw new Error('Module settings response was incomplete');
+  return {...result,flags:{...result.flags,__ccxLoaded:true,__ccxAccess:result.access,__ccxAccount:result.account}};
  }
  const {data:result,error}=await supabase.functions.invoke('platform-extras',{body:{action,...data}});
  if(error||result?.error){
