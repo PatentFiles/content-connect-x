@@ -2,6 +2,7 @@
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
 import {directoryFilters,escapeLikeLiteral} from './searchPolicy.mjs';
 import {safeProfileAvatarPath,directoryFeatureForMode} from './profileCardPolicy.mjs';
+import {countryAliases,regionAliases} from './locationPolicy.mjs';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const json=(body:unknown,status=200)=>Response.json(body,{status,headers:{...cors,'Cache-Control':'no-store'}});
 Deno.serve(async req=>{
@@ -59,8 +60,10 @@ Deno.serve(async req=>{
  if(filters.role)query=query.eq('role_type',filters.role);
  if(filters.query)query=query.ilike('display_name','%'+escapeLikeLiteral(filters.query)+'%');
  if(filters.city)query=query.ilike('city','%'+escapeLikeLiteral(filters.city)+'%');
- if(filters.state)query=query.ilike('state','%'+escapeLikeLiteral(filters.state)+'%');
- if(filters.country)query=query.ilike('country','%'+escapeLikeLiteral(filters.country)+'%');
+ // Multiple aliases come only from fixed country/region dictionaries. Unknown
+ // user text always uses an escaped literal filter, never a raw OR expression.
+ if(filters.state){const aliases=regionAliases(filters.state,filters.country);query=aliases.length>1?query.or(aliases.map(value=>'state.ilike.'+JSON.stringify(value)).join(',')):query.ilike('state','%'+escapeLikeLiteral(filters.state)+'%');}
+ if(filters.country){const aliases=countryAliases(filters.country);query=aliases.length>1?query.or(aliases.map(value=>'country.ilike.'+JSON.stringify(value)).join(',')):query.ilike('country','%'+escapeLikeLiteral(filters.country)+'%');}
  query=query.order('display_name',{ascending:true}).order('id',{ascending:true}).range(filters.offset,filters.offset+filters.limit);
  const {data,error}=await query;if(error)return json({error:'Unable to load directory'},503);
  const page=data||[],hasMore=page.length>filters.limit&&filters.offset+filters.limit<500;

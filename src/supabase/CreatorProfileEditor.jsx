@@ -4,11 +4,13 @@ import CreatorProfileEditorBase from './CreatorProfileEditorBase';
 import CreatorProfilePreview from './CreatorProfilePreview';
 import ProfessionalProfileEditor from './ProfessionalProfileEditor';
 import RosterPanel from './RosterPanel';
+import {profileWithDisplayRegion} from './roleWorkspacePolicy.mjs';
 import {useRoleWorkspace} from './RoleWorkspaceContext';
 export default function CreatorProfileEditor(props){
  const workspace=useRoleWorkspace();
  const role=workspace.role||props.profile?.role_type||'creator';
- if(role!=='creator')return <ProfessionalProfileEditor key={role} {...props} role={role} preview={workspace.preview}/>;
+ const profile=profileWithDisplayRegion(props.profile);
+ if(role!=='creator')return <ProfessionalProfileEditor key={role} {...props} profile={profile} role={role} preview={workspace.preview}/>;
  if(workspace.preview)return <CreatorProfilePreview/>;
- return <><CreatorProfileEditorBase {...props}/><section className="mx-auto mt-6 max-w-4xl px-4"><RosterPanel compact user={props.user} role="creator"/></section></>;
+ return <><CreatorProfileEditorBase {...props} profile={profile}/><section className="mx-auto mt-6 max-w-4xl px-4"><RosterPanel compact user={props.user} role="creator"/></section></>;
 }

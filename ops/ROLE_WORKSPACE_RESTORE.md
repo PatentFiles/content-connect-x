@@ -16,15 +16,16 @@ Desktop/mobile hero assets, public marketing, verification gates, membership pri
 
 ## Backend additions
 Applied only to canonical Supabase project `yxuqbygykpfbioslljlf`:
-`20261117155343_restore_role_workspaces_rosters_portfolios.sql`.
+- `20261117155343_restore_role_workspaces_rosters_portfolios.sql`
+- `20261117160810_isolate_role_workspace_privileged_functions.sql`
 
-New owner/participant-scoped tables: `member_professional_details`, `member_representations`, `member_portfolio_items`. Browser mutations go through authenticated role-checking RPCs; direct table mutations are revoked. All tables have RLS. The portfolio storage bucket is private with a 10 MiB JPEG/PNG/WebP limit.
+New owner/participant-scoped tables: `member_professional_details`, `member_representations`, `member_portfolio_items`. Browser mutations go through authenticated role-checking RPCs; direct table mutations are revoked. All tables have RLS. Public RPC wrappers are SECURITY INVOKER. Their privileged implementations live in the non-exposed `ccx_workspace_private` schema and still enforce the current authenticated identity, verification, actual role and resource ownership. Anonymous execution is revoked. The portfolio bucket is private with a 10 MiB JPEG/PNG/WebP limit.
 
 Roster invitations begin as pending. Only the invited creator can accept/decline; either participant can end the relationship. History remains. This does not confer contract-signing authority. New work samples are private portfolio drafts; the existing gallery publication/moderation rules are unchanged. Video work is stored as validated HTTPS links, not arbitrary embedded scripts.
 
-Discovery defaults to the member's stored general city. Search can select another city. All three directory modes use `MemberDiscoveryCard` and `creator_favorites`. Avatar signing is limited to the eligible owner's profile-avatar path, never medical/verification/gallery paths. Existing consented identity filters, age checks, membership limits and blocks remain enforced.
+Discovery defaults to the member's stored general city. Search can select another city. All three directory modes use `MemberDiscoveryCard` and `creator_favorites`. Avatar signing is limited to the eligible owner's profile-avatar path, never medical/verification/gallery paths. Existing consented identity filters, age checks, membership limits and blocks remain enforced. Country codes/names and known state abbreviations/full names resolve together (for example US/United States and AZ/Arizona). The interface does not claim GPS proximity or fabricate members when a city has no matches.
 
 ## Verification boundaries
-41 live database checks passed under the authenticated role using synthetic identities in a transaction that was rolled back. These cover six-role navigation flags, five professional profile saves, agent/studio invitation and acceptance restrictions, portfolio ownership, mutations and privacy, and anonymous RPC denial. No synthetic users or approvals are retained.
+46 live database checks passed after both migrations under the authenticated role using synthetic identities in a transaction that was rolled back. These cover six-role navigation flags, five professional profile saves, agent/studio invitation and acceptance restrictions, portfolio ownership/mutations/privacy, Favorites save/remove/isolation, private storage configuration, invoker RPC wrappers and anonymous RPC denial. No synthetic users or approvals are retained.
 
-The role policy tests and actual React server-render checks are included in CI. These do not substitute for an authenticated mobile browser upload and cross-account usability session. Test publishing the frontend after syncing main; this change does not publish the Bolt site automatically.
+The role policy tests and 17 actual React server-render checks are included in CI, together with the existing lint, typecheck, production build, security/permission tests, Docker health and API gateway smoke checks. These do not substitute for an authenticated mobile browser upload and cross-account usability session. Sync main and publish the frontend in Bolt; this change does not publish the Bolt site automatically.
