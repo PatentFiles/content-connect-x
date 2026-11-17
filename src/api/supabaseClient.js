@@ -4,7 +4,7 @@
 import { createClient } from '@supabase/supabase-js';
 
 const url=import.meta.env.VITE_SUPABASE_URL;
-const publishableKey=import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+const publishableKey=import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY||import.meta.env.VITE_SUPABASE_ANON_KEY;
 const valid=typeof url==='string'&&url.startsWith('https://')&&
  typeof publishableKey==='string'&&publishableKey.length>=12;
 
