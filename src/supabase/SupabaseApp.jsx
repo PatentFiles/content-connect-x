@@ -24,7 +24,7 @@ import CreatorDiscovery from './CreatorDiscovery';
 import YotiVerification from './YotiVerification';
 import PublicLandingSections from './PublicLandingSections';
 const HostingMarketplace = React.lazy(() => import('./HostingMarketplace'));
-import { ShieldCheck, LockKeyhole, Search, UserRound, CreditCard, LogOut, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw, CalendarDays, MessageSquare, Lightbulb, Settings2, Images, UsersRound, Star, FileSignature, Building2, Menu, X } from 'lucide-react';
+import { LockKeyhole, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
 
 const shell = 'ccx-app min-h-screen text-[#F5F3FF]';
 const panel = 'ccx-surface p-5';
