@@ -140,7 +140,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
  };
  const save=async(e)=>{
   e.preventDefault();
-  if(!selected&&privateDetails.exact_address.trim().length<8){
+  if(privateDetails.exact_address.trim().length<8){
     setError('Enter the full private street address before creating this property. It will not appear publicly.');return;
   }
   const result=await mutate(selected?'host_update':'host_create',{...form,source_brand:brand,...(selected?{id:selected}:{})},
@@ -149,7 +149,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
     const chosen=result.item?.id||selected;
     let postSaveWarning='';
     try{
-      if(!selected)await hostingAction('host_private_details',{id:chosen,...privateDetails});
+      await hostingAction('host_private_details',{id:chosen,...privateDetails});
       // Optional queued media makes the first-time creation flow work like a
       // property wizard, without sharing unreviewed files with visitors.
       if(image)await uploadHostingPhoto(chosen,image,caption);
@@ -388,10 +388,12 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
             <label className="text-sm">City<input required className={input+' mt-1'} value={form.city} onChange={e=>field('city',e.target.value)}/></label>
             <label className="text-sm">State/region<input className={input+' mt-1'} value={form.state||''} onChange={e=>field('state',e.target.value)}/></label>
             <label className="text-sm">Country<input required className={input+' mt-1'} value={form.country} onChange={e=>field('country',e.target.value)}/></label>
-            {!selected&&<label className="text-sm sm:col-span-2">Full street address (private, required)
+            <label className="text-sm sm:col-span-2">Full street address (private, required)
               <input required minLength={8} maxLength={400} autoComplete="street-address"
                 className={input+' mt-1'} value={privateDetails.exact_address||''} onChange={e=>setPrivateDetails(v=>({...v,exact_address:e.target.value}))}
-                placeholder="Street number, street name, unit number"/></label>}
+                placeholder="Street number, street name, unit number"/>
+              <span className="mt-1 block text-xs text-[#A2BCD9]">Only the host and authorized booking guests can access this address. Public cards show city and region only.</span>
+            </label>
             <label className="text-sm">Hourly rate (USD)<input className={input+' mt-1'} type="number" min={1} max={100000} value={form.hourly_rate} onChange={e=>field('hourly_rate',Number(e.target.value))}/></label>
             <label className="text-sm">Cleaning fee (USD)<input className={input+' mt-1'} type="number" min={0} max={100000} step="0.01" value={(form.cleaning_fee_cents||0)/100} onChange={e=>field('cleaning_fee_cents',Math.round(Number(e.target.value)*100))}/></label>
             <label className="text-sm">Minimum booking notice (hours)<input className={input+' mt-1'} type="number" min={0} max={720} value={form.min_notice_hours??24} onChange={e=>field('min_notice_hours',Number(e.target.value))}/></label>
@@ -441,9 +443,9 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           {managementTab==='suitability'&&<HostingSuitabilityManager propertyId={selected}/>}
         </section>}
         {selected&&<form onSubmit={saveAddress} className={panel+' space-y-3'}>
-          <h3 className="font-semibold flex items-center gap-2"><ShieldCheck size={18}/>Private address and access rules</h3>
+          <h3 className="font-semibold flex items-center gap-2"><ShieldCheck size={18}/>Private Entry Instructions</h3>
           <p className={muted}>Never displayed in public search. Entry instructions require an accepted booking, a signed rental agreement, confirmed payment and an authorized attendee.</p>
-          <label className="text-sm block">Exact street address<input className={input+' mt-1'} required minLength={8} maxLength={400} value={privateDetails.exact_address||''} onChange={e=>setPrivateDetails(v=>({...v,exact_address:e.target.value}))}/></label>
+
           <label className="text-sm block">Guest entry instructions<textarea rows={3} maxLength={1500} className={input+' mt-1'} value={privateDetails.entry_instructions||''} onChange={e=>setPrivateDetails(v=>({...v,entry_instructions:e.target.value}))}/></label>
           <label className="text-sm block">Private host notes<textarea rows={2} maxLength={1500} className={input+' mt-1'} value={privateDetails.internal_notes||''} onChange={e=>setPrivateDetails(v=>({...v,internal_notes:e.target.value}))}/></label>
           <button className={button} disabled={busy}>Save protected address</button>
