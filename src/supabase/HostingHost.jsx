@@ -43,15 +43,16 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
  const [editing,setEditing]=useState(false);
  const editorRef=React.useRef(null);
  const defaultsRef=React.useRef(null);
+ const [defaults,setDefaults]=useState(blank);
+ const [defaultForm,setDefaultForm]=useState(blank);
+ const [showDefaults,setShowDefaults]=useState(false);
  useEffect(()=>{
    const target=showDefaults?defaultsRef.current:editing?editorRef.current:null;
    if(!target)return;
    const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
    target.scrollIntoView({behavior:reduceMotion?'auto':'smooth',block:'start'});
  },[editing,selected,showDefaults]);
- const [defaults,setDefaults]=useState(blank);
- const [defaultForm,setDefaultForm]=useState(blank);
- const [showDefaults,setShowDefaults]=useState(false);
+
  const [form,setForm]=useState(blank);
  const [image,setImage]=useState(null);
  const [caption,setCaption]=useState('');
