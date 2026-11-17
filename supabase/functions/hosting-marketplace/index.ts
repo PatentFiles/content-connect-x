@@ -49,13 +49,23 @@ Deno.serve(async req=>{
  ]);
  if(security.error||age.error||plan.error||ohAccount.error)return denial('Account status unavailable',503);
  if(security.data?.banned||security.data?.suspended)return denial('Account restricted',403);
- if(!verified(age.data?.[0]))return denial('Approved 18+ age verification required',403);
+ const hostAction=new Set(['host_create','host_update','host_submit','host_block_dates','host_remove_block','host_ical_import','host_photos_token','host_photos_register','host_photo_delete','host_private_details','host_bookings','host_booking_respond','turnover_create','turnover_list','turnover_task','turnover_upload_token','turnover_upload_register','turnover_photos','host_booking_complete','my_listings','host_dashboard_summary','host_blocks','host_private_get']);
  const admin=security.data?.admin===true;
- const onlyHostEligible=ohAccount.data?.status==='active';
+ const {data:hostAgreement,error:termsError}=await db.from('onlyhost_accounts')
+   .select('status,terms_version,legal_capacity_confirmed,property_authority_confirmed,adult_production_understood')
+   .eq('user_id',uid).maybeSingle();
+ if(termsError)return denial('Host agreement unavailable',503);
+ const onlyHostEligible=hostAgreement?.status==='active'&&hostAgreement.terms_version==='host-2026-11-17'&&
+   hostAgreement.legal_capacity_confirmed===true&&hostAgreement.property_authority_confirmed===true&&
+   hostAgreement.adult_production_understood===true;
  const paid=admin||subscribed(plan.data)||onlyHostEligible;
  const payload=await req.json().catch(()=>null);
  if(!payload||typeof payload!=='object')return denial('Invalid JSON',400);
  const action=safe(payload.action,55);
+ if(!verified(age.data?.[0])&&!(hostAction.has(action)&&onlyHostEligible))
+   return denial('Creator verification or accepted Host Connect property agreement required',403);
+ if(['host_create','host_update','host_submit'].includes(action)&&!onlyHostEligible)
+   return denial('Accept the current Host Connect property agreement before creating or publishing listings',403);
  const feature=async(key:string, tier='premium')=>{
   const {data,error}=await db.from('product_feature_flags').select('enabled,allowed_tiers,rollout_percent').eq('key',key).maybeSingle();
   if(error||!data?.enabled||!data.allowed_tiers?.includes(tier))return false;
@@ -66,7 +76,6 @@ Deno.serve(async req=>{
  if(!await feature('hosting_marketplace',paid?'premium':'free'))return denial('Marketplace is unavailable',403);
  const adminAction=action.startsWith('admin_');
  if(adminAction&&(!admin||hashClaim(token)!=='aal2'))return denial('Verified administrator MFA required',403);
- const hostAction=new Set(['host_create','host_update','host_submit','host_block_dates','host_remove_block','host_ical_import','host_photos_token','host_photos_register','host_photo_delete','host_private_details','host_bookings','host_booking_respond','turnover_create','turnover_list','turnover_task','turnover_upload_token','turnover_upload_register','turnover_photos','host_booking_complete']);
  const paidAction=hostAction.has(action)||['booking_request','booking_cancel'].includes(action);
  if(paidAction&&(!paid||!await feature('hosting_marketplace','premium')))return denial('Premium membership required',403);
  if(['booking_request','booking_cancel','host_bookings','host_booking_respond','host_booking_complete'].includes(action)&&!await feature('hosting_requests','premium'))return denial('Hosting requests are paused',403);
@@ -138,7 +147,10 @@ Deno.serve(async req=>{
   if(bad.error||ages.error)throw bad.error||ages.error;
   const restricted=new Set((bad.data||[]).filter((v:any)=>v.banned||v.suspended).map((v:any)=>v.user_id));
   const latest=new Map<string,any>();for(const v of ages.data||[])if(!latest.has(v.user_id))latest.set(v.user_id,v);
-  let visible=(data||[]).filter((v:any)=>!blocked.has(v.owner_id)&&!restricted.has(v.owner_id)&&verified(latest.get(v.owner_id)));
+  const {data:hostAccounts,error:hostError}=owners.length?await db.from('onlyhost_accounts').select('user_id,status,terms_version').in('user_id',owners):{data:[],error:null};
+  if(hostError)throw hostError;
+  const approvedHosts=new Set((hostAccounts||[]).filter((v:any)=>v.status==='active'&&v.terms_version==='host-2026-11-17').map((v:any)=>v.user_id));
+  let visible=(data||[]).filter((v:any)=>!blocked.has(v.owner_id)&&!restricted.has(v.owner_id)&&(verified(latest.get(v.owner_id))||approvedHosts.has(v.owner_id)));
   // Date-filtered search is a convenience; the insert trigger remains authoritative.
   const from=moment(payload.from),to=moment(payload.to);
   if(from&&to){
@@ -179,7 +191,11 @@ Deno.serve(async req=>{
   if(error||!data)return denial('Listing not available',404);
   const blocked=await blockedOwners();if(blocked.has(data.owner_id))return denial('Listing not available',404);
   const {data:ownerAge}=await db.from('age_verification_requests').select('status,expires_at').eq('user_id',data.owner_id).order('created_at',{ascending:false}).limit(1);
-  if(!verified(ownerAge?.[0]))return denial('Listing not available',404);
+  if(!verified(ownerAge?.[0])){
+    const {data:host}=await db.from('onlyhost_accounts').select('status,terms_version')
+      .eq('user_id',data.owner_id).maybeSingle();
+    if(host?.status!=='active'||host?.terms_version!=='host-2026-11-17')return denial('Listing not available',404);
+  }
   const {data:ownerSecurity,error:ownerError}=await db.from('account_security').select('banned,suspended').eq('user_id',data.owner_id).maybeSingle();
   if(ownerError||ownerSecurity?.banned||ownerSecurity?.suspended)return denial('Listing not available',404);
   const {data:blocks,error:bError}=await db.from('property_unavailable').select('starts_at,ends_at').eq('property_id',data.id).gte('ends_at',new Date().toISOString()).limit(100);
@@ -187,6 +203,9 @@ Deno.serve(async req=>{
   const {data:booked,error:bookingError}=await db.from('property_booking_requests').select('starts_at,ends_at')
     .eq('property_id',data.id).in('status',['requested','accepted']).gte('ends_at',new Date().toISOString()).limit(100);
   if(bookingError)throw bookingError;
+  // Count at most one authenticated non-owner view per day; never expose viewer identities to hosts.
+  if(data.owner_id!==uid)await db.from('hosting_listing_views')
+    .upsert({property_id:data.id,viewer_id:uid},{onConflict:'property_id,viewer_id,viewed_on',ignoreDuplicates:true});
   const [enriched]=await approvedPhotoLinks([data]);
   return reply({item:enriched,unavailable:[...(blocks||[]),...(booked||[])]});
  }
@@ -209,6 +228,30 @@ Deno.serve(async req=>{
   const {data,error}=await db.from('properties').select(ownerCols).eq('owner_id',uid).order('created_at',{ascending:false}).limit(100);
   if(error)throw error;
   return reply({items:await approvedPhotoLinks(data||[],true)});
+ }
+ case 'host_dashboard_summary':{
+  const {data:owned,error:ownError}=await db.from('properties')
+    .select('id,status,title').eq('owner_id',uid).limit(100);
+  if(ownError)throw ownError;
+  const ids=(owned||[]).map((v:any)=>v.id);
+  if(!ids.length)return reply({properties:0,active:0,views_30d:0,booking_requests:0,upcoming:0,conversations:0,by_property:[]});
+  const cutoff=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
+  const [views,bookings,threads]=await Promise.all([
+    db.from('hosting_listing_views').select('property_id').in('property_id',ids).gte('viewed_on',cutoff).limit(10000),
+    db.from('property_booking_requests').select('property_id,status,starts_at').eq('owner_id',uid).limit(1000),
+    db.from('hosting_booking_conversations').select('booking_id').in('booking_id',
+      (await db.from('property_booking_requests').select('id').eq('owner_id',uid).limit(1000)).data?.map((v:any)=>v.id)||['00000000-0000-0000-0000-000000000000']).limit(1000)
+  ]);
+  if(views.error||bookings.error||threads.error)throw views.error||bookings.error||threads.error;
+  const now=Date.now();
+  return reply({
+    properties:ids.length,active:(owned||[]).filter((v:any)=>v.status==='active').length,
+    views_30d:(views.data||[]).length,
+    booking_requests:(bookings.data||[]).filter((v:any)=>v.status==='requested').length,
+    upcoming:(bookings.data||[]).filter((v:any)=>v.status==='accepted'&&Date.parse(v.starts_at)>now).length,
+    conversations:(threads.data||[]).length,
+    by_property:(owned||[]).map((v:any)=>({id:v.id,title:v.title,views_30d:(views.data||[]).filter((x:any)=>x.property_id===v.id).length}))
+  });
  }
  case 'host_create':{
   const title=safe(payload.title,140),city=safe(payload.city,100),country=safe(payload.country,100);
