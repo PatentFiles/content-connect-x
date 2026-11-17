@@ -264,8 +264,7 @@ export default function SupabaseApp() {
         <a href="/pricing" className="ccx-secondary rounded-lg px-3 py-2 text-sm">Pricing</a>
       </div>
     </header>
-    <div className="flex flex-col items-center gap-3 px-5 py-4">
-      <a href="/signup" className="ccx-primary inline-flex items-center rounded-full px-7 py-3 text-sm">Create your profile <span aria-hidden="true" className="ml-2 text-lg leading-none">→</span></a>
+    <div className="flex flex-col items-center px-5 py-4">
       <a href="/hostconnect" className="inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-semibold text-white shadow-lg transition hover:brightness-110 hover:-translate-y-0.5" style={{background:'linear-gradient(112deg,#17A8D9,#5B75EE 68%,#9378F6)'}}>Host Connect <span aria-hidden="true" className="ml-2 text-lg leading-none">→</span></a>
     </div>
     <section className="ccx-hero-image relative w-full overflow-hidden">
@@ -273,6 +272,9 @@ export default function SupabaseApp() {
         <source media="(max-width: 640px)" srcSet="/ContentConnectX__Create,_Collaborate,_Grow.png"/>
         <img src="/content_conect_hero.png" alt="Content Connect X — Create. Collaborate. Connect." className="block h-auto w-full object-cover"/>
       </picture>
+      <div className="ccx-public-hero-actions pointer-events-none absolute inset-x-0 z-10 flex justify-center px-5">
+        <a href="/signup" className="ccx-primary pointer-events-auto inline-flex items-center rounded-full px-7 py-3 text-sm">Create your profile <span aria-hidden="true" className="ml-2 text-lg leading-none">→</span></a>
+      </div>
     </section>
     <PublicLandingSections/>
   </div>;
