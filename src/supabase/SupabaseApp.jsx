@@ -9,9 +9,10 @@ import SafetyPanel from './SafetyPanel';
 import ScheduleHub from './ScheduleHub';
 import CommunityHub from './CommunityHub';
 import FeedbackHub from './FeedbackHub';
-import AdminProductControls from './AdminProductControls';
+import AdminConsole from './AdminConsole';
 import MediaGallery from './MediaGallery';
-import IntegrationHealth from './IntegrationHealth';
+import PassClearanceHub from './PassClearanceHub';
+import {isModuleEnabled} from './featureModules.mjs';
 import ProductionManager from './ProductionManager';
 import ReputationHub from './ReputationHub';
 import SecurityCenter from './SecurityCenter';
@@ -59,6 +60,10 @@ export default function SupabaseApp() {
   const [mfaChecking,setMfaChecking] = useState(true);
   const [mfaNeeded,setMfaNeeded] = useState(false);
   const [visibleFeatures,setVisibleFeatures] = useState(null);
+  const refreshFeatureFlags=useCallback(async()=>{
+    const result=await platformAction('get_feature_flags');
+    setVisibleFeatures(result.flags||{});
+  },[]);
   // Yoti redirects are treated only as navigation hints, never proof of verification.
   useEffect(()=>{
     const params=new URLSearchParams(window.location.search);
@@ -135,15 +140,16 @@ export default function SupabaseApp() {
 
   useEffect(()=>{
     if(!approved){setVisibleFeatures(null);return;}
-    let alive=true;
-    platformAction('get_feature_flags').then(result=>{
-      if(alive)setVisibleFeatures(result.flags||{});
-    }).catch(err=>{
-      console.warn('Feature visibility unavailable');
-      if(alive)setVisibleFeatures({});
-    });
-    return()=>{alive=false;};
-  },[approved,paid]);
+    let active=true;
+    const load=()=>{void refreshFeatureFlags().catch(()=>{
+      if(active)setVisibleFeatures({});
+    });};
+    load();
+    window.addEventListener('focus',load);
+    // Pick up platform rollouts for members already signed in.
+    const interval=window.setInterval(load,60000);
+    return()=>{active=false;window.removeEventListener('focus',load);window.clearInterval(interval);};
+  },[approved,paid,refreshFeatureFlags]);
 
   useEffect(()=>{
     let alive=true;
@@ -361,7 +367,7 @@ export default function SupabaseApp() {
     }).catch(e=>setError(e.message||'Unable to sign out.'));
   };
   return <OriginalShell user={user} profile={profile} approved={approved}
-    isAdmin={isAdmin} tab={tab}
+    isAdmin={isAdmin} tab={tab} featureFlags={visibleFeatures}
     onNavigate={navigateInWorkspace} onSignOut={signOut}
     onRolePreviewChange={setRolePreview}>
     <ErrorMessage message={error}/>
@@ -371,10 +377,14 @@ export default function SupabaseApp() {
       Account access is suspended. You can still review or withdraw your existing consent.</div>
       <ConsentCenter user={user} canGrant={false}/>
       <ProductionManager user={user} paid={false} isAdmin={false}/>
-    </div>:<>
+    </div>:approved&&!isModuleEnabled(tab,visibleFeatures)?<section className={panel+' space-y-3'}>
+      <h2 className="text-xl font-semibold">This module is currently turned off</h2>
+      <p className="text-sm text-[#B7C5DA]">Your existing records remain stored. An administrator can enable this feature from Platform Controls.</p>
+      <button className={primary} onClick={()=>navigateInWorkspace('dashboard')}>Return to dashboard</button>
+    </section>:<>
     {tab==='dashboard'&&<OriginalRoleDashboard profile={profile} verified={approved}
       paid={paid} onNavigate={navigateInWorkspace}
-      roleOverride={isAdmin?rolePreview:null}/>}
+      roleOverride={isAdmin?rolePreview:null} features={visibleFeatures}/>}
     {tab==='profile'&&<CreatorProfileEditor user={user} profile={profile} approved={approved}
       paid={paid} isAdmin={isAdmin} onNavigate={navigateInWorkspace}
       onSaved={()=>refresh(session)}/>}
@@ -412,7 +422,7 @@ export default function SupabaseApp() {
           tab==='host-settings'?'alerts':'explore'}/>
        </React.Suspense>)}
     {tab==='portfolio'&&approved&&<MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
-    {tab==='testing'&&approved&&<TrustCenter isAdmin={isAdmin}/>}
+    {tab==='testing'&&approved&&<PassClearanceHub isAdmin={isAdmin}/>}
     {tab==='settings'&&<SecurityCenter/>}
     {tab==='roster'&&approved&&<ProductionManager user={user} paid={paid} isAdmin={isAdmin}/>}
     {tab==='representations'&&<div className={panel+' space-y-2'}>
@@ -427,8 +437,9 @@ export default function SupabaseApp() {
       pre-migration reference branch.</div>}
     {tab==='reputation' && approved && paid && <ReputationHub isAdmin={isAdmin}/>}
     {tab==='agreements' && approved && paid && <AgreementPackets/>}
-    {tab==='controls' && approved && isAdmin && <AdminProductControls/>}
-    {tab==='integrations' && approved && isAdmin && <IntegrationHealth/>}
+    {['controls','integrations','testing-reviews'].includes(tab) && approved && isAdmin &&
+      <AdminConsole key={tab} initialSection={tab==='integrations'?'integrations':tab==='testing-reviews'?'testing':'features'}
+       onFeatureChange={()=>refreshFeatureFlags().catch(()=>setVisibleFeatures({}))}/>}
     {tab==='membership'&&<PublicPricing signedIn onNavigate={navigateInWorkspace}/>}
 
   </>}</OriginalShell>;

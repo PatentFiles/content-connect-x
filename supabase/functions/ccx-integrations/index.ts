@@ -48,6 +48,22 @@ Deno.serve(async req=>{
  }
  const adminAction=action.startsWith('admin_');
  if(adminAction&&(!admin||!assurance(header)))return bad('Administrator MFA required',403);
+ // New sensitive operations respect the Testing module flag. Existing documents,
+ // medical data access, withdrawal of consent and admin review remain available.
+ if(['clearance_upload_token','clearance_submit','pass_link','pass_share'].includes(action)){
+  if(!verified(ages.data?.[0]))return bad('Approved age verification required',403);
+  const {data:flag,error:flagError}=await db.from('product_feature_flags')
+   .select('enabled,allowed_tiers,rollout_percent').eq('key','testing').maybeSingle();
+  const {data:sub,error:subError}=await db.from('member_subscriptions')
+   .select('status,period_end').eq('user_id',uid).maybeSingle();
+  if(subError)return bad('Membership status unavailable',503);
+  const premium=admin||(['active','trial'].includes(sub?.status)&&
+   (!sub?.period_end||Date.parse(sub.period_end)>Date.now()));
+  if(flagError||!flag?.enabled||!flag.allowed_tiers?.includes(premium?'premium':'free'))
+   return bad('Testing module is currently disabled',403);
+  let hash=0;for(const char of uid+'testing')hash=(hash*31+char.charCodeAt(0))>>>0;
+  if(hash%100>=flag.rollout_percent)return bad('Testing module is not enabled for this account',403);
+ }
  const audit=async(what:string,target:string|null=null)=>{
   await db.from('platform_action_audit').insert({actor_id:uid,action:what,target_type:'integration',target_id:id(target)?target:null});
  };
@@ -345,6 +361,28 @@ Deno.serve(async req=>{
   if(error)throw error;
   await audit('ccx_pass_link_requested');
   return out({item:data,note:'Link requested. PASS does not provide a confirmed public API; connection is pending partner onboarding.'});
+ }
+ case 'pass_my_clearance':{
+  // Read only the authenticated performer's work-availability state.
+  // Never return laboratory results, medical diagnoses or private PDF URLs.
+  const {data,error}=await db.from('performer_work_clearances')
+   .select('clearance_confirmed,expires_at,provider,confirmed_at').eq('user_id',uid).maybeSingle();
+  if(error)throw error;
+  const current=Boolean(data?.clearance_confirmed&&data?.expires_at&&Date.parse(data.expires_at)>Date.now());
+  return out({status:current?'current':'not_current',
+   expires_at:current?data.expires_at:null,
+   source:current?(data.provider==='pass'?'pass':'independent_provider_review'):null});
+ }
+ case 'pass_my_collaborations':{
+  const {data:members,error:membershipError}=await db.from('collaboration_members')
+   .select('collaboration_id').eq('user_id',uid).limit(100);
+  if(membershipError)throw membershipError;
+  const ids=(members||[]).map((item:any)=>item.collaboration_id);
+  if(!ids.length)return out({items:[]});
+  const {data,error}=await db.from('collaborations')
+   .select('id,title,status').in('id',ids).order('created_at',{ascending:false}).limit(100);
+  if(error)throw error;
+  return out({items:data||[]});
  }
  case 'pass_link_status':{
   const {data,error}=await db.from('ccx_pass_links')

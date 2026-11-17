@@ -4,8 +4,9 @@ import { platformAction } from './platformApi';
 
 const panel='ccx-surface p-5';
 const button='rounded-lg ccx-action-primary px-4 py-2 text-white font-semibold text-sm disabled:opacity-50';
-export default function AdminProductControls(){
+export default function AdminProductControls({onFeatureChange}){
   const [flags,setFlags]=useState([]);
+  const [filter,setFilter]=useState('');
   const [queue,setQueue]=useState([]);
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
@@ -30,6 +31,7 @@ export default function AdminProductControls(){
       });
       setFlags(prev=>prev.map(v=>v.key===flag.key?{...v,...result.item}:v));
       setNotice('Feature configuration updated.');
+      onFeatureChange?.();
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
   const review=async(id,decision)=>{
@@ -42,8 +44,11 @@ export default function AdminProductControls(){
     <p className="text-sm text-[#9AA6BC]">Admin-controlled rollouts inspired by Flagsmith. Server subscription and age permissions are enforced separately; turning on a flag cannot bypass them.</p>
     {error&&<p role="alert" className="bg-red-950 text-red-200 rounded-lg p-3 text-sm">{error}</p>}
     {notice&&<p role="status" className="bg-emerald-950 text-emerald-200 rounded-lg p-3 text-sm">{notice}</p>}
-    <section className="space-y-3"><h3 className="text-lg font-semibold">Feature availability</h3>
-      {flags.map(flag=><div key={flag.key} className={panel+' space-y-3'}>
+    <section className="space-y-3"><div className="flex flex-wrap items-center justify-between gap-3"><h3 className="text-lg font-semibold">Feature availability ({flags.filter(f=>f.enabled).length}/{flags.length} enabled)</h3>
+      <input aria-label="Search modules" placeholder="Find a module…" value={filter} onChange={e=>setFilter(e.target.value)}
+       className="rounded-lg border border-[#34445D] bg-[#0F1520] px-3 py-2 text-sm"/></div>
+      <p className="text-xs text-[#9AA6BC]">Each switch controls the matching member navigation and page. Backend operations with rollout gates continue to check permissions and membership independently.</p>
+      {flags.filter(f=>(f.key+' '+f.description).toLowerCase().includes(filter.toLowerCase())).map(flag=><div key={flag.key} className={panel+' space-y-3'}>
         <div className="flex flex-wrap justify-between gap-2"><div><strong>{flag.key.replaceAll('_',' ')}</strong><p className="text-sm text-[#9AA6BC]">{flag.description}</p></div><label className="text-sm flex items-center gap-2"><input type="checkbox" disabled={busy} checked={flag.enabled} onChange={e=>update(flag,{enabled:e.target.checked})}/>Enabled</label></div>
         <div className="flex flex-wrap gap-5 items-center text-sm">
           <label className="flex gap-2 items-center"><input type="checkbox" disabled={busy} checked={flag.allowed_tiers.includes('free')} onChange={e=>update(flag,{allowed_tiers:e.target.checked?['free','premium']:['premium']})}/>Free preview</label>

@@ -54,6 +54,14 @@ The frontend and database foundation compile. No complete authenticated multi-us
 
 Verified members can filter public directory results by display name, creator role, city and country. Age-gate and server-side subscription restrictions remain in force, free users see at most 12 result profiles, and premium results are paginated. Only explicitly public profile fields are returned. Account recovery sends a Supabase email link and requires a verified recovery session before a member can set a new password. Delivery, authenticated user flows and UI accessibility must still be tested against Bolt's actual deployment with the authorized Supabase redirect origin.
 
+## Modular feature administration and PASS testing
+
+The Bolt frontend keeps the separate desktop and mobile PNG hero assets unchanged. Member pages are individually gated by the server-backed `product_feature_flags` registry: Discovery, Search, Favorites, Connections, Collaborations, Testing, Contracts, Hosting, Production and more. Admins can control switches, tiers and rollout percentages in **Platform Controls**. The same admin console links API provider configuration, account security and medical-document review. Core verification, account access, privacy and consent withdrawal cannot be disabled.
+
+Apply the new `supabase/migrations/20261117040000_054_modular_feature_toggles.sql` database migration before testing the switches; it is idempotent and preserves previously configured flags. Run `npm run test:modules`, then the usual lint, typecheck and build checks. Additional server acceptance testing is still necessary for every module; UI hiding is not an authorization boundary. Supabase remains the authority for protected API actions.
+
+The Testing sidebar now mounts the existing `PassClearanceHub` module: private signed PDF/image uploads (10 MB max), human review, optional per-collaboration yes/no sharing, consent revocation, and PASS account-link requests. **PASS has no publicly documented partner API contract verified for this project.** Credentials can be vaulted through the admin integration panel, but automatic verification and production-hold monitoring are NOT enabled until PASS provides authorized API documentation and sandbox access. A PDF by itself never establishes an approved clearance. Check official PASS at https://www.passcertified.org/ and ask info@passcertified.org for partner integration details.
+
 ## Hands-on tests before launch
 
 The production configuration console is restricted to independently age-verified MFA administrators. It shows provider prerequisites and missing server settings without exposing credentials; a configured provider is not proof of a working provider transaction. Follow [the at-home acceptance test matrix](ops/AT_HOME_TEST_MATRIX.md), capture the tested commit SHA and use a dedicated staging environment for any test data.

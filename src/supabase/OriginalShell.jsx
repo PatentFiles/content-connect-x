@@ -8,6 +8,7 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {Bell,ChevronRight,ExternalLink,LogOut,Menu,Settings,Shield,X} from 'lucide-react';
 import {getNavigationForRole} from './originalRoleNav';
+import {isModuleEnabled} from './featureModules.mjs';
 import {supabase} from '@/api/supabaseClient';
 
 const routeMap=Object.freeze({
@@ -20,7 +21,7 @@ const routeMap=Object.freeze({
  Notifications:'notifications',AvailabilitySchedule:'schedule',
  TravelSchedule:'schedule',AdminDashboard:'controls',AgentManagement:'controls',
  DeveloperReadMe:'developer',CompliancePortal:'integrations',
- Pricing:'membership',Membership:'membership',
+ TestingReviews:'testing-reviews',Pricing:'membership',Membership:'membership',
  CreateCollaboration:'collaborations',CollaborationDetail:'collaborations',
  ViewProfile:'directory',ViewContract:'contracts',PropertyDetail:'hosting'
 });
@@ -32,7 +33,8 @@ const reverseRoutes={
  host:'HostDashboard',profile:'Profile',settings:'Settings',portfolio:'Portfolio',
  notifications:'Notifications',schedule:'AvailabilitySchedule',
  representations:'Representations',roster:'RosterPortfolio',
- 'host-settings':'HostSettings',controls:'AdminDashboard',membership:'Pricing'
+ 'host-settings':'HostSettings',controls:'AdminDashboard',integrations:'CompliancePortal',
+ 'testing-reviews':'TestingReviews',membership:'Pricing'
 };
 /** Preserve the original Base44 URL names for refresh, deep links, and back/forward. */
 export const tabFromLegacyPath=pathname=>{
@@ -63,17 +65,19 @@ function MenuLink({item,tab,onNavigate,onClose=()=>{},mobile=false}){
  </button>;
 }
 
-export default function OriginalShell({children,tab,onNavigate,user,profile,isAdmin=false,approved=false,onSignOut,onRolePreviewChange}){
+export default function OriginalShell({children,tab,onNavigate,user,profile,isAdmin=false,approved=false,onSignOut,onRolePreviewChange,featureFlags=null}){
  const [mobileOpen,setMobileOpen]=useState(false);
  const [adminRole,setAdminRole]=useState('admin');
  const [theme,setTheme]=useState(()=>typeof document!=='undefined'&&document.documentElement.classList.contains('dark')?'dark':'light');
  const [unread,setUnread]=useState(0);
  const role=profile?.role_type||'creator';
  const effectiveRole=isAdmin&&adminRole!=='admin'?adminRole:role;
- const nav=useMemo(()=>getNavigationForRole(effectiveRole),[effectiveRole]);
+ const nav=useMemo(()=>getNavigationForRole(effectiveRole)
+  .filter(item=>isModuleEnabled(keyFor(item.path),featureFlags)),[effectiveRole,featureFlags]);
  const adminNav=useMemo(()=>isAdmin?[
-  {path:'AdminDashboard',label:'Admin Dashboard',icon:Shield},
-  {path:'AgentManagement',label:'Agent Management',icon:Settings}
+  {path:'AdminDashboard',label:'Platform Controls',icon:Shield},
+  {path:'CompliancePortal',label:'API & Integrations',icon:Settings},
+  {path:'TestingReviews',label:'Testing Reviews',icon:Shield}
  ]:[],[isAdmin]);
  useEffect(()=>{setMobileOpen(false);},[tab]);
  useEffect(()=>{
