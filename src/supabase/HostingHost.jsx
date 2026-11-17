@@ -30,6 +30,7 @@ function CheckboxGrid({options,values,update}) {
 
 export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,user,brand='content_connect'}) {
  const [listings,setListings]=useState([]);
+ const [hostMetrics,setHostMetrics]=useState(null);
  const [pending,setPending]=useState([]);
  const [pendingImages,setPendingImages]=useState([]);
  const [reservations,setReservations]=useState([]);
@@ -64,6 +65,10 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
       isAdmin?hostingAction('admin_queue'):Promise.resolve({items:[],pending_images:[]}),
     ]);
     setListings(mine.items||[]);setReservations(bookings.items||[]);
+    if(!reviewMode&&paid){
+      const report=await hostingAction('host_dashboard_summary').catch(()=>null);
+      setHostMetrics(report);
+    }
     setPending(moderation.items||[]);setPendingImages(moderation.pending_images||[]);
     if(isAdmin){const reviews=await hostingAction('admin_review_queue');setReviewQueue(reviews.items||[]);}
    }catch(e){setError(e.message);}finally{setBusy(false);}
@@ -193,6 +198,24 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
  const own=listings.find(v=>v.id===selected);
  return <section className="space-y-5">
   <header className="flex flex-wrap justify-between gap-2"><div><h2 className="text-2xl font-semibold">{reviewMode?'Hosting approval queue':'Manage your hosting business'}</h2><p className="mt-1 text-sm text-[#A7BAD3]">{reviewMode?'Review uploaded photos and listings before publication.':'Create properties, manage guests and maintain your location between shoots.'}</p></div><button className={secondary+' flex items-center gap-2'} disabled={busy} onClick={load}><RefreshCw size={16}/>Refresh</button></header>
+  {!reviewMode&&hostMetrics&&<section aria-label="Your host performance overview" className="space-y-3">
+   <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+    {[
+      ['Properties',hostMetrics.properties],['30-day views',hostMetrics.views_30d],
+      ['New booking requests',hostMetrics.booking_requests],['Upcoming shoots',hostMetrics.upcoming],
+      ['Booking conversations',hostMetrics.conversations]
+    ].map(([label,value])=><div className="oh-host-metric" key={label}>
+      <p className="text-xs text-[#A9C4E0]">{label}</p><strong className="text-3xl font-bold text-white">{Number(value||0).toLocaleString()}</strong>
+     </div>)}
+   </div>
+   {hostMetrics.by_property?.length>0&&<details className="oh-host-listing-breakdown">
+    <summary>Views by property (last 30 days)</summary>
+    <div className="mt-3 space-y-2">{hostMetrics.by_property.map(item=><p className="flex justify-between gap-3 text-sm" key={item.id}>
+      <span className="truncate">{item.title}</span><strong>{item.views_30d||0} views</strong>
+    </p>)}</div>
+   </details>}
+   <p className="text-xs text-[#95AFC9]">Views are unique daily signed-in listing visits; conversations show booking threads, not unread messages. Figures reflect recorded activity only.</p>
+  </section>}
   {error&&<div role="alert" className="rounded-lg bg-red-950 p-3 text-sm text-red-200">{error}</div>}
   {notice&&<div role="status" className="rounded-lg bg-emerald-950 p-3 text-sm text-emerald-200">{notice}</div>}
   {reviewMode&&isAdmin?<div className="space-y-5">
