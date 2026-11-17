@@ -72,3 +72,62 @@
 .host-connect-theme .text-pink-500 { color: #5B75EE !important; }
 .host-connect-theme .bg-fuchsia-500,
 .host-connect-theme .bg-\[\#E900C5\] { background: #5B75EE !important; }
+
+
+/* Shared 2027 Host Connect marketing identity — public landing + CCX Properties. */
+.oh-app{background:radial-gradient(ellipse 55% 36% at 85% 8%,rgba(71,109,239,.15),transparent 80%),radial-gradient(ellipse 60% 35% at 5% 45%,rgba(168,45,218,.08),transparent 75%),#080b19}
+.oh-header{z-index:50;background:rgba(7,10,24,.94);border-bottom-color:rgba(122,143,255,.17)}
+.oh-header-inner{justify-content:space-between}
+.oh-header-actions{margin-left:auto}
+.oh-brand{min-width:0}
+.oh-wordmark{white-space:nowrap}
+.oh-ccx-link{background:linear-gradient(145deg,rgba(26,34,59,.86),rgba(13,19,35,.95));border:1px solid rgba(150,172,246,.3);transition:border-color .2s,box-shadow .2s,transform .2s}
+.oh-ccx-link:hover{border-color:rgba(98,208,255,.72);box-shadow:0 0 22px rgba(96,113,247,.2);transform:translateY(-2px)}
+.oh-ccx-gradient{background:linear-gradient(100deg,#08d4f7 0%,#8e72ff 50%,#ff28c8 100%);background-clip:text;-webkit-background-clip:text;color:transparent}
+.oh-landing-container{width:min(100% - 48px,1260px);margin-inline:auto}
+.oh-marketing{overflow:hidden}
+.oh-landing-banner{position:relative;width:100%;overflow:hidden;background:#090e23;border-bottom:1px solid rgba(116,172,250,.23)}
+.oh-landing-banner-image{display:block;width:100%;height:auto;object-fit:contain}
+.oh-landing-section{padding:78px 0 68px}
+.oh-landing-intro{background:radial-gradient(ellipse 55% 45% at 90% 10%,rgba(85,116,245,.12),transparent 80%)}
+.oh-landing-heading{max-width:800px;text-align:center;margin:0 auto 38px}
+.oh-landing-kicker{display:inline-flex;align-items:center;justify-content:center;gap:9px;color:#78d9f9;font-size:11px;font-weight:800;letter-spacing:.2em}
+.oh-landing-heading h1,.oh-landing-heading h2,.oh-landing-account-heading h2{font-size:clamp(2.1rem,4.6vw,3.8rem);font-weight:850;letter-spacing:-.054em;line-height:1.1;margin:16px 0}
+.oh-landing-heading>p:last-child,.oh-landing-account-heading>p:last-child{color:#bac7df;font-size:15px;line-height:1.8;max-width:680px;margin-inline:auto}
+.oh-landing-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:17px}
+.oh-landing-card{--glow:rgba(27,196,242,.17);position:relative;isolation:isolate;display:flex;flex-direction:column;align-items:flex-start;overflow:hidden;min-height:282px;padding:28px;border-radius:23px;border:1px solid rgba(135,164,242,.26);background:linear-gradient(145deg,rgba(25,36,67,.95),rgba(11,17,36,.97));box-shadow:0 18px 45px rgba(0,0,0,.18);transition:transform .32s cubic-bezier(.2,.8,.2,1),box-shadow .3s,border-color .3s}
+.oh-landing-card:nth-child(3n+2){--glow:rgba(135,91,255,.19)}
+.oh-landing-card:nth-child(3n){--glow:rgba(247,54,207,.13)}
+.oh-landing-card::before{content:"";position:absolute;inset:-60% -30% 35%;z-index:-1;background:radial-gradient(circle,var(--glow),transparent 70%);pointer-events:none}
+.oh-landing-card:hover{transform:translateY(-8px);border-color:rgba(119,221,250,.69);box-shadow:0 25px 55px rgba(0,0,0,.36),0 0 28px var(--glow)}
+.oh-landing-card-tag{font-size:10px;letter-spacing:.2em;color:#9cc8ff;font-weight:800}
+.oh-landing-card-icon{display:grid;place-items:center;width:65px;height:65px;margin:24px 0 18px;border-radius:19px;color:#8de6fc;border:1px solid rgba(113,220,255,.35);background:linear-gradient(140deg,rgba(57,137,222,.23),rgba(70,49,138,.15));box-shadow:inset 0 0 22px rgba(60,155,255,.1);transition:transform .3s}
+.oh-landing-card:hover .oh-landing-card-icon{transform:rotate(-6deg) scale(1.07)}
+.oh-landing-card h2{font-size:20px;font-weight:780;letter-spacing:-.027em;margin-bottom:10px}
+.oh-landing-card p{font-size:13.5px;line-height:1.75;color:#b4c2d9}
+.oh-landing-card-accent{display:block;margin-top:auto;padding-top:20px;width:36px;border-bottom:2px solid #72ddfa}
+.oh-landing-process{padding-top:58px;background:radial-gradient(ellipse 65% 80% at 50% 50%,rgba(39,37,93,.28),transparent 80%);border-top:1px solid rgba(131,153,223,.12)}
+.oh-landing-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.oh-landing-step{padding:25px 22px;min-height:185px;background:linear-gradient(145deg,rgba(22,30,59,.94),rgba(15,18,39,.96));border-radius:20px;border:1px solid rgba(139,154,232,.2)}
+.oh-landing-step>span{font-size:27px;font-weight:850;color:#79dffa}
+.oh-landing-step h3{font-size:17px;font-weight:750;margin-top:19px}
+.oh-landing-step p{font-size:12.5px;color:#aab9d2;line-height:1.7;margin-top:8px}
+.oh-landing-account-area{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:45px;align-items:start;padding-top:36px;padding-bottom:85px}
+.oh-landing-account-heading{padding-top:42px}
+.oh-landing-account-heading>p:last-child{margin-inline:0}
+.oh-landing-account-box{min-width:0}
+.oh-landing-account-box>.oh-panel{margin-top:0}
+.oh-landing-account-box .oh-panel{background:linear-gradient(145deg,rgba(27,36,68,.97),rgba(14,22,45,.99));border-color:rgba(125,175,248,.32);box-shadow:0 20px 60px rgba(0,0,0,.27)}
+.oh-footer{border-top:1px solid rgba(118,147,223,.24);background:#070b18;padding:28px 0}
+.oh-footer-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:15px;color:#adbcda;font-size:12px}
+.oh-app .oh-list-space:focus-visible,.oh-app .oh-ccx-link:focus-visible,.oh-app .oh-brand:focus-visible{outline:3px solid #7ce6ff;outline-offset:4px}
+/* Properties and standalone Host Connect already share Host_Connect_Banner.png. */
+.host-connect-theme .ccx-surface{border-radius:20px;transition:border-color .25s,box-shadow .25s}
+.host-connect-theme article.ccx-surface:hover{border-color:rgba(108,219,247,.54);box-shadow:0 17px 42px rgba(14,38,80,.26)}
+.host-connect-theme .ccx-surface:focus-within{border-color:rgba(108,219,247,.6)}
+.host-connect-theme nav button{transition:transform .18s,border-color .18s,box-shadow .18s}
+.host-connect-theme nav button:hover{transform:translateY(-2px);border-color:rgba(99,209,245,.5)}
+@media(max-width:850px){.oh-landing-cards{grid-template-columns:repeat(2,minmax(0,1fr))}.oh-landing-steps{grid-template-columns:repeat(2,minmax(0,1fr))}.oh-landing-account-area{grid-template-columns:1fr;gap:20px}.oh-landing-account-heading{padding-top:0;text-align:center}.oh-landing-account-heading>p:last-child{margin-inline:auto}}
+@media(max-width:600px){.oh-header-inner{gap:7px;padding-inline:10px}.oh-wordmark{font-size:clamp(13px,3.9vw,19px)}.oh-mark{height:35px;width:35px;flex-shrink:0}.oh-ccx-link{padding:8px 7px;font-size:clamp(9px,2.7vw,12px)}.oh-list-space{padding:9px 8px;font-size:clamp(10px,2.7vw,12px)}.oh-list-space svg{display:none}.oh-header-actions{gap:5px}.oh-landing-container{width:min(100% - 30px,1260px)}.oh-landing-section{padding:54px 0}.oh-landing-heading{margin-bottom:28px}.oh-landing-cards{grid-template-columns:1fr}.oh-landing-card{min-height:240px;padding:22px}.oh-landing-card-icon{margin:15px 0}.oh-landing-steps{grid-template-columns:1fr 1fr;gap:9px}.oh-landing-step{padding:18px 15px;min-height:195px}.oh-landing-account-area{padding-top:10px;padding-bottom:60px}.oh-footer-inner{justify-content:center;text-align:center}}
+@media(max-width:380px){.oh-mark{display:none}.oh-wordmark{font-size:13px}.oh-list-space{font-size:10px}.oh-landing-steps{grid-template-columns:1fr}.oh-landing-step{min-height:130px}}
+@media(prefers-reduced-motion:reduce){.oh-landing-card,.oh-landing-card-icon,.oh-ccx-link,.host-connect-theme nav button{transition:none!important}.oh-landing-card:hover,.oh-landing-card:hover .oh-landing-card-icon,.oh-ccx-link:hover,.host-connect-theme nav button:hover{transform:none!important}}
