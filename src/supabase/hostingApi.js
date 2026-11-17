@@ -49,7 +49,7 @@ export const rentalCategories = [
   ['film_studio','Film studio'],['photo_studio','Photography studio'],
   ['house','House'],['villa','Villa'],['loft','Loft'],
   ['set','Production set'],['outdoor','Outdoor location'],
-  ['equipment','Equipment'],['other','Other space'],
+  ['equipment','Equipment'],['dungeon','Dungeon / specialty studio'],['other','Other space'],
 ];
 
 export const rentalAmenities = [

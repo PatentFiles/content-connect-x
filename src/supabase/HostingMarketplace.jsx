@@ -212,8 +212,8 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
   </div>;
 }
 
-export default function HostingMarketplace({paid=false,isAdmin=false,user,brand='content_connect'}) {
-  const [section,setSection]=useState('explore');
+export default function HostingMarketplace({paid=false,isAdmin=false,user,brand='content_connect',initialSection='explore'}) {
+  const [section,setSection]=useState(initialSection);
   const [selected,setSelected]=useState('');
   const [query,setQuery]=useState('');
   const [city,setCity]=useState('');
