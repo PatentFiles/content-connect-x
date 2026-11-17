@@ -150,3 +150,18 @@
 .oh-host-metric strong{display:block;margin-top:12px;line-height:1.2}
 .oh-host-listing-breakdown{border:1px solid rgba(125,175,248,.25);padding:15px;border-radius:14px;color:#bdd9f2}
 .oh-host-listing-breakdown summary{cursor:pointer;color:#8ddafa;font-size:13px;font-weight:750}
+
+
+/* Host listing workflow: full-card multi-select, media previews and protected defaults. */
+.host-connect-theme .oh-option-tile,
+.oh-app .oh-option-tile{min-height:48px;position:relative;cursor:pointer;transition:background .18s,border-color .18s,box-shadow .18s;overflow:visible}
+.host-connect-theme .oh-option-idle,.oh-app .oh-option-idle{background:#111D32;border-color:#35506B;color:#C9D8E9}
+.host-connect-theme .oh-option-selected,.oh-app .oh-option-selected{background:linear-gradient(120deg,rgba(22,157,215,.25),rgba(126,67,214,.2));border-color:#59CFF8;color:#F8FBFF;box-shadow:inset 0 0 0 1px rgba(72,211,250,.18),0 0 15px rgba(68,176,242,.11)}
+.oh-option-check{display:grid;place-items:center;flex:none;width:22px;height:22px;border-radius:7px;border:1px solid rgba(136,173,223,.48);background:rgba(8,16,32,.82)}
+.oh-option-selected .oh-option-check{border-color:#69DDF8;background:#1C8BBE;color:white}
+.oh-option-tile:hover{border-color:#75DAF7}
+.oh-option-tile:focus-visible{outline:3px solid #7AE5FB;outline-offset:2px}
+.oh-host-listing-tile{background:linear-gradient(160deg,#182843,#0B172B);transition:border-color .2s,box-shadow .2s,transform .2s}
+.oh-host-listing-tile:hover{transform:translateY(-3px);border-color:#62D7F4;box-shadow:0 9px 25px rgba(36,122,209,.2)}
+.oh-media-queue{padding:17px;border:1px solid rgba(116,168,219,.28);border-radius:15px;background:rgba(17,34,60,.6)}
+@media(prefers-reduced-motion:reduce){.oh-option-tile,.oh-host-listing-tile{transition:none!important}.oh-host-listing-tile:hover{transform:none}}
