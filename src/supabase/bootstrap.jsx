@@ -40,7 +40,6 @@ void initializeOptionalIntegrations().catch(error=>{
 });
 const mount=document.getElementById('root');
 if(!mount)throw new Error('Content Connect X root element is missing');
-// Works for both brand shells and every lazily mounted React form.
 initializeFormKeyboardHints(mount);
 const knownHosts=(import.meta.env.VITE_ONLYHOST_HOSTNAMES||'')
  .split(',').map(v=>v.trim().toLowerCase()).filter(Boolean);
@@ -52,7 +51,7 @@ const showHostConnect=window.location.pathname==='/hostconnect'||
 
 createRoot(mount).render(
  <StartupErrorBoundary>
-  {supabase?(showOnlyHost?<OnlyHostApp/>:<SupabaseApp/>):
+  {supabase?(showHostConnect?<OnlyHostApp/>:<SupabaseApp/>):
    <main className="min-h-screen bg-[#090F1A] px-6 py-24 text-white">
     <div role="alert" className="mx-auto max-w-xl rounded-2xl border border-[#34455B] bg-[#152033] p-8">
      <h1 className="text-2xl font-semibold">Supabase browser configuration requires attention</h1>

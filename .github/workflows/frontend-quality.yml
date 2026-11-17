@@ -57,8 +57,6 @@ jobs:
         run: npm run verify:frontend-contract
       - name: All Edge Functions must have resolved local imports
         run: npm run verify:edge-imports
-      - name: Dependency vulnerability audit
-        run: npm audit --audit-level=high
       - name: Build Supabase application
         run: npm run build
       - name: Build staging container and verify health endpoint
@@ -73,3 +71,17 @@ jobs:
           curl --fail --retry 5 --retry-delay 1 --retry-all-errors http://127.0.0.1:18080/ | grep -q '<html'
       - name: Verify protected Edge Function gateway
         run: npm run smoke:supabase
+  # Audit is a separate required result, not ignored or continued on error.
+  # An upstream advisory must not prevent running the rest of the test suite.
+  dependency-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - run: npm ci
+      - name: Dependency vulnerability audit
+        run: npm audit --audit-level=high
