@@ -10,7 +10,7 @@ const sections=[
  {key:'testing',title:'Testing & PASS reviews'},
  {key:'security',title:'Account security'}
 ];
-export default function AdminConsole({initialSection='features'}){
+export default function AdminConsole({initialSection='features',onFeatureChange}){
  const [section,setSection]=useState(initialSection);
  return <div className="space-y-5">
   <header className="space-y-2">
@@ -23,7 +23,7 @@ export default function AdminConsole({initialSection='features'}){
     onClick={()=>setSection(item.key)} className={(section===item.key?'ccx-primary':'ccx-secondary')+' rounded-xl px-3 py-2.5 text-sm'}>{item.title}</button>)}
   </div>
   <div role="tabpanel">
-   {section==='features'&&<AdminProductControls/>}
+   {section==='features'&&<AdminProductControls onFeatureChange={onFeatureChange}/>}
    {section==='integrations'&&<IntegrationHealth/>}
    {section==='testing'&&<PassClearanceHub isAdmin/>}
    {section==='security'&&<SecurityCenter/>}

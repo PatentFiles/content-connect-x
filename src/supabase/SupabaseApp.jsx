@@ -60,6 +60,10 @@ export default function SupabaseApp() {
   const [mfaChecking,setMfaChecking] = useState(true);
   const [mfaNeeded,setMfaNeeded] = useState(false);
   const [visibleFeatures,setVisibleFeatures] = useState(null);
+  const refreshFeatureFlags=useCallback(async()=>{
+    const result=await platformAction('get_feature_flags');
+    setVisibleFeatures(result.flags||{});
+  },[]);
   // Yoti redirects are treated only as navigation hints, never proof of verification.
   useEffect(()=>{
     const params=new URLSearchParams(window.location.search);
@@ -136,15 +140,16 @@ export default function SupabaseApp() {
 
   useEffect(()=>{
     if(!approved){setVisibleFeatures(null);return;}
-    let alive=true;
-    platformAction('get_feature_flags').then(result=>{
-      if(alive)setVisibleFeatures(result.flags||{});
-    }).catch(err=>{
-      console.warn('Feature visibility unavailable');
-      if(alive)setVisibleFeatures({});
-    });
-    return()=>{alive=false;};
-  },[approved,paid]);
+    let active=true;
+    const load=()=>{void refreshFeatureFlags().catch(()=>{
+      if(active)setVisibleFeatures({});
+    });};
+    load();
+    window.addEventListener('focus',load);
+    // Pick up platform rollouts for members already signed in.
+    const interval=window.setInterval(load,60000);
+    return()=>{active=false;window.removeEventListener('focus',load);window.clearInterval(interval);};
+  },[approved,paid,refreshFeatureFlags]);
 
   useEffect(()=>{
     let alive=true;
@@ -433,7 +438,8 @@ export default function SupabaseApp() {
     {tab==='reputation' && approved && paid && <ReputationHub isAdmin={isAdmin}/>}
     {tab==='agreements' && approved && paid && <AgreementPackets/>}
     {['controls','integrations','testing-reviews'].includes(tab) && approved && isAdmin &&
-      <AdminConsole key={tab} initialSection={tab==='integrations'?'integrations':tab==='testing-reviews'?'testing':'features'}/>}
+      <AdminConsole key={tab} initialSection={tab==='integrations'?'integrations':tab==='testing-reviews'?'testing':'features'}
+       onFeatureChange={()=>refreshFeatureFlags().catch(()=>setVisibleFeatures({}))}/>}
     {tab==='membership'&&<PublicPricing signedIn onNavigate={navigateInWorkspace}/>}
 
   </>}</OriginalShell>;

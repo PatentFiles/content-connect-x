@@ -4,7 +4,7 @@ import { platformAction } from './platformApi';
 
 const panel='ccx-surface p-5';
 const button='rounded-lg ccx-action-primary px-4 py-2 text-white font-semibold text-sm disabled:opacity-50';
-export default function AdminProductControls(){
+export default function AdminProductControls({onFeatureChange}){
   const [flags,setFlags]=useState([]);
   const [filter,setFilter]=useState('');
   const [queue,setQueue]=useState([]);
@@ -31,6 +31,7 @@ export default function AdminProductControls(){
       });
       setFlags(prev=>prev.map(v=>v.key===flag.key?{...v,...result.item}:v));
       setNotice('Feature configuration updated.');
+      onFeatureChange?.();
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
   const review=async(id,decision)=>{
