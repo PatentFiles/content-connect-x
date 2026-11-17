@@ -245,7 +245,7 @@ export default function SupabaseApp() {
   if(!user&&!authPage)return <div className={shell}>
     <div className="ccx-brand-topline"/>
     <section className="ccx-hero-image relative w-full overflow-hidden">
-      <img src="/Content_Connect_Hero_Banner.png" alt="Content Connect X — Create. Collaborate. Connect." className="block h-auto w-full object-cover"/>
+      <img src="/content_conect_hero.png" alt="Content Connect X — Create. Collaborate. Connect." className="block h-auto w-full object-cover"/>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-wrap justify-center gap-3 bg-gradient-to-t from-black/55 to-transparent px-5 pb-8 pt-20 sm:pb-12">
         <a href="/signup" className="ccx-primary pointer-events-auto inline-flex items-center rounded-xl px-5 py-3 text-sm">Create your free account</a>
         <a href="/login" className="ccx-secondary pointer-events-auto inline-flex items-center rounded-xl px-5 py-3 text-sm">Sign in</a>
