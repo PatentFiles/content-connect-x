@@ -5,6 +5,8 @@
  */
 import React,{useEffect,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
+import {Camera,Image,Activity,User,Edit2,ShieldCheck} from 'lucide-react';
+import MediaGallery from './MediaGallery';
 import {countries,countryCode,countryName,regionOptions,roleOptions,
  genderOptions,orientationOptions,contentCategories,scenePairings,specialties} from './profileOptions';
 
@@ -22,12 +24,14 @@ function CheckList({label,options,selected,change}){
      onChange={e=>change(e.target.checked?[...selected,value]:selected.filter(v=>v!==value))}/>
     {name}</label>)}</div></fieldset>;
 }
-export default function CreatorProfileEditor({user,profile,onSaved}){
+export default function CreatorProfileEditor({user,profile,onSaved,approved=false,paid=false,isAdmin=false}){
  const [form,setForm]=useState({display_name:profile?.display_name||'',
   role_type:profile?.role_type||'creator',bio:profile?.bio||'',
   city:profile?.city||'',state:profile?.state||'',
   country:countryCode(profile?.country||'US')});
  const [prefs,setPrefs]=useState(initial);
+ const [editing,setEditing]=useState(!profile?.profile_complete);
+ const [activeTab,setActiveTab]=useState('profile');
  const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false);
  const [error,setError]=useState(''),[notice,setNotice]=useState('');
  const update=(key,value)=>setForm(old=>({...old,[key]:value}));
@@ -70,14 +74,81 @@ export default function CreatorProfileEditor({user,profile,onSaved}){
    const {error:detailsError}=await supabase.from('member_profile_preferences').upsert(details,{onConflict:'user_id'});
    if(detailsError)throw detailsError;
    setNotice('Your profile and private preferences were saved.');
+   setEditing(false);
    if(onSaved)await onSaved();
   }catch(e){setError(e.message);}finally{setSaving(false);}
  };
- return <form className="mx-auto max-w-4xl space-y-5" onSubmit={save}>
-  <div><h2 className="text-2xl font-bold">My profile</h2>
-   <p className="mt-1 text-sm text-[#AABBD4]">Build your creator profile, choose collaborations and decide what others can discover.</p></div>
-  {error&&<p role="alert" className="rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-red-200">{error}</p>}
-  {notice&&<p role="status" className="rounded-lg bg-emerald-950 p-3 text-emerald-200">{notice}</p>}
+ return <div className="min-h-screen pb-20 md:pb-8" style={{background:'var(--cc-bg)',color:'var(--cc-text-primary)'}}>
+  {/* Original Base44 profile cover, avatar, role badge and editor header. */}
+  <div className="relative">
+   <div className="relative h-48 overflow-hidden md:h-64" style={{background:'linear-gradient(135deg,#0B0F14,#263248)'}}>
+    {profile?.cover_url?.startsWith('https://')&&<img src={profile.cover_url}
+     alt="Profile cover" className="h-full w-full object-cover"/>}
+   </div>
+   <div className="mx-auto max-w-4xl px-4">
+    <div className="relative -mt-16 flex flex-col items-center gap-4 md:-mt-20">
+     <div className="grid h-32 w-32 place-items-center overflow-hidden rounded-full border-4 text-5xl font-bold md:h-40 md:w-40"
+      style={{backgroundColor:'var(--cc-surface)',borderColor:'var(--cc-bg)',color:'var(--cc-blue)'}}>
+      {profile?.avatar_path?.startsWith('https://')?<img src={profile.avatar_path} alt="" className="h-full w-full object-cover"/>:
+        (form.display_name||'U').slice(0,1).toUpperCase()}
+     </div>
+     <div className="text-center">
+      <h1 className="text-2xl font-bold">{form.display_name||'Set up your profile'}</h1>
+      <div className="mt-2 flex items-center justify-center gap-2">
+       <span className="rounded-full border px-3 py-1 text-xs capitalize"
+        style={{borderColor:'var(--cc-border)'}}>{form.role_type.replaceAll('_',' ')}</span>
+       {approved&&<span className="inline-flex items-center gap-1 rounded-full border border-emerald-700 px-3 py-1 text-xs text-emerald-300">
+        <ShieldCheck size={13}/>Verified</span>}
+      </div>
+      <button type="button" onClick={()=>{setActiveTab('profile');setEditing(v=>!v);}}
+       className="mt-3 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white"
+       style={{background:'#4F8CFF'}}><Edit2 size={16}/>{editing?'Cancel editing':'Edit'}</button>
+     </div>
+    </div>
+   </div>
+  </div>
+  <div className="mx-auto mt-6 max-w-4xl px-4">
+   <div role="tablist" aria-label="Profile sections" className="mb-6 grid grid-cols-3 gap-2 border-b pb-2"
+    style={{borderColor:'var(--cc-border)'}}>
+    {[[ 'profile','Profile',User ],['galleries','Galleries',Image],['analytics','Analytics',Activity]].map(([key,name,Icon])=>
+     <button type="button" key={key} role="tab" aria-selected={activeTab===key}
+      className="flex items-center justify-center gap-2 rounded-lg px-3 py-3 text-sm font-medium"
+      style={{background:activeTab===key?'rgba(79,140,255,.12)':'transparent',
+       color:activeTab===key?'var(--cc-blue)':'var(--cc-text-secondary)'}}
+      onClick={()=>setActiveTab(key)}><Icon size={17}/>{name}</button>)}
+   </div>
+   {error&&<p role="alert" className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-red-200">{error}</p>}
+   {notice&&<p role="status" className="mb-4 rounded-lg bg-emerald-950 p-3 text-emerald-200">{notice}</p>}
+   {activeTab==='profile'&&(!editing?
+    <div className="space-y-6">
+     <section className={panel}>
+      <h3 className="text-center text-lg font-semibold">Basic Information</h3>
+      <div className="grid gap-4 sm:grid-cols-2">
+       <div><p className="text-xs" style={{color:'var(--cc-text-muted)'}}>Display name</p>
+        <p className="mt-1 font-medium">{form.display_name||'Not set'}</p></div>
+       <div><p className="text-xs" style={{color:'var(--cc-text-muted)'}}>Role</p>
+        <p className="mt-1 capitalize">{form.role_type.replaceAll('_',' ')}</p></div>
+       <div><p className="text-xs" style={{color:'var(--cc-text-muted)'}}>Location</p>
+        <p className="mt-1">{[form.city,form.state,countryName(form.country)].filter(Boolean).join(', ')}</p></div>
+       <div><p className="text-xs" style={{color:'var(--cc-text-muted)'}}>Identity</p>
+        <p className="mt-1">{prefs.gender_identity||'Private or not specified'}</p></div>
+      </div>
+      <p className="whitespace-pre-wrap text-sm" style={{color:'var(--cc-text-secondary)'}}>{form.bio}</p>
+     </section>
+     {form.role_type==='creator'&&<section className={panel}>
+      <h3 className="text-lg font-semibold">Scene Pairings</h3>
+      <p className="text-sm" style={{color:'var(--cc-text-secondary)'}}>{prefs.scene_pairings.length?prefs.scene_pairings.join(' · '):'Not set'}</p>
+      <h3 className="mt-4 text-lg font-semibold">Content Categories</h3>
+      <p className="text-sm" style={{color:'var(--cc-text-secondary)'}}>{prefs.content_categories.length?prefs.content_categories.join(' · '):'Not set'}</p>
+     </section>}
+     <section className={panel}>
+      <h3 className="text-lg font-semibold">Availability & Travel</h3>
+      <p className="text-sm" style={{color:'var(--cc-text-secondary)'}}>{prefs.available_to_travel?'Available for travel':'Travel not enabled'}</p>
+     </section>
+    </div>
+    :<form className="space-y-5" onSubmit={save}>
+  <div><h2 className="text-center text-lg font-semibold">Basic Information</h2>
+  <p className="mt-1 text-center text-sm" style={{color:'var(--cc-text-secondary)'}}>Edit your profile information and preferences.</p></div>
   <section className={panel}><h3 className="text-lg font-semibold">Professional details</h3>
    <label className="block text-sm">Display name<input className={input+' mt-2'} value={form.display_name} maxLength={100}
     onChange={e=>update('display_name',e.target.value)} required/></label>
@@ -149,5 +220,14 @@ export default function CreatorProfileEditor({user,profile,onSaved}){
   </section>
   <button type="submit" disabled={saving||loading} className="ccx-primary rounded-xl px-6 py-3 font-semibold disabled:opacity-50">
    {saving?'Saving…':loading?'Loading profile…':'Save complete profile'}</button>
- </form>;
+ </form>)}
+   {activeTab==='galleries'&&<MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
+   {activeTab==='analytics'&&<div className={panel}>
+    <h3 className="text-lg font-semibold">Profile Analytics</h3>
+    <p className="mt-2 text-sm" style={{color:'var(--cc-text-secondary)'}}>
+     Profile-view analytics from the original Base44 application are not yet migrated.
+     No visitor statistics are invented. Your original profile design remains preserved.</p>
+   </div>}
+  </div>
+ </div>;
 }
