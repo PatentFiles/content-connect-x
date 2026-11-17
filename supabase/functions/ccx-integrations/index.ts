@@ -8,7 +8,7 @@
  */
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
 import {getYotiReturnOrigin,isYotiConfigured} from './yotiPolicy.mjs';
-const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type','Access-Control-Allow-Methods':'POST,OPTIONS'};
+const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version','Access-Control-Allow-Methods':'POST,OPTIONS'};
 const out=(v:unknown,s=200)=>Response.json(v,{status:s,headers:{...cors,'Cache-Control':'no-store'}});
 const bad=(msg:string,s=400)=>out({error:msg},s);
 const id=(x:unknown):x is string=>typeof x==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(x);

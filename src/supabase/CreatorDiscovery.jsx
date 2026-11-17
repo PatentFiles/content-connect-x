@@ -24,6 +24,14 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery'}){
  const [working,setWorking]=useState(false);
  const [error,setError]=useState('');
  const [selected,setSelected]=useState(null);
+ const openProfile=person=>{
+  setSelected(person);
+  // Only an actual opened profile counts, once per verified viewer per UTC day.
+  // Tracking is best effort and never blocks the visitor's profile view.
+  if(person.id!==user.id)void supabase.functions.invoke('profile-analytics',{
+   body:{action:'record',profile_owner_id:person.id}
+  }).catch(()=>{});
+ };
  const change=(key,value)=>setFilters(old=>({...old,[key]:value}));
  const loadSaved=useCallback(async()=>{
   const {data,error:readError}=await supabase.from('creator_favorites')
@@ -158,7 +166,7 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery'}){
      </div>}
      {p.bio&&<p className="text-sm text-[#C4D1E5] line-clamp-3">{p.bio}</p>}
      <button type="button" className="mt-auto self-start text-sm font-medium text-[#FF8DD9] underline"
-      onClick={()=>setSelected(p)}>View public profile</button>
+      onClick={()=>openProfile(p)}>View public profile</button>
     </article>)}
    </div>
    {more&&<button className="ccx-primary rounded-lg px-5 py-3" type="button" disabled={working}
