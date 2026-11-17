@@ -8,7 +8,7 @@
  * keeping checkout disabled until approved provider plans are configured.
  */
 import React, {useState} from 'react';
-import {ArrowRight, Check, ShieldCheck, UsersRound, CalendarDays, Building2, LockKeyhole} from 'lucide-react';
+import {ArrowRight, Check, ShieldCheck, UsersRound, Building2, LockKeyhole} from 'lucide-react';
 
 const roleChoices=[
   ['creator','Creator'],['photographer','Photographer'],['videographer','Videographer'],
