@@ -321,7 +321,7 @@ export default function SupabaseApp() {
   };
   const signOut=()=>{void supabase.auth.signOut();};
   return <OriginalShell user={user} profile={profile} approved={approved}
-    paid={paid} isAdmin={isAdmin} tab={tab}
+    isAdmin={isAdmin} tab={tab}
     onNavigate={navigateInWorkspace} onSignOut={signOut}
     onRolePreviewChange={setRolePreview}>
     <ErrorMessage message={error}/>
