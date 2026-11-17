@@ -46,7 +46,7 @@ function MenuLink({item,tab,onNavigate,onClose,mobile=false}){
  </button>;
 }
 
-export default function OriginalShell({children,tab,onNavigate,user,profile,isAdmin=false,approved=false,onSignOut}){
+export default function OriginalShell({children,tab,onNavigate,user,profile,isAdmin=false,approved=false,onSignOut,onRolePreviewChange}){
  const [mobileOpen,setMobileOpen]=useState(false);
  const [adminRole,setAdminRole]=useState('admin');
  const [theme,setTheme]=useState(()=>typeof document!=='undefined'&&document.documentElement.classList.contains('dark')?'dark':'light');
@@ -133,7 +133,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
    </div>
    {isAdmin&&<label className="border-b p-4 text-xs" style={{borderColor:'var(--cc-border)'}}>
     Admin role preview
-    <select value={adminRole} onChange={e=>setAdminRole(e.target.value)}
+    <select value={adminRole} onChange={e=>{setAdminRole(e.target.value);onRolePreviewChange?.(e.target.value==='admin'?null:e.target.value);}}
      className="mt-2 w-full rounded-md border p-2 text-sm"
      style={{background:'var(--cc-bg)',borderColor:'var(--cc-border)'}}>
      <option value="admin">Admin</option>
