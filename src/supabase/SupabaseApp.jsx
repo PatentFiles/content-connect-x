@@ -62,6 +62,7 @@ export default function SupabaseApp() {
   const [mfaNeeded,setMfaNeeded] = useState(false);
   const [visibleFeatures,setVisibleFeatures] = useState(null);
   const [ageGateEnabled,setAgeGateEnabled] = useState(true);
+  const [accountLoaded,setAccountLoaded] = useState(false);
   const refreshFeatureFlags=useCallback(async()=>{
     const result=await platformAction('get_feature_flags');
     setVisibleFeatures(result.flags||{});
@@ -81,6 +82,7 @@ export default function SupabaseApp() {
       },'',window.location.pathname+(remainder?'?'+remainder:'')+window.location.hash);
     }
   },[]);
+  const sessionRef=React.useRef(null);
   const user = session?.user;
   const authPage = window.location.pathname==='/login'||window.location.pathname==='/signup';
   const pricingPage = /^\/pricing\/?$/i.test(window.location.pathname);
@@ -100,7 +102,7 @@ export default function SupabaseApp() {
   const suspended = security?.banned || security?.suspended;
 
   const refresh = useCallback(async (activeSession) => {
-    if (!activeSession?.user) {setProfile(null);setVerification(null);setBilling(null);setSecurity(null);return;}
+    if (!activeSession?.user) {setProfile(null);setVerification(null);setBilling(null);setSecurity(null);setAccountLoaded(true);return;}
     const uid=activeSession.user.id;
     const [pr,ve,bi,se,gs] = await Promise.all([
       supabase.from('member_profiles').select('id,display_name,role_type,bio,city,state,country,avatar_path,cover_path,real_name,stage_name,company_name,representative_name,profile_complete,updated_at').eq('id',uid).maybeSingle(),
@@ -110,8 +112,12 @@ export default function SupabaseApp() {
       supabase.from('platform_settings').select('key,value').eq('key','age_verification_required').maybeSingle(),
     ]);
     if (pr.error || ve.error || bi.error || se.error) throw new Error(pr.error?.message || ve.error?.message || bi.error?.message || se.error?.message);
+    // Never replace a verified admin session with an apparently unverified
+    // account while a refresh is in flight. RLS errors must not masquerade
+    // as a deliberate global age-gate setting.
+    if(gs.error)throw new Error('Unable to load global age verification settings: '+gs.error.message);
     setProfile(pr.data);setVerification(ve.data?.[0]||null);setBilling(bi.data);setSecurity(se.data);
-    setAgeGateEnabled(gs.data?.value!==false);
+    setAgeGateEnabled(gs.data?.value!==false);setAccountLoaded(true);
   },[]);
 
   useEffect(()=>{
@@ -128,8 +134,20 @@ export default function SupabaseApp() {
       // Supabase validates the recovery token before establishing a session.
       if(active){
         if(event==='PASSWORD_RECOVERY')setPasswordRecoverySession(true);
-        if(event==='SIGNED_OUT')setPasswordRecoverySession(false);
-        setSession(next);setProfile(null);setVerification(null);setBilling(null);setSecurity(null);
+        if(event==='SIGNED_OUT'){
+          setPasswordRecoverySession(false);
+          setSession(null);setProfile(null);setVerification(null);setBilling(null);setSecurity(null);
+          setAccountLoaded(true);
+        }else{
+          // Supabase fires TOKEN_REFRESHED and INITIAL_SESSION events.
+          // Clearing admin/verification on every event caused the age-gate
+          // onboarding screen to flash on ordinary page navigation.
+          if(next?.user?.id!==sessionRef.current){
+            sessionRef.current=next?.user?.id||null;
+            setAccountLoaded(false);
+          }
+          setSession(next);
+        }
       }
     });
     return()=>{active=false;subscription.unsubscribe();};
@@ -176,7 +194,8 @@ export default function SupabaseApp() {
   useEffect(()=>{
     const update=()=>{if(session?.user)void refresh(session).catch(e=>setError(e.message));};
     window.addEventListener('ccx-verification-refreshed',update);
-    return()=>window.removeEventListener('ccx-verification-refreshed',update);
+    window.addEventListener('ccx-platform-settings-changed',update);
+    return()=>{window.removeEventListener('ccx-verification-refreshed',update);window.removeEventListener('ccx-platform-settings-changed',update);};
   },[session?.access_token,refresh]);
 
   const authenticate = async (event) => {
@@ -243,7 +262,7 @@ export default function SupabaseApp() {
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
 
-  if(loading||mfaChecking)return <div className={`${shell} grid place-items-center`}><Loader2 className="animate-spin"/></div>;
+  if(loading||mfaChecking||(user&&!accountLoaded))return <div className={`${shell} grid place-items-center`}><Loader2 className="animate-spin"/></div>;
   if(!user&&pricingPage)return <div className={shell}>
     <div className="ccx-brand-topline"/>
     <header className="ccx-public-auth-links px-4 py-3 sm:px-6" aria-label="Account links">
