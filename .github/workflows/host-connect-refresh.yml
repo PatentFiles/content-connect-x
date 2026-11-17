@@ -1,0 +1,64 @@
+name: Host Connect refresh validation
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/host-connect-refresh.yml'
+      - '.maintenance/host-connect-refresh.py'
+permissions:
+  contents: write
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Audit current configuration references
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          for root in ['supabase/functions','src','scripts']:
+            for path in sorted(Path(root).rglob('*')):
+              if not path.is_file() or path.suffix not in ('.ts','.js','.mjs','.jsx'): continue
+              for index,line in enumerate(path.read_text().splitlines(),1):
+                if 'Deno.env.get(' in line or 'STRIPE_' in line:
+                  print(f'{path}:{index}: {line}')
+          print('\n---CONFIG---\n'+Path('supabase/config.toml').read_text())
+          print('\n---EDGE VALIDATOR---\n'+Path('scripts/verify-edge-dependencies.mjs').read_text())
+          print('\n---RELEASE GUARDS---\n'+Path('scripts/release-static-guards.mjs').read_text())
+          print('\n---MAP---\n'+Path('src/supabase/HostingAreaMap.jsx').read_text())
+          PY
+      - name: Apply reviewed source changes
+        run: |
+          if [ -f .maintenance/host-connect-refresh.py ]; then python3 .maintenance/host-connect-refresh.py; fi
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:hosting
+      - run: npm run test:integrations
+      - run: npm run test:readiness
+      - run: npm run verify:release
+      - run: npm run verify:frontend-contract
+      - run: npm run verify:edge-imports
+      - name: Run new host regression tests
+        run: |
+          if [ -f tests/host-refresh.test.mjs ]; then node --test tests/host-refresh.test.mjs; fi
+      - run: npm run build
+      - name: Commit validated application changes
+        run: |
+          if [ -f .maintenance/host-connect-refresh.py ]; then
+            git config user.name 'Host Connect maintenance'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add src supabase docs tests scripts
+            if ! git diff --cached --quiet; then
+              git commit -m "Refresh host modals, property carousels, media galleries and provider configuration"
+              git push origin HEAD:main
+            fi
+          fi
