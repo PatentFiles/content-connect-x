@@ -1,0 +1,39 @@
+name: Account entry policy update
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/account-entry-update.yml'
+      - '.maintenance/apply-account-entry.py'
+permissions:
+  contents: write
+jobs:
+  validate-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Apply fully checked source patch
+        run: python3 .maintenance/apply-account-entry.py
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - name: Offline account and product regressions
+        run: node --test $(find tests -name '*.test.mjs' ! -name 'hosting-authenticated.test.mjs' | sort)
+      - run: node scripts/test-role-workspace-render.mjs
+      - run: npm run verify:release
+      - run: npm run verify:frontend-contract
+      - run: npm run verify:edge-imports
+      - run: npm run build
+      - name: Commit validated source
+        run: |
+          git config user.name 'Content Connect maintenance'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add README.md package.json src supabase docs tests scripts
+          git rm -f .maintenance/account-entry-*.b64 .maintenance/apply-account-entry.py
+          git commit -m "Make MFA optional and enforce one-time signup age admission; add admin Host Connect header link"
+          git push origin HEAD:main
