@@ -244,14 +244,11 @@ export default function SupabaseApp() {
   if(loading||mfaChecking)return <div className={`${shell} grid place-items-center`}><Loader2 className="animate-spin"/></div>;
   if(!user&&!authPage)return <div className={shell}>
     <div className="ccx-brand-topline"/>
-    <section className="ccx-hero flex min-h-[min(78vh,720px)] w-full items-end rounded-none border-x-0 px-5 py-12 sm:px-10 sm:py-16 lg:px-20">
-      <div className="mx-auto w-full max-w-7xl">
-        <div className="max-w-2xl">
-          <p className="ccx-eyebrow">The creative connection</p>
-          <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl">Create. Collaborate. <span className="ccx-gradient-text">Connect.</span></h1>
-          <p className="mt-6 max-w-xl text-base leading-7 text-[#E5E0F1] sm:text-lg">Professional creators, production teams, studios and trusted locations—all in one private workspace.</p>
-          <div className="mt-8 flex flex-wrap gap-3"><a href="/signup" className="ccx-primary inline-flex items-center rounded-xl px-5 py-3 text-sm">Create your free account</a><a href="/login" className="ccx-secondary inline-flex items-center rounded-xl px-5 py-3 text-sm">Sign in</a></div>
-        </div>
+    <section className="ccx-hero-image relative w-full overflow-hidden">
+      <img src="/Content_Connect_Hero_Banner.png" alt="Content Connect X — Create. Collaborate. Connect." className="block h-auto w-full object-cover"/>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-wrap justify-center gap-3 bg-gradient-to-t from-black/55 to-transparent px-5 pb-8 pt-20 sm:pb-12">
+        <a href="/signup" className="ccx-primary pointer-events-auto inline-flex items-center rounded-xl px-5 py-3 text-sm">Create your free account</a>
+        <a href="/login" className="ccx-secondary pointer-events-auto inline-flex items-center rounded-xl px-5 py-3 text-sm">Sign in</a>
       </div>
     </section>
     <PublicLandingSections/>
