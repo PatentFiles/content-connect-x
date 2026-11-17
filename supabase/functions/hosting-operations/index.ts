@@ -1,3 +1,4 @@
+import {optionalProviderSetting} from './providerConfig.mjs';
 /**
  * Content Connect X: Hosting operations for verified hosts and booking parties.
  * This endpoint never collects, refunds or pays out money without provider evidence.
@@ -89,13 +90,21 @@ Deno.serve(async request=>{
  try{
  switch(action){
  case 'provider_readiness':{
-  return response({merchant:{configured:Deno.env.get('ADULT_MERCHANT_APPROVED')==='true'&&
-   !!Deno.env.get('ADULT_MERCHANT_PROVIDER'),name:Deno.env.get('ADULT_MERCHANT_PROVIDER')||null,
-   checkout_available:false,external_capture_verified:false,
-   note:'Merchant integration requires supported provider API, approved onboarding and sandbox tests'},
-   docusign:{configured:!!(Deno.env.get('DOCUSIGN_ACCOUNT_ID')&&Deno.env.get('DOCUSIGN_INTEGRATION_KEY')&&Deno.env.get('DOCUSIGN_PRIVATE_KEY')),
-   note:'Formal signature requires DocuSign OAuth and verified completion'},
-   notifications:{email_ready:!!Deno.env.get('HOSTING_EMAIL_PROVIDER_ENABLED'),push_ready:!!Deno.env.get('HOSTING_PUSH_PROVIDER_ENABLED')}});
+  const ccbill=['CCBILL_CLIENT_ACCNUM','CCBILL_CLIENT_SUBACC','CCBILL_FLEX_ID','CCBILL_SALT']
+   .every(name=>Boolean(Deno.env.get(name))) && Boolean(optionalProviderSetting('CCBILL_BOOKING_PERIOD_DAYS')) &&
+   ['CCBILL_HOSTING_APPROVED','CCBILL_DYNAMIC_PRICING_APPROVED','CCBILL_FLEXFORM_LIVE_APPROVED',
+    'HOSTING_FINANCIAL_RELEASE_APPROVED','HOSTING_PROVIDER_CALLBACK_RECONCILED','CCBILL_WEBHOOK_EVENT_CONTRACT_VERIFIED']
+   .every(name=>optionalProviderSetting(name)==='true');
+  return response({merchant:{configured:ccbill,name:'CCBill',checkout_available:ccbill,
+   external_capture_verified:false,note:'Presence and release checks only; actual provider acceptance and settlement must be verified.'},
+   docusign:{configured:['DOCUSIGN_ACCOUNT_ID','DOCUSIGN_INTEGRATION_KEY','DOCUSIGN_USER_ID',
+    'DOCUSIGN_PRIVATE_KEY','DOCUSIGN_CONNECT_HMAC_SECRET','DOCUSIGN_LOCATION_TEMPLATE_ID']
+    .every(name=>Boolean(Deno.env.get(name)))&&optionalProviderSetting('DOCUSIGN_ADULT_BUSINESS_APPROVED')==='true',
+    note:'Formal signature requires OAuth and independently verified completion'},
+   notifications:{email_ready:optionalProviderSetting('HOSTING_EMAIL_PROVIDER_ENABLED')==='true'&&
+    Boolean(optionalProviderSetting('HOSTING_EMAIL_API_URL')&&optionalProviderSetting('HOSTING_EMAIL_FROM')&&Deno.env.get('HOSTING_EMAIL_API_TOKEN')),
+    push_ready:optionalProviderSetting('HOSTING_PUSH_PROVIDER_ENABLED')==='true'&&
+    Boolean(Deno.env.get('WEB_PUSH_VAPID_PUBLIC_KEY')&&Deno.env.get('WEB_PUSH_VAPID_PRIVATE_KEY')&&optionalProviderSetting('WEB_PUSH_SUBJECT'))}});
  }
  case 'host_status':{
   const {data,error}=await db.from('host_verification_requests')

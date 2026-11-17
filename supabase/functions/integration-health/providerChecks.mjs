@@ -43,14 +43,11 @@ export const PROVIDERS = Object.freeze({
     required:['OPENMODERATE_SERVICE_URL','OPENMODERATE_API_KEY'],approvals:[],
     note:'An independent moderation worker, video inspection, human review and publication policy remain mandatory.'
   },
-  background_screening:{
-    required:['BACKGROUND_SCREENING_PROVIDER_URL','BACKGROUND_SCREENING_SECRET'],approvals:[],
-    note:'Optional service: separate subject consent, approved vendor and a reviewed screening procedure are required.'
-  },
-  health_clearance:{
-    required:['WORK_CLEARANCE_PROVIDER_URL','WORK_CLEARANCE_SECRET'],approvals:[],
-    note:'Optional provider-backed clearance is not equivalent to approved PASS connectivity; never expose clinical results.'
-  }
+  background_screening:{required:[],approvals:[],unavailable:true,
+    note:'Optional provider integration is not implemented. No invented endpoint/key is required.'},
+  health_clearance:{required:[],approvals:[],unavailable:true,
+    note:'Private review and the existing PASS partner workflow remain separate; no unused generic provider keys are required.'}
+
 });
 export function inspectProvider(name, env){
   const spec=PROVIDERS[name];
@@ -59,7 +56,7 @@ export function inspectProvider(name, env){
     ...spec.required.filter(key=>typeof env[key]!=='string'||!env[key].trim()),
     ...spec.approvals.filter(key=>env[key]!=='true')
   ];
-  return {configured:missing.length===0,missing,note:spec.note,
+  return {configured:!spec.unavailable&&missing.length===0,missing,note:spec.note,
     acceptance_verified:false};
 }
 export function trustedOrigin(value){

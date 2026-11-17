@@ -1,3 +1,4 @@
+import {optionalProviderSetting} from './providerConfig.mjs';
 /**
  * Hosting transactional notifications. This is a server-only, opt-in dispatcher.
  * Generic messages contain no adult content or sensitive booking information.
@@ -23,13 +24,13 @@ Deno.serve(async req=>{
  const url=Deno.env.get('SUPABASE_URL'),key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
  if(!url||!key)return reply({error:'Backend not configured'},503);
  const db=createClient(url,key);
- const emailEnabled=Deno.env.get('HOSTING_EMAIL_PROVIDER_ENABLED')==='true'&&
-   Boolean(Deno.env.get('HOSTING_EMAIL_API_URL')&&Deno.env.get('HOSTING_EMAIL_API_TOKEN')&&Deno.env.get('HOSTING_EMAIL_FROM'));
- const pushEnabled=Deno.env.get('HOSTING_PUSH_PROVIDER_ENABLED')==='true'&&
-   Boolean(Deno.env.get('WEB_PUSH_VAPID_PUBLIC_KEY')&&Deno.env.get('WEB_PUSH_VAPID_PRIVATE_KEY')&&Deno.env.get('WEB_PUSH_SUBJECT'));
+ const emailEnabled=optionalProviderSetting('HOSTING_EMAIL_PROVIDER_ENABLED')==='true'&&
+   Boolean(optionalProviderSetting('HOSTING_EMAIL_API_URL')&&Deno.env.get('HOSTING_EMAIL_API_TOKEN')&&optionalProviderSetting('HOSTING_EMAIL_FROM'));
+ const pushEnabled=optionalProviderSetting('HOSTING_PUSH_PROVIDER_ENABLED')==='true'&&
+   Boolean(Deno.env.get('WEB_PUSH_VAPID_PUBLIC_KEY')&&Deno.env.get('WEB_PUSH_VAPID_PRIVATE_KEY')&&optionalProviderSetting('WEB_PUSH_SUBJECT'));
  if(!emailEnabled&&!pushEnabled)return reply({error:'No approved notification provider configured'},503);
  if(pushEnabled)webpush.setVapidDetails(
-   Deno.env.get('WEB_PUSH_SUBJECT')!,
+   optionalProviderSetting('WEB_PUSH_SUBJECT')!,
    Deno.env.get('WEB_PUSH_VAPID_PUBLIC_KEY')!,
    Deno.env.get('WEB_PUSH_VAPID_PRIVATE_KEY')!
  );
@@ -59,7 +60,7 @@ Deno.serve(async req=>{
    if(job.channel==='email'){
     const address=await db.auth.admin.getUserById(job.recipient_id);
     if(address.error||!address.data.user?.email)throw Error('Account email missing');
-    const destination=Deno.env.get('HOSTING_EMAIL_API_URL')!;
+    const destination=optionalProviderSetting('HOSTING_EMAIL_API_URL')!;
     const target=new URL(destination);
     if(target.protocol!=='https:'||target.username||target.password||!target.hostname.includes('.'))
      throw Error('Unapproved HTTPS notification endpoint');
@@ -68,7 +69,7 @@ Deno.serve(async req=>{
     const sent=await fetch(target.toString(),{
       method:'POST',headers:{'content-type':'application/json',
         authorization:'Bearer '+Deno.env.get('HOSTING_EMAIL_API_TOKEN')!},
-      body:JSON.stringify({from:Deno.env.get('HOSTING_EMAIL_FROM'),to:address.data.user.email,
+      body:JSON.stringify({from:optionalProviderSetting('HOSTING_EMAIL_FROM'),to:address.data.user.email,
         subject:title,text:message,reference_id:job.event_key}),
       signal:AbortSignal.timeout(12000)
     });
@@ -82,7 +83,7 @@ Deno.serve(async req=>{
      await db.from('hosting_notification_outbox').update({status:'disabled'}).eq('id',job.id);
      continue;
     }
-    const push=JSON.stringify({title,body:message,url:Deno.env.get('HOSTING_FRONTEND_ORIGIN')||'/'});
+    const push=JSON.stringify({title,body:message,url:optionalProviderSetting('HOSTING_FRONTEND_ORIGIN')||'/'});
     let successes=0;
     for(const device of devices){
      try{

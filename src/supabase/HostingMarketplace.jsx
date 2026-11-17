@@ -6,13 +6,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Search, SlidersHorizontal, MapPin, Heart, CalendarDays, Users, Star,
-  Camera, Home, ArrowLeft, ShieldCheck, ImageIcon,
-  Clock, ChevronRight, CheckCircle2, RefreshCw,
+  Camera, Home, ArrowLeft, ShieldCheck, Clock, CheckCircle2, RefreshCw,
 } from 'lucide-react';
 import {
   hostingAction, rentalCategories, rentalAmenities, rentalUses, usd, dateTime,
 } from './hostingApi';
 import HostingHost from './HostingHost';
+import {PropertyPreviewCard} from './HostPortfolio';
+import PropertyPhotoGallery from './PropertyPhotoGallery';
 import HostingAreaMap from './HostingAreaMap';
 import {hostingAdvanced} from './hostingBusinessApi';
 import HostingBookingOperations from './HostingBookingOperations';
@@ -31,36 +32,8 @@ const labels=Object.fromEntries(rentalCategories);
 const amenityLabels=Object.fromEntries(rentalAmenities);
 const usageLabels=Object.fromEntries(rentalUses);
 
-function Photo({photos,alt,height='h-52'}) {
-  const src=photos?.[0]?.url;
-  return <div className={height+' relative overflow-hidden rounded-xl bg-gradient-to-br from-[#253D63] via-[#1C2D49] to-[#101926]'}>
-    {src?<img src={src} alt={alt} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy"/>:
-    <div className="h-full w-full flex flex-col items-center justify-center gap-2 text-[#839BB8]"><ImageIcon size={39}/><span className="text-xs">Gallery awaiting approval</span></div>}
-  </div>;
-}
-
 function ListingCard({listing,favorite,toggle,open}) {
-  return <article className={panel+' group overflow-hidden p-3 shadow-lg shadow-black/10'}>
-    <div className="relative">
-      <button onClick={()=>open(listing.id)} className="w-full text-left" aria-label={'View '+listing.title}>
-        <Photo photos={listing.photos} alt={listing.title}/>
-      </button>
-      <button onClick={()=>toggle(listing.id)} aria-label={favorite?'Remove favorite':'Save property'}
-        className={'absolute right-3 top-3 rounded-full p-2.5 backdrop-blur '+(favorite?'bg-[#E900C5] text-white':'bg-[#0B1524]/80 text-white')}>
-        <Heart size={18} fill={favorite?'currentColor':'none'}/>
-      </button>
-      <div className="absolute left-3 top-3 pointer-events-none">
-        <span className="rounded-full bg-[#101A2C]/90 px-3 py-1.5 text-xs font-medium text-white">{labels[listing.category]||'Location'}</span>
-      </div>
-    </div>
-    <button className="w-full text-left px-1 pt-4" onClick={()=>open(listing.id)}>
-      <h3 className="truncate text-base font-semibold text-white">{listing.title}</h3>
-      <p className="mt-1 flex items-center gap-1 text-sm text-[#A4B6CB]"><MapPin size={14}/>{[listing.city,listing.state,listing.country].filter(Boolean).join(', ')}</p>
-      <p className="mt-2 flex items-center gap-3 text-xs text-[#98AFCB]"><Users size={14}/>Up to {listing.capacity} people <Clock size={14}/>{listing.minimum_hours}h minimum</p>
-      <div className="mt-2 flex items-center gap-1 text-xs text-[#AABDD5]">{listing.rating_count?<><Star size={14} className="text-yellow-300" fill="currentColor"/>{listing.rating_average} ({listing.rating_count} verified)</>:<>New listing · No reviews yet</>}</div>
-      <div className="mt-3 flex items-baseline gap-1 border-t border-[#293649] pt-3"><strong className="text-lg text-white">{usd(listing.hourly_rate)}</strong><span className="text-sm text-[#A4B6CB]">/ hour</span><ChevronRight size={17} className="ml-auto"/></div>
-    </button>
-  </article>;
+ return <PropertyPreviewCard listing={listing} favorite={favorite} onFavorite={toggle} onOpen={open}/>;
 }
 
 function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_connect'}) {
@@ -69,7 +42,6 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
   const [reviews,setReviews]=useState([]);
   const [reviewSummary,setReviewSummary]=useState(null);
   const [suitability,setSuitability]=useState(null);
-  const [photoIndex,setPhotoIndex]=useState(0);
   const [starts,setStarts]=useState('');
   const [ends,setEnds]=useState('');
   const [crew,setCrew]=useState(1);
@@ -118,7 +90,6 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
   };
   if(busy&&!item)return <div className={panel+' p-8 text-[#A6B5C8]'}>Loading location…</div>;
   if(!item)return <div className={panel+' p-8'}><button onClick={back} className="text-blue-300">Back to spaces</button><p className="mt-4 text-red-300">{error||'Location unavailable'}</p></div>;
-  const photo=item.photos?.[photoIndex];
   return <div className="space-y-6">
     <button className="flex items-center gap-2 text-sm text-[#9FB5D2] hover:text-white" onClick={back}><ArrowLeft size={17}/>Back to hosting</button>
     <div className="flex flex-wrap justify-between gap-3"><div>
@@ -126,14 +97,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
       <h2 className="mt-1 text-3xl font-semibold text-white">{item.title}</h2>
       <p className="mt-2 flex gap-2 items-center text-sm text-[#A4B6CB]"><MapPin size={16}/>{[item.city,item.state,item.country].filter(Boolean).join(', ')}</p><a target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-xs text-blue-300" href={'https://www.openstreetmap.org/search?query='+encodeURIComponent([item.city,item.state,item.country].filter(Boolean).join(', '))}>Explore general neighborhood map</a>
     </div><button className={pill+' h-fit flex items-center gap-2'} onClick={()=>toggle(item.id)}><Heart size={16} fill={favorites.includes(item.id)?'currentColor':'none'}/>{favorites.includes(item.id)?'Saved':'Save location'}</button></div>
-    <div className="grid gap-3 md:grid-cols-3">
-      <div className="md:col-span-2 overflow-hidden rounded-2xl bg-[#1B2B45] min-h-72">
-        {photo?.url?<img alt={photo.caption||item.title} src={photo.url} className="h-full max-h-[520px] w-full object-cover"/>:<div className="flex h-full min-h-[320px] flex-col items-center justify-center text-[#7E97B7]"><ImageIcon size={52}/>No approved property photos</div>}
-      </div>
-      <div className="grid grid-cols-2 gap-2 md:grid-cols-1">
-        {(item.photos||[]).slice(0,4).map((pic,i)=><button className={'overflow-hidden rounded-xl '+(photoIndex===i?'ring-2 ring-blue-500':'')} key={pic.id} onClick={()=>setPhotoIndex(i)}><img src={pic.url} alt={pic.caption||'Property photo'} className="h-28 w-full object-cover md:h-[118px]"/></button>)}
-      </div>
-    </div>
+    <PropertyPhotoGallery propertyId={item.id} title={item.title} photos={item.photos||[]} total={item.photo_count||0}/>
     {(item.videos||[]).length>0&&<section className={panel+' space-y-3 p-5'} aria-label="Approved property walk-through videos">
       <h3 className="text-lg font-semibold">Property walkthrough videos</h3>
       <div className="grid gap-3 sm:grid-cols-2">{item.videos.map(video=>

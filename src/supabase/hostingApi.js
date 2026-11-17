@@ -1,4 +1,5 @@
 import { supabase } from '@/api/supabaseClient';
+import {hostingEndpoint} from './hostingEndpoints.mjs';
 
 /**
  * All hosting mutations are independently authorized by the protected Edge
@@ -6,7 +7,7 @@ import { supabase } from '@/api/supabaseClient';
  * or public approval.
  */
 export async function hostingAction(action, args = {}) {
-  const { data, error } = await supabase.functions.invoke('hosting-marketplace', {
+  const { data, error } = await supabase.functions.invoke(hostingEndpoint(action), {
     body: { action, ...args },
   });
   if (error || data?.error) {
@@ -18,6 +19,17 @@ export async function hostingAction(action, args = {}) {
       } catch { /* preserve the original error */ }
     }
     throw new Error(message);
+  }
+  // A small per-listing cover set avoids the legacy shared 400-photo response
+  // limit. Full libraries are paginated only when the gallery is opened.
+  if(['browse','my_listings','listing'].includes(action)){
+    const items=data.items|| (data.item?[data.item]:[]);
+    if(items.length){
+      const thumbnails=await hostingAction('listing_thumbnails',{ids:items.map(item=>item.id).slice(0,100)});
+      const byId=new Map((thumbnails.items||[]).map(item=>[item.id,item]));
+      const enrich=item=>({...item,...(byId.get(item.id)||{})});
+      return data.item?{...data,item:enrich(data.item)}:{...data,items:items.map(enrich)};
+    }
   }
   return data;
 }

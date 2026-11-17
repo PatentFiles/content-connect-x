@@ -14,16 +14,17 @@ export default function HostMarketExplorer({onEdit,ownedListings=[]}){
  const [busy,setBusy]=useState(false),[error,setError]=useState('');
  const [focusArea,setFocusArea]=useState(''),[preview,setPreview]=useState(null);
  const [offset,setOffset]=useState(0);
+ const [searchBounds,setSearchBounds]=useState(null);
  const generation=useRef(0);
- const search=useCallback(async(place='',start=0)=>{
+ const search=useCallback(async(place='',start=0,bounds=null)=>{
   const request=++generation.current;setBusy(true);setError('');
   try{
-   const result=await hostingAction('host_market_overview',{city:place,offset:start,limit:100});
+   const result=await hostingAction('host_market_overview',{city:place,offset:start,limit:60,bounds});
    if(request!==generation.current)return;
    setData(current=>({...result,items:start?[...current.items,...result.items]:result.items}));
-   setSearchedCity(place);setOffset(start+result.items.length);
+   setSearchedCity(place);setOffset(result.next_offset??start+result.items.length);setSearchBounds(bounds);
    const match=result.areas.find(a=>a.city.toLowerCase()===place.trim().toLowerCase());
-   if(!start)setFocusArea(match?.id||result.owned_items.find(p=>p.public_area_id)?.public_area_id||'');
+   if(!start&&!bounds)setFocusArea(match?.id||result.owned_items.find(p=>p.public_area_id)?.public_area_id||'');
   }catch(e){if(request===generation.current)setError(e.message);}
   finally{if(request===generation.current)setBusy(false);}
  },[]);
@@ -49,7 +50,7 @@ export default function HostMarketExplorer({onEdit,ownedListings=[]}){
    // Raw coordinates stay in this browser and are never stored or sent to the API.
    const point={latitude:result.coords.latitude,longitude:result.coords.longitude};
    const nearest=[...data.areas].sort((a,b)=>kmBetween(point,a)-kmBetween(point,b))[0];
-   if(nearest){setCity(nearest.city);void search(nearest.city);}else{setBusy(false);setError('No approved nearby areas yet. Search by city.');}
+   if(nearest&&kmBetween(point,nearest)<=200){setCity(nearest.city);void search(nearest.city);}else{setBusy(false);setError('No approved nearby areas yet. Search by city.');}
   },()=>{setBusy(false);setError('Location permission was not available. Enter your city to compare prices.');},
   {enableHighAccuracy:false,timeout:10000,maximumAge:300000});
  };
@@ -68,13 +69,13 @@ export default function HostMarketExplorer({onEdit,ownedListings=[]}){
    <label><Home size={16}/>Your locations <select value="" onChange={event=>{const item=data.owned_items.find(p=>p.id===event.target.value);if(item){setCity(item.city);void search(item.city);}}}>
     <option value="">Choose your property’s city</option>{data.owned_items.map(item=><option key={item.id} value={item.id}>{item.title} · {item.city}</option>)}</select></label></div>
   <HostingAreaMap areas={data.areas} listings={items} onSelect={choose} focusAreaId={focusArea}
-   highlightedIds={data.owned_items.map(p=>p.id)} showTravel={false} onSearchBounds={()=>search(city)}/>
+   highlightedIds={data.owned_items.map(p=>p.id)} showTravel={false} onSearchBounds={bounds=>{setCity('');void search('',0,bounds);}}/>
   <p className="oh-map-privacy-note">Pins represent approved city/neighborhood centers, not exact addresses. Cyan markers include your own property. Rates are listed prices in this search—not completed bookings or guaranteed earnings.</p>
   {items.some(item=>!item.public_area_id)&&<p className="oh-map-privacy-note">Some properties need an approved public map area before a pin can appear. Their exact street address is never used as a public marker.</p>}
   {busy&&<p role="status" className="oh-upload-count">Loading market locations…</p>}
   <div className="oh-market-card-grid">{items.map(item=><PropertyPreviewCard key={item.id} listing={item} host={item.owned} onOpen={choose}/>)}</div>
   {!busy&&!items.length&&<p className="oh-market-empty">No approved listings in this city yet. Try another city or publish your first approved property.</p>}
-  {data.has_more&&<button type="button" className="oh-gallery-secondary" disabled={busy} onClick={()=>search(searchedCity,offset)}>Load more locations</button>}
+  {data.has_more&&<button type="button" className="oh-gallery-secondary" disabled={busy} onClick={()=>search(searchedCity,offset,searchBounds)}>Load more locations</button>}
   {preview&&<HostDialog title={preview.title} subtitle={[preview.city,preview.state,preview.country].filter(Boolean).join(', ')} onClose={()=>setPreview(null)}>
    <div className="oh-market-preview"><PropertyPreviewCard listing={preview} onOpen={()=>{}}/><div><h3>Comparable listing</h3><p><strong>{usd(preview.hourly_rate)}</strong> per hour · {preview.minimum_hours} hour minimum</p><p>Capacity: {preview.capacity} people.</p><p>This host workspace shows approved property details for market comparison. Creator bookings keep their separate verification and subscription requirements.</p></div></div>
   </HostDialog>}

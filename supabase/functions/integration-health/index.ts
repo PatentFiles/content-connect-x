@@ -1,6 +1,7 @@
 /** Authenticated, independently age-verified AAL2 admin diagnostics.
  * Never returns provider secrets. "Configured" never means "tested".
  */
+import {OPTIONAL_PROVIDER_SETTINGS,optionalProviderSetting} from './providerConfig.mjs';
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
 import {PROVIDERS,inspectProvider,trustedOrigin} from './providerChecks.mjs';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type',
@@ -42,7 +43,7 @@ Deno.serve(async req=>{
   for(const name of Object.keys(PROVIDERS)){
     const spec=PROVIDERS[name as keyof typeof PROVIDERS];
     const keys=[...spec.required,...spec.approvals];
-    const values=Object.fromEntries(keys.map(key=>[key,Deno.env.get(key)||'']));
+    const values=Object.fromEntries(keys.map(key=>[key,Object.prototype.hasOwnProperty.call(OPTIONAL_PROVIDER_SETTINGS,key)?optionalProviderSetting(key):(Deno.env.get(key)||'')]));
     services[name]=inspectProvider(name,values);
   }
   const [yotiSettings,yotiToken,yotiSdk,profiles,verifiedAdults,envelopes,

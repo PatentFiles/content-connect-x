@@ -1,3 +1,4 @@
+import {optionalProviderSetting} from './providerConfig.mjs';
 /**
  * Secured two-way iCalendar interface:
  * - imports trusted provider URL feeds (no redirects, no guest PII persisted),
@@ -18,7 +19,7 @@ const allowedUrl=(address:string,provider:string)=>{
  if(u.protocol!=='https:'||u.username||u.password||u.port&&u.port!=='443'||u.hash||u.hostname.length>255)return false;
  if(u.hostname==='localhost'||u.hostname.endsWith('.local')||/^\d+\.\d+\.\d+\.\d+$/.test(u.hostname))return false;
  const domains=provider==='airbnb'?['airbnb.com']:provider==='vrbo'?['vrbo.com','homeaway.com']:
-  provider==='booking'?['booking.com']:(Deno.env.get('HOSTING_EXTRA_CALENDAR_HOSTS')||'').split(',').map(s=>s.trim()).filter(Boolean);
+  provider==='booking'?['booking.com']:(optionalProviderSetting('HOSTING_EXTRA_CALENDAR_HOSTS')||'').split(',').map(s=>s.trim()).filter(Boolean);
  return domains.some(d=>u.hostname===d||u.hostname.endsWith('.'+d));
 };
 const parseDate=(line:string,venueTz:string)=>{

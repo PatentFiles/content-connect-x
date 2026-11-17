@@ -1,3 +1,4 @@
+import {optionalProviderSetting} from './providerConfig.mjs';
 /**
  * CCBill webhook with the dynamicPricingValidationDigest verified against the
  * merchant's encryption salt. No return URL or browser-controlled status
@@ -12,7 +13,7 @@ Deno.serve(async req=>{
  if(!flexConfigured())return respond({error:'Financial release gate closed'},503);
  // An independently verified merchant event contract + payout/reconciliation procedure
  // must be attested before ANY webhook can update captured funds.
- if(Deno.env.get('CCBILL_WEBHOOK_EVENT_CONTRACT_VERIFIED')!=='true')
+ if(optionalProviderSetting('CCBILL_WEBHOOK_EVENT_CONTRACT_VERIFIED')!=='true')
   return respond({error:'Unverified webhook contract: capture disabled'},503);
  const content=await req.text();
  if(content.length>30_000)return respond({error:'Payload too large'},413);

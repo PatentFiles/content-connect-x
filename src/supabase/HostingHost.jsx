@@ -4,7 +4,7 @@
  */
 import React,{useCallback,useEffect,useState} from 'react';
 import { supabase } from '@/api/supabaseClient';
-import {Building2,Plus,UploadCloud,CalendarDays,ClipboardCheck,ImageIcon,RefreshCw,Trash2,Settings2,ShieldCheck,Check,Save,Film, X} from 'lucide-react';
+import {Plus,CalendarDays,ClipboardCheck,ImageIcon,RefreshCw,Trash2,Settings2,ShieldCheck,Check,Save,Film} from 'lucide-react';
 import {hostingAction,uploadHostingPhoto,uploadHostingVideo,rentalCategories,rentalAmenities,rentalUses,usd,dateTime} from './hostingApi';
 import HostingHostVerification from './HostingHostVerification';
 import HostingBookingOperations from './HostingBookingOperations';
@@ -14,6 +14,10 @@ import HostingEquipmentManager from './HostingEquipmentManager';
 import HostingCalendarManager from './HostingCalendarManager';
 import HostingWorkforceManager from './HostingWorkforceManager';
 import HostingSuitabilityManager from './HostingSuitabilityManager';
+import HostDialog from './HostDialog';
+import HostPortfolio from './HostPortfolio';
+import HostMarketExplorer from './HostMarketExplorer';
+import {HostPhotoPicker,HostPhotoManager} from './PropertyPhotoGallery';
 const panel='ccx-surface p-5';
 const input='w-full rounded-xl border border-[#34465E] bg-[#0B1422] px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-500';
 const button='rounded-xl ccx-action-primary px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50';
@@ -41,21 +45,14 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
  const [reservations,setReservations]=useState([]);
  const [selected,setSelected]=useState('');
  const [editing,setEditing]=useState(false);
- const editorRef=React.useRef(null);
- const defaultsRef=React.useRef(null);
+ const [editorTab,setEditorTab]=useState('details');
+ const [saving,setSaving]=useState(false);
  const [defaults,setDefaults]=useState(blank);
  const [defaultForm,setDefaultForm]=useState(blank);
  const [showDefaults,setShowDefaults]=useState(false);
- useEffect(()=>{
-   const target=showDefaults?defaultsRef.current:editing?editorRef.current:null;
-   if(!target)return;
-   const reduceMotion=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-   target.scrollIntoView({behavior:reduceMotion?'auto':'smooth',block:'start'});
- },[editing,selected,showDefaults]);
-
  const [form,setForm]=useState(blank);
- const [image,setImage]=useState(null);
- const [caption,setCaption]=useState('');
+ const [photoFiles,setPhotoFiles]=useState(/** @type {File[]} */([]));
+ const [uploadProgress,setUploadProgress]=useState('');
  const [video,setVideo]=useState(null);
  const [videoCaption,setVideoCaption]=useState('');
  const [blocks,setBlocks]=useState([]);
@@ -115,11 +112,11 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
    // Every new listing inherits editable host defaults, never another property's address.
    setForm(item?{...blank,...item,amenities:item.amenities||[],permitted_uses:item.permitted_uses||[]}:
      {...blank,...defaults,amenities:[...(defaults.amenities||[])],permitted_uses:[...(defaults.permitted_uses||[])]});
-   setImage(null);setCaption('');setVideo(null);setVideoCaption('');setApprovalChecked(false);
+   setPhotoFiles([]);setUploadProgress('');setEditorTab('details');setVideo(null);setVideoCaption('');setApprovalChecked(false);
    setPrivateDetails({exact_address:'',entry_instructions:'',internal_notes:''});
    await extra(item?.id||'');
  };
- const closeEditor=()=>{setEditing(false);setSelected('');setImage(null);setVideo(null);setError('');setNotice('');};
+ const closeEditor=()=>{if(saving||busy)return;setEditing(false);setSelected('');setPhotoFiles([]);setVideo(null);setError('');setNotice('');};
  const saveDefaults=async()=>{
   setBusy(true);setError('');setNotice('');
   try{
@@ -139,38 +136,29 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
   }catch(e){setError(e.message);return null;}finally{setBusy(false);}
  };
  const save=async(e)=>{
-  e.preventDefault();
-  if(privateDetails.exact_address.trim().length<8){
-    setError('Enter the full private street address before creating this property. It will not appear publicly.');return;
-  }
-  const result=await mutate(selected?'host_update':'host_create',{...form,source_brand:brand,...(selected?{id:selected}:{})},
-    selected?'Listing saved as draft. Resubmit for approval.':'Private draft created. Add approved media and submit for review.');
-  if(result){
-    const chosen=result.item?.id||selected;
-    let postSaveWarning='';
-    try{
-      await hostingAction('host_private_details',{id:chosen,...privateDetails});
-      // Optional queued media makes the first-time creation flow work like a
-      // property wizard, without sharing unreviewed files with visitors.
-      if(image)await uploadHostingPhoto(chosen,image,caption);
-      if(video)await uploadHostingVideo(chosen,video,videoCaption);
-    }catch(e){postSaveWarning='The private draft exists, but address or media upload needs attention: '+e.message;}
-    const item=(await hostingAction('my_listings')).items.find(v=>v.id===chosen);
-    await selectListing(item||{...form,id:chosen,status:'draft'});
-    await load();
-    if(postSaveWarning)setError(postSaveWarning);
-    else setNotice('Property draft saved. Review its media and submit it for independent approval when ready.');
-  }
- };
- const upload=async(e)=>{
-  e.preventDefault();
-  if(!selected||!image)return;
-  setBusy(true);setError('');setNotice('');
+  e.preventDefault();if(saving)return;
+  if(privateDetails.exact_address.trim().length<8){setError('Enter the full private street address. Public cards show city and region only.');return;}
+  setSaving(true);setError('');setNotice('');setUploadProgress('');
   try{
-    const r=await uploadHostingPhoto(selected,image,caption);
-    setImage(null);setCaption('');setNotice(r.note||'Private upload received.');
-    await load();
-  }catch(e){setError(e.message);}finally{setBusy(false);}
+   const result=await hostingAction(selected?'host_update':'host_create',{...form,source_brand:brand,...(selected?{id:selected}:{})});
+   const chosen=result.item?.id||selected;
+   // Keep the saved draft selected even if a later private-media operation fails.
+   setSelected(chosen);
+   const failures=[];const retryPhotos=[];
+   try{await hostingAction('host_private_details',{id:chosen,...privateDetails});}
+   catch(error){failures.push('Private address: '+error.message);}
+   for(let index=0;index<photoFiles.length;index++){
+    const file=photoFiles[index];setUploadProgress(`Saving photo ${index+1} of ${photoFiles.length}`);
+    try{await uploadHostingPhoto(chosen,file,file.name.replace(/\.[^.]+$/,''));}
+    catch(error){retryPhotos.push(file);failures.push(file.name+': '+error.message);}
+   }
+   if(video){try{await uploadHostingVideo(chosen,video,videoCaption);setVideo(null);setVideoCaption('');}
+    catch(error){failures.push('Video: '+error.message);}}
+   await load();await extra(chosen);setPhotoFiles(retryPhotos);
+   setUploadProgress('');
+   if(failures.length)setError('Your draft was saved. Please retry: '+failures.join(' '));
+   else{setNotice('Property saved privately. Review your photos, complete property authorization, then submit for approval.');setEditorTab('media');}
+  }catch(error){setError(error.message);}finally{setSaving(false);}
  };
  const uploadVideo=async(e)=>{
   e.preventDefault();
@@ -321,31 +309,13 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
       {!reviewQueue.length&&<p className={muted}>No pending guest reviews.</p>}
     </div>
   </div>:<>
-    <div className="grid gap-5 lg:grid-cols-[300px_1fr]">
-      <aside className={panel+' h-fit space-y-3 p-4'}>
-        <h3 className="font-semibold flex items-center gap-2"><Building2 size={18}/>Your listings ({listings.length})</h3>
-        <button type="button" className={button+' flex w-full items-center justify-center gap-2'} onClick={()=>selectListing(null)}><Plus size={17}/>New Space</button>
-        <button type="button" className={secondary+' flex w-full items-center justify-center gap-2'} onClick={()=>{
-          setShowDefaults(true);setEditing(false);setSelected('');setError('');setNotice('');
-        }}><Settings2 size={17}/>Set My Default Rules</button>
-        {listings.map(item=><button type="button" key={item.id} onClick={()=>selectListing(item)}
-          className={'oh-host-listing-tile block w-full overflow-hidden rounded-2xl border text-left '+(selected===item.id&&editing?'border-[#7BE4F7] ring-1 ring-[#6BDFFA]/50':'border-[#31445C]')}>
-          {item.photos?.[0]?.url?<img alt={item.title} className="h-32 w-full object-cover" src={item.photos[0].url} loading="lazy"/>:
-           <div className="flex h-32 items-center justify-center bg-[#182940]"><ImageIcon size={30} className="text-[#8BAAC7]"/></div>}
-          <div className="p-3"><p className="truncate text-sm font-bold">{item.title}</p>
-            <p className="mt-1 truncate text-xs text-[#A9C3DE]">{[item.city,item.state,item.country].filter(Boolean).join(', ')}</p>
-            <span className="mt-2 inline-flex rounded-full bg-[#274064] px-2 py-1 text-[11px] capitalize text-[#B6D5F2]">{(item.status||'draft').replaceAll('_',' ')}</span>
-            <span className="ml-2 text-xs text-[#80DDEE]">{usd(item.hourly_rate)}/hr</span>
-          </div>
-        </button>)}
-      </aside>
-      <div className="space-y-5">
-        {showDefaults&&<section ref={defaultsRef} className={panel+' space-y-4 scroll-mt-24'} aria-label="Reusable host listing defaults">
-          <div className="flex items-start justify-between gap-4">
-            <div><h3 className="text-xl font-bold">Default Rules & Pricing</h3>
-              <p className={muted}>These prefill future listings. Each property can override any rule independently. Addresses and titles are always property-specific.</p></div>
-            <button type="button" className={secondary} onClick={()=>setShowDefaults(false)} aria-label="Close defaults"><X size={17}/></button>
-          </div>
+    <HostPortfolio listings={listings} busy={busy||saving} onSelect={selectListing} onNew={()=>selectListing(null)}
+      onDefaults={()=>{setDefaultForm(defaults);setShowDefaults(true);setEditing(false);setSelected('');setError('');setNotice('');}}
+      onMap={()=>document.getElementById('host-market-map')?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'})}/>
+    {showDefaults&&<HostDialog title="Default Rules & Pricing" subtitle="Save once. Personalize for every property." busy={busy} onClose={()=>setShowDefaults(false)}>
+      {error&&<p role="alert" className="oh-inline-error">{error}</p>}
+        <section className={panel+' space-y-4 scroll-mt-24'} aria-label="Reusable host listing defaults">
+          <p className="oh-map-privacy-note">These defaults prefill future listings. Each property can override any rule independently. Addresses and titles are always property-specific.</p>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-sm">Default property type<select className={input+' mt-1'} value={defaultForm.category} onChange={e=>setDefaultForm(v=>({...v,category:e.target.value}))}>{rentalCategories.map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
             <label className="text-sm">Default hourly rate ($)<input type="number" min="1" max="100000" className={input+' mt-1'} value={defaultForm.hourly_rate} onChange={e=>setDefaultForm(v=>({...v,hourly_rate:Number(e.target.value)}))}/></label>
@@ -367,21 +337,19 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           <div><h4 className="mb-2 font-semibold">Default allowed productions</h4><CheckboxGrid values={defaultForm.permitted_uses||[]} options={rentalUses}
             update={values=>setDefaultForm(v=>({...v,permitted_uses:values}))}/></div>
           <button type="button" disabled={busy} className={button+' inline-flex items-center gap-2'} onClick={saveDefaults}><Save size={17}/>Save My Defaults</button>
-        </section>}
-        {!editing&&!showDefaults&&<section className={panel+' space-y-4 text-center'}>
-          <Building2 size={42} className="mx-auto text-[#79DFFE]"/>
-          <h3 className="text-2xl font-bold">Your properties, all in one place</h3>
-          <p className="mx-auto max-w-xl text-sm text-[#ADC6E0]">Select a property thumbnail to manage its listing, images, videos, availability and booking rules—or create a new space using your saved defaults.</p>
-          <div className="flex justify-center gap-3 flex-wrap">
-            <button type="button" className={button} onClick={()=>selectListing(null)}>Create a New Space</button>
-            <button type="button" className={secondary} onClick={()=>setShowDefaults(true)}>Set Default Rules</button>
-          </div>
-        </section>}
-        {editing&&<form ref={editorRef} onSubmit={save} className={panel+' space-y-4 scroll-mt-24'}>
-          <div className="flex justify-between gap-2 items-center"><h3 className="text-lg font-semibold">{selected?'Edit Property':'Add a New Property'}</h3>
-            <button type="button" className={secondary+' inline-flex items-center gap-2'} onClick={closeEditor}><X size={16}/>Close</button>
-          </div>
-          <p className="text-xs text-[#A6C4E0]">{selected?'Changes to published listings may require a new review.':'Start with the saved host defaults, then customize this one property.'}</p>
+        </section>
+    </HostDialog>}
+    {editing&&<HostDialog title={selected?(form.title||'Manage your property'):'Add a New Space'}
+      subtitle={selected?'Manage your listing, photos, availability and approvals.':'A great listing starts with the details that make your property unique.'}
+      busy={busy||saving} onClose={closeEditor} className="oh-property-editor-dialog">
+      {error&&<p role="alert" className="oh-inline-error">{error}</p>}
+      {notice&&<p role="status" className="oh-inline-success">{notice}</p>}
+      {selected&&<nav className="oh-editor-tabs" aria-label="Property settings">
+        {[["details","Listing details"],["media","Photos & videos"],["availability","Availability"],["operations","Pricing & operations"],["approval","Approval"]].map(([id,label])=>
+          <button type="button" key={id} aria-current={editorTab===id?'page':undefined} onClick={()=>setEditorTab(id)} disabled={saving}>{label}</button>)}
+      </nav>}
+        {editorTab==='details'&&<form onSubmit={save} className={panel+' space-y-4 scroll-mt-24'}>
+          <div className="oh-form-section-heading"><span>01</span><div><h3>Tell us about your space</h3><p>Give your listing a name and add its location. Your street address stays private.</p></div></div>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-sm">Listing title<input required minLength={5} maxLength={140} className={input+' mt-1'} value={form.title} onChange={e=>field('title',e.target.value)}/></label>
             <label className="text-sm">Location type<select className={input+' mt-1'} value={form.category} onChange={e=>field('category',e.target.value)}>{rentalCategories.map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label>
@@ -394,6 +362,9 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
                 placeholder="Street number, street name, unit number"/>
               <span className="mt-1 block text-xs text-[#A2BCD9]">Only the host and authorized booking guests can access this address. Public cards show city and region only.</span>
             </label>
+          </div>
+          <div className="oh-form-section-heading"><span>02</span><div><h3>Your pricing & house rules</h3><p>Pre-filled from your defaults. Change anything for this particular property.</p></div></div>
+          <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-sm">Hourly rate (USD)<input className={input+' mt-1'} type="number" min={1} max={100000} value={form.hourly_rate} onChange={e=>field('hourly_rate',Number(e.target.value))}/></label>
             <label className="text-sm">Cleaning fee (USD)<input className={input+' mt-1'} type="number" min={0} max={100000} step="0.01" value={(form.cleaning_fee_cents||0)/100} onChange={e=>field('cleaning_fee_cents',Math.round(Number(e.target.value)*100))}/></label>
             <label className="text-sm">Minimum booking notice (hours)<input className={input+' mt-1'} type="number" min={0} max={720} value={form.min_notice_hours??24} onChange={e=>field('min_notice_hours',Number(e.target.value))}/></label>
@@ -417,18 +388,19 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           <label className="block text-sm">Host rules and restrictions<textarea className={input+' mt-1'} rows={3} maxLength={3000} value={form.rules} onChange={e=>field('rules',e.target.value)}/></label>
           <div><h4 className="mb-2 text-sm font-semibold">Production amenities</h4><CheckboxGrid values={form.amenities} options={rentalAmenities} update={v=>field('amenities',v)}/></div>
           <div><h4 className="mb-2 text-sm font-semibold">Permitted activities — set deliberately</h4><p className="mb-3 text-xs text-[#AABED8]">Select exactly what you are comfortable allowing. Nude photography and explicit adult videos are separate opt-ins; guests should never assume either is permitted. You must have written owner authority for each approved use.</p><CheckboxGrid values={form.permitted_uses} options={rentalUses} update={v=>field('permitted_uses',v)}/></div>
-          {!selected&&<div className="oh-media-queue grid gap-3 sm:grid-cols-2">
-            <label className="text-sm">Property cover photo (optional at draft stage)
-              <input type="file" accept="image/jpeg,image/png,image/webp" className="mt-2 block w-full text-xs" onChange={e=>setImage(e.target.files?.[0]||null)}/></label>
-            <label className="text-sm">Property walkthrough video (optional, MP4/WebM, up to 40MB)
-              <input type="file" accept="video/mp4,video/webm" className="mt-2 block w-full text-xs" onChange={e=>setVideo(e.target.files?.[0]||null)}/></label>
-          </div>}
-          <button disabled={busy||!paid||!form.permitted_uses.length} className={button}>{selected?'Save Property Changes':'Create Private Draft & Continue'}</button>
+          {!selected&&<section className="oh-create-media-section">
+            <div className="oh-form-section-heading"><span>03</span><div><h3>Let your photos do the talking</h3><p>Select your cover photo first. All uploads remain private until reviewed.</p></div></div>
+            <HostPhotoPicker files={photoFiles} onChange={setPhotoFiles} disabled={saving}/>
+            <label className="oh-video-upload-label">Optional property walkthrough video <span>MP4/WebM · up to 40 MB</span>
+              <input type="file" accept="video/mp4,video/webm" disabled={saving} onChange={event=>setVideo(event.target.files?.[0]||null)}/></label>
+          </section>}
+          {uploadProgress&&<p role="status" className="oh-upload-count">{uploadProgress}</p>}
+          <button disabled={busy||saving||!paid||!form.permitted_uses.length} className={button}>{saving?'Saving your space…':selected?'Save Property Changes':'Save & Add My Space'}</button>
           <p className="text-xs text-[#AABED8]">Your exact address is saved privately and never included in public property cards or the area map.</p>
         </form>}
 
-        {selected&&<HostingHostVerification propertyId={selected} requiredInsurance={Boolean(own?.required_insurance)}/>}
-        {selected&&<section className="space-y-4">
+        {selected&&editorTab==='approval'&&<HostingHostVerification propertyId={selected} requiredInsurance={Boolean(own?.required_insurance)}/>}
+        {selected&&editorTab==='operations'&&<section className="space-y-4">
           <div className="flex flex-wrap gap-2">
             {[
               ['pricing','Advanced pricing'],['equipment','Equipment and add-ons'],
@@ -442,7 +414,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           {managementTab==='workforce'&&<HostingWorkforceManager propertyId={selected}/>}
           {managementTab==='suitability'&&<HostingSuitabilityManager propertyId={selected}/>}
         </section>}
-        {selected&&<form onSubmit={saveAddress} className={panel+' space-y-3'}>
+        {selected&&editorTab==='details'&&<form onSubmit={saveAddress} className={panel+' space-y-3'}>
           <h3 className="font-semibold flex items-center gap-2"><ShieldCheck size={18}/>Private Entry Instructions</h3>
           <p className={muted}>Never displayed in public search. Entry instructions require an accepted booking, a signed rental agreement, confirmed payment and an authorized attendee.</p>
 
@@ -450,11 +422,8 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           <label className="text-sm block">Private host notes<textarea rows={2} maxLength={1500} className={input+' mt-1'} value={privateDetails.internal_notes||''} onChange={e=>setPrivateDetails(v=>({...v,internal_notes:e.target.value}))}/></label>
           <button className={button} disabled={busy}>Save protected address</button>
         </form>}
-        {selected&&<div className={panel+' space-y-4'}>
-          <h3 className="flex items-center gap-2 font-semibold"><UploadCloud size={18}/>Property photo gallery</h3>
-          <p className={muted}>Upload up to 20 JPEG/PNG/WebP images. Each image remains private until an administrator approves it.</p>
-          <div className="grid grid-cols-3 gap-2">{(own?.photos||[]).map(photo=><div key={photo.id} className="relative"><img alt={photo.caption||'Private listing photo'} src={photo.url} className="h-28 w-full rounded-lg object-cover"/><span className="absolute bottom-1 left-1 rounded bg-[#101926]/90 px-1 py-0.5 text-[10px]">{photo.status}</span><button className="absolute right-1 top-1 rounded-full bg-red-900 p-1" onClick={()=>mutate('host_photo_delete',{id:photo.id},'Photo removed.')}><Trash2 size={13}/></button></div>)}</div>
-          <form onSubmit={upload} className="flex flex-wrap items-end gap-3"><label className="text-sm">Photo<input type="file" accept="image/jpeg,image/png,image/webp" onChange={e=>setImage(e.target.files?.[0]||null)} className="mt-1 block text-xs"/></label><label className="flex-1 text-sm">Caption<input className={input+' mt-1'} value={caption} onChange={e=>setCaption(e.target.value)} maxLength={250}/></label><button disabled={busy||!image} className={button}>Upload private image</button></form>
+        {selected&&editorTab==='media'&&<div className={panel+' space-y-4'}>
+          <HostPhotoManager propertyId={selected} onChanged={load}/>
           <div className="border-t border-[#354662] pt-5 space-y-3">
             <h3 className="flex items-center gap-2 font-semibold"><Film size={18}/>Property Walkthrough Videos</h3>
             <p className={muted}>Upload up to five short MP4/WebM videos (40MB each). Unreviewed videos are visible only to the owner and authorized moderators; approved videos appear on the property detail page.</p>
@@ -471,10 +440,10 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
               <button disabled={busy||!video} className={button}>Upload Video</button>
             </form>
           </div>
-          <button type="button" className={button} disabled={busy||!own?.photos?.length} onClick={()=>mutate('host_submit',{id:selected},'Listing submitted for human approval.')}>Submit listing for review</button>
+
         </div>}
 
-        {selected&&<div className={panel+' space-y-3'}>
+        {selected&&editorTab==='availability'&&<div className={panel+' space-y-3'}>
           <h3 className="font-semibold flex items-center gap-2"><CalendarDays size={18}/>Blackout dates</h3>
           <form onSubmit={block} className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]"><label className="text-sm">From<input className={input+' mt-1'} type="datetime-local" required value={blockStart} onChange={e=>setBlockStart(e.target.value)}/></label><label className="text-sm">To<input className={input+' mt-1'} type="datetime-local" required value={blockEnd} onChange={e=>setBlockEnd(e.target.value)}/></label><button className={button+' self-end'} disabled={busy}>Block dates</button></form>
           <div className="rounded-lg border border-[#34465E] bg-[#0B1422] p-3 space-y-3">
@@ -486,7 +455,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           {blocks.map(block=><div className="flex justify-between gap-3 border-t border-[#34465E] pt-2 text-xs" key={block.id}><span>{dateTime(block.starts_at)} – {dateTime(block.ends_at)} · {block.source||"manual"}</span><button onClick={()=>mutate('host_remove_block',{id:block.id},'Block removed.')} className="text-red-300">Remove</button></div>)}
         </div>}
 
-        {selected&&<div className={panel+' space-y-3'}>
+        {selected&&editorTab==='availability'&&<div className={panel+' space-y-3'}>
           <h3 className="font-semibold flex items-center gap-2"><ClipboardCheck size={18}/>Location turnover checklist</h3>
           <div className="flex flex-wrap gap-2"><label className="text-sm flex-1">Due date<input type="datetime-local" className={input+' mt-1'} value={turnoverDue} onChange={e=>setTurnoverDue(e.target.value)}/></label><button className={button+' self-end'} disabled={busy} onClick={newTurnover}><Plus size={15} className="inline mr-1"/>New turnover</button></div>
           {turnovers.map(turn=><div className="rounded-xl border border-[#34465E] bg-[#0C1726] p-3 space-y-2" key={turn.id}><p className="text-sm font-semibold capitalize">Turnover · {turn.status.replaceAll('_',' ')} {turn.due_at?'· '+dateTime(turn.due_at):''}</p>
@@ -495,8 +464,12 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
             <div className="grid grid-cols-3 gap-2">{(inspectionPhotos[turn.id]||[]).map(photo=><div key={photo.id}><img src={photo.url} alt={photo.phase+' room inspection'} className="h-24 w-full rounded-lg object-cover"/><p className="text-xs">{photo.phase}</p></div>)}</div>
           </div>)}
         </div>}
-      </div>
-    </div>
+        {selected&&editorTab==='approval'&&<section className={panel+' space-y-3'}>
+          <h3 className="font-semibold">Ready for the marketplace?</h3>
+          <p className={muted}>Add a photo and your property authorization evidence. An independent administrator reviews the listing before creators can see it.</p>
+          <button type="button" className={button} disabled={busy||!own?.photos?.length} onClick={()=>mutate('host_submit',{id:selected},'Listing submitted for human approval.')}>Submit listing for review</button>
+        </section>}
+    </HostDialog>}
     <div className={panel+' space-y-3'}>
       <h3 className="flex items-center gap-2 font-semibold"><Settings2 size={18}/>Booking requests from guests</h3>
       {!reservations.length&&<p className={muted}>No pending or past reservation requests.</p>}
@@ -510,6 +483,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
         {b.status==='accepted'&&new Date(b.ends_at)<new Date()&&<button className={button} onClick={()=>completeBooking(b.id)} disabled={busy}>Mark completed</button>}{b.status==='requested'&&<div className="flex gap-2"><button className={button} disabled={busy} onClick={()=>mutate('host_booking_respond',{id:b.id,status:'accepted'},'Request accepted; no payment charged.')}>Accept</button><button className={secondary} disabled={busy} onClick={()=>mutate('host_booking_respond',{id:b.id,status:'declined'},'Request declined.')}>Decline</button></div>}
       </div>)}
     </div>
+    <HostMarketExplorer onEdit={selectListing} ownedListings={listings}/>
   </>}
   {reviewMode&&isAdmin&&<HostingAdminOperations/>}
  </section>;

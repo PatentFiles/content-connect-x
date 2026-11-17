@@ -1,3 +1,4 @@
+import {optionalProviderSetting} from './providerConfig.mjs';
 /**
  * Hosting pricing and inventory API. Server calculates all prices and atomically
  * reserves venue and finite rental equipment. Clients cannot supply totals.
@@ -101,8 +102,8 @@ Deno.serve(async req=>{
    area_id:a.id,city:a.city,straight_line_km:haversine(origin,a),
    driving_minutes:null as number|null,route_verified:false
   }));
-  const base=Deno.env.get('HOSTING_ROUTING_OSRM_URL');
-  const approved=Deno.env.get('HOSTING_ROUTING_APPROVED')==='true';
+  const base=optionalProviderSetting('HOSTING_ROUTING_OSRM_URL');
+  const approved=optionalProviderSetting('HOSTING_ROUTING_APPROVED')==='true';
   if(base&&approved){
    let parsed:URL;try{parsed=new URL(base);}catch{return deny('Routing URL misconfigured',503);}
    if(parsed.protocol!=='https:'||!['router.project-osrm.org','routing.openstreetmap.de'].includes(parsed.hostname))

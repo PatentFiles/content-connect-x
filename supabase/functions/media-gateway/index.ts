@@ -1,3 +1,4 @@
+import {optionalProviderSetting} from './providerConfig.mjs';
 /**
  * OpenModerate-compatible private media workflow.
  *
@@ -232,7 +233,7 @@ Deno.serve(async req=>{
     if(action==='admin_scan'){
       if(!admin)return reply({error:'Administrator required'},403);
       if(!uuid(body.id))return reply({error:'Invalid asset'},400);
-      const endpoint=Deno.env.get('OPENMODERATE_SERVICE_URL'),key=Deno.env.get('OPENMODERATE_API_KEY');
+      const endpoint=optionalProviderSetting('OPENMODERATE_SERVICE_URL'),key=Deno.env.get('OPENMODERATE_API_KEY');
       if(!endpoint||!key)return reply({error:'Self-hosted OpenModerate service is not configured'},503);
       const target=new URL(endpoint);
       if(target.protocol!=='https:'||!target.pathname.endsWith('/v1/moderate'))
@@ -268,7 +269,7 @@ Deno.serve(async req=>{
         .select('id,status,uploader_rights_attested').eq('id',body.id).maybeSingle();
       if(error||asset?.status!=='pending')return reply({error:'Media already reviewed'},409);
       if(!asset.uploader_rights_attested)return reply({error:'Uploader rights attestation required'},403);
-      if(body.status==='approved' && Deno.env.get('ADULT_MEDIA_PUBLICATION_READY')!=='true')
+      if(body.status==='approved' && optionalProviderSetting('ADULT_MEDIA_PUBLICATION_READY')!=='true')
         return reply({error:'Publication is paused until releases, retention and content-review policies are approved'},503);
       if(body.manual_review_confirmed!==true)return reply({error:'Human content and consent review is required'},400);
       const {data,error:saveError}=await db.from('member_media_assets').update({

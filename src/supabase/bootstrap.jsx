@@ -9,6 +9,7 @@ import SupabaseApp from './SupabaseApp';
 import OnlyHostApp from './OnlyHostApp';
 import './brand-theme.css';
 import './onlyhost-theme.css';
+import './host-workspace.css';
 import './public-landing.css';
 import {initializeOptionalIntegrations} from './integrations';
 import {initializeFormKeyboardHints} from './formKeyboard.mjs';

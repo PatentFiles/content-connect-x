@@ -1,17 +1,18 @@
+import {optionalProviderSetting} from './providerConfig.mjs';
 /** CCBill hosted FlexForms, only after specific adult-industry merchant approval. */
 import {createHash} from 'node:crypto';
 export const flexConfigured=()=>Boolean(
  // Separate final production switch; merchant onboarding alone must never enable live charges.
- Deno.env.get('HOSTING_FINANCIAL_RELEASE_APPROVED')==='true'&&
- Deno.env.get('HOSTING_PROVIDER_CALLBACK_RECONCILED')==='true'&&
- Deno.env.get('CCBILL_HOSTING_APPROVED')==='true'&&
- Deno.env.get('CCBILL_DYNAMIC_PRICING_APPROVED')==='true'&&
- Deno.env.get('CCBILL_FLEXFORM_LIVE_APPROVED')==='true'&&
+ optionalProviderSetting('HOSTING_FINANCIAL_RELEASE_APPROVED')==='true'&&
+ optionalProviderSetting('HOSTING_PROVIDER_CALLBACK_RECONCILED')==='true'&&
+ optionalProviderSetting('CCBILL_HOSTING_APPROVED')==='true'&&
+ optionalProviderSetting('CCBILL_DYNAMIC_PRICING_APPROVED')==='true'&&
+ optionalProviderSetting('CCBILL_FLEXFORM_LIVE_APPROVED')==='true'&&
  Deno.env.get('CCBILL_CLIENT_ACCNUM')&&
  Deno.env.get('CCBILL_CLIENT_SUBACC')&&
  Deno.env.get('CCBILL_FLEX_ID')&&
  Deno.env.get('CCBILL_SALT')&&
- Deno.env.get('CCBILL_BOOKING_PERIOD_DAYS')
+ optionalProviderSetting('CCBILL_BOOKING_PERIOD_DAYS')
 );
 export const md5Hex=(value:string)=>createHash('md5').update(value,'utf8').digest('hex');
 export const sha256Hex=(value:string)=>createHash('sha256').update(value,'utf8').digest('hex');
@@ -26,7 +27,7 @@ export function buildFlexformUrl(bookingId:string,cents:number){
  const account=Deno.env.get('CCBILL_CLIENT_ACCNUM')||'';
  const sub=Deno.env.get('CCBILL_CLIENT_SUBACC')||'';
  const flex=Deno.env.get('CCBILL_FLEX_ID')||'';
- const period=Number(Deno.env.get('CCBILL_BOOKING_PERIOD_DAYS'));
+ const period=Number(optionalProviderSetting('CCBILL_BOOKING_PERIOD_DAYS'));
  if(!/^\d{6}$/.test(account)||!/^\d{4}$/.test(sub)||!Number.isInteger(period)||period<2||period>365||
    !/^[0-9a-f-]{36}$/i.test(flex))throw Error('Unapproved CCBill merchant form settings');
  const amount=(cents/100).toFixed(2);

@@ -1,3 +1,4 @@
+import {optionalProviderSetting} from './providerConfig.mjs';
 /** DocuSign service-account JWT OAuth, private-key material never reaches the client. */
 const base64url=(bytes:Uint8Array)=>btoa(String.fromCharCode(...bytes)).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
 const encoder=new TextEncoder();
@@ -5,11 +6,11 @@ const bytes=(text:string)=>encoder.encode(text);
 export function docuSignConfigured(){
  return ['DOCUSIGN_ACCOUNT_ID','DOCUSIGN_INTEGRATION_KEY','DOCUSIGN_USER_ID','DOCUSIGN_PRIVATE_KEY',
    'DOCUSIGN_LOCATION_TEMPLATE_ID'].every(k=>Boolean(Deno.env.get(k))) &&
-   Deno.env.get('DOCUSIGN_ADULT_BUSINESS_APPROVED')==='true';
+   optionalProviderSetting('DOCUSIGN_ADULT_BUSINESS_APPROVED')==='true';
 }
 export async function docuSignToken(){
  if(!docuSignConfigured())throw Error('Docusign is not approved or configured');
- const oauth=Deno.env.get('DOCUSIGN_OAUTH_HOST')||'account-d.docusign.com';
+ const oauth=optionalProviderSetting('DOCUSIGN_OAUTH_HOST')||'account-d.docusign.com';
  if(!['account-d.docusign.com','account.docusign.com'].includes(oauth))throw Error('Invalid OAuth host');
  const raw=(Deno.env.get('DOCUSIGN_PRIVATE_KEY')||'').replace(/\\n/g,'\n')
    .replace(/-----BEGIN PRIVATE KEY-----/g,'').replace(/-----END PRIVATE KEY-----/g,'').replace(/\s+/g,'');
@@ -37,7 +38,7 @@ export async function docuSignToken(){
  return json.access_token as string;
 }
 export function docuSignBase(){
- const url=Deno.env.get('DOCUSIGN_API_BASE')||'https://demo.docusign.net/restapi/v2.1';
+ const url=optionalProviderSetting('DOCUSIGN_API_BASE')||'https://demo.docusign.net/restapi/v2.1';
  const parsed=new URL(url);
  if(parsed.protocol!=='https:'||!parsed.hostname.endsWith('.docusign.net')||!parsed.pathname.startsWith('/restapi/v2.1'))
    throw Error('DocuSign API base must be an approved HTTPS docusign.net host');

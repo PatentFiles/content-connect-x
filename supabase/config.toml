@@ -78,3 +78,6 @@ verify_jwt = false
 
 [functions.submit-age-verification]
 verify_jwt = true
+
+[functions.hosting-discovery]
+verify_jwt = true

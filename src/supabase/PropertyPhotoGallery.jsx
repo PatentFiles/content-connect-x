@@ -63,7 +63,8 @@ export function HostPhotoManager({propertyId,onChanged}){
    try{await uploadHostingPhoto(propertyId,file,file.name.replace(/\.[^.]+$/,''));completed++;}
    catch(e){failed.push({file,message:e.message});}
   }
-  setFiles(failed.map(v=>v.file));await load();await onChanged?.();
+  setFiles(failed.map(v=>v.file));await load();
+  try{await onChanged?.();}catch(e){setError('Photos were uploaded, but refreshing the portfolio failed: '+e.message);}
   setProgress(`${completed} photo${completed===1?'':'s'} saved privately for review.`);
   if(failed.length)setError(failed.map(v=>`${v.file.name}: ${v.message}`).join(' '));
   setUploading(false);
@@ -110,7 +111,7 @@ export default function PropertyPhotoGallery({propertyId,title,photos=[],total=0
  const show=index=>{setSelected(index);setOpen(true);};
  const active=gallery[Math.min(selected,Math.max(0,gallery.length-1))];
  return <>
-  <div className={'oh-photo-mosaic '+(photos.length<5?'oh-photo-mosaic-small':'')}>
+  <div data-photo-count={photos.length} className={'oh-photo-mosaic '+(photos.length<5?'oh-photo-mosaic-small':'')}>
    {photos.slice(0,5).map((photo,index)=><button type="button" key={photo.id||index} className={'oh-mosaic-photo oh-mosaic-photo-'+index} onClick={()=>show(index)} aria-label={'Open photo '+(index+1)+' of '+title}>
     <img src={photo.url} alt={photo.caption||title} loading={index?'lazy':'eager'}/>
    </button>)}

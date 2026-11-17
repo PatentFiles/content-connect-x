@@ -24,7 +24,7 @@ export default function HostDialog({title,subtitle='',children,onClose,busy=fals
   };
  },[]);
  const dismiss=()=>{if(!busy)onClose();};
- return createPortal(<dialog ref={ref} className={'oh-dialog '+className} aria-labelledby={titleId}
+ return createPortal(<dialog ref={ref} className={'oh-dialog host-connect-theme '+className} aria-labelledby={titleId}
    onCancel={event=>{event.preventDefault();dismiss();}}
    onClick={event=>{if(event.target===event.currentTarget)dismiss();}}>
    <div className="oh-dialog-shell">
