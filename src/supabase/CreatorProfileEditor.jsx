@@ -5,7 +5,7 @@
  */
 import React,{useEffect,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
-import {Image,Activity,User,Edit2,ShieldCheck,Upload,Heart,Users,Clapperboard,Stethoscope,Lock} from 'lucide-react';
+import {Image,Activity,User,Edit2,ShieldCheck,Upload,Heart,Users,Clapperboard,Stethoscope,Lock,ChevronDown} from 'lucide-react';
 import MediaGallery from './MediaGallery';
 import ProfileAnalytics from './ProfileAnalytics';
 import OriginalCreatorPreferences,{initialCreatorPreferences} from './OriginalCreatorPreferences';
@@ -37,6 +37,7 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
  const [creatorPrefs,setCreatorPrefs]=useState(initialCreatorPreferences);
  const [editing]=useState(true);
  const [activeTab,setActiveTab]=useState('profile');
+ const [openSection,setOpenSection]=useState(null);
  const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false);
  const [error,setError]=useState(''),[notice,setNotice]=useState('');
  const [uploading,setUploading]=useState('');
@@ -107,7 +108,6 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
    const {error:detailsError}=await supabase.from('member_profile_preferences').upsert(details,{onConflict:'user_id'});
    if(detailsError)throw detailsError;
    if(form.role_type==='creator'){
-    // Restore the full original CreatorDetails schema as account-private rows.
     const creatorDetails={user_id:user.id,
      ...Object.fromEntries(Object.keys(initialCreatorPreferences).map(key=>[key,creatorPrefs[key]??initialCreatorPreferences[key]])),
      updated_at:new Date().toISOString()};
@@ -121,7 +121,6 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
   }catch(e){setError(e.message);}finally{setSaving(false);}
  };
  return <div className="min-h-screen pb-20 md:pb-8" style={{background:'var(--cc-bg)',color:'var(--cc-text-primary)'}}>
-  {/* Original Base44 profile cover, avatar, role badge and editor header. */}
   <div className="relative">
    <label className="group relative block h-48 cursor-pointer overflow-hidden md:h-64" style={{background:'linear-gradient(135deg,#0B0F14,#263248)'}}>
     {assetPreview.cover&&<img src={assetPreview.cover} alt="Profile banner" className="h-full w-full object-cover"/>}
@@ -147,9 +146,9 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
        {approved&&<span className="inline-flex items-center gap-1 rounded-full border border-emerald-700 px-3 py-1 text-xs text-emerald-300">
         <ShieldCheck size={13}/>Verified</span>}
       </div>
-      <button type="button" onClick={()=>document.getElementById('profile-save')?.scrollIntoView({behavior:'smooth',block:'center'})}
+      <button type="button" onClick={()=>setOpenSection('basic')}
        className="mt-3 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white"
-       style={{background:'#4F8CFF'}}><Edit2 size={16}/>Save changes</button>
+       style={{background:'#4F8CFF'}}><Edit2 size={16}/>Edit profile</button>
      </div>
     </div>
    </div>
@@ -167,39 +166,7 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
    </div>
    {error&&<p role="alert" className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-red-200">{error}</p>}
    {notice&&<p role="status" className="mb-4 rounded-lg bg-emerald-950 p-3 text-emerald-200">{notice}</p>}
-   {activeTab==='profile'&&(false?
-    <div className="space-y-6">
-     <section className={panel}>
-      <h3 className="text-center text-lg font-semibold">Basic Information</h3>
-      <div className="grid gap-4 sm:grid-cols-2">
-       <div><p className="text-xs" style={{color:'var(--cc-text-muted)'}}>Display name</p>
-        <p className="mt-1 font-medium">{form.display_name||'Not set'}</p></div>
-       <div><p className="text-xs" style={{color:'var(--cc-text-muted)'}}>Role</p>
-        <p className="mt-1 capitalize">{form.role_type.replaceAll('_',' ')}</p></div>
-       <div><p className="text-xs" style={{color:'var(--cc-text-muted)'}}>Location</p>
-        <p className="mt-1">{[form.city,form.state,countryName(form.country)].filter(Boolean).join(', ')}</p></div>
-       <div><p className="text-xs" style={{color:'var(--cc-text-muted)'}}>Identity</p>
-        <p className="mt-1">{prefs.gender_identity||'Private or not specified'}</p></div>
-      </div>
-      <p className="whitespace-pre-wrap text-sm" style={{color:'var(--cc-text-secondary)'}}>{form.bio}</p>
-     </section>
-     {form.role_type==='creator'&&<div className="space-y-6">
-      {Object.keys(originalCreatorCatalog).map(key=><section key={key} className={panel}>
-       <h3 className="text-lg font-semibold">{creatorFieldLabels[key]}</h3>
-       <p className="mt-2 text-sm" style={{color:'var(--cc-text-secondary)'}}>
-        {creatorPrefs[key]?.length?creatorPrefs[key].map(friendlyChoice).join(' · '):'Not set'}</p>
-      </section>)}
-      <section className={panel}><h3 className="text-lg font-semibold">Collaboration Rate</h3>
-       <p className="text-sm" style={{color:'var(--cc-text-secondary)'}}>{creatorPrefs.rates_text||'Not specified'}</p>
-      </section>
-     </div>}
-     <section className={panel}>
-      <h3 className="text-lg font-semibold">Availability & Travel</h3>
-      <p className="text-sm" style={{color:'var(--cc-text-secondary)'}}>{prefs.available_to_travel?'Available for travel':'Travel not enabled'}</p>
-     </section>
-    </div>
-    :<form className="space-y-5" onSubmit={save}>
-  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+   {activeTab==='profile'&&<form className="space-y-4" onSubmit={save}>
    {[
      {id:'basic',title:'Basic information',description:'Name, role, location',Icon:User,color:'#4F8CFF',bg:'rgba(79,140,255,0.12)'},
      {id:'identity',title:'Personal identity',description:'Identity and privacy',Icon:Heart,color:'#FF8ADE',bg:'rgba(255,138,222,0.12)'},
@@ -207,96 +174,110 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
      {id:'production',title:'Production details',description:'Acts, positioning and rates',Icon:Clapperboard,color:'#F59E0B',bg:'rgba(245,158,11,0.12)'},
      {id:'health',title:'Health & testing',description:'Private clearance records',Icon:Stethoscope,color:'#EF4444',bg:'rgba(239,68,68,0.12)'},
      {id:'privacy',title:'Discoverability',description:'Visibility controls',Icon:Lock,color:'#14B8A6',bg:'rgba(20,184,166,0.12)'}
-   ].map(({id,title,description,Icon,color,bg})=><a key={id} href={'#profile-'+id} className="block rounded-2xl border p-4 transition hover:-translate-y-0.5" style={{borderColor:'var(--cc-border)',background:'var(--cc-surface)'}} onMouseEnter={e=>{e.currentTarget.style.borderColor=color;e.currentTarget.style.boxShadow='0 4px 20px '+bg;}} onMouseLeave={e=>{e.currentTarget.style.borderColor='var(--cc-border)';e.currentTarget.style.boxShadow='none';}}>
-    <span className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl" style={{backgroundColor:bg,color}}><Icon size={20}/></span>
-    <span className="block text-sm font-semibold" style={{color:'var(--cc-text-primary)'}}>{title}</span><span className="mt-1 block text-xs leading-5" style={{color:'var(--cc-text-secondary)'}}>{description}</span>
-   </a>)}
-  </div>
-  <div id="profile-basic"><h2 className="text-center text-lg font-semibold">Basic Information</h2>
-  <p className="mt-1 text-center text-sm" style={{color:'var(--cc-text-secondary)'}}>Edit your profile information and preferences.</p></div>
-  <section className={panel}><h3 className="text-lg font-semibold">Professional details</h3>
-   <label className="block text-sm">Display name<input className={input+' mt-2'} value={form.display_name} maxLength={100}
-    onChange={e=>update('display_name',e.target.value)} required/></label>
-   <label className="block text-sm">Creator / professional type
-    <select className={input+' mt-2'} value={form.role_type} onChange={e=>update('role_type',e.target.value)}>
-     {roleOptions.map(([key,name])=><option key={key} value={key}>{name}</option>)}</select></label>
-   <label className="block text-sm">About you<textarea className={input+' mt-2'} rows={5} maxLength={2000}
-    value={form.bio} onChange={e=>update('bio',e.target.value)}
-    placeholder="Introduce your work, experience and what you're looking to create."/></label>
-  </section>
-  <section className={panel}><h3 className="text-lg font-semibold">Location</h3>
-   <p className="text-xs text-[#AABBD4]">Only city, state or region, and country are shared in discovery. Never enter your exact address here.</p>
-   <div className="grid gap-3 sm:grid-cols-3">
-    <label className="block text-sm">Country
-     <select className={input+' mt-2'} value={form.country}
-      onChange={e=>setForm(old=>({...old,country:e.target.value,state:'',city:''}))}>
-      {countries.map(c=><option key={c.code} value={c.code}>{c.name}</option>)}</select></label>
-    <label className="block text-sm">State / province / region
-     {regionOptions[form.country]?<select className={input+' mt-2'} value={form.state}
-      onChange={e=>setForm(old=>({...old,state:e.target.value,city:''}))}>
-       <option value="">Select region</option>
-       {regionOptions[form.country].map(s=><option key={s} value={s}>{s}</option>)}
-      </select>:<input className={input+' mt-2'} value={form.state} onChange={e=>update('state',e.target.value)}
-       placeholder="State / region" maxLength={100}/>}</label>
-    <label className="block text-sm">City
-     {form.country==='US'&&originalUSCities[originalUSStateCodes[form.state]]?.length>0&&
-      <select className={input+' mt-2'} value={originalUSCities[originalUSStateCodes[form.state]].includes(form.city)?form.city:''}
-       onChange={e=>update('city',e.target.value)}>
-       <option value="">Select a city or enter another below</option>
-       {originalUSCities[originalUSStateCodes[form.state]].map(city=><option key={city} value={city}>{city}</option>)}
-      </select>}
-     <input className={input+' mt-2'} value={form.city}
-      onChange={e=>update('city',e.target.value)} maxLength={100} placeholder="City or other city"/>
-    </label>
+   ].filter(card=>!(card.id==='collaboration'&&form.role_type==='host')).map(({id,title,description,Icon,color,bg})=>{
+    const isOpen=openSection===id;
+    return <div key={id} className="overflow-hidden rounded-2xl border" style={{borderColor:isOpen?color:'var(--cc-border)',background:'var(--cc-surface)',transition:'border-color 0.2s'}}>
+     <button type="button" onClick={()=>setOpenSection(isOpen?null:id)} className="flex w-full items-center gap-3 p-4 text-left" aria-expanded={isOpen}>
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{backgroundColor:bg,color}}><Icon size={20}/></span>
+      <span className="min-w-0 flex-1"><span className="block text-sm font-semibold" style={{color:'var(--cc-text-primary)'}}>{title}</span><span className="mt-0.5 block text-xs leading-5" style={{color:'var(--cc-text-secondary)'}}>{description}</span></span>
+      <ChevronDown size={20} className="shrink-0 transition-transform duration-200" style={{color:'var(--cc-text-secondary)',transform:isOpen?'rotate(180deg)':'rotate(0deg)'}}/>
+     </button>
+     {isOpen&&<div className="space-y-5 border-t px-5 pb-5 pt-4" style={{borderColor:'var(--cc-border)'}}>
+      {id==='basic'&&<>
+        <section className={panel}><h3 className="text-lg font-semibold">Professional details</h3>
+         <label className="block text-sm">Display name<input className={input+' mt-2'} value={form.display_name} maxLength={100}
+          onChange={e=>update('display_name',e.target.value)} required/></label>
+         <label className="block text-sm">Creator / professional type
+          <select className={input+' mt-2'} value={form.role_type} onChange={e=>update('role_type',e.target.value)}>
+           {roleOptions.map(([key,name])=><option key={key} value={key}>{name}</option>)}</select></label>
+         <label className="block text-sm">About you<textarea className={input+' mt-2'} rows={5} maxLength={2000}
+          value={form.bio} onChange={e=>update('bio',e.target.value)}
+          placeholder="Introduce your work, experience and what you're looking to create."/></label>
+        </section>
+        <section className={panel}><h3 className="text-lg font-semibold">Location</h3>
+         <p className="text-xs text-[#AABBD4]">Only city, state or region, and country are shared in discovery. Never enter your exact address here.</p>
+         <div className="grid gap-3 sm:grid-cols-3">
+          <label className="block text-sm">Country
+           <select className={input+' mt-2'} value={form.country}
+            onChange={e=>setForm(old=>({...old,country:e.target.value,state:'',city:''}))}>
+            {countries.map(c=><option key={c.code} value={c.code}>{c.name}</option>)}</select></label>
+          <label className="block text-sm">State / province / region
+           {regionOptions[form.country]?<select className={input+' mt-2'} value={form.state}
+            onChange={e=>setForm(old=>({...old,state:e.target.value,city:''}))}>
+             <option value="">Select region</option>
+             {regionOptions[form.country].map(s=><option key={s} value={s}>{s}</option>)}
+            </select>:<input className={input+' mt-2'} value={form.state} onChange={e=>update('state',e.target.value)}
+            placeholder="State / region" maxLength={100}/>}</label>
+          <label className="block text-sm">City
+           {form.country==='US'&&originalUSCities[originalUSStateCodes[form.state]]?.length>0&&
+            <select className={input+' mt-2'} value={originalUSCities[originalUSStateCodes[form.state]].includes(form.city)?form.city:''}
+             onChange={e=>update('city',e.target.value)}>
+             <option value="">Select a city or enter another below</option>
+             {originalUSCities[originalUSStateCodes[form.state]].map(city=><option key={city} value={city}>{city}</option>)}
+            </select>}
+           <input className={input+' mt-2'} value={form.city}
+            onChange={e=>update('city',e.target.value)} maxLength={100} placeholder="City or other city"/>
+          </label>
+         </div>
+        </section>
+      </>}
+      {id==='identity'&&<section className={panel}><h3 className="text-lg font-semibold">Personal identity</h3>
+       <p className="text-sm text-[#AABBD4]">All fields are optional. Identity and orientation are private by default and never required to register.</p>
+       <div className="grid gap-3 sm:grid-cols-2">
+        <label className="block text-sm">Gender identity<select className={input+' mt-2'} value={prefs.gender_identity}
+          onChange={e=>preference('gender_identity',e.target.value)}>
+          {genderOptions.map(([key,name])=><option key={key} value={key}>{name}</option>)}</select></label>
+        <label className="block text-sm">Sexual orientation<select className={input+' mt-2'} value={prefs.sexual_orientation}
+          onChange={e=>preference('sexual_orientation',e.target.value)}>
+          {orientationOptions.map(([key,name])=><option key={key} value={key}>{name}</option>)}</select></label>
+        {prefs.gender_identity==='self_describe'&&<label className="block text-sm">Describe your gender<input className={input+' mt-2'}
+         maxLength={80} value={prefs.gender_self_description} onChange={e=>preference('gender_self_description',e.target.value)}/></label>}
+        {prefs.sexual_orientation==='self_describe'&&<label className="block text-sm">Describe your orientation<input className={input+' mt-2'}
+         maxLength={80} value={prefs.orientation_self_description} onChange={e=>preference('orientation_self_description',e.target.value)}/></label>}
+        <label className="block text-sm">Pronouns (optional)<input className={input+' mt-2'}
+         maxLength={80} value={prefs.pronouns} onChange={e=>preference('pronouns',e.target.value)}
+         placeholder="e.g. they/them"/></label>
+       </div>
+      </section>}
+      {id==='collaboration'&&form.role_type!=='host'&&<section className={panel}><h3 className="text-lg font-semibold">Collaboration preferences</h3>
+       <p className="text-sm text-[#AABBD4]">Selections indicate interest only. They are not consent to any activity or booking.</p>
+       <CheckList label="Preferred collaborators" options={genderOptions.filter(([v])=>v&&v!=='self_describe')}
+        selected={prefs.preferred_collaborators} change={v=>preference('preferred_collaborators',v)}/>
+       <CheckList label="Content categories" options={contentCategories}
+        selected={prefs.content_categories} change={v=>preference('content_categories',v)}/>
+       {form.role_type!=='creator'&&form.role_type!=='host'&&<CheckList label="Scene / creative formats" options={scenePairings}
+        selected={prefs.scene_pairings} change={v=>preference('scene_pairings',v)}/>}
+       <CheckList label="Professional specialties" options={specialties}
+        selected={prefs.specialties} change={v=>preference('specialties',v)}/>
+       <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={prefs.available_to_travel}
+        onChange={e=>preference('available_to_travel',e.target.checked)}/>Available to travel for collaborations</label>
+      </section>}
+      {id==='production'&&form.role_type==='creator'&&<OriginalCreatorPreferences value={creatorPrefs}
+        genderIdentity={prefs.gender_identity} onChange={setCreatorPrefs} onNavigate={onNavigate}/>}
+      {id==='production'&&form.role_type!=='creator'&&<section className={panel}><h3 className="text-lg font-semibold">Professional details</h3><p className="text-sm text-[#AABBD4]">Add the specialties and services that describe your {form.role_type.replaceAll('_',' ')} role.</p><CheckList label="Professional specialties" options={specialties} selected={prefs.specialties} change={v=>preference('specialties',v)}/></section>}
+      {id==='health'&&<section className={panel}><h3 className="text-lg font-semibold">Health & testing</h3>
+       <p className="text-sm" style={{color:'var(--cc-text-secondary)'}}>Sensitive work-clearance records are controlled by the verified Trust & Readiness workflow, not saved in public profile fields.</p>
+       <button type="button" className="mt-2 text-sm font-semibold" style={{color:'var(--cc-blue)'}}
+        onClick={()=>onNavigate?.('testing')}>Manage testing and clearance</button>
+      </section>}
+      {id==='privacy'&&<section className={panel}><h3 className="text-lg font-semibold">Discoverability & privacy</h3>
+       <p className="text-sm text-[#AABBD4]">Your name, professional role and general location appear only to eligible verified members. Sensitive matching details are never exposed unless you choose to share them.</p>
+       <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={prefs.show_gender_in_discovery}
+        onChange={e=>preference('show_gender_in_discovery',e.target.checked)}/>
+        Show my gender identity in verified creator searches</label>
+       <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={prefs.show_categories_in_discovery}
+        onChange={e=>preference('show_categories_in_discovery',e.target.checked)}/>
+        Show my content categories and specialties in verified creator searches</label>
+       <p className="text-xs text-[#93A4BE]">Your sexual orientation, self-descriptions and collaborator preferences are not published in discovery.</p>
+      </section>}
+     </div>}
+    </div>;
+   })}
+   <div className="flex justify-center pt-2">
+    <button id="profile-save" type="submit" disabled={saving||loading} className="ccx-primary rounded-xl px-8 py-3 font-semibold shadow-2xl disabled:opacity-50">
+     {saving?'Saving…':loading?'Loading profile…':'Save profile changes'}</button>
    </div>
-  </section>
-  <section id="profile-identity" className={panel}><h3 className="text-lg font-semibold">Personal identity</h3>
-   <p className="text-sm text-[#AABBD4]">All fields are optional. Identity and orientation are private by default and never required to register.</p>
-   <div className="grid gap-3 sm:grid-cols-2">
-    <label className="block text-sm">Gender identity<select className={input+' mt-2'} value={prefs.gender_identity}
-      onChange={e=>preference('gender_identity',e.target.value)}>
-      {genderOptions.map(([key,name])=><option key={key} value={key}>{name}</option>)}</select></label>
-    <label className="block text-sm">Sexual orientation<select className={input+' mt-2'} value={prefs.sexual_orientation}
-      onChange={e=>preference('sexual_orientation',e.target.value)}>
-      {orientationOptions.map(([key,name])=><option key={key} value={key}>{name}</option>)}</select></label>
-    {prefs.gender_identity==='self_describe'&&<label className="block text-sm">Describe your gender<input className={input+' mt-2'}
-     maxLength={80} value={prefs.gender_self_description} onChange={e=>preference('gender_self_description',e.target.value)}/></label>}
-    {prefs.sexual_orientation==='self_describe'&&<label className="block text-sm">Describe your orientation<input className={input+' mt-2'}
-     maxLength={80} value={prefs.orientation_self_description} onChange={e=>preference('orientation_self_description',e.target.value)}/></label>}
-    <label className="block text-sm">Pronouns (optional)<input className={input+' mt-2'}
-     maxLength={80} value={prefs.pronouns} onChange={e=>preference('pronouns',e.target.value)}
-     placeholder="e.g. they/them"/></label>
-   </div>
-  </section>
-  {form.role_type!=='host'&&<section id="profile-collaboration" className={panel}><h3 className="text-lg font-semibold">Collaboration preferences</h3>
-   <p className="text-sm text-[#AABBD4]">Selections indicate interest only. They are not consent to any activity or booking.</p>
-   <CheckList label="Preferred collaborators" options={genderOptions.filter(([v])=>v&&v!=='self_describe')}
-    selected={prefs.preferred_collaborators} change={v=>preference('preferred_collaborators',v)}/>
-   <CheckList label="Content categories" options={contentCategories}
-    selected={prefs.content_categories} change={v=>preference('content_categories',v)}/>
-   {form.role_type!=='creator'&&form.role_type!=='host'&&<CheckList label="Scene / creative formats" options={scenePairings}
-    selected={prefs.scene_pairings} change={v=>preference('scene_pairings',v)}/>}
-   <CheckList label="Professional specialties" options={specialties}
-    selected={prefs.specialties} change={v=>preference('specialties',v)}/>
-   <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={prefs.available_to_travel}
-    onChange={e=>preference('available_to_travel',e.target.checked)}/>Available to travel for collaborations</label>
-  </section>}
-  {form.role_type==='creator'&&<div id="profile-production"><OriginalCreatorPreferences value={creatorPrefs}
-    genderIdentity={prefs.gender_identity} onChange={setCreatorPrefs} onNavigate={onNavigate}/></div>}
-  {form.role_type!=='creator'&&<section id="profile-production" className={panel}><h3 className="text-lg font-semibold">Professional details</h3><p className="text-sm text-[#AABBD4]">Add the specialties and services that describe your {form.role_type.replaceAll('_',' ')} role.</p><CheckList label="Professional specialties" options={specialties} selected={prefs.specialties} change={v=>preference('specialties',v)}/></section>}
-  <section id="profile-privacy" className={panel}><h3 className="text-lg font-semibold">Discoverability & privacy</h3>
-   <p className="text-sm text-[#AABBD4]">Your name, professional role and general location appear only to eligible verified members. Sensitive matching details are never exposed unless you choose to share them.</p>
-   <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={prefs.show_gender_in_discovery}
-    onChange={e=>preference('show_gender_in_discovery',e.target.checked)}/>
-    Show my gender identity in verified creator searches</label>
-   <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={prefs.show_categories_in_discovery}
-    onChange={e=>preference('show_categories_in_discovery',e.target.checked)}/>
-    Show my content categories and specialties in verified creator searches</label>
-   <p className="text-xs text-[#93A4BE]">Your sexual orientation, self-descriptions and collaborator preferences are not published in discovery.</p>
-  </section>
-  <button id="profile-save" type="submit" disabled={saving||loading} className="sticky bottom-20 z-20 ccx-primary rounded-xl px-6 py-3 font-semibold shadow-2xl disabled:opacity-50 md:bottom-4">
-   {saving?'Saving…':loading?'Loading profile…':'Save profile changes'}</button>
- </form>)}
+  </form>}
    {activeTab==='galleries'&&<MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
    {activeTab==='analytics'&&<ProfileAnalytics/>}
   </div>
