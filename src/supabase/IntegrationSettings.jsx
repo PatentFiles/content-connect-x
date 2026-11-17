@@ -4,7 +4,7 @@ import {ShieldCheck,KeyRound,Eye,EyeOff,RefreshCw,PlugZap,AlertTriangle} from 'l
 import {integrationAction} from './integrationApi';
 const styles={panel:'ccx-surface p-5',input:'w-full rounded-xl border border-[#3A425D] bg-[#0B1426] p-3 text-sm text-white focus:ring-2 focus:ring-fuchsia-500',button:'ccx-action-primary rounded-xl px-4 py-2.5 text-sm'};
 const names={yoti:'Yoti — ID, age and liveness',pass:'PASS — Performer work clearance',ccbill:'CCBill — Payments',docusign:'DocuSign — Releases',email:'Transactional email',webpush:'Browser notifications',maps:'Location maps',openmoderate:'Media moderation',sentry:'Error monitoring',flagsmith:'Feature flags'};
-const help={yoti:'Yoti AVS uses your Yoti API key and SDK ID. Hosted checks work only after setting the return origin and completing provider onboarding.',pass:'PASS does not publish an independently confirmed integration API. Store partner credentials only after PASS grants written access. Never expose clinical results.',
+const help={yoti:'Yoti AVS uses your Yoti API key and SDK ID. Hosted checks work only after setting the return origin and completing provider onboarding.',pass:'PASS maintains 14-day yes/no work clearance. Store an approved partner credential here once PASS grants access; automatic status and production-hold checks remain disabled until the official API contract is received, mapped and tested. Never expose clinical results.',
 ccbill:'Keys are encrypted, but financial captures stay blocked until the approved merchant integration and callback contract are verified.',
 docusign:'Credentials here are saved securely; the current signing integration still requires its service account and approved template setup.',
 email:'Connect an approved neutral transactional email relay before enabling delivery.',
@@ -91,7 +91,7 @@ export default function IntegrationSettings(){
       I have reviewed the provider's actual contract, permitted use, data-handling terms and necessary credentials.</label>
      <button className="ccx-secondary mt-3 rounded-xl px-4 py-2 text-sm" disabled={busy||p.provider==='pass'||p.enabled===false&&!agreements[p.provider]}
       onClick={()=>toggle(p.provider,!p.enabled)}>{p.enabled?'Disable integration':'Enable configured integration'}</button>
-     {p.provider==='pass'&&<p className="mt-2 text-xs text-amber-200"><AlertTriangle size={13} className="inline mr-1"/>Awaiting official PASS API access. No automatic medical-status syncing is claimed.</p>}
+     {p.provider==='pass'&&<p className="mt-2 text-xs text-amber-200"><AlertTriangle size={13} className="inline mr-1"/>Awaiting official PASS partner API and production-hold specification. Request integration details from info@passcertified.org. Until an approved integration is tested, check the official PASS database directly.</p>}
     </div>
    </article>)}
   </div>
