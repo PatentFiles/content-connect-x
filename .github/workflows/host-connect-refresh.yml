@@ -15,21 +15,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 1
-      - name: Private source snapshot for review
-        run: git archive --format=zip --output=/tmp/host-connect-source.zip HEAD
-      - uses: actions/upload-artifact@v4
-        with:
-          name: host-connect-source
-          path: /tmp/host-connect-source.zip
-          retention-days: 1
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
+      - run: npm ci
+      - name: Private dependencies for browser validation
+        run: tar -czf /tmp/host-connect-dependencies.tgz node_modules
+      - uses: actions/upload-artifact@v4
+        with:
+          name: host-connect-dependencies
+          path: /tmp/host-connect-dependencies.tgz
+          retention-days: 1
       - name: Apply reviewed source changes
         run: |
           if [ -f .maintenance/host-connect-refresh.py ]; then python3 .maintenance/host-connect-refresh.py; fi
-      - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run test:hosting
