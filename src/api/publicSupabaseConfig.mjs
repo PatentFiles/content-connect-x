@@ -23,6 +23,7 @@ const failure=message=>({ready:false,url:null,key:null,source:'invalid',error:me
  * Resolve public build configuration without depending on Bolt's connection UI.
  * No network access or authorization decisions happen here.
  */
+/** @param {Record<string, unknown>} [env] */
 export function resolveBrowserSupabaseConfig(env={}){
   const raw=env&&typeof env==='object'?env:{};
   const givenUrl=clean(raw.VITE_SUPABASE_URL);
