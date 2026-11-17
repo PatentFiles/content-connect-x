@@ -53,10 +53,14 @@ Deno.serve(async(req)=>{
   const body=await req.json().catch(()=>({}));
   const action=str(body?.action,70);
   const privilegedControl=action.startsWith('admin_');
-  // Allow an authenticated admin to repair platform settings even if the global
-  // member gate is enabled. MFA and the admin DB role are still mandatory.
-  if(privilegedControl&&(!admin||assurance(req.headers.get('Authorization')||'')!=='aal2'))
+  // Admin role is database-authorized. Read-only module/settings inspection
+  // stays available for diagnostics; mutations and private moderation require MFA.
+  const publicAdminReads=new Set(['admin_list_feature_flags','admin_get_settings']);
+  if(privilegedControl&&!admin)return reject('Administrator access required',403);
+  if(privilegedControl&&!publicAdminReads.has(action)&&assurance(req.headers.get('Authorization')||'')!=='aal2')
     return reject('Verified administrator MFA required',403);
+  // Admins must be able to repair a global gate without first passing that
+  // same gate. Creator/production operations still enforce their own checks.
   if(ageGateEnabled&&!isCurrent(age.data?.[0])&&!privilegedControl)
     return reject('Approved age verification required',403);
   const feature=async(key:string,requiredTier=tier)=>{
