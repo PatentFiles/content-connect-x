@@ -19,7 +19,7 @@ const input='w-full rounded-xl border border-[#34465E] bg-[#0B1422] px-3 py-2.5 
 const button='rounded-xl ccx-action-primary px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50';
 const secondary='rounded-xl border border-[#42536A] bg-[#1F2D40] px-4 py-2.5 text-sm text-white disabled:opacity-50';
 const muted='text-sm text-[#A7B9D0]';
-const blank={title:'',description:'',category:'film_studio',city:'',state:'',country:'United States',capacity:4,minimum_hours:2,hourly_rate:100,cancellation_policy:'flexible',deposit_percent:0,required_insurance:false,rules:'',amenities:[],permitted_uses:[]};
+const blank={title:'',description:'',category:'film_studio',city:'',state:'',country:'United States',capacity:4,minimum_hours:6,hourly_rate:100,cleaning_fee_cents:0,min_notice_hours:24,preferred_cleaning_minutes:120,cancellation_policy:'flexible',deposit_percent:0,required_insurance:false,rules:'',amenities:[],permitted_uses:[]};
 
 function CheckboxGrid({options,values=[],update}) {
  return <div className="grid gap-2 sm:grid-cols-2">{options.map(([id,label])=>{
@@ -338,6 +338,9 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
             <label className="text-sm">Default property type<select className={input+' mt-1'} value={defaultForm.category} onChange={e=>setDefaultForm(v=>({...v,category:e.target.value}))}>{rentalCategories.map(([id,label])=><option key={id} value={id}>{label}</option>)}</select></label>
             <label className="text-sm">Default hourly rate ($)<input type="number" min="1" max="100000" className={input+' mt-1'} value={defaultForm.hourly_rate} onChange={e=>setDefaultForm(v=>({...v,hourly_rate:Number(e.target.value)}))}/></label>
             <label className="text-sm">Default crew capacity<input type="number" min="1" max="500" className={input+' mt-1'} value={defaultForm.capacity} onChange={e=>setDefaultForm(v=>({...v,capacity:Number(e.target.value)}))}/></label>
+            <label className="text-sm">Default cleaning fee ($)<input type="number" min="0" max="100000" step="0.01" className={input+' mt-1'} value={(defaultForm.cleaning_fee_cents||0)/100} onChange={e=>setDefaultForm(v=>({...v,cleaning_fee_cents:Math.round(Number(e.target.value)*100)}))}/></label>
+            <label className="text-sm">Minimum booking notice (hours)<input type="number" min="0" max="720" className={input+' mt-1'} value={defaultForm.min_notice_hours??24} onChange={e=>setDefaultForm(v=>({...v,min_notice_hours:Number(e.target.value)}))}/></label>
+            <label className="text-sm">Cleaning/turnover buffer (minutes)<input type="number" min="0" max="1440" className={input+' mt-1'} value={defaultForm.preferred_cleaning_minutes??120} onChange={e=>setDefaultForm(v=>({...v,preferred_cleaning_minutes:Number(e.target.value)}))}/></label>
             <label className="text-sm">Minimum hours<input type="number" min="1" max="72" className={input+' mt-1'} value={defaultForm.minimum_hours} onChange={e=>setDefaultForm(v=>({...v,minimum_hours:Number(e.target.value)}))}/></label>
             <label className="text-sm">Cancellation policy<select className={input+' mt-1'} value={defaultForm.cancellation_policy} onChange={e=>setDefaultForm(v=>({...v,cancellation_policy:e.target.value}))}>
               {['flexible','moderate','strict'].map(v=><option value={v} key={v}>{v}</option>)}</select></label>
@@ -378,6 +381,9 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
                 className={input+' mt-1'} value={privateDetails.exact_address||''} onChange={e=>setPrivateDetails(v=>({...v,exact_address:e.target.value}))}
                 placeholder="Street number, street name, unit number"/></label>}
             <label className="text-sm">Hourly rate (USD)<input className={input+' mt-1'} type="number" min={1} max={100000} value={form.hourly_rate} onChange={e=>field('hourly_rate',Number(e.target.value))}/></label>
+            <label className="text-sm">Cleaning fee (USD)<input className={input+' mt-1'} type="number" min={0} max={100000} step="0.01" value={(form.cleaning_fee_cents||0)/100} onChange={e=>field('cleaning_fee_cents',Math.round(Number(e.target.value)*100))}/></label>
+            <label className="text-sm">Minimum booking notice (hours)<input className={input+' mt-1'} type="number" min={0} max={720} value={form.min_notice_hours??24} onChange={e=>field('min_notice_hours',Number(e.target.value))}/></label>
+            <label className="text-sm">Cleaning/turnover buffer (minutes)<input className={input+' mt-1'} type="number" min={0} max={1440} value={form.preferred_cleaning_minutes??120} onChange={e=>field('preferred_cleaning_minutes',Number(e.target.value))}/></label>
             <label className="text-sm">Maximum crew size<input className={input+' mt-1'} type="number" min={1} max={500} value={form.capacity} onChange={e=>field('capacity',Number(e.target.value))}/></label>
             <label className="text-sm">Minimum booking duration
              <input className={input+' mt-1'} type="number" min={1} max={72} value={form.minimum_hours} onChange={e=>field('minimum_hours',Number(e.target.value))}/>
