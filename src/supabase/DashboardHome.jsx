@@ -6,7 +6,7 @@
 import React from 'react';
 import {
   ArrowUpRight, CalendarDays, Building2, UsersRound, Search,
-  ShieldCheck, Sparkles, MessageSquare, CheckCircle2, UserRound,
+  ShieldCheck, MessageSquare, CheckCircle2, UserRound,
   ArrowRight, LockKeyhole, Zap,
 } from 'lucide-react';
 
@@ -43,31 +43,26 @@ export default function DashboardHome({profile,verification,approved,paid,onNavi
       {key:'hosting',label:'Discover studios & locations'};
 
   return <div className="space-y-6">
-    <section className="ccx-surface overflow-hidden rounded-[26px]">
-      <div className="px-6 pb-6 pt-7 md:px-10 md:pb-7 md:pt-9">
-        <div className="flex items-center gap-2 ccx-eyebrow"><Sparkles size={15}/> Your creative workspace</div>
-        <h2 className="mt-3 max-w-2xl text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-[2.75rem]">
-          {name?<>Welcome back, <span className="ccx-gradient-text">{name}</span>.</>:
-            <>Create. Collaborate. <span className="ccx-gradient-text">Connect.</span></>}
-        </h2>
-      </div>
-      <div className="ccx-hero min-h-[170px] rounded-none border-x-0 md:min-h-[220px]">
-        <div className="ccx-hero-ambient absolute inset-0 pointer-events-none"/>
-      </div>
-      <div className="px-6 pb-7 pt-6 md:px-10 md:pb-9 md:pt-7">
-        <p className="max-w-lg text-sm leading-relaxed text-[#E2DAF3] sm:text-base">
-          Your productions, collaborations, locations and professional tools in one private workspace.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-3">
-          <button onClick={()=>onNavigate(nextStep.key)}
-            className="ccx-primary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm">
-            {nextStep.label}<ArrowUpRight size={17}/>
-          </button>
-          {approved&&<button onClick={()=>onNavigate('production')}
-            className="ccx-secondary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm">
-            Production Manager<ArrowRight size={17}/>
-          </button>}
-        </div>
+    <section className="ccx-hero rounded-[26px] min-h-[282px] md:min-h-[320px]">
+      <div className="ccx-hero-ambient absolute inset-0 pointer-events-none"/>
+    </section>
+    <section className="ccx-surface rounded-[26px] px-6 py-7 md:px-10 md:py-9">
+      <h2 className="max-w-2xl text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-[2.75rem]">
+        {name?<>Welcome back, <span className="ccx-gradient-text">{name}</span>.</>:
+          <>Create. Collaborate. <span className="ccx-gradient-text">Connect.</span></>}
+      </h2>
+      <p className="mt-4 max-w-lg text-sm leading-relaxed text-[#E2DAF3] sm:text-base">
+        Your productions, collaborations, locations and professional tools in one private workspace.
+      </p>
+      <div className="mt-5 flex flex-wrap gap-3">
+        <button onClick={()=>onNavigate(nextStep.key)}
+          className="ccx-primary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm">
+          {nextStep.label}<ArrowUpRight size={17}/>
+        </button>
+        {approved&&<button onClick={()=>onNavigate('production')}
+          className="ccx-secondary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm">
+          Production Manager<ArrowRight size={17}/>
+        </button>}
       </div>
     </section>
 
