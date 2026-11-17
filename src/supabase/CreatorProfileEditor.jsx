@@ -10,7 +10,8 @@ export default function CreatorProfileEditor(props){
  const workspace=useRoleWorkspace();
  const role=workspace.role||props.profile?.role_type||'creator';
  const profile=profileWithDisplayRegion(props.profile);
- if(role!=='creator')return <ProfessionalProfileEditor key={role} {...props} profile={profile} role={role} preview={workspace.preview}/>;
+ const approved=workspace.account?workspace.account.age_verified===true:props.approved&&!props.isAdmin;
+ if(role!=='creator')return <ProfessionalProfileEditor key={role} {...props} approved={approved} profile={profile} role={role} preview={workspace.preview}/>;
  if(workspace.preview)return <CreatorProfilePreview/>;
- return <><CreatorProfileEditorBase {...props} profile={profile}/><section className="mx-auto mt-6 max-w-4xl px-4"><RosterPanel compact user={props.user} role="creator"/></section></>;
+ return <><CreatorProfileEditorBase {...props} approved={approved} profile={profile}/>{approved&&<section className="mx-auto mt-6 max-w-4xl px-4"><RosterPanel compact user={props.user} role="creator"/></section>}</>;
 }

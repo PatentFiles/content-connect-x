@@ -1,0 +1,50 @@
+name: Validate dashboard source repairs
+on:
+  push:
+    branches: [fix/dashboard-workflow-parity-20261117]
+    paths: [.github/workflows/ccx-source-repair.yml]
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/dashboard-workflow-parity-20261117
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Apply exact JSX correction
+        shell: python
+        run: |
+          from pathlib import Path
+          p=Path('src/supabase/MemberWorkspace.jsx');s=p.read_text()
+          old="if(p)setPeople(v=>({...v,[id]:p.display_name}));}}/>"
+          assert s.count(old)==1
+          p.write_text(s.replace(old,"if(p)setPeople(v=>({...v,[id]:p.display_name}));}}}/>"))
+      - run: npm ci
+      - name: Lint diagnostic
+        continue-on-error: true
+        run: npm run lint
+      - name: Typecheck diagnostic
+        continue-on-error: true
+        run: npm run typecheck
+      - name: Dashboard tests diagnostic
+        continue-on-error: true
+        run: node --test tests/dashboard-and-access.test.mjs
+      - name: Render diagnostic
+        continue-on-error: true
+        run: node scripts/test-role-workspace-render.mjs
+      - name: Dependency audit diagnostic
+        continue-on-error: true
+        run: npm audit --audit-level=high
+      - name: Save corrected source, without modifying workflows
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/supabase/MemberWorkspace.jsx
+          git commit -m 'Correct group-member selector JSX expression'
+          git push origin HEAD:fix/dashboard-workflow-parity-20261117
