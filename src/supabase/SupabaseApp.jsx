@@ -21,7 +21,7 @@ import DashboardHome from './DashboardHome';
 import YotiVerification from './YotiVerification';
 import PublicLandingSections from './PublicLandingSections';
 const HostingMarketplace = React.lazy(() => import('./HostingMarketplace'));
-import { ShieldCheck, LockKeyhole, Search, UserRound, CreditCard, LogOut, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw, CalendarDays, MessageSquare, Lightbulb, Settings2, Images, UsersRound, Star, FileSignature, Building2 } from 'lucide-react';
+import { ShieldCheck, LockKeyhole, Search, UserRound, CreditCard, LogOut, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw, CalendarDays, MessageSquare, Lightbulb, Settings2, Images, UsersRound, Star, FileSignature, Building2, Menu, X } from 'lucide-react';
 
 const shell = 'ccx-app min-h-screen text-[#F5F3FF]';
 const panel = 'ccx-surface p-5';
@@ -37,6 +37,7 @@ export default function SupabaseApp() {
   const [error,setError] = useState('');
   const [notice,setNotice] = useState('');
   const [tab,setTab] = useState('dashboard');
+  const [mobileMenuOpen,setMobileMenuOpen] = useState(false);
   const [profile,setProfile] = useState(null);
   const [verification,setVerification] = useState(null);
   const [billing,setBilling] = useState(null);
@@ -244,11 +245,20 @@ export default function SupabaseApp() {
   if(loading||mfaChecking)return <div className={`${shell} grid place-items-center`}><Loader2 className="animate-spin"/></div>;
   if(!user&&!authPage)return <div className={shell}>
     <div className="ccx-brand-topline"/>
+    <header className="ccx-public-auth-links absolute left-0 right-0 top-4 z-20 px-4 sm:px-6" aria-label="Account links">
+      <div className="mx-auto flex max-w-7xl justify-end gap-2">
+        <a href="/login" className="ccx-secondary rounded-lg px-3 py-2 text-sm">Log in</a>
+        <a href="/signup" className="ccx-primary rounded-lg px-3 py-2 text-sm">Sign up</a>
+      </div>
+    </header>
     <section className="ccx-hero-image relative w-full overflow-hidden">
-      <img src="/content_conect_hero.png" alt="Content Connect X — Create. Collaborate. Connect." className="block h-auto w-full object-cover"/>
+      <picture>
+        <source media="(max-width: 640px)" srcSet="/ContentConnectX__Create,_Collaborate,_Grow.png"/>
+        <img src="/content_conect_hero.png" alt="Content Connect X — Create. Collaborate. Connect." className="block h-auto w-full object-cover"/>
+      </picture>
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-wrap justify-center gap-3 bg-gradient-to-t from-black/55 to-transparent px-5 pb-8 pt-20 sm:pb-12">
-        <a href="/signup" className="ccx-primary pointer-events-auto inline-flex items-center rounded-xl px-5 py-3 text-sm">Create your free account</a>
-        <a href="/login" className="ccx-secondary pointer-events-auto inline-flex items-center rounded-xl px-5 py-3 text-sm">Sign in</a>
+        <a href="/signup" className="ccx-primary pointer-events-auto inline-flex items-center rounded-full px-7 py-3 text-sm">Complete your profile <span aria-hidden="true" className="ml-2 text-lg leading-none">→</span></a>
+        <a href="/login" className="ccx-secondary pointer-events-auto inline-flex items-center rounded-xl px-5 py-3 text-sm">Log in</a>
       </div>
     </section>
     <PublicLandingSections/>
@@ -368,7 +378,7 @@ export default function SupabaseApp() {
   return <div className={shell}>
     <div className="ccx-brand-topline"/>
     <header className="ccx-shell-header sticky top-0 z-40 px-4 py-3" role="banner">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3">
+      <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-3">
         <button className="flex items-center gap-3 text-left" onClick={()=>{setTab('dashboard');setError('');}} aria-label="Go to the Content Connect X dashboard">
           <img src="/content_connect_logo.png" alt="" className="ccx-brand-mark h-11 w-11 rounded-xl object-cover"/>
           <span className="min-w-0"><span className="block text-lg font-bold tracking-tight text-white">Content Connect <span className="ccx-gradient-text">X</span></span><span className="block text-[10px] uppercase tracking-[.18em] text-[#BBAACD]">Creator & production network</span></span>
@@ -379,15 +389,19 @@ export default function SupabaseApp() {
         </div>
       </div>
     </header>
-    <main id="main-content" className="mx-auto max-w-7xl px-4 pb-12 pt-5 md:px-6">
-      <nav aria-label="Main workspace navigation" className="mb-6 flex flex-nowrap gap-2 overflow-x-auto pb-2 scrollbar-hide md:flex-wrap md:overflow-visible">
-        {menu.map(([key,label,Icon])=>
-          <button key={key} onClick={()=>{setTab(key);setError('');}} aria-current={tab===key?'page':undefined}
-            className={'ccx-nav-pill inline-flex items-center gap-2 '+(tab===key?'is-active':'')}>
-            <Icon size={16} aria-hidden="true"/>{label}
-          </button>
-        )}
+    <main id="main-content" className="mx-auto flex w-full max-w-5xl flex-col items-center px-4 pb-12 pt-5 md:px-6">
+      <div className="relative mb-6 w-full sm:hidden">
+        <button type="button" className="ccx-mobile-menu-trigger flex w-full items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold" onClick={()=>setMobileMenuOpen(open=>!open)} aria-expanded={mobileMenuOpen} aria-controls="mobile-workspace-navigation">
+          <span>{menu.find(([key])=>key===tab)?.[1]||'Workspace menu'}</span>{mobileMenuOpen?<X size={18}/>:<Menu size={18}/>} 
+        </button>
+        {mobileMenuOpen&&<nav id="mobile-workspace-navigation" aria-label="Mobile workspace navigation" className="ccx-mobile-menu absolute left-0 right-0 top-full z-30 mt-2 rounded-xl p-2">
+          {menu.map(([key,label,Icon])=><button key={key} onClick={()=>{setTab(key);setError('');setMobileMenuOpen(false);}} aria-current={tab===key?'page':undefined} className={'ccx-nav-pill flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left '+(tab===key?'is-active':'')}><Icon size={16} aria-hidden="true"/>{label}</button>)}
+        </nav>}
+      </div>
+      <nav aria-label="Main workspace navigation" className="mb-6 hidden flex-wrap justify-center gap-2 sm:flex">
+        {menu.map(([key,label,Icon])=><button key={key} onClick={()=>{setTab(key);setError('');}} aria-current={tab===key?'page':undefined} className={'ccx-nav-pill inline-flex items-center gap-2 '+(tab===key?'is-active':'')}><Icon size={16} aria-hidden="true"/>{label}</button>)}
       </nav>
+      <div className="w-full">
       <ErrorMessage message={error}/>{notice&&<p role="status" className="my-3 text-green-400">{notice}</p>}{suspended?<div className="space-y-4"><div className={panel}><AlertTriangle className="text-red-400 mb-2"/>Account access is suspended. You can still review or withdraw your existing consent.</div><ConsentCenter user={user} canGrant={false}/><ProductionManager user={user} paid={false} isAdmin={false}/></div>:<>
     {tab==='dashboard'&&<DashboardHome profile={profile} verification={verification} approved={approved} paid={paid}
       features={visibleFeatures||{}} onNavigate={key=>{setTab(key);setError('');}}/>}
@@ -470,5 +484,5 @@ export default function SupabaseApp() {
     {tab==='controls' && approved && isAdmin && <AdminProductControls/>}
     {tab==='integrations' && approved && isAdmin && <IntegrationHealth/>}
     {tab==='membership'&&<div className={`${panel} max-w-2xl space-y-3`}><h2 className="text-xl font-semibold">Free today. Unlock more when ready.</h2><p className={muted}>Your free account includes age verification, profile setup and limited directory previews.</p><div className="p-4 rounded-lg bg-[#1A2438]"><LockKeyhole className="text-blue-400 mb-2"/>Full discovery, direct messages, contracts, collaboration rooms, property booking and advanced tools require membership.</div><p className="text-sm text-amber-200">Checkout will only become available after an approved adult-industry payment provider is configured. Payment is never collected by this website directly.</p><div className="flex flex-wrap gap-2"><p className={muted}>Paid checkout is paused until an adult-industry merchant processor approves this business model. No subscription charges are possible from this preview.</p></div></div>}
-  </>}</main></div>;
+  </>}</div></main></div>;
 }

@@ -260,3 +260,16 @@
   flex-shrink: 0;
   scroll-snap-align: start;
 }
+.ccx-mobile-menu-trigger,
+.ccx-mobile-menu {
+  border: 1px solid rgba(142,160,207,.2);
+  background: rgba(20,27,47,.96);
+  box-shadow: 0 14px 34px rgba(0,0,0,.28);
+}
+.ccx-mobile-menu-trigger { color: #F5F3FF; }
+.ccx-mobile-menu { backdrop-filter: blur(18px); }
+.ccx-mobile-menu .ccx-nav-pill { border-color: transparent; }
+.ccx-mobile-menu .ccx-nav-pill + .ccx-nav-pill { margin-top: .25rem; }
+.ccx-public-auth-links { pointer-events: none; }
+.ccx-public-auth-links a { pointer-events: auto; }
+.ccx-app #main-content > .w-full > * { margin-left: auto; margin-right: auto; }
