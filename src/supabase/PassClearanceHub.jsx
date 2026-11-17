@@ -6,14 +6,18 @@ import {integrationAction} from './integrationApi';
 const input='w-full rounded-xl border border-[#34465C] bg-[#0B1423] px-3 py-2.5 text-sm';
 export default function PassClearanceHub({isAdmin=false}){
  const [connection,setConnection]=useState(null),[collab,setCollab]=useState('');
+ const [clearance,setClearance]=useState(null),[collaborations,setCollaborations]=useState([]);
  const [shared,setShared]=useState(null),[files,setFiles]=useState([]),[file,setFile]=useState(null);
  const [reviewItems,setReviewItems]=useState([]),[dates,setDates]=useState({}),[confirm,setConfirm]=useState({});
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const load=async()=>{
   setBusy(true);setError('');
   try{
-   const [a,b]=await Promise.all([integrationAction('pass_link_status'),integrationAction('clearance_documents_mine')]);
+   const [a,b,own,projects]=await Promise.all([
+    integrationAction('pass_link_status'),integrationAction('clearance_documents_mine'),
+    integrationAction('pass_my_clearance'),integrationAction('pass_my_collaborations')]);
    setConnection(a.item);setFiles(b.items||[]);
+   setClearance(own);setCollaborations(projects.items||[]);
    if(isAdmin){const v=await integrationAction('admin_clearance_queue');setReviewItems(v.items||[]);}
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
@@ -54,6 +58,11 @@ export default function PassClearanceHub({isAdmin=false}){
    <p className="text-sm text-[#B4C4D9]">PASS is the adult-industry work-clearance standard. It tracks a 14-day yes/no status—not private lab panel results. Partner API access needs written approval and technical onboarding.</p>
    <p className="text-xs text-[#B4C4D9]">Check your current clearance directly in the <a className="underline text-[#FF8ADE]" href="https://app.passcertified.org/" target="_blank" rel="noopener noreferrer">official PASS database</a>. Content Connect X cannot automatically check PASS clearance until PASS grants access to its documented partner interface.</p>
    <p className="text-sm">Connection: <strong className="capitalize">{(connection?.status||'not linked').replaceAll('_',' ')}</strong></p>
+   <div role="status" className="rounded-xl border border-[#334058] bg-[#101B2D] p-3 space-y-1">
+    <p className="text-sm">Your work-clearance status: <strong className={clearance?.status==='current'?'text-emerald-300':'text-amber-200'}>{clearance?.status==='current'?'Current':'Not currently confirmed'}</strong></p>
+    {clearance?.status==='current'&&<p className="text-xs text-[#B4C4D9]">Valid until {new Date(clearance.expires_at).toLocaleDateString()} · {clearance.source==='pass'?'PASS':'Independently reviewed provider'}</p>}
+    <p className="text-xs text-[#9FAFC9]">This is work availability only, not a clinical test result or a medical diagnosis.</p>
+   </div>
    <div className="flex flex-wrap gap-2">
     <button className="ccx-primary rounded-xl px-4 py-2.5 text-sm" disabled={busy} onClick={()=>execute('pass_link',{allow_status_sync:true})}>Request PASS account linking</button>
     <button className="ccx-secondary rounded-xl px-4 py-2.5 text-sm" disabled={busy} onClick={()=>execute('pass_disconnect',{},'PASS linking consent withdrawn.')}>Disconnect</button>
@@ -71,7 +80,14 @@ export default function PassClearanceHub({isAdmin=false}){
   <section className="ccx-surface space-y-3 p-5">
    <h3 className="flex items-center gap-2 font-semibold"><UsersRound size={18} className="text-[#FF8ADE]"/>Collaboration work-clearance sharing</h3>
    <p className="text-xs text-[#AABAD2]">Each performer must opt in for their clearance status to appear to collaboration partners. New confirmations can be reflected for both partners when they refresh; private results and diagnoses are never shown.</p>
-   <label className="text-sm block">Collaboration ID<input className={input+' mt-1'} value={collab} onChange={e=>{setCollab(e.target.value);setShared(null);}} placeholder="Collaboration UUID"/></label>
+   <label className="text-sm block" htmlFor="ccx-testing-collaboration">Your collaboration
+    <select id="ccx-testing-collaboration" className={input+' mt-1'} value={collab}
+      onChange={e=>{setCollab(e.target.value);setShared(null);}}>
+     <option value="">Select a collaboration</option>
+     {collaborations.map(project=><option key={project.id} value={project.id}>{project.title||'Untitled collaboration'} · {project.status}</option>)}
+    </select>
+   </label>
+   {!collaborations.length&&<p className="text-xs text-[#AABAD2]">Your collaborations will appear here once you join or create a production team.</p>
    <div className="flex flex-wrap gap-2">
     <button className="ccx-primary rounded-xl px-4 py-2 text-sm" disabled={busy||!collab} onClick={async()=>{const r=await execute('pass_share',{collaboration_id:collab,allow_binary_clearance_share:true},'You opted in to sharing work-clearance status.');if(r)await collaborationStatus();}}>Share my status</button>
     <button className="ccx-secondary rounded-xl px-4 py-2 text-sm" disabled={busy||!collab} onClick={async()=>{const r=await execute('pass_revoke',{collaboration_id:collab},'Work-clearance sharing withdrawn.');if(r)await collaborationStatus();}}>Withdraw sharing</button>
