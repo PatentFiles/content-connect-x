@@ -25,6 +25,7 @@ import CreatorDiscovery from './CreatorDiscovery';
 import YotiVerification from './YotiVerification';
 import PublicLandingSections from './PublicLandingSections';
 import PublicPricing from './PublicPricing';
+import AgeGateOnboarding from './AgeGateOnboarding';
 const HostingMarketplace = React.lazy(() => import('./HostingMarketplace'));
 import { UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
 
@@ -337,6 +338,18 @@ export default function SupabaseApp() {
     setSession(data.session);
     setMfaNeeded(false);
   }}/>;
+  // The authenticated creator application is never mounted before independent
+  // 18+ approval. URL navigation, Escape, refresh and backdrop clicks cannot
+  // dismiss this required onboarding. Log out is the only exit.
+  if(user&&!approved)return <AgeGateOnboarding
+    user={user} profile={profile} verification={verification}
+    onSaved={()=>refresh(session)} onReload={()=>refresh(session)}
+    onSignOut={async()=>{
+      const {error:signoutError}=await supabase.auth.signOut();
+      if(signoutError)throw signoutError;
+      window.history.replaceState({},'', '/');
+    }}/>;
+
 
   const loadReviews=async()=>{
     setBusy(true);setError('');
@@ -367,7 +380,7 @@ export default function SupabaseApp() {
     }).catch(e=>setError(e.message||'Unable to sign out.'));
   };
   return <OriginalShell user={user} profile={profile} approved={approved}
-    isAdmin={isAdmin} tab={tab} featureFlags={visibleFeatures}
+    isAdmin={isAdmin} tab={tab} featureFlags={visibleFeatures} isPremiumMember={activePaid}
     onNavigate={navigateInWorkspace} onSignOut={signOut}
     onRolePreviewChange={setRolePreview}>
     <ErrorMessage message={error}/>
@@ -392,17 +405,17 @@ export default function SupabaseApp() {
     {tab==='verification'&&<div className="mt-5 max-w-2xl"><YotiVerification/></div>}
     {['directory','search','favorites'].includes(tab)&&
       <CreatorDiscovery key={tab} user={user} approved={approved} paid={paid}
-       mode={tab==='directory'?'discovery':tab}/>}
+       mode={tab==='directory'?'discovery':tab} onNavigate={navigateInWorkspace}/>}
     {tab==='reviews'&&isAdmin&&approved&&<div className="space-y-4"><div className="flex justify-between items-center"><h2 className="text-xl font-semibold">Age verification review queue</h2><button className={primary} onClick={loadReviews} disabled={busy}><RefreshCw size={16}/></button></div><p className={muted}>Only authorized administrators can open short-lived private document links or approve requests.</p>{reviews.map(request=><div key={request.id} className={`${panel} space-y-2`}><p className="text-sm">Request {request.id} · {request.status}</p><p className={muted}>{new Date(request.created_at).toLocaleString()}</p><div className="flex flex-wrap gap-2"><button className={primary} onClick={()=>openReviewDocument(request.id,'id')} disabled={busy}>View ID</button><button className={primary} onClick={()=>openReviewDocument(request.id,'selfie')} disabled={busy}>View selfie</button>{request.status==='pending'&&<><button className={primary} onClick={()=>reviewAge(request.id,'approve')} disabled={busy}>Approve</button><button className="rounded-lg bg-red-700 px-4 py-2.5 text-white disabled:opacity-50" onClick={()=>reviewAge(request.id,'reject')} disabled={busy}>Reject</button></>}</div></div>)}{reviews.length===0&&<p className={muted}>Select refresh to load recent review requests.</p>}</div>}
     {['workspace','messages','connections','collaborations','contracts','notifications'].includes(tab)&&(
       !approved?<div className={panel}>Independent age verification is required to access this workspace.</div>:
-      !paid?<div className={panel+' space-y-3'}>
+      !paid&&!['messages','connections','notifications'].includes(tab)?<div className={panel+' space-y-3'}>
         <h2 className="text-xl font-semibold">Premium member workspace</h2>
         <p className="text-sm text-[#AABBD4]">This workflow requires an active paid membership.
           Existing creator records are preserved and remain protected.</p>
         <button className={primary} onClick={()=>navigateInWorkspace('membership')}>Membership details</button>
       </div>:
-      <MemberWorkspace key={tab} user={user} flags={visibleFeatures||{}}
+      <MemberWorkspace key={tab} user={user} paid={paid} flags={visibleFeatures||{}}
        initialSection={['messages','connections','collaborations','contracts','notifications'].includes(tab)?tab:'collaborations'}/>
     )}
     {tab==='trust' && paid && approved && <TrustCenter isAdmin={isAdmin}/> }
@@ -447,7 +460,7 @@ export default function SupabaseApp() {
     {['controls','integrations','testing-reviews'].includes(tab) && approved && isAdmin &&
       <AdminConsole key={tab} initialSection={tab==='integrations'?'integrations':tab==='testing-reviews'?'testing':'features'}
        onFeatureChange={()=>refreshFeatureFlags().catch(()=>setVisibleFeatures({}))}/>}
-    {tab==='membership'&&<PublicPricing signedIn onNavigate={navigateInWorkspace}/>}
+    {tab==='membership'&&<PublicPricing signedIn onNavigate={navigateInWorkspace} initialRole={profile?.role_type||'creator'}/>}
 
   </>}</OriginalShell>;
 }

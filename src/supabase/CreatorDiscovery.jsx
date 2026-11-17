@@ -14,7 +14,7 @@ const roleName=Object.fromEntries(roleOptions);
 const categoryName=Object.fromEntries(contentCategories);
 const genderName=Object.fromEntries(genderOptions);
 
-export default function CreatorDiscovery({user,approved,paid,mode='discovery'}){
+export default function CreatorDiscovery({user,approved,paid,mode='discovery',onNavigate}){
  const [filters,setFilters]=useState(initialFilters);
  const [results,setResults]=useState([]);
  const [saved,setSaved]=useState([]);
@@ -24,8 +24,25 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery'}){
  const [working,setWorking]=useState(false);
  const [error,setError]=useState('');
  const [selected,setSelected]=useState(null);
+ const [socials,setSocials]=useState({}),[contactNotice,setContactNotice]=useState('');
+ const [contactBusy,setContactBusy]=useState(false);
+ const connect=async()=>{
+  if(!selected)return;
+  setContactBusy(true);setContactNotice('');setError('');
+  try{
+   const {data,error:requestError}=await supabase.functions.invoke('member-workflows',{
+    body:{action:'request_connection',target_user_id:selected.id}
+   });
+   if(requestError||data?.error)throw Error(data?.error||requestError?.message||'Connection unavailable');
+   setContactNotice('Request sent. You can message once your connection is accepted.');
+  }catch(e){setContactNotice(e.message||'Unable to request a connection.');}
+  finally{setContactBusy(false);}
+ };
  const openProfile=person=>{
-  setSelected(person);
+  setSelected(person);setSocials({});setContactNotice('');
+  if(paid)void supabase.functions.invoke('member-workflows',{
+   body:{action:'view_social_links',target_user_id:person.id}
+  }).then(({data,error})=>{if(!error)setSocials(data?.socials||{});}).catch(()=>{});
   // Only an actual opened profile counts, once per verified viewer per UTC day.
   // Tracking is best effort and never blocks the visitor's profile view.
   if(person.id!==user.id)void supabase.functions.invoke('profile-analytics',{
@@ -140,7 +157,7 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery'}){
       onClick={()=>{setFilters(initialFilters);void search(initialFilters);}}>Reset filters</button>
     </div>
    </form>}
-   {!paid&&mode!=='favorites'&&<p className="text-sm text-[#AABBD4]">Verified free members can browse a limited preview. Premium members can paginate additional results.</p>}
+   {!paid&&mode!=='favorites'&&<p className="text-sm text-[#AABBD4]">Free members may discover and save profiles worldwide. Local connections are limited to 25 miles and five different people per rolling seven days. Premium removes those contact restrictions.</p>}
    {error&&<p role="alert" className={panel+' text-red-300'}>{error}</p>}
    {working&&<p role="status" className="text-sm text-[#AABBD4]">Loading verified profiles…</p>}
    {searched&&results.length===0&&!working&&<div className={panel+' text-sm text-[#AABBD4]'}>
@@ -179,7 +196,21 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery'}){
       <button className="text-2xl" onClick={()=>setSelected(null)} aria-label="Close">×</button></div>
      <p className="text-sm text-[#B3C3D9]">{[selected.city,selected.state,selected.country].filter(Boolean).join(', ')}</p>
      {selected.bio&&<p className="whitespace-pre-wrap text-sm">{selected.bio}</p>}
+     {paid?<div className="space-y-2">
+       <h4 className="text-sm font-semibold">Professional social links</h4>
+       {Object.entries(socials).length?
+        <div className="flex flex-wrap gap-2">{Object.entries(socials).map(([provider,url])=>
+         <a key={provider} href={url} target="_blank" rel="noopener noreferrer"
+          className="ccx-secondary rounded-lg px-3 py-2 text-xs capitalize">{provider==='twitter'?'X / Twitter':provider}</a>)}</div>:
+        <p className="text-xs text-[#AABBD4]">No professional links have been shared with premium members.</p>}
+      </div>:
+      <p className="text-xs text-[#AABBD4]">External social links are private on the free plan. Upgrade to Premium to view links the creator chooses to share.</p>}
      <p className="text-sm text-[#AABBD4]">Saving a profile does not send a message, invitation or booking request.</p>
+     {contactNotice&&<p role="status" className="rounded-lg border border-[#34445D] p-3 text-xs text-[#C6D5EB]">{contactNotice}</p>}
+     <button type="button" onClick={connect} disabled={contactBusy||selected.id===user.id}
+      className="ccx-secondary w-full rounded-lg px-4 py-2.5 text-sm">
+      {contactBusy?'Checking eligibility…':paid?'Request professional connection':'Request local connection (25 miles)'}</button>
+     <button type="button" className="text-xs text-[#FF8DD9] underline" onClick={()=>onNavigate?.('connections')}>View connection requests</button>
      <button type="button" className="ccx-primary rounded-lg px-4 py-2.5"
       onClick={()=>{void toggle(selected.id);setSelected(null);}}>
       {saved.includes(selected.id)?'Remove from favorites':'Save to favorites'}</button>

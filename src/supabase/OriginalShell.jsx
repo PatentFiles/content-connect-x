@@ -6,7 +6,7 @@
  * from the existing Supabase-only modules; this never uses a Base44 client.
  */
 import React,{useEffect,useMemo,useState} from 'react';
-import {Bell,ChevronRight,ExternalLink,LogOut,Menu,Settings,Shield,X} from 'lucide-react';
+import {Bell,ChevronRight,ExternalLink,LogOut,Menu,Settings,Shield,X,CreditCard} from 'lucide-react';
 import {getNavigationForRole} from './originalRoleNav';
 import {isModuleEnabled} from './featureModules.mjs';
 import {supabase} from '@/api/supabaseClient';
@@ -82,7 +82,7 @@ function MenuLink({item,tab,onNavigate,onClose=()=>{},mobile=false}){
  </button>;
 }
 
-export default function OriginalShell({children,tab,onNavigate,user,profile,isAdmin=false,approved=false,onSignOut,onRolePreviewChange,featureFlags=null}){
+export default function OriginalShell({children,tab,onNavigate,user,profile,isAdmin=false,approved=false,onSignOut,onRolePreviewChange,featureFlags=null,isPremiumMember=false}){
  const [mobileOpen,setMobileOpen]=useState(false);
  const [adminRole,setAdminRole]=useState('admin');
  const [theme,setTheme]=useState(()=>typeof document!=='undefined'&&document.documentElement.classList.contains('dark')?'dark':'light');
@@ -135,6 +135,14 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
      <span className="hidden text-lg font-semibold sm:block">Content Connect X</span>
     </button>
     <div className="flex items-center gap-2">
+     <button type="button" onClick={()=>onNavigate('membership')}
+      aria-label={'Membership: '+(isPremiumMember?'Premium Account':'Free Account')+'; view plans'}
+      className="inline-flex min-h-10 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-semibold sm:px-3"
+      style={{borderColor:'var(--cc-border)',background:'var(--cc-surface)',color:'var(--cc-text-primary)'}}>
+      <CreditCard size={15} className="text-[#FF8AD8]"/>
+      <span className="hidden sm:inline">Membership</span>
+      <span>{isPremiumMember?'Premium':'Free'}</span>
+     </button>
      <button type="button" onClick={toggleTheme} title="Toggle light/dark theme"
       className="flex h-10 w-10 items-center justify-center rounded-lg"
       aria-label="Toggle theme" style={{color:'var(--cc-text-secondary)'}}>

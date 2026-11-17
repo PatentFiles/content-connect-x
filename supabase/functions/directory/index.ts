@@ -1,7 +1,7 @@
 /**
  * Age-gated, role- and city-filtered creator discovery. Only safe public fields
  * from currently approved, unrestricted adult profiles are ever returned.
- * The verified free tier is a fixed 12-profile preview with no pagination.
+ * Free members may browse worldwide; local contact permissions are separate and enforced in member-workflows.
  */
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
 import {directoryFilters,escapeLikeLiteral} from './searchPolicy.mjs';
@@ -93,7 +93,7 @@ Deno.serve(async req=>{
   .range(filters.offset,filters.offset+filters.limit);
  const {data,error}=await query;
  if(error)return json({error:'Unable to load directory'},503);
- const page=data||[],hasMore=premium&&page.length>filters.limit&&filters.offset+filters.limit<500;
+ const page=data||[],hasMore=page.length>filters.limit&&filters.offset+filters.limit<500;
  const ids=page.slice(0,filters.limit).map(v=>v.id);
  const prefs=new Map<string,{gender_identity:string,content_categories:string[],
    show_gender_in_discovery:boolean,show_categories_in_discovery:boolean}>();
@@ -107,7 +107,7 @@ Deno.serve(async req=>{
  const results=page.slice(0,filters.limit).map(v=>{
   const choice=prefs.get(v.id);
   return {id:v.id,display_name:v.display_name,role_type:v.role_type,
-   bio:premium?v.bio:null,avatar_path:v.avatar_path,city:v.city,state:v.state,
+   bio:v.bio,avatar_path:v.avatar_path,city:v.city,state:v.state,
    country:v.country,age_verified:true,
    gender_identity:choice?.show_gender_in_discovery?choice.gender_identity:null,
    content_categories:choice?.show_categories_in_discovery?choice.content_categories:[]

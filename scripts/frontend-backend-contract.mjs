@@ -73,7 +73,8 @@ assert.match(app,/PublicPricing signedIn/,'Members must see the same pricing inf
 assert.match(app,/\/content_conect_hero\.png/,'Desktop homepage hero must be preserved');
 assert.match(app,/ContentConnectX__Create,_Collaborate,_Grow\.png/,'Mobile homepage hero must be preserved');
 assert.match(pricingView,/Free Membership/,'Free pricing must remain visible');
-assert.match(pricingView,/Pricing pending/,'Do not manufacture unconfigured subscription prices');
+assert.match(pricingView,/membership_plan_catalog/,'Published prices must come from the configured Supabase catalog');
+assert.match(pricingView,/checkout opens after approved billing is connected/,'Do not enable unapproved subscription checkout');
 assert.match(originalShell,/hidden w-64 flex-col border-r md:flex/,'Desktop must use fixed sidebar');
 assert.match(originalShell,/aria-label="Open navigation menu"/,'Mobile must have a hamburger menu');
 assert.match(originalShell,/aria-label="Mobile navigation"/,'Mobile hamburger must open the navigation drawer');

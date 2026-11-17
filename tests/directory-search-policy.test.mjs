@@ -10,10 +10,10 @@ test('only supported public creator roles can be filtered',()=>{
  assert.throws(()=>directoryFilters({role:'anything.invalid'},true),/Unsupported creator type/);
 });
 
-test('free discovery has a strict preview cap even if client requests offset',()=>{
+test('free discovery uses a small page size but permits worldwide pagination',()=>{
  const filters=directoryFilters({offset:900000,limit:9999},false);
  assert.equal(filters.limit,12);
- assert.equal(filters.offset,0);
+ assert.equal(filters.offset,480);
  const paid=directoryFilters({offset:25,limit:9999},true);
  assert.equal(paid.limit,24);
  assert.equal(paid.offset,25);

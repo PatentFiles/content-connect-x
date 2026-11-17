@@ -7,9 +7,9 @@ import React,{useEffect,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
 import {Image,Activity,User,Edit2,ShieldCheck,Upload,Heart,Users,Clapperboard,Stethoscope,Lock,ChevronDown} from 'lucide-react';
 import MediaGallery from './MediaGallery';
+import MemberSocialLinks from './MemberSocialLinks';
 import ProfileAnalytics from './ProfileAnalytics';
 import OriginalCreatorPreferences,{initialCreatorPreferences} from './OriginalCreatorPreferences';
-import {originalCreatorCatalog,creatorFieldLabels,friendlyChoice} from './originalCreatorCatalog';
 import {originalUSCities,originalUSStateCodes} from './originalLocationData';
 import {countries,countryCode,countryName,regionOptions,roleOptions,
  genderOptions,orientationOptions,contentCategories,scenePairings,specialties} from './profileOptions';
@@ -37,7 +37,7 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
   country:countryCode(profile?.country||'US')});
  const [prefs,setPrefs]=useState(initial);
  const [creatorPrefs,setCreatorPrefs]=useState(initialCreatorPreferences);
- const [editing]=useState(true);
+ const [editing,setEditing]=useState(true);
  const [activeTab,setActiveTab]=useState('profile');
  const [openSection,setOpenSection]=useState(null);
  const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false);
@@ -285,6 +285,7 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
   </form>}
    {activeTab==='galleries'&&<MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
    {activeTab==='analytics'&&<ProfileAnalytics/>}
+   {activeTab==='profile'&&<div className="mt-5"><MemberSocialLinks userId={user.id}/></div>}
   </div>
  </div>;
 }

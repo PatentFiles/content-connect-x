@@ -1,6 +1,6 @@
 /**
  * Privacy-preserving directory filters shared by Supabase Edge and Node tests.
- * Free directory previews have a fixed limit and cannot request later pages.
+ * Free members can browse distant profiles but cannot contact them unless locally eligible.
  * Never accept raw SQL, PostgREST filter expressions or unrestricted columns.
  */
 export const DIRECTORY_ROLES=Object.freeze([
@@ -24,7 +24,7 @@ export function directoryFilters(raw={},premium=false){
   id=>typeof id==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
  ))].slice(0,100):null;
  const limit=premium?24:12;
- const offset=premium&&Number.isInteger(input.offset)
+ const offset=Number.isInteger(input.offset)
   ?Math.max(0,Math.min(480,input.offset)):0;
  return {
   query:clean(input.query),
