@@ -258,15 +258,13 @@ export default function SupabaseApp() {
   if(!user&&!authPage)return <div className={shell}>
     <div className="ccx-brand-topline"/>
     <header className="ccx-public-auth-links px-4 py-3 sm:px-6" aria-label="Account links">
-      <div className="mx-auto flex max-w-7xl justify-center gap-2">
+      <div className="relative mx-auto flex max-w-7xl justify-center gap-2">
+        <a href="/hostconnect" className="ccx-host-connect-header inline-flex items-center justify-center rounded-full px-4 py-2 text-sm font-semibold text-white shadow-lg transition hover:brightness-110 hover:-translate-y-0.5" style={{background:'linear-gradient(112deg,#17A8D9,#5B75EE 68%,#9378F6)'}}>Host Connect <span aria-hidden="true" className="ml-2 leading-none">→</span></a>
         <a href="/login" className="ccx-secondary rounded-lg px-3 py-2 text-sm">Log in</a>
         <a href="/signup" className="ccx-primary rounded-lg px-3 py-2 text-sm">Sign up</a>
         <a href="/pricing" className="ccx-secondary rounded-lg px-3 py-2 text-sm">Pricing</a>
       </div>
     </header>
-    <div className="flex flex-col items-center px-5 py-4">
-      <a href="/hostconnect" className="inline-flex items-center justify-center rounded-full px-7 py-3 text-sm font-semibold text-white shadow-lg transition hover:brightness-110 hover:-translate-y-0.5" style={{background:'linear-gradient(112deg,#17A8D9,#5B75EE 68%,#9378F6)'}}>Host Connect <span aria-hidden="true" className="ml-2 text-lg leading-none">→</span></a>
-    </div>
     <section className="ccx-hero-image relative w-full overflow-hidden">
       <picture>
         <source media="(max-width: 640px)" srcSet="/ContentConnectX__Create,_Collaborate,_Grow.png"/>

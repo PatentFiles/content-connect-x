@@ -279,6 +279,7 @@
 .ccx-public-hero-actions {
   display: flex;
   bottom: 22%;
+  transform: translateY(108px);
 }
 .ccx-app #main-content > .w-full > * { margin-left: auto; margin-right: auto; }
 .ccx-public-hero-actions .ccx-primary {
@@ -289,14 +290,30 @@
 .ccx-public-hero-actions .ccx-primary span {
   font-size: 1.75rem;
 }
+.ccx-host-connect-header {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
 @media (max-width: 640px) {
-  .ccx-public-hero-actions { display: flex; bottom: 20%; }
+  .ccx-public-hero-actions {
+    display: flex;
+    bottom: 20%;
+    transform: translateY(-12.5%);
+  }
   .ccx-public-hero-actions .ccx-primary {
     font-size: 1rem;
     padding: 0.75rem 1.75rem;
   }
   .ccx-public-hero-actions .ccx-primary span {
     font-size: 1.125rem;
+  }
+  .ccx-host-connect-header {
+    left: 0;
+    right: auto;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
   }
   .ccx-public-auth-links > div { justify-content: center; }
   .ccx-public-section-head { text-align: center; }
