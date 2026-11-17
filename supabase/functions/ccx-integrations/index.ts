@@ -249,8 +249,17 @@ Deno.serve(async req=>{
     :digital?Number(result.digital_id?.threshold)
     :estimate?Number(result.age_estimation?.threshold):0;
   const validMethod=doc||digital||estimate;
-  const agePass=result.status==='COMPLETE'&&result.result!==false&&
-   validMethod&&Number.isFinite(threshold)&&threshold>=(estimate?21:18);
+  // Yoti documents that OVER+COMPLETE means the threshold passed; the
+  // returned age is that verified threshold (not the individual's DOB).
+  // Require a matching allowed method and explicit age threshold.
+  const allowed=doc?result.doc_scan?.allowed===true
+    :digital?result.digital_id?.allowed===true
+    :estimate?result.age_estimation?.allowed===true:false;
+  const checkedAge=Number(result.age);
+  const agePass=result.type==='OVER'&&result.status==='COMPLETE'&&
+   result.result!==false&&validMethod&&allowed&&
+   Number.isFinite(threshold)&&threshold>=(estimate?21:18)&&
+   Number.isFinite(checkedAge)&&checkedAge>=18&&checkedAge>=threshold;
   const digestBytes=new TextEncoder().encode(JSON.stringify(result));
   const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',digestBytes)))
     .map(x=>x.toString(16).padStart(2,'0')).join('');
