@@ -23,8 +23,9 @@ import CreatorProfileEditor from './CreatorProfileEditor';
 import CreatorDiscovery from './CreatorDiscovery';
 import YotiVerification from './YotiVerification';
 import PublicLandingSections from './PublicLandingSections';
+import PublicPricing from './PublicPricing';
 const HostingMarketplace = React.lazy(() => import('./HostingMarketplace'));
-import { LockKeyhole, UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
+import { UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
 
 const shell = 'ccx-app min-h-screen text-[#F5F3FF]';
 const panel = 'ccx-surface p-5';
@@ -75,6 +76,16 @@ export default function SupabaseApp() {
   },[]);
   const user = session?.user;
   const authPage = window.location.pathname==='/login'||window.location.pathname==='/signup';
+  const pricingPage = /^\/pricing\/?$/i.test(window.location.pathname);
+  // After a successful sign-in, show the authenticated dashboard URL and sidebar.
+  // This also covers users who refresh a stale /login or /signup link while signed in.
+  useEffect(()=>{
+    if(!user?.id)return;
+    if(/^\/(login|signup)\/?$/i.test(window.location.pathname)){
+      window.history.replaceState({...window.history.state},'', '/Dashboard');
+      setTab('dashboard');
+    }
+  },[user?.id]);
   const approved = verification?.status === 'approved' && (!verification.expires_at || new Date(verification.expires_at) > new Date());
   const activePaid = (billing?.status === 'active' || billing?.status === 'trial') && (!billing?.period_end || new Date(billing.period_end) > new Date());
   const isAdmin = security?.admin === true;
@@ -217,6 +228,18 @@ export default function SupabaseApp() {
   };
 
   if(loading||mfaChecking)return <div className={`${shell} grid place-items-center`}><Loader2 className="animate-spin"/></div>;
+  if(!user&&pricingPage)return <div className={shell}>
+    <div className="ccx-brand-topline"/>
+    <header className="ccx-public-auth-links px-4 py-3 sm:px-6" aria-label="Account links">
+      <nav className="mx-auto flex max-w-7xl flex-wrap justify-end gap-2">
+        <a href="/login" className="ccx-secondary rounded-lg px-3 py-2 text-sm">Log in</a>
+        <a href="/signup" className="ccx-primary rounded-lg px-3 py-2 text-sm">Sign up</a>
+        <a href="/pricing" className="ccx-secondary rounded-lg px-3 py-2 text-sm">Pricing</a>
+        <a href="/pricing" aria-current="page" className="ccx-secondary rounded-lg border-[#FF8CDE] px-3 py-2 text-sm">Pricing</a>
+      </nav>
+    </header>
+    <PublicPricing/>
+  </div>;
   if(!user&&!authPage)return <div className={shell}>
     <div className="ccx-brand-topline"/>
     <header className="ccx-public-auth-links px-4 py-3 sm:px-6" aria-label="Account links">
@@ -279,6 +302,7 @@ export default function SupabaseApp() {
         <div className="mt-5"><ErrorMessage message={error}/>{notice&&<p className="mt-3 text-sm text-emerald-300" role="status">{notice}</p>}</div>
         <p className="mt-5 text-center text-xs text-[#99A9C4]">Independent adult verification is required before accessing protected creator and location features.</p>
         <a href="/" className="mt-4 block text-center text-sm text-[#FF87D8] underline underline-offset-4">Back to home page</a>
+        <a href="/pricing" className="mt-2 block text-center text-sm text-[#B7C3DD] underline underline-offset-4">View membership pricing</a>
       </section>
     </div>
   </div>;
@@ -398,6 +422,7 @@ export default function SupabaseApp() {
     {tab==='agreements' && approved && paid && <AgreementPackets/>}
     {tab==='controls' && approved && isAdmin && <AdminProductControls/>}
     {tab==='integrations' && approved && isAdmin && <IntegrationHealth/>}
-    {tab==='membership'&&<div className={`${panel} max-w-2xl space-y-3`}><h2 className="text-xl font-semibold">Free today. Unlock more when ready.</h2><p className={muted}>Your free account includes age verification, profile setup and limited directory previews.</p><div className="p-4 rounded-lg bg-[#1A2438]"><LockKeyhole className="text-blue-400 mb-2"/>Full discovery, direct messages, contracts, collaboration rooms, property booking and advanced tools require membership.</div><p className="text-sm text-amber-200">Checkout will only become available after an approved adult-industry payment provider is configured. Payment is never collected by this website directly.</p><div className="flex flex-wrap gap-2"><p className={muted}>Paid checkout is paused until an adult-industry merchant processor approves this business model. No subscription charges are possible from this preview.</p></div></div>}
+    {tab==='membership'&&<PublicPricing signedIn onNavigate={navigateInWorkspace}/>}
+
   </>}</OriginalShell>;
 }
