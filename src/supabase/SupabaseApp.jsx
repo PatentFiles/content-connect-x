@@ -255,19 +255,9 @@ export default function SupabaseApp() {
   </div>;
   if(!user&&authPage)return <div className={shell}>
     <div className="ccx-brand-topline"/>
-    <div className="mx-auto flex min-h-[calc(100vh-4px)] max-w-6xl flex-col justify-center gap-6 px-4 py-8 lg:grid lg:grid-cols-[1.15fr_.85fr] lg:items-center lg:gap-8 lg:px-6">
-      <section className="ccx-login-art flex min-h-[245px] flex-col justify-end rounded-[26px] p-6 sm:min-h-[390px] sm:p-9">
-        <div className="relative z-10 max-w-md">
-          <p className="ccx-eyebrow">The creative connection</p>
-          <h1 className="mt-3 text-3xl font-extrabold leading-tight sm:text-[2.6rem]">Create. Collaborate. <span className="ccx-gradient-text">Connect.</span></h1>
-          <p className="mt-3 max-w-sm text-sm leading-6 text-[#E5E0F1]">Professional creators, production teams, studios and trusted locations—all in one private workspace.</p>
-          <div className="mt-5 flex flex-wrap gap-2 text-xs">
-            <span className="ccx-secondary rounded-full px-3 py-1.5">Verified professionals</span>
-            <span className="ccx-secondary rounded-full px-3 py-1.5">Production management</span>
-          </div>
-        </div>
-      </section>
-      <section id="ccx-auth" className="ccx-surface w-full max-w-xl scroll-mt-24 justify-self-center p-6 sm:p-8" aria-label={signUp?'Create a Content Connect X account':'Sign in to Content Connect X'}>
+    <div className="relative flex min-h-[calc(100vh-4px)] items-center justify-center overflow-hidden px-4 py-8 sm:px-6">
+      <section className="ccx-login-art absolute inset-0 rounded-none border-0" aria-hidden="true"/>
+      <section id="ccx-auth" className="ccx-surface relative z-10 w-full max-w-xl scroll-mt-24 bg-[#11182b]/90 p-6 backdrop-blur-xl sm:p-8" aria-label={signUp?'Create a Content Connect X account':'Sign in to Content Connect X'}>
         <div className="flex items-center gap-4">
           <img src="/content_connect_logo.png" alt="Content Connect X" className="ccx-brand-mark h-16 w-16 shrink-0 rounded-2xl object-cover"/>
           <div><p className="ccx-eyebrow">Content Connect X</p><h2 className="mt-1 text-2xl font-bold">{signUp?'Join the network':'Welcome back'}</h2></div>
