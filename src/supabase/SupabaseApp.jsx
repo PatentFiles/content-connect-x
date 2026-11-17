@@ -135,6 +135,7 @@ export default function SupabaseApp() {
       if(active){
         if(event==='PASSWORD_RECOVERY')setPasswordRecoverySession(true);
         if(event==='SIGNED_OUT'){
+          sessionRef.current=null;
           setPasswordRecoverySession(false);
           setSession(null);setProfile(null);setVerification(null);setBilling(null);setSecurity(null);
           setAccountLoaded(true);
@@ -262,6 +263,14 @@ export default function SupabaseApp() {
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
 
+  if(user&&!accountLoaded&&error&&!loading)return <div className={shell+' grid min-h-screen place-items-center px-5'}>
+    <section role="alert" className={panel+' max-w-md space-y-4 text-center'}>
+      <h2 className="text-xl font-bold">Unable to load your account permissions</h2>
+      <p className="text-sm text-[#C4CDE1]">{error}</p>
+      <p className="text-xs text-[#9BAEC8]">No verification status has been changed. Retry once to load your current account.</p>
+      <button className={primary} onClick={()=>{setError('');void refresh(session).catch(e=>setError(e.message));}}>Retry account check</button>
+    </section>
+  </div>;
   if(loading||mfaChecking||(user&&!accountLoaded))return <div className={`${shell} grid place-items-center`}><Loader2 className="animate-spin"/></div>;
   if(!user&&pricingPage)return <div className={shell}>
     <div className="ccx-brand-topline"/>
