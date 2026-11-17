@@ -22,6 +22,7 @@
   --cc-surface-hover: #212842;
   --cc-border: #303650;
   --cc-border-hover: #55547C;
+  scroll-padding-top: 80px;
   background:
     radial-gradient(ellipse 64rem 36rem at 100% -12rem, rgba(80,103,255,.12), transparent 64%),
     radial-gradient(ellipse 47rem 34rem at -9rem 20rem, rgba(234,0,197,.075), transparent 66%),

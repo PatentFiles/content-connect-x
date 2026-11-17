@@ -26,7 +26,7 @@ function StatusCard({label,value,detail,Icon,tone='neutral',onClick}) {
 const modules=[
   {key:'directory',title:'Discover creators',description:'Find verified talent, videographers and production partners.',Icon:Search,tag:'DISCOVERY',color:'rgba(233,0,197,.17)'},
   {key:'production',title:'Production Manager',description:'Coordinate teams, shoot schedules, consent and project safety.',Icon:UsersRound,tag:'COORDINATE',color:'rgba(255,73,182,.17)'},
-  {key:'hosting',title:'Locations & studios',description:'Explore and manage filming spaces, equipment and reservations.',Icon:Building2,tag:'BOOK SPACES',color:'rgba(79,140,255,.19)'},
+  {key:'hosting',title:'Locations & studios',description:'Discover and manage filming spaces, equipment and reservations.',Icon:Building2,tag:'BOOK SPACES',color:'rgba(79,140,255,.19)'},
   {key:'workspace',title:'Messages & projects',description:'Manage professional conversations, invites and collaborations.',Icon:MessageSquare,tag:'WORKSPACE',color:'rgba(181,93,246,.17)'},
   {key:'schedule',title:'Availability',description:'Keep your availability organized for the next collaboration.',Icon:CalendarDays,tag:'PLAN AHEAD',color:'rgba(79,140,255,.15)'},
   {key:'account-security',title:'Trust & account',description:'Control security, your account and access settings.',Icon:LockKeyhole,tag:'SECURITY',color:'rgba(255,73,182,.16)'},
@@ -40,7 +40,7 @@ export default function DashboardHome({profile,verification,approved,paid,onNavi
   const status=approved?'Verified':verification?.status==='pending'?'Pending review':'Not verified';
   const nextStep=!hasProfile?{key:'profile',label:'Complete your profile'}:
     !approved?{key:'verification',label:verification?.status==='pending'?'View verification':'Verify your age'}:
-      {key:'hosting',label:'Explore studios & locations'};
+      {key:'hosting',label:'Discover studios & locations'};
 
   return <div className="space-y-6">
     <section className="ccx-hero rounded-[26px] min-h-[282px] md:min-h-[320px]">

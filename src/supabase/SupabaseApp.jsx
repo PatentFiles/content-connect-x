@@ -349,7 +349,7 @@ export default function SupabaseApp() {
   };
 
   /** @type {Array<[string, string, import('react').ElementType]>} */
-  const menu=[['dashboard','Dashboard',UserRound],['profile','My Profile',UserRound],['verification','Free Age Verification',ShieldCheck],['directory','Explore',Search],['membership','Membership',CreditCard]];
+  const menu=[['dashboard','Dashboard',UserRound],['profile','My Profile',UserRound],['verification','Free Age Verification',ShieldCheck],['directory','Discovery',Search],['membership','Membership',CreditCard]];
   menu.push(['consent','My Consent & Rights',ShieldCheck]);
   menu.push(['account-security','Account Security',LockKeyhole]);
   if(approved) {
@@ -376,7 +376,7 @@ export default function SupabaseApp() {
   }
   return <div className={shell}>
     <div className="ccx-brand-topline"/>
-    <header className="ccx-shell-header sticky top-0 z-40 px-4 py-3" role="banner">
+    <header className="ccx-shell-header sticky top-0 z-50 px-4 py-3" role="banner">
       <div className="mx-auto flex w-full max-w-5xl flex-wrap items-center justify-between gap-3">
         <button className="flex items-center gap-3 text-left" onClick={()=>{setTab('dashboard');setError('');}} aria-label="Go to the Content Connect X dashboard">
           <img src="/content_connect_logo.png" alt="" className="ccx-brand-mark h-11 w-11 rounded-xl object-cover"/>
@@ -388,7 +388,7 @@ export default function SupabaseApp() {
         </div>
       </div>
     </header>
-    <main id="main-content" className="mx-auto flex w-full max-w-5xl flex-col items-center px-4 pb-12 pt-5 md:px-6">
+    <main id="main-content" className="mx-auto flex w-full max-w-5xl flex-col items-center px-4 pb-12 pt-8 md:px-6">
       <div className="relative mb-6 w-full sm:hidden">
         <button type="button" className="ccx-mobile-menu-trigger flex w-full items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold" onClick={()=>setMobileMenuOpen(open=>!open)} aria-expanded={mobileMenuOpen} aria-controls="mobile-workspace-navigation">
           <span>{menu.find(([key])=>key===tab)?.[1]||'Workspace menu'}</span>{mobileMenuOpen?<X size={18}/>:<Menu size={18}/>} 
@@ -408,7 +408,7 @@ export default function SupabaseApp() {
     {tab==='verification'&&<div className={`${panel} space-y-4 max-w-2xl`}><h2 className="text-xl font-semibold">Free age verification</h2><p className={muted}>Identity documents are stored privately for authorized review. Upload your ID and a selfie; this does not grant immediate verified status.</p>{approved?<div className="flex gap-2 text-green-400"><CheckCircle2/>Verified</div>:verification?.status==='pending'?<p className="text-amber-300">Your documents are under review. No payment is required.</p>:<><label className="block text-sm">Government ID<input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={upload('id')} className="block mt-2 text-sm" disabled={busy}/></label><label className="block text-sm">Selfie<input type="file" accept="image/jpeg,image/png,image/webp" onChange={upload('selfie')} className="block mt-2 text-sm" disabled={busy}/></label><button className={`${primary} inline-flex gap-2 items-center`} disabled={busy||!documents.id||!documents.selfie} onClick={submitVerification}><UploadCloud size={16}/> Submit for review</button></>}</div>}
     {tab==='verification'&&<div className="mt-5 max-w-2xl"><YotiVerification/></div>}
     {tab==='directory'&&<section className="space-y-4">
-      <div><h2 className="text-xl font-semibold">Explore creators</h2>
+      <div><h2 className="text-xl font-semibold">Discovery</h2>
         <p className="mt-1 text-sm text-[#AABCD2]">Find verified professionals by role, name and approximate public location.</p>
       </div>
       {!approved?<p className={panel}>Complete your free age verification to view the directory.</p>:<>
