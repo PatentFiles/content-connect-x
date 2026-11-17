@@ -65,14 +65,18 @@ Deno.serve(async req=>{
   const actionFeatures:Record<string,string>={
     start_conversation:'messages',create_conversation:'messages',
     list_conversations:'messages',list_messages:'messages',send_message:'messages',
-    mark_conversation_read:'messages',
+    mark_conversation_read:'messages',create_group_conversation:'messages',
+    edit_message:'messages',delete_message:'messages',react_message:'messages',
+    create_collaboration:'collaborations',invite_collaborator:'collaborations',
+    respond_invitation:'collaborations',
+    request_connection:'connections',respond_connection:'connections',
     list_contracts:'contracts',create_contract:'contracts',sign_contract:'contracts',
     list_properties:'property_bookings',list_my_properties:'property_bookings',
     create_property:'property_bookings',list_bookings:'property_bookings',
     book_property:'property_bookings',respond_booking:'property_bookings'
   };
   const featureKey=actionFeatures[action];
-  if(featureKey&&!adminRole){
+  if(featureKey){
     const {data:flag,error:flagError}=await admin.from('product_feature_flags')
       .select('enabled,allowed_tiers,rollout_percent').eq('key',featureKey).maybeSingle();
     if(flagError||!flag?.enabled||!flag.allowed_tiers?.includes(paid?'premium':'free'))
