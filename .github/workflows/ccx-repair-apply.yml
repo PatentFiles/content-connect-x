@@ -19,17 +19,17 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           code=Path('.ccx-repair/apply.py').read_text()
-          # Discovery already parses its backend errors correctly; preserve it.
           code=code.replace("edit('src/supabase/CreatorDiscovery.jsx',discovery)\n",'')
+          code=code.replace("edit('.github/workflows/frontend-quality.yml',ci)\n",'')
           exec(compile(code,'.ccx-repair/apply.py','exec'))
           PY
-      - name: Remove this one-time helper and commit the actual source changes
+      - name: Commit reviewed application changes only
         run: |
-          rm .ccx-repair/apply.py .github/workflows/ccx-repair-apply.yml
+          rm .ccx-repair/apply.py
           rmdir .ccx-repair
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src/supabase/SupabaseApp.jsx src/supabase/OriginalShell.jsx src/supabase/MemberWorkspace.jsx tests/membership-policy.test.mjs .github/workflows/frontend-quality.yml supabase/functions/member-workflows/index.ts .ccx-repair/apply.py .github/workflows/ccx-repair-apply.yml
+          git add src/supabase/SupabaseApp.jsx src/supabase/OriginalShell.jsx src/supabase/MemberWorkspace.jsx tests/membership-policy.test.mjs supabase/functions/member-workflows/index.ts .ccx-repair/apply.py
           git commit -m 'fix(workflows): separate module availability from verification and repair member UI contracts'
           git push origin HEAD:fix/custom-dashboard-workflow-access-20261117
       - uses: actions/setup-node@v4
@@ -37,7 +37,7 @@ jobs:
           node-version: '20'
           cache: npm
       - run: npm ci
-      - name: Package source and installed dependencies without Git credentials or environment files
+      - name: Package source and installed dependencies without credentials or environment files
         run: tar -czf /tmp/ccx-reviewed-source.tgz src supabase scripts tests docs ops public package.json package-lock.json index.html vite.config.js jsconfig.json postcss.config.js tailwind.config.js eslint.config.js node_modules
       - uses: actions/upload-artifact@v4
         with:
