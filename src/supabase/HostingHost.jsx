@@ -394,7 +394,10 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
               <option value="flexible">Flexible (24h refund window)</option><option value="moderate">Moderate (72h/24h)</option><option value="strict">Strict (7-day/72h)</option>
             </select></label>
             <label className="text-sm">Proposed security deposit (% of rental)<input className={input+' mt-1'} type="number" min={0} max={50} value={form.deposit_percent||0} onChange={e=>field('deposit_percent',Number(e.target.value))}/></label>
-            <label className="flex gap-3 items-center text-sm"><input type="checkbox" checked={Boolean(form.required_insurance)} onChange={e=>field('required_insurance',e.target.checked)}/>Require production insurance evidence</label>
+            <button type="button" role="checkbox" aria-checked={Boolean(form.required_insurance)}
+              className={'oh-option-tile sm:col-span-2 flex w-full items-center justify-between rounded-xl border p-3 text-left '+(form.required_insurance?'oh-option-selected':'oh-option-idle')}
+              onClick={()=>field('required_insurance',!form.required_insurance)}>Require production insurance evidence
+              <span className="oh-option-check" aria-hidden="true">{form.required_insurance?<Check size={15}/>:null}</span></button>
           </div>
           <label className="block text-sm">Full description<textarea className={input+' mt-1'} rows={4} maxLength={4000} value={form.description} onChange={e=>field('description',e.target.value)}/></label>
           <label className="block text-sm">Host rules and restrictions<textarea className={input+' mt-1'} rows={3} maxLength={3000} value={form.rules} onChange={e=>field('rules',e.target.value)}/></label>
