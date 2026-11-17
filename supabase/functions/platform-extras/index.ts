@@ -47,12 +47,18 @@ Deno.serve(async(req)=>{
   ]);
   if(sec.error||age.error||sub.error)return reject('Account status unavailable',503);
   if(sec.data?.banned||sec.data?.suspended)return reject('Account unavailable',403);
+  if(settingsRow.error)return reject('Platform configuration unavailable',503);
   const ageGateEnabled=settingsRow.data?.value!==false;
-  if(ageGateEnabled&&!isCurrent(age.data?.[0]))return reject('Approved age verification required',403);
   const admin=sec.data?.admin===true,paid=admin||isPaid(sub.data),tier=paid?'premium':'free';
   const body=await req.json().catch(()=>({}));
   const action=str(body?.action,70);
-  if(admin&&action.startsWith('admin_')&&assurance(req.headers.get('Authorization')||'')!=='aal2')return reject('Administrator MFA required',403);
+  const privilegedControl=action.startsWith('admin_');
+  // Allow an authenticated admin to repair platform settings even if the global
+  // member gate is enabled. MFA and the admin DB role are still mandatory.
+  if(privilegedControl&&(!admin||assurance(req.headers.get('Authorization')||'')!=='aal2'))
+    return reject('Verified administrator MFA required',403);
+  if(ageGateEnabled&&!isCurrent(age.data?.[0])&&!privilegedControl)
+    return reject('Approved age verification required',403);
   const feature=async(key:string,requiredTier=tier)=>{
     const {data,error}=await db.from('product_feature_flags').select('enabled,allowed_tiers,rollout_percent').eq('key',key).maybeSingle();
     if(error||!data?.enabled||!data.allowed_tiers?.includes(requiredTier))return false;
@@ -138,8 +144,8 @@ Deno.serve(async(req)=>{
         const value=body.value;
         if(typeof value!=='boolean')return reject('Invalid value',400);
         const {data,error}=await db.from('platform_settings').upsert({
-          key,value:JSON.stringify(value),updated_at:new Date().toISOString(),updated_by:uid
-        }).eq('key',key).select('key,value,updated_at').single();
+          key,value,updated_at:new Date().toISOString(),updated_by:uid
+        },{onConflict:'key'}).select('key,value,updated_at').single();
         if(error)throw error;
         await audits('change_platform_setting',null,{key,value});
         return reply({item:data});
