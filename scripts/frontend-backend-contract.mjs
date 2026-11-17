@@ -67,10 +67,10 @@ assert.match(app,/OriginalRoleDashboard/,'Original role-specific dashboards must
 assert.match(app,/OriginalShell/,'Original role-based sidebar and mobile shell must be mounted in app');
 const originalNav=get(root+'/originalRoleNav.jsx');
 for(const role of ['creator','agent','studio','photographer','videographer','video_editor','host']){
- assert.match(originalNav,new RegExp('\\\\b'+role+':\\\\s*\\\\['),
-  'Missing original role navigation: '+role);
+ assert.ok(originalNav.includes(role+': ['),'Missing original role navigation: '+role);
 }
-assert.doesNotMatch(app,/@base44\\/sdk|base44\.entities/,'Restored UI must not reintroduce Base44 backend calls');
+assert.ok(!app.includes('@base44/sdk')&&!app.includes('base44.entities'),
+ 'Restored interface must not call the retired Base44 backend');
 assert.match(bootstrap,/brand-theme\.css/,'Production theme CSS must be loaded');
 assert.doesNotMatch(app,/Supabase Preview|checkout\.stripe\.com|create-checkout/,'Outdated preview or Stripe frontend route still present');
 assert.doesNotMatch(member,/book_property|create_property|respond_booking/,'Obsolete direct property flow still visible in premium workspace');
