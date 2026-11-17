@@ -1,18 +1,20 @@
-/** Only build-time configured browser settings select the correct Supabase project.
- * Publishable keys are public. Service-role and other secrets must never be bundled.
+/**
+ * One Supabase client for Bolt preview, published frontend and local builds.
+ * The project's known public URL/publishable key are safe to bundle. Explicit
+ * environment settings take precedence; server/service-role credentials NEVER
+ * belong in this module.
  */
-import { createClient } from '@supabase/supabase-js';
+import {createClient} from '@supabase/supabase-js';
+import {resolveBrowserSupabaseConfig} from './publicSupabaseConfig.mjs';
 
-const url=import.meta.env.VITE_SUPABASE_URL;
-const publishableKey=import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY||import.meta.env.VITE_SUPABASE_ANON_KEY;
-const valid=typeof url==='string'&&url.startsWith('https://')&&
- typeof publishableKey==='string'&&publishableKey.length>=12;
-
-export const supabase=valid?createClient(url,publishableKey,{
- auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true},
-}):null;
+export const supabaseConfiguration=resolveBrowserSupabaseConfig(import.meta.env);
+export const supabase=supabaseConfiguration.ready
+ ?createClient(supabaseConfiguration.url,supabaseConfiguration.key,{
+   auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
+ }):null;
 
 export function requireSupabase(){
- if(!supabase)throw new Error('Deployment is missing VITE_SUPABASE_URL or VITE_SUPABASE_PUBLISHABLE_KEY');
+ if(!supabase)throw new Error(supabaseConfiguration.error||
+   'The public Supabase browser configuration is missing or invalid.');
  return supabase;
 }

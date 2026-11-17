@@ -17,7 +17,10 @@ ENV VITE_SENTRY_DSN=$VITE_SENTRY_DSN
 ENV VITE_FLAGSMITH_ENVIRONMENT_ID=$VITE_FLAGSMITH_ENVIRONMENT_ID
 ENV VITE_HOSTING_MAP_TILE_URL=$VITE_HOSTING_MAP_TILE_URL
 ENV VITE_HOSTING_PUSH_PUBLIC_KEY=$VITE_HOSTING_PUSH_PUBLIC_KEY
-RUN test -n "$VITE_SUPABASE_URL" && test -n "$VITE_SUPABASE_PUBLISHABLE_KEY" && npm run build
+# Bolt/GitHub builds may intentionally omit public Vite env vars. The application
+# then uses its checked-in, nonsecret Content Connect X publishable settings.
+# Server/service-role credentials must NEVER be supplied as Docker build args.
+RUN npm run build
 
 FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
 ENV PORT=8080

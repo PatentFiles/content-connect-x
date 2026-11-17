@@ -18,6 +18,7 @@
     "test:integrations": "node --test tests/yoti-trust-policies.test.mjs",
     "test:readiness": "node --test tests/integration-release-readiness.test.mjs",
     "test:directory": "node --test tests/directory-search-policy.test.mjs",
+    "test:bolt-config": "node --test tests/supabase-browser-config.test.mjs",
     "test:hosting:e2e": "node --test tests/hosting-authenticated.test.mjs",
     "verify:release": "node scripts/release-static-guards.mjs",
     "verify:frontend-contract": "node scripts/frontend-backend-contract.mjs",
