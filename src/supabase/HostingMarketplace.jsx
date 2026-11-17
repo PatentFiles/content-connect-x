@@ -6,7 +6,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Search, SlidersHorizontal, MapPin, Heart, CalendarDays, Users, Star,
-  Camera, Home, Film, ArrowLeft, ShieldCheck, ImageIcon,
+  Camera, Home, ArrowLeft, ShieldCheck, ImageIcon,
   Clock, ChevronRight, CheckCircle2, RefreshCw,
 } from 'lucide-react';
 import {

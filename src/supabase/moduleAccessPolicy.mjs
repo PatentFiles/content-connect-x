@@ -19,6 +19,6 @@ export function accessReason(tab,flags){
  const decision=flags.__ccxAccess?.[key];
  if(!decision)return 'unavailable';
  return decision.eligible===true&&flags[key]===true?'ready':
-   Object.hasOwn(ACCESS_COPY,decision.reason)?decision.reason:'unavailable';
+   Object.prototype.hasOwnProperty.call(ACCESS_COPY,decision.reason)?decision.reason:'unavailable';
 }
 export const accessCopy=reason=>ACCESS_COPY[reason]||ACCESS_COPY.unavailable;

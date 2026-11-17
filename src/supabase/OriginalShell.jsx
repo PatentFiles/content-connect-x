@@ -11,14 +11,14 @@ const routeMap=Object.freeze({
  Dashboard:'dashboard',Discovery:'directory',Search:'search',Favorites:'favorites',Connections:'connections',Messages:'messages',Collaborations:'collaborations',
  Contracts:'contracts',Testing:'testing',Verification:'verification',Properties:'hosting',HostingMarketplace:'hosting',HostDashboard:'host',HostProfile:'profile',
  HostSettings:'host-settings',Profile:'profile',Settings:'settings',Representations:'roster',Roster:'roster',RosterPortfolio:'roster',Portfolio:'portfolio',
- Notifications:'notifications',AvailabilitySchedule:'schedule',TravelSchedule:'schedule',AdminDashboard:'controls',AgentManagement:'controls',
+ Notifications:'notifications',AccountSecurity:'account-security',Consent:'consent',ProductionManager:'production',AvailabilitySchedule:'schedule',TravelSchedule:'schedule',AdminDashboard:'controls',AgentManagement:'controls',
  DeveloperReadMe:'developer',CompliancePortal:'integrations',TestingReviews:'testing-reviews',Pricing:'membership',Membership:'membership',
  CreateCollaboration:'collaborations',CollaborationDetail:'collaborations',ViewProfile:'directory',ViewContract:'contracts',PropertyDetail:'hosting'
 });
 const keyFor=path=>routeMap[path]||'dashboard';
 const reverseRoutes={dashboard:'Dashboard',directory:'Discovery',search:'Search',favorites:'Favorites',connections:'Connections',messages:'Messages',collaborations:'Collaborations',
  contracts:'Contracts',testing:'Testing',verification:'Verification',hosting:'Properties',host:'HostDashboard',profile:'Profile',settings:'Settings',portfolio:'Portfolio',
- notifications:'Notifications',schedule:'AvailabilitySchedule',representations:'Roster',roster:'Roster','host-settings':'HostSettings',controls:'AdminDashboard',integrations:'CompliancePortal','testing-reviews':'TestingReviews',membership:'Pricing'};
+ notifications:'Notifications','account-security':'AccountSecurity',consent:'Consent',production:'ProductionManager',schedule:'AvailabilitySchedule',representations:'Roster',roster:'Roster','host-settings':'HostSettings',controls:'AdminDashboard',integrations:'CompliancePortal','testing-reviews':'TestingReviews',membership:'Pricing'};
 export const tabFromLegacyPath=pathname=>{const part=decodeURIComponent(String(pathname||'').split('/').filter(Boolean)[0]||'');const matched=Object.keys(routeMap).find(key=>key.toLowerCase()===part.toLowerCase());return matched?routeMap[matched]:'dashboard';};
 export const legacyPathForTab=tab=>'/'+(reverseRoutes[tab]||'Dashboard');
 const tabMatches=(tab,path)=>tab===keyFor(path);
