@@ -102,7 +102,7 @@ export default function SupabaseApp() {
     if (!activeSession?.user) {setProfile(null);setVerification(null);setBilling(null);setSecurity(null);return;}
     const uid=activeSession.user.id;
     const [pr,ve,bi,se] = await Promise.all([
-      supabase.from('member_profiles').select('id,display_name,role_type,bio,city,state,country,avatar_path,cover_path,profile_complete,updated_at').eq('id',uid).maybeSingle(),
+      supabase.from('member_profiles').select('id,display_name,role_type,bio,city,state,country,avatar_path,cover_path,real_name,stage_name,company_name,representative_name,profile_complete,updated_at').eq('id',uid).maybeSingle(),
       supabase.from('age_verification_requests').select('id,status,created_at,verified_at,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
       supabase.from('member_subscriptions').select('status,plan_id,period_end').eq('user_id',uid).maybeSingle(),
       supabase.from('account_security').select('banned,suspended,admin').eq('user_id',uid).maybeSingle(),

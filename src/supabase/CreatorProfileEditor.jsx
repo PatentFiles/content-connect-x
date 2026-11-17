@@ -32,7 +32,8 @@ function CheckList({label,options,selected,change}){
 }
 export default function CreatorProfileEditor({user,profile,onSaved,approved=false,paid=false,isAdmin=false,onNavigate}){
  const [form,setForm]=useState({display_name:profile?.display_name||'',
-  role_type:profile?.role_type||'creator',bio:profile?.bio||'',
+  role_type:profile?.role_type||'creator',real_name:profile?.real_name||'',stage_name:profile?.stage_name||'',
+  company_name:profile?.company_name||'',representative_name:profile?.representative_name||'',bio:profile?.bio||'',
   city:profile?.city||'',state:profile?.state||'',
   country:countryCode(profile?.country||'US')});
  const [prefs,setPrefs]=useState(initial);
@@ -92,6 +93,8 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
    const display_name=form.display_name.trim().slice(0,100);
    if(!display_name)throw Error('Enter a display name.');
    const profileData={id:user.id,display_name,role_type:form.role_type,
+    real_name:form.real_name.trim().slice(0,120),stage_name:form.stage_name.trim().slice(0,120),
+    company_name:form.company_name.trim().slice(0,120),representative_name:form.representative_name.trim().slice(0,120),
     bio:form.bio.trim().slice(0,2000),city:form.city.trim().slice(0,100),
     state:form.state.trim().slice(0,100),country:countryName(form.country),
     updated_at:new Date().toISOString(),profile_complete:true};
@@ -187,11 +190,23 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
      {isOpen&&<div className="space-y-5 border-t px-5 pb-5 pt-4" style={{borderColor:'var(--cc-border)'}}>
       {id==='basic'&&<>
         <section className={panel}><h3 className="text-lg font-semibold">Professional details</h3>
-         <label className="block text-sm">Display name<input className={input+' mt-2'} value={form.display_name} maxLength={100}
-          onChange={e=>update('display_name',e.target.value)} required/></label>
-         <label className="block text-sm">Creator / professional type
+         <label className="block text-sm">Professional role
           <select className={input+' mt-2'} value={form.role_type} onChange={e=>update('role_type',e.target.value)}>
            {roleOptions.map(([key,name])=><option key={key} value={key}>{name}</option>)}</select></label>
+         {form.role_type==='creator'&&<>
+          <label className="block text-sm">Real name<input className={input+' mt-2'} value={form.real_name} maxLength={120} onChange={e=>update('real_name',e.target.value)} required/></label>
+          <label className="block text-sm">Stage name<input className={input+' mt-2'} value={form.stage_name} maxLength={120} onChange={e=>update('stage_name',e.target.value)}/></label>
+         </>}
+         {form.role_type==='studio'&&<>
+          <label className="block text-sm">Studio name<input className={input+' mt-2'} value={form.company_name} maxLength={120} onChange={e=>update('company_name',e.target.value)} required/></label>
+          <label className="block text-sm">Studio representative<input className={input+' mt-2'} value={form.representative_name} maxLength={120} onChange={e=>update('representative_name',e.target.value)} required/></label>
+         </>}
+         {form.role_type!=='creator'&&form.role_type!=='studio'&&<>
+          <label className="block text-sm">Company name (optional)<input className={input+' mt-2'} value={form.company_name} maxLength={120} onChange={e=>update('company_name',e.target.value)}/></label>
+          <label className="block text-sm">Real name<input className={input+' mt-2'} value={form.real_name} maxLength={120} onChange={e=>update('real_name',e.target.value)} required/></label>
+         </>}
+         <label className="block text-sm">Professional display name<input className={input+' mt-2'} value={form.display_name} maxLength={100}
+          onChange={e=>update('display_name',e.target.value)} required/></label>
          <label className="block text-sm">About you<textarea className={input+' mt-2'} rows={5} maxLength={2000}
           value={form.bio} onChange={e=>update('bio',e.target.value)}
           placeholder="Introduce your work, experience and what you're looking to create."/></label>

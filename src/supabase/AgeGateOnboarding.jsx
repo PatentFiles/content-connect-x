@@ -7,9 +7,21 @@ import {PROFESSIONAL_ROLES} from './membershipCatalog.mjs';
 
 const field='mt-1 w-full rounded-xl border border-[#34445D] bg-[#0F1520] px-3 py-2.5 text-sm text-white';
 export default function AgeGateOnboarding({user,profile,verification,onSaved,onReload,onSignOut}){
- const [name,setName]=useState(profile?.display_name||'');
  const [role,setRole]=useState(PROFESSIONAL_ROLES.some(r=>r.id===profile?.role_type)?profile.role_type:'creator');
+ const [realName,setRealName]=useState(profile?.real_name||'');
+ const [stageName,setStageName]=useState(profile?.stage_name||'');
+ const [companyName,setCompanyName]=useState(profile?.company_name||'');
+ const [representativeName,setRepresentativeName]=useState(profile?.representative_name||'');
  const [city,setCity]=useState(profile?.city||''),[state,setState]=useState(profile?.state||''),[country,setCountry]=useState(profile?.country||'');
+ const displayName=role==='creator'?(stageName.trim()||realName.trim()):role==='studio'?(companyName.trim()||representativeName.trim()):(companyName.trim()||realName.trim());
+ const roleFields={
+  creator:[['real','Real name',realName,setRealName,true],['stage','Stage name',stageName,setStageName,false]],
+  studio:[['company','Studio name',companyName,setCompanyName,true],['representative','Studio representative',representativeName,setRepresentativeName,true]],
+  photographer:[['company','Company name (optional)',companyName,setCompanyName,false],['real','Real name',realName,setRealName,true]],
+  videographer:[['company','Company name (optional)',companyName,setCompanyName,false],['real','Real name',realName,setRealName,true]],
+  video_editor:[['company','Company name (optional)',companyName,setCompanyName,false],['real','Real name',realName,setRealName,true]],
+  agent:[['company','Company name (optional)',companyName,setCompanyName,false],['real','Real name',realName,setRealName,true]]
+ }[role]||[];
  const [files,setFiles]=useState({id:null,selfie:null});
  const [loading,setLoading]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const complete=profile?.profile_complete===true;
@@ -24,10 +36,12 @@ export default function AgeGateOnboarding({user,profile,verification,onSaved,onR
  const saveProfile=async e=>{
   e.preventDefault();setError('');setNotice('');setLoading(true);
   try{
-   if(name.trim().length<2||!city.trim()||!country.trim())
-    throw Error('Display name, city and country are required before verification.');
+   if(!displayName||!city.trim()||!country.trim())
+    throw Error('Complete the required role information, city and country before verification.');
    const {error:writeError}=await supabase.from('member_profiles').upsert({
-    id:user.id,display_name:name.trim().slice(0,100),role_type:role,
+    id:user.id,display_name:displayName.slice(0,100),role_type:role,
+    real_name:realName.trim().slice(0,120),stage_name:stageName.trim().slice(0,120),
+    company_name:companyName.trim().slice(0,120),representative_name:representativeName.trim().slice(0,120),
     city:city.trim().slice(0,100),state:state.trim().slice(0,100),
     country:country.trim().slice(0,100),profile_complete:true,
     updated_at:new Date().toISOString()
@@ -94,10 +108,10 @@ export default function AgeGateOnboarding({user,profile,verification,onSaved,onR
     {error&&<p role="alert" className="rounded-xl bg-red-950 p-3 text-sm text-red-200">{error}</p>}
     {notice&&<p role="status" className="rounded-xl bg-emerald-950 p-3 text-sm text-emerald-200">{notice}</p>}
     {!complete?<form onSubmit={saveProfile} className="space-y-4">
-     <label className="block text-sm">Professional display name<input required minLength={2} maxLength={100} className={field} value={name} onChange={e=>setName(e.target.value)}/></label>
      <label className="block text-sm">Professional role<select className={field} value={role} onChange={e=>setRole(e.target.value)}>
       {PROFESSIONAL_ROLES.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}
      </select></label>
+     {roleFields.map(([key,label,value,setValue,required])=><label key={key} className="block text-sm">{label}<input required={required} maxLength={120} className={field} value={value} onChange={e=>setValue(e.target.value)}/></label>)}
      <div className="grid gap-3 sm:grid-cols-2">
       <label className="text-sm">City<input className={field} required maxLength={100} autoComplete="address-level2" value={city} onChange={e=>setCity(e.target.value)}/></label>
       <label className="text-sm">State / region<input className={field} maxLength={100} autoComplete="address-level1" value={state} onChange={e=>setState(e.target.value)}/></label>
