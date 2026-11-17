@@ -45,3 +45,12 @@ test('private socials require verified paid authorization, never free browser re
  assert.match(db,/share_with_premium boolean not null default false/i);
  assert.match(backend,/Professional social links require Premium membership/i);
 });
+
+test('free verified member messaging is backed by restrictive Supabase RLS policies',()=>{
+ const sql=read('supabase/migrations/20261117134400_verified_free_chat_rls.sql');
+ assert.match(sql,/create or replace function ccx_internal\.can_read_premium_chat/);
+ assert.match(sql,/latest\.status='approved'/);
+ assert.match(sql,/security\.banned or security\.suspended/);
+ assert.match(sql,/as restrictive for select to authenticated/i);
+ assert.doesNotMatch(sql,/member_subscriptions/);
+});
