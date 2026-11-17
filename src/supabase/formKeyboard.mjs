@@ -26,7 +26,7 @@ export function initializeFormKeyboardHints(root){
  if(!root||typeof MutationObserver==='undefined')return ()=>{};
  const enhance=(node)=>{
   if(!(node instanceof Element))return;
-  const candidates=node.matches('input')?[node,...node.querySelectorAll('input')]:node.querySelectorAll('input');
+  const candidates=[...(node.matches('input')?[node]:[]),...Array.from(node.querySelectorAll('input'))];
   for(const field of candidates){
    if(field.hasAttribute('inputmode'))continue;
    const mode=inferInputMode({
@@ -40,7 +40,7 @@ export function initializeFormKeyboardHints(root){
  };
  enhance(root);
  const observer=new MutationObserver(records=>{
-  for(const record of records)for(const node of record.addedNodes)enhance(node);
+  for(const record of records)for(const node of Array.from(record.addedNodes))enhance(node);
  });
  observer.observe(root,{childList:true,subtree:true});
  return ()=>observer.disconnect();
