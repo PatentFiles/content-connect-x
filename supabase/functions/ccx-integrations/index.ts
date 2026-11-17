@@ -498,13 +498,12 @@ Deno.serve(async req=>{
   const {data:member}=await db.from('collaboration_members')
    .select('user_id').eq('collaboration_id',idCollab).eq('user_id',uid).maybeSingle();
   if(!member)return bad('Not a collaboration member',403);
-  const [members,consents,clearances,hold]=await Promise.all([
+  const [members,consents,clearances]=await Promise.all([
    db.from('collaboration_members').select('user_id').eq('collaboration_id',idCollab),
    db.from('ccx_clearance_share_consents').select('user_id,revoked_at').eq('collaboration_id',idCollab),
-   db.from('performer_work_clearances').select('user_id,clearance_confirmed,expires_at,provider').in('user_id', (await db.from('collaboration_members').select('user_id').eq('collaboration_id',idCollab)).data?.map((m:any)=>m.user_id)||[]),
-   db.from('ccx_integrations').select('enabled').eq('provider','pass').maybeSingle()
+   db.from('performer_work_clearances').select('user_id,clearance_confirmed,expires_at,provider').in('user_id', (await db.from('collaboration_members').select('user_id').eq('collaboration_id',idCollab)).data?.map((m:any)=>m.user_id)||[])
   ]);
-  if(members.error||consents.error||clearances.error||hold.error)return bad('Provider status unavailable',503);
+  if(members.error||consents.error||clearances.error)return bad('Provider status unavailable',503);
   const opted=new Set((consents.data||[]).filter((v:any)=>!v.revoked_at).map((v:any)=>v.user_id));
   const all=(members.data||[]).map((v:any)=>{
    const userId=v.user_id;
@@ -516,10 +515,14 @@ Deno.serve(async req=>{
     // No lab diagnosis, test panel or medical PDF is ever disclosed.
     provider:allowed&&source?.provider==='pass'?'PASS':null};
   });
-  return out({members:all,ready:all.length>0&&all.every((v:any)=>v.sharing&&v.clearance==='current'),
-   checked_at:new Date().toISOString(),
-   production_hold_unknown:hold.data?.enabled!==true,
-   note:'Only binary work-clearance status is visible after each performer opts in. PASS production holds are not automatically monitored without an approved partner API.'});
+  const participantsReady=all.length>0&&all.every((v:any)=>v.sharing&&v.clearance==='current');
+  // A stored provider-enabled toggle is NOT evidence that production-hold
+  // monitoring exists. No verified PASS partner integration is implemented yet.
+  // Fail closed for production readiness while preserving independent provider
+  // clearances and performer-controlled sharing.
+  return out({members:all,participants_ready:participantsReady,ready:false,
+   checked_at:new Date().toISOString(),production_hold_unknown:true,
+   note:'Only consented binary work-clearance is displayed. Production readiness cannot be confirmed until PASS production holds can be checked through an approved partner integration.'});
  }
  default:return bad('Unknown action',404);
  }
