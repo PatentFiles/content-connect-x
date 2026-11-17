@@ -43,18 +43,22 @@ export default function DashboardHome({profile,verification,approved,paid,onNavi
       {key:'hosting',label:'Discover studios & locations'};
 
   return <div className="space-y-6">
-    <section className="ccx-hero rounded-[26px] min-h-[282px] md:min-h-[320px]">
-      <div className="ccx-hero-ambient absolute inset-0 pointer-events-none"/>
-      <div className="relative z-10 flex min-h-[282px] md:min-h-[320px] flex-col justify-center gap-4 px-6 py-10 md:px-10 md:py-12 max-w-[740px]">
+    <section className="ccx-surface overflow-hidden rounded-[26px]">
+      <div className="px-6 pb-6 pt-7 md:px-10 md:pb-7 md:pt-9">
         <div className="flex items-center gap-2 ccx-eyebrow"><Sparkles size={15}/> Your creative workspace</div>
-        <h2 className="max-w-2xl text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-[2.75rem]">
+        <h2 className="mt-3 max-w-2xl text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-[2.75rem]">
           {name?<>Welcome back, <span className="ccx-gradient-text">{name}</span>.</>:
             <>Create. Collaborate. <span className="ccx-gradient-text">Connect.</span></>}
         </h2>
-        <p className="max-w-lg text-sm sm:text-base leading-relaxed text-[#E2DAF3]">
+      </div>
+      <div className="ccx-hero min-h-[170px] rounded-none border-x-0 md:min-h-[220px]">
+        <div className="ccx-hero-ambient absolute inset-0 pointer-events-none"/>
+      </div>
+      <div className="px-6 pb-7 pt-6 md:px-10 md:pb-9 md:pt-7">
+        <p className="max-w-lg text-sm leading-relaxed text-[#E2DAF3] sm:text-base">
           Your productions, collaborations, locations and professional tools in one private workspace.
         </p>
-        <div className="flex flex-wrap gap-3 pt-1">
+        <div className="mt-4 flex flex-wrap gap-3">
           <button onClick={()=>onNavigate(nextStep.key)}
             className="ccx-primary inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm">
             {nextStep.label}<ArrowUpRight size={17}/>
