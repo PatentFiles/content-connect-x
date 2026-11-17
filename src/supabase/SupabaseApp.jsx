@@ -280,7 +280,7 @@ export default function SupabaseApp() {
           <form onSubmit={requestRecovery} className="mt-6 space-y-4">
             <p className="text-sm text-[#B7C3DD]">Enter your account email. We will send a recovery link if the address is registered.</p>
             <label className="block text-sm font-medium">Email address
-              <input className={input+' mt-2'} type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/>
+              <input className={input+' mt-2'} type="email" inputMode="email" autoCapitalize="none" spellCheck={false} value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/>
             </label>
             <button className={primary+' w-full'} disabled={busy}>{busy?'Sending…':'Email recovery link'}</button>
             <button type="button" className="w-full text-sm font-medium text-[#FF87D8] underline underline-offset-4"
@@ -289,10 +289,10 @@ export default function SupabaseApp() {
         :<>
           <form onSubmit={authenticate} className="mt-6 space-y-4">
             <label className="block text-sm font-medium">Email address
-              <input className={input+' mt-2'} type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/>
+              <input className={input+' mt-2'} type="email" inputMode="email" autoCapitalize="none" spellCheck={false} value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/>
             </label>
             <label className="block text-sm font-medium">Password
-              <input className={input+' mt-2'} type="password" value={password} onChange={e=>setPassword(e.target.value)}
+              <input className={input+' mt-2'} type="password" autoCapitalize="none" spellCheck={false} value={password} onChange={e=>setPassword(e.target.value)}
                 minLength={8} required autoComplete={signUp?'new-password':'current-password'}/>
             </label>
             <button className={primary+' w-full'} disabled={busy}>{busy?'Working…':signUp?'Create free account':'Sign in securely'}</button>
@@ -319,11 +319,11 @@ export default function SupabaseApp() {
       <h1 className="text-2xl font-bold">Set a new password</h1>
       <p className="text-sm text-[#B7C3DD]">Your recovery link has been verified. Create a new password to protect your account.</p>
       <label className="block text-sm">New password (12+ characters)
-        <input className={input+' mt-2'} type="password" autoComplete="new-password" required minLength={12}
+        <input className={input+' mt-2'} type="password" autoCapitalize="none" spellCheck={false} autoComplete="new-password" required minLength={12}
           value={newPassword} onChange={e=>setNewPassword(e.target.value)}/>
       </label>
       <label className="block text-sm">Confirm new password
-        <input className={input+' mt-2'} type="password" autoComplete="new-password" required minLength={12}
+        <input className={input+' mt-2'} type="password" autoCapitalize="none" spellCheck={false} autoComplete="new-password" required minLength={12}
           value={confirmNewPassword} onChange={e=>setConfirmNewPassword(e.target.value)}/>
       </label>
       <button className={primary+' w-full'} disabled={busy}>{busy?'Updating…':'Update password securely'}</button>
