@@ -17,7 +17,7 @@ import ReputationHub from './ReputationHub';
 import SecurityCenter from './SecurityCenter';
 import MfaChallenge from './MfaChallenge';
 import AgreementPackets from './AgreementPackets';
-import OriginalShell from './OriginalShell';
+import OriginalShell,{tabFromLegacyPath,legacyPathForTab} from './OriginalShell';
 import OriginalRoleDashboard from './OriginalRoleDashboard';
 import CreatorProfileEditor from './CreatorProfileEditor';
 import CreatorDiscovery from './CreatorDiscovery';
@@ -39,7 +39,7 @@ export default function SupabaseApp() {
   const [busy,setBusy] = useState(false);
   const [error,setError] = useState('');
   const [notice,setNotice] = useState('');
-  const [tab,setTab] = useState('dashboard');
+  const [tab,setTab] = useState(()=>tabFromLegacyPath(window.location.pathname));
   const [mobileMenuOpen,setMobileMenuOpen] = useState(false);
   const [profile,setProfile] = useState(null);
   const [rolePreview,setRolePreview]=useState(null);
@@ -316,8 +316,16 @@ export default function SupabaseApp() {
     try{const {data,error}=await supabase.functions.invoke('admin-age-review',{body:{request_id:recordId,action:'document',document_type}});if(error||data?.error||!data?.url)throw new Error(data?.error||error?.message||'Document unavailable');window.open(data.url,'_blank','noopener,noreferrer');}catch(e){setError(e.message);}finally{setBusy(false);}
   };
 
+  useEffect(()=>{
+    const onPopState=()=>{setTab(tabFromLegacyPath(window.location.pathname));setError('');};
+    window.addEventListener('popstate',onPopState);
+    return()=>window.removeEventListener('popstate',onPopState);
+  },[]);
   const navigateInWorkspace=(destination)=>{
     setTab(destination);setError('');setNotice('');
+    const target=legacyPathForTab(destination);
+    if(window.location.pathname!==target)
+      window.history.pushState({ccxTab:destination},'',target);
   };
   const signOut=()=>{void supabase.auth.signOut();};
   return <OriginalShell user={user} profile={profile} approved={approved}
