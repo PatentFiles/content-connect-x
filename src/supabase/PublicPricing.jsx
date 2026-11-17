@@ -5,7 +5,7 @@ import {ArrowRight,Check,ShieldCheck,UsersRound,Building2,LockKeyhole} from 'luc
 import {supabase} from '@/api/supabaseClient';
 import {PROFESSIONAL_ROLES,ROLE_BENEFITS,FREE_BENEFITS,DEFAULT_PREMIUM_PLANS} from './membershipCatalog.mjs';
 
-function Card({eyebrow,title,price,features,subtitle,highlight=false,action,href,disabled=false}){
+function Card({eyebrow,title,price,features,subtitle,highlight=false,action,href='/signup',disabled=false}){
  return <article className={'flex h-full flex-col rounded-2xl border p-5 sm:p-7 '+
  (highlight?'border-[#D34DBB]/70 bg-[#20172F] shadow-xl shadow-black/20':'border-[#34445D] bg-[#111A2B]')}>
   <p className="text-xs font-bold uppercase tracking-[.15em] text-[#FF91D9]">{eyebrow}</p>
@@ -21,17 +21,18 @@ function Card({eyebrow,title,price,features,subtitle,highlight=false,action,href
    <a href={href||'/signup'} className="ccx-primary mt-7 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white">{action}<ArrowRight size={17}/></a>}
  </article>;
 }
-export default function PublicPricing({signedIn=false,onNavigate,initialRole='creator'}){
+export default function PublicPricing({signedIn=false,onNavigate=()=>{},initialRole='creator'}){
  const [role,setRole]=useState(PROFESSIONAL_ROLES.some(x=>x.id===initialRole)?initialRole:'creator');
  const [plans,setPlans]=useState(DEFAULT_PREMIUM_PLANS);
  const [agentPlan,setAgentPlan]=useState('agent_10');
  useEffect(()=>{
   let live=true;
-  void supabase.from('membership_plan_catalog')
-   .select('plan_code,role_type,monthly_cents,label,roster_seats,display_order,active')
-   .eq('active',true).order('display_order').then(({data,error})=>{
-    if(live&&!error&&data?.length)setPlans(data);
-   }).catch(()=>{});
+  void (async()=>{
+   const {data,error}=await supabase.from('membership_plan_catalog')
+    .select('plan_code,role_type,monthly_cents,label,roster_seats,display_order,active')
+    .eq('active',true).order('display_order');
+   if(live&&!error&&data?.length)setPlans(data);
+  })().catch(()=>{});
   return()=>{live=false;};
  },[]);
  const matching=plans.filter(p=>p.role_type===role);

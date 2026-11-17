@@ -13,12 +13,12 @@ export default function MemberSocialLinks({userId}){
  const [error,setError]=useState(''),[message,setMessage]=useState('');
  useEffect(()=>{
   let live=true;
-  void supabase.from('member_social_links').select('links,share_with_premium').eq('user_id',userId).maybeSingle()
-   .then(({data,error:readError})=>{
-    if(!live)return;
-    if(readError)setError(readError.message);
-    else if(data){setValues(data.links||{});setShare(data.share_with_premium===true);}
-   }).catch(e=>{if(live)setError(e.message)});
+  void (async()=>{
+   const {data,error:readError}=await supabase.from('member_social_links').select('links,share_with_premium').eq('user_id',userId).maybeSingle();
+   if(!live)return;
+   if(readError)setError(readError.message);
+   else if(data){setValues(data.links||{});setShare(data.share_with_premium===true);}
+  })().catch(e=>{if(live)setError(e.message);});
   return()=>{live=false};
  },[userId]);
  const save=async e=>{

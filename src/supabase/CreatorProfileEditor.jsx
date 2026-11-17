@@ -37,7 +37,7 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
   country:countryCode(profile?.country||'US')});
  const [prefs,setPrefs]=useState(initial);
  const [creatorPrefs,setCreatorPrefs]=useState(initialCreatorPreferences);
- const [editing]=useState(true);
+ const [editing,setEditing]=useState(true);
  const [activeTab,setActiveTab]=useState('profile');
  const [openSection,setOpenSection]=useState(null);
  const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false);

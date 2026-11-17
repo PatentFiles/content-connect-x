@@ -2,7 +2,7 @@
 import React,{useEffect,useState} from 'react';
 import {ShieldCheck,Camera,RefreshCw,ExternalLink} from 'lucide-react';
 import {integrationAction} from './integrationApi';
-export default function YotiVerification({brand='content_connect',onApproval}){
+export default function YotiVerification({brand='content_connect',onApproval=()=>{}}){
  const [status,setStatus]=useState(null),[readiness,setReadiness]=useState(null);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const refresh=async(verify=false)=>{
