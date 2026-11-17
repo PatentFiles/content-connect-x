@@ -24,7 +24,7 @@ const subscribed=(record:any)=>['active','trial'].includes(record?.status)&&(!re
 const moment=(v:unknown)=>{const date=typeof v==='string'?new Date(v):new Date(NaN);return Number.isFinite(date.getTime())?date.toISOString():null;};
 const acceptedAmenities=new Set(['wifi','parking','private_entrance','makeup_room','dressing_room','shower','kitchen','restroom','soundproof','lighting','green_screen','power_220v','accessible','outdoor','security','air_conditioning','load_in','bedroom','pool']);
 const acceptedUses=new Set(['photography','filming','commercial','interviews','music_video','adult_production','events','equipment_rental']);
-const acceptedCategories=new Set(['film_studio','photo_studio','house','villa','loft','set','outdoor','equipment','other']);
+const acceptedCategories=new Set(['film_studio','photo_studio','house','villa','loft','set','outdoor','equipment','dungeon','other']);
 const hashClaim=(header:string)=>{try{const part=header.replace(/^Bearer\s+/i,'').split('.')[1];return JSON.parse(atob(part.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(part.length/4)*4,'=')))?.aal||'aal1';}catch{return 'aal1';}};
 const publicCols='id,owner_id,title,description,category,city,state,country,capacity,minimum_hours,hourly_rate,currency,amenities,permitted_uses,rules,setup_buffer_minutes,cleanup_buffer_minutes,cancellation_policy,deposit_percent,required_insurance,public_area_id,timezone,min_notice_hours,weekend_bps,holiday_bps,overtime_bps,cleaning_fee_cents,status,created_at';
 const ownerCols=publicCols+',submitted_at,approved_at';
