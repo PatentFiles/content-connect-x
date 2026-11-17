@@ -1,6 +1,9 @@
 [functions.media-gateway]
 verify_jwt = true
 
+[functions.membership-admin]
+verify_jwt = true
+
 [functions.admin-age-review]
 verify_jwt = true
 

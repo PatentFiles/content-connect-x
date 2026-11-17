@@ -25,13 +25,7 @@ Deno.serve(async(req)=>{
   const {data:role,error:roleError}=await admin.from('account_security').select('admin,banned,suspended').eq('user_id',user.id).maybeSingle();
   if(roleError||!role?.admin||role.banned||role.suspended)return respond({error:'Forbidden'},403);
   if(assurance(req.headers.get('Authorization')||'')!=='aal2')return respond({error:'Administrator MFA required'},403);
-  // Administrator accounts also require independent 18+ verification.
-  const {data:reviewerAge,error:reviewerAgeError}=await admin.from('age_verification_requests')
-    .select('status,expires_at').eq('user_id',user.id)
-    .order('created_at',{ascending:false}).limit(1);
-  if(reviewerAgeError||reviewerAge?.[0]?.status!=='approved'||
-    (reviewerAge?.[0]?.expires_at&&Date.parse(reviewerAge[0].expires_at)<Date.now()))
-    return respond({error:'Reviewer must be age verified'},403);
+  // Administrators may review age-verification requests without submitting their own documents.
   const body=await req.json().catch(()=>({}));
   if(body.action==='list'){
     const {data, error}=await admin.from('age_verification_requests').select('id,user_id,status,provider,created_at,verified_at,expires_at,reviewed_at').order('created_at',{ascending:false}).limit(100);

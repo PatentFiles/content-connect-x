@@ -3,7 +3,7 @@
   "functions": {
     "admin-age-review": {
       "hasChanged": false,
-      "hash": "77b64276cb06b9eb56c3fb6da3efcadd5060d19b750a6a50cd6bdc0c41af0bff"
+      "hash": "a79b18fb450200354d10357df26562b05f1d389f6434854d35969228911a7579"
     },
     "agreement-packets": {
       "hasChanged": false,
@@ -11,7 +11,7 @@
     },
     "ccx-integrations": {
       "hasChanged": false,
-      "hash": "f5d7623aed682e750e206a0e924f6728d224480992e94bad71e2376b3c695f3c"
+      "hash": "8f2405378ff2f97cb389f956bef5ef702c42ecd94db0ce2d0bda72828e503cc8"
     },
     "collaboration-consent": {
       "hasChanged": false,
@@ -23,7 +23,7 @@
     },
     "directory": {
       "hasChanged": false,
-      "hash": "0a883e911175cee7514f722875ea917ee0e4f641f25b3eabd7986ad04f2e23d3"
+      "hash": "8e7c23f37ac34e800e1fa37272f34cc9345f4e9067d739d095587e7778cd896c"
     },
     "hosting-advanced": {
       "hasChanged": false,
@@ -75,7 +75,11 @@
     },
     "member-workflows": {
       "hasChanged": false,
-      "hash": "2a779c7e96c29326223e5fab765eb8393ed312d8ed1f6b67dfcfba72af70b2a6"
+      "hash": "b02c67ea87d4e9f8586ba02b351ae7dcba768cb7fa19f8e5337e232b479f9564"
+    },
+    "membership-admin": {
+      "hasChanged": false,
+      "hash": "0e03bf0fbae65646bbd03d514e3a0b3a61eb1e4f8543551e569fab30e57b9f71"
     },
     "onlyhost-public": {
       "hasChanged": false,

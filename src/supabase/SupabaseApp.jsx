@@ -92,9 +92,9 @@ export default function SupabaseApp() {
       setTab('dashboard');
     }
   },[user?.id]);
-  const approved = verification?.status === 'approved' && (!verification.expires_at || new Date(verification.expires_at) > new Date());
-  const activePaid = (billing?.status === 'active' || billing?.status === 'trial') && (!billing?.period_end || new Date(billing.period_end) > new Date());
   const isAdmin = security?.admin === true;
+  const approved = isAdmin || (verification?.status === 'approved' && (!verification.expires_at || new Date(verification.expires_at) > new Date()));
+  const activePaid = (billing?.status === 'active' || billing?.status === 'trial') && (!billing?.period_end || new Date(billing.period_end) > new Date());
   const paid = activePaid || isAdmin;
   const suspended = security?.banned || security?.suspended;
 
