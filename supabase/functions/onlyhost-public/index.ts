@@ -29,23 +29,25 @@ Deno.serve(async req=>{
   if(!listings?.length)return respond({items:[],next_page:null});
   const ownerIds=[...new Set(listings.map(x=>x.owner_id))];
   const venueIds=listings.map(x=>x.id);
-  const [verifiedHosts,ageRows,bannedRows,photos,areas]=await Promise.all([
+  const [verifiedHosts,ageRows,hostAccounts,bannedRows,photos,areas]=await Promise.all([
    db.from('host_verification_requests').select('property_id,owner_id,expires_at').in('property_id',venueIds).eq('status','approved'),
    db.from('age_verification_requests').select('user_id,status,expires_at,created_at').in('user_id',ownerIds).order('created_at',{ascending:false}).limit(500),
+   db.from('onlyhost_accounts').select('user_id,status,terms_version').in('user_id',ownerIds),
    db.from('account_security').select('user_id,banned,suspended').in('user_id',ownerIds),
    db.from('property_images').select('id,property_id,storage_path,caption,position').in('property_id',venueIds).eq('status','approved').order('position').limit(200),
    db.from('hosting_public_areas').select('id,latitude,longitude,city,region').eq('approved',true).limit(500)
   ]);
-  for(const r of [verifiedHosts,ageRows,bannedRows,photos,areas])if(r.error)throw r.error;
+  for(const r of [verifiedHosts,ageRows,hostAccounts,bannedRows,photos,areas])if(r.error)throw r.error;
   const now=Date.now(),bad=new Set((bannedRows.data||[]).filter(v=>v.banned||v.suspended).map(v=>v.user_id));
   const ages=new Map();
   for(const v of ageRows.data||[])if(!ages.has(v.user_id))ages.set(v.user_id,v);
+  const acceptedHosts=new Set((hostAccounts.data||[]).filter(v=>v.status==='active'&&v.terms_version==='host-2026-11-17').map(v=>v.user_id));
   const hostVenues=new Set((verifiedHosts.data||[]).filter(v=>!v.expires_at||Date.parse(v.expires_at)>now).map(v=>v.property_id));
   const areaById=new Map((areas.data||[]).map(v=>[v.id,v]));
   const approved=listings.filter(v=>{
    const age=ages.get(v.owner_id);
-   return hostVenues.has(v.id)&&!bad.has(v.owner_id)&&age?.status==='approved'&&
-    (!age.expires_at||Date.parse(age.expires_at)>now);
+   return hostVenues.has(v.id)&&!bad.has(v.owner_id)&&(acceptedHosts.has(v.owner_id)||age?.status==='approved'&&
+    (!age.expires_at||Date.parse(age.expires_at)>now));
   });
   const images=(photos.data||[]);
   const items=await Promise.all(approved.map(async v=>{
