@@ -4,7 +4,7 @@
  */
 import React,{useCallback,useEffect,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
-import {Home,ArrowUpRight,ArrowRight,LogOut} from 'lucide-react';
+import {Home,ArrowUpRight,ArrowRight,LogOut,MapPin,CalendarDays,ShieldCheck,Camera,Clapperboard,UsersRound,FileSignature,Sparkles,CheckCircle2} from 'lucide-react';
 import HostingMarketplace from './HostingMarketplace';
 import YotiVerification from './YotiVerification';
 import {integrationAction} from './integrationApi';
@@ -105,15 +105,16 @@ export default function OnlyHostApp(){
  return <div className="oh-app min-h-screen text-[#F5F8FF]">
   <div className="oh-topline"/>
   <header className="oh-header sticky top-0 z-40">
-   <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-4 md:px-6">
-    <button className="flex items-center gap-3" onClick={()=>setView(user&&ready?'workspace':'account')} aria-label="Host Connect home">
-     <span className="oh-mark"><Home size={22} strokeWidth={2.3}/></span><span className="text-xl font-extrabold tracking-tight">Host<span className="oh-gradient-text">Connect</span><span className="ml-1 text-xs text-[#A4B5CF]">STUDIOS</span></span>
+   <div className="oh-header-inner mx-auto flex w-full max-w-[1600px] items-center gap-3 px-4 py-3 md:px-8">
+    <button className="oh-brand flex shrink-0 items-center gap-3" onClick={()=>setView(user&&ready?'workspace':'account')} aria-label="Host Connect home">
+     <span className="oh-mark"><Home size={22} strokeWidth={2.3}/></span>
+     <span className="oh-wordmark text-xl font-extrabold tracking-tight">Host<span className="oh-gradient-text">Connect</span></span>
     </button>
-    <div className="flex items-center gap-2">
-     <a href="/" className={secondary+' hidden sm:inline-flex'}>Content Connect X</a>
-     <button className={primary} onClick={openWorkspace}>{ready?'Property dashboard':'List your space'}<ArrowUpRight size={16}/></button>
+    <nav className="oh-header-actions ml-auto flex items-center justify-end gap-2" aria-label="Host Connect navigation">
+     <a href="/" className="oh-ccx-link inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold"><span className="oh-ccx-gradient">Content Connect X</span></a>
+     <button className={primary+' oh-list-space'} onClick={openWorkspace}>{ready?'Property dashboard':'List Your Space'}<ArrowUpRight size={16}/></button>
      {user&&<button className="oh-icon-button" onClick={()=>supabase.auth.signOut()} aria-label="Sign out"><LogOut size={18}/></button>}
-    </div>
+    </nav>
    </div>
   </header>
   <main id="main-content">
@@ -125,7 +126,55 @@ export default function OnlyHostApp(){
      </div>
      <HostingMarketplace paid={true} isAdmin={false} user={user} brand="host_connect" initialSection="host" hostOnly/>
     </div>
-   :<div className="mx-auto max-w-2xl space-y-5 px-4 py-10 md:py-16">
+   :<div className="oh-marketing">
+     <section className="oh-landing-banner" aria-label="Host Connect studios and locations">
+      <img src="/Host_Connect_Banner.png" alt="Host Connect — studios, locations and sets for professional productions" className="oh-landing-banner-image"/>
+     </section>
+     <section className="oh-landing-section oh-landing-intro" aria-labelledby="oh-features-title">
+      <div className="oh-landing-container">
+       <div className="oh-landing-heading">
+        <p className="oh-landing-kicker"><Sparkles size={15}/> SPACES · STUDIOS · PRODUCTION</p>
+        <h1 id="oh-features-title">Find the perfect space. <span className="oh-gradient-text">Create something exceptional.</span></h1>
+        <p>Professional spaces and the tools to manage a shoot — discover locations, coordinate teams and keep every booking detail organized.</p>
+       </div>
+       <div className="oh-landing-cards">
+        {[
+         {Icon:MapPin,title:'Discover Locations',tag:'EXPLORE',text:'Explore studios, film-friendly spaces and sets with clear listing details and general location information.'},
+         {Icon:CalendarDays,title:'Manage Availability',tag:'SCHEDULE',text:'Plan dates, set location availability and keep booking requests organized from your hosting workspace.'},
+         {Icon:Camera,title:'Production-Ready Spaces',tag:'CREATE',text:'Showcase your rooms, amenities, equipment and the types of shoots your property can support.'},
+         {Icon:ShieldCheck,title:'Verified Access',tag:'TRUST',text:'Age and identity checks help safeguard professional bookings and protect private access information.'},
+         {Icon:UsersRound,title:'Crew & Collaboration',tag:'CONNECT',text:'Coordinate production staff, invitations and the people involved with your shoot.'},
+         {Icon:FileSignature,title:'Booking Agreements',tag:'AGREE',text:'Keep the booking process connected to clear agreements and required provider approvals.'}
+        ].map(({Icon,title,tag,text})=><article className="oh-landing-card" key={title}>
+         <span className="oh-landing-card-tag">{tag}</span>
+         <span className="oh-landing-card-icon"><Icon size={28} strokeWidth={1.65}/></span>
+         <h2>{title}</h2><p>{text}</p>
+         <span className="oh-landing-card-accent" aria-hidden="true"/>
+        </article>)}
+       </div>
+      </div>
+     </section>
+     <section className="oh-landing-section oh-landing-process" aria-labelledby="oh-process-title">
+      <div className="oh-landing-container">
+       <div className="oh-landing-heading">
+        <p className="oh-landing-kicker"><Clapperboard size={15}/> FROM LISTING TO PRODUCTION</p>
+        <h2 id="oh-process-title">Your location. <span className="oh-gradient-text">Your workflow.</span></h2>
+       </div>
+       <div className="oh-landing-steps">
+        {[{n:'01',title:'Create an account',text:'Register a free Host Connect account.'},{n:'02',title:'Complete verification',text:'Finish independent age and identity review.'},{n:'03',title:'List your property',text:'Set up your rooms, images, rules and availability.'},{n:'04',title:'Manage requests',text:'Review booking details and coordinate production needs.'}].map(step=><article className="oh-landing-step" key={step.n}>
+         <span>{step.n}</span><h3>{step.title}</h3><p>{step.text}</p>
+        </article>)}
+       </div>
+      </div>
+     </section>
+     <section className="oh-landing-container oh-landing-account-area" aria-label="Host Connect registration and verification">
+      <div className="oh-landing-account-heading">
+       <p className="oh-landing-kicker"><CheckCircle2 size={15}/> GET STARTED</p>
+       <h2>Ready to list <span className="oh-gradient-text">your space?</span></h2>
+       <p>Start with your account. Protected hosting tools become available after required verification and registration.</p>
+      </div>
+      <div className="oh-landing-account-box">
+
      <a href="/" className="text-sm text-[#A6C9F0]">← Return to Content Connect X</a>
      <section className="oh-panel space-y-4 p-6 md:p-8">
       <h1 className="text-2xl font-bold">Your Host Connect account</h1>
@@ -149,9 +198,11 @@ export default function OnlyHostApp(){
        </>
       }
      </section>
+      </div>
+     </section>
     </div>}
   </main>
-  <footer className="border-t border-[#32465D] py-10"><div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 md:px-6"><p className="font-bold">Host<span className="oh-gradient-text">Connect</span> <span className="text-xs font-normal text-[#A4B9D1]">· Studios & Locations</span></p><p className="text-xs text-[#A4B9D1]">Host management workspace connected to Content Connect X.</p></div></footer>
+  <footer className="oh-footer"><div className="oh-landing-container oh-footer-inner"><p>© 2027 Host Connect. All rights reserved.</p><a href="/" className="oh-ccx-gradient">Content Connect X</a></div></footer>
   {showLogin&&<div className="oh-modal-backdrop" role="presentation" onClick={()=>setShowLogin(false)}>
    <section role="dialog" aria-modal="true" aria-label="Host Connect account" className="oh-modal max-w-md" onClick={e=>e.stopPropagation()}>
     <button className="absolute right-5 top-5" aria-label="Close" onClick={()=>setShowLogin(false)}>Close ×</button>
