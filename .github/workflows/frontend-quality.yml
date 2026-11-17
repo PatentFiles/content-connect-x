@@ -27,6 +27,8 @@ jobs:
         run: npm run typecheck
       - name: Hosting policy and geospatial tests
         run: npm run test:hosting
+      - name: Host refresh and private gallery authorization
+        run: node --test tests/host-refresh.test.mjs tests/hosting-discovery-runtime.test.mjs
       - name: Yoti integration trust boundaries
         run: npm run test:integrations
       - name: Modular feature registry tests
