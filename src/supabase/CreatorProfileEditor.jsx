@@ -7,6 +7,8 @@ import React,{useEffect,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
 import {Image,Activity,User,Edit2,ShieldCheck} from 'lucide-react';
 import MediaGallery from './MediaGallery';
+import OriginalCreatorPreferences,{initialCreatorPreferences} from './OriginalCreatorPreferences';
+import {originalCreatorCatalog,creatorFieldLabels,friendlyChoice} from './originalCreatorCatalog';
 import {countries,countryCode,countryName,regionOptions,roleOptions,
  genderOptions,orientationOptions,contentCategories,scenePairings,specialties} from './profileOptions';
 
@@ -24,12 +26,13 @@ function CheckList({label,options,selected,change}){
      onChange={e=>change(e.target.checked?[...selected,value]:selected.filter(v=>v!==value))}/>
     {name}</label>)}</div></fieldset>;
 }
-export default function CreatorProfileEditor({user,profile,onSaved,approved=false,paid=false,isAdmin=false}){
+export default function CreatorProfileEditor({user,profile,onSaved,approved=false,paid=false,isAdmin=false,onNavigate}){
  const [form,setForm]=useState({display_name:profile?.display_name||'',
   role_type:profile?.role_type||'creator',bio:profile?.bio||'',
   city:profile?.city||'',state:profile?.state||'',
   country:countryCode(profile?.country||'US')});
  const [prefs,setPrefs]=useState(initial);
+ const [creatorPrefs,setCreatorPrefs]=useState(initialCreatorPreferences);
  const [editing,setEditing]=useState(!profile?.profile_complete);
  const [activeTab,setActiveTab]=useState('profile');
  const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false);
@@ -40,11 +43,17 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
   let mounted=true;
   void (async()=>{
    try{
-    const {data,error:readError}=await supabase.from('member_profile_preferences')
-     .select('*').eq('user_id',user.id).maybeSingle();
+    const [profilePreferences,creatorPreferences]=await Promise.all([
+     supabase.from('member_profile_preferences').select('*').eq('user_id',user.id).maybeSingle(),
+     supabase.from('creator_production_preferences').select('*').eq('user_id',user.id).maybeSingle()
+    ]);
     if(!mounted)return;
-    if(readError)setError(readError.message);
-    else if(data)setPrefs({...initial,...data});
+    if(profilePreferences.error||creatorPreferences.error)
+     setError(profilePreferences.error?.message||creatorPreferences.error?.message);
+    else{
+     if(profilePreferences.data)setPrefs({...initial,...profilePreferences.data});
+     if(creatorPreferences.data)setCreatorPrefs({...initialCreatorPreferences,...creatorPreferences.data});
+    }
    }catch(e){if(mounted)setError(e.message);}
    finally{if(mounted)setLoading(false);}
   })();
@@ -73,6 +82,15 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
     updated_at:new Date().toISOString()};
    const {error:detailsError}=await supabase.from('member_profile_preferences').upsert(details,{onConflict:'user_id'});
    if(detailsError)throw detailsError;
+   if(form.role_type==='creator'){
+    // Restore the full original CreatorDetails schema as account-private rows.
+    const creatorDetails={user_id:user.id,
+     ...Object.fromEntries(Object.keys(initialCreatorPreferences).map(key=>[key,creatorPrefs[key]??initialCreatorPreferences[key]])),
+     updated_at:new Date().toISOString()};
+    const {error:creatorError}=await supabase.from('creator_production_preferences')
+     .upsert(creatorDetails,{onConflict:'user_id'});
+    if(creatorError)throw creatorError;
+   }
    setNotice('Your profile and private preferences were saved.');
    setEditing(false);
    if(onSaved)await onSaved();
@@ -135,12 +153,16 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
       </div>
       <p className="whitespace-pre-wrap text-sm" style={{color:'var(--cc-text-secondary)'}}>{form.bio}</p>
      </section>
-     {form.role_type==='creator'&&<section className={panel}>
-      <h3 className="text-lg font-semibold">Scene Pairings</h3>
-      <p className="text-sm" style={{color:'var(--cc-text-secondary)'}}>{prefs.scene_pairings.length?prefs.scene_pairings.join(' · '):'Not set'}</p>
-      <h3 className="mt-4 text-lg font-semibold">Content Categories</h3>
-      <p className="text-sm" style={{color:'var(--cc-text-secondary)'}}>{prefs.content_categories.length?prefs.content_categories.join(' · '):'Not set'}</p>
-     </section>}
+     {form.role_type==='creator'&&<div className="space-y-6">
+      {Object.keys(originalCreatorCatalog).map(key=><section key={key} className={panel}>
+       <h3 className="text-lg font-semibold">{creatorFieldLabels[key]}</h3>
+       <p className="mt-2 text-sm" style={{color:'var(--cc-text-secondary)'}}>
+        {creatorPrefs[key]?.length?creatorPrefs[key].map(friendlyChoice).join(' · '):'Not set'}</p>
+      </section>)}
+      <section className={panel}><h3 className="text-lg font-semibold">Collaboration Rate</h3>
+       <p className="text-sm" style={{color:'var(--cc-text-secondary)'}}>{creatorPrefs.rates_text||'Not specified'}</p>
+      </section>
+     </div>}
      <section className={panel}>
       <h3 className="text-lg font-semibold">Availability & Travel</h3>
       <p className="text-sm" style={{color:'var(--cc-text-secondary)'}}>{prefs.available_to_travel?'Available for travel':'Travel not enabled'}</p>
@@ -208,6 +230,8 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
    <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={prefs.available_to_travel}
     onChange={e=>preference('available_to_travel',e.target.checked)}/>Available to travel for collaborations</label>
   </section>
+  {form.role_type==='creator'&&<OriginalCreatorPreferences value={creatorPrefs}
+    onChange={setCreatorPrefs} onNavigate={onNavigate}/>}
   <section className={panel}><h3 className="text-lg font-semibold">Discoverability & privacy</h3>
    <p className="text-sm text-[#AABBD4]">Your name, professional role and general location appear only to eligible verified members. Sensitive matching details are never exposed unless you choose to share them.</p>
    <label className="flex items-center gap-3 text-sm"><input type="checkbox" checked={prefs.show_gender_in_discovery}
