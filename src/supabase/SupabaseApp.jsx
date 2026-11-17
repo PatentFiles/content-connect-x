@@ -93,6 +93,7 @@ export default function SupabaseApp() {
     }
   },[user?.id]);
   const isAdmin = security?.admin === true;
+  // Shell administration is separate from independently verified workflow access.
   const approved = isAdmin || (verification?.status === 'approved' && (!verification.expires_at || new Date(verification.expires_at) > new Date()));
   const activePaid = (billing?.status === 'active' || billing?.status === 'trial') && (!billing?.period_end || new Date(billing.period_end) > new Date());
   const paid = activePaid || isAdmin;
@@ -169,6 +170,12 @@ export default function SupabaseApp() {
     window.addEventListener('popstate',onPopState);
     return()=>window.removeEventListener('popstate',onPopState);
   },[]);
+
+  useEffect(()=>{
+    const update=()=>{if(session?.user)void refresh(session).catch(e=>setError(e.message));};
+    window.addEventListener('ccx-verification-refreshed',update);
+    return()=>window.removeEventListener('ccx-verification-refreshed',update);
+  },[session?.access_token,refresh]);
 
   const authenticate = async (event) => {
     event.preventDefault();setBusy(true);setError('');setNotice('');
