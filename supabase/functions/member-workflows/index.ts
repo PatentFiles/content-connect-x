@@ -516,20 +516,23 @@ Deno.serve(async req=>{
         if(!isId(target))return fail('Valid member required',400);
         const [ageCheck,settings,securityCheck,blocks]=await Promise.all([
           admin.from('age_verification_requests').select('status,expires_at').eq('user_id',target).order('created_at',{ascending:false}).limit(1),
-          admin.from('creator_production_preferences').select('show_socials_to_premium,socials').eq('user_id',target).maybeSingle(),
+          admin.from('member_social_links').select('share_with_premium,links').eq('user_id',target).maybeSingle(),
           admin.from('account_security').select('banned,suspended').eq('user_id',target).maybeSingle(),
           admin.from('member_blocks').select('blocker_id').or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1)
         ]);
         if(ageCheck.error||settings.error||securityCheck.error||blocks.error||
           !isAdult(ageCheck.data||[])||securityCheck.data?.banned||securityCheck.data?.suspended||
-          blocks.data?.length||!settings.data?.show_socials_to_premium)
+          blocks.data?.length||!settings.data?.share_with_premium)
           return respond({socials:{}});
         const clean:Record<string,string>={};
         for(const provider of ['onlyfans','fansly','twitter','instagram']){
-          const raw=settings.data.socials?.[provider];
+          const raw=settings.data.links?.[provider];
           if(typeof raw!=='string'||raw.length>500)continue;
           try{const url=new URL(raw);
-            if(url.protocol==='https:'&&!url.username&&!url.password)clean[provider]=url.toString();
+            const hostname=url.hostname.toLowerCase().replace(/^www\./,'');
+            const allowed=provider==='twitter'?['x.com','twitter.com'].includes(hostname)
+              :hostname===(provider==='instagram'?'instagram.com':provider+'.com');
+            if(url.protocol==='https:'&&allowed&&!url.username&&!url.password)clean[provider]=url.toString();
           }catch{}
         }
         return respond({socials:clean});

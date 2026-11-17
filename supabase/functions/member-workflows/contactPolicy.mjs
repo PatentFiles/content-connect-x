@@ -11,7 +11,7 @@ const states={
  georgia:'ga','new york':'ny',washington:'wa',oregon:'or',texas:'tx',
  colorado:'co',newjersey:'nj','new jersey':'nj',massachusetts:'ma'
 };
-const norm=v=>String(v||'').trim().toLowerCase().replace(/\\s+/g,' ');
+const norm=v=>String(v||'').trim().toLowerCase().replace(/\s+/g,' ');
 const state=v=>states[norm(v)]||norm(v);
 const nation=v=>['us','usa','united states','united states of america'].includes(norm(v))?'united states':norm(v);
 export function milesBetween(a,b){
