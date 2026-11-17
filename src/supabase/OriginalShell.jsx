@@ -20,6 +20,7 @@ const routeMap=Object.freeze({
  Notifications:'notifications',AvailabilitySchedule:'schedule',
  TravelSchedule:'schedule',AdminDashboard:'controls',AgentManagement:'controls',
  DeveloperReadMe:'developer',CompliancePortal:'integrations',
+ Pricing:'membership',Membership:'membership',
  CreateCollaboration:'collaborations',CollaborationDetail:'collaborations',
  ViewProfile:'directory',ViewContract:'contracts',PropertyDetail:'hosting'
 });
@@ -31,7 +32,7 @@ const reverseRoutes={
  host:'HostDashboard',profile:'Profile',settings:'Settings',portfolio:'Portfolio',
  notifications:'Notifications',schedule:'AvailabilitySchedule',
  representations:'Representations',roster:'RosterPortfolio',
- 'host-settings':'HostSettings',controls:'AdminDashboard'
+ 'host-settings':'HostSettings',controls:'AdminDashboard',membership:'Pricing'
 };
 /** Preserve the original Base44 URL names for refresh, deep links, and back/forward. */
 export const tabFromLegacyPath=pathname=>{
@@ -188,8 +189,10 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
       onClose={()=>setMobileOpen(false)} mobile/>)}
      {isAdmin&&adminNav.map(item=><MenuLink key={item.path} item={item} tab={tab} onNavigate={onNavigate}
       onClose={()=>setMobileOpen(false)} mobile/>)}
-     <button className="flex w-full items-center gap-3 px-4 py-3 text-sm"
-      onClick={onSignOut}><LogOut size={20}/> Log Out</button>
+     <div className="mt-4 border-t pt-3" style={{borderColor:'var(--cc-border)'}}>
+      <button type="button" aria-label="Sign out" className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold"
+       onClick={()=>{setMobileOpen(false);onSignOut();}}><LogOut size={20}/> Sign Out</button>
+     </div>
     </nav>
    </div>
   </div>}
