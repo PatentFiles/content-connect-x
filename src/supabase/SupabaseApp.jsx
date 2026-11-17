@@ -1,5 +1,5 @@
 /** Content Connect X — Supabase application, backed by protected Edge Functions. */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase, requireSupabase } from '@/api/supabaseClient';
 import { platformAction } from './platformApi';
 import MemberWorkspace from './MemberWorkspace';
@@ -12,7 +12,7 @@ import FeedbackHub from './FeedbackHub';
 import AdminConsole from './AdminConsole';
 import MediaGallery from './MediaGallery';
 import PassClearanceHub from './PassClearanceHub';
-import {isModuleEnabled} from './featureModules.mjs';
+import ModuleAccessBoundary from './ModuleAccessBoundary';
 import ProductionManager from './ProductionManager';
 import ReputationHub from './ReputationHub';
 import SecurityCenter from './SecurityCenter';
@@ -61,9 +61,22 @@ export default function SupabaseApp() {
   const [mfaChecking,setMfaChecking] = useState(true);
   const [mfaNeeded,setMfaNeeded] = useState(false);
   const [visibleFeatures,setVisibleFeatures] = useState(null);
+  const [featureAccess,setFeatureAccess] = useState({});
+  const [featureStatus,setFeatureStatus] = useState('loading');
+  const [featureError,setFeatureError] = useState('');
+  const featureGeneration=useRef(0);
   const refreshFeatureFlags=useCallback(async()=>{
-    const result=await platformAction('get_feature_flags');
-    setVisibleFeatures(result.flags||{});
+    const generation=++featureGeneration.current;
+    setFeatureStatus('loading');setFeatureError('');
+    try{
+      const result=await platformAction('get_feature_flags');
+      if(generation!==featureGeneration.current)return;
+      setVisibleFeatures(result.flags);setFeatureAccess(result.access||{});setFeatureStatus('ready');
+    }catch(failure){
+      if(generation!==featureGeneration.current)return;
+      setVisibleFeatures(null);setFeatureAccess({});setFeatureStatus('error');
+      setFeatureError(failure.message||'Unable to check module access.');
+    }
   },[]);
   // Yoti redirects are treated only as navigation hints, never proof of verification.
   useEffect(()=>{
@@ -93,7 +106,8 @@ export default function SupabaseApp() {
     }
   },[user?.id]);
   const isAdmin = security?.admin === true;
-  const approved = isAdmin || (verification?.status === 'approved' && (!verification.expires_at || new Date(verification.expires_at) > new Date()));
+  // Administrator shell access is not independent age verification.
+  const approved = (verification?.status === 'approved' && (!verification.expires_at || new Date(verification.expires_at) > new Date()));
   const activePaid = (billing?.status === 'active' || billing?.status === 'trial') && (!billing?.period_end || new Date(billing.period_end) > new Date());
   const paid = activePaid || isAdmin;
   const suspended = security?.banned || security?.suspended;
@@ -140,17 +154,15 @@ export default function SupabaseApp() {
   },[session?.access_token,refresh]);
 
   useEffect(()=>{
-    if(!approved){setVisibleFeatures(null);return;}
+    if(!user?.id){featureGeneration.current++;setVisibleFeatures(null);setFeatureAccess({});setFeatureStatus('loading');return;}
     let active=true;
-    const load=()=>{void refreshFeatureFlags().catch(()=>{
-      if(active)setVisibleFeatures({});
-    });};
+    const load=()=>{if(active)void refreshFeatureFlags();};
     load();
     window.addEventListener('focus',load);
     // Pick up platform rollouts for members already signed in.
     const interval=window.setInterval(load,60000);
-    return()=>{active=false;window.removeEventListener('focus',load);window.clearInterval(interval);};
-  },[approved,paid,refreshFeatureFlags]);
+    return()=>{active=false;featureGeneration.current++;window.removeEventListener('focus',load);window.clearInterval(interval);};
+  },[user?.id,approved,paid,refreshFeatureFlags]);
 
   useEffect(()=>{
     let alive=true;
@@ -341,7 +353,7 @@ export default function SupabaseApp() {
   // The authenticated creator application is never mounted before independent
   // 18+ approval. URL navigation, Escape, refresh and backdrop clicks cannot
   // dismiss this required onboarding. Log out is the only exit.
-  if(user&&!approved)return <AgeGateOnboarding
+  if(user&&!approved&&!isAdmin)return <AgeGateOnboarding
     user={user} profile={profile} verification={verification}
     onSaved={()=>refresh(session)} onReload={()=>refresh(session)}
     onSignOut={async()=>{
@@ -390,11 +402,7 @@ export default function SupabaseApp() {
       Account access is suspended. You can still review or withdraw your existing consent.</div>
       <ConsentCenter user={user} canGrant={false}/>
       <ProductionManager user={user} paid={false} isAdmin={false}/>
-    </div>:approved&&!isModuleEnabled(tab,visibleFeatures)?<section className={panel+' space-y-3'}>
-      <h2 className="text-xl font-semibold">This module is currently turned off</h2>
-      <p className="text-sm text-[#B7C5DA]">Your existing records remain stored. An administrator can enable this feature from Platform Controls.</p>
-      <button className={primary} onClick={()=>navigateInWorkspace('dashboard')}>Return to dashboard</button>
-    </section>:<>
+    </div>:<ModuleAccessBoundary tab={tab} flags={visibleFeatures} access={featureAccess} status={featureStatus} error={featureError} verified={approved} onRetry={refreshFeatureFlags} onNavigate={navigateInWorkspace}>
     {tab==='dashboard'&&<OriginalRoleDashboard profile={profile} verified={approved}
       paid={paid} onNavigate={navigateInWorkspace}
       roleOverride={isAdmin?rolePreview:null} features={visibleFeatures}/>}
@@ -415,7 +423,7 @@ export default function SupabaseApp() {
           Existing creator records are preserved and remain protected.</p>
         <button className={primary} onClick={()=>navigateInWorkspace('membership')}>Membership details</button>
       </div>:
-      <MemberWorkspace key={tab} user={user} paid={paid} flags={visibleFeatures||{}}
+      <MemberWorkspace key={tab} user={user} paid={paid} flags={visibleFeatures||{}} access={featureAccess} onNavigate={navigateInWorkspace} onAccessRefresh={refreshFeatureFlags}
        initialSection={['messages','connections','collaborations','contracts','notifications'].includes(tab)?tab:'collaborations'}/>
     )}
     {tab==='trust' && paid && approved && <TrustCenter isAdmin={isAdmin}/> }
@@ -462,5 +470,5 @@ export default function SupabaseApp() {
        onFeatureChange={()=>refreshFeatureFlags().catch(()=>setVisibleFeatures({}))}/>}
     {tab==='membership'&&<PublicPricing signedIn onNavigate={navigateInWorkspace} initialRole={profile?.role_type||'creator'}/>}
 
-  </>}</OriginalShell>;
+  </ModuleAccessBoundary>}</OriginalShell>;
 }

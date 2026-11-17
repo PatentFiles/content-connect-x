@@ -30,11 +30,13 @@ test('same-city and mapped-city access use a strict 25 mile cutoff',()=>{
  assert.equal(localContactStatus({...la,state:''},{...la,state:''},[]).allowed,false);
  assert.ok(milesBetween(areas[0],areas[2])>25);
 });
-test('unverified users see only non-dismissable onboarding and verified users are checked by Edge',()=>{
+test('unverified members see onboarding; admin shell preview is not age verification',()=>{
  const app=read('src/supabase/SupabaseApp.jsx');
  const gate=read('src/supabase/AgeGateOnboarding.jsx');
  const backend=read('supabase/functions/member-workflows/index.ts');
- assert.match(app,/if\(user&&!approved\)return <AgeGateOnboarding/);
+ assert.match(app,/if\(user&&!approved&&!isAdmin\)return <AgeGateOnboarding/);
+ assert.doesNotMatch(app,/const approved = isAdmin/);
+ assert.match(app,/ModuleAccessBoundary tab=\{tab\}/);
  assert.match(gate,/aria-modal="true"/);
  assert.doesNotMatch(gate,/setModalOpen\(false\)/);
  assert.match(backend,/Approved age verification required/);

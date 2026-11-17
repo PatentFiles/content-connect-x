@@ -10,14 +10,14 @@ const routeMap=Object.freeze({
  Dashboard:'dashboard',Discovery:'directory',Search:'search',Favorites:'favorites',Connections:'connections',Messages:'messages',Collaborations:'collaborations',
  Contracts:'contracts',Testing:'testing',Verification:'verification',Properties:'hosting',HostingMarketplace:'hosting',HostDashboard:'host',HostProfile:'profile',
  HostSettings:'host-settings',Profile:'profile',Settings:'settings',Representations:'roster',Roster:'roster',RosterPortfolio:'roster',Portfolio:'portfolio',
- Notifications:'notifications',AvailabilitySchedule:'schedule',TravelSchedule:'schedule',AdminDashboard:'controls',AgentManagement:'controls',
+ AccountSecurity:'account-security',Notifications:'notifications',AvailabilitySchedule:'schedule',TravelSchedule:'schedule',AdminDashboard:'controls',AgentManagement:'controls',
  DeveloperReadMe:'developer',CompliancePortal:'integrations',TestingReviews:'testing-reviews',Pricing:'membership',Membership:'membership',
  CreateCollaboration:'collaborations',CollaborationDetail:'collaborations',ViewProfile:'directory',ViewContract:'contracts',PropertyDetail:'hosting'
 });
 const keyFor=path=>routeMap[path]||'dashboard';
 const reverseRoutes={dashboard:'Dashboard',directory:'Discovery',search:'Search',favorites:'Favorites',connections:'Connections',messages:'Messages',collaborations:'Collaborations',
  contracts:'Contracts',testing:'Testing',verification:'Verification',hosting:'Properties',host:'HostDashboard',profile:'Profile',settings:'Settings',portfolio:'Portfolio',
- notifications:'Notifications',schedule:'AvailabilitySchedule',representations:'Roster',roster:'Roster','host-settings':'HostSettings',controls:'AdminDashboard',integrations:'CompliancePortal','testing-reviews':'TestingReviews',membership:'Pricing'};
+ 'account-security':'AccountSecurity',notifications:'Notifications',schedule:'AvailabilitySchedule',representations:'Roster',roster:'Roster','host-settings':'HostSettings',controls:'AdminDashboard',integrations:'CompliancePortal','testing-reviews':'TestingReviews',membership:'Pricing'};
 export const tabFromLegacyPath=pathname=>{const part=decodeURIComponent(String(pathname||'').split('/').filter(Boolean)[0]||'');const matched=Object.keys(routeMap).find(key=>key.toLowerCase()===part.toLowerCase());return matched?routeMap[matched]:'dashboard';};
 export const legacyPathForTab=tab=>'/'+(reverseRoutes[tab]||'Dashboard');
 const tabMatches=(tab,path)=>tab===keyFor(path);
@@ -56,7 +56,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
  ]:[],[isAdmin]);
  const workspace=useMemo(()=>({role:effectiveRole,actualRole:role,preview:isAdmin&&effectiveRole!==role,tab,profile,user,isAdmin,onNavigate}),[effectiveRole,role,isAdmin,tab,profile,user,onNavigate]);
  useEffect(()=>{setMobileOpen(false);},[tab]);
- useEffect(()=>{let live=true;if(!user?.id)return;void(async()=>{const {count,error}=await supabase.from('member_notifications').select('id',{count:'exact',head:true}).eq('user_id',user.id).is('read_at',null);if(live&&!error)setUnread(count||0);})().catch(()=>{});return()=>{live=false;};},[user?.id,tab]);
+ useEffect(()=>{let live=true;if(!user?.id)return;void(async()=>{const {count,error}=await supabase.from('member_notifications').select('id',{count:'exact',head:true}).eq('recipient_id',user.id).is('read_at',null);if(live&&!error)setUnread(count||0);})().catch(()=>{});return()=>{live=false;};},[user?.id,tab]);
  useEffect(()=>{const handler=e=>{if(e.key==='Escape')setMobileOpen(false);};window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler);},[]);
  const toggleTheme=()=>{const next=theme==='dark'?'light':'dark';setTheme(next);document.documentElement.classList.toggle('dark',next==='dark');localStorage.setItem('cc_theme',next);};
  return <RoleWorkspaceContext.Provider value={workspace}><div className="ccx-original-shell min-h-screen" style={{background:'var(--cc-bg)',color:'var(--cc-text-primary)'}}>
