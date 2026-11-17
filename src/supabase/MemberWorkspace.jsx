@@ -10,8 +10,8 @@ const muted='text-[#9AA6BC]';
 /** @type {Array<[string, string, import('react').ElementType]>} */
 const sections=[['collaborations','Collaborations',Users],['invitations','Invitations',Check],['connections','Connections',Users],['messages','Messages',MessageSquare],['contracts','Contracts',FileSignature],['notifications','Notifications',Bell]];
 
-export default function MemberWorkspace({user,flags={}}) {
-  const [section,setSection]=useState('collaborations');
+export default function MemberWorkspace({user,flags={},initialSection='collaborations'}) {
+  const [section,setSection]=useState(initialSection);
   const [items,setItems]=useState([]);
   const [secondary,setSecondary]=useState([]);
   const [selected,setSelected]=useState('');
