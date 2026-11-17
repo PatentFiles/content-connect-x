@@ -30,16 +30,25 @@ Deno.serve(async request=>{
   db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
   db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
   db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
-  db.from('onlyhost_accounts').select('status').eq('user_id',uid).maybeSingle(),
+  db.from('onlyhost_accounts').select('status,terms_version,legal_capacity_confirmed,property_authority_confirmed,adult_production_understood').eq('user_id',uid).maybeSingle(),
  ]);
  if(ages.error||sec.error||sub.error||ohAccount.error)return reject('Unable to verify account status',503);
  const age=ages.data?.[0];
- if(age?.status!=='approved'||age.expires_at&&Date.parse(age.expires_at)<=Date.now())return reject('Independent adult verification required',403);
+ const creatorVerified=age?.status==='approved'&&(!age.expires_at||Date.parse(age.expires_at)>Date.now());
  const admin=sec.data?.admin===true,restricted=sec.data?.banned||sec.data?.suspended;
- const paid=admin||ohAccount.data?.status==='active'||(['active','trial'].includes(sub.data?.status)&&(!sub.data?.period_end||Date.parse(sub.data.period_end)>Date.now()));
+ const hostEligible=ohAccount.data?.status==='active'&&ohAccount.data?.terms_version==='host-2026-11-17'&&
+   ohAccount.data?.legal_capacity_confirmed===true&&ohAccount.data?.property_authority_confirmed===true&&
+   ohAccount.data?.adult_production_understood===true;
+ const paid=admin||hostEligible||(['active','trial'].includes(sub.data?.status)&&(!sub.data?.period_end||Date.parse(sub.data.period_end)>Date.now()));
  const body=await request.json().catch(()=>null);
  if(!body||typeof body!=='object')return reject('Invalid JSON',400);
  const action=short(body.action,70),isAdminAction=action.startsWith('admin_');
+ const hostOps=new Set(['provider_readiness','host_status','verification_upload_token','host_verification_submit',
+   'booking_overview','cancel_quote','cancel_booking','reschedule_propose','reschedule_decide',
+   'damage_claim','claim_evidence_token','claim_evidence_register','damage_dispute','payout_preview',
+   'notification_preferences','push_register','push_unregister']);
+ if(!creatorVerified&&!(hostEligible&&hostOps.has(action)))
+   return reject('Creator verification or active Host Connect host agreement required',403);
  const accessWhenRestricted=new Set(['booking_overview','cancel_quote','refund_request','damage_dispute','notification_preferences','push_unregister']);
  if(restricted&&!accessWhenRestricted.has(action))return reject('Account restricted',403);
  if(isAdminAction&&(!admin||!assured(bearer)))return reject('Administrator MFA required',403);
