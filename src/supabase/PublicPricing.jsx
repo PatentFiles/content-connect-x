@@ -60,7 +60,8 @@ function PlanCard({title,eyebrow,price,subtitle,features,highlight=false,action,
  </article>;
 }
 
-export default function PublicPricing({signedIn=false,onNavigate=()=>{}}){
+/** @param {{signedIn?: boolean, onNavigate?: (destination: string)=>void}} props */
+export default function PublicPricing({signedIn=false,onNavigate}){
  const [role,setRole]=useState('creator');
  return <main className="mx-auto w-full max-w-7xl px-4 pb-20 pt-10 sm:px-6 sm:pt-14">
   <div className="mx-auto max-w-3xl text-center">
