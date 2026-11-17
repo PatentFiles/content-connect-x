@@ -271,32 +271,112 @@
 .ccx-mobile-menu { backdrop-filter: blur(18px); }
 .ccx-mobile-menu .ccx-nav-pill { border-color: transparent; }
 .ccx-mobile-menu .ccx-nav-pill + .ccx-nav-pill { margin-top: .25rem; }
+/* Public homepage: desktop right-aligned floating navigation, mobile equal columns. */
 .ccx-public-auth-links {
-  background: rgba(9,13,25,.92);
+  position: relative;
+  z-index: 30; /* Keep the floating buttons in front of the hero, never underneath it. */
+  overflow: visible;
+  background: rgba(9,13,25,.94);
   border-bottom: 1px solid rgba(255,255,255,.08);
 }
-.ccx-public-auth-links a { pointer-events: auto; }
+.ccx-public-nav {
+  position: relative;
+  z-index: 31;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 100%;
+  margin-inline: auto;
+}
+.ccx-public-nav-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  min-height: 40px;
+  border-radius: 12px;
+  padding: 9px 17px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.1;
+  white-space: nowrap;
+  text-decoration: none;
+  pointer-events: auto;
+  will-change: transform;
+  animation: ccx-public-nav-float 3.8s ease-in-out infinite;
+  transition: filter .22s ease, box-shadow .22s ease;
+}
+.ccx-public-nav-button:nth-child(2) { animation-delay: -.45s; }
+.ccx-public-nav-button:nth-child(3) { animation-delay: -.9s; }
+.ccx-public-nav-button:nth-child(4) { animation-delay: -1.35s; }
+.ccx-public-nav-button:hover {
+  filter: brightness(1.16);
+  box-shadow: 0 10px 24px rgba(186,73,234,.25);
+  animation-play-state: paused;
+  transform: translateY(-4px);
+}
+.ccx-public-nav-button:focus-visible {
+  outline: 3px solid #48e1fb;
+  outline-offset: 4px;
+  animation-play-state: paused;
+}
+.ccx-host-connect-header {
+  position: relative;
+  inset: auto;
+  background: linear-gradient(112deg,#17A8D9,#5B75EE 68%,#9378F6);
+  color: #fff;
+  border: 1px solid rgba(161,218,255,.35);
+  border-radius: 999px;
+  box-shadow: 0 8px 23px rgba(49,118,240,.21);
+  margin-left: 3px;
+}
+@keyframes ccx-public-nav-float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(14px); }
+}
+/* Desktop: shift the hero CTA lower without changing the mobile image positioning. */
 .ccx-public-hero-actions {
   display: flex;
-  bottom: 22%;
-  transform: translateY(108px);
+  bottom: 9%;
+  transform: none;
 }
-.ccx-app #main-content > .w-full > * { margin-left: auto; margin-right: auto; }
 .ccx-public-hero-actions .ccx-primary {
   font-size: 1.5rem;
   padding: 1.5rem 2.5rem;
   border-radius: 9999px;
 }
-.ccx-public-hero-actions .ccx-primary span {
-  font-size: 1.75rem;
-}
-.ccx-host-connect-header {
-  position: absolute;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-}
+.ccx-public-hero-actions .ccx-primary span { font-size: 1.75rem; }
 @media (max-width: 640px) {
+  .ccx-public-auth-links { padding: 10px 9px; }
+  .ccx-public-nav {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    width: 100%;
+    max-width: 100%;
+  }
+  .ccx-public-nav-button,
+  .ccx-public-nav-button:nth-child(n) {
+    width: 100%;
+    min-width: 0;
+    min-height: 38px;
+    margin: 0;
+    padding: 8px 3px;
+    gap: 3px;
+    border-radius: 10px;
+    font-size: clamp(9px, 2.8vw, 12px);
+    line-height: 1;
+    animation: none;
+    transform: none;
+    will-change: auto;
+  }
+  .ccx-public-nav-button:hover { transform: none; }
+  .ccx-host-connect-header { position: relative; inset: auto; }
   .ccx-public-hero-actions {
     display: flex;
     bottom: 20%;
@@ -304,18 +384,11 @@
   }
   .ccx-public-hero-actions .ccx-primary {
     font-size: 1rem;
-    padding: 0.75rem 1.75rem;
+    padding: .75rem 1.75rem;
   }
-  .ccx-public-hero-actions .ccx-primary span {
-    font-size: 1.125rem;
-  }
-  .ccx-host-connect-header {
-    left: 0;
-    right: auto;
-    padding: 0.5rem 0.75rem;
-    font-size: 0.75rem;
-  }
-  .ccx-public-auth-links > div { justify-content: center; }
-  .ccx-public-section-head { text-align: center; }
-  .ccx-public-section-head > p { margin-left: auto; margin-right: auto; }
+  .ccx-public-hero-actions .ccx-primary span { font-size: 1.125rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ccx-public-nav-button { animation: none !important; transition: none !important; }
+  .ccx-public-nav-button:hover { transform: none; }
 }
