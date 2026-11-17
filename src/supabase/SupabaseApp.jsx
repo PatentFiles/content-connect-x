@@ -61,6 +61,7 @@ export default function SupabaseApp() {
   const [mfaChecking,setMfaChecking] = useState(true);
   const [mfaNeeded,setMfaNeeded] = useState(false);
   const [visibleFeatures,setVisibleFeatures] = useState(null);
+  const [ageGateEnabled,setAgeGateEnabled] = useState(true);
   const refreshFeatureFlags=useCallback(async()=>{
     const result=await platformAction('get_feature_flags');
     setVisibleFeatures(result.flags||{});
@@ -93,8 +94,7 @@ export default function SupabaseApp() {
     }
   },[user?.id]);
   const isAdmin = security?.admin === true;
-  // Shell administration is separate from independently verified workflow access.
-  const approved = isAdmin || (verification?.status === 'approved' && (!verification.expires_at || new Date(verification.expires_at) > new Date()));
+  const approved = !ageGateEnabled || isAdmin || (verification?.status === 'approved' && (!verification.expires_at || new Date(verification.expires_at) > new Date()));
   const activePaid = (billing?.status === 'active' || billing?.status === 'trial') && (!billing?.period_end || new Date(billing.period_end) > new Date());
   const paid = activePaid || isAdmin;
   const suspended = security?.banned || security?.suspended;
@@ -102,14 +102,16 @@ export default function SupabaseApp() {
   const refresh = useCallback(async (activeSession) => {
     if (!activeSession?.user) {setProfile(null);setVerification(null);setBilling(null);setSecurity(null);return;}
     const uid=activeSession.user.id;
-    const [pr,ve,bi,se] = await Promise.all([
+    const [pr,ve,bi,se,gs] = await Promise.all([
       supabase.from('member_profiles').select('id,display_name,role_type,bio,city,state,country,avatar_path,cover_path,real_name,stage_name,company_name,representative_name,profile_complete,updated_at').eq('id',uid).maybeSingle(),
       supabase.from('age_verification_requests').select('id,status,created_at,verified_at,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
       supabase.from('member_subscriptions').select('status,plan_id,period_end').eq('user_id',uid).maybeSingle(),
       supabase.from('account_security').select('banned,suspended,admin').eq('user_id',uid).maybeSingle(),
+      supabase.from('platform_settings').select('key,value').eq('key','age_verification_required').maybeSingle(),
     ]);
     if (pr.error || ve.error || bi.error || se.error) throw new Error(pr.error?.message || ve.error?.message || bi.error?.message || se.error?.message);
     setProfile(pr.data);setVerification(ve.data?.[0]||null);setBilling(bi.data);setSecurity(se.data);
+    setAgeGateEnabled(gs.data?.value!==false);
   },[]);
 
   useEffect(()=>{

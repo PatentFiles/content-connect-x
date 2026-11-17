@@ -39,14 +39,16 @@ Deno.serve(async(req)=>{
   const {data:{user},error:authenticationError}=await userClient.auth.getUser();
   if(authenticationError||!user)return reject('Unauthorized',401);
   const db=createClient(url,secret),uid=user.id;
-  const [sec,age,sub]=await Promise.all([
+  const [sec,age,sub,settingsRow]=await Promise.all([
     db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
     db.from('age_verification_requests').select('status,expires_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
     db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle(),
+    db.from('platform_settings').select('key,value').eq('key','age_verification_required').maybeSingle(),
   ]);
   if(sec.error||age.error||sub.error)return reject('Account status unavailable',503);
   if(sec.data?.banned||sec.data?.suspended)return reject('Account unavailable',403);
-  if(!isCurrent(age.data?.[0]))return reject('Approved age verification required',403);
+  const ageGateEnabled=settingsRow.data?.value!==false;
+  if(ageGateEnabled&&!isCurrent(age.data?.[0]))return reject('Approved age verification required',403);
   const admin=sec.data?.admin===true,paid=admin||isPaid(sub.data),tier=paid?'premium':'free';
   const body=await req.json().catch(()=>({}));
   const action=str(body?.action,70);
@@ -93,7 +95,7 @@ Deno.serve(async(req)=>{
           'event_rsvps','verified_reviews','messages','contracts','hosting_marketplace',
           'hosting_requests','hosting_turnover','property_bookings','background_screening'];
         const entries=await Promise.all(keys.map(async(key)=>[key,await feature(key)]));
-        return reply({flags:Object.fromEntries(entries),tier});
+        return reply({flags:Object.fromEntries(entries),tier,age_verification_required:ageGateEnabled});
       }
       case 'admin_set_feature_flag':{
         if(!admin)return reject('Administrator access required',403);
@@ -120,6 +122,27 @@ Deno.serve(async(req)=>{
           .select('key,enabled,allowed_tiers,rollout_percent,description').order('key');
         if(error)throw error;
         return reply({items:data});
+      }
+      case 'admin_get_settings':{
+        if(!admin)return reject('Administrator access required',403);
+        const {data,error}=await db.from('platform_settings').select('key,value,updated_at');
+        if(error)throw error;
+        return reply({items:data||[]});
+      }
+      case 'admin_set_setting':{
+        if(!admin)return reject('Administrator access required',403);
+        const key=str(body.key,80);
+        if(!/^[a-z][a-z_]{2,79}$/.test(key))return reject('Invalid setting key',400);
+        const allowedKeys=['age_verification_required'];
+        if(!allowedKeys.includes(key))return reject('Unknown setting',404);
+        const value=body.value;
+        if(typeof value!=='boolean')return reject('Invalid value',400);
+        const {data,error}=await db.from('platform_settings').upsert({
+          key,value:JSON.stringify(value),updated_at:new Date().toISOString(),updated_by:uid
+        }).eq('key',key).select('key,value,updated_at').single();
+        if(error)throw error;
+        await audits('change_platform_setting',null,{key,value});
+        return reply({item:data});
       }
 
       case 'availability_list':{

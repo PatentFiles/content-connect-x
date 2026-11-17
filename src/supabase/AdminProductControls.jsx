@@ -19,21 +19,24 @@ export default function AdminProductControls({onFeatureChange}){
   const [filter,setFilter]=useState('');
   const [category,setCategory]=useState('all');
   const [queue,setQueue]=useState([]);
+  const [settings,setSettings]=useState({age_verification_required:true});
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   const [notice,setNotice]=useState('');
   const load=useCallback(async()=>{
     setBusy(true);setError('');
     try{
-      const [features,moderation]=await Promise.allSettled([
-        platformAction('admin_list_feature_flags'),platformAction('admin_moderation_queue')
+      const [features,moderation,settingsResult]=await Promise.allSettled([
+        platformAction('admin_list_feature_flags'),platformAction('admin_moderation_queue'),platformAction('admin_get_settings')
       ]);
       if(features.status==='rejected')throw features.reason;
       setFlags(features.value.items||[]);
-      // An unavailable community moderation service must not hide all module
-      // switches from administrators during a separate incident.
       if(moderation.status==='fulfilled')setQueue(moderation.value.items||[]);
       else setQueue([]);
+      if(settingsResult.status==='fulfilled'){
+        const map={};for(const s of settingsResult.value.items||[])map[s.key]=s.value!==false;
+        setSettings(map);
+      }
     }catch(e){setError(e.message);}finally{setBusy(false);}
   },[]);
   useEffect(()=>{load();},[load]);
@@ -55,6 +58,15 @@ export default function AdminProductControls({onFeatureChange}){
     try{await platformAction('admin_moderation_decide',{queue_id:id,decision});setNotice('Moderation review recorded.');await load();}
     catch(e){setError(e.message);}finally{setBusy(false);}
   };
+  const toggleAgeGate=async(enabled)=>{
+    setBusy(true);setError('');setNotice('');
+    try{
+      await platformAction('admin_set_setting',{key:'age_verification_required',value:enabled});
+      setSettings(prev=>({...prev,age_verification_required:enabled}));
+      setNotice(enabled?'Age verification gate turned ON.':'Age verification gate turned OFF — all pages accessible for testing.');
+      onFeatureChange?.();
+    }catch(e){setError(e.message);}finally{setBusy(false);}
+  };
   const filteredFlags=flags.filter(f=>(category==='all'||categoryFor(f.key)===category)&&
     (f.key+' '+f.description).toLowerCase().includes(filter.trim().toLowerCase()));
   return <div className="space-y-5">
@@ -62,6 +74,18 @@ export default function AdminProductControls({onFeatureChange}){
     <p className="text-sm text-[#9AA6BC]">Admin-controlled rollouts inspired by Flagsmith. Server subscription and age permissions are enforced separately; turning on a flag cannot bypass them.</p>
     {error&&<p role="alert" className="bg-red-950 text-red-200 rounded-lg p-3 text-sm">{error}</p>}
     {notice&&<p role="status" className="bg-emerald-950 text-emerald-200 rounded-lg p-3 text-sm">{notice}</p>}
+    <section className={panel+' space-y-3'}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div><h3 className="text-lg font-semibold flex items-center gap-2"><ShieldAlert size={19}/> Age verification gate</h3>
+        <p className="text-sm text-[#9AA6BC] mt-1">When enabled, every user must complete age verification before accessing the app. Turn off globally to test the site before launch, then turn it back on before going live.</p></div>
+        <label className="flex items-center gap-3 text-sm font-semibold">
+          <input type="checkbox" disabled={busy} checked={settings.age_verification_required}
+            onChange={e=>toggleAgeGate(e.target.checked)}/>
+          {settings.age_verification_required?'Enabled':'Disabled (testing mode)'}
+        </label>
+      </div>
+      {!settings.age_verification_required&&<p className="rounded-lg bg-amber-950/60 border border-amber-700/50 px-3 py-2 text-sm text-amber-200">Age verification is currently OFF. All pages are accessible without the verification popup. Turn it back on before releasing.</p>}
+    </section>
     <section className="space-y-3">
       <h3 className="text-lg font-semibold">Feature availability ({flags.filter(f=>f.enabled).length}/{flags.length} enabled)</h3>
       <div className="grid gap-3 sm:grid-cols-2">
