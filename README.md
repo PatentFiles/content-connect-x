@@ -22,6 +22,7 @@ npm run build
 npm run smoke:supabase
 npm run test:readiness
 npm run test:directory
+npm run test:bolt-config
 npm run verify:edge-imports
 ```
 
@@ -29,7 +30,13 @@ The smoke script checks authentication protection on deployed backend endpoints;
 
 ## Configuration
 
-The browser receives only a Supabase URL and publishable key through `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. Never put a service-role key in browser variables. Optional monitoring and UI experiments use `VITE_SENTRY_DSN` and `VITE_FLAGSMITH_ENVIRONMENT_ID`.
+This GitHub repository is the source for the Bolt frontend, and Supabase is the only backend. The frontend's canonical project is `yxuqbygykpfbioslljlf`.
+
+The browser prefers a COMPLETE, matching pair of `VITE_SUPABASE_URL` plus `VITE_SUPABASE_PUBLISHABLE_KEY` (legacy `VITE_SUPABASE_ANON_KEY` is also supported). To restore Bolt preview when environment variables are missing, `src/api/publicSupabaseConfig.mjs` contains the verified project URL and its **public publishable browser key** as a safe fallback. No user data or server secret is placed there. A partial environment pair pointing at a different project is rejected rather than silently mixing credentials. If the browser configuration changes, restart the Bolt Vite preview or rebuild the published site; Vite replaces environment variables at build time.
+
+**Bolt's native database connection indicator is separate from the app's `@supabase/supabase-js` connection.** If Bolt's database panel still reports no Supabase project, reselect the existing project from Bolt's Database > Advanced > Connect Supabase controls. Do not create or claim a new Bolt database and do not overwrite the production Supabase project. A frontend source update cannot establish the Bolt account's OAuth authorization.
+
+Never put service-role, `sb_secret_`, webhook secrets, ID documents, or medical information in browser variables or GitHub. Optional monitoring and UI experiments use `VITE_SENTRY_DSN` and `VITE_FLAGSMITH_ENVIRONMENT_ID`.
 
 ## Project layout
 
