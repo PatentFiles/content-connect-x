@@ -134,6 +134,15 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
         {(item.photos||[]).slice(0,4).map((pic,i)=><button className={'overflow-hidden rounded-xl '+(photoIndex===i?'ring-2 ring-blue-500':'')} key={pic.id} onClick={()=>setPhotoIndex(i)}><img src={pic.url} alt={pic.caption||'Property photo'} className="h-28 w-full object-cover md:h-[118px]"/></button>)}
       </div>
     </div>
+    {(item.videos||[]).length>0&&<section className={panel+' space-y-3 p-5'} aria-label="Approved property walk-through videos">
+      <h3 className="text-lg font-semibold">Property walkthrough videos</h3>
+      <div className="grid gap-3 sm:grid-cols-2">{item.videos.map(video=>
+        <figure key={video.id} className="overflow-hidden rounded-xl border border-[#2D4765] bg-[#081529]">
+          <video src={video.url} controls preload="metadata" playsInline className="aspect-video w-full object-cover"
+            aria-label={video.caption||'Property walkthrough'} />
+          <figcaption className="p-3 text-xs text-[#B3CCE7]">{video.caption||'Approved property video'}</figcaption>
+        </figure>)}</div>
+    </section>}
     <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
       <div className="space-y-5">
         <section className={panel+' p-6'}><h3 className="text-xl font-semibold">About this space</h3>
