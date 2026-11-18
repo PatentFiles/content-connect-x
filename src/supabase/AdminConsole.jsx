@@ -6,10 +6,12 @@ import PassClearanceHub from './PassClearanceHub';
 import SecurityCenter from './SecurityCenter';
 import MembershipPlanAdmin from './MembershipPlanAdmin';
 import IdentityEvidenceAdmin from './IdentityEvidenceAdmin';
+import IdentityPilot from './IdentityPilot';
 const sections=[
  {key:'features',title:'Modules & rollouts'},
  {key:'pricing',title:'Membership pricing'},
  {key:'integrations',title:'APIs & provider keys'},
+ {key:'identity-test',title:'Test my ID'},
  {key:'identity',title:'Identity evidence'},
  {key:'testing',title:'Testing & PASS reviews'},
  {key:'security',title:'Account security'}
@@ -30,6 +32,7 @@ export default function AdminConsole({initialSection='features',onFeatureChange}
    {section==='features'&&<AdminProductControls onFeatureChange={onFeatureChange}/>}
    {section==='pricing'&&<MembershipPlanAdmin/>}
    {section==='integrations'&&<IntegrationHealth/>}
+   {section==='identity-test'&&<IdentityPilot/>}
    {section==='identity'&&<IdentityEvidenceAdmin/>}
    {section==='testing'&&<PassClearanceHub isAdmin/>}
    {section==='security'&&<SecurityCenter/>}
