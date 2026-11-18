@@ -1,0 +1,60 @@
+name: Verify and apply professional light refresh
+on:
+  push:
+    paths: ['.github/workflows/professional-style-apply.yml']
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Verify reviewed source patch and apply without overwriting concurrent changes
+        env:
+          PATCH_URL: 'https://sdmntprwestcentralus.oaiusercontent.com/files/00000000-8350-81fb-93f5-5b4b84e5d4ec/raw?se=2026-11-18T17%3A04%3A59Z&sp=r&sv=2026-06-06&sr=b&scid=2ca429a5-3c54-56fc-9318-a015ed11584e&skoid=3c9b86d7-60cb-496a-a3c1-90c5457c8da4&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-18T13%3A34%3A35Z&ske=2026-11-19T13%3A34%3A35Z&sks=b&skv=2026-06-06&sig=2qaMwuGh4E0CsZdTfL2koDgZcz1XxERy%2BLF%2B8LopJtw%3D'
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --retry 2 "$PATCH_URL" -o /tmp/style-patch.zip
+          echo '57343cd36abcf888afe3bc2d4f59f2177e92e74cecd320b625629332ad443645  /tmp/style-patch.zip' | sha256sum -c -
+          unzip -p /tmp/style-patch.zip professional-light-refresh.patch > /tmp/style.patch
+          git apply --check /tmp/style.patch
+          git apply /tmp/style.patch
+          # The permanent CI step is updated separately by the authorized connector.
+          git restore .github/workflows/frontend-quality.yml
+          git diff --check
+          test -z "$(git diff --name-only -- supabase deploy vendor package-lock.json)"
+      - run: npm ci
+      - name: All dependency severities remain checked
+        run: npm audit --audit-level=low
+      - run: npm run lint && npm run typecheck && npm run test:unit
+      - name: Real source controls, Yoti page and professional-theme browser regressions
+        env:
+          STYLE_SCREENSHOT_DIR: /tmp/style-evidence
+        run: |
+          npm run test:ui-controls
+          node --experimental-websocket scripts/test-provider-browser.mjs
+          npm run test:ui-theme
+          node scripts/test-role-workspace-render.mjs
+      - name: Contract and production build
+        run: npm run verify:release && npm run verify:frontend-contract && npm run verify:edge-imports && npm run build
+      - name: Commit only validated presentation and regression changes
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src docs scripts tests index.html public/manifest.json package.json
+          git commit -m 'Restyle Content Connect X and Host Connect with a professional white design system'
+          git push origin HEAD:main
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: professional-style-browser-evidence
+          path: /tmp/style-evidence
+          if-no-files-found: ignore
+          retention-days: 3
