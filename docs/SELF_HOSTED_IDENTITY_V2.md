@@ -1,79 +1,99 @@
 # Content Connect X: first-party identity verification
 
-Status as of 2026-11-18: **draft implementation, not a live or production-approved replacement for Yoti**. This document covers the new branch implementation. Production retains the existing admission policy until a reviewed deployment and activation. The original `server/self-hosted-idv` adapter remains an isolated evaluation helper; the new application path is `supabase/functions/identity-verification` plus `server/idv-worker`.
+Deployment record, November 18, 2026. **The backend foundation is installed; real-document collection and automatic admission through this provider remain disabled.** This is not a production-readiness or biometric-accuracy certification.
 
-## Infrastructure isolation
+## Hosting boundary
 
-A new private Railway project was created specifically for this service:
+**The website remains on Bolt.** No production domain or Bolt hosting migration is part of this work. Supabase project `yxuqbygykpfbioslljlf` remains the account, authorization, decision and private-evidence authority.
 
-- Project: **Content Connect X - Identity** — `a1cd7002-0ab0-4c4b-a728-252b5693225d`.
-- Environment: **staging** — `7875b268-0f10-4e8f-b9b2-0871752e8ac9`.
-- Service: **ccx-identity-worker** — `56d8ed19-c019-4cd9-9738-cf0e91d06212`.
-- Dockerfile: `server/idv-worker/Dockerfile`; health path `/health`; 2 vCPU/4 GB resource ceiling.
-- Public configuration only: `SUPABASE_URL=https://yxuqbygykpfbioslljlf.supabase.co`, `PORT=8080`, `NODE_ENV=production`, `LOG_LEVEL=error`.
+The dedicated Railway worker is in:
 
-The unrelated Railway project was not modified. The empty worker created during the initial attempt in the older Content Connect staging project was inspected and removed; it had no source, deployment, domains, volumes, or variables. Its pre-existing web service was not stopped or redeployed.
+| Resource | Value |
+|---|---|
+| Project | Content Connect X - Identity |
+| Project ID | `a1cd7002-0ab0-4c4b-a728-252b5693225d` |
+| Environment | `staging`, `7875b268-0f10-4e8f-b9b2-0871752e8ac9` |
+| Worker | `ccx-identity-worker`, `56d8ed19-c019-4cd9-9738-cf0e91d06212` |
+| Worker origin | `https://ccx-identity-worker-staging.up.railway.app` |
+| Build root / Dockerfile | `/server/idv-worker` / `Dockerfile` |
+| Port / health path | `8080` / `/health` |
 
-**The new worker has no deployment.** Connecting `PatentFiles/content-connect-x` failed with Railway's response: `User does not have access to the repo`. Railway's GitHub authorization for this private repository must be resolved without making the repository public or using credentials from another account.
+The worker packaging was changed to support that self-contained folder. Do not revert it to older repository-root instructions. The additional Railway website staging deployment is not the production website and is not required for identity processing. Unrelated Railway projects must not be modified.
 
-The existing Content Connect Supabase project remains the intended account/evidence backend. No duplicate Supabase project was created.
+The Railway environment name `staging` does **not** isolate the Supabase database: the worker is configured for the established project above. Synthetic users, fabricated approvals and destructive fixture tests belong in a disposable database, not in production.
 
-## Deployment state — do not confuse source with running infrastructure
+## Installed backend
 
-The database migration write was blocked by the tool's safety check. A subsequent read confirmed `public.ccx_idv_config` and `public.ccx_idv_sessions` are absent and the `ccx-identity-evidence` bucket does not exist. The identity Edge Function was not deployed. The new UI is committed to draft PR #15, not merged into `main` or released to Bolt.
+The following remote migrations were applied successfully to the established Supabase project:
 
-Therefore no production identity evidence, verification approval, or member admission was created by this implementation. No raw ID image was used in the local tests.
+- `self_hosted_identity_v2_foundation`: six `ccx_idv_*` public tables, private keys, private evidence storage, server-only identity transition functions, verified-name and upload-limit enforcement.
+- `self_hosted_identity_retention_hardening`: deletion-start/hold serialization, bounded candidate batches, auditable sensitive-field minimization and stale evidence-path cleanup.
+- `self_hosted_identity_retention_schedule`: initially installed the hourly retention job. **That job is now paused; see the security blocker below.**
 
-## Intended application flow implemented in source
+Source is in `supabase/sql/self_hosted_identity_v2.sql` and `supabase/sql/self_hosted_identity_retention_hardening.sql`. The base SQL is not idempotent: do not run it again over installed tables. The remote migration history is the deployment record; use a reviewed follow-up migration for additional changes.
 
-1. Supabase creates a pending Auth account. The existing server-owned `member_admissions` record is still required to enter the application. This design blocks membership/access, not creation of the initial Auth row.
-2. A signed-in, non-anonymous user with confirmed email supplies a **private legal name** and explicit consent to the configured verification notice. Existing private `member_profiles.real_name` pre-fills the field. Public stage/display names remain separate.
-3. Upload JPEG/PNG ID front and, for two-sided IDs, back. Files are limited to 8 MB and stored privately. Passport capture uses the photo page. Country support is explicitly configured; the initial configuration contains US only and is not a claim of validated coverage.
-4. The browser requests camera permission and captures two server-assigned head turns. Six frames and a selfie snapshot are submitted. Neither a browser `verified` flag nor a user-supplied DOB is trusted.
-5. A server-bound worker job reads ID name/DOB/expiry/number, cross-checks document fields, compares face descriptors, and checks the motion frames. Facial age estimation and gender inference are removed from the worker's face pipeline. Birth date comes from the document, not an estimated face age.
-6. Name mismatch returns a correction screen. The server accepts only the extracted legal name; it updates the private account name, never the public display name. Ambiguous names/documents require retry or independent review rather than fuzzy automatic acceptance.
-7. Underage results remain blocked through the eighteenth birthday. Retry eligibility begins the following **UTC calendar day**. February 29 maps conservatively to March 1 in a non-leap eighteenth year, with eligibility March 2. These are explicit product rules, not statements of jurisdictional law. Becoming eligible does not automatically admit an account: a fresh check is required.
-8. Only a complete, bound result may insert an approved age request and invoke the existing admission trigger. The activation guard prevents an old Yoti callback from bypassing the new policy after cutover. While disabled, the existing Yoti approval guard is preserved.
+Read-back checks confirmed:
 
-`YotiVerification.jsx` is now a compatibility route: the Content Connect branch renders `IdentityVerification`, covering both signup and the existing verification screen. Explicit other-brand calls retain their hosted component. `AdminConsole` gains the private identity-evidence review area.
+- RLS enabled on all six identity tables.
+- No `anon`/`authenticated` table reads or writes, and no browser execution of the identity transition RPC.
+- `ccx-identity-evidence` is private, capped at 8 MB per object, with restrictive browser Storage policies.
+- `worker_origin` is configured; `enabled=false`.
+- Existing member admission count remained one; no identity sessions or evidence uploads were created.
+- The leap-day policy returns March 2, 2026 for DOB February 29, 2008.
 
-## Trust and storage boundaries
+The `identity-verification` Edge Function was already deployed and was inspected. Its deployment wrapper currently imports the handler at commit `21f1969b30e9ac672ae963e9ed04d22c08cdc8f9`. All user actions verify Supabase Auth; worker and maintenance requests have separate capabilities. Gateway `verify_jwt=false` is intentional and must not be confused with unauthenticated user access. No server key is supplied to the browser or Railway worker.
 
-The worker receives one-use, short-lived job capabilities, not the Supabase service-role key. The Edge authenticates users with `getUser`, checks trusted database security flags, and binds jobs to the server session and evidence hashes. Image URLs are signed temporarily. Returned worker data must match the pinned engine revision, schema, session, and every evidence hash including the selfie.
+## Implemented account flow
 
-The schema defines RLS on all new public tables, removes browser table grants, and adds restrictive Storage policies for the identity bucket. Administrators need a server-verified role and admission; self-review is denied. Every administrative document link requires an access purpose and an audit event before a 120-second signed URL is issued. A link-issued event is not proof that a human actually viewed the image.
+1. Supabase creates a pending authenticated account. Only a trusted `member_admissions` record permits entry to protected application features. Initial Auth-row creation is not membership approval.
+2. A signed-in, non-anonymous user confirms email, supplies a private legal name, and consents to the configured versioned notice before any identity upload.
+3. JPEG/PNG ID front and back are collected where applicable. Passport capture uses the photo page. Country coverage is explicitly configured; the initial US entry is not evidence of validated support for every US document.
+4. The browser requests the camera and captures two server-assigned head turns, six motion frames and a bound selfie snapshot. No browser-provided DOB, `verified` flag or facial-age estimate is trusted.
+5. The pinned worker extracts document fields, cross-checks them, compares faces and checks the captured motion. It returns its result to the trusted backend, bound to the session and evidence hashes.
+6. The backend rejects incomplete or uncertain checks. A legal-name mismatch requires server-accepted correction of the **private** name. The public stage/display name is not replaced.
+7. Underage accounts remain restricted through the eighteenth birthday. Eligibility begins the following **UTC calendar day** and allows a fresh verification attempt, never automatic admission. February 29 is conservatively mapped to March 1 in a non-leap eighteenth year, followed by March 2 eligibility. These are product rules, not statements of jurisdictional law.
+8. Only a completed bound result can create an approved age request and invoke durable admission. While the new provider is disabled, the old provider guard is retained; after activation, an old Yoti callback cannot bypass the new policy.
 
-The server enforces daily attempt limits, immutable evidence slots, upload allocation limits, single active worker leases, and session expiration. Interrupted processing can offer a retry only after the server lease expires. The browser never grants admission itself.
+`YotiVerification.jsx` is a compatibility entry point: Content Connect renders `IdentityVerification`; explicit other-brand usage retains its hosted flow. `IdentityEvidenceAdmin` provides an administrator evidence queue, independent-access checks, mandatory access purpose and short-lived document links. A review-request button does not grant approval.
 
-A keyed document fingerprint supports birthday restrictions across attempts using the same document. This does not guarantee prevention of all duplicate identities or stolen-document attacks. A hash and `upsert:false` do not make storage WORM/immutable against a database owner.
+## Trust, evidence and retention
 
-## Retention and appeals
+Evidence is stored in private Supabase Storage, not in Bolt public assets, GitHub, ordinary profile fields or Railway persistent storage. The worker receives a short-lived single-use job capability and temporary signed artifact URLs, never the Supabase service-role key. The application binds session, policy, engine revision and all required evidence hashes. Raw OCR, names, DOB and biometric images must not be sent to telemetry.
 
-Activation requires a real notice/version, an explicit approved retention period, and recorded privacy/security review. No universal legal retention period is assumed. Rejected/abandoned evidence has a short configurable retention period. Account deletion leaves the deletion ledger available so blobs are not orphaned. A maintenance capability is generated into Vault, never returned to the browser.
+The server enforces account ownership, security flags, email/consent, daily attempt limits, session expiration, immutable evidence slots, bounded upload allocation and single active processing leases. Administrator document links are audited before issuance and expire after 120 seconds. A link-issued event does not prove a human viewed the file.
 
-The purge implementation removes blobs before minimizing session data, with legal-hold filtering. Its scheduler is **not installed**, and deletion/backup restoration/concurrent legal-hold behavior still need integration tests. Do not collect real evidence until this is operational and approved. Do not log raw IDs, OCR responses, names, DOBs, or biometric descriptors to application telemetry.
+Retention hardening records an irreversible `purge_started_at` marker under a session-row lock. A hold committed before deletion starts prevents selection. A new hold arriving after deletion starts is explicitly rejected rather than falsely claiming already-deleted evidence was preserved. Failed deletions retain their ledger for retry. Sensitive fields are minimized only when the ledger is empty. Backups and restoration have separate retention requirements.
 
-Review requests and the evidence viewer are implemented. A complete qualified-review adjudication, false-positive correction, and appeal-resolution procedure is still a launch prerequisite; the UI intentionally has no arbitrary manual approval override.
+Hashes and `upsert:false` are not WORM storage and do not prevent a database owner from changing evidence and hashes together. Identity signup evidence also does not automatically satisfy performer-recordkeeping obligations.
 
-Membership evidence is not automatically performer-recordkeeping compliance. Required purposes, notices, deletion rights, legal holds, access reviews and audit retention need the applicable professional review.
+### Retention execution blocker — do not enable collection yet
 
-## Validation actually completed
+The installed job is **`ccx-idv-retention`, job ID 4, schedule `17 * * * *`, active=false**.
 
-```sh
-node --test tests/identity-verification.test.mjs tests/identity-lifecycle.test.mjs
-```
+The initial design queued an HTTPS request through `pg_net`, with a maintenance capability read server-side from Vault. An attempted `REVOKE` on the managed request queue did not remove its effective PUBLIC grant: read-back still showed `anon` and `authenticated` SELECT privileges. The queue owner is the managed `supabase_admin` role. This is a credential-isolation concern; the job was paused rather than claiming the permission change succeeded. No document data was collected by this rollout.
 
-**52 local tests passed, zero failed**, on Node v22.16.0. These exercise deterministic policy and the real request handler with mocked database, storage/worker boundaries and synthetic fixtures. They cover birthday/leap-year boundaries, legal-name differences, invalid/missing evidence, cross-account access, admin self-review, forged browser approvals, maintenance authorization and expired processing leases.
+A proposed synchronous private-transport migration was blocked by the connected tool's safety check and **was not installed**. Do not treat that proposal as deployed or route around that block. A properly authorized solution must resolve credential exposure and demonstrate actual scheduled execution and Storage deletion before collection is activated. No unencrypted maintenance token was returned in tool output, browser state, source, or documentation.
 
-These are **not** database integration tests, a full frontend browser suite, an engine Docker-build validation, or real document/face/liveness accuracy measurements. Review the repository quality-gate results separately; do not infer that they passed from this count.
+## Validation completed
 
-## Remaining release gates
+At commit `d12d35b2adffb037605aca0ff64cac8d0808394b`, all three pull-request workflows succeeded:
 
-- Resolve Railway access to the private repository, build the pinned worker and establish its actual HTTPS origin in this new project only.
-- Obtain review/authorization for the database migration and test the actual grants, triggers, transaction rollback, upload limits, retention and admission behavior. Do not treat the blocked migration as applied.
-- Deploy the Edge Function with application-level authentication and gateway `verify_jwt:false`, because worker claims and retention use their own capabilities. All user actions still require verified Supabase authentication.
-- Configure the approved notice/retention, install and test retention scheduling, and complete the appeal workflow and operational ownership.
-- Audit third-party model rights and dependencies. MIT application code does not automatically clear every model. Validate the actual pinned engine on supported IDs, name formats, mismatches, altered DOBs, photos/replays, injected cameras and missing-model failures. The current thresholds and heuristic authenticity checks are not independently certified.
-- Run authenticated multi-user and mobile/browser acceptance tests, inspect security advisors, then review/merge/deploy frontend changes and deliberately activate the backend. Never populate security/privacy approval timestamps merely to make a check pass.
+- **Content Connect X quality gate**, run `44399947266`.
+- **Identity verification validation**, run `44399947182`.
+- **Identity database integration**, run `44399947273`.
 
-Until these gates are met, this is a substantial implementation draft, **not ready for real-user verification**.
+The quality workflow exercises 218 offline tests, lint/typecheck, actual React layouts, 18 identity onboarding browser scenarios, release invariants, frontend/backend contracts, Edge imports, frontend build, a temporary website test container, and live anonymous-endpoint rejection. The onboarding browser fixture stubs both first-party and legacy provider imports and blocks external HTTP. It covers consent, email confirmation, name correction, camera denial, underage/birthday messaging and failure/approval rendering without uploading actual identity evidence.
+
+`tests/sql/identity-integration.sql` runs the actual identity migration and transition SQL in a disposable PostgreSQL 17 service named `ccx_idv_ci`. Auth, Storage and Vault are fixtures. It verifies private Storage policies even in the presence of a deliberately broad fixture policy; server-only transition privileges; disabled collection; cross-account rejection; evidence immutability; one-use job claims; name correction; underage/birthday restrictions; durable admission; private/public name separation; legal-hold ordering; purge minimization; and audit idempotency.
+
+The SQL suite simulates successful blob removal by clearing its fixture deletion ledger. **It does not test real Supabase blob deletion, real Auth/session behavior, biometric accuracy, forged-document detection or replay/deepfake/camera-injection resistance.** A separate attempt to run a production rollback fixture was blocked and is not counted as a completed test. No fake production admission is retained.
+
+## Remaining activation and publication prerequisites
+
+1. Resolve and test credential-safe scheduled retention, including actual blob deletion, backup/restoration behavior and legal-hold races.
+2. Establish an approved notice, purpose-specific retention periods and privacy/security review. Approval timestamps are intentionally unset; never fill them merely to satisfy a CHECK constraint.
+3. Complete operational review/appeal adjudication and false-positive correction. The queue/viewer exists, but there is no arbitrary manual approval bypass.
+4. Validate the deployed worker against supported ID types, legal-name formats, mismatched faces, altered DOBs, printed/screen replays, camera injection, timeouts and missing models. Review all third-party model rights and dependency risks. Heuristic document checks are not independent certification.
+5. Release the tested source to the existing Bolt project, verify its actual HTTPS camera flow and authenticated multi-user boundaries, then activate only after prerequisites are satisfied. GitHub merge does not itself prove Bolt publication.
+
+Keep `ccx_idv_config.enabled=false` until these steps are completed. Preserve the original one-time account-admission rules and all consent, ownership, suspension and subscription checks throughout deployment.
