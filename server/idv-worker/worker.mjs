@@ -12,49 +12,52 @@ import {FaceRecognitionService} from '/app/engine/dist/services/faceRecognition.
 import {verifyHeadTurnLiveness} from '/app/shared/dist/index.js';
 import {extractMRZFromText} from '/app/engine/dist/services/mrz.js';
 import {ENGINE_REVISION,SCHEMA,validateCapture,nameKey,isoDate,imageMime,MAX_IMAGE} from './policy.mjs';
-
 const PROJECT_ORIGIN=process.env.SUPABASE_URL;
-if (!PROJECT_ORIGIN || !/^https:\/\/[a-z]{20}\.supabase\.co$/.test(PROJECT_ORIGIN)) throw Error('SUPABASE_URL must be the trusted project origin');
-const CALLBACK=`${PROJECT_ORIGIN}/functions/v1/identity-verification`;
+if(!PROJECT_ORIGIN||!/^https:\/\/[a-z]{20}\.supabase\.co$/.test(PROJECT_ORIGIN))throw Error('SUPABASE_URL must be the trusted project origin');
+// Fixed server endpoints only. A request cannot supply an arbitrary callback or bucket.
+const ROUTES={signup:{endpoint:'identity-verification',bucket:'ccx-identity-evidence'},pilot:{endpoint:'identity-pilot',bucket:'ccx-identity-pilot-evidence'}};
 let ready=false;
 let startupLogBytes=0;
 const engine=spawn(process.execPath,['dist/server.js'],{cwd:'/app/engine',env:{...process.env,PORT:'3002',LOG_LEVEL:'error'},stdio:['ignore','pipe','pipe']});
-// No identity request is accepted before ready. During this phase only our
-// synthetic OCR probe is processed. Stop forwarding logs before user jobs start.
 const startupLog=chunk=>{if(!ready&&startupLogBytes<16384){const text=chunk.toString().slice(0,4096);startupLogBytes+=text.length;console.error('[engine startup]',text);}};
 engine.stdout.on('data',startupLog);engine.stderr.on('data',startupLog);
 engine.on('exit',(code,signal)=>{console.error('Identity engine stopped',{code,signal});process.exit(1);});
 const faces=new FaceRecognitionService();
 const HASH=b=>createHash('sha256').update(b).digest('hex');
 const distance=(a,b)=>Array.isArray(a)&&Array.isArray(b)&&a.length===128&&b.length===128&&a.every(Number.isFinite)&&b.every(Number.isFinite)?Math.sqrt(a.reduce((s,n,i)=>s+(n-b[i])**2,0)):Infinity;
-const safeName=(s)=>{try{return nameKey(s);}catch{return null;}};
+const safeName=s=>{try{return nameKey(s);}catch{return null;}};
 let active=0;
 let modelManifest;
 try{modelManifest=JSON.parse(readFileSync('/app/ccx/model-manifest.json','utf8'));}catch{modelManifest={};}
-async function bounded(response,max) {
- if (!response.ok || !response.body) throw Error('DEPENDENCY_UNAVAILABLE');
+async function bounded(response,max){
+ if(!response.ok||!response.body)throw Error('DEPENDENCY_UNAVAILABLE');
  const out=[];let length=0;const reader=response.body.getReader();
  try{for(;;){const {value,done}=await reader.read();if(done)break;length+=value.length;if(length>max)throw Error('SIZE_LIMIT');out.push(value);}}finally{await reader.cancel().catch(()=>{});}
  return Buffer.concat(out,length);
 }
-async function claim(id,token) {
- const r=await fetch(CALLBACK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'worker_claim',session_id:id,token}),redirect:'error',signal:AbortSignal.timeout(15000)});
- return JSON.parse((await bounded(r,32*1024)).toString());
+async function claim(id,token,mode){
+ const route=ROUTES[mode];if(!route)throw Error('INVALID_MODE');
+ const r=await fetch(`${PROJECT_ORIGIN}/functions/v1/${route.endpoint}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'worker_claim',session_id:id,token}),redirect:'error',signal:AbortSignal.timeout(15000)});
+ const job=JSON.parse((await bounded(r,32*1024)).toString());
+ if(mode==='pilot'&&job.purpose!=='pilot')throw Error('PURPOSE_MISMATCH');
+ if(mode==='signup'&&job.purpose&&job.purpose!=='signup')throw Error('PURPOSE_MISMATCH');
+ return {...job,purpose:mode};
 }
-async function artifact(item) {
+async function artifact(item,purpose){
+ const route=ROUTES[purpose];if(!route)throw Error('INVALID_MODE');
  const url=new URL(item.url);
- if(url.origin!==PROJECT_ORIGIN || !url.pathname.startsWith('/storage/v1/object/sign/ccx-identity-evidence/'))throw Error('UNTRUSTED_ARTIFACT');
+ if(url.origin!==PROJECT_ORIGIN||!url.pathname.startsWith(`/storage/v1/object/sign/${route.bucket}/`))throw Error('UNTRUSTED_ARTIFACT');
  const bytes=await bounded(await fetch(url,{redirect:'error',signal:AbortSignal.timeout(20000)}),MAX_IMAGE);
  if(HASH(bytes)!==item.sha256)throw Error('EVIDENCE_HASH_MISMATCH');
  return bytes;
 }
-async function checkImage(bytes) {
+async function checkImage(bytes){
  imageMime(bytes);
  const meta=await sharp(bytes,{limitInputPixels:25000000,failOn:'error'}).metadata();
  if(!meta.width||!meta.height||meta.width<200||meta.height<200||!['jpeg','png'].includes(meta.format))throw Error('IMAGE_QUALITY');
  await sharp(bytes,{limitInputPixels:25000000,failOn:'error'}).stats();
 }
-async function extract(kind,bytes,job) {
+async function extract(kind,bytes,job){
  const f=new FormData();f.append('file',new Blob([bytes],{type:imageMime(bytes)}),'evidence.jpg');
  f.append('document_type',job.document_type);f.append('issuing_country',job.issuing_country);
  f.append('verification_id',job.id);f.append('document_id',`${job.id}-${kind}`);
@@ -63,7 +66,7 @@ async function extract(kind,bytes,job) {
  if(data.success!==true||!data.result)throw Error('EXTRACTION_FAILED');
  return data.result;
 }
-async function liveFace(bytes) {
+async function liveFace(bytes){
  const {data,info}=await sharp(bytes).removeAlpha().toColourspace('srgb').raw().toBuffer({resolveWithObject:true});
  const tensor=faceapi.tf.tensor3d(new Uint8Array(data),[info.height,info.width,3]);
  try{
@@ -73,9 +76,9 @@ async function liveFace(bytes) {
   return {embedding:d.descriptor,confidence:d.detection.score,landmarks:d.landmarks.positions.map(p=>({x:p.x,y:p.y})),boundingBox:{x:box.x,y:box.y,width:box.width,height:box.height}};
  }finally{tensor.dispose();}
 }
-async function processJob(job) {
+async function processJob(job){
  const hashes=Object.fromEntries(Object.entries(job.evidence).map(([k,v])=>[k,v.sha256]));
- const frontBytes=await artifact(job.evidence.front),captureBytes=await artifact(job.evidence.capture);
+ const frontBytes=await artifact(job.evidence.front,job.purpose),captureBytes=await artifact(job.evidence.capture,job.purpose);
  await checkImage(frontBytes);
  const capture=validateCapture(JSON.parse(captureBytes.toString()),job);
  const frameBytes=capture.frames.map(f=>Buffer.from(f.frame_base64,'base64'));
@@ -84,19 +87,19 @@ async function processJob(job) {
  if(HASH(frameBytes[0])!==job.evidence.selfie.sha256)throw Error('SELFIE_NOT_BOUND_TO_CAPTURE');
  const front=await extract('front',frontBytes,job);
  let back=null;
- if(job.document_type!=='passport') {const bytes=await artifact(job.evidence.back);await checkImage(bytes);back=await extract('back',bytes,job);}
+ if(job.document_type!=='passport'){const bytes=await artifact(job.evidence.back,job.purpose);await checkImage(bytes);back=await extract('back',bytes,job);}
  const ocr=front.ocr||{};
  const name=ocr.name||ocr.full_name||'',dob=ocr.date_of_birth||'',expiry=ocr.expiration_date||ocr.expiry_date||'',number=ocr.document_number||ocr.id_number||'';
  const confidence=ocr.confidence_scores||{};
  const required=[confidence.name??confidence.full_name,confidence.date_of_birth,confidence.expiration_date??confidence.expiry_date,confidence.document_number??confidence.id_number];
  const fieldsConfident=required.every(x=>Number.isFinite(x)&&x>=0.90&&x<=1);
  let crossChecked=false;
- if(job.document_type==='passport') {
+ if(job.document_type==='passport'){
   const mrz=extractMRZFromText(ocr.raw_text||'');
   crossChecked=!!mrz&&mrz.check_digits_valid===true&&mrz.fields.date_of_birth===dob
-    &&mrz.fields.document_number===number&&mrz.fields.expiry_date===expiry
-    &&safeName(mrz.fields.full_name)===safeName(name);
- } else {
+   &&mrz.fields.document_number===number&&mrz.fields.expiry_date===expiry
+   &&safeName(mrz.fields.full_name)===safeName(name);
+ }else{
   const p=back?.qr_payload;
   crossChecked=!!p&&isoDate(p.date_of_birth)===isoDate(dob)&&!!isoDate(dob)
    &&p.id_number===number&&isoDate(p.expiry_date)===isoDate(expiry)&&!!isoDate(expiry)
@@ -104,12 +107,11 @@ async function processJob(job) {
    &&(['PDF417','QR_CODE','DATA_MATRIX'].includes(back.barcode_format)||(back.mrz_result?.checksums_valid===true&&!!back.mrz_result?.fields));
  }
  const a=front.authenticity;
- const authenticityPassed=a?.isAuthentic===true&&Number.isFinite(a.score)&&a.score>=0.80
-  &&Array.isArray(a.flags)&&a.flags.every(x=>x==='MISSING_EXIF_JPEG');
+ const authenticityPassed=a?.isAuthentic===true&&Number.isFinite(a.score)&&a.score>=0.80&&Array.isArray(a.flags)&&a.flags.every(x=>x==='MISSING_EXIF_JPEG');
  const embedding=front.face_embedding;
  let frameIdentity=true,faceDistance=Infinity;
  const detections=new Map();
- for(let i=0;i<frameBytes.length;i++) {
+ for(let i=0;i<frameBytes.length;i++){
   const face=await liveFace(frameBytes[i]);detections.set(HASH(frameBytes[i]),face);
   const d=distance(embedding,face?Array.from(face.embedding):null);
   if(i===0)faceDistance=d;
@@ -117,7 +119,7 @@ async function processJob(job) {
  }
  let live=true;
  const requiredChecks=['face_present_all_frames','head_turn_detected','correct_direction','return_to_center','temporal_plausibility','face_bbox_consistency'];
- for(let turn=0;turn<2;turn++) {
+ for(let turn=0;turn<2;turn++){
   const frames=capture.frames.slice(turn*3,turn*3+3).map(f=>({...f,phase:f.phase.replace('turn1_','turn_')}));
   const verdict=await verifyHeadTurnLiveness({...capture,challenge_direction:capture.directions[turn],frames},{detectFaceLandmarksFromBuffer:async b=>detections.get(HASH(b))||null});
   if(verdict.passed!==true||!requiredChecks.every(k=>verdict.checks?.[k]?.passed===true))live=false;
@@ -128,8 +130,8 @@ async function processJob(job) {
 }
 const respond=(res,status,body)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(body));};
 const server=http.createServer(async(req,res)=>{
- if(req.method==='GET'&&req.url==='/health') {
-  try{if(!ready)throw Error();const r=await fetch('http://127.0.0.1:3002/health',{signal:AbortSignal.timeout(3000)});if(!r.ok)throw Error();respond(res,200,{status:'ok',schema:SCHEMA,engine_revision:ENGINE_REVISION,model_files:Object.keys(modelManifest).length,ocr_self_test:true});}catch{respond(res,503,{status:'starting'});}return;
+ if(req.method==='GET'&&req.url==='/health'){
+  try{if(!ready)throw Error();const r=await fetch('http://127.0.0.1:3002/health',{signal:AbortSignal.timeout(3000)});if(!r.ok)throw Error();respond(res,200,{status:'ok',schema:SCHEMA,engine_revision:ENGINE_REVISION,model_files:Object.keys(modelManifest).length,ocr_self_test:true,modes:['signup','pilot']});}catch{respond(res,503,{status:'starting'});}return;
  }
  if(req.method!=='POST'||req.url!=='/process')return respond(res,404,{error:'Not found'});
  if(!ready)return respond(res,503,{error:'Worker is starting'});
@@ -140,9 +142,9 @@ const server=http.createServer(async(req,res)=>{
   let bytes=0;const chunks=[];
   for await(const chunk of req){bytes+=chunk.length;if(bytes>1024)throw Error('REQUEST_LIMIT');chunks.push(chunk);}
   clearTimeout(requestTimer);
-  const {session_id,token}=JSON.parse(Buffer.concat(chunks).toString());
-  if(!/^[a-f0-9-]{36}$/.test(session_id)||!/^[a-f0-9]{64}$/.test(token))throw Error('INVALID_REQUEST');
-  const job=await claim(session_id,token);
+  const {session_id,token,mode='signup'}=JSON.parse(Buffer.concat(chunks).toString());
+  if(!['signup','pilot'].includes(mode)||!/^[a-f0-9-]{36}$/.test(session_id)||!/^[a-f0-9]{64}$/.test(token))throw Error('INVALID_REQUEST');
+  const job=await claim(session_id,token,mode);
   if(job.id!==session_id||job.engine_revision!==ENGINE_REVISION)throw Error('INVALID_CAPABILITY');
   respond(res,200,await processJob(job));
  }catch{if(!res.destroyed)respond(res,422,{error:'Verification could not be completed'});}finally{clearTimeout(requestTimer);active--;}
