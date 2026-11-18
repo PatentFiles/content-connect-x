@@ -4,44 +4,56 @@
    html:not(.dark) → light palette
    ──────────────────────────────────────────────────────────────────────────── */
 
-/* ── DARK palette (default) ─────────────────────────────────────────────── */
+/* ── Shared Content Connect X palette ─────────────────────────────────────
+   This is the single source of truth for the public homepage and signed-in app.
+   Keep screen styles expressed through these tokens so the whole experience can
+   be refreshed without editing individual views.
+*/
 :root,
 html.dark {
   color-scheme: dark;
 
+  --cc-ink:             #080A15;
+  --cc-deep:            #111329;
+  --cc-fuchsia:         #F800B8;
+  --cc-pink:            #FF49B6;
+  --cc-cyan:            #09D3F7;
+  --cc-electric:        #8D69FF;
+  --cc-white:           #F8F7FF;
+
   /* shadcn/ui tokens */
-  --background: 222 47% 6%;
-  --foreground: 220 27% 94%;
-  --card: 220 35% 12%;
-  --card-foreground: 220 27% 94%;
-  --popover: 220 35% 12%;
-  --popover-foreground: 220 27% 94%;
-  --primary: 217 100% 65%;
+  --background: 244 41% 6%;
+  --foreground: 248 38% 97%;
+  --card: 243 37% 12%;
+  --card-foreground: 248 38% 97%;
+  --popover: 243 37% 12%;
+  --popover-foreground: 248 38% 97%;
+  --primary: 191 93% 50%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 220 25% 18%;
-  --secondary-foreground: 220 27% 94%;
-  --muted: 220 25% 18%;
-  --muted-foreground: 220 18% 60%;
-  --accent: 325 100% 60%;
+  --secondary: 253 31% 20%;
+  --secondary-foreground: 248 38% 97%;
+  --muted: 253 31% 20%;
+  --muted-foreground: 234 24% 72%;
+  --accent: 322 100% 60%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --border: 220 25% 22%;
-  --input: 220 25% 18%;
-  --ring: 217 100% 65%;
+  --border: 253 28% 27%;
+  --input: 253 28% 20%;
+  --ring: 191 93% 50%;
   --radius: 0.75rem;
 
   /* App semantic tokens */
-  --cc-bg:             #0B0F14;
-  --cc-surface:        #151D2B;
-  --cc-surface-hover:  #1A2438;
-  --cc-border:         #263248;
-  --cc-border-hover:   #3A4A6B;
-  --cc-text-primary:   #E8EEF9;
-  --cc-text-secondary: #9AA6BC;
-  --cc-text-muted:     #6B7A94;
-  --cc-blue:           #4F8CFF;
-  --cc-pink:           #FF2DAA;
+  --cc-bg:             var(--cc-ink);
+  --cc-surface:        #15152C;
+  --cc-surface-hover:  #241B3F;
+  --cc-border:         #49325F;
+  --cc-border-hover:   #8C4E9A;
+  --cc-text-primary:   var(--cc-white);
+  --cc-text-secondary: #C7C3DE;
+  --cc-text-muted:     #A7A5C2;
+  --cc-blue:           var(--cc-cyan);
+  --cc-pink:           var(--cc-fuchsia);
 }
 
 /* ── LIGHT palette ───────────────────────────────────────────────────────── */
@@ -70,16 +82,16 @@ html:not(.dark) {
   --ring: 217 80% 50%;
 
   /* App semantic tokens */
-  --cc-bg:             #F3F5FA;
+  --cc-bg:             #F8F6FC;
   --cc-surface:        #FFFFFF;
-  --cc-surface-hover:  #F0F2F8;
-  --cc-border:         #D0D8EC;
-  --cc-border-hover:   #A8B4D0;
-  --cc-text-primary:   #0F1829;
-  --cc-text-secondary: #3A4A6B;
-  --cc-text-muted:     #6B7A94;
-  --cc-blue:           #1A66E0;
-  --cc-pink:           #C8007C;
+  --cc-surface-hover:  #FFF2FB;
+  --cc-border:         #E3CDE0;
+  --cc-border-hover:   #D58BC5;
+  --cc-text-primary:   #21152D;
+  --cc-text-secondary: #604B6B;
+  --cc-text-muted:     #806D8A;
+  --cc-blue:           #008FB2;
+  --cc-pink:           #C4008D;
 }
 
 /* ── Safe area inset variables ─────────────────────────────────────────── */
@@ -208,11 +220,11 @@ button[aria-label], button.icon-btn, [role="tab"], [role="menuitem"] { user-sele
 /* ── Utility classes ────────────────────────────────────────────────────── */
 .focus-ring {
   @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
-  --tw-ring-color: color-mix(in srgb, var(--cc-blue) 50%, transparent);
+  --tw-ring-color: color-mix(in srgb, var(--cc-cyan, var(--cc-blue)) 50%, transparent);
 }
 .glass { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
 .gradient-text {
-  background: linear-gradient(135deg, var(--cc-blue) 0%, var(--cc-pink) 100%);
+  background: linear-gradient(135deg, var(--cc-cyan, var(--cc-blue)) 0%, var(--cc-electric, var(--cc-pink)) 52%, var(--cc-fuchsia, var(--cc-pink)) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -220,7 +232,7 @@ button[aria-label], button.icon-btn, [role="tab"], [role="menuitem"] { user-sele
 .gradient-border { position: relative; }
 .gradient-border::before {
   content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px;
-  background: linear-gradient(135deg, var(--cc-blue), var(--cc-pink));
+  background: linear-gradient(135deg, var(--cc-cyan, var(--cc-blue)), var(--cc-electric, var(--cc-pink)), var(--cc-fuchsia, var(--cc-pink)));
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor; mask-composite: exclude;
 }

@@ -5,29 +5,25 @@
  * All components can reuse these classes; avoid one-off blue-only visual drift.
  */
 :root {
-  --ccx-fuchsia: #E900C5;
-  --ccx-pink: #FF49B6;
-  --ccx-blue: #4F8CFF;
-  --ccx-deep-blue: #2548DB;
-  --ccx-ink: #090C19;
-  --ccx-surface: #151A2B;
-  --ccx-gradient: linear-gradient(112deg, #E900C5 0%, #FF49B6 43%, #4F8CFF 100%);
+  --ccx-fuchsia: var(--cc-fuchsia);
+  --ccx-pink: var(--cc-pink);
+  --ccx-blue: var(--cc-cyan);
+  --ccx-deep-blue: var(--cc-electric);
+  --ccx-ink: var(--cc-ink);
+  --ccx-surface: var(--cc-surface);
+  --ccx-gradient: linear-gradient(112deg, var(--cc-cyan) 0%, var(--cc-electric) 48%, var(--cc-fuchsia) 100%);
 }
 
 .ccx-app {
   --cc-blue: var(--ccx-blue);
   --cc-pink: var(--ccx-pink);
-  --cc-bg: #090D19;
-  --cc-surface: #171C2F;
-  --cc-surface-hover: #212842;
-  --cc-border: #303650;
-  --cc-border-hover: #55547C;
+  --cc-bg: var(--cc-ink);
   scroll-padding-top: 80px;
   background:
-    radial-gradient(ellipse 64rem 36rem at 100% -12rem, rgba(80,103,255,.12), transparent 64%),
-    radial-gradient(ellipse 47rem 34rem at -9rem 20rem, rgba(234,0,197,.075), transparent 66%),
-    #090D19;
-  color: #F5F3FF;
+    radial-gradient(ellipse 64rem 36rem at 100% -12rem, color-mix(in srgb, var(--cc-cyan) 14%, transparent), transparent 64%),
+    radial-gradient(ellipse 47rem 34rem at -9rem 20rem, color-mix(in srgb, var(--cc-fuchsia) 12%, transparent), transparent 66%),
+    var(--cc-ink);
+  color: var(--cc-white);
 }
 
 .ccx-brand-topline {
@@ -37,7 +33,7 @@
 }
 
 .ccx-shell-header {
-  background: rgba(12,17,32,.92);
+  background: color-mix(in srgb, var(--cc-ink) 92%, transparent);
   border-bottom: 1px solid rgba(255,255,255,.08);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -92,7 +88,7 @@
   font-size: .83rem;
   font-weight: 590;
   color: #BBC4DD;
-  background: rgba(28,34,56,.8);
+  background: color-mix(in srgb, var(--cc-surface) 88%, transparent);
   transition: color .2s, background .2s, border-color .2s, box-shadow .2s;
 }
 .ccx-nav-pill:hover:not(.is-active) {
@@ -111,7 +107,7 @@
 .ccx-surface {
   border: 1px solid rgba(157,164,205,.14);
   border-radius: 1.15rem;
-  background: linear-gradient(145deg, rgba(29,34,56,.95), rgba(19,26,45,.96));
+  background: linear-gradient(145deg, color-mix(in srgb, var(--cc-surface-hover) 86%, transparent), color-mix(in srgb, var(--cc-surface) 94%, transparent));
   box-shadow: 0 8px 30px rgba(0,0,0,.12);
 }
 .ccx-module-card {

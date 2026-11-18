@@ -1,5 +1,5 @@
 /* Signed-out marketing. Styling echoes the supplied photographic hero: ink, hot fuchsia and electric cyan. */
-.ccx-public-landing{--sl-pink:#f800b8;--sl-cyan:#04c9f3;--sl-ink:#080a15;background:radial-gradient(ellipse 70% 40% at 50% -15%,rgba(211,18,173,.13),transparent 80%),#080a15;color:#f6f5ff;overflow:hidden}
+.ccx-public-landing{--sl-pink:var(--cc-fuchsia);--sl-cyan:var(--cc-cyan);--sl-ink:var(--cc-ink);background:radial-gradient(ellipse 70% 40% at 50% -15%,color-mix(in srgb,var(--cc-fuchsia) 14%,transparent),transparent 80%),var(--cc-ink);color:var(--cc-white);overflow:hidden}
 .ccx-slim-container{width:min(100% - 48px,1260px);margin-inline:auto}
 .ccx-slim-section{padding:76px 0 74px}
 .ccx-slim-section-heading{text-align:center;max-width:790px;margin:0 auto 36px}
