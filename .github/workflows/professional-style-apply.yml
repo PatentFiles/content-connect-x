@@ -4,6 +4,9 @@ on:
     paths: ['.github/workflows/professional-style-apply.yml']
 permissions:
   contents: write
+concurrency:
+  group: ccx-professional-style-apply
+  cancel-in-progress: true
 jobs:
   apply:
     runs-on: ubuntu-latest
@@ -39,7 +42,7 @@ jobs:
           STYLE_SCREENSHOT_DIR: /tmp/style-evidence
         run: |
           npm run test:ui-controls
-          node --experimental-websocket scripts/test-provider-browser.mjs
+          node --experimental-websocket scripts/test-yoti-onboarding-browser.mjs
           npm run test:ui-theme
           node scripts/test-role-workspace-render.mjs
       - name: Contract and production build
