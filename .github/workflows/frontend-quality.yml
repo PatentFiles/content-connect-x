@@ -26,6 +26,8 @@ jobs:
         run: npm run test:unit
       - name: Desktop, mobile and enlarged-text control geometry
         run: npm run test:ui-controls
+      - name: Yoti-only onboarding browser regression
+        run: node scripts/test-yoti-onboarding-browser.mjs
       - name: Render actual role workspaces and shared cards
         run: node scripts/test-role-workspace-render.mjs
       - name: Release invariants
@@ -53,7 +55,13 @@ jobs:
           done
       - name: Verify protected API and calendar scheduler boundaries
         run: npm run smoke:supabase
-  # Independent failing dependency advisories are never suppressed.
+      - name: Provider endpoints reject anonymous or unsigned requests
+        run: |
+          for fn in yoti-verification membership-billing membership-ccbill-webhook hosting-ccbill-webhook; do
+            code=$(curl --silent --show-error --max-time 20 -o /tmp/provider-response -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{}' "https://yxuqbygykpfbioslljlf.supabase.co/functions/v1/$fn")
+            case "$code" in 400|401|403|503) echo "$fn rejects unsigned request ($code)" ;; *) echo "$fn returned unexpected status $code"; exit 1 ;; esac
+          done
+  # Full registry audit; no advisory exclusions or continue-on-error.
   dependency-audit:
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -65,4 +73,4 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Dependency vulnerability audit
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=low
