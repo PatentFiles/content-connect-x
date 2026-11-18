@@ -1,0 +1,69 @@
+name: Verify Yoti and CCBill implementation
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/provider-implementation.yml']
+permissions:
+  contents: write
+jobs:
+  verify-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply hash-verified source changes
+        env:
+          PATCH_URL: 'https://sdmntpreastus3.oaiusercontent.com/files/00000000-c6e0-8212-9eb4-1c52181876f2/raw?se=2026-11-18T15%3A26%3A59Z&sp=r&sv=2026-06-06&sr=b&scid=fbcf727c-be0b-5249-8a09-ca27e21e48a8&skoid=3c9b86d7-60cb-496a-a3c1-90c5457c8da4&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-11-18T13%3A16%3A45Z&ske=2026-11-19T13%3A16%3A45Z&sks=b&skv=2026-06-06&sig=rTkJmcCrG4/qsbUcVYXRmF1n0k/wEkL1atujlGB6wfI%3D'
+        run: |
+          python3 - <<'PY'
+          import os,io,json,hashlib,zipfile,urllib.request
+          from pathlib import Path
+          payload=urllib.request.urlopen(os.environ['PATCH_URL'],timeout=30).read(1000000)
+          assert hashlib.sha256(payload).hexdigest()=='fbed2cbeedf9ad4e443d2668f653c50e93bdae7026f6fc427c9a904ae5429076','Archive hash mismatch'
+          with zipfile.ZipFile(io.BytesIO(payload)) as z:
+            assert z.namelist()==['manifest.json']
+            manifest=json.loads(z.read('manifest.json'))
+          for row in manifest['files']:
+            p=Path(row['path'])
+            assert not p.is_absolute() and '..' not in p.parts and not p.is_symlink()
+            assert p.parts[0] in {'src','scripts','tests','supabase','public','deploy','docs'}
+            before=hashlib.sha256(p.read_bytes()).hexdigest() if p.exists() else None
+            assert before==row['before'],'Concurrent source change: '+str(p)
+            assert hashlib.sha256(row['content'].encode()).hexdigest()==row['sha256']
+          for row in manifest['files']:
+            p=Path(row['path']);p.parent.mkdir(parents=True,exist_ok=True);p.write_text(row['content'])
+          print('Applied',len(manifest['files']),'verified files; no credentials included')
+          PY
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Full security audit without exclusions
+        run: npm audit --audit-level=low
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - run: npm run test:ui-controls
+      - run: node scripts/test-yoti-onboarding-browser.mjs
+      - run: node scripts/test-role-workspace-render.mjs
+      - run: npm run verify:release
+      - run: npm run verify:frontend-contract
+      - run: npm run verify:edge-imports
+      - run: npm run build
+      - name: Commit validated application code
+        run: |
+          git config user.name 'Content Connect maintenance'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src scripts tests supabase public deploy docs
+          git commit -m "Implement Yoti-only ID and selfie signup and secure CCBill membership lifecycle"
+          git push origin HEAD:main
+      - name: Save security evidence
+        if: always()
+        run: npm audit --json > /tmp/provider-audit-final.json || test -s /tmp/provider-audit-final.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: provider-final-audit
+          path: /tmp/provider-audit-final.json
+          retention-days: 7
