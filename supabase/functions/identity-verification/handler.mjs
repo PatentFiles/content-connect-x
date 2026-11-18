@@ -13,8 +13,12 @@ async function boundedBody(stream,max){
  try{for(;;){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>max)throw new RequestError('The upload is too large.',413);chunks.push(value);}}finally{await reader.cancel().catch(()=>{});}
  const result=new Uint8Array(size);let offset=0;for(const c of chunks){result.set(c,offset);offset+=c.length;}return result;
 }
-function publicSession(s){
+export function publicSession(s,now=Date.now()){
  if(!s)return null;
+ if(['collecting','processing','retryable_error','name_mismatch'].includes(s.status)&&Date.parse(s.expires_at)<=now)
+  s={...s,status:'expired',reason:'session_expired'};
+ else if(s.status==='processing'&&Date.parse(s.job_expires_at)<=now)
+  s={...s,status:'retryable_error',reason:'worker_unavailable'};
  return {id:s.id,status:s.status,reason:s.reason,message:publicMessage(s.status,s.reason,s.eligible_on),eligible_on:s.eligible_on||null,
  document_type:s.document_type,issuing_country:s.issuing_country,legal_name:s.legal_name==='[deleted]'?'':s.legal_name,
  expected_name:s.status==='name_mismatch'?s.extracted_name:null,
@@ -102,7 +106,7 @@ export function createHandler({admin,authenticate,fetchImpl=fetch,clock=()=>new 
     const birthday=account?.eligible_on?new Date(`${account.eligible_on}T00:00:00Z`):null;
     if(birthday)birthday.setUTCDate(birthday.getUTCDate()-1);
     const ageReason=birthday&&today>=birthday.toISOString().slice(0,10)?'birthday_wait':'under_18';
-    let session=account?.eligible_on>today?{...publicSession(latest),status:'age_restricted',eligible_on:account.eligible_on,message:publicMessage('age_restricted',ageReason,account.eligible_on)}:publicSession(latest);
+    let session=account?.eligible_on>today?{...publicSession(latest,clock().getTime()),status:'age_restricted',eligible_on:account.eligible_on,message:publicMessage('age_restricted',ageReason,account.eligible_on)}:publicSession(latest,clock().getTime());
     if(session?.status==='age_restricted'&&session.eligible_on<=today)session={...session,status:'eligible_to_retry',message:'You may now complete a new identity verification attempt. Access is not granted automatically.'};
     return reply({enabled:cfg.enabled===true,policy:POLICY,notice:cfg.notice_text,notice_version:cfg.notice_version,retention_days:cfg.retention_days,
      supported_countries:cfg.supported_countries,email_confirmed:Boolean(user.email_confirmed_at),legal_name:account?.verified_name||account?.legal_name||profile?.real_name||'',admitted:Boolean(admitted),session});
