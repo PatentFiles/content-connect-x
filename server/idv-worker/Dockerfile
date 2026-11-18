@@ -1,12 +1,11 @@
-# Dedicated verification worker; do NOT use this Dockerfile for the web frontend.
-# Source and npm dependency tree are pinned. Keep base-image security patches current.
+# Railway root directory: /server/idv-worker. This is NOT the web frontend.
+# policy.mjs is checked byte-for-byte against the Edge policy in identity CI.
 FROM node:22-bookworm-slim AS build
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates python3 make g++ libcairo2-dev libjpeg-dev libpango1.0-dev libgif-dev librsvg2-dev pkg-config wget bzip2 && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 RUN git init . && git remote add origin https://github.com/team-idswyft/idswyft-community.git && git fetch --depth=1 origin 3c6f17f1aba84bc980dc759f6be42f69b576f439 && git checkout --detach FETCH_HEAD && test "$(git rev-parse HEAD)" = 3c6f17f1aba84bc980dc759f6be42f69b576f439
-# Never replace a failed lockfile installation with an unpinned npm install.
 RUN npm ci --include=optional --workspace=shared --workspace=engine --include-workspace-root
-COPY server/idv-worker/prepare-build.mjs /app/ccx/prepare-build.mjs
+COPY prepare-build.mjs /app/ccx/prepare-build.mjs
 RUN node /app/ccx/prepare-build.mjs
 RUN cd shared && ../node_modules/.bin/tsc && ../node_modules/.bin/tsc-alias
 RUN cd engine && ../node_modules/.bin/tsc && ../node_modules/.bin/tsc-alias
@@ -24,8 +23,7 @@ COPY --from=build /app/shared/package.json /app/shared/package.json
 COPY --from=build /app/LICENSE /app/ccx/LICENSE-IDSWYFT
 COPY --from=build /app/ccx/model-manifest.json /app/ccx/model-manifest.json
 COPY --from=build /app/ccx/LICENSE-FACE-MODELS /app/ccx/LICENSE-FACE-MODELS
-COPY server/idv-worker/worker.mjs /app/ccx/worker.mjs
-COPY supabase/functions/identity-verification/policy.mjs /app/ccx/policy.mjs
+COPY worker.mjs policy.mjs /app/ccx/
 RUN mkdir -p /home/node/.cache/ppu-paddle-ocr && chown -R node:node /app /home/node/.cache
 USER node
 ENV NODE_ENV=production LOG_LEVEL=error PORT=8080 SUPABASE_URL=https://yxuqbygykpfbioslljlf.supabase.co
