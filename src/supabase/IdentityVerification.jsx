@@ -1,9 +1,9 @@
-/** Mandatory signup capture. The server, never this component, grants membership. */
+/** Capture UI only. Production admission and private pilot results remain server-owned. */
 import React,{useEffect,useRef,useState} from 'react';
 import {Camera,CheckCircle2,RefreshCw,ShieldCheck} from 'lucide-react';
 import {identityAction,identityUpload} from './identityApi';
 const field='mt-1 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900';
-export default function IdentityVerification({onApproval=()=>{},onboarding=false}){
+export default function IdentityVerification({onApproval=()=>{},onboarding=false,action=identityAction,uploadAction=identityUpload,testing=false}){
  const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [name,setName]=useState(''),[documentType,setDocumentType]=useState('drivers_license'),[country,setCountry]=useState('US');
  const [consent,setConsent]=useState(false),[correction,setCorrection]=useState('');
@@ -15,10 +15,11 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
   if(!alive.current)return;
   if(result.session!==undefined){setState(old=>({...old,...result}));setCorrection(result.session?.expected_name||'');}
   else setState(result);
-  if(result.session?.status==='approved')await approval.current?.();
+  // A pilot result is never an onboarding-completion callback, even if all checks pass.
+  if(result.session?.status==='approved'&&!testing)await approval.current?.();
  };
  const refresh=async()=>{
-  const result=await identityAction('status');await accept(result);
+  const result=await action('status');await accept(result);
   if(alive.current)setName(previous=>previous||result.legal_name||'');
  };
  const perform=async(fn)=>{setBusy(true);setError('');try{await fn();}catch(e){if(alive.current)setError(e.message);}finally{if(alive.current)setBusy(false);}};
@@ -30,12 +31,12 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
  },[state?.session?.status]);
  const session=state?.session,status=session?.status;
  const start=()=>perform(async()=>{
-  await accept(await identityAction('start',{legal_name:name,document_type:documentType,issuing_country:country,consent,notice_version:state.notice_version}));
+  await accept(await action('start',{legal_name:name,document_type:documentType,issuing_country:country,consent,notice_version:state.notice_version}));
  });
  const upload=(kind,file)=>perform(async()=>{
   if(!file)return;
   if(!['image/jpeg','image/png'].includes(file.type)||file.size>8*1024*1024)throw Error('Use a JPEG or PNG no larger than 8 MB.');
-  await accept(await identityUpload(session.id,kind,file));
+  await accept(await uploadAction(session.id,kind,file));
  });
  const enableCamera=()=>perform(async()=>{
   if(!navigator.mediaDevices?.getUserMedia)throw Error('Live camera capture requires a supported browser over HTTPS.');
@@ -71,28 +72,28 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
    setInstruction('Return to the center and look straight at the camera.');await wait(4000);frames.push(frame('turn_return'));
    const payload={challenge_id:session.challenge_id,challenge_type:'head_turn',directions:session.directions,start_timestamp:started,end_timestamp:performance.now(),frames};
    setInstruction('Saving your camera capture securely.');
-   await accept(await identityUpload(session.id,'capture',new File([JSON.stringify(payload)],'capture.json',{type:'application/json'})));
+   await accept(await uploadAction(session.id,'capture',new File([JSON.stringify(payload)],'capture.json',{type:'application/json'})));
   }finally{stopCamera();}
  });
  const submit=()=>perform(async()=>{
   setState(old=>({...old,session:{...old.session,status:'processing',message:'Your ID and live camera capture are being checked.'}}));
-  try{await accept(await identityAction('submit',{session_id:session.id}));}catch(e){await refresh().catch(()=>{});throw e;}
+  try{await accept(await action('submit',{session_id:session.id}));}catch(e){await refresh().catch(()=>{});throw e;}
  });
  const restart=()=>perform(async()=>{
   stopCamera();
-  if(['collecting','retryable_error','review_required','name_mismatch'].includes(status))await identityAction('cancel',{session_id:session.id});
+  if(['collecting','retryable_error','review_required','name_mismatch'].includes(status))await action('cancel',{session_id:session.id});
   setState(old=>({...old,session:null}));setConsent(false);setCorrection('');
  });
  const complete=session?.uploaded?.front&&session?.uploaded?.capture&&(session.document_type==='passport'||session?.uploaded?.back);
  const canStart=!session||['cancelled','expired','eligible_to_retry'].includes(status);
  return <section className="ccx-surface rounded-3xl p-6 shadow-lg sm:p-8" aria-labelledby="identity-heading">
   <ShieldCheck className="mx-auto mb-3 text-[var(--cc-link)]" size={36}/>
-  <h1 id="identity-heading" className="text-center text-2xl font-bold">Identity and age verification</h1>
-  <p className="mt-3 text-sm leading-6 text-[var(--cc-text-secondary)]">Use a valid government-issued photo ID and a live camera capture. Your private legal name must match your ID. Your public display or stage name stays separate.</p>
+  <h1 id="identity-heading" className="text-center text-2xl font-bold">{testing?'Private identity test':'Identity and age verification'}</h1>
+  <p className="mt-3 text-sm leading-6 text-[var(--cc-text-secondary)]">{testing?'Test your own government-issued photo ID and live camera capture. Results are diagnostic only. Your account access and profile names will not change.':'Use a valid government-issued photo ID and a live camera capture. Your private legal name must match your ID. Your public display or stage name stays separate.'}</p>
   {!state&&<p role="status" className="mt-5">Loading verification…</p>}
-  {state?.enabled===false&&<p role="status" className="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">Identity verification is not available yet. Your account remains restricted until the service is connected and verification succeeds. No ID uploads are accepted while it is unavailable.</p>}
+  {state?.enabled===false&&<p role="status" className="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">{testing?'Private testing is paused, expired, or awaiting a successful cleanup check. No test uploads are accepted. Your existing access is unchanged.':'Identity verification is not available yet. Your account remains restricted until the service is connected and verification succeeds. No ID uploads are accepted while it is unavailable.'}</p>}
   {state&&!state.email_confirmed&&<p role="status" className="mt-4 text-sm">Confirm your email address before continuing.</p>}
-  {status==='approved'&&<p role="status" className="mt-5 flex items-center justify-center gap-2 text-emerald-800"><CheckCircle2/>Verification complete</p>}
+  {status==='approved'&&<p role="status" className="mt-5 flex items-center justify-center gap-2 text-emerald-800"><CheckCircle2/>{testing?session.message:'Verification complete'}</p>}
   {session?.message&&status!=='approved'&&<p role="status" className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-900">{session.message}</p>}
   {canStart&&state?.enabled&&<div className="mt-5 space-y-4">
    <label className="block text-sm font-medium">Full legal name on your ID<input autoComplete="name" maxLength={160} value={name} onChange={e=>setName(e.target.value)} className={field}/></label>
@@ -119,10 +120,10 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
   {status==='processing'&&<p role="status" className="mt-4 text-center text-sm">Checking your saved evidence. You can return to this screen to check the result.</p>}
   {status==='name_mismatch'&&<div className="mt-5 space-y-3">
    <label className="block text-sm font-medium">Legal name read from your ID<input maxLength={160} autoComplete="name" value={correction} onChange={e=>setCorrection(e.target.value)} className={field}/></label>
-   <button type="button" disabled={busy||!state?.enabled} onClick={()=>perform(async()=>accept(await identityAction('confirm_name',{session_id:session.id,legal_name:correction})))} className="ccx-primary min-h-12 w-full rounded-xl px-4 py-3">Update private legal name and finish</button>
+   <button type="button" disabled={busy||!state?.enabled} onClick={()=>perform(async()=>accept(await action('confirm_name',{session_id:session.id,legal_name:correction})))} className="ccx-primary min-h-12 w-full rounded-xl px-4 py-3">{testing?'Update test name and finish':'Update private legal name and finish'}</button>
   </div>}
   {status==='retryable_error'&&<button type="button" disabled={busy||!state?.enabled} onClick={submit} className="ccx-primary mt-4 min-h-11 w-full rounded-xl px-4 py-3">Retry verification</button>}
-  {['age_restricted','review_required','name_mismatch','retryable_error'].includes(status)&&<button type="button" disabled={busy||session.review_requested} onClick={()=>perform(async()=>accept(await identityAction('request_review',{session_id:session.id})))} className="ccx-secondary mt-4 min-h-11 w-full rounded-xl px-4 py-3">{session.review_requested?'Review requested — access remains restricted':'Request a review'}</button>}
+  {!testing&&['age_restricted','review_required','name_mismatch','retryable_error'].includes(status)&&<button type="button" disabled={busy||session.review_requested} onClick={()=>perform(async()=>accept(await action('request_review',{session_id:session.id})))} className="ccx-secondary mt-4 min-h-11 w-full rounded-xl px-4 py-3">{session.review_requested?'Review requested — access remains restricted':'Request a review'}</button>}
   {['collecting','review_required','name_mismatch','retryable_error'].includes(status)&&<button type="button" disabled={busy} onClick={restart} className="mt-3 min-h-11 w-full text-sm">Cancel this attempt and start again</button>}
   {error&&<p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}
   <button type="button" disabled={busy} onClick={()=>perform(refresh)} className="mx-auto mt-4 flex min-h-11 items-center gap-2 rounded-xl px-4 text-sm text-[var(--cc-link)]"><RefreshCw size={16}/>Check status</button>
