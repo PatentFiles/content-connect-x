@@ -5,8 +5,8 @@ import {X,LockKeyhole} from 'lucide-react';
 let bodyLocks=0;
 let previousOverflow='';
 
-/** @param {{title:string,subtitle?:string,children?:React.ReactNode,onClose:()=>void,busy?:boolean,className?:string}} props */
-export default function HostDialog({title,subtitle='',children,onClose,busy=false,className=''}){
+/** @param {{title:string,subtitle?:string,children?:React.ReactNode,onClose:()=>void,busy?:boolean,className?:string,fullscreen?:boolean}} props */
+export default function HostDialog({title,subtitle='',children,onClose,busy=false,className='',fullscreen=false}){
  const ref=useRef(/** @type {HTMLDialogElement|null} */ (null));
  const titleId=useId();
  useLayoutEffect(()=>{
@@ -24,7 +24,7 @@ export default function HostDialog({title,subtitle='',children,onClose,busy=fals
   };
  },[]);
  const dismiss=()=>{if(!busy)onClose();};
- return createPortal(<dialog ref={ref} className={'oh-dialog host-connect-theme '+className} aria-labelledby={titleId}
+ return createPortal(<dialog ref={ref} className={'oh-dialog host-connect-theme '+(fullscreen?'oh-dialog-fullscreen ':'')+className} aria-labelledby={titleId}
    onCancel={event=>{event.preventDefault();dismiss();}}
    onClick={event=>{if(event.target===event.currentTarget)dismiss();}}>
    <div className="oh-dialog-shell">

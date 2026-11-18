@@ -113,7 +113,7 @@ export default function HostingAreaMap({areas=[],listings=[],onSelect,onSearchBo
     <button className={button+' flex items-center gap-1'} onClick={()=>onSearchBounds?.(bounds)}><Search size={15}/>Search this map area</button>
   </header>
   <div className="grid gap-3 lg:grid-cols-[1fr_230px]">
-   <div ref={element} className="relative h-[420px] overflow-hidden rounded-xl border border-[#34506F] bg-[#12283E] touch-none select-none cursor-grab active:cursor-grabbing"
+   <div ref={element} className="oh-area-map-canvas relative h-[420px] overflow-hidden rounded-xl border border-[#34506F] bg-[#12283E] touch-none select-none cursor-grab active:cursor-grabbing"
      onPointerDown={pointerStart} onPointerMove={pointerMove} onPointerUp={pointerEnd} onPointerCancel={pointerEnd}
      onWheel={e=>{e.preventDefault();setZoom(z=>clamp(z+(e.deltaY<0?1:-1),3,14));}}>
     <div className="pointer-events-none absolute inset-0" style={{backgroundImage:'linear-gradient(#36547344 1px,transparent 1px),linear-gradient(90deg,#36547344 1px,transparent 1px)',backgroundSize:'55px 55px'}}>

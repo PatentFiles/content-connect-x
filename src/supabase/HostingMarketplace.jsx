@@ -1,3 +1,6 @@
+import PropertyVirtualTour from './PropertyVirtualTour';
+import PropertyAmenities,{usePropertyAmenities} from './PropertyAmenities';
+import {supabase} from '@/api/supabaseClient';
 /**
  * Airbnb-style private creator hosting marketplace.
  * Search/discovery: age-verified free. Requests: premium only.
@@ -38,6 +41,8 @@ function ListingCard({listing,favorite,toggle,open}) {
 
 function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_connect'}) {
   const [item,setItem]=useState(null);
+  const {amenities:amenityCatalog}=usePropertyAmenities();
+  const liveAmenityLabels={...amenityLabels,...Object.fromEntries(amenityCatalog.map(v=>[v.key,v.label]))};
   const [dates,setDates]=useState([]);
   const [reviews,setReviews]=useState([]);
   const [reviewSummary,setReviewSummary]=useState(null);
@@ -107,6 +112,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
           <figcaption className="p-3 text-xs text-[#B3CCE7]">{video.caption||'Approved property video'}</figcaption>
         </figure>)}</div>
     </section>}
+    <PropertyVirtualTour propertyId={item.id} title={item.title}/>
     <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
       <div className="space-y-5">
         <section className={panel+' p-6'}><h3 className="text-xl font-semibold">About this space</h3>
@@ -118,7 +124,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
           </div>
         </section>
         <section className={panel+' p-6'}><h3 className="text-lg font-semibold">Amenities</h3>
-          <div className="mt-4 flex flex-wrap gap-2">{item.amenities?.length?item.amenities.map(a=><span className={pill} key={a}>{amenityLabels[a]||a}</span>):<span className={empty}>No amenities listed</span>}</div>
+          <div className="mt-4 flex flex-wrap gap-2">{item.amenities?.length?item.amenities.map(a=><span className={pill} key={a}>{liveAmenityLabels[a]||a}</span>):<span className={empty}>No amenities listed</span>}</div>
         </section>
         <section className={panel+' p-6'}><h3 className="text-lg font-semibold">Production suitability</h3>
           {!suitability?<p className="mt-2 text-sm text-[#A3B7D0]">No venue suitability declaration is available.</p>:
@@ -188,12 +194,15 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
 export default function HostingMarketplace({paid=false,isAdmin=false,user,brand='content_connect',initialSection='explore',hostOnly=false}) {
   const [section,setSection]=useState(initialSection);
   const [selected,setSelected]=useState('');
-  const [query,setQuery]=useState('');
+  const query='';
+  const [country,setCountry]=useState('');
+  const [region,setRegion]=useState('');
+  const [locations,setLocations]=useState([]);
   const [city,setCity]=useState('');
   const [category,setCategory]=useState('');
   const [maxPrice,setMaxPrice]=useState('');
   const [crew,setCrew]=useState('');
-  const [amenity,setAmenity]=useState('');
+  const [selectedAmenities,setSelectedAmenities]=useState([]);
   const [from,setFrom]=useState('');
   const [to,setTo]=useState('');
   const [onlySaved,setOnlySaved]=useState(false);
@@ -211,18 +220,25 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
   const [error,setError]=useState('');
   const [notice,setNotice]=useState('');
 
+  const searchGeneration=React.useRef(0);
   const search=useCallback(async(boundsOverride=null)=>{
+    const request=++searchGeneration.current;
     setBusy(true);setError('');
     try{
       const [browse,favs,bookings]=await Promise.all([
-        hostingAction('browse',{query,city,category,max_price:maxPrice,crew_size:crew,amenity,from:from?new Date(from).toISOString():null,to:to?new Date(to).toISOString():null,bounds:boundsOverride===false?null:(boundsOverride||mapBounds)}),
+        hostingAction('browse',{query,city,state:region,country,category,max_price:maxPrice,crew_size:crew,amenities:selectedAmenities,from:from?new Date(from).toISOString():null,to:to?new Date(to).toISOString():null,bounds:boundsOverride===false?null:(boundsOverride||mapBounds)}),
         hostingAction('favorites'),hostingAction('my_bookings'),
       ]);
+      if(request!==searchGeneration.current)return;
       setListings(browse.items||[]);setFavorites(favs.ids||[]);setMyBookings(bookings.items||[]);
-    }catch(e){setError(e.message);}finally{setBusy(false);}
-  },[query,city,category,maxPrice,crew,amenity,from,to,mapBounds]);
+    }catch(e){if(request===searchGeneration.current)setError(e.message);}finally{if(request===searchGeneration.current)setBusy(false);}
+  },[query,city,region,country,category,maxPrice,crew,selectedAmenities,from,to,mapBounds]);
   useEffect(()=>{if(hostOnly)return;search();hostingAdvanced('areas_public').then(r=>setAreas(r.items||[])).catch(()=>{});},[hostOnly,search]);
 
+  useEffect(()=>{if(hostOnly)return;let live=true;void supabase.rpc('ccx_property_filter_options').then(({data,error})=>{if(!live)return;if(error){setError('Location filters could not load: '+error.message);return;}setLocations(data?.locations||[]);});return()=>{live=false;};},[hostOnly]);
+  const countries=[...new Set(locations.map(v=>v.country).filter(Boolean))].sort();
+  const regions=[...new Set(locations.filter(v=>!country||v.country===country).map(v=>v.state).filter(Boolean))].sort();
+  const cities=[...new Set(locations.filter(v=>(!country||v.country===country)&&(!region||v.state===region)).map(v=>v.city).filter(Boolean))].sort();
   const toggle=async(id)=>{
     setError('');
     try{
@@ -266,10 +282,10 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
         className="block h-auto w-full"
       />
     </div>
-    <nav className="flex flex-wrap gap-2">
+    {(!hostOnly||isAdmin)&&<nav className="flex flex-wrap gap-2">
       {/** @type {Array<[string, string, import('react').ElementType]>} */ ((hostOnly?[['host','Property dashboard',Home],...(isAdmin?[['review','Listing approvals',ShieldCheck]]:[])]:[['explore','Explore spaces',Search],['favorites','Saved',Heart],['bookings','My requests',CalendarDays],...(paid?[['host','Host dashboard',Home]]:[]),...(isAdmin?[['review','Listing approvals',ShieldCheck]]:[]),['alerts','Notifications',CalendarDays],['crew','Crew invitations',Users],['cleaning','My cleaning jobs',Home]]))
       .map(([key,label,Icon])=><button key={key} className={'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm '+(section===key?'ccx-action-primary text-white':'border border-[#31435C] bg-[#141D2B] text-[#BED0E6]')} onClick={()=>{setSection(key);setSelected('');setError('');}}><Icon size={16}/>{label}</button>)}
-    </nav>
+    </nav>}
     {error&&<p className="rounded-xl border border-red-700/50 bg-red-900/20 p-3 text-sm text-red-300" role="alert">{error}</p>}
     {notice&&<p className="rounded-xl border border-green-700/50 bg-green-900/20 p-3 text-sm text-green-300" role="status">{notice}</p>}
 
@@ -277,12 +293,13 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
       {selected?<ListingDetail brand={brand} id={selected} paid={paid} favorites={favorites} toggle={toggle} back={()=>setSelected('')} onBooked={()=>search()}/>:
       <div className="space-y-5">
         <form onSubmit={e=>{e.preventDefault();search();}} className={panel+' grid gap-3 p-4 md:grid-cols-3 xl:grid-cols-4'}>
-          <label className="block text-xs text-[#ADC1DA]">Find a space<input className={input+' mt-1'} value={query} onChange={e=>setQuery(e.target.value)} placeholder="Studio, loft, location…"/></label>
-          <label className="block text-xs text-[#ADC1DA]">City<input className={input+' mt-1'} value={city} onChange={e=>setCity(e.target.value)} placeholder="Los Angeles"/></label>
-          <label className="block text-xs text-[#ADC1DA]">Category<select value={category} onChange={e=>setCategory(e.target.value)} className={input+' mt-1'}><option value="">All spaces</option>{rentalCategories.map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label>
+          <label className="block text-xs text-[#ADC1DA]">Find a space<select aria-label="Find a space" value={category} onChange={e=>setCategory(e.target.value)} className={input+' mt-1'}><option value="">All space types</option>{rentalCategories.map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label>
+          <label className="block text-xs text-[#ADC1DA]">Country<select aria-label="Country" className={input+' mt-1'} value={country} onChange={e=>{setCountry(e.target.value);setRegion('');setCity('');}}><option value="">All countries</option>{countries.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
+          <label className="block text-xs text-[#ADC1DA]">State / region<select aria-label="State / region" className={input+' mt-1'} value={region} onChange={e=>{setRegion(e.target.value);setCity('');}}><option value="">All states / regions</option>{regions.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
+          <label className="block text-xs text-[#ADC1DA]">City<select aria-label="City" className={input+' mt-1'} value={city} onChange={e=>setCity(e.target.value)}><option value="">All cities</option>{cities.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
           <label className="block text-xs text-[#ADC1DA]">Max $/hr<input className={input+' mt-1'} type="number" min={1} value={maxPrice} onChange={e=>setMaxPrice(e.target.value)} placeholder="Any"/></label>
           <label className="block text-xs text-[#ADC1DA]">Crew size<input className={input+' mt-1'} type="number" min={1} value={crew} onChange={e=>setCrew(e.target.value)} placeholder="Any"/></label>
-          <label className="block text-xs text-[#ADC1DA]">Amenity<select className={input+' mt-1'} value={amenity} onChange={e=>setAmenity(e.target.value)}><option value="">All amenities</option>{rentalAmenities.map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label>
+          <div className="md:col-span-3 xl:col-span-4"><PropertyAmenities values={selectedAmenities} onChange={setSelectedAmenities}/></div>
           <label className="block text-xs text-[#ADC1DA]">Available from<input className={input+' mt-1'} type="datetime-local" value={from} onChange={e=>setFrom(e.target.value)}/></label>
           <label className="block text-xs text-[#ADC1DA]">Available until<input className={input+' mt-1'} type="datetime-local" value={to} onChange={e=>setTo(e.target.value)}/></label>
           <button type="submit" disabled={busy} className={button+' mt-4 self-end'}><SlidersHorizontal size={16} className="inline mr-2"/>Search spaces</button>

@@ -16,7 +16,7 @@ const cors={
  'Access-Control-Allow-Methods':'POST,OPTIONS'
 };
 const reply=(body:unknown,status=200)=>Response.json(body,{status,headers:cors});
-const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 const safe=(v:unknown,max=200)=>typeof v==='string'?v.trim().slice(0,max):'';
 const finite=(v:unknown)=>typeof v==='number'?v:typeof v==='string'?Number(v):NaN;
 const isAdmitted=(record:any)=>Boolean(record?.admitted_at);
@@ -25,7 +25,7 @@ const moment=(v:unknown)=>{const date=typeof v==='string'?new Date(v):new Date(N
 const acceptedAmenities=new Set(['wifi','parking','private_entrance','makeup_room','dressing_room','shower','kitchen','restroom','soundproof','lighting','green_screen','power_220v','accessible','outdoor','security','air_conditioning','load_in','bedroom','pool']);
 const acceptedUses=new Set(['photography','filming','commercial','interviews','music_video','adult_production','nude_photography','explicit_adult_video','events','equipment_rental']);
 const acceptedCategories=new Set(['film_studio','photo_studio','house','villa','loft','set','outdoor','equipment','dungeon','other']);
-const safeDefaults=(source:any)=>{
+const safeDefaults=(source:any,amenityKeys: Set<string>=acceptedAmenities)=>{
  const v=source&&typeof source==='object'&&!Array.isArray(source)?source:{};
  const number=(key:string,min:number,max:number,fallback:number)=>{
   const n=Number(v[key]);return Number.isFinite(n)&&n>=min&&n<=max?n:fallback;
@@ -42,7 +42,7 @@ const safeDefaults=(source:any)=>{
   deposit_percent:Math.round(number('deposit_percent',0,50,0)),
   required_insurance:v.required_insurance===true,
   rules:safe(v.rules,3000),
-  amenities:Array.isArray(v.amenities)?[...new Set(v.amenities.filter((x:unknown)=>acceptedAmenities.has(x)))]:[],
+  amenities:Array.isArray(v.amenities)?[...new Set(v.amenities.filter((x:unknown)=>amenityKeys.has(String(x))))]:[],
   permitted_uses:Array.isArray(v.permitted_uses)?[...new Set(v.permitted_uses.filter((x:unknown)=>acceptedUses.has(x)))]:[],
  };
 };
@@ -94,6 +94,25 @@ Deno.serve(async req=>{
   return hash%100<data.rollout_percent;
  };
  if(!await feature('hosting_marketplace',paid?'premium':'free'))return denial('Marketplace is unavailable',403);
+ // The shared catalog is a server allowlist, never trust arbitrary client keys.
+ const amenityKeys=new Set<string>();
+ if(['browse','host_defaults_get','host_defaults_set','host_create','host_update'].includes(action)){
+   const requestedKeys=[...new Set([
+     ...(Array.isArray(payload.amenities)?payload.amenities:[]),
+     ...(Array.isArray(payload.settings?.amenities)?payload.settings.amenities:[]),
+     ...(typeof payload.amenity==='string'?[payload.amenity]:[])
+   ])].filter((v:any)=>typeof v==='string'&&v.length<=80);
+   // Templates are fetched separately below; the catalog is intentionally small
+   // per-page but load all pages so custom options are not lost after growth.
+   for(let start=0;;start+=1000){
+     const {data:catalog,error:catalogError}=await db.from('property_amenity_catalog')
+       .select('key').eq('active',true).order('key').range(start,start+999);
+     if(catalogError)return denial('Amenity catalog unavailable',503);
+     for(const row of catalog||[])amenityKeys.add(row.key);
+     if(!catalog||catalog.length<1000)break;
+   }
+   if(requestedKeys.length>200)return denial('Too many amenities');
+ }
  const adminAction=action.startsWith('admin_');
  if(adminAction&&!admin)return denial('Administrator access required',403);
  const paidAction=hostAction.has(action)||['booking_request','booking_cancel'].includes(action);
@@ -162,12 +181,18 @@ Deno.serve(async req=>{
    if(!allowed.length)return reply({items:[],count:0});
    query=query.in('public_area_id',allowed);
   }
-  if(city)query=query.ilike('city',city.replace(/[%*_]/g,''));
+  if(city)query=query.eq('city',city);
+  const region=safe(payload.state,100),country=safe(payload.country,100);
+  if(region)query=query.eq('state',region);
+  if(country)query=query.eq('country',country);
   if(category&&acceptedCategories.has(category))query=query.eq('category',category);
   if(Number.isFinite(max)&&max>0)query=query.lte('hourly_rate',max);
   if(Number.isInteger(minCrew)&&minCrew>0)query=query.gte('capacity',minCrew);
-  const amenity=safe(payload.amenity,45);
-  if(amenity&&acceptedAmenities.has(amenity))query=query.contains('amenities',[amenity]);
+  const selectedAmenities=Array.isArray(payload.amenities)?payload.amenities:
+    (payload.amenity?[payload.amenity]:[]);
+  if(selectedAmenities.length>200||selectedAmenities.some((v:any)=>typeof v!=='string'||!amenityKeys.has(v)))
+    return denial('Choose amenities from the current catalog');
+  if(selectedAmenities.length)query=query.contains('amenities',[...new Set(selectedAmenities)]);
   if(q)query=query.or(`title.ilike.%${q.replace(/[%.,()]/g,'')}%,description.ilike.%${q.replace(/[%.,()]/g,'')}%`);
   const {data,error}=await query;
   if(error)throw error;
@@ -289,10 +314,10 @@ Deno.serve(async req=>{
  case 'host_defaults_get':{
   const {data,error}=await db.from('host_listing_defaults').select('settings,updated_at').eq('user_id',uid).maybeSingle();
   if(error)throw error;
-  return reply({settings:data?.settings?safeDefaults(data.settings):null,updated_at:data?.updated_at||null});
+  return reply({settings:data?.settings?safeDefaults(data.settings,amenityKeys):null,updated_at:data?.updated_at||null});
  }
  case 'host_defaults_set':{
-  const settings=safeDefaults(payload.settings);
+  const settings=safeDefaults(payload.settings,amenityKeys);
   const {data,error}=await db.from('host_listing_defaults')
     .upsert({user_id:uid,settings,updated_at:new Date().toISOString()},{onConflict:'user_id'})
     .select('settings,updated_at').single();
@@ -359,7 +384,7 @@ Deno.serve(async req=>{
    return denial('Valid title, location, category, rate, capacity and minimum booking hours required');
   const permitted=Array.isArray(payload.permitted_uses)?payload.permitted_uses.filter((v:any)=>acceptedUses.has(v)):[];
   if(!permitted.length)return denial('Select permitted production uses');
-  const amenities=Array.isArray(payload.amenities)?payload.amenities.filter((v:any)=>acceptedAmenities.has(v)):[];
+  const amenities=Array.isArray(payload.amenities)?payload.amenities.filter((v:any)=>amenityKeys.has(v)):[];
   const {data,error}=await db.from('properties').insert({
    owner_id:uid,status:'draft',created_via_brand:payload.source_brand==='onlyhost'&&onlyHostEligible?'onlyhost':'content_connect',title,city,country,state:safe(payload.state,100),category,hourly_rate:rate,capacity:crew,
    minimum_hours:minHours,description:safe(payload.description,4000),permitted_uses:[...new Set(permitted)],
@@ -391,7 +416,7 @@ Deno.serve(async req=>{
      !Number.isInteger(crew)||crew<1||crew>500||!Number.isInteger(minimum)||minimum<1||minimum>72)return denial('Invalid listing details');
   const uses=Array.isArray(payload.permitted_uses)?payload.permitted_uses.filter((v:any)=>acceptedUses.has(v)):[];
   if(!uses.length)return denial('Select permitted production uses');
-  const amenities=Array.isArray(payload.amenities)?payload.amenities.filter((v:any)=>acceptedAmenities.has(v)):[];
+  const amenities=Array.isArray(payload.amenities)?payload.amenities.filter((v:any)=>amenityKeys.has(v)):[];
   const {data,error}=await db.from('properties').update({
    status:'draft',approved_at:null,approved_by:null,
    title,city,country,state:safe(payload.state,100),category,hourly_rate:rate,

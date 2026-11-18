@@ -5,7 +5,7 @@
 import React,{useCallback,useEffect,useState} from 'react';
 import { supabase } from '@/api/supabaseClient';
 import {Plus,CalendarDays,ClipboardCheck,ImageIcon,RefreshCw,Trash2,Settings2,ShieldCheck,Check,Save,Film} from 'lucide-react';
-import {hostingAction,uploadHostingPhoto,uploadHostingVideo,rentalCategories,rentalAmenities,rentalUses,usd,dateTime} from './hostingApi';
+import {hostingAction,uploadHostingPhoto,uploadHostingVideo,rentalCategories,rentalUses,usd,dateTime} from './hostingApi';
 import HostingHostVerification from './HostingHostVerification';
 import HostingBookingOperations from './HostingBookingOperations';
 import HostingAdminOperations from './HostingAdminOperations';
@@ -15,6 +15,10 @@ import HostingCalendarManager from './HostingCalendarManager';
 import HostingWorkforceManager from './HostingWorkforceManager';
 import HostingSuitabilityManager from './HostingSuitabilityManager';
 import HostDialog from './HostDialog';
+import PropertyAmenities from './PropertyAmenities';
+import PropertyVirtualTour from './PropertyVirtualTour';
+import {normalizeMatterportUrl} from './propertyTourPolicy.mjs';
+import {saveNewPropertyTour} from './propertyToursApi';
 import HostPortfolio from './HostPortfolio';
 import HostMarketExplorer from './HostMarketExplorer';
 import {HostPhotoPicker,HostPhotoManager} from './PropertyPhotoGallery';
@@ -50,7 +54,10 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
  const [defaults,setDefaults]=useState(blank);
  const [defaultForm,setDefaultForm]=useState(blank);
  const [showDefaults,setShowDefaults]=useState(false);
+ const [marketFullscreen,setMarketFullscreen]=useState(false);
  const [form,setForm]=useState(blank);
+ const [matterportUrl,setMatterportUrl]=useState('');
+ const [tourFile,setTourFile]=useState(null);
  const [photoFiles,setPhotoFiles]=useState(/** @type {File[]} */([]));
  const [uploadProgress,setUploadProgress]=useState('');
  const [video,setVideo]=useState(null);
@@ -108,6 +115,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
  },[paid]);
 
  const selectListing=async(item)=>{
+   setMatterportUrl('');setTourFile(null);
    setSelected(item?.id||'');setEditing(true);setShowDefaults(false);setError('');setNotice('');
    // Every new listing inherits editable host defaults, never another property's address.
    setForm(item?{...blank,...item,amenities:item.amenities||[],permitted_uses:item.permitted_uses||[]}:
@@ -137,6 +145,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
  };
  const save=async(e)=>{
   e.preventDefault();if(saving)return;
+  if(!selected&&matterportUrl&&!normalizeMatterportUrl(matterportUrl)){setError('Enter a valid Matterport Showcase share link.');return;}
   if(privateDetails.exact_address.trim().length<8){setError('Enter the full private street address. Public cards show city and region only.');return;}
   setSaving(true);setError('');setNotice('');setUploadProgress('');
   try{
@@ -147,6 +156,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
    const failures=[];const retryPhotos=[];
    try{await hostingAction('host_private_details',{id:chosen,...privateDetails});}
    catch(error){failures.push('Private address: '+error.message);}
+   if(matterportUrl||tourFile){try{await saveNewPropertyTour(chosen,matterportUrl,tourFile);setMatterportUrl('');setTourFile(null);}catch(error){failures.push('Matterport tour: '+error.message);}}
    for(let index=0;index<photoFiles.length;index++){
     const file=photoFiles[index];setUploadProgress(`Saving photo ${index+1} of ${photoFiles.length}`);
     try{await uploadHostingPhoto(chosen,file,file.name.replace(/\.[^.]+$/,''));}
@@ -300,6 +310,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           <div><h4 className="font-semibold">{p.title}</h4><p className={muted}>{p.city}, {p.country} · {usd(p.hourly_rate)}/hr</p><p className="text-xs text-[#AABDD3]">Permitted: {(p.permitted_uses||[]).join(', ')}</p></div>
         </div>
         <p className="mt-2 text-xs text-[#A7BAD3]">Rules: {p.rules||'None specified'}</p>
+        <PropertyVirtualTour propertyId={p.id} title={p.title}/>
         <div className="mt-3 flex gap-2"><button disabled={busy||!approvalChecked} className={button} onClick={()=>reviewListing(p.id,'active')}>Publish approved listing</button><button disabled={busy||!approvalChecked} className={secondary} onClick={()=>reviewListing(p.id,'paused')}>Return for changes</button></div>
       </div>)}
       {!pending.length&&<p className={muted}>No listings waiting for review.</p>}
@@ -311,7 +322,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
   </div>:<>
     <HostPortfolio listings={listings} busy={busy||saving} onSelect={selectListing} onNew={()=>selectListing(null)}
       onDefaults={()=>{setDefaultForm(defaults);setShowDefaults(true);setEditing(false);setSelected('');setError('');setNotice('');}}
-      onMap={()=>document.getElementById('host-market-map')?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'})}/>
+      onMap={()=>setMarketFullscreen(true)}/>
     {showDefaults&&<HostDialog title="Default Rules & Pricing" subtitle="Save once. Personalize for every property." busy={busy} onClose={()=>setShowDefaults(false)}>
       {error&&<p role="alert" className="oh-inline-error">{error}</p>}
         <section className={panel+' space-y-4 scroll-mt-24'} aria-label="Reusable host listing defaults">
@@ -332,8 +343,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           <button type="button" role="checkbox" aria-checked={!!defaultForm.required_insurance}
             className={'oh-option-tile flex w-full items-center justify-between rounded-xl border p-3 text-left '+(defaultForm.required_insurance?'oh-option-selected':'oh-option-idle')}
             onClick={()=>setDefaultForm(v=>({...v,required_insurance:!v.required_insurance}))}>Require production insurance <span className="oh-option-check">{defaultForm.required_insurance?<Check size={15}/>:null}</span></button>
-          <div><h4 className="mb-2 font-semibold">Default amenities</h4><CheckboxGrid values={defaultForm.amenities||[]} options={rentalAmenities}
-            update={values=>setDefaultForm(v=>({...v,amenities:values}))}/></div>
+          <PropertyAmenities title="Default amenities" values={defaultForm.amenities||[]} allowCustom onChange={values=>setDefaultForm(v=>({...v,amenities:values}))}/>
           <div><h4 className="mb-2 font-semibold">Default allowed productions</h4><CheckboxGrid values={defaultForm.permitted_uses||[]} options={rentalUses}
             update={values=>setDefaultForm(v=>({...v,permitted_uses:values}))}/></div>
           <button type="button" disabled={busy} className={button+' inline-flex items-center gap-2'} onClick={saveDefaults}><Save size={17}/>Save My Defaults</button>
@@ -386,7 +396,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           </div>
           <label className="block text-sm">Full description<textarea className={input+' mt-1'} rows={4} maxLength={4000} value={form.description} onChange={e=>field('description',e.target.value)}/></label>
           <label className="block text-sm">Host rules and restrictions<textarea className={input+' mt-1'} rows={3} maxLength={3000} value={form.rules} onChange={e=>field('rules',e.target.value)}/></label>
-          <div><h4 className="mb-2 text-sm font-semibold">Production amenities</h4><CheckboxGrid values={form.amenities} options={rentalAmenities} update={v=>field('amenities',v)}/></div>
+          <PropertyAmenities title="Production amenities" values={form.amenities} allowCustom onChange={v=>field('amenities',v)}/>
           <div><h4 className="mb-2 text-sm font-semibold">Permitted activities — set deliberately</h4><p className="mb-3 text-xs text-[#AABED8]">Select exactly what you are comfortable allowing. Nude photography and explicit adult videos are separate opt-ins; guests should never assume either is permitted. You must have written owner authority for each approved use.</p><CheckboxGrid values={form.permitted_uses} options={rentalUses} update={v=>field('permitted_uses',v)}/></div>
           {!selected&&<section className="oh-create-media-section">
             <div className="oh-form-section-heading"><span>03</span><div><h3>Let your photos do the talking</h3><p>Select your cover photo first. All uploads remain private until reviewed.</p></div></div>
@@ -395,10 +405,16 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
               <input type="file" accept="video/mp4,video/webm" disabled={saving} onChange={event=>setVideo(event.target.files?.[0]||null)}/></label>
           </section>}
           {uploadProgress&&<p role="status" className="oh-upload-count">{uploadProgress}</p>}
+          {!selected&&<fieldset className="oh-new-tour-field space-y-3"><legend className="font-semibold">Matterport 3D tour (optional)</legend>
+            <label className="block text-sm">Hosted Showcase link<input type="url" className={input+' mt-2'} value={matterportUrl} onChange={e=>setMatterportUrl(e.target.value)} placeholder="https://my.matterport.com/show/?m=…" maxLength={2048}/></label>
+            <label className="block text-sm">Or upload a tour link file / private source archive<input type="file" className="mt-2 block w-full text-xs" accept=".url,.webloc,.json,.txt,.zip" onChange={e=>setTourFile(e.target.files?.[0]||null)}/></label>
+            <p className="text-xs leading-6 text-[#A9C4DE]">Hosted Matterport links open in a full-screen interactive viewer. Link files can import a tour URL. Raw ZIP scans are stored privately (50MB maximum) and still need processing through Matterport before they can be explored.</p>
+          </fieldset>}
           <button disabled={busy||saving||!paid||!form.permitted_uses.length} className={button}>{saving?'Saving your space…':selected?'Save Property Changes':'Save & Add My Space'}</button>
           <p className="text-xs text-[#AABED8]">Your exact address is saved privately and never included in public property cards or the area map.</p>
         </form>}
 
+        {selected&&editorTab==='media'&&<PropertyVirtualTour propertyId={selected} title={form.title} editable onChanged={load}/>}
         {selected&&editorTab==='approval'&&<HostingHostVerification propertyId={selected} requiredInsurance={Boolean(own?.required_insurance)}/>}
         {selected&&editorTab==='operations'&&<section className="space-y-4">
           <div className="flex flex-wrap gap-2">
@@ -483,7 +499,9 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
         {b.status==='accepted'&&new Date(b.ends_at)<new Date()&&<button className={button} onClick={()=>completeBooking(b.id)} disabled={busy}>Mark completed</button>}{b.status==='requested'&&<div className="flex gap-2"><button className={button} disabled={busy} onClick={()=>mutate('host_booking_respond',{id:b.id,status:'accepted'},'Request accepted; no payment charged.')}>Accept</button><button className={secondary} disabled={busy} onClick={()=>mutate('host_booking_respond',{id:b.id,status:'declined'},'Request declined.')}>Decline</button></div>}
       </div>)}
     </div>
-    <HostMarketExplorer onEdit={selectListing} ownedListings={listings}/>
+    {marketFullscreen?<HostDialog title="Local Market" subtitle="Explore approved nearby properties and compare asking rates." fullscreen onClose={()=>setMarketFullscreen(false)}>
+      <HostMarketExplorer onEdit={item=>{setMarketFullscreen(false);void selectListing(item);}} ownedListings={listings}/>
+    </HostDialog>:<HostMarketExplorer onEdit={selectListing} ownedListings={listings}/>}
   </>}
   {reviewMode&&isAdmin&&<HostingAdminOperations/>}
  </section>;

@@ -1,0 +1,28 @@
+/** Execute the actual marketplace handler with isolated in-memory records. */
+import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';import ts from 'typescript';
+const uid='00000000-0000-4000-8000-000000000001',pid='00000000-0000-4000-8000-000000000011';
+let state,handler,loggedIn=true;
+function reset(){loggedIn=true;state={account_security:[{user_id:uid,admin:true,banned:false,suspended:false}],member_admissions:[{user_id:uid,admitted_at:'2026-01-01'}],member_subscriptions:[],onlyhost_accounts:[{user_id:uid,status:'active',terms_version:'host-2026-11-17',legal_capacity_confirmed:true,property_authority_confirmed:true,adult_production_understood:true}],product_feature_flags:[{key:'hosting_marketplace',enabled:true,allowed_tiers:['free','premium'],rollout_percent:100}],property_amenity_catalog:[{key:'wifi',active:true},{key:'custom_fixture',active:true}],host_listing_defaults:[{user_id:uid,settings:{rules:'Quiet hours',amenities:['wifi','custom_fixture']}}],member_blocks:[],properties:[{id:pid,owner_id:uid,title:'Fixture one',status:'active',approved_at:'2026-01-01',city:'Phoenix',state:'AZ',country:'United States',category:'house',hourly_rate:100,amenities:['wifi','custom_fixture']},{id:'00000000-0000-4000-8000-000000000012',owner_id:uid,title:'Fixture two',status:'active',approved_at:'2026-01-01',city:'Miami',state:'FL',country:'United States',category:'house',hourly_rate:200,amenities:['wifi']}],property_images:[],property_videos:[],property_reviews:[],platform_action_audit:[]};}
+class Query{
+ constructor(name){this.name=name;this.filters=[];this.one=false;this.low=0;this.high=Infinity;this.newRow=null;}
+ select(){return this;}eq(k,v){this.filters.push(r=>r[k]===v);return this;}in(k,v){this.filters.push(r=>v.includes(r[k]));return this;}
+ not(k,_op,v){this.filters.push(r=>r[k]!==v&&r[k]!==undefined);return this;}
+ contains(k,v){this.filters.push(r=>v.every(a=>(r[k]||[]).includes(a)));return this;}
+ or(){return this;}order(){return this;}limit(n){this.high=n-1;return this;}range(a,b){this.low=a;this.high=b;return this;}
+ lte(k,v){this.filters.push(r=>r[k]<=v);return this;}gte(k,v){this.filters.push(r=>r[k]>=v);return this;}
+ maybeSingle(){this.one=true;return this;}single(){this.one=true;return this;}
+ insert(v){this.newRow=v;return this;}
+ then(resolve){if(this.newRow){const row={id:'00000000-0000-4000-8000-000000000099',...this.newRow};(state[this.name]??=[]).push(row);resolve({data:row,error:null});return;}
+ const rows=(state[this.name]||[]).filter(r=>this.filters.every(f=>f(r))).slice(this.low,this.high===Infinity?undefined:this.high+1);resolve({data:this.one?(rows[0]||null):rows,error:null});}
+}
+globalThis.__catalogClient=(_url,key)=>key==='anon-fixture'?{auth:{getUser:async()=>({data:{user:loggedIn?{id:uid}:null},error:null})}}:{from:name=>new Query(name),storage:{from:()=>({createSignedUrl:async()=>({data:null,error:null})})}};
+globalThis.Deno={env:{get:key=>({SUPABASE_URL:'https://fixture.invalid',SUPABASE_ANON_KEY:'anon-fixture',SUPABASE_SERVICE_ROLE_KEY:'private-fixture'})[key]},serve:fn=>{handler=fn;}};
+const source=readFileSync('supabase/functions/hosting-marketplace/index.ts','utf8').replace(/import\s*\{\s*createClient\s*\}\s*from\s*'[^']+';/,'const createClient=globalThis.__catalogClient;');
+await import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext}}).outputText).toString('base64'));
+async function call(body){const r=await handler(new Request('https://fixture.invalid',{method:'POST',body:JSON.stringify(body)}));return {status:r.status,body:await r.json()};}
+test('custom amenities survive server template reads',async()=>{reset();const r=await call({action:'host_defaults_get'});assert.equal(r.status,200);assert.deepEqual(r.body.settings.amenities,['wifi','custom_fixture']);});
+test('country region city and multiple amenities filter real server queries',async()=>{reset();const r=await call({action:'browse',country:'United States',state:'AZ',city:'Phoenix',amenities:['wifi','custom_fixture']});assert.equal(r.status,200);assert.equal(r.body.items.length,1);assert.equal(r.body.items[0].id,pid);const other=await call({action:'browse',country:'Canada'});assert.deepEqual(other.body.items,[]);});
+test('unrecognized amenity keys do not silently broaden discovery',async()=>{reset();const r=await call({action:'browse',amenities:['unknown']});assert.equal(r.status,400);});
+test('custom amenity selections are saved in newly created properties',async()=>{reset();const r=await call({action:'host_create',title:'Fixture property',city:'Phoenix',country:'United States',category:'house',hourly_rate:100,capacity:4,minimum_hours:6,amenities:['wifi','custom_fixture'],permitted_uses:['photography']});assert.equal(r.status,201);assert.deepEqual(state.properties.at(-1).amenities,['wifi','custom_fixture']);});
+test('new catalog does not bypass anonymous or suspended access',async()=>{reset();loggedIn=false;assert.equal((await call({action:'browse'})).status,401);reset();state.account_security[0].suspended=true;assert.equal((await call({action:'host_defaults_get'})).status,403);});
+test('canonical property IDs are accepted while malformed UUIDs are rejected',()=>{const expression=source.split('\n').find(l=>l.startsWith('const uuid=')).match(/&&(.+)\.test\(v\)/)[1];const regex=Function('return '+expression)();assert.equal(regex.test(pid),true);assert.equal(regex.test('00000000-0000-4000-8000-abcd-000000000011'),false);});

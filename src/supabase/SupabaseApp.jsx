@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { supabase, requireSupabase } from '@/api/supabaseClient';
 import { platformAction } from './platformApi';
 import MemberWorkspace from './MemberWorkspace';
+import NotificationCenter from './NotificationCenter';
 import TrustCenter from './TrustCenter';
 import ConsentCenter from './ConsentCenter';
 import SafetyPanel from './SafetyPanel';
@@ -421,11 +422,12 @@ export default function SupabaseApp() {
     try{const {data,error}=await supabase.functions.invoke('admin-age-review',{body:{request_id:recordId,action:'document',document_type}});if(error||data?.error||!data?.url)throw new Error(data?.error||error?.message||'Document unavailable');window.open(data.url,'_blank','noopener,noreferrer');}catch(e){setError(e.message);}finally{setBusy(false);}
   };
 
-  const navigateInWorkspace=(destination)=>{
+  const navigateInWorkspace=(destination,memberContext=null)=>{
+    if(destination==='invitations')destination='notifications';
     setTab(destination);setError('');setNotice('');
     const target=legacyPathForTab(destination);
     if(window.location.pathname!==target)
-      window.history.pushState({ccxTab:destination},'',target);
+      window.history.pushState({ccxTab:destination,memberContext},'',target);
   };
   const signOut=()=>{
     // Signed-out users always return to the unchanged public homepage.
@@ -463,7 +465,7 @@ export default function SupabaseApp() {
       <CreatorDiscovery key={tab} user={user} approved={approved} paid={paid}
        mode={tab==='directory'?'discovery':tab} onNavigate={navigateInWorkspace}/>}
     {tab==='reviews'&&isAdmin&&approved&&<div className="space-y-4"><div className="flex justify-between items-center"><h2 className="text-xl font-semibold">Age verification review queue</h2><button className={primary} onClick={loadReviews} disabled={busy}><RefreshCw size={16}/></button></div><p className={muted}>Only authorized administrators can open short-lived private document links or approve requests.</p>{reviews.map(request=><div key={request.id} className={`${panel} space-y-2`}><p className="text-sm">Request {request.id} · {request.status}</p><p className={muted}>{new Date(request.created_at).toLocaleString()}</p><div className="flex flex-wrap gap-2"><button className={primary} onClick={()=>openReviewDocument(request.id,'id')} disabled={busy}>View ID</button><button className={primary} onClick={()=>openReviewDocument(request.id,'selfie')} disabled={busy}>View selfie</button>{request.status==='pending'&&<><button className={primary} onClick={()=>reviewAge(request.id,'approve')} disabled={busy}>Approve</button><button className="rounded-lg bg-red-700 px-4 py-2.5 text-white disabled:opacity-50" onClick={()=>reviewAge(request.id,'reject')} disabled={busy}>Reject</button></>}</div></div>)}{reviews.length===0&&<p className={muted}>Select refresh to load recent review requests.</p>}</div>}
-    {['workspace','messages','connections','collaborations','contracts','notifications'].includes(tab)&&(
+    {['workspace','messages','connections','collaborations','contracts'].includes(tab)&&(
       !approved?<div className={panel}>Complete account onboarding to enter your workspace.</div>:
       !paid&&!['messages','connections','notifications'].includes(tab)?<div className={panel+' space-y-3'}>
         <h2 className="text-xl font-semibold">Premium member workspace</h2>
@@ -471,9 +473,10 @@ export default function SupabaseApp() {
           Existing creator records are preserved and remain protected.</p>
         <button className={primary} onClick={()=>navigateInWorkspace('membership')}>Membership details</button>
       </div>:
-      <MemberWorkspace key={tab} user={user} paid={paid} flags={visibleFeatures||{}}
+      <MemberWorkspace key={tab} user={user} paid={paid} flags={visibleFeatures||{}} onNavigate={navigateInWorkspace}
        initialSection={['messages','connections','collaborations','contracts','notifications'].includes(tab)?tab:'collaborations'}/>
     )}
+    {tab==='notifications'&&approved&&<NotificationCenter user={user} onNavigate={navigateInWorkspace}/>}
     {tab==='trust' && paid && approved && <TrustCenter isAdmin={isAdmin}/> }
     {tab==='consent' && <ConsentCenter user={user} canGrant={Boolean(paid && approved)}/> }
     {tab==='account-security' && <SecurityCenter/>}

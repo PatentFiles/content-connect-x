@@ -4,8 +4,9 @@
  */
 import React,{useCallback,useEffect,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
-import {Home,ArrowUpRight,ArrowRight,LogOut,CalendarDays,ShieldCheck,Clapperboard,UsersRound,FileSignature,Sparkles,CheckCircle2,Clock3,Wallet,MessageCircleMore,Eye,Brush,SlidersHorizontal,KeyRound} from 'lucide-react';
+import {Home,ArrowUpRight,ArrowRight,LogOut,CalendarDays,ShieldCheck,Clapperboard,UsersRound,FileSignature,Sparkles,CheckCircle2,Clock3,Wallet,MessageCircleMore,Eye,Brush,SlidersHorizontal,KeyRound,Settings} from 'lucide-react';
 import HostingMarketplace from './HostingMarketplace';
+import HostProfileSettings from './HostProfileSettings';
 import {HOST_TERMS,HOST_TERMS_VERSION} from './hostTerms';
 import {integrationAction} from './integrationApi';
 const input='w-full rounded-xl border border-[#36425E] bg-[#0E172B] px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-[#43CBED]';
@@ -15,6 +16,7 @@ const secondary='oh-secondary inline-flex items-center justify-center gap-2 roun
 export default function OnlyHostApp(){
  const [session,setSession]=useState(null),[loading,setLoading]=useState(true);
  const [account,setAccount]=useState(null);
+ const [showSettings,setShowSettings]=useState(false);
  const [view,setView]=useState('account'),[showLogin,setShowLogin]=useState(false),[signUp,setSignUp]=useState(false);
  const [email,setEmail]=useState(''),[password,setPassword]=useState('');
  const [terms,setTerms]=useState(false),[capacityOK,setCapacityOK]=useState(false),[authorityOK,setAuthorityOK]=useState(false),[adultUseOK,setAdultUseOK]=useState(false);
@@ -80,11 +82,13 @@ export default function OnlyHostApp(){
     </button>
     <nav className="oh-header-actions ml-auto flex items-center justify-end gap-2" aria-label="Host Connect navigation">
      <a href="/" className="oh-ccx-link inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold"><span className="oh-ccx-gradient">Content Connect X</span></a>
-     <button className={primary+' oh-list-space'} onClick={openWorkspace}>{ready?'Property dashboard':'List Your Space'}<ArrowUpRight size={16}/></button>
+     {!ready&&<button className={primary+' oh-list-space'} onClick={openWorkspace}>List Your Space<ArrowUpRight size={16}/></button>}
+     {user&&<button className="oh-ccx-link inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm" onClick={()=>setShowSettings(true)} aria-label="Host settings"><Settings size={18}/><span className="hidden sm:inline">Settings</span></button>}
      {user&&<button className="oh-icon-button" onClick={()=>supabase.auth.signOut()} aria-label="Sign out"><LogOut size={18}/></button>}
     </nav>
    </div>
   </header>
+  {showSettings&&user&&<HostProfileSettings user={user} onClose={()=>setShowSettings(false)}/>}
   <main id="main-content">
    {loading?<div className="mx-auto max-w-7xl px-6 py-24 text-center">Loading…</div>:view==='workspace'&&ready?
     <div className="mx-auto max-w-7xl px-4 py-8 md:px-6">

@@ -106,3 +106,34 @@
 .oh-all-photos-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:9px;margin:20px 0}.oh-all-photos-grid button{border:2px solid transparent;border-radius:10px;overflow:hidden}.oh-all-photos-grid button[aria-pressed=true]{border-color:#6bddf5}.oh-all-photos-grid img{width:100%;aspect-ratio:1.25;object-fit:cover}
 @media(max-width:760px){.oh-photo-upload-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.oh-photo-mosaic{aspect-ratio:1.5;grid-template-columns:1fr 1fr;grid-template-rows:2fr 1fr}.oh-photo-mosaic>.oh-mosaic-photo-0{grid-column:span 2;grid-row:auto}.oh-photo-mosaic>.oh-mosaic-photo:nth-child(n+4){display:none}.oh-photo-mosaic[data-photo-count='2']>.oh-mosaic-photo-0{grid-column:auto}.oh-photo-mosaic[data-photo-count='4']{grid-template-columns:1fr 1fr}.oh-all-photos-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:440px){.oh-photo-upload-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.oh-photo-mosaic{aspect-ratio:1.2}}
+
+/* Full-screen overlays keep their close action visible while their content scrolls. */
+.oh-dialog.oh-dialog-fullscreen{inset:0;margin:0;width:100vw;max-width:none;height:100dvh;max-height:100dvh;border-radius:0;border:0}
+.oh-dialog-fullscreen .oh-dialog-shell{height:100dvh;max-height:100dvh}
+.oh-dialog-fullscreen .oh-dialog-content{flex:1;min-height:0}
+.oh-dialog-fullscreen .oh-dialog-heading{padding-top:max(18px,env(safe-area-inset-top));padding-right:max(22px,env(safe-area-inset-right));position:relative;z-index:5}
+.oh-dialog-fullscreen .oh-area-map-canvas{height:clamp(350px,63dvh,850px)}
+.oh-dialog-fullscreen .oh-market-explorer{border:0;box-shadow:none;padding:0}
+.oh-tour-dialog .oh-dialog-content{padding:0;display:flex;overflow:hidden;background:#050912}
+.oh-matterport-frame{width:100%;height:100%;min-height:0;border:0;display:block;flex:1}
+.oh-profile-photo-row{display:flex;align-items:center;gap:24px;padding-bottom:8px}
+.oh-host-avatar{width:100px;height:100px;flex-shrink:0;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#173b55,#413358);border:2px solid #79d8e8;color:#a8eaf5;overflow:hidden}
+.oh-host-avatar img{width:100%;height:100%;object-fit:cover}
+.oh-amenity-panel{border:1px solid #38516c;border-radius:16px;background:#111e32;color:#d9e8fa;overflow:hidden}
+.oh-amenity-panel summary{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:17px 19px;cursor:pointer;font-weight:700;list-style:none}
+.oh-amenity-panel summary::-webkit-details-marker{display:none}
+.oh-amenity-panel summary>span{display:flex;align-items:center;gap:10px}
+.oh-amenity-panel summary small{color:#89d4ec;font-size:11px}
+.oh-amenity-panel summary::after{content:'+';font-size:22px;color:#93d9f1;flex:none}
+.oh-amenity-panel[open] summary::after{content:'−'}
+.oh-amenity-panel[open] summary{border-bottom:1px solid #32465f}
+.oh-amenity-content{padding:17px}
+.oh-amenity-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.oh-amenity-grid .oh-option-tile{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px;padding:12px;border:1px solid #38516c;border-radius:12px;text-align:left;font-size:12px;line-height:1.5}
+.oh-add-amenity{display:flex;align-items:end;gap:12px;margin-top:20px;padding-top:17px;border-top:1px solid #34465e}
+.oh-add-amenity label{display:block;flex:1;min-width:0}.oh-add-amenity label>span{display:block;font-size:11px;line-height:1.65;color:#afc4da;margin:6px 0 10px}
+.oh-add-amenity input{width:100%;border:1px solid #42618b;background:#0b1728;padding:12px;border-radius:12px;color:white;font-size:13px}
+.oh-new-tour-field{border:1px solid #3a5e7a;border-radius:16px;padding:17px;background:linear-gradient(115deg,#102538,#20223e)}
+.oh-new-tour-field legend{padding:0 8px;color:#9ce5f7}
+@media(max-width:760px){.oh-amenity-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.oh-dialog-fullscreen .oh-dialog-content{padding:16px}.oh-tour-dialog .oh-dialog-content{padding:0}.oh-add-amenity{flex-direction:column;align-items:stretch}.oh-add-amenity label{width:100%}.oh-profile-photo-row{gap:16px}.oh-host-avatar{width:80px;height:80px}}
+@media(max-width:440px){.oh-amenity-grid{grid-template-columns:1fr}.oh-amenity-panel summary{padding:14px}.oh-dialog-fullscreen .oh-dialog-heading{padding-inline:16px}}
