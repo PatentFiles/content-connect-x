@@ -5,20 +5,23 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import {spawn} from 'node:child_process';
+import http from 'node:http';
 import {build} from 'esbuild';
 import {createControlFixture} from './control-layout-audit.mjs';
 
 const browserPath=[process.env.CHROME_BIN,'/usr/bin/chromium','/usr/bin/google-chrome'].filter(Boolean).find(p=>fs.existsSync(p));
 assert.ok(browserPath,'A real Chromium browser is required');
 const folder=fs.mkdtempSync(path.join(os.tmpdir(),'ccx-professional-'));
-let browser,socket;
+let browser,socket,assetServer;
 const output=process.env.STYLE_SCREENSHOT_DIR;
 const mock=`
 import {defaultDashboardLayout,widgetsForRole} from './src/supabase/dashboardWidgets.mjs';
 const role=new URLSearchParams(location.search).get('role')||'creator';
 const user={id:'00000000-0000-4000-8000-000000000001',email:'style-fixture@example.invalid'};
 const loggedIn=location.pathname==='/host-dashboard';
-const session=loggedIn?{user,access_token:'isolated-ui-fixture'}:null;
+let session=loggedIn?{user,access_token:'isolated-ui-fixture'}:null;
+let authListener;
+window.__styleAuth=signedIn=>{session=signedIn?{user,access_token:'isolated-ui-fixture'}:null;authListener?.(signedIn?'SIGNED_IN':'SIGNED_OUT',session);};
 function chain(table){const q={select(){return this},eq(){return this},is(){return this},order(){return this},limit(){return this},range(){return this},maybeSingle(){return this},single(){return this},then(resolve){return Promise.resolve({data:table==='host_profiles'?null:[],count:0,error:null}).then(resolve)}};return q;}
 const channel={on(){return this},subscribe(){return this},track:async()=>{},untrack:async()=>{},send:async()=>{},presenceState:()=>({})};
 function reply(action){
@@ -30,7 +33,7 @@ function reply(action){
  return {items:[],pending_images:[],pending_videos:[],amenities:[],countries:[],cities:[],regions:[],areas:[]};
 }
 export const supabase={
- auth:{getSession:async()=>({data:{session},error:null}),onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}}),signOut:async()=>({error:null}),mfa:{getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:'aal1',nextLevel:'aal1'},error:null}),listFactors:async()=>({data:{all:[],totp:[]},error:null})}},
+ auth:{getSession:async()=>({data:{session},error:null}),onAuthStateChange:callback=>{authListener=callback;return {data:{subscription:{unsubscribe(){authListener=null;}}}};},signOut:async()=>{window.__styleAuth(false);return {error:null};},mfa:{getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:'aal1',nextLevel:'aal1'},error:null}),listFactors:async()=>({data:{all:[],totp:[]},error:null})}},
  from:table=>chain(table),channel:()=>Object.create(channel),removeChannel:async()=>{},
  functions:{invoke:async(name,{body}={})=>({data:reply(body?.action),error:null})},
  rpc:async(name)=>({data:name==='ccx_dashboard_action'?{schema_version:1,role,layout:defaultDashboardLayout(role),revision:1,checked_at:'2026-11-18T12:00:00Z',metrics:Object.fromEntries(widgetsForRole(role).map(w=>[w.id,{status:'ready',value:0,subtitle:'Isolated UI fixture — not live account activity'}]))}:[],error:null})
@@ -57,8 +60,17 @@ const view=location.pathname==='/dashboard'?<Shell user={user} profile={profile}
 createRoot(document.getElementById('fixture-root')).render(view);
 `;
 try {
+ const publicDir=path.resolve('public');
+ assetServer=http.createServer((req,res)=>{
+  const pathname=decodeURIComponent(new URL(req.url,'http://127.0.0.1').pathname);
+  const file=path.resolve(publicDir,'.'+pathname);
+  if(!file.startsWith(publicDir+path.sep)||! /\.(png|jpe?g|webp|svg)$/i.test(file)||!fs.existsSync(file)){res.writeHead(404);res.end();return;}
+  res.writeHead(200,{'Content-Type':file.endsWith('.svg')?'image/svg+xml':file.endsWith('.png')?'image/png':'image/jpeg','Cache-Control':'no-store'});fs.createReadStream(file).pipe(res);
+ });
+ await new Promise(resolve=>assetServer.listen(0,'127.0.0.1',resolve));
+ const assetOrigin='http://127.0.0.1:'+assetServer.address().port;
  const base=path.join(folder,'template.html');await createControlFixture(base);
- const template=fs.readFileSync(base,'utf8');
+ const template=fs.readFileSync(base,'utf8').replace('<head>','<head><base href="'+assetOrigin+'/">');
  const bundle=await build({stdin:{contents:fixture,resolveDir:process.cwd(),sourcefile:'professional-fixture.jsx',loader:'jsx'},bundle:true,write:false,format:'iife',platform:'browser',define:{'process.env.NODE_ENV':'"production"','import.meta.env':'{}','window.location.pathname':'window.__stylePath','location.pathname':'window.__stylePath','window.location.search':'window.__styleSearch','location.search':'window.__styleSearch'},plugins:[{name:'isolated-professional-fixture',setup(b){b.onResolve({filter:/api\/supabaseClient/},()=>({path:'supabase',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:mock,loader:'js',resolveDir:process.cwd()}));}}]});
  const html=template.replace(/<body>[\s\S]*<\/body>/,()=>`<body><div id="fixture-root"></div><script>window.__stylePath="/";window.__styleSearch="";window.__errors=[];window.addEventListener("error",e=>window.__errors.push(e.message));</script><script>${bundle.outputFiles[0].text.replace(/<\/script/gi,'<\\/script')}</script></body>`);
  browser=spawn(browserPath,['--headless','--no-sandbox','--disable-dev-shm-usage','--disable-background-networking','--remote-debugging-port=0','--user-data-dir='+path.join(folder,'profile'),'about:blank'],{stdio:['ignore','ignore','pipe']});
@@ -75,18 +87,29 @@ try {
  await page('Network.enable');await page('Network.setBlockedURLs',{urls:['https://*','http://*.supabase.co/*']});
  const results=[];
  async function inspect(label,width){
+  await evaluate("Promise.all([...document.querySelectorAll('.ccx-hero-image img,.oh-landing-banner img')].map(img=>img.decode()))");
   await evaluate('new Promise(r=>requestAnimationFrame(()=>requestAnimationFrame(r)))');
   const state=await evaluate(`(()=>{
    const visible=e=>{const s=getComputedStyle(e),r=e.getBoundingClientRect();return r.width>0&&r.height>0&&s.visibility!=='hidden'&&s.display!=='none';};
    const badButtons=[...document.querySelectorAll('.ccx-primary,.ccx-action-primary,.oh-primary,.ccx-solid-action,.oh-gallery-primary')].filter(e=>visible(e)&&!e.disabled).filter(e=>{const s=getComputedStyle(e);return s.backgroundImage!=='none'||s.animationName!=='none'||s.color!=='rgb(255, 255, 255)';}).map(e=>({text:e.textContent.slice(0,40),bg:getComputedStyle(e).backgroundColor,color:getComputedStyle(e).color}));
    const darkPanels=[...document.querySelectorAll('.ccx-surface,.oh-panel,.oh-dialog')].filter(visible).filter(e=>{const rgb=getComputedStyle(e).backgroundColor.match(/[\\d.]+/g)?.map(Number)||[];return rgb.length>=3&&Math.max(...rgb.slice(0,3))<240&&rgb[3]!==0;}).map(e=>e.className);
-   return {background:getComputedStyle(document.body).backgroundColor,colorScheme:getComputedStyle(document.documentElement).colorScheme,overflow:document.documentElement.scrollWidth>innerWidth+1,badButtons,darkPanels,errors:window.__errors||[],headings:[...document.querySelectorAll('h1')].map(e=>e.textContent)};
+   return {appearance:document.documentElement.dataset.ccxAppearance||'workspace',background:getComputedStyle(document.body).backgroundColor,colorScheme:getComputedStyle(document.documentElement).colorScheme,overflow:document.documentElement.scrollWidth>innerWidth+1,badButtons,darkPanels,errors:window.__errors||[],headings:[...document.querySelectorAll('h1')].map(e=>e.textContent)};
   })()`);
-  assert.equal(state.background,'rgb(255, 255, 255)',label+' background');
-  assert.equal(state.colorScheme,'light',label+' browser chrome');
+  if(state.appearance==='public'){
+   assert.notEqual(state.background,'rgb(255, 255, 255)',label+' original dark background');
+   assert.equal(state.colorScheme,'dark',label+' public browser chrome');
+   const hero=await evaluate("(()=>{const img=document.querySelector('.ccx-hero-image img,.oh-landing-banner img');return img?{src:decodeURIComponent(new URL(img.currentSrc).pathname),loaded:img.complete&&img.naturalWidth>0,visible:img.getBoundingClientRect().height>0}:null;})()");
+   if(['homepage','hostconnect','host-signed-out'].includes(label)){
+    assert.ok(hero?.loaded&&hero.visible,label+' original hero decoded and visible');
+    assert.equal(hero.src,label==='homepage'?(width<=640?'/ContentConnectX__Create,_Collaborate,_Grow.png':'/content_conect_hero.png'):'/Host_Connect_Banner.png',label+' exact original asset');
+   }
+  }else{
+   assert.equal(state.background,'rgb(255, 255, 255)',label+' background');
+   assert.equal(state.colorScheme,'light',label+' browser chrome');
+   assert.deepEqual(state.badButtons,[],label+' solid button styling');
+   assert.deepEqual(state.darkPanels,[],label+' light surfaces');
+  }
   assert.equal(state.overflow,false,label+' horizontal overflow');
-  assert.deepEqual(state.badButtons,[],label+' solid button styling');
-  assert.deepEqual(state.darkPanels,[],label+' light surfaces');
   assert.deepEqual(state.errors,[],label+' runtime errors');
   results.push({label,width,passed:true});
   if(output&&[390,1440].includes(width)){fs.mkdirSync(output,{recursive:true});const shot=await page('Page.captureScreenshot',{format:'png',captureBeyondViewport:false});fs.writeFileSync(path.join(output,`${label.replace(/[^a-z0-9-]/gi,'-')}-${width}.png`),Buffer.from(shot.data,'base64'));}
@@ -115,14 +138,23 @@ try {
    }
   }
  }
+ // Drive the real Host component through its Auth subscription, not a CSS-only toggle.
+ await navigate('/hostconnect',390);
+ await evaluate('window.__styleAuth(true)');
+ await evaluate("new Promise((resolve,reject)=>{let n=0;const tick=()=>{if(document.querySelector('.oh-new-space-action'))resolve();else if(++n>100)reject(Error('Sign-in did not mount workspace'));else setTimeout(tick,20);};tick();})");
+ await inspect('host-signed-in',390);
+ await evaluate('window.__styleAuth(false)');
+ await evaluate("new Promise((resolve,reject)=>{let n=0;const tick=()=>{if(document.querySelector('.oh-landing-banner img'))resolve();else if(++n>100)reject(Error('Sign-out did not restore homepage'));else setTimeout(tick,20);};tick();})");
+ await inspect('host-signed-out',390);
  for(const role of ['creator','agent','studio','photographer','videographer','video_editor']){
   await navigate('/dashboard?role='+role,1440);await inspect('dashboard-'+role,1440);
  }
- console.log(`PASS ${results.length} real-screen light-theme checks: public pages, signup, pricing, collaborations, host dashboard/modals, six roles; mobile through desktop and OS dark preference.`);
+ console.log(`PASS ${results.length} real-screen appearance checks: original public artwork, responsive public pages, login/logout transitions, white member/host dashboards and modals.`);
  if(output)fs.writeFileSync(path.join(output,'professional-theme-results.json'),JSON.stringify(results,null,2));
  await send('Browser.close');
 } finally {
  socket?.close();
+ if(assetServer)await new Promise(resolve=>assetServer.close(resolve));
  if(browser&&browser.exitCode===null)await new Promise(resolve=>{const timer=setTimeout(()=>{browser.kill('SIGKILL');resolve();},5000);browser.once('exit',()=>{clearTimeout(timer);resolve();});browser.kill();});
  try{await fs.promises.rm(folder,{recursive:true,force:true,maxRetries:12,retryDelay:200});}catch(e){if(!['ENOTEMPTY','EBUSY'].includes(e.code))throw e;}
 }

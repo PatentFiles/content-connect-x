@@ -7,11 +7,11 @@ const theme=read('src/supabase/professional-theme.css');
 function hexToken(name){const match=globals.match(new RegExp('--'+name+':\\s*(#[a-f0-9]{6})','i'));assert.ok(match,'Missing '+name);return match[1];}
 function luminance(hex){const rgb=hex.slice(1).match(/../g).map(n=>parseInt(n,16)/255).map(n=>n<=.04045?n/12.92:((n+.055)/1.055)**2.4);return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722;}
 function contrast(a,b){const x=luminance(a),y=luminance(b);return (Math.max(x,y)+.05)/(Math.min(x,y)+.05);}
-test('both brands deliberately default to white, independent of OS or old dark preference',()=>{
+test('signed-in brands retain white styling independently of OS preferences',()=>{
  assert.equal(hexToken('cc-bg'),'#FFFFFF');assert.match(globals,/color-scheme:\s*light/);
- assert.match(read('index.html'),/name="color-scheme" content="light"/);
- assert.doesNotMatch(read('index.html'),/<html[^>]*class="dark"/);
- assert.match(read('src/supabase/bootstrap.jsx'),/classList\.remove\('dark'\)/);
+ assert.match(read('index.html'),/data-ccx-appearance="public"/);
+ assert.match(read('src/supabase/authAppearance.js'),/signedIn\?'workspace':'public'/);
+ assert.match(read('src/supabase/authAppearance.js'),/useLayoutEffect/);
  assert.doesNotMatch(read('src/supabase/OriginalShell.jsx'),/toggleTheme|setTheme/);
  assert.equal(JSON.parse(read('public/manifest.json')).background_color,'#FFFFFF');
 });
@@ -24,7 +24,7 @@ test('solid primary actions have readable text and focus is visible on the page'
  assert.ok(contrast(hexToken('cc-focus'),hexToken('cc-bg'))>=3);
  assert.match(theme,/background:var\(--cc-action\); color:var\(--cc-on-action\)/);
 });
-test('the professional layer is loaded globally after brand, host and marketing layouts',()=>{
+test('the professional layer is ordered after layouts but excludes public pages',()=>{
  const boot=read('src/supabase/bootstrap.jsx');
  for(const layer of ['brand-theme.css','onlyhost-theme.css','host-workspace.css','public-landing.css'])assert.ok(boot.indexOf(layer)<boot.indexOf('professional-theme.css'));
  assert.doesNotMatch(theme,/filter:\s*invert|animation:.*\binfinite/);
@@ -35,9 +35,12 @@ test('modals use native light form chrome without sacrificing keyboard controls'
  assert.match(theme,/:focus-visible/);
  assert.match(read('src/control-layout.css'),/checkbox/);
 });
-test('new public hero uses real text and actions, not neon artwork with baked-in labels',()=>{
- const hero=read('src/supabase/ProfessionalLandingHero.jsx');
- assert.match(hero,/<h1/);assert.match(hero,/href="\/signup"/);assert.match(hero,/onClick=\{onStart\}/);
- assert.doesNotMatch(hero,/content_conect_hero|Host_Connect_Banner|ContentConnectX__/);
- assert.doesNotMatch(read('src/supabase/brand-theme.css'),/@keyframes.*float/);
+test('original public artwork and both session-driven appearance boundaries are preserved',()=>{
+ const app=read('src/supabase/SupabaseApp.jsx'),host=read('src/supabase/OnlyHostApp.jsx');
+ assert.match(app,/content_conect_hero\.png/);
+ assert.match(app,/ContentConnectX__Create,_Collaborate,_Grow\.png/);
+ assert.match(host,/Host_Connect_Banner\.png/);
+ assert.match(app,/useAuthAppearance\(user\)/);assert.match(host,/useAuthAppearance\(user\)/);
+ assert.match(read('src/supabase/public-brand-theme.css'),/data-ccx-appearance="public"/);
+ assert.match(theme,/:not\(\[data-ccx-appearance="public"\]\)/);
 });

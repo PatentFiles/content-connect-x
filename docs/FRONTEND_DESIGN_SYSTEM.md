@@ -1,75 +1,79 @@
 # Content Connect X frontend system
 
-## Brand and visual direction — November 18, 2026
+## Appearance boundary — November 18, 2026
 
-Both Content Connect X and Host Connect use the owner-selected **professional white interface**. This replaces the earlier neon/dark design, including public landing pages, account screens, dashboards, host tools, forms, modals, and mobile browser/PWA chrome. Do not restore a dark theme from a previous localStorage preference or OS setting.
+**Logged out: preserve the original public branding. Signed in: use the professional white interface.** This rule applies to Content Connect X and Host Connect and supersedes the earlier refresh's incorrect public-page scope.
+
+Public homepages retain their dark/neon palette, gradients, navigation treatment, feature-card styling and original artwork. Do not replace or recolor these assets:
+
+- Desktop Content Connect: `public/content_conect_hero.png`.
+- Mobile Content Connect: `public/ContentConnectX__Create,_Collaborate,_Grow.png`.
+- Host Connect: `public/Host_Connect_Banner.png`.
+
+The public styles were restored from `21b95435a02e9e1e6ddc10e8805f377bf4b9a67d`, immediately before the white refresh. The original image bytes are preserved. Content Connect uses its original responsive picture breakpoint of 640 px. Both heroes retain accessible headings and image alternatives.
+
+`src/supabase/authAppearance.js` follows the actual Auth session in both applications. It changes `data-ccx-appearance`, the dark class and browser chrome before paint. It does not use a URL, operating-system preference or saved theme as the authority, and never grants account admission. Signing out restores public appearance; Host Connect also clears stale workspace presentation.
+
+Every restored CSS selector in `public-brand-theme.css` requires public appearance. Every refreshed selector in the other theme files excludes it. The `:where()` gate preserves the original selector specificity. Keep these scopes on all future additions. Shared control geometry remains global so keyboard labels and touch targets continue working in both skins. Do not add a later unscoped theme that overrides this boundary.
+
+## Signed-in visual system
+
+Member, administrator, identity-verification and host workspaces retain the professional white design. Public neon restrictions do not apply to the original marketing artwork; conversely, public gradients and glow must not leak into signed-in controls.
 
 | Token | Value | Purpose |
 |---|---|---|
-| `--cc-bg`, `--cc-surface` | `#FFFFFF` | White page and card surfaces |
-| `--cc-surface-subtle` | `#F6F7F9` | Quiet secondary regions |
+| `--cc-bg`, `--cc-surface` | `#FFFFFF` | Workspace page and card surfaces |
+| `--cc-surface-subtle` | `#F6F7F9` | Secondary regions |
 | `--cc-text-primary` | `#202938` | Headings and body text |
 | `--cc-text-secondary` | `#4F5D70` | Supporting text |
-| `--cc-text-muted` | `#5E6B7E` | Captions that remain readable |
+| `--cc-text-muted` | `#5E6B7E` | Captions |
 | `--cc-action` | `#243247` | Solid primary actions |
-| `--cc-on-action` | `#FFFFFF` | Text/icons on primary actions |
-| `--cc-border` | `#DDE2E8` | Subtle structural dividers |
-| `--cc-input-border` | `#8894A5` | Editable-control boundaries |
+| `--cc-on-action` | `#FFFFFF` | Primary-action labels |
+| `--cc-border` | `#DDE2E8` | Dividers |
+| `--cc-input-border` | `#8894A5` | Input boundaries |
 | `--cc-focus` | `#245BA3` | Keyboard focus |
 
-Use `ccx-primary` / `ccx-action-primary` / `oh-primary` for primary actions, `ccx-secondary` / `oh-secondary` for secondary actions, and `ccx-surface` / `oh-panel` for cards. Host gallery actions use the same solid-action treatment. Error, warning, and success states retain restrained semantic colors; image controls and media viewers may use dark scrims for legibility. Do not invert images or globally override all text to one color.
-
-Tokens are in `src/globals.css`. Screen-specific layout remains in the brand/host/marketing stylesheets. `src/supabase/professional-theme.css` is loaded last by `bootstrap.jsx` and defines the consistent visual treatment. Source components now refer to semantic color variables instead of hard-coded dark/pastel utilities. Existing `control-layout.css` protections for checkboxes, touch targets, labels and action rows remain intact.
-
-Public hero content is now accessible HTML in `ProfessionalLandingHero.jsx`, not neon artwork with text baked into the image. Existing artwork is retained in `public/` but no longer used for the main hero or login backdrop. The header uses a simple text/monogram brand treatment. No external fonts, image services or design-library runtime dependencies were added.
-
-For future work: keep buttons static with subtle hover/focus state changes, use small consistent corner radii and low-elevation shadows, and reserve color for meaningful state rather than decoration. Do not use gradients, glow, bouncing navigation, or floating call-to-action effects. Preserve all route handlers, permissions, payment checks and verification states.
+Use `ccx-primary`, `ccx-action-primary` and `oh-primary` for primary actions; `ccx-secondary` and `oh-secondary` for secondary actions; `ccx-surface` and `oh-panel` for cards. Keep restrained status colors and readable photo overlays. Never invert images or apply a universal text-color override. `ProfessionalLandingHero` may still serve signed-in Host account setup; it is not the logged-out homepage hero.
 
 ## Frontend and backend route ownership
 
 | User experience | Frontend | Supabase API |
 |---|---|---|
-| Dashboard and identity status | `DashboardHome`, `SupabaseApp` | Auth, profile and verified member state |
+| Dashboard and identity status | `DashboardHome`, `SupabaseApp` | Auth, profile and server-owned member state |
 | Production team/event work | `ProductionManager` | `production-manager` |
 | Private collaborations, chat, consent | `MemberWorkspace`, `ConsentCenter` | `member-workflows`, `collaboration-consent` |
-| Creator discovery | `SupabaseApp` | `directory` |
+| Creator discovery | `CreatorDiscovery` | `directory` |
 | Community, feedback, availability | Corresponding `*Hub` screens | `platform-extras` |
-| Location marketplace, booking and admin ops | `HostingMarketplace`, `HostingHost`, `HostingBookingOperations` | `hosting-marketplace`, `hosting-advanced`, `hosting-operations` |
-| Equipment, location map, crew, calendar | Hosting management screens | `hosting-advanced`, `hosting-production`, `hosting-calendar` |
+| Location marketplace, booking and admin operations | Hosting screens | `hosting-marketplace`, `hosting-advanced`, `hosting-operations` |
+| Equipment, map, crew and calendar | Hosting management screens | `hosting-advanced`, `hosting-production`, `hosting-calendar` |
 | Verified rental agreements | `HostingBookingOperations`, `AgreementPackets` | `hosting-docusign`, `agreement-packets` |
-| Approved hosted checkout | `HostingBookingOperations` | `hosting-ccbill` — provider gates must pass |
-| Account trust and safety | `SecurityCenter`, `TrustCenter`, `SafetyPanel` | Age, account and consent Edge gateways |
+| Approved hosted checkout | `HostingBookingOperations` | `hosting-ccbill`, subject to provider gates |
+| Account trust and safety | Security, trust and identity screens | Authenticated account/consent/identity gateways |
 
-The previous `MemberWorkspace` property creation and flat-rate booking screens are retired; those operations belong only to the newer Hosting Marketplace. Backend `member-workflows` also rejects the retired `create_property`, `book_property` and `respond_booking` actions. The unused frontend Stripe redirect handler has been removed.
+Retired property creation and flat-rate booking actions in `member-workflows` must not be restored. This presentation repair changes no backend admission, consent, identity, billing or property-authority policy.
 
-## Acceptance and build gates
+## Validation
 
 ```bash
 npm ci
 npm run lint
 npm run typecheck
-npm run verify:frontend-contract
-npm run verify:release
-npm run test:hosting
+npm run test:unit
 npm run test:ui-controls
 npm run test:ui-theme
+node scripts/test-identity-onboarding-browser.mjs
+npm run verify:frontend-contract
+npm run verify:release
+npm run verify:edge-imports
 npm run build
-npm run smoke:supabase
 ```
 
-The static contract check validates literal frontend action names against current Edge Function cases and rejects obsolete booking routes. **It cannot prove live account authorization, complete API payload compatibility, payment processing or DocuSign completion.** Real verified host/guest/admin and production provider sandbox tests remain required.
+`tests/public-branding.test.mjs` checks original asset hashes and every theme scope. The browser appearance suite renders actual components, serves actual repository artwork from a loopback-only asset server, decodes both responsive heroes, and checks 320/390/768/1440 px layouts. It drives Host sign-in/sign-out through an isolated Auth subscription and retains white member/host dashboard and modal checks. These are UI fixtures, not live account or biometric acceptance tests.
 
-## UI principles
-
-- Never show or infer exact property addresses in marketplace cards or public map markers.
-- Clearly distinguish a quote, reservation request, provider payment confirmation and final payout.
-- Make verification and provider readiness honest; never advertise disabled features as working.
-- Preserve meaningful image alt text, keyboard focus, mobile tap targets, screen reader labels and reduced-motion preferences.
-- Avoid fake success metrics or placeholders that look like real commerce data.
-- Do not add new fonts or media from unapproved third-party CDNs.
+Preserve image alternatives, semantic headings, keyboard focus, mobile tap targets and reduced-motion preferences. Never expose exact property addresses, private identity evidence or server credentials through public presentation. Do not invent activity metrics or show disabled provider operations as successful.
 
 ## Deployment
 
-The build compiles the UI from `src/supabase/bootstrap.jsx`. Railway and Docker require explicit Supabase URL and publishable browser key. Only those public values may be bundled; never include service-role, DocuSign or processor secrets in `VITE_*`.
+**Bolt remains the website host.** Merge tested changes into the repository's `main`, then synchronize and publish the existing Bolt project. Railway runs identity computation/cleanup only; do not migrate the website or change its domain. This repair needs no Supabase migration or Edge Function deployment and does not modify Railway services.
 
-The repository currently has no independently verified staging users. Do not call this code production certified until role-based acceptance, provider setup and operational checks pass.
+No service-role key or other server credential may be bundled in `VITE_*`. Passing visual/build checks is not production, payment-provider or biometric certification. See `docs/PUBLIC_HOMEPAGE_RESTORATION.md` for the restoration record.
