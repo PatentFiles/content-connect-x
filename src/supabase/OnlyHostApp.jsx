@@ -4,7 +4,7 @@
  */
 import React,{useCallback,useEffect,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
-import {Home,ArrowUpRight,ArrowRight,LogOut,CalendarDays,ShieldCheck,Clapperboard,UsersRound,FileSignature,Sparkles,CheckCircle2,Clock3,Wallet,MessageCircleMore,Eye,Brush,SlidersHorizontal,KeyRound,Settings} from 'lucide-react';
+import {Home,ArrowUpRight,ArrowRight,LogOut,CalendarDays,ShieldCheck,Clapperboard,UsersRound,FileSignature,Sparkles,CheckCircle2,Clock3,Wallet,MessageCircleMore,Eye,EyeOff,Brush,SlidersHorizontal,KeyRound,Settings} from 'lucide-react';
 import HostingMarketplace from './HostingMarketplace';
 import HostProfileSettings from './HostProfileSettings';
 import {HOST_TERMS,HOST_TERMS_VERSION} from './hostTerms';
@@ -18,7 +18,7 @@ export default function OnlyHostApp(){
  const [account,setAccount]=useState(null);
  const [showSettings,setShowSettings]=useState(false);
  const [view,setView]=useState('account'),[showLogin,setShowLogin]=useState(false),[signUp,setSignUp]=useState(false);
- const [email,setEmail]=useState(''),[password,setPassword]=useState('');
+ const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[showPassword,setShowPassword]=useState(false);
  const [terms,setTerms]=useState(false),[capacityOK,setCapacityOK]=useState(false),[authorityOK,setAuthorityOK]=useState(false),[adultUseOK,setAdultUseOK]=useState(false);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const user=session?.user;
@@ -189,7 +189,7 @@ export default function OnlyHostApp(){
     <p className="mt-2 text-sm text-[#A5BBD4]">One secure sign-in across Host Connect and Content Connect X.</p>
     <form className="mt-6 space-y-3" onSubmit={auth}>
      <label className="block text-xs">Email<input className={input+' mt-2'} type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} required/></label>
-     <label className="block text-xs">Password<input className={input+' mt-2'} type="password" autoComplete={signUp?'new-password':'current-password'} minLength={8} value={password} onChange={e=>setPassword(e.target.value)} required/></label>
+     <label className="block text-xs">Password<span className="relative mt-2 block"><input className={input+' pr-12'} type={showPassword?'text':'password'} autoComplete={signUp?'new-password':'current-password'} minLength={8} value={password} onChange={e=>setPassword(e.target.value)} required/><button type="button" className="absolute inset-y-0 right-0 grid w-12 place-items-center text-[#B5C5DC]" onClick={()=>setShowPassword(value=>!value)} aria-label={showPassword?'Hide password':'Show password'} aria-pressed={showPassword}>{showPassword?<EyeOff size={18}/>:<Eye size={18}/>}</button></span></label>
      <button className={primary+' w-full'} disabled={busy}>{signUp?'Create free account':'Sign in'}</button>
     </form>
     <button className="mt-4 text-sm text-[#70DAEE]" onClick={()=>setSignUp(!signUp)}>{signUp?'Already registered? Sign in':'Create your account'}</button>

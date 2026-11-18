@@ -29,7 +29,7 @@ import PublicLandingSections from './PublicLandingSections';
 import PublicPricing from './PublicPricing';
 import AgeGateOnboarding from './AgeGateOnboarding';
 const HostingMarketplace = React.lazy(() => import('./HostingMarketplace'));
-import { UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw } from 'lucide-react';
+import { UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw, Eye, EyeOff } from 'lucide-react';
 
 const shell = 'ccx-app min-h-screen text-[#F5F3FF]';
 const panel = 'ccx-surface p-5';
@@ -53,6 +53,7 @@ export default function SupabaseApp() {
   const [security,setSecurity] = useState(null);
   const [email,setEmail] = useState('');
   const [password,setPassword] = useState('');
+  const [showPassword,setShowPassword] = useState(false);
   const [signUp,setSignUp] = useState(window.location.pathname==='/signup');
   const [recovering,setRecovering] = useState(false);
   const [passwordRecoverySession,setPasswordRecoverySession] = useState(false);
@@ -342,8 +343,13 @@ export default function SupabaseApp() {
               <input className={input+' mt-2'} type="email" inputMode="email" autoCapitalize="none" spellCheck={false} value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/>
             </label>
             <label className="block text-sm font-medium">Password
-              <input className={input+' mt-2'} type="password" autoCapitalize="none" spellCheck={false} value={password} onChange={e=>setPassword(e.target.value)}
-                minLength={8} required autoComplete={signUp?'new-password':'current-password'}/>
+              <span className="relative mt-2 block">
+                <input className={input+' pr-12'} type={showPassword?'text':'password'} autoCapitalize="none" spellCheck={false} value={password} onChange={e=>setPassword(e.target.value)}
+                  minLength={8} required autoComplete={signUp?'new-password':'current-password'}/>
+                <button type="button" className="absolute inset-y-0 right-0 grid w-12 place-items-center text-[#B7C3DD]" onClick={()=>setShowPassword(value=>!value)} aria-label={showPassword?'Hide password':'Show password'} aria-pressed={showPassword}>
+                  {showPassword?<EyeOff size={19}/>:<Eye size={19}/>} 
+                </button>
+              </span>
             </label>
             <button className={primary+' w-full'} disabled={busy}>{busy?'Working…':signUp?'Create free account':'Sign in securely'}</button>
           </form>
