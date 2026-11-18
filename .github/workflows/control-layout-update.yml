@@ -1,0 +1,41 @@
+name: Apply global control layout repair
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/control-layout-update.yml'
+      - '.maintenance/apply-control-layout.py'
+permissions:
+  contents: write
+jobs:
+  validate-and-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Apply validated UI-only source changes
+        run: python3 .maintenance/apply-control-layout.py
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - name: All offline application regressions
+        run: node --test $(find tests -name '*.test.mjs' ! -name 'hosting-authenticated.test.mjs' | sort)
+      - name: Actual component browser layout checks
+        run: npm run test:ui-controls
+      - run: node scripts/test-role-workspace-render.mjs
+      - run: npm run verify:release
+      - run: npm run verify:frontend-contract
+      - run: npm run verify:edge-imports
+      - run: npm run build
+      - name: Commit tested source and remove transport files
+        run: |
+          git config user.name 'Content Connect maintenance'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src scripts tests docs package.json
+          git rm -f .maintenance/control-layout-*.b64 .maintenance/apply-control-layout.py
+          git commit -m "Fix shared control spacing and wrapping across both platforms; add layout regressions"
+          git push origin HEAD:main
