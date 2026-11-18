@@ -2,8 +2,8 @@ import React,{useEffect,useState} from 'react';
 import {Camera,Boxes} from 'lucide-react';
 import {hostingAdvanced} from './hostingBusinessApi';
 const panel='ccx-surface p-4';
-const input='w-full rounded-lg border border-[#405773] bg-[#091625] px-3 py-2 text-sm text-white';
-const button='rounded-lg ccx-action-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
+const input='w-full rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-2 text-sm text-[var(--cc-text-primary)]';
+const button='rounded-lg ccx-action-primary px-4 py-2 text-sm font-semibold text-[var(--cc-text-primary)] disabled:opacity-50';
 const empty={label:'',category:'camera',description:'',quantity:1,hourly_cents:2500,daily_cents:null,condition:'good',active:true};
 export default function HostingEquipmentManager({propertyId}){
  const [assets,setAssets]=useState([]),[bundles,setBundles]=useState([]);
@@ -31,11 +31,11 @@ export default function HostingEquipmentManager({propertyId}){
   catch(e){setError(e.message);}finally{setBusy(false);}
  };
  const toggle=(id,on)=>setBundle(v=>({...v,items:on?[...v.items,{id,quantity:1}]:v.items.filter(x=>x.id!==id)}));
- return <section className="space-y-4 text-white">
+ return <section className="space-y-4 text-[var(--cc-text-primary)]">
   <h3 className="flex gap-2 items-center text-lg font-semibold"><Camera size={18}/>Rentable equipment and production services</h3>
-  <p className="text-xs text-[#9CB3CF]">Cameras, lighting, microphones, furniture, sets and makeup stations share limited booking inventory.</p>
-  {error&&<p className="rounded-lg bg-red-950 p-3 text-sm text-red-200" role="alert">{error}</p>}
-  {notice&&<p className="rounded-lg bg-emerald-950 p-3 text-sm text-emerald-200" role="status">{notice}</p>}
+  <p className="text-xs text-[var(--cc-text-secondary)]">Cameras, lighting, microphones, furniture, sets and makeup stations share limited booking inventory.</p>
+  {error&&<p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{error}</p>}
+  {notice&&<p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800" role="status">{notice}</p>}
   <form className={panel+' space-y-3'} onSubmit={save}>
    <h4 className="font-semibold">{item.id?'Update equipment':'Add equipment or service'}</h4>
    <div className="grid grid-cols-2 gap-2">
@@ -48,15 +48,15 @@ export default function HostingEquipmentManager({propertyId}){
     <label className="text-xs flex gap-2 items-center"><input type="checkbox" checked={item.active} onChange={e=>setItem(v=>({...v,active:e.target.checked}))}/>Available to rent</label>
    </div>
    <textarea maxLength={1500} className={input} rows={2} value={item.description} onChange={e=>setItem(v=>({...v,description:e.target.value}))} placeholder="Condition and specifications"/>
-   <div className="ccx-action-row flex gap-2"><button className={button} disabled={busy}>Save equipment</button><button type="button" className={button+' bg-[#2B405D]'} onClick={()=>setItem(empty)}>New</button></div>
+   <div className="ccx-action-row flex gap-2"><button className={button} disabled={busy}>Save equipment</button><button type="button" className={button+' bg-[var(--cc-surface)]'} onClick={()=>setItem(empty)}>New</button></div>
   </form>
   <div className={panel+' space-y-2'}>
    <h4 className="flex gap-2 font-semibold"><Boxes size={18}/>Inventory ({assets.length})</h4>
-   {assets.map(a=><button type="button" className="flex w-full justify-between border-t border-[#30445E] py-2 text-left text-xs hover:text-blue-300" key={a.id} onClick={()=>setItem({...a,daily_cents:a.daily_cents??null})}>
+   {assets.map(a=><button type="button" className="flex w-full justify-between border-t border-[var(--cc-border)] py-2 text-left text-xs hover:text-[var(--cc-text-secondary)]" key={a.id} onClick={()=>setItem({...a,daily_cents:a.daily_cents??null})}>
     <span><strong>{a.label}</strong> · {a.category} · {a.quantity} units · {a.condition} · {a.active?'active':'inactive'}</span>
     <span>{'$'+(a.hourly_cents/100).toFixed(2)}/hr</span>
    </button>)}
-   {!assets.length&&<p className="text-xs text-[#9CB3CF]">No equipment registered yet.</p>}
+   {!assets.length&&<p className="text-xs text-[var(--cc-text-secondary)]">No equipment registered yet.</p>}
   </div>
   <form className={panel+' space-y-3'} onSubmit={saveBundle}>
    <h4 className="font-semibold">Production bundles</h4>
@@ -71,7 +71,7 @@ export default function HostingEquipmentManager({propertyId}){
     </div>;
    })}
    <button disabled={busy||!bundle.items.length} className={button}>Create bundle</button>
-   {bundles.map(v=><p className="border-t border-[#30445E] pt-2 text-xs text-[#9CB3CF]" key={v.id}>{v.title} · {v.discount_bps/100}% off · {v.items?.length||0} items</p>)}
+   {bundles.map(v=><p className="border-t border-[var(--cc-border)] pt-2 text-xs text-[var(--cc-text-secondary)]" key={v.id}>{v.title} · {v.discount_bps/100}% off · {v.items?.length||0} items</p>)}
   </form>
  </section>;
 }

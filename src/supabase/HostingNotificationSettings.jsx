@@ -5,7 +5,7 @@ import {productionAction} from './productionApi';
 import {waitForActiveWorker} from './pushLifecycle.mjs';
 import {hostingBusiness} from './hostingBusinessApi';
 const panel='ccx-surface p-5';
-const button='rounded-lg ccx-action-primary px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50';
+const button='rounded-lg ccx-action-primary px-4 py-2.5 text-sm font-semibold text-[var(--cc-text-primary)] disabled:opacity-50';
 
 function decodeKey(value){
  const value64=value.replace(/-/g,'+').replace(/_/g,'/');
@@ -61,11 +61,11 @@ export default function HostingNotificationSettings(){
    setEnabled(false);setNotice('Push notifications disabled for this browser.');
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
- return <section className="space-y-4 text-white">
+ return <section className="space-y-4 text-[var(--cc-text-primary)]">
   <div><h2 className="text-2xl font-semibold flex gap-2 items-center"><Bell size={22}/> Booking notifications</h2>
-    <p className="mt-2 text-sm text-[#A6B9D2]">Control reminders and optional delivery methods. Private medical information, IDs and explicit content are never included in email or push previews.</p></div>
-  {error&&<p role="alert" className="rounded-lg bg-red-950 p-3 text-sm text-red-200">{error}</p>}
-  {notice&&<p role="status" className="rounded-lg bg-emerald-950 p-3 text-sm text-emerald-200">{notice}</p>}
+    <p className="mt-2 text-sm text-[var(--cc-text-secondary)]">Control reminders and optional delivery methods. Private medical information, IDs and explicit content are never included in email or push previews.</p></div>
+  {error&&<p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+  {notice&&<p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
   <form className={panel+' space-y-4'} onSubmit={save}>
     <h3 className="font-semibold">Your notification preferences</h3>
     {[
@@ -76,11 +76,11 @@ export default function HostingNotificationSettings(){
   </form>
   <div className={panel+' space-y-3'}>
     <h3 className="font-semibold flex items-center gap-2"><ShieldCheck size={17}/> Web Push for this device</h3>
-    <p className="text-sm text-[#A6B9D2]">{enabled?'This browser has an active push subscription.':'This browser has not enabled push.'}</p>
+    <p className="text-sm text-[var(--cc-text-secondary)]">{enabled?'This browser has an active push subscription.':'This browser has not enabled push.'}</p>
     <div className="flex gap-2">{enabled?<button className={button} disabled={busy} onClick={deactivate}>Disable on this device</button>:
       <button className={button} disabled={busy||!key} onClick={activate}>Enable browser push</button>}</div>
-    {!key&&<p className="text-xs text-amber-200">Push provider settings are not configured yet. In-app notifications remain available.</p>}
+    {!key&&<p className="text-xs text-amber-800">Push provider settings are not configured yet. In-app notifications remain available.</p>}
   </div>
-  <p className="text-xs text-[#A3B7D2]">Transactional email is queued until an approved delivery provider is configured. A booking status may change before its external notification is delivered.</p>
+  <p className="text-xs text-[var(--cc-text-secondary)]">Transactional email is queued until an approved delivery provider is configured. A booking status may change before its external notification is delivered.</p>
  </section>;
 }

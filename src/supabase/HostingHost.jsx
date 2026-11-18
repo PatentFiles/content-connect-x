@@ -23,10 +23,10 @@ import HostPortfolio from './HostPortfolio';
 import HostMarketExplorer from './HostMarketExplorer';
 import {HostPhotoPicker,HostPhotoManager} from './PropertyPhotoGallery';
 const panel='ccx-surface p-5';
-const input='w-full rounded-xl border border-[#34465E] bg-[#0B1422] px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-500';
-const button='rounded-xl ccx-action-primary px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50';
-const secondary='rounded-xl border border-[#42536A] bg-[#1F2D40] px-4 py-2.5 text-sm text-white disabled:opacity-50';
-const muted='text-sm text-[#A7B9D0]';
+const input='w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-2.5 text-sm text-[var(--cc-text-primary)] focus:outline-none focus:ring-2 focus:ring-fuchsia-500';
+const button='rounded-xl ccx-action-primary px-4 py-2.5 text-sm font-semibold text-[var(--cc-text-primary)] disabled:opacity-50';
+const secondary='rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface)] px-4 py-2.5 text-sm text-[var(--cc-text-primary)] disabled:opacity-50';
+const muted='text-sm text-[var(--cc-text-secondary)]';
 const blank={title:'',description:'',category:'film_studio',city:'',state:'',country:'United States',capacity:4,minimum_hours:6,hourly_rate:100,cleaning_fee_cents:0,min_notice_hours:24,preferred_cleaning_minutes:120,cancellation_policy:'flexible',deposit_percent:0,required_insurance:false,rules:'',amenities:[],permitted_uses:[]};
 
 function CheckboxGrid({options,values=[],update}) {
@@ -260,7 +260,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
  };
  const own=listings.find(v=>v.id===selected);
  return <section className="space-y-5">
-  <header className="flex flex-wrap justify-between gap-2"><div><h2 className="text-2xl font-semibold">{reviewMode?'Hosting approval queue':'Manage your hosting business'}</h2><p className="mt-1 text-sm text-[#A7BAD3]">{reviewMode?'Review uploaded photos and listings before publication.':'Create properties, manage guests and maintain your location between shoots.'}</p></div><button className={secondary+' flex items-center gap-2'} disabled={busy} onClick={load}><RefreshCw size={16}/>Refresh</button></header>
+  <header className="flex flex-wrap justify-between gap-2"><div><h2 className="text-2xl font-semibold">{reviewMode?'Hosting approval queue':'Manage your hosting business'}</h2><p className="mt-1 text-sm text-[var(--cc-text-secondary)]">{reviewMode?'Review uploaded photos and listings before publication.':'Create properties, manage guests and maintain your location between shoots.'}</p></div><button className={secondary+' flex items-center gap-2'} disabled={busy} onClick={load}><RefreshCw size={16}/>Refresh</button></header>
   {!reviewMode&&hostMetrics&&<section aria-label="Your host performance overview" className="space-y-3">
    <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
     {[
@@ -268,7 +268,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
       ['New booking requests',hostMetrics.booking_requests],['Upcoming shoots',hostMetrics.upcoming],
       ['Booking conversations',hostMetrics.conversations]
     ].map(([label,value])=><div className="oh-host-metric" key={label}>
-      <p className="text-xs text-[#A9C4E0]">{label}</p><strong className="text-3xl font-bold text-white">{Number(value||0).toLocaleString()}</strong>
+      <p className="text-xs text-[var(--cc-text-secondary)]">{label}</p><strong className="text-3xl font-bold text-[var(--cc-text-primary)]">{Number(value||0).toLocaleString()}</strong>
      </div>)}
    </div>
    {hostMetrics.by_property?.length>0&&<details className="oh-host-listing-breakdown">
@@ -277,16 +277,16 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
       <span className="truncate">{item.title}</span><strong>{item.views_30d||0} views</strong>
     </p>)}</div>
    </details>}
-   <p className="text-xs text-[#95AFC9]">Views are unique daily signed-in listing visits; conversations show booking threads, not unread messages. Figures reflect recorded activity only.</p>
+   <p className="text-xs text-[var(--cc-text-secondary)]">Views are unique daily signed-in listing visits; conversations show booking threads, not unread messages. Figures reflect recorded activity only.</p>
   </section>}
-  {error&&<div role="alert" className="rounded-lg bg-red-950 p-3 text-sm text-red-200">{error}</div>}
-  {notice&&<div role="status" className="rounded-lg bg-emerald-950 p-3 text-sm text-emerald-200">{notice}</div>}
+  {error&&<div role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</div>}
+  {notice&&<div role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</div>}
   {reviewMode&&isAdmin?<div className="space-y-5">
     <label className={panel+' flex items-start gap-3 text-sm'}><input type="checkbox" className="mt-1" checked={approvalChecked} onChange={e=>setApprovalChecked(e.target.checked)}/>I have independently checked the image/listing, relevant rights and permissions, declared production use and applicable publication procedures. I am not self-approving a listing.</label>
     <div className={panel+' space-y-4'}><h3 className="font-semibold">Private photos awaiting approval ({pendingImages.length})</h3>
-      {pendingImages.map(pic=><div key={pic.id} className="flex flex-wrap items-center gap-4 border-b border-[#34465E] pb-3">
+      {pendingImages.map(pic=><div key={pic.id} className="flex flex-wrap items-center gap-4 border-b border-[var(--cc-border)] pb-3">
         {pic.url?<img className="h-24 w-32 rounded-lg object-cover" src={pic.url} alt="Private property review"/>:<ImageIcon size={32}/>}
-        <div className="flex-1 min-w-[200px]"><p className="break-all text-xs text-[#AABDD3]">Listing {pic.property_id}</p><div className="ccx-action-row mt-3 flex gap-2">
+        <div className="flex-1 min-w-[200px]"><p className="break-all text-xs text-[var(--cc-text-secondary)]">Listing {pic.property_id}</p><div className="ccx-action-row mt-3 flex gap-2">
           <button disabled={busy||!approvalChecked} className={button} onClick={()=>reviewImage(pic.id,'approved')}>Approve photo</button>
           <button disabled={busy||!approvalChecked} className={secondary} onClick={()=>reviewImage(pic.id,'rejected')}>Reject</button></div>
         </div>
@@ -294,9 +294,9 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
       {!pendingImages.length&&<p className={muted}>No pending property photos.</p>}
     </div>
     <div className={panel+' space-y-4'}><h3 className="font-semibold">Private videos awaiting approval ({pendingVideos.length})</h3>
-      {pendingVideos.map(video=><div key={video.id} className="flex flex-wrap items-center gap-4 border-b border-[#34465E] pb-3">
+      {pendingVideos.map(video=><div key={video.id} className="flex flex-wrap items-center gap-4 border-b border-[var(--cc-border)] pb-3">
         {video.url?<video className="h-28 w-44 rounded-lg bg-black object-cover" src={video.url} controls preload="metadata" playsInline aria-label="Private listing video pending review"/>:<Film size={32}/>}
-        <div className="min-w-[180px] flex-1"><p className="text-xs text-[#AAC6E6]">Property {video.property_id}</p>
+        <div className="min-w-[180px] flex-1"><p className="text-xs text-[var(--cc-link)]">Property {video.property_id}</p>
           <div className="mt-3 flex flex-wrap gap-2"><button disabled={busy||!approvalChecked} className={button} onClick={()=>reviewVideo(video.id,'approved')}>Approve video</button>
           <button disabled={busy||!approvalChecked} className={secondary} onClick={()=>reviewVideo(video.id,'rejected')}>Reject video</button></div>
         </div>
@@ -304,19 +304,19 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
       {!pendingVideos.length&&<p className={muted}>No pending property videos.</p>}
     </div>
     <div className={panel+' space-y-4'}><h3 className="font-semibold">Property listings awaiting review ({pending.length})</h3>
-      {pending.map(p=><div key={p.id} className="border-b border-[#34465E] pb-4">
+      {pending.map(p=><div key={p.id} className="border-b border-[var(--cc-border)] pb-4">
         <div className="flex gap-3">
-          {p.photos?.[0]?.url?<img alt={p.title} src={p.photos[0].url} className="h-24 w-28 rounded-lg object-cover"/>:<div className="grid h-24 w-28 place-items-center rounded-lg bg-[#21344C]"><ImageIcon/></div>}
-          <div><h4 className="font-semibold">{p.title}</h4><p className={muted}>{p.city}, {p.country} · {usd(p.hourly_rate)}/hr</p><p className="text-xs text-[#AABDD3]">Permitted: {(p.permitted_uses||[]).join(', ')}</p></div>
+          {p.photos?.[0]?.url?<img alt={p.title} src={p.photos[0].url} className="h-24 w-28 rounded-lg object-cover"/>:<div className="grid h-24 w-28 place-items-center rounded-lg bg-[var(--cc-surface)]"><ImageIcon/></div>}
+          <div><h4 className="font-semibold">{p.title}</h4><p className={muted}>{p.city}, {p.country} · {usd(p.hourly_rate)}/hr</p><p className="text-xs text-[var(--cc-text-secondary)]">Permitted: {(p.permitted_uses||[]).join(', ')}</p></div>
         </div>
-        <p className="mt-2 text-xs text-[#A7BAD3]">Rules: {p.rules||'None specified'}</p>
+        <p className="mt-2 text-xs text-[var(--cc-text-secondary)]">Rules: {p.rules||'None specified'}</p>
         <PropertyVirtualTour propertyId={p.id} title={p.title}/>
         <div className="ccx-action-row mt-3 flex gap-2"><button disabled={busy||!approvalChecked} className={button} onClick={()=>reviewListing(p.id,'active')}>Publish approved listing</button><button disabled={busy||!approvalChecked} className={secondary} onClick={()=>reviewListing(p.id,'paused')}>Return for changes</button></div>
       </div>)}
       {!pending.length&&<p className={muted}>No listings waiting for review.</p>}
     </div>
     <div className={panel+' space-y-3'}><h3 className="font-semibold">Guest reviews awaiting publication ({reviewQueue.length})</h3>
-      {reviewQueue.map(review=><div key={review.id} className="border-b border-[#34465E] pb-3"><p className="text-sm font-semibold">{review.rating}/5 stars</p><p className="text-sm whitespace-pre-wrap">{review.description}</p><p className="text-xs text-[#829AB5]">Property {review.property_id}</p><div className="ccx-action-row mt-3 flex gap-2"><button disabled={busy||!approvalChecked} className={button} onClick={()=>reviewGuest(review.id,'published')}>Publish</button><button disabled={busy||!approvalChecked} className={secondary} onClick={()=>reviewGuest(review.id,'rejected')}>Reject</button></div></div>)}
+      {reviewQueue.map(review=><div key={review.id} className="border-b border-[var(--cc-border)] pb-3"><p className="text-sm font-semibold">{review.rating}/5 stars</p><p className="text-sm whitespace-pre-wrap">{review.description}</p><p className="text-xs text-[var(--cc-text-secondary)]">Property {review.property_id}</p><div className="ccx-action-row mt-3 flex gap-2"><button disabled={busy||!approvalChecked} className={button} onClick={()=>reviewGuest(review.id,'published')}>Publish</button><button disabled={busy||!approvalChecked} className={secondary} onClick={()=>reviewGuest(review.id,'rejected')}>Reject</button></div></div>)}
       {!reviewQueue.length&&<p className={muted}>No pending guest reviews.</p>}
     </div>
   </div>:<>
@@ -370,7 +370,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
               <input required minLength={8} maxLength={400} autoComplete="street-address"
                 className={input+' mt-1'} value={privateDetails.exact_address||''} onChange={e=>setPrivateDetails(v=>({...v,exact_address:e.target.value}))}
                 placeholder="Street number, street name, unit number"/>
-              <span className="mt-1 block text-xs text-[#A2BCD9]">Only the host and authorized booking guests can access this address. Public cards show city and region only.</span>
+              <span className="mt-1 block text-xs text-[var(--cc-text-secondary)]">Only the host and authorized booking guests can access this address. Public cards show city and region only.</span>
             </label>
           </div>
           <div className="oh-form-section-heading"><span>02</span><div><h3>Your pricing & house rules</h3><p>Pre-filled from your defaults. Change anything for this particular property.</p></div></div>
@@ -382,8 +382,8 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
             <label className="text-sm">Maximum crew size<input className={input+' mt-1'} type="number" min={1} max={500} value={form.capacity} onChange={e=>field('capacity',Number(e.target.value))}/></label>
             <label className="text-sm">Minimum booking duration
              <input className={input+' mt-1'} type="number" min={1} max={72} value={form.minimum_hours} onChange={e=>field('minimum_hours',Number(e.target.value))}/>
-             <span className="mt-2 flex flex-wrap gap-1">{[2,4,6,12,24,48,72].map(hours=><button type="button" key={hours} className={'rounded-lg border px-2 py-1 text-xs '+(form.minimum_hours===hours?'border-[#73E1FA] bg-[#225B84]':'border-[#374A68] text-[#B0D0E8]')} onClick={()=>field('minimum_hours',hours)}>{hours}h</button>)}</span>
-             <span className="mt-1 block text-xs text-[#9AB5D1]">Set a 6-hour, 12-hour, full-day (24-hour), or multi-day minimum. Current booking quotes support up to 72 hours; overnight check-in/out presets require a later pricing-engine upgrade.</span>
+             <span className="mt-2 flex flex-wrap gap-1">{[2,4,6,12,24,48,72].map(hours=><button type="button" key={hours} className={'rounded-lg border px-2 py-1 text-xs '+(form.minimum_hours===hours?'border-[var(--cc-border)] ccx-solid-action':'border-[var(--cc-border)] text-[var(--cc-link)]')} onClick={()=>field('minimum_hours',hours)}>{hours}h</button>)}</span>
+             <span className="mt-1 block text-xs text-[var(--cc-text-secondary)]">Set a 6-hour, 12-hour, full-day (24-hour), or multi-day minimum. Current booking quotes support up to 72 hours; overnight check-in/out presets require a later pricing-engine upgrade.</span>
             </label>
             <label className="text-sm">Cancellation policy<select className={input+' mt-1'} value={form.cancellation_policy||'flexible'} onChange={e=>field('cancellation_policy',e.target.value)}>
               <option value="flexible">Flexible (24h refund window)</option><option value="moderate">Moderate (72h/24h)</option><option value="strict">Strict (7-day/72h)</option>
@@ -397,7 +397,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           <label className="block text-sm">Full description<textarea className={input+' mt-1'} rows={4} maxLength={4000} value={form.description} onChange={e=>field('description',e.target.value)}/></label>
           <label className="block text-sm">Host rules and restrictions<textarea className={input+' mt-1'} rows={3} maxLength={3000} value={form.rules} onChange={e=>field('rules',e.target.value)}/></label>
           <PropertyAmenities title="Production amenities" values={form.amenities} allowCustom onChange={v=>field('amenities',v)}/>
-          <div><h4 className="mb-2 text-sm font-semibold">Permitted activities — set deliberately</h4><p className="mb-3 text-xs text-[#AABED8]">Select exactly what you are comfortable allowing. Nude photography and explicit adult videos are separate opt-ins; guests should never assume either is permitted. You must have written owner authority for each approved use.</p><CheckboxGrid values={form.permitted_uses} options={rentalUses} update={v=>field('permitted_uses',v)}/></div>
+          <div><h4 className="mb-2 text-sm font-semibold">Permitted activities — set deliberately</h4><p className="mb-3 text-xs text-[var(--cc-text-secondary)]">Select exactly what you are comfortable allowing. Nude photography and explicit adult videos are separate opt-ins; guests should never assume either is permitted. You must have written owner authority for each approved use.</p><CheckboxGrid values={form.permitted_uses} options={rentalUses} update={v=>field('permitted_uses',v)}/></div>
           {!selected&&<section className="oh-create-media-section">
             <div className="oh-form-section-heading"><span>03</span><div><h3>Let your photos do the talking</h3><p>Select your cover photo first. All uploads remain private until reviewed.</p></div></div>
             <HostPhotoPicker files={photoFiles} onChange={setPhotoFiles} disabled={saving}/>
@@ -408,10 +408,10 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           {!selected&&<fieldset className="oh-new-tour-field space-y-3"><legend className="font-semibold">Matterport 3D tour (optional)</legend>
             <label className="block text-sm">Hosted Showcase link<input type="url" className={input+' mt-2'} value={matterportUrl} onChange={e=>setMatterportUrl(e.target.value)} placeholder="https://my.matterport.com/show/?m=…" maxLength={2048}/></label>
             <label className="block text-sm">Or upload a tour link file / private source archive<input type="file" className="mt-2 block w-full text-xs" accept=".url,.webloc,.json,.txt,.zip" onChange={e=>setTourFile(e.target.files?.[0]||null)}/></label>
-            <p className="text-xs leading-6 text-[#A9C4DE]">Hosted Matterport links open in a full-screen interactive viewer. Link files can import a tour URL. Raw ZIP scans are stored privately (50MB maximum) and still need processing through Matterport before they can be explored.</p>
+            <p className="text-xs leading-6 text-[var(--cc-text-secondary)]">Hosted Matterport links open in a full-screen interactive viewer. Link files can import a tour URL. Raw ZIP scans are stored privately (50MB maximum) and still need processing through Matterport before they can be explored.</p>
           </fieldset>}
           <button disabled={busy||saving||!paid||!form.permitted_uses.length} className={button}>{saving?'Saving your space…':selected?'Save Property Changes':'Save & Add My Space'}</button>
-          <p className="text-xs text-[#AABED8]">Your exact address is saved privately and never included in public property cards or the area map.</p>
+          <p className="text-xs text-[var(--cc-text-secondary)]">Your exact address is saved privately and never included in public property cards or the area map.</p>
         </form>}
 
         {selected&&editorTab==='media'&&<PropertyVirtualTour propertyId={selected} title={form.title} editable onChanged={load}/>}
@@ -440,14 +440,14 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
         </form>}
         {selected&&editorTab==='media'&&<div className={panel+' space-y-4'}>
           <HostPhotoManager propertyId={selected} onChanged={load}/>
-          <div className="border-t border-[#354662] pt-5 space-y-3">
+          <div className="border-t border-[var(--cc-border)] pt-5 space-y-3">
             <h3 className="flex items-center gap-2 font-semibold"><Film size={18}/>Property Walkthrough Videos</h3>
             <p className={muted}>Upload up to five short MP4/WebM videos (40MB each). Unreviewed videos are visible only to the owner and authorized moderators; approved videos appear on the property detail page.</p>
             <div className="grid gap-3 sm:grid-cols-2">{(own?.videos||[]).map(v=>
-              <div key={v.id} className="relative overflow-hidden rounded-xl border border-[#395071] bg-[#07111F]">
+              <div key={v.id} className="relative overflow-hidden rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)]">
                 {v.url?<video controls preload="metadata" playsInline className="h-40 w-full object-cover" src={v.url} aria-label={v.caption||'Property walkthrough'}/>:<div className="grid h-40 place-items-center"><Film/></div>}
-                <div className="flex justify-between gap-2 px-3 py-2"><div className="min-w-0"><p className="truncate text-xs">{v.caption||'Property video'}</p><p className="text-xs capitalize text-[#88D8F1]">{v.status}</p></div>
-                  <button type="button" className="rounded-full bg-red-950 p-2" aria-label="Delete video" onClick={()=>mutate('host_video_delete',{id:v.id},'Video deleted')}><Trash2 size={15}/></button>
+                <div className="flex justify-between gap-2 px-3 py-2"><div className="min-w-0"><p className="truncate text-xs">{v.caption||'Property video'}</p><p className="text-xs capitalize text-[var(--cc-link)]">{v.status}</p></div>
+                  <button type="button" className="rounded-full bg-red-50 p-2" aria-label="Delete video" onClick={()=>mutate('host_video_delete',{id:v.id},'Video deleted')}><Trash2 size={15}/></button>
                 </div>
               </div>)}</div>
             <form onSubmit={uploadVideo} className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
@@ -462,19 +462,19 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
         {selected&&editorTab==='availability'&&<div className={panel+' space-y-3'}>
           <h3 className="font-semibold flex items-center gap-2"><CalendarDays size={18}/>Blackout dates</h3>
           <form onSubmit={block} className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]"><label className="text-sm">From<input className={input+' mt-1'} type="datetime-local" required value={blockStart} onChange={e=>setBlockStart(e.target.value)}/></label><label className="text-sm">To<input className={input+' mt-1'} type="datetime-local" required value={blockEnd} onChange={e=>setBlockEnd(e.target.value)}/></label><button className={button+' self-end'} disabled={busy}>Block dates</button></form>
-          <div className="rounded-lg border border-[#34465E] bg-[#0B1422] p-3 space-y-3">
+          <div className="rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 space-y-3">
             <p className="font-semibold text-sm">External calendar files (iCalendar)</p>
-            <p className="text-xs text-[#9FB4CE]">Import event times from an exported .ics file to block rentals. Guest names and contact details are not stored. UTC and all-day events are supported; other timezone forms are skipped.</p>
+            <p className="text-xs text-[var(--cc-text-secondary)]">Import event times from an exported .ics file to block rentals. Guest names and contact details are not stored. UTC and all-day events are supported; other timezone forms are skipped.</p>
             <input type="file" accept=".ics,text/calendar" className="block w-full text-xs" onChange={e=>setIcalFile(e.target.files?.[0]||null)}/>
             <div className="flex flex-wrap gap-2"><button className={button} disabled={busy||!icalFile} onClick={importCalendar}>Import calendar blocks</button><button className={secondary} onClick={exportCalendar} disabled={busy}>Export unavailable dates (.ics)</button></div>
           </div>
-          {blocks.map(block=><div className="flex justify-between gap-3 border-t border-[#34465E] pt-2 text-xs" key={block.id}><span>{dateTime(block.starts_at)} – {dateTime(block.ends_at)} · {block.source||"manual"}</span><button onClick={()=>mutate('host_remove_block',{id:block.id},'Block removed.')} className="text-red-300">Remove</button></div>)}
+          {blocks.map(block=><div className="flex justify-between gap-3 border-t border-[var(--cc-border)] pt-2 text-xs" key={block.id}><span>{dateTime(block.starts_at)} – {dateTime(block.ends_at)} · {block.source||"manual"}</span><button onClick={()=>mutate('host_remove_block',{id:block.id},'Block removed.')} className="text-red-800">Remove</button></div>)}
         </div>}
 
         {selected&&editorTab==='availability'&&<div className={panel+' space-y-3'}>
           <h3 className="font-semibold flex items-center gap-2"><ClipboardCheck size={18}/>Location turnover checklist</h3>
           <div className="flex flex-wrap gap-2"><label className="text-sm flex-1">Due date<input type="datetime-local" className={input+' mt-1'} value={turnoverDue} onChange={e=>setTurnoverDue(e.target.value)}/></label><button className={button+' self-end'} disabled={busy} onClick={newTurnover}><Plus size={15} className="inline mr-1"/>New turnover</button></div>
-          {turnovers.map(turn=><div className="rounded-xl border border-[#34465E] bg-[#0C1726] p-3 space-y-2" key={turn.id}><p className="text-sm font-semibold capitalize">Turnover · {turn.status.replaceAll('_',' ')} {turn.due_at?'· '+dateTime(turn.due_at):''}</p>
+          {turnovers.map(turn=><div className="rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 space-y-2" key={turn.id}><p className="text-sm font-semibold capitalize">Turnover · {turn.status.replaceAll('_',' ')} {turn.due_at?'· '+dateTime(turn.due_at):''}</p>
             {(turn.tasks||[]).map(task=><label key={task.id} className="flex items-center gap-3 text-xs"><input type="checkbox" checked={task.done} onChange={e=>mutate('turnover_task',{id:task.id,done:e.target.checked},'Checklist updated.')}/>{task.label}</label>)}
             <div className="flex flex-wrap gap-2 items-center"><button className={secondary} onClick={()=>showInspection(turn.id)}>Show condition photos</button><select className={input+' max-w-[140px]'} value={inspectionPhase} onChange={e=>setInspectionPhase(e.target.value)}><option value="before">Before</option><option value="after">After</option></select><input type="file" accept="image/jpeg,image/png,image/webp" className="text-xs" onChange={e=>setInspectionFile(e.target.files?.[0]||null)}/><button disabled={busy||!inspectionFile} className={button} onClick={()=>uploadInspection(turn.id)}>Upload evidence</button></div>
             <div className="grid grid-cols-3 gap-2">{(inspectionPhotos[turn.id]||[]).map(photo=><div key={photo.id}><img src={photo.url} alt={photo.phase+' room inspection'} className="h-24 w-full rounded-lg object-cover"/><p className="text-xs">{photo.phase}</p></div>)}</div>
@@ -489,9 +489,9 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
     <div className={panel+' space-y-3'}>
       <h3 className="flex items-center gap-2 font-semibold"><Settings2 size={18}/>Booking requests from guests</h3>
       {!reservations.length&&<p className={muted}>No pending or past reservation requests.</p>}
-      {reservations.map(b=><div key={b.id} className="flex flex-wrap justify-between gap-3 border-b border-[#34465E] pb-3">
-        <div className="space-y-1"><p className="text-sm font-semibold">{dateTime(b.starts_at)} – {dateTime(b.ends_at)}</p><p className="text-xs text-[#A8BED8]">Requested use: {b.requested_use} · Crew: {b.crew_size} · Est. {usd(b.estimated_total)}</p><p className="text-xs text-[#829AB5]">Guest {b.requester_id} · {b.status}</p><p className="text-sm">{b.notes}</p>
-          <button className="mt-2 text-sm text-blue-300" onClick={()=>setExpandedBooking(expandedBooking===b.id?'':b.id)}>
+      {reservations.map(b=><div key={b.id} className="flex flex-wrap justify-between gap-3 border-b border-[var(--cc-border)] pb-3">
+        <div className="space-y-1"><p className="text-sm font-semibold">{dateTime(b.starts_at)} – {dateTime(b.ends_at)}</p><p className="text-xs text-[var(--cc-text-secondary)]">Requested use: {b.requested_use} · Crew: {b.crew_size} · Est. {usd(b.estimated_total)}</p><p className="text-xs text-[var(--cc-text-secondary)]">Guest {b.requester_id} · {b.status}</p><p className="text-sm">{b.notes}</p>
+          <button className="mt-2 text-sm text-[var(--cc-text-secondary)]" onClick={()=>setExpandedBooking(expandedBooking===b.id?'':b.id)}>
             {expandedBooking===b.id?'Hide operations':'Agreement, payments, refunds and disputes'}
           </button>
           {expandedBooking===b.id&&<div className="mt-4 max-w-3xl"><HostingBookingOperations bookingId={b.id} userId={user?.id}/></div>}

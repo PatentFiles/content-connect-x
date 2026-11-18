@@ -86,9 +86,9 @@ export async function createControlFixture(output,{beforeRoot=null}={}){
  // Follow the real global -> Tailwind -> brand -> host import order.
  const base=read('globals.css')+(beforeRoot?'':read('control-layout.css'))+'\n@tailwind base;\n@tailwind components;\n@tailwind utilities;';
  const compiled=(await postcss([tailwind(config)]).process(base,{from:path.resolve('src/index.css')})).css;
- const theme=['brand-theme.css','onlyhost-theme.css','host-workspace.css','public-landing.css'].map(name=>read('supabase/'+name)).join('\n');
+ const theme=['brand-theme.css','onlyhost-theme.css','host-workspace.css','public-landing.css','professional-theme.css'].map(name=>read('supabase/'+name)).join('\n');
  const fixtureCss='body{margin:0}main{padding:16px}.actual{max-width:1024px;margin:0 auto;padding:24px 0}#collaboration-page{background:var(--cc-bg);padding:12px;border-radius:16px}.fixtures{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr));gap:16px}.fixture{padding:16px;border:1px solid #36425c;border-radius:16px;background:var(--cc-surface);min-width:0}.fixture>h3{font-size:12px;margin-bottom:18px}.fixture>button{margin-top:12px}.fixture.oh-dialog{margin:0;width:100%;max-height:none}.fixture.oh-dialog .oh-dialog-content{padding:0}main>h2{font-size:20px;margin:28px 0 16px}';
- fs.writeFileSync(output,`<!doctype html><html class="dark"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${compiled}\n${theme}\n${fixtureCss}</style></head><body>${body}</body></html>`);
+ fs.writeFileSync(output,`<!doctype html><html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>${compiled}\n${theme}\n${fixtureCss}</style></head><body>${body}</body></html>`);
  return inventory;
 }
 

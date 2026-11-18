@@ -24,8 +24,8 @@ function SetEditor({name,values=[],onChange}){
     const active=values.includes(choice);
     return <button type="button" key={choice} aria-pressed={active} onClick={()=>update(choice)}
      className="min-w-0 rounded-lg border px-3 py-2 text-sm leading-5 transition hover:-translate-y-0.5"
-     style={{background:active?'rgba(79,140,255,.12)':'transparent',
-      borderColor:active?'#4F8CFF':'var(--cc-border)',
+     style={{background:active?'var(--cc-surface-hover)':'transparent',
+      borderColor:active?'var(--cc-link)':'var(--cc-border)',
       color:active?'var(--cc-blue)':'var(--cc-text-secondary)'}}>{friendlyChoice(choice)}</button>;
    })}
   </div>

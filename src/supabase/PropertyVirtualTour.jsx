@@ -5,7 +5,7 @@ import {Box,Expand,UploadCloud,Link,Trash2} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
 import HostDialog from './HostDialog';
 import {normalizeMatterportUrl,matterportLinkFromText} from './propertyTourPolicy.mjs';
-const input='w-full rounded-xl border border-[#355575] bg-[#0E1B30] p-3 text-sm text-white';
+const input='w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm text-[var(--cc-text-primary)]';
 /** @param {{propertyId:string,title?:string,editable?:boolean,onChanged?:()=>Promise<any>}} props */
 export default function PropertyVirtualTour({propertyId,title='Property',editable=false,onChanged}){
  const [url,setUrl]=useState(''),[saved,setSaved]=useState(''),[open,setOpen]=useState(false),[pending,setPending]=useState(false),[sources,setSources]=useState([]);
@@ -36,17 +36,17 @@ export default function PropertyVirtualTour({propertyId,title='Property',editabl
  };
  if(!editable&&!saved&&!error)return null;
  return <section className="ccx-surface space-y-4 p-5" aria-label="Matterport virtual tour">
-  <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="flex items-center gap-2 text-lg font-semibold"><Box size={22}/>3D virtual tour</h3><p className="mt-1 text-sm text-[#ACC4DE]">Explore the space in an interactive, full-screen Matterport viewer.</p></div>
+  <div className="flex flex-wrap items-center justify-between gap-3"><div><h3 className="flex items-center gap-2 text-lg font-semibold"><Box size={22}/>3D virtual tour</h3><p className="mt-1 text-sm text-[var(--cc-text-secondary)]">Explore the space in an interactive, full-screen Matterport viewer.</p></div>
    {saved&&<button type="button" className="oh-gallery-primary" onClick={()=>setOpen(true)}><Expand size={17}/>{editable?'Preview tour':'Explore in 3D'}</button>}</div>
   {editable&&<><label className="block text-sm">Matterport Showcase share link<input className={input+' mt-2'} value={url} maxLength={2048} placeholder="https://my.matterport.com/show/?m=…" onChange={e=>setUrl(e.target.value)}/></label>
-   <p className="text-xs leading-6 text-[#A9C2DC]">Use an embeddable public or unlisted model. Check the tour for addresses, entry codes, people and other private details before sharing it. Uploading a raw MatterPak/scan ZIP does not automatically create a playable tour.</p>
+   <p className="text-xs leading-6 text-[var(--cc-text-secondary)]">Use an embeddable public or unlisted model. Check the tour for addresses, entry codes, people and other private details before sharing it. Uploading a raw MatterPak/scan ZIP does not automatically create a playable tour.</p>
    <div className="flex flex-wrap gap-2"><button type="button" className="oh-gallery-primary" disabled={busy||!url} onClick={save}><Link size={16}/>Save tour link</button>
     {saved&&<button type="button" className="oh-gallery-secondary" disabled={busy} onClick={remove}><Trash2 size={16}/>Remove tour</button>}
     <label className="oh-gallery-secondary cursor-pointer"><UploadCloud size={16}/>Upload Matterport file<input type="file" className="sr-only" accept=".txt,.url,.webloc,.json,.zip" disabled={busy} onChange={e=>{void upload(e.target.files?.[0]);e.target.value='';}}/></label></div>
-   {pending&&<p className="text-xs text-amber-200">Tour pending listing review; visible to you and authorized reviewers only.</p>}
-   {sources.length>0&&<div className="space-y-2 rounded-xl border border-[#385775] p-4"><p className="text-sm font-semibold">Private source archives</p>{sources.map(file=><p key={file.id} className="text-xs text-[#AAC5DE]">{file.original_name} · Source stored, not a processed tour</p>)}</div>}
+   {pending&&<p className="text-xs text-amber-800">Tour pending listing review; visible to you and authorized reviewers only.</p>}
+   {sources.length>0&&<div className="space-y-2 rounded-xl border border-[var(--cc-border)] p-4"><p className="text-sm font-semibold">Private source archives</p>{sources.map(file=><p key={file.id} className="text-xs text-[var(--cc-text-secondary)]">{file.original_name} · Source stored, not a processed tour</p>)}</div>}
   </>}
-  {error&&<p role="alert" className="oh-inline-error">{error}</p>}{notice&&<p role="status" className="text-sm text-emerald-300">{notice}</p>}
+  {error&&<p role="alert" className="oh-inline-error">{error}</p>}{notice&&<p role="status" className="text-sm text-emerald-800">{notice}</p>}
   {open&&saved&&<HostDialog title={title+' · 3D tour'} subtitle="Matterport interactive walkthrough" fullscreen onClose={()=>setOpen(false)} className="oh-tour-dialog">
    <iframe title={title+' Matterport tour'} src={saved} className="oh-matterport-frame" allow="fullscreen; xr-spatial-tracking" allowFullScreen sandbox="allow-scripts allow-same-origin allow-popups allow-presentation" referrerPolicy="strict-origin-when-cross-origin"/>
   </HostDialog>}

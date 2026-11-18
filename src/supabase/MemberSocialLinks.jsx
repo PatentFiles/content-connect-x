@@ -7,7 +7,7 @@ const fields=[
  ['onlyfans','OnlyFans','onlyfans.com'],['fansly','Fansly','fansly.com'],
  ['twitter','X / Twitter','x.com'],['instagram','Instagram','instagram.com']
 ];
-const input='mt-1 w-full rounded-lg border border-[#34445D] bg-[#0F1520] px-3 py-2.5 text-sm text-white';
+const input='mt-1 w-full rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-2.5 text-sm text-[var(--cc-text-primary)]';
 export default function MemberSocialLinks({userId}){
  const [values,setValues]=useState({}),[share,setShare]=useState(false),[working,setWorking]=useState(false);
  const [error,setError]=useState(''),[message,setMessage]=useState('');
@@ -43,10 +43,10 @@ export default function MemberSocialLinks({userId}){
   }catch(err){setError(err.message||'Unable to save links.');}finally{setWorking(false);}
  };
  return <section className="ccx-surface space-y-4 p-5">
-  <h3 className="font-semibold flex items-center gap-2"><ShieldCheck size={18} className="text-[#FF8ADD]"/>Professional social links</h3>
-  <p className="text-xs text-[#AABDD3]">Links are private by default and never visible to free members. You control whether verified premium members can see them.</p>
-  {error&&<p role="alert" className="text-xs text-red-300">{error}</p>}
-  {message&&<p role="status" className="text-xs text-emerald-300">{message}</p>}
+  <h3 className="font-semibold flex items-center gap-2"><ShieldCheck size={18} className="text-[var(--cc-link)]"/>Professional social links</h3>
+  <p className="text-xs text-[var(--cc-text-secondary)]">Links are private by default and never visible to free members. You control whether verified premium members can see them.</p>
+  {error&&<p role="alert" className="text-xs text-red-800">{error}</p>}
+  {message&&<p role="status" className="text-xs text-emerald-800">{message}</p>}
   <form onSubmit={save} className="space-y-3">
    <div className="grid gap-3 sm:grid-cols-2">
     {fields.map(([key,label,domain])=><label key={key} className="text-sm">{label}

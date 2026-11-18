@@ -10,17 +10,17 @@ import {
   ArrowRight, LockKeyhole, Zap,
 } from 'lucide-react';
 
-const statusTone={verified:'text-emerald-300',pending:'text-amber-200',neutral:'text-white'};
+const statusTone={verified:'text-emerald-800',pending:'text-amber-800',neutral:'text-[var(--cc-text-primary)]'};
 function StatusCard({label,value,detail,Icon,tone='neutral',onClick}) {
-  return <button className="ccx-stat-card group w-full text-left transition hover:border-[#FF65CB]/50"
+  return <button className="ccx-stat-card group w-full text-left transition hover:border-[var(--cc-border)]"
     onClick={onClick} aria-label={label+': '+value}>
     <div className="flex justify-between gap-2 items-center">
-      <span className="text-xs font-semibold uppercase tracking-widest text-[#ACB8D4]">{label}</span>
-      <Icon size={18} className="text-[#FF77CC]"/>
+      <span className="text-xs font-semibold uppercase tracking-widest text-[var(--cc-text-secondary)]">{label}</span>
+      <Icon size={18} className="text-[var(--cc-link)]"/>
     </div>
     <p className={'mt-3 text-xl font-bold '+(statusTone[tone]||statusTone.neutral)}>{value}</p>
     <div className="mt-2 ccx-stat-marker"/>
-    <p className="mt-3 text-xs leading-relaxed text-[#ADB9D3]">{detail}</p>
+    <p className="mt-3 text-xs leading-relaxed text-[var(--cc-text-secondary)]">{detail}</p>
   </button>;
 }
 const modules=[
@@ -28,7 +28,7 @@ const modules=[
   {key:'production',title:'Production Manager',description:'Coordinate teams, shoot schedules, consent and project safety.',Icon:UsersRound,tag:'COORDINATE',color:'rgba(255,73,182,.17)'},
   {key:'hosting',title:'Locations & studios',description:'Discover and manage filming spaces, equipment and reservations.',Icon:Building2,tag:'BOOK SPACES',color:'rgba(79,140,255,.19)'},
   {key:'workspace',title:'Messages & projects',description:'Manage professional conversations, invites and collaborations.',Icon:MessageSquare,tag:'WORKSPACE',color:'rgba(181,93,246,.17)'},
-  {key:'schedule',title:'Availability',description:'Keep your availability organized for the next collaboration.',Icon:CalendarDays,tag:'PLAN AHEAD',color:'rgba(79,140,255,.15)'},
+  {key:'schedule',title:'Availability',description:'Keep your availability organized for the next collaboration.',Icon:CalendarDays,tag:'PLAN AHEAD',color:'var(--cc-surface-hover)'},
   {key:'account-security',title:'Trust & account',description:'Control security, your account and access settings.',Icon:LockKeyhole,tag:'SECURITY',color:'rgba(255,73,182,.16)'},
 ];
 
@@ -51,7 +51,7 @@ export default function DashboardHome({profile,verification,approved,paid,onNavi
         {name?<>Welcome back, <span className="ccx-gradient-text">{name}</span>.</>:
           <>Create. Collaborate. <span className="ccx-gradient-text">Connect.</span></>}
       </h2>
-      <p className="mt-4 max-w-lg text-sm leading-relaxed text-[#E2DAF3] sm:text-base">
+      <p className="mt-4 max-w-lg text-sm leading-relaxed text-[var(--cc-text-secondary)] sm:text-base">
         Your productions, collaborations, locations and professional tools in one private workspace.
       </p>
       <div className="mt-5 flex flex-wrap gap-3">
@@ -86,7 +86,7 @@ export default function DashboardHome({profile,verification,approved,paid,onNavi
           <p className="ccx-eyebrow">Your tools</p>
           <h3 className="mt-1 text-2xl font-bold tracking-tight">Your creative command center</h3>
         </div>
-        <p className="text-xs text-[#A9B5CE]">Protected actions follow your verification and membership status</p>
+        <p className="text-xs text-[var(--cc-text-secondary)]">Protected actions follow your verification and membership status</p>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {modules.filter(m=>
@@ -98,12 +98,12 @@ export default function DashboardHome({profile,verification,approved,paid,onNavi
           <button key={key} className="ccx-module-card group"
             data-accent={key} onClick={()=>onNavigate(key)}>
             <span className="ccx-icon-wrap"><Icon size={22}/></span>
-            <p className="mt-5 text-[10px] uppercase tracking-[.17em] font-bold text-[#FF89DB]">{tag}</p>
+            <p className="mt-5 text-[10px] uppercase tracking-[.17em] font-bold text-[var(--cc-link)]">{tag}</p>
             <div className="mt-1 flex items-center gap-2">
-              <h4 className="text-base font-bold text-white">{title}</h4>
-              <ArrowUpRight size={15} className="text-[#FF91DF] opacity-60 group-hover:opacity-100"/>
+              <h4 className="text-base font-bold text-[var(--cc-text-primary)]">{title}</h4>
+              <ArrowUpRight size={15} className="text-[var(--cc-link)] opacity-60 group-hover:opacity-100"/>
             </div>
-            <p className="mt-2 text-sm leading-6 text-[#ABB9D5]">{description}</p>
+            <p className="mt-2 text-sm leading-6 text-[var(--cc-text-secondary)]">{description}</p>
           </button>
         )}
       </div>
@@ -113,7 +113,7 @@ export default function DashboardHome({profile,verification,approved,paid,onNavi
         <span className="ccx-icon-wrap shrink-0"><CheckCircle2 size={21}/></span>
         <div>
           <h4 className="font-semibold">Build your professional presence</h4>
-          <p className="mt-1 text-sm text-[#B4C1DA]">
+          <p className="mt-1 text-sm text-[var(--cc-text-secondary)]">
             {approved?'Your account is verified. Keep your consents, bookings and professional details current.':
               'Complete profile and independent age verification to unlock the protected marketplace.'}
           </p>

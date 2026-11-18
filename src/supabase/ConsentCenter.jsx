@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/api/supabaseClient';
 
 const panel='ccx-surface p-5';
-const button='rounded-lg ccx-action-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
+const button='rounded-lg ccx-action-primary px-4 py-2 text-sm font-semibold text-[var(--cc-text-primary)] disabled:opacity-50';
 
 export default function ConsentCenter({user,canGrant=false}){
   const [collabs,setCollabs]=useState([]);
@@ -65,28 +65,28 @@ export default function ConsentCenter({user,canGrant=false}){
 
   return <div className="max-w-4xl space-y-4">
     <h2 className="text-2xl font-semibold">Consent & rights controls</h2>
-    <p className="text-sm text-[#9AA6BC]">Participation, recording, publication and downloading require separate, informed choices. A contract signature is not a substitute for performer consent.</p>
-    <p className="text-sm text-[#9AA6BC]">You may withdraw your recorded consent even after cancelling a paid subscription. Withdrawal flags the collaboration for review; it does not automatically remove content hosted elsewhere or decide legal rights.</p>
-    {error&&<p className="rounded-lg bg-red-950 text-red-200 p-3 text-sm" role="alert">{error}</p>}
-    {notice&&<p className="rounded-lg bg-emerald-950 text-emerald-200 p-3 text-sm" role="status">{notice}</p>}
+    <p className="text-sm text-[var(--cc-text-secondary)]">Participation, recording, publication and downloading require separate, informed choices. A contract signature is not a substitute for performer consent.</p>
+    <p className="text-sm text-[var(--cc-text-secondary)]">You may withdraw your recorded consent even after cancelling a paid subscription. Withdrawal flags the collaboration for review; it does not automatically remove content hosted elsewhere or decide legal rights.</p>
+    {error&&<p className="rounded-lg bg-red-50 text-red-800 p-3 text-sm" role="alert">{error}</p>}
+    {notice&&<p className="rounded-lg bg-emerald-50 text-emerald-800 p-3 text-sm" role="status">{notice}</p>}
     <section className={panel}>
       <label className="text-sm block">Your collaboration
-        <select className="w-full mt-2 rounded-lg bg-[#0F1520] border border-[#34445D] p-3" value={selected} onChange={e=>setSelected(e.target.value)}>
+        <select className="w-full mt-2 rounded-lg bg-[var(--cc-surface-subtle)] border border-[var(--cc-border)] p-3" value={selected} onChange={e=>setSelected(e.target.value)}>
           <option value="">Choose a collaboration</option>
           {collabs.map(c=><option value={c.id} key={c.id}>{c.title} ({c.status})</option>)}
         </select>
       </label>
-      {!collabs.length&&<p className="text-sm text-[#9AA6BC] mt-2">You have no collaborations yet.</p>}
+      {!collabs.length&&<p className="text-sm text-[var(--cc-text-secondary)] mt-2">You have no collaborations yet.</p>}
     </section>
     {selected&&<section className={panel}>
       <h3 className="font-semibold mb-3">Recorded consent status</h3>
-      {records.map(r=><div className="border-b border-[#34445D] py-2 text-sm" key={r.user_id}>
+      {records.map(r=><div className="border-b border-[var(--cc-border)] py-2 text-sm" key={r.user_id}>
         <p>{r.user_id===user?.id?'You':r.user_id}</p>
-        <p className="text-[#9AA6BC]">{r.revoked_at?'Withdrawn':r.participation_consent&&r.recording_consent?'Participation and recording consent recorded':'Not fully recorded'} · Publication {r.distribution_consent?'authorized':'not authorized'} · Downloads {r.download_consent?'authorized':'not authorized'}</p>
+        <p className="text-[var(--cc-text-secondary)]">{r.revoked_at?'Withdrawn':r.participation_consent&&r.recording_consent?'Participation and recording consent recorded':'Not fully recorded'} · Publication {r.distribution_consent?'authorized':'not authorized'} · Downloads {r.download_consent?'authorized':'not authorized'}</p>
       </div>)}
-      {!records.length&&<p className="text-sm text-[#9AA6BC]">No performer consent has been recorded.</p>}
-      {own&&!own.revoked_at&&<button disabled={busy} className="rounded-lg bg-red-700 mt-4 px-4 py-2 text-sm font-semibold disabled:opacity-50" onClick={withdraw}>Withdraw my consent</button>}
-      {own?.revoked_at&&<p className="text-amber-300 mt-4 text-sm">You have withdrawn consent. A new reviewed agreement would be needed before proceeding.</p>}
+      {!records.length&&<p className="text-sm text-[var(--cc-text-secondary)]">No performer consent has been recorded.</p>}
+      {own&&!own.revoked_at&&<button disabled={busy} className="rounded-lg bg-red-700 mt-4 px-4 py-2 text-sm font-semibold disabled:opacity-50 text-white" onClick={withdraw}>Withdraw my consent</button>}
+      {own?.revoked_at&&<p className="text-amber-800 mt-4 text-sm">You have withdrawn consent. A new reviewed agreement would be needed before proceeding.</p>}
     </section>}
     {selected&&canGrant&&!own?.revoked_at&&!own&&<section className={panel}>
       <h3 className="font-semibold mb-3">Make your choices</h3>
@@ -97,7 +97,7 @@ export default function ConsentCenter({user,canGrant=false}){
         <label className="flex gap-3 items-start"><input className="mt-1" type="checkbox" checked={download} onChange={e=>setDownload(e.target.checked)}/>I additionally authorize downloads by audiences, subject to the agreed terms.</label>
       </div>
       <button className={button+' mt-4'} disabled={busy||!participation||!recording} onClick={submit}>Record my consent choices</button>
-      <p className="text-xs text-[#9AA6BC] mt-3">This preliminary platform record does not replace a complete, project-specific release or legal consent review.</p>
+      <p className="text-xs text-[var(--cc-text-secondary)] mt-3">This preliminary platform record does not replace a complete, project-specific release or legal consent review.</p>
     </section>}
   </div>;
 }

@@ -1,28 +1,29 @@
 # Content Connect X frontend system
 
-## Brand and visual direction
+## Brand and visual direction — November 18, 2026
 
-The application intentionally uses the color palette from the homepage hero:
+Both Content Connect X and Host Connect use the owner-selected **professional white interface**. This replaces the earlier neon/dark design, including public landing pages, account screens, dashboards, host tools, forms, modals, and mobile browser/PWA chrome. Do not restore a dark theme from a previous localStorage preference or OS setting.
 
-| Token | Color | Use |
+| Token | Value | Purpose |
 |---|---|---|
-| `--ccx-fuchsia` | `#E900C5` | Primary identity and hero highlights |
-| `--ccx-pink` | `#FF49B6` | Supporting accents, navigation and focus |
-| `--ccx-blue` | `#4F8CFF` | Interactive detail and gradient completion |
-| `--ccx-ink` | `#090C19` | Dark page substrate |
-| `--ccx-gradient` | Fuchsia → pink → blue | Primary actions and brand strokes |
+| `--cc-bg`, `--cc-surface` | `#FFFFFF` | White page and card surfaces |
+| `--cc-surface-subtle` | `#F6F7F9` | Quiet secondary regions |
+| `--cc-text-primary` | `#202938` | Headings and body text |
+| `--cc-text-secondary` | `#4F5D70` | Supporting text |
+| `--cc-text-muted` | `#5E6B7E` | Captions that remain readable |
+| `--cc-action` | `#243247` | Solid primary actions |
+| `--cc-on-action` | `#FFFFFF` | Text/icons on primary actions |
+| `--cc-border` | `#DDE2E8` | Subtle structural dividers |
+| `--cc-input-border` | `#8894A5` | Editable-control boundaries |
+| `--cc-focus` | `#245BA3` | Keyboard focus |
 
-**Use these shared styles instead of inventing a different button palette:**
+Use `ccx-primary` / `ccx-action-primary` / `oh-primary` for primary actions, `ccx-secondary` / `oh-secondary` for secondary actions, and `ccx-surface` / `oh-panel` for cards. Host gallery actions use the same solid-action treatment. Error, warning, and success states retain restrained semantic colors; image controls and media viewers may use dark scrims for legibility. Do not invert images or globally override all text to one color.
 
-- `ccx-app` — dark workspace shell and color tokens.
-- `ccx-brand-topline` and `ccx-shell-header` — branded sticky application header.
-- `ccx-primary` and `ccx-action-primary` — accessible branded call-to-action.
-- `ccx-secondary`, `ccx-nav-pill` and `is-active` — action and navigation surfaces.
-- `ccx-surface`, `ccx-module-card` and `ccx-stat-card` — dashboard and module cards.
-- `ccx-hero` and `ccx-login-art` — the existing image `public/Content_Connect_Hero_Banner.png`, cropped responsively under a dark gradient overlay.
-- `ccx-hosting-banner` — related fuchsia/pink/blue treatment without repeating a full photo.
+Tokens are in `src/globals.css`. Screen-specific layout remains in the brand/host/marketing stylesheets. `src/supabase/professional-theme.css` is loaded last by `bootstrap.jsx` and defines the consistent visual treatment. Source components now refer to semantic color variables instead of hard-coded dark/pastel utilities. Existing `control-layout.css` protections for checkboxes, touch targets, labels and action rows remain intact.
 
-All definitions live in `src/supabase/brand-theme.css`, imported in `src/supabase/bootstrap.jsx`. The dashboard home is `src/supabase/DashboardHome.jsx`, rendered by `src/supabase/SupabaseApp.jsx`.
+Public hero content is now accessible HTML in `ProfessionalLandingHero.jsx`, not neon artwork with text baked into the image. Existing artwork is retained in `public/` but no longer used for the main hero or login backdrop. The header uses a simple text/monogram brand treatment. No external fonts, image services or design-library runtime dependencies were added.
+
+For future work: keep buttons static with subtle hover/focus state changes, use small consistent corner radii and low-elevation shadows, and reserve color for meaningful state rather than decoration. Do not use gradients, glow, bouncing navigation, or floating call-to-action effects. Preserve all route handlers, permissions, payment checks and verification states.
 
 ## Frontend and backend route ownership
 
@@ -50,6 +51,8 @@ npm run typecheck
 npm run verify:frontend-contract
 npm run verify:release
 npm run test:hosting
+npm run test:ui-controls
+npm run test:ui-theme
 npm run build
 npm run smoke:supabase
 ```

@@ -25,11 +25,11 @@ export default function MfaChallenge({onVerified}){
       onVerified();
     }catch(e3){setError(e3.message);}finally{setBusy(false);}
   };
-  return <main className="min-h-screen bg-[#0B0F14] text-[#E8EEF9] grid place-items-center p-4"><div className="w-full max-w-md bg-[#151D2B] border border-[#263248] rounded-xl p-6 space-y-4">
+  return <main className="min-h-screen bg-[var(--cc-surface-subtle)] text-[var(--cc-text-primary)] grid place-items-center p-4"><div className="w-full max-w-md bg-[var(--cc-surface-subtle)] border border-[var(--cc-border)] rounded-xl p-6 space-y-4">
     <h1 className="text-xl font-bold">Verify your authenticator</h1>
-    <p className="text-sm text-[#9AA6BC]">Your account requires a second authentication factor before accessing Content Connect X.</p>
-    {error&&<p role="alert" className="bg-red-950 text-red-200 rounded-lg p-3 text-sm">{error}</p>}
-    <form onSubmit={verify} className="space-y-3"><label className="block text-sm">Six-digit code<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" minLength={6} maxLength={6} required className="w-full mt-1 bg-[#0F1520] border border-[#34445D] p-3 rounded-lg" value={code} onChange={e=>setCode(e.target.value)}/></label><button disabled={busy||!factor} className="ccx-action-primary text-white rounded-lg px-4 py-2 w-full font-semibold">Verify</button></form>
-    <button className="text-sm text-[#9AA6BC]" onClick={()=>supabase.auth.signOut()}>Sign out instead</button>
+    <p className="text-sm text-[var(--cc-text-secondary)]">Your account requires a second authentication factor before accessing Content Connect X.</p>
+    {error&&<p role="alert" className="bg-red-50 text-red-800 rounded-lg p-3 text-sm">{error}</p>}
+    <form onSubmit={verify} className="space-y-3"><label className="block text-sm">Six-digit code<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" minLength={6} maxLength={6} required className="w-full mt-1 bg-[var(--cc-surface-subtle)] border border-[var(--cc-border)] p-3 rounded-lg" value={code} onChange={e=>setCode(e.target.value)}/></label><button disabled={busy||!factor} className="ccx-action-primary text-[var(--cc-text-primary)] rounded-lg px-4 py-2 w-full font-semibold">Verify</button></form>
+    <button className="text-sm text-[var(--cc-text-secondary)]" onClick={()=>supabase.auth.signOut()}>Sign out instead</button>
   </div></main>;
 }

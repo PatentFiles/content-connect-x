@@ -19,7 +19,13 @@ const app=get(root+'/SupabaseApp.jsx'),member=get(root+'/MemberWorkspace.jsx'),b
 assert.match(app,/OriginalRoleDashboard/,'Original dashboards must be mounted');assert.match(app,/OriginalShell/,'Original sidebar/mobile shell must be mounted');
 const pricingView=get(root+'/PublicPricing.jsx'),originalShell=get(root+'/OriginalShell.jsx');
 assert.match(app,/if\(!user&&pricingPage\)/,'Public pricing must remain independent');assert.match(app,/href="\/pricing"/,'Public pricing link missing');assert.match(app,/PublicPricing signedIn/,'Member pricing missing');
-assert.match(app,/\/content_conect_hero\.png/,'Desktop hero must be preserved');assert.match(app,/ContentConnectX__Create,_Collaborate,_Grow\.png/,'Mobile hero must be preserved');
+// The professional refresh replaces text baked into neon artwork with live,
+// accessible HTML on both viewport sizes. Preserve the real navigation paths.
+const landingHero=get(root+'/ProfessionalLandingHero.jsx');
+assert.match(app,/<ProfessionalLandingHero/,'Accessible public hero must be mounted');
+assert.match(landingHero,/href="\/signup"/,'Public hero must retain account creation');
+assert.match(landingHero,/<h1/,'Public hero must expose a semantic heading');
+assert.match(get(root+'/OnlyHostApp.jsx'),/<ProfessionalLandingHero/,'Host landing must share the professional hero');
 assert.match(pricingView,/Free Membership/);assert.match(pricingView,/membership_plan_catalog/);assert.match(pricingView,/checkout opens after approved billing is connected/);
 assert.match(originalShell,/hidden w-64 flex-col border-r md:flex/,'Original fixed sidebar required');assert.match(originalShell,/aria-label="Open navigation menu"/);assert.match(originalShell,/aria-label="Mobile navigation"/);assert.match(originalShell,/aria-label="Sign out"/);assert.doesNotMatch(originalShell,/Sign Out<\/button>[\s\S]*<header/);
 // The user explicitly moved Host management to OnlyHost. Assert the six CCX

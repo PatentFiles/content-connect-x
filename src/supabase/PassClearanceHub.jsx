@@ -3,7 +3,7 @@ import React,{useEffect,useState,useMemo} from 'react';
 import {ShieldCheck,RefreshCw,FileLock2,UsersRound,UploadCloud,AlertCircle,History,Search,Calendar} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
 import {integrationAction} from './integrationApi';
-const input='w-full rounded-xl border border-[#34465C] bg-[#0B1423] px-3 py-2.5 text-sm';
+const input='w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-2.5 text-sm';
 const button='ccx-primary rounded-xl px-4 py-2.5 text-sm disabled:opacity-50';
 const ghostBtn='rounded-lg border px-3 py-2 text-sm font-medium disabled:opacity-50';
 
@@ -96,14 +96,14 @@ export default function PassClearanceHub({isAdmin=false}){
  ];
  return <div className="space-y-4">
   <section className="ccx-surface space-y-3 p-5">
-   <h3 className="flex items-center gap-2 font-semibold"><ShieldCheck size={18} className="text-[#FF8ADE]"/>PASS work-clearance connection</h3>
-   <p className="text-sm text-[#B4C4D9]">PASS is the adult-industry work-clearance standard. It tracks a 14-day yes/no status—not private lab panel results. Partner API access needs written approval and technical onboarding.</p>
-   <p className="text-xs text-[#B4C4D9]">Check your current clearance directly in the <a className="underline text-[#FF8ADE]" href="https://app.passcertified.org/" target="_blank" rel="noopener noreferrer">official PASS database</a>. Content Connect X cannot automatically check PASS clearance until PASS grants access to its documented partner interface.</p>
+   <h3 className="flex items-center gap-2 font-semibold"><ShieldCheck size={18} className="text-[var(--cc-link)]"/>PASS work-clearance connection</h3>
+   <p className="text-sm text-[var(--cc-text-secondary)]">PASS is the adult-industry work-clearance standard. It tracks a 14-day yes/no status—not private lab panel results. Partner API access needs written approval and technical onboarding.</p>
+   <p className="text-xs text-[var(--cc-text-secondary)]">Check your current clearance directly in the <a className="underline text-[var(--cc-link)]" href="https://app.passcertified.org/" target="_blank" rel="noopener noreferrer">official PASS database</a>. Content Connect X cannot automatically check PASS clearance until PASS grants access to its documented partner interface.</p>
    <p className="text-sm">Connection: <strong className="capitalize">{(connection?.status||'not linked').replaceAll('_',' ')}</strong></p>
-   <div role="status" className="rounded-xl border border-[#334058] bg-[#101B2D] p-3 space-y-1">
-    <p className="text-sm">Your work-clearance status: <strong className={clearance?.status==='current'?'text-emerald-300':'text-amber-200'}>{clearance?.status==='current'?'Current':'Not currently confirmed'}</strong></p>
-    {clearance?.status==='current'&&<p className="text-xs text-[#B4C4D9]">Valid until {new Date(clearance.expires_at).toLocaleDateString()} · {clearance.source==='pass'?'PASS':'Independently reviewed provider'}</p>}
-    <p className="text-xs text-[#9FAFC9]">This is work availability only, not a clinical test result or a medical diagnosis.</p>
+   <div role="status" className="rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 space-y-1">
+    <p className="text-sm">Your work-clearance status: <strong className={clearance?.status==='current'?'text-emerald-800':'text-amber-800'}>{clearance?.status==='current'?'Current':'Not currently confirmed'}</strong></p>
+    {clearance?.status==='current'&&<p className="text-xs text-[var(--cc-text-secondary)]">Valid until {new Date(clearance.expires_at).toLocaleDateString()} · {clearance.source==='pass'?'PASS':'Independently reviewed provider'}</p>}
+    <p className="text-xs text-[var(--cc-text-secondary)]">This is work availability only, not a clinical test result or a medical diagnosis.</p>
    </div>
    <div className="flex flex-wrap gap-2">
     <button className={button} disabled={busy} onClick={()=>execute('pass_link',{allow_status_sync:true})}>Consent to future PASS linking</button>
@@ -111,23 +111,23 @@ export default function PassClearanceHub({isAdmin=false}){
    </div>
   </section>
   <section className="ccx-surface space-y-3 p-5">
-   <h3 className="flex items-center gap-2 font-semibold"><FileLock2 size={18} className="text-[#FF8ADE]"/>Private testing-document upload</h3>
-   <p className="text-xs text-[#AABAD2]">Optional fallback while PASS linking is unavailable. Your medical document is private and can be viewed only by authorized reviewers; it is never shared with collaborators.</p>
+   <h3 className="flex items-center gap-2 font-semibold"><FileLock2 size={18} className="text-[var(--cc-link)]"/>Private testing-document upload</h3>
+   <p className="text-xs text-[var(--cc-text-secondary)]">Optional fallback while PASS linking is unavailable. Your medical document is private and can be viewed only by authorized reviewers; it is never shared with collaborators.</p>
    <form onSubmit={upload} className="flex flex-wrap items-center gap-3">
     <input className="max-w-xs text-xs" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" onChange={e=>setFile(e.target.files?.[0]||null)}/>
     <button className={button+' inline-flex gap-2 items-center'} disabled={busy||!file}><UploadCloud size={16}/>Submit for review</button>
    </form>
-   {files.map(v=><p className="text-xs text-[#C0CEE4]" key={v.id}>Submission {new Date(v.created_at).toLocaleDateString()} · <strong>{v.status.replaceAll('_',' ')}</strong></p>)}
+   {files.map(v=><p className="text-xs text-[var(--cc-text-secondary)]" key={v.id}>Submission {new Date(v.created_at).toLocaleDateString()} · <strong>{v.status.replaceAll('_',' ')}</strong></p>)}
   </section>
 
   <section className="ccx-surface space-y-3 p-5">
    <button type="button" className="flex w-full items-center justify-between" onClick={()=>setShowHistory(v=>!v)}>
-    <h3 className="flex items-center gap-2 font-semibold"><History size={18} className="text-[#FF8ADE]"/>Testing history log</h3>
-    <span className="text-xs text-[#7A8BA5]">{showHistory?'Hide':'Show'}</span>
+    <h3 className="flex items-center gap-2 font-semibold"><History size={18} className="text-[var(--cc-link)]"/>Testing history log</h3>
+    <span className="text-xs text-[var(--cc-text-secondary)]">{showHistory?'Hide':'Show'}</span>
    </button>
-   {!showHistory&&<p className="text-xs text-[#AABAD2]">A complete, persistent record of every testing document submission and clearance status change. Searchable by date range and weekday.</p>}
+   {!showHistory&&<p className="text-xs text-[var(--cc-text-secondary)]">A complete, persistent record of every testing document submission and clearance status change. Searchable by date range and weekday.</p>}
    {showHistory&&<div className="space-y-4">
-    <p className="text-xs text-[#AABAD2]">Every testing document submission and clearance status change is saved permanently in the backend. Use the filters below to find specific records.</p>
+    <p className="text-xs text-[var(--cc-text-secondary)]">Every testing document submission and clearance status change is saved permanently in the backend. Use the filters below to find specific records.</p>
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
      <label className="text-sm block">From date<input type="date" className={input+' mt-1'} value={dateFilter.from} onChange={e=>setDateFilter(p=>({...p,from:e.target.value}))}/></label>
      <label className="text-sm block">To date<input type="date" className={input+' mt-1'} value={dateFilter.to} onChange={e=>setDateFilter(p=>({...p,to:e.target.value}))}/></label>
@@ -140,22 +140,22 @@ export default function PassClearanceHub({isAdmin=false}){
     <div className="flex flex-wrap gap-2">
      {quickFilters.map(f=><button key={f.label} className={ghostBtn} style={{borderColor:(dateFilter.from===f.from&&dateFilter.to===f.to)?'var(--cc-blue)':'var(--cc-border)'}} onClick={()=>setDateFilter({from:f.from,to:f.to})}><Calendar size={12} className="inline mr-1"/>{f.label}</button>)}
     </div>
-    {filteredHistory.length===0&&<div className="rounded-xl border border-[#334058] bg-[#101B2D] p-4 text-center"><p className="text-sm text-[#9AA6BC]">{history.length===0?'No testing history records found.':'No records match your weekday search.'}</p></div>}
+    {filteredHistory.length===0&&<div className="rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-4 text-center"><p className="text-sm text-[var(--cc-text-secondary)]">{history.length===0?'No testing history records found.':'No records match your weekday search.'}</p></div>}
     {filteredHistory.length>0&&<div className="space-y-2 max-h-[500px] overflow-y-auto">
       {filteredHistory.map(item=>{
         const {full,time}=formatDateLabel(item.created_at);
         const isDoc=item.kind==='document';
-        const statusColor=item.status==='verified_offsite'||item.clearance_confirmed===true?'text-emerald-300':
-          item.status==='rejected'?'text-red-300':'text-amber-200';
+        const statusColor=item.status==='verified_offsite'||item.clearance_confirmed===true?'text-emerald-800':
+          item.status==='rejected'?'text-red-800':'text-amber-800';
         const statusText=isDoc?(item.status||'').replaceAll('_',' '):(item.clearance_confirmed?'Cleared':'Not cleared');
-        return <div key={item.id} className="rounded-lg border border-[#334058] bg-[#0B1423] p-3">
+        return <div key={item.id} className="rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3">
           <div className="flex items-start justify-between gap-2 flex-wrap">
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium">{isDoc?'Document submission':'Clearance event'}</p>
-              <p className="text-xs text-[#7A8BA5] mt-0.5">{full} at {time}</p>
-              {isDoc&&item.review_note&&<p className="text-xs text-[#9AA6BC] mt-1 break-words">Note: {item.review_note}</p>}
-              {!isDoc&&item.provider_reference&&<p className="text-xs text-[#9AA6BC] mt-1">Provider: {item.provider_reference}</p>}
-              {!isDoc&&item.expires_at&&<p className="text-xs text-[#9AA6BC]">Valid until: {new Date(item.expires_at).toLocaleDateString()}</p>}
+              <p className="text-xs text-[var(--cc-text-secondary)] mt-0.5">{full} at {time}</p>
+              {isDoc&&item.review_note&&<p className="text-xs text-[var(--cc-text-secondary)] mt-1 break-words">Note: {item.review_note}</p>}
+              {!isDoc&&item.provider_reference&&<p className="text-xs text-[var(--cc-text-secondary)] mt-1">Provider: {item.provider_reference}</p>}
+              {!isDoc&&item.expires_at&&<p className="text-xs text-[var(--cc-text-secondary)]">Valid until: {new Date(item.expires_at).toLocaleDateString()}</p>}
             </div>
             <span className={'text-xs font-semibold shrink-0 '+statusColor}>{statusText}</span>
           </div>
@@ -166,8 +166,8 @@ export default function PassClearanceHub({isAdmin=false}){
   </section>
 
   <section className="ccx-surface space-y-3 p-5">
-   <h3 className="flex items-center gap-2 font-semibold"><UsersRound size={18} className="text-[#FF8ADE]"/>Collaboration work-clearance sharing</h3>
-   <p className="text-xs text-[#AABAD2]">Each performer must opt in for their clearance status to appear to collaboration partners. New confirmations can be reflected for both partners when they refresh; private results and diagnoses are never shown.</p>
+   <h3 className="flex items-center gap-2 font-semibold"><UsersRound size={18} className="text-[var(--cc-link)]"/>Collaboration work-clearance sharing</h3>
+   <p className="text-xs text-[var(--cc-text-secondary)]">Each performer must opt in for their clearance status to appear to collaboration partners. New confirmations can be reflected for both partners when they refresh; private results and diagnoses are never shown.</p>
    <label className="text-sm block" htmlFor="ccx-testing-collaboration">Your collaboration
     <select id="ccx-testing-collaboration" className={input+' mt-1'} value={collab}
       onChange={e=>{setCollab(e.target.value);setShared(null);}}>
@@ -175,25 +175,25 @@ export default function PassClearanceHub({isAdmin=false}){
      {collaborations.map(project=><option key={project.id} value={project.id}>{project.title||'Untitled collaboration'} · {project.status}</option>)}
     </select>
    </label>
-   {!collaborations.length&&<p className="text-xs text-[#AABAD2]">Your collaborations will appear here once you join or create a production team.</p>}
+   {!collaborations.length&&<p className="text-xs text-[var(--cc-text-secondary)]">Your collaborations will appear here once you join or create a production team.</p>}
    <div className="flex flex-wrap gap-2">
     <button className={button} disabled={busy||!collab} onClick={async()=>{const r=await execute('pass_share',{collaboration_id:collab,allow_binary_clearance_share:true},'You opted in to sharing work-clearance status.');if(r)await collaborationStatus();}}>Share my status</button>
     <button className="ccx-secondary rounded-xl px-4 py-2.5 text-sm" disabled={busy||!collab} onClick={async()=>{const r=await execute('pass_revoke',{collaboration_id:collab},'Work-clearance sharing withdrawn.');if(r)await collaborationStatus();}}>Withdraw sharing</button>
     <button className="ccx-secondary inline-flex gap-2 items-center rounded-xl px-4 py-2.5 text-sm" disabled={busy||!collab} onClick={collaborationStatus}><RefreshCw size={16}/>Refresh all status</button>
    </div>
-   {shared&&<div className="space-y-2 rounded-xl bg-[#101B2F] p-3">
-    <p className="text-xs text-[#B5C5DC]">{shared.participants_ready?'All opted-in participants have current recorded clearance, but live PASS production-hold status still requires independent verification.':'Some participant clearance is missing, expired or not shared.'}</p>
-    {(shared.members||[]).map(m=><div key={m.user_id} className="flex justify-between gap-2 border-b border-[#35435F] py-1 text-xs">
+   {shared&&<div className="space-y-2 rounded-xl bg-[var(--cc-surface-subtle)] p-3">
+    <p className="text-xs text-[var(--cc-text-secondary)]">{shared.participants_ready?'All opted-in participants have current recorded clearance, but live PASS production-hold status still requires independent verification.':'Some participant clearance is missing, expired or not shared.'}</p>
+    {(shared.members||[]).map(m=><div key={m.user_id} className="flex justify-between gap-2 border-b border-[var(--cc-border)] py-1 text-xs">
       <span className="truncate">{m.user_id.slice(0,8)}…</span>
-      <strong className={m.clearance==='current'?'text-emerald-300':'text-amber-200'}>{m.clearance.replaceAll('_',' ')}</strong>
+      <strong className={m.clearance==='current'?'text-emerald-800':'text-amber-800'}>{m.clearance.replaceAll('_',' ')}</strong>
     </div>)}
-    {shared.production_hold_unknown&&<p className="flex gap-2 items-center text-xs text-amber-200"><AlertCircle size={16}/>PASS production holds are not monitored here. Check the official PASS system directly before arranging a shoot.</p>}
+    {shared.production_hold_unknown&&<p className="flex gap-2 items-center text-xs text-amber-800"><AlertCircle size={16}/>PASS production holds are not monitored here. Check the official PASS system directly before arranging a shoot.</p>}
    </div>}
   </section>
   {isAdmin&&<section className="ccx-surface space-y-3 p-5">
    <h3 className="font-semibold">Private provider-document review (administrator only)</h3>
-   <p className="text-xs text-amber-200">A PDF does not prove that a performer is cleared. Independently contact/verify the approved lab or PASS partner before recording any manual clearance.</p>
-   {reviewItems.map(v=><article key={v.id} className="rounded-xl border border-[#32445E] p-3 text-xs space-y-2">
+   <p className="text-xs text-amber-800">A PDF does not prove that a performer is cleared. Independently contact/verify the approved lab or PASS partner before recording any manual clearance.</p>
+   {reviewItems.map(v=><article key={v.id} className="rounded-xl border border-[var(--cc-border)] p-3 text-xs space-y-2">
     <p>Performer {v.user_id} · {v.status}</p>
     <button className="ccx-secondary rounded-lg px-3 py-2" onClick={async()=>{try{const d=await integrationAction('admin_clearance_document',{id:v.id});const u=new URL(d.url);if(u.protocol==='https:')window.open(u.toString(),'_blank','noopener,noreferrer');}catch(e){setError(e.message);}}}>Open private evidence (90 sec)</button>
     <label className="block">First sample collection date<input className={input+' mt-1'} type="date" value={dates[v.id]||''} onChange={e=>setDates(p=>({...p,[v.id]:e.target.value}))}/></label>
@@ -204,7 +204,7 @@ export default function PassClearanceHub({isAdmin=false}){
     </div>
    </article>)}
   </section>}
-  {error&&<p role="alert" className="rounded-lg bg-red-950 p-3 text-sm text-red-200">{error}</p>}
-  {notice&&<p role="status" className="rounded-lg bg-emerald-950 p-3 text-sm text-emerald-200">{notice}</p>}
+  {error&&<p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+  {notice&&<p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
  </div>;
 }

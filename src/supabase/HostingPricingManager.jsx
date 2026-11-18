@@ -3,9 +3,9 @@ import React,{useEffect,useState} from 'react';
 import {Tags,CalendarDays,MapPin,Trash2} from 'lucide-react';
 import {hostingAdvanced} from './hostingBusinessApi';
 const panel='ccx-surface p-4';
-const input='w-full rounded-lg border border-[#415672] bg-[#0A1626] px-3 py-2 text-sm text-white';
-const button='rounded-lg ccx-action-primary px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50';
-const subtle='rounded-lg border border-[#3A4F67] bg-[#21354C] px-3 py-2 text-xs text-white disabled:opacity-50';
+const input='w-full rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-2 text-sm text-[var(--cc-text-primary)]';
+const button='rounded-lg ccx-action-primary px-4 py-2.5 text-sm font-semibold text-[var(--cc-text-primary)] disabled:opacity-50';
+const subtle='rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface)] px-3 py-2 text-xs text-[var(--cc-text-primary)] disabled:opacity-50';
 
 export default function HostingPricingManager({property}){
  const [rules,setRules]=useState([]);
@@ -64,10 +64,10 @@ export default function HostingPricingManager({property}){
   await call('host_set_area',{property_id:property.id,area_id:selectedArea},
    'Approximate public map area updated. No exact address was exposed.');
  };
- return <section className="space-y-4 text-white">
-  <div><h3 className="text-lg font-semibold">Advanced hosting prices</h3><p className="mt-1 text-xs text-[#9CB3CF]">Prices use venue-local dates and 15-minute booking increments. Final quotes are always calculated by Supabase.</p></div>
-  {error&&<p role="alert" className="rounded-lg bg-red-950 p-3 text-sm text-red-200">{error}</p>}
-  {notice&&<p role="status" className="rounded-lg bg-emerald-950 p-3 text-sm text-emerald-200">{notice}</p>}
+ return <section className="space-y-4 text-[var(--cc-text-primary)]">
+  <div><h3 className="text-lg font-semibold">Advanced hosting prices</h3><p className="mt-1 text-xs text-[var(--cc-text-secondary)]">Prices use venue-local dates and 15-minute booking increments. Final quotes are always calculated by Supabase.</p></div>
+  {error&&<p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+  {notice&&<p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
   <form onSubmit={save} className={panel+' space-y-3'}>
    <h4 className="font-semibold flex items-center gap-2"><Tags size={17}/>Date and overtime rules</h4>
    <div className="grid grid-cols-2 gap-3">
@@ -106,9 +106,9 @@ export default function HostingPricingManager({property}){
       onChange={e=>setRule(v=>({...v,ends_on:e.target.value}))}/></label>
    </div>
    <button className={button} disabled={busy}>Add date-based rate</button>
-   {rules.map(r=><div key={r.id} className="flex gap-3 items-center justify-between border-t border-[#30435D] pt-2 text-xs">
+   {rules.map(r=><div key={r.id} className="flex gap-3 items-center justify-between border-t border-[var(--cc-border)] pt-2 text-xs">
       <span><strong>{r.label}</strong> · {r.kind} · {r.starts_on}–{r.ends_on} · {r.multiplier_bps/100}%</span>
-      <button className="text-red-300" type="button" disabled={busy} aria-label="Remove pricing rule"
+      <button className="text-red-800" type="button" disabled={busy} aria-label="Remove pricing rule"
        onClick={()=>call('rate_rule_delete',{id:r.id},'Rate rule removed.')}><Trash2 size={16}/></button>
    </div>)}
   </form>
@@ -125,14 +125,14 @@ export default function HostingPricingManager({property}){
       onChange={e=>setPromo(v=>({...v,expires_at:e.target.value}))}/></label>
    </div>
    <button className={button} disabled={busy}>Create discount</button>
-   {discounts.map(d=><div className="flex items-center justify-between gap-2 border-t border-[#30435D] pt-2 text-xs" key={d.id}>
+   {discounts.map(d=><div className="flex items-center justify-between gap-2 border-t border-[var(--cc-border)] pt-2 text-xs" key={d.id}>
       <span>{d.discount_bps/100}% · {d.redemptions}/{d.max_redemptions} used · {d.active?'Active':'Disabled'}</span>
-      {d.active&&<button type="button" className="text-red-300" onClick={()=>call('discount_disable',{id:d.id},'Discount disabled.')}>Disable</button>}
+      {d.active&&<button type="button" className="text-red-800" onClick={()=>call('discount_disable',{id:d.id},'Discount disabled.')}>Disable</button>}
    </div>)}
   </form>
   <form onSubmit={pickArea} className={panel+' space-y-3'}>
    <h4 className="flex items-center gap-2 font-semibold"><MapPin size={17}/>Approximate map location</h4>
-   <p className="text-xs text-[#9CB3CF]">Choose an approved public area center—not your home's exact coordinates. Search pins will show only this broad area.</p>
+   <p className="text-xs text-[var(--cc-text-secondary)]">Choose an approved public area center—not your home's exact coordinates. Search pins will show only this broad area.</p>
    <select className={input} value={selectedArea} onChange={e=>setSelectedArea(e.target.value)} required>
     <option value="">Not mapped yet</option>{areas.map(a=><option key={a.id} value={a.id}>{a.city}, {a.region}, {a.country}</option>)}
    </select>

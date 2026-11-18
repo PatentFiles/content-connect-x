@@ -2,9 +2,9 @@
 import React,{useEffect,useState} from 'react';
 import {ShieldCheck,Camera} from 'lucide-react';
 import {hostingProduction} from './hostingBusinessApi';
-const card='rounded-xl border border-[#344862] bg-[#111D2E] p-4';
-const input='w-full rounded-lg border border-[#415573] bg-[#071526] px-3 py-2 text-sm text-white';
-const button='rounded-lg bg-[#547CF4] px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
+const card='rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-4';
+const input='w-full rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-2 text-sm text-[var(--cc-text-primary)]';
+const button='rounded-lg ccx-solid-action px-4 py-2 text-sm font-semibold text-[var(--cc-text-primary)] disabled:opacity-50';
 export default function HostingSuitabilityManager({propertyId}){
  const [form,setForm]=useState({adult_production_permitted:false,privacy_level:'standard',soundproof_confirmed:false,parking_spaces:0,separate_dressing_rooms:0,noise_restrictions:''});
  const [verified,setVerified]=useState(false);
@@ -21,12 +21,12 @@ export default function HostingSuitabilityManager({propertyId}){
    setVerified(false);setNotice(r.note||'Suitability declarations updated.');}
   catch(e){setError(e.message);}finally{setBusy(false);}
  };
- return <form className={card+' space-y-3 text-white'} onSubmit={save}>
+ return <form className={card+' space-y-3 text-[var(--cc-text-primary)]'} onSubmit={save}>
   <h3 className="flex gap-2 items-center font-semibold"><Camera size={18}/>Production suitability and privacy</h3>
-  <p className="text-xs text-[#9CB3CF]">Choose honest venue capabilities. Host-declared claims are not independently verified until reviewed by an authorized administrator.</p>
-  {verified&&<p className="flex gap-2 text-xs text-emerald-300"><ShieldCheck size={15}/>Venue suitability independently reviewed</p>}
-  {error&&<p role="alert" className="rounded-lg bg-red-950 p-2 text-sm text-red-300">{error}</p>}
-  {notice&&<p className="text-sm text-emerald-300">{notice}</p>}
+  <p className="text-xs text-[var(--cc-text-secondary)]">Choose honest venue capabilities. Host-declared claims are not independently verified until reviewed by an authorized administrator.</p>
+  {verified&&<p className="flex gap-2 text-xs text-emerald-800"><ShieldCheck size={15}/>Venue suitability independently reviewed</p>}
+  {error&&<p role="alert" className="rounded-lg bg-red-50 p-2 text-sm text-red-800">{error}</p>}
+  {notice&&<p className="text-sm text-emerald-800">{notice}</p>}
   <label className="flex gap-2 text-xs items-center"><input type="checkbox" checked={form.adult_production_permitted}
     onChange={e=>setForm(v=>({...v,adult_production_permitted:e.target.checked}))}/>Adult-content production expressly permitted by property owner</label>
   <label className="flex gap-2 text-xs items-center"><input type="checkbox" checked={form.soundproof_confirmed}

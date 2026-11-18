@@ -11,6 +11,7 @@ import './brand-theme.css';
 import './onlyhost-theme.css';
 import './host-workspace.css';
 import './public-landing.css';
+import './professional-theme.css';
 import {initializeOptionalIntegrations} from './integrations';
 import {initializeFormKeyboardHints} from './formKeyboard.mjs';
 
@@ -20,21 +21,21 @@ class StartupErrorBoundary extends React.Component{
  componentDidCatch(error){console.error('Content Connect X startup failed',error);}
  render(){
   if(!this.state.failed)return this.props.children;
-  return <main className="min-h-screen bg-[#090F1A] px-5 py-24 text-white">
-   <section role="alert" className="mx-auto max-w-lg rounded-xl border border-rose-500/40 bg-[#152033] p-7">
+  return <main className="min-h-screen bg-[var(--cc-surface-subtle)] px-5 py-24 text-[var(--cc-text-primary)]">
+   <section role="alert" className="mx-auto max-w-lg rounded-xl border border-rose-300 bg-[var(--cc-surface)] p-7">
     <h1 className="text-xl font-semibold">The preview could not finish loading</h1>
-    <p className="mt-3 text-sm text-[#B3C6DF]">
+    <p className="mt-3 text-sm text-[var(--cc-text-secondary)]">
      A frontend module failed while starting. Refresh once, and check the first error
      in Bolt's browser console if it continues. The Supabase project was not changed.
     </p>
-    <button className="mt-5 rounded-lg bg-[#BB347D] px-4 py-2 text-sm font-semibold text-white"
+    <button className="mt-5 rounded-lg ccx-solid-action px-4 py-2 text-sm font-semibold text-[var(--cc-text-primary)]"
       onClick={()=>window.location.reload()}>Reload website</button>
    </section>
   </main>;
  }
 }
 
-document.documentElement.classList.add('dark');
+document.documentElement.classList.remove('dark');
 void initializeOptionalIntegrations().catch(error=>{
  // Optional monitoring/feature-flag services must not stop the main website.
  console.warn('Optional frontend integration unavailable',error);
@@ -53,12 +54,12 @@ const showHostConnect=window.location.pathname==='/hostconnect'||
 createRoot(mount).render(
  <StartupErrorBoundary>
   {supabase?(showHostConnect?<OnlyHostApp/>:<SupabaseApp/>):
-   <main className="min-h-screen bg-[#090F1A] px-6 py-24 text-white">
-    <div role="alert" className="mx-auto max-w-xl rounded-2xl border border-[#34455B] bg-[#152033] p-8">
+   <main className="min-h-screen bg-[var(--cc-surface-subtle)] px-6 py-24 text-[var(--cc-text-primary)]">
+    <div role="alert" className="mx-auto max-w-xl rounded-2xl border border-[var(--cc-border)] bg-[var(--cc-surface)] p-8">
      <h1 className="text-2xl font-semibold">Supabase browser configuration requires attention</h1>
-     <p className="mt-4 text-sm text-[#B3C6DF]">{supabaseConfiguration.error||
+     <p className="mt-4 text-sm text-[var(--cc-text-secondary)]">{supabaseConfiguration.error||
       'A matching Supabase public project URL and publishable key are required.'}</p>
-     <p className="mt-4 font-mono text-xs text-[#92A7C1]">VITE_SUPABASE_URL · VITE_SUPABASE_PUBLISHABLE_KEY or VITE_SUPABASE_ANON_KEY</p>
+     <p className="mt-4 font-mono text-xs text-[var(--cc-text-secondary)]">VITE_SUPABASE_URL · VITE_SUPABASE_PUBLISHABLE_KEY or VITE_SUPABASE_ANON_KEY</p>
     </div>
    </main>}
  </StartupErrorBoundary>

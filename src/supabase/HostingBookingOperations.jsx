@@ -8,9 +8,9 @@ import {hostingBusiness,hostingAgreement,hostingCheckout,formatUSD,formatDate,up
 import HostingProductionPacket from './HostingProductionPacket';
 
 const panel='ccx-surface p-4';
-const input='w-full rounded-lg border border-[#3C4E67] bg-[#0B1422] p-2.5 text-sm text-white';
-const button='rounded-lg bg-[#547EF8] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50';
-const secondary='rounded-lg bg-[#2D405A] px-4 py-2.5 text-sm text-white disabled:opacity-50';
+const input='w-full rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-2.5 text-sm text-[var(--cc-text-primary)]';
+const button='rounded-lg ccx-solid-action px-4 py-2.5 text-sm font-semibold text-[var(--cc-text-primary)] disabled:opacity-50';
+const secondary='rounded-lg bg-[var(--cc-surface)] px-4 py-2.5 text-sm text-[var(--cc-text-primary)] disabled:opacity-50';
 const statuses={signed:'Signed',pending_signature:'Awaiting signatures',captured:'Captured by processor',not_started:'Not paid',
   pending:'Pending',accepted:'Accepted',requested:'Requested',voided:'Voided',completed:'Completed'};
 
@@ -103,47 +103,47 @@ export default function HostingBookingOperations({bookingId,userId,onChanged=()=
   e.preventDefault();await perform(hostingBusiness,'refund_request',{booking_id:bookingId,reason:refundReason},
    'Refund requested. The payment provider must confirm any actual refund.');
  };
- if(!booking)return <div className={panel}>{busy?'Loading booking…':<p className="text-sm text-red-300">{error||'Booking not available'}</p>}</div>;
+ if(!booking)return <div className={panel}>{busy?'Loading booking…':<p className="text-sm text-red-800">{error||'Booking not available'}</p>}</div>;
  const terms=view.terms||{};
- return <section className="space-y-4 text-white">
+ return <section className="space-y-4 text-[var(--cc-text-primary)]">
   <div className="flex justify-between gap-2"><div><h3 className="text-lg font-semibold">Booking operations</h3>
-    <p className="text-xs text-[#9DB4D0]">{formatDate(booking.starts_at)} — {formatDate(booking.ends_at)}</p></div>
+    <p className="text-xs text-[var(--cc-text-secondary)]">{formatDate(booking.starts_at)} — {formatDate(booking.ends_at)}</p></div>
     <button className={secondary} onClick={refresh} disabled={busy}><RefreshCw size={15}/></button></div>
-  {error&&<p role="alert" className="rounded-lg bg-red-950 p-3 text-sm text-red-200">{error}</p>}
-  {success&&<p role="status" className="rounded-lg bg-emerald-950 p-3 text-sm text-emerald-200">{success}</p>}
+  {error&&<p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+  {success&&<p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{success}</p>}
   <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-    <div className={panel}><p className="text-xs text-[#9CB1C9]">Reservation</p><strong className="text-sm capitalize">{statuses[booking.status]||booking.status}</strong></div>
-    <div className={panel}><p className="text-xs text-[#9CB1C9]">DocuSign</p><strong className="text-sm capitalize">{statuses[booking.legal_status]||booking.legal_status}</strong></div>
-    <div className={panel}><p className="text-xs text-[#9CB1C9]">Payment</p><strong className="text-sm capitalize">{statuses[booking.payment_status]||booking.payment_status}</strong></div>
-    <div className={panel}><p className="text-xs text-[#9CB1C9]">Operations</p><strong className="text-sm capitalize">{booking.operational_status}</strong></div>
+    <div className={panel}><p className="text-xs text-[var(--cc-text-secondary)]">Reservation</p><strong className="text-sm capitalize">{statuses[booking.status]||booking.status}</strong></div>
+    <div className={panel}><p className="text-xs text-[var(--cc-text-secondary)]">DocuSign</p><strong className="text-sm capitalize">{statuses[booking.legal_status]||booking.legal_status}</strong></div>
+    <div className={panel}><p className="text-xs text-[var(--cc-text-secondary)]">Payment</p><strong className="text-sm capitalize">{statuses[booking.payment_status]||booking.payment_status}</strong></div>
+    <div className={panel}><p className="text-xs text-[var(--cc-text-secondary)]">Operations</p><strong className="text-sm capitalize">{booking.operational_status}</strong></div>
   </div>
   <div className={panel}>
     <h4 className="font-semibold">Financial and cancellation terms</h4>
     <div className="mt-3 grid grid-cols-2 gap-3 text-sm">
-      <p className="text-[#9CB1C9]">Rental estimate <strong className="block text-white">{formatUSD(terms.rental_cents)}</strong></p>
-      <p className="text-[#9CB1C9]">Agreed deposit ceiling <strong className="block text-white">{formatUSD(terms.deposit_cents)}</strong></p>
-      <p className="text-[#9CB1C9]">Cancellation schedule <strong className="block text-white capitalize">{terms.cancellation_policy||'—'}</strong></p>
-      <p className="text-[#9CB1C9]">Deposits held <strong className="block text-white">{view.deposit?.status==='authorized'?'Processor-authorized':'Not authorized'}</strong></p>
+      <p className="text-[var(--cc-text-secondary)]">Rental estimate <strong className="block text-[var(--cc-text-primary)]">{formatUSD(terms.rental_cents)}</strong></p>
+      <p className="text-[var(--cc-text-secondary)]">Agreed deposit ceiling <strong className="block text-[var(--cc-text-primary)]">{formatUSD(terms.deposit_cents)}</strong></p>
+      <p className="text-[var(--cc-text-secondary)]">Cancellation schedule <strong className="block text-[var(--cc-text-primary)] capitalize">{terms.cancellation_policy||'—'}</strong></p>
+      <p className="text-[var(--cc-text-secondary)]">Deposits held <strong className="block text-[var(--cc-text-primary)]">{view.deposit?.status==='authorized'?'Processor-authorized':'Not authorized'}</strong></p>
     </div>
-    <p className="mt-3 text-xs text-amber-200">A quoted deposit is not a charge or hold. Platform fees and refunds require an approved processor and clear booking terms.</p>
+    <p className="mt-3 text-xs text-amber-800">A quoted deposit is not a charge or hold. Platform fees and refunds require an approved processor and clear booking terms.</p>
   </div>
   <div className={panel+' space-y-3'}>
     <h4 className="flex items-center gap-2 font-semibold"><FileSignature size={17}/> DocuSign rental agreement</h4>
-    <p className="text-sm text-[#9CB1C9]">{agreement?.item?.status||'Not prepared'} · Completed legal signatures are confirmed by the provider, not by a browser checkbox.</p>
+    <p className="text-sm text-[var(--cc-text-secondary)]">{agreement?.item?.status||'Not prepared'} · Completed legal signatures are confirmed by the provider, not by a browser checkbox.</p>
     <div className="flex flex-wrap gap-2">
       {isHost&&booking.status==='accepted'&&!['signed','voided'].includes(booking.legal_status)&&
         <button disabled={busy||!setup?.docusign?.configured} className={button} onClick={send}>Send approved rental agreement</button>}
       {agreement?.item?.status==='completed'&&<button disabled={busy} className={secondary} onClick={evidence}><Download size={16} className="inline mr-2"/>Signed PDF and certificate</button>}
     </div>
-    {!setup?.docusign?.configured&&<p className="text-xs text-amber-200">DocuSign authorization, approved templates and verified legal signer names must be configured first.</p>}
+    {!setup?.docusign?.configured&&<p className="text-xs text-amber-800">DocuSign authorization, approved templates and verified legal signer names must be configured first.</p>}
   </div>
   <div className={panel+' space-y-3'}>
     <h4 className="font-semibold flex items-center gap-2"><CreditCard size={17}/> Charges and refunds</h4>
-    <p className="text-sm text-[#9CB1C9]">Processor: {view.charge?.provider||'Not connected'} · Rental: {view.charge?.status||'not started'} · Deposit: {view.deposit?.status||'not authorized'}</p>
+    <p className="text-sm text-[var(--cc-text-secondary)]">Processor: {view.charge?.provider||'Not connected'} · Rental: {view.charge?.status||'not started'} · Deposit: {view.deposit?.status||'not authorized'}</p>
     {isGuest&&booking.status==='accepted'&&booking.legal_status==='signed'&&!['captured','partially_refunded'].includes(booking.payment_status)&&
       <button disabled={busy||!setup?.merchant?.configured} className={button} onClick={checkout}>Open approved CCBill checkout</button>}
-    {!setup?.merchant?.configured&&<p className="text-xs text-amber-200">No approved booking merchant is connected, so checkout and payouts are unavailable.</p>}
-    {view.refunds?.map(r=><p className="text-xs text-[#B8C9DE]" key={r.id}>Refund {formatUSD(r.amount_cents)} · {r.status}</p>)}
+    {!setup?.merchant?.configured&&<p className="text-xs text-amber-800">No approved booking merchant is connected, so checkout and payouts are unavailable.</p>}
+    {view.refunds?.map(r=><p className="text-xs text-[var(--cc-text-secondary)]" key={r.id}>Refund {formatUSD(r.amount_cents)} · {r.status}</p>)}
     {isGuest&&['captured','partially_refunded'].includes(booking.payment_status)&&
       <form onSubmit={refund} className="flex flex-wrap gap-2"><input required minLength={4} className={input+' flex-1'} value={refundReason} onChange={e=>setRefundReason(e.target.value)} placeholder="Refund request reason"/><button disabled={busy} className={secondary}>Request refund review</button></form>}
   </div>
@@ -153,24 +153,24 @@ export default function HostingBookingOperations({bookingId,userId,onChanged=()=
       <button disabled={busy} className={secondary} onClick={cancellation}>Calculate cancellation quote</button>
       <button disabled={busy} className="rounded-lg bg-red-700 px-4 py-2.5 text-sm text-white" onClick={cancel}>Cancel booking</button>
     </div>
-    {quote?.quote&&<p className="rounded-lg bg-[#233752] p-3 text-sm">Proposed refund: <strong>{formatUSD(quote.quote.refundableCents)}</strong> · Nonrefundable: {formatUSD(quote.quote.forfeitedCents)}. Any actual refund needs processor confirmation.</p>}
+    {quote?.quote&&<p className="rounded-lg bg-[var(--cc-surface)] p-3 text-sm">Proposed refund: <strong>{formatUSD(quote.quote.refundableCents)}</strong> · Nonrefundable: {formatUSD(quote.quote.forfeitedCents)}. Any actual refund needs processor confirmation.</p>}
     {booking.status==='accepted'&&booking.legal_status!=='signed'&&!['captured','partially_refunded'].includes(booking.payment_status)&&
       <form className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]" onSubmit={reschedule}>
         <label className="text-xs">Proposed start<input className={input+' mt-1'} type="datetime-local" required value={start} onChange={e=>setStart(e.target.value)}/></label>
         <label className="text-xs">Proposed end<input className={input+' mt-1'} type="datetime-local" required value={end} onChange={e=>setEnd(e.target.value)}/></label>
         <button disabled={busy} className={button+' self-end'}>Propose dates</button>
       </form>}
-    {view.reschedules?.map(p=><div key={p.id} className="rounded-lg border border-[#34465E] p-3">
-      <p className="text-xs text-[#B0C3DB]">{formatDate(p.proposed_start)} → {formatDate(p.proposed_end)} · {p.status}</p>
+    {view.reschedules?.map(p=><div key={p.id} className="rounded-lg border border-[var(--cc-border)] p-3">
+      <p className="text-xs text-[var(--cc-text-secondary)]">{formatDate(p.proposed_start)} → {formatDate(p.proposed_end)} · {p.status}</p>
       {p.status==='pending'&&p.requested_by!==userId&&<div className="mt-2 flex gap-2">{['accepted','declined'].map(decision=>
         <button key={decision} disabled={busy} className={secondary} onClick={()=>perform(hostingBusiness,'reschedule_decide',{id:p.id,decision},'Reschedule '+decision)}>{decision}</button>)}</div>}
     </div>)}
   </div>}
   <div className={panel+' space-y-3'}>
     <h4 className="font-semibold flex items-center gap-2"><ShieldCheck size={17}/> Damage claims and condition reports</h4>
-    {view.claims?.map(claim=><div key={claim.id} className="rounded-lg bg-[#0B1422] p-3 text-sm">
+    {view.claims?.map(claim=><div key={claim.id} className="rounded-lg bg-[var(--cc-surface-subtle)] p-3 text-sm">
       <p>Claim {formatUSD(claim.claimed_cents)} · <strong className="capitalize">{claim.status}</strong></p>
-      <p className="mt-1 whitespace-pre-wrap text-xs text-[#A9BCD5]">{claim.description}</p>
+      <p className="mt-1 whitespace-pre-wrap text-xs text-[var(--cc-text-secondary)]">{claim.description}</p>
       {isGuest&&claim.status==='submitted'&&<button disabled={busy} className={secondary+' mt-2'} onClick={()=>perform(hostingBusiness,'damage_dispute',{claim_id:claim.id},'Claim disputed. Administrator review required.')}>Dispute this claim</button>}
     </div>)}
     {isHost&&Date.now()>=new Date(booking.ends_at).getTime()&&Date.now()-new Date(booking.ends_at).getTime()<=72*3600000&&
@@ -183,7 +183,7 @@ export default function HostingBookingOperations({bookingId,userId,onChanged=()=
   </div>
   {isHost&&<div className={panel+' space-y-3'}>
     <h4 className="font-semibold flex items-center gap-2"><Banknote size={17}/> Host payout readiness</h4>
-    <p className="text-xs text-[#AABED4]">Settlement is held until payment, agreements, account verification and all open disputes are resolved.</p>
+    <p className="text-xs text-[var(--cc-text-secondary)]">Settlement is held until payment, agreements, account verification and all open disputes are resolved.</p>
     <button className={secondary} disabled={busy} onClick={async()=>{
       try{const r=await hostingBusiness('payout_preview',{booking_id:bookingId});
         setSuccess((r.eligible?.eligible?'Potentially eligible':'Blocked: '+r.eligible?.reasons.join(', '))+' · Preview only: '+formatUSD(r.quote?.hostPayoutCents));

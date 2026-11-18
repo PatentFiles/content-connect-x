@@ -8,18 +8,18 @@ import {PROFESSIONAL_ROLES,ROLE_BENEFITS,FREE_BENEFITS,DEFAULT_PREMIUM_PLANS} fr
 
 function Card({eyebrow,title,price,features,subtitle,highlight=false,action,href='/signup',disabled=false,onClick=null}){
  return <article className={'flex h-full flex-col rounded-2xl border p-5 sm:p-7 '+
- (highlight?'border-[#D34DBB]/70 bg-[#20172F] shadow-xl shadow-black/20':'border-[#34445D] bg-[#111A2B]')}>
-  <p className="text-xs font-bold uppercase tracking-[.15em] text-[#FF91D9]">{eyebrow}</p>
-  <h2 className="mt-2 text-xl font-bold text-white">{title}</h2>
-  <div className="mt-4 text-3xl font-extrabold tracking-tight text-white">{price}</div>
-  <p className="mt-2 min-h-12 text-sm leading-6 text-[#B9C5DB]">{subtitle}</p>
-  <ul className="mt-5 flex-1 space-y-3 border-t border-[#37415A] pt-5">
-   {features.map(feature=><li key={feature} className="flex items-start gap-3 text-sm leading-6 text-[#E5E8F4]">
-    <Check size={18} className="mt-1 shrink-0 text-[#FF79C8]"/><span>{feature}</span>
+ (highlight?'border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] shadow-sm':'border-[var(--cc-border)] bg-[var(--cc-surface-subtle)]')}>
+  <p className="text-xs font-bold uppercase tracking-[.15em] text-[var(--cc-link)]">{eyebrow}</p>
+  <h2 className="mt-2 text-xl font-bold text-[var(--cc-text-primary)]">{title}</h2>
+  <div className="mt-4 text-3xl font-extrabold tracking-tight text-[var(--cc-text-primary)]">{price}</div>
+  <p className="mt-2 min-h-12 text-sm leading-6 text-[var(--cc-text-secondary)]">{subtitle}</p>
+  <ul className="mt-5 flex-1 space-y-3 border-t border-[var(--cc-border)] pt-5">
+   {features.map(feature=><li key={feature} className="flex items-start gap-3 text-sm leading-6 text-[var(--cc-text-primary)]">
+    <Check size={18} className="mt-1 shrink-0 text-[var(--cc-link)]"/><span>{feature}</span>
    </li>)}
   </ul>
-  {onClick&&!disabled?<button type="button" onClick={onClick} className="ccx-primary mt-7 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white">{action}<ArrowRight size={17}/></button>:disabled?<p className="mt-7 rounded-xl border border-[#53425A] bg-[#30263D] px-4 py-3 text-center text-sm font-semibold text-[#E7CDE5]">{action}</p>:
-   <a href={href||'/signup'} className="ccx-primary mt-7 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white">{action}<ArrowRight size={17}/></a>}
+  {onClick&&!disabled?<button type="button" onClick={onClick} className="ccx-primary mt-7 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-[var(--cc-text-primary)]">{action}<ArrowRight size={17}/></button>:disabled?<p className="mt-7 rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface)] px-4 py-3 text-center text-sm font-semibold text-[var(--cc-text-secondary)]">{action}</p>:
+   <a href={href||'/signup'} className="ccx-primary mt-7 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-[var(--cc-text-primary)]">{action}<ArrowRight size={17}/></a>}
  </article>;
 }
 export default function PublicPricing({signedIn=false,onNavigate=(destination)=>{void destination;},initialRole='creator'}){
@@ -64,24 +64,24 @@ export default function PublicPricing({signedIn=false,onNavigate=(destination)=>
  return <main className="mx-auto w-full max-w-7xl px-4 pb-20 pt-10 sm:px-6 sm:pt-14">
   <div className="mx-auto max-w-3xl text-center">
    <p className="ccx-eyebrow">Content Connect X memberships</p>
-   <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
+   <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-[var(--cc-text-primary)] sm:text-5xl">
     Simple, <span className="ccx-gradient-text">transparent pricing.</span>
    </h1>
-   <p className="mt-5 text-base leading-7 text-[#B7C3DD]">
+   <p className="mt-5 text-base leading-7 text-[var(--cc-text-secondary)]">
     Create your profile and independently verify you are 18 or older before using the protected network.
     Free members can discover creators worldwide; premium unlocks global collaboration.
    </p>
   </div>
   <section className="mt-9" aria-labelledby="pricing-role-heading">
-   <h2 id="pricing-role-heading" className="text-center text-sm font-semibold text-[#D9DDF0]">Choose your professional role</h2>
+   <h2 id="pricing-role-heading" className="text-center text-sm font-semibold text-[var(--cc-text-secondary)]">Choose your professional role</h2>
    <div className="mx-auto mt-4 flex max-w-4xl flex-wrap justify-center gap-2" role="group" aria-label="Professional pricing roles">
     {PROFESSIONAL_ROLES.map(item=><button key={item.id} type="button"
       onClick={()=>setRole(item.id)} aria-pressed={role===item.id}
       className={'rounded-full border px-4 py-2.5 text-sm font-semibold transition-colors '+
-       (role===item.id?'border-[#FF84D9] bg-[#46234B] text-white':'border-[#3F4561] bg-[#141C2E] text-[#C5C9DF] hover:border-[#FF84D9]')}>
+       (role===item.id?'border-[var(--cc-border)] bg-[var(--cc-surface)] text-[var(--cc-text-primary)]':'border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] text-[var(--cc-text-secondary)] hover:border-[var(--cc-border)]')}>
        {item.label}</button>)}
    </div>
-   <p className="mx-auto mt-4 max-w-2xl text-center text-sm leading-6 text-[#ABBDDA]">{premium.description}</p>
+   <p className="mx-auto mt-4 max-w-2xl text-center text-sm leading-6 text-[var(--cc-text-secondary)]">{premium.description}</p>
    {role==='agent'&&<fieldset className="mx-auto mt-5 max-w-xl text-center">
     <legend className="mb-2 text-sm font-semibold">Agency capacity</legend>
     <div className="flex flex-wrap justify-center gap-2">
@@ -102,19 +102,19 @@ export default function PublicPricing({signedIn=false,onNavigate=(destination)=>
     features={premium.items} disabled={signedIn?(!billing?.ready||paying||currentlyPaid):false} href="/signup" onClick={signedIn?checkout:null} action={!signedIn?'Create an account to subscribe':currentlyPaid?'Your membership is active':paying?'Opening secure checkout…':billing?.ready?'Subscribe securely with CCBill':'Membership checkout opens after approved billing is connected'}/>
   </section>
   <section className="mx-auto mt-7 grid max-w-5xl gap-4 sm:grid-cols-3">
-   <div className="ccx-surface p-5"><ShieldCheck size={22} className="text-[#FF83D5]"/><h3 className="mt-3 font-semibold text-white">Verified adults only</h3>
-    <p className="mt-2 text-sm leading-6 text-[#B6C3D8]">Every member must complete independent 18+ verification before entering the professional network.</p></div>
-   <div className="ccx-surface p-5"><UsersRound size={22} className="text-[#FF83D5]"/><h3 className="mt-3 font-semibold text-white">Free local introductions</h3>
-    <p className="mt-2 text-sm leading-6 text-[#B6C3D8]">Up to five distinct local contacts within a rolling seven days; long-distance profiles remain searchable and savable.</p></div>
-   <div className="ccx-surface p-5"><Building2 size={22} className="text-[#FF83D5]"/><h3 className="mt-3 font-semibold text-white">Host Connect locations</h3>
-    <p className="mt-2 text-sm leading-6 text-[#B6C3D8]">Property listings and booking-based host fees belong to the independent Host Connect marketplace.</p></div>
+   <div className="ccx-surface p-5"><ShieldCheck size={22} className="text-[var(--cc-link)]"/><h3 className="mt-3 font-semibold text-[var(--cc-text-primary)]">Verified adults only</h3>
+    <p className="mt-2 text-sm leading-6 text-[var(--cc-text-secondary)]">Every member must complete independent 18+ verification before entering the professional network.</p></div>
+   <div className="ccx-surface p-5"><UsersRound size={22} className="text-[var(--cc-link)]"/><h3 className="mt-3 font-semibold text-[var(--cc-text-primary)]">Free local introductions</h3>
+    <p className="mt-2 text-sm leading-6 text-[var(--cc-text-secondary)]">Up to five distinct local contacts within a rolling seven days; long-distance profiles remain searchable and savable.</p></div>
+   <div className="ccx-surface p-5"><Building2 size={22} className="text-[var(--cc-link)]"/><h3 className="mt-3 font-semibold text-[var(--cc-text-primary)]">Host Connect locations</h3>
+    <p className="mt-2 text-sm leading-6 text-[var(--cc-text-secondary)]">Property listings and booking-based host fees belong to the independent Host Connect marketplace.</p></div>
   </section>
-  <div className="mx-auto mt-7 max-w-5xl rounded-2xl border border-[#354360] bg-[#10192A] p-5 text-sm leading-7 text-[#B5C5DC]">
-   <div className="flex items-center gap-2 font-semibold text-white"><LockKeyhole size={19}/> Billing status</div>
+  <div className="mx-auto mt-7 max-w-5xl rounded-2xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-5 text-sm leading-7 text-[var(--cc-text-secondary)]">
+   <div className="flex items-center gap-2 font-semibold text-[var(--cc-text-primary)]"><LockKeyhole size={19}/> Billing status</div>
    <p className="mt-2">{billing?.ready?'Secure card entry is hosted by CCBill. Membership renews every 30 days at the accepted checkout price. Cancellation stops future renewals; paid access continues through the recorded paid period.':'Checkout opens after the approved recurring merchant account, hosted form and authenticated callback service are connected. No payment is needed to create a free account.'}</p>
    {billing?.subscription?.billing_provider==='ccbill'&&<p className="mt-3"><a className="font-semibold underline" href="https://support.ccbill.com" target="_blank" rel="noopener noreferrer">Manage or cancel your CCBill subscription</a>{billing.cancel_at_period_end&&' · Renewal cancelled.'}{billing.subscription.period_end&&' Paid-through date: '+new Date(billing.subscription.period_end).toLocaleDateString()}</p>}
-   {billing?.reconciliation_required&&<p role="status" className="mt-3 text-amber-200">A payment needs merchant reconciliation. Do not submit a second payment; contact support with your CCBill receipt.</p>}
-   {billingError&&<p role="alert" className="mt-3 text-red-200">{billingError}</p>}
+   {billing?.reconciliation_required&&<p role="status" className="mt-3 text-amber-800">A payment needs merchant reconciliation. Do not submit a second payment; contact support with your CCBill receipt.</p>}
+   {billingError&&<p role="alert" className="mt-3 text-red-800">{billingError}</p>}
   </div>
   <div className="mt-10 flex justify-center">
    {signedIn?<button type="button" className="ccx-secondary rounded-xl px-5 py-3 text-sm font-semibold"

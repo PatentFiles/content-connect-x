@@ -2,7 +2,7 @@
 import React,{useEffect,useState} from 'react';
 import {ShieldCheck,KeyRound,Eye,EyeOff,RefreshCw,PlugZap,AlertTriangle} from 'lucide-react';
 import {integrationAction} from './integrationApi';
-const styles={panel:'ccx-surface p-5',input:'w-full rounded-xl border border-[#3A425D] bg-[#0B1426] p-3 text-sm text-white focus:ring-2 focus:ring-fuchsia-500',button:'ccx-action-primary rounded-xl px-4 py-2.5 text-sm'};
+const styles={panel:'ccx-surface p-5',input:'w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm text-[var(--cc-text-primary)] focus:ring-2 focus:ring-fuchsia-500',button:'ccx-action-primary rounded-xl px-4 py-2.5 text-sm'};
 const names={yoti:'Yoti — ID, age and liveness',pass:'PASS — Performer work clearance',ccbill:'CCBill — Payments',docusign:'DocuSign — Releases',email:'Transactional email',webpush:'Browser notifications',maps:'Location maps',openmoderate:'Media moderation',sentry:'Error monitoring',flagsmith:'Feature flags'};
 const help={yoti:'Yoti AVS uses your Yoti API key and SDK ID. Hosted checks work only after setting the return origin and completing provider onboarding.',pass:'PASS maintains 14-day yes/no work clearance. Store an approved partner credential here once PASS grants access; automatic status and production-hold checks remain disabled until the official API contract is received, mapped and tested. Never expose clinical results.',
 ccbill:'Keys are encrypted, but financial captures stay blocked until the approved merchant integration and callback contract are verified.',
@@ -43,18 +43,18 @@ export default function IntegrationSettings(){
  };
  return <div className="space-y-5">
   <header className="flex items-start justify-between gap-3"><div><h2 className="text-2xl font-bold">API & integration settings</h2>
-   <p className="mt-2 text-sm text-[#AFBDD4]">Enter your provider keys once. Secret values are encrypted in Supabase Vault and are never displayed again. Changing credentials requires an authenticated administrator. Two-factor authentication is optional.</p></div>
+   <p className="mt-2 text-sm text-[var(--cc-text-secondary)]">Enter your provider keys once. Secret values are encrypted in Supabase Vault and are never displayed again. Changing credentials requires an authenticated administrator. Two-factor authentication is optional.</p></div>
    <button onClick={load} disabled={busy} className="ccx-secondary rounded-xl p-3" aria-label="Refresh provider status"><RefreshCw size={19}/></button>
   </header>
   <div className="ccx-surface flex items-start gap-3 p-4">
-   <ShieldCheck className="mt-0.5 shrink-0 text-[#FF76D8]" size={21}/>
-   <p className="text-sm text-[#C9D5E8]">Credentials present does not mean an integration is approved or live. Yoti needs its return-origin setting. PASS partner API access must be confirmed directly with PASS. Payment and health workflows remain protected by server-side release gates.</p>
+   <ShieldCheck className="mt-0.5 shrink-0 text-[var(--cc-link)]" size={21}/>
+   <p className="text-sm text-[var(--cc-text-secondary)]">Credentials present does not mean an integration is approved or live. Yoti needs its return-origin setting. PASS partner API access must be confirmed directly with PASS. Payment and health workflows remain protected by server-side release gates.</p>
   </div>
-  {error&&<p role="alert" className="rounded-xl bg-red-950 p-3 text-sm text-red-200">{error}</p>}
-  {notice&&<p role="status" className="rounded-xl bg-emerald-950 p-3 text-sm text-emerald-200">{notice}</p>}
+  {error&&<p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+  {notice&&<p role="status" className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
   <section className="ccx-surface space-y-3 p-5">
     <h3 className="font-semibold">Yoti return domains for both brands</h3>
-    <p className="text-xs text-[#B5C6DF]">These are HTTPS public website origins, not secret keys. Configure them in your Yoti provider account as approved callback destinations before starting live sessions.</p>
+    <p className="text-xs text-[var(--cc-text-secondary)]">These are HTTPS public website origins, not secret keys. Configure them in your Yoti provider account as approved callback destinations before starting live sessions.</p>
     <div className="grid gap-3 sm:grid-cols-2">
       <label className="text-xs">Content Connect X website origin<input className={styles.input+' mt-1'} type="url" placeholder="https://contentconnectx.com" value={origins.ccx_origin}
         onChange={e=>setOrigins(v=>({...v,ccx_origin:e.target.value}))}/></label>
@@ -69,13 +69,13 @@ export default function IntegrationSettings(){
   <div className="grid gap-4 lg:grid-cols-2">
    {providers.map(p=><article key={p.provider} className={styles.panel+' space-y-3'}>
     <div className="flex flex-wrap items-start justify-between gap-3">
-     <div><h3 className="flex gap-2 items-center font-semibold"><PlugZap size={17} className="text-[#FF79D4]"/>{names[p.provider]||p.provider}</h3>
-      <p className="mt-2 text-xs text-[#ADBDD3]">{help[p.provider]}</p></div>
-     <span className={'rounded-full px-2 py-1 text-xs '+(p.enabled?'bg-emerald-900/50 text-emerald-200':'bg-[#2D3450] text-[#B6C5DB]')}>{p.enabled?'Enabled':'Disabled'}</span>
+     <div><h3 className="flex gap-2 items-center font-semibold"><PlugZap size={17} className="text-[var(--cc-link)]"/>{names[p.provider]||p.provider}</h3>
+      <p className="mt-2 text-xs text-[var(--cc-text-secondary)]">{help[p.provider]}</p></div>
+     <span className={'rounded-full px-2 py-1 text-xs '+(p.enabled?'bg-emerald-50 text-emerald-800':'bg-[var(--cc-surface)] text-[var(--cc-text-secondary)]')}>{p.enabled?'Enabled':'Disabled'}</span>
     </div>
     <div className="space-y-3">
      {(p.fields||[]).map(field=><div key={field.name}>
-      <label className="block text-xs font-semibold text-[#B3BFD5]" htmlFor={'ccx-'+field.name}>{field.name.replaceAll('_',' ')} · {field.configured?'Stored':'Missing'}</label>
+      <label className="block text-xs font-semibold text-[var(--cc-text-secondary)]" htmlFor={'ccx-'+field.name}>{field.name.replaceAll('_',' ')} · {field.configured?'Stored':'Missing'}</label>
       <div className="ccx-action-row mt-1 flex gap-2">
        <input id={'ccx-'+field.name} className={styles.input+' min-w-0 flex-1'} autoComplete="off" spellCheck={false}
         type={visible[field.name]?'text':'password'} placeholder={field.configured?'Replace saved credential':'Paste provider API credential'}
@@ -85,13 +85,13 @@ export default function IntegrationSettings(){
       </div>
      </div>)}
     </div>
-    <div className="border-t border-[#35415B] pt-3">
-     <label className="flex items-start gap-2 text-xs text-[#BECBE0]"><input type="checkbox" className="mt-1" checked={Boolean(agreements[p.provider])}
+    <div className="border-t border-[var(--cc-border)] pt-3">
+     <label className="flex items-start gap-2 text-xs text-[var(--cc-text-secondary)]"><input type="checkbox" className="mt-1" checked={Boolean(agreements[p.provider])}
       onChange={e=>setAgreements(v=>({...v,[p.provider]:e.target.checked}))}/>
       I have reviewed the provider's actual contract, permitted use, data-handling terms and necessary credentials.</label>
      <button className="ccx-secondary mt-3 rounded-xl px-4 py-2 text-sm" disabled={busy||p.provider==='pass'||p.enabled===false&&!agreements[p.provider]}
       onClick={()=>toggle(p.provider,!p.enabled)}>{p.enabled?'Disable integration':'Enable configured integration'}</button>
-     {p.provider==='pass'&&<p className="mt-2 text-xs text-amber-200"><AlertTriangle size={13} className="inline mr-1"/>Awaiting official PASS partner API and production-hold specification. Request integration details from info@passcertified.org. Until an approved integration is tested, check the official PASS database directly.</p>}
+     {p.provider==='pass'&&<p className="mt-2 text-xs text-amber-800"><AlertTriangle size={13} className="inline mr-1"/>Awaiting official PASS partner API and production-hold specification. Request integration details from info@passcertified.org. Until an approved integration is tested, check the official PASS database directly.</p>}
     </div>
    </article>)}
   </div>

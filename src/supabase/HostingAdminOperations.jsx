@@ -3,9 +3,9 @@ import React,{useCallback,useEffect,useState} from 'react';
 import {ShieldCheck,FileSignature,RefreshCw,AlertTriangle,ExternalLink} from 'lucide-react';
 import {hostingBusiness,hostingAgreement,hostingProduction,formatUSD,formatDate} from './hostingBusinessApi';
 const panel='ccx-surface p-5';
-const button='rounded-lg ccx-action-primary px-4 py-2 text-sm font-semibold text-white disabled:opacity-50';
-const secondary='rounded-lg border border-[#40536B] bg-[#26384D] px-4 py-2 text-sm text-white disabled:opacity-50';
-const input='w-full rounded-lg border border-[#40536B] bg-[#091522] p-2.5 text-sm text-white';
+const button='rounded-lg ccx-action-primary px-4 py-2 text-sm font-semibold text-[var(--cc-text-primary)] disabled:opacity-50';
+const secondary='rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface)] px-4 py-2 text-sm text-[var(--cc-text-primary)] disabled:opacity-50';
+const input='w-full rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-2.5 text-sm text-[var(--cc-text-primary)]';
 
 export default function HostingAdminOperations(){
  const [hosts,setHosts]=useState([]);
@@ -49,20 +49,20 @@ export default function HostingAdminOperations(){
   }catch(e){setError(e.message);}
  };
  const confirm=(message)=>reviewed&&window.confirm(message);
- return <section className="space-y-5 text-white">
+ return <section className="space-y-5 text-[var(--cc-text-primary)]">
   <div className="flex justify-between gap-3 items-start">
-    <div><h2 className="text-2xl font-semibold">Hosting compliance and finance reviews</h2><p className="text-sm text-[#A2B6CF] mt-2">Sensitive admin operations require administrator permissions. Financial approvals do not move money without a provider.</p></div>
+    <div><h2 className="text-2xl font-semibold">Hosting compliance and finance reviews</h2><p className="text-sm text-[var(--cc-text-secondary)] mt-2">Sensitive admin operations require administrator permissions. Financial approvals do not move money without a provider.</p></div>
     <button className={secondary} disabled={busy} onClick={refresh}><RefreshCw size={16}/></button>
   </div>
-  {error&&<p role="alert" className="rounded-lg bg-red-950 p-3 text-sm text-red-200">{error}</p>}
-  {notice&&<p role="status" className="rounded-lg bg-emerald-950 p-3 text-sm text-emerald-200">{notice}</p>}
+  {error&&<p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</p>}
+  {notice&&<p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
   <label className={panel+' flex gap-3 text-sm items-start'}><input type="checkbox" checked={reviewed} onChange={e=>setReviewed(e.target.checked)} className="mt-1"/>
     I independently inspected the relevant documents and evidence, checked identity and authority, and understand that these actions may affect trust, bookings or financial disputes.</label>
   <div className={panel+' space-y-3'}><h3 className="font-semibold flex items-center gap-2"><ShieldCheck size={17}/>Host property verification ({hosts.length})</h3>
-    {!hosts.length&&<p className="text-sm text-[#9FB3CB]">No property authority submissions pending.</p>}
-    {hosts.map(item=><div key={item.id} className="space-y-2 border-t border-[#31445D] pt-3">
+    {!hosts.length&&<p className="text-sm text-[var(--cc-text-secondary)]">No property authority submissions pending.</p>}
+    {hosts.map(item=><div key={item.id} className="space-y-2 border-t border-[var(--cc-border)] pt-3">
       <p className="text-sm font-semibold">{item.business_name||'Individual host'} · {item.authority_type.replaceAll('_',' ')}</p>
-      <p className="text-xs text-[#9FB3CB]">Property: {item.property_id} · Submitted {formatDate(item.created_at)}</p>
+      <p className="text-xs text-[var(--cc-text-secondary)]">Property: {item.property_id} · Submitted {formatDate(item.created_at)}</p>
       <button className={secondary+' flex items-center gap-2'} disabled={busy||!reviewed} onClick={()=>docs(item.id)}><ExternalLink size={14}/>Review private evidence</button>
       <textarea className={input} placeholder="Review notes (no raw ID details)" rows={2} value={note} onChange={e=>setNote(e.target.value)} maxLength={1000}/>
       <div className="flex flex-wrap gap-2"><button className={button} disabled={!reviewed||busy} onClick={()=>{
@@ -74,11 +74,11 @@ export default function HostingAdminOperations(){
   </div>
   <div className={panel+' space-y-3'}>
     <h3 className="font-semibold">Venue production suitability review ({venueReviews.length})</h3>
-    {venueReviews.map(v=><div className="space-y-2 border-t border-[#31445D] py-3" key={v.property_id}>
+    {venueReviews.map(v=><div className="space-y-2 border-t border-[var(--cc-border)] py-3" key={v.property_id}>
       <p className="text-xs break-all">Venue {v.property_id}</p>
       <p className="text-sm">Adult production: {v.adult_production_permitted?'Host permits':'Not declared'} · Privacy: {v.privacy_level} · Soundproofing: {v.soundproof_confirmed?'Declared':'Not declared'}</p>
-      <p className="text-xs text-[#AABDD3]">Parking: {v.parking_spaces} · Dressing rooms: {v.separate_dressing_rooms}</p>
-      <p className="text-xs whitespace-pre-wrap text-[#AABDD3]">Restrictions: {v.noise_restrictions||'None provided'}</p>
+      <p className="text-xs text-[var(--cc-text-secondary)]">Parking: {v.parking_spaces} · Dressing rooms: {v.separate_dressing_rooms}</p>
+      <p className="text-xs whitespace-pre-wrap text-[var(--cc-text-secondary)]">Restrictions: {v.noise_restrictions||'None provided'}</p>
       <div className="ccx-action-row flex gap-2">
         <button className={button} disabled={busy||!reviewed} onClick={()=>perform(hostingProduction,'admin_suitability_review',{property_id:v.property_id,approved:true,review_confirmed:true},'Suitability approved after independent review.')}>Confirm verified suitability</button>
         <button className={secondary} disabled={busy||!reviewed} onClick={()=>perform(hostingProduction,'admin_suitability_review',{property_id:v.property_id,approved:false,review_confirmed:true},'Venue declarations remain unverified.')}>Leave unverified</button>
@@ -86,7 +86,7 @@ export default function HostingAdminOperations(){
     </div>)}
   </div>
   <div className={panel+' space-y-3'}><h3 className="font-semibold flex gap-2 items-center"><FileSignature size={17}/>Trusted DocuSign legal names</h3>
-    <p className="text-xs text-[#A9BED6]">Register a name only after independently checking government identification. Profile display names are never automatically used as legal signer names.</p>
+    <p className="text-xs text-[var(--cc-text-secondary)]">Register a name only after independently checking government identification. Profile display names are never automatically used as legal signer names.</p>
     <form className="grid gap-2 sm:grid-cols-2" onSubmit={async e=>{
       e.preventDefault();if(!reviewed)return setError('Confirm independent review first.');
       const saved=await perform(hostingAgreement,'admin_register_signer_name',{
@@ -103,10 +103,10 @@ export default function HostingAdminOperations(){
     </form>
   </div>
   <div className={panel+' space-y-3'}><h3 className="font-semibold flex gap-2 items-center"><AlertTriangle size={17}/>Damage claims ({claims.length})</h3>
-    {!claims.length&&<p className="text-sm text-[#9FB3CB]">No open damage claims.</p>}
-    {claims.map(item=><div key={item.id} className="space-y-2 border-t border-[#31445D] pt-3">
+    {!claims.length&&<p className="text-sm text-[var(--cc-text-secondary)]">No open damage claims.</p>}
+    {claims.map(item=><div key={item.id} className="space-y-2 border-t border-[var(--cc-border)] pt-3">
       <p className="font-semibold text-sm">{formatUSD(item.claimed_cents)} · {item.status}</p>
-      <p className="text-xs text-[#A9BED6]">Booking: {item.booking_id} · {formatDate(item.created_at)}</p>
+      <p className="text-xs text-[var(--cc-text-secondary)]">Booking: {item.booking_id} · {formatDate(item.created_at)}</p>
       <p className="text-sm whitespace-pre-wrap">{item.description}</p>
       {item.has_evidence&&<button className={secondary} onClick={()=>evidence(item.id)} disabled={!reviewed||busy}>View private damage evidence</button>}
       <div className="flex gap-2">{['approved','rejected'].map(decision=><button key={decision} disabled={!reviewed||busy} className={decision==='approved'?button:secondary} onClick={()=>{
@@ -116,9 +116,9 @@ export default function HostingAdminOperations(){
     </div>)}
   </div>
   <div className={panel+' space-y-3'}><h3 className="font-semibold">Refund requests ({refunds.length})</h3>
-    {!refunds.length&&<p className="text-sm text-[#9FB3CB]">No refunds awaiting review.</p>}
-    {refunds.map(item=><div key={item.id} className="space-y-2 border-t border-[#31445D] pt-3">
-      <p className="font-semibold text-sm">{formatUSD(item.amount_cents)} · {item.status}</p><p className="text-xs text-[#9FB3CB]">Booking {item.booking_id}</p>
+    {!refunds.length&&<p className="text-sm text-[var(--cc-text-secondary)]">No refunds awaiting review.</p>}
+    {refunds.map(item=><div key={item.id} className="space-y-2 border-t border-[var(--cc-border)] pt-3">
+      <p className="font-semibold text-sm">{formatUSD(item.amount_cents)} · {item.status}</p><p className="text-xs text-[var(--cc-text-secondary)]">Booking {item.booking_id}</p>
       <p className="text-sm">{item.reason}</p>
       {item.status==='requested'&&<div className="flex gap-2">{['approved','rejected'].map(decision=><button key={decision} disabled={!reviewed||busy}
         className={decision==='approved'?button:secondary} onClick={()=>{

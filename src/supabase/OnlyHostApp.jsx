@@ -6,10 +6,11 @@ import React,{useCallback,useEffect,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
 import {Home,ArrowUpRight,ArrowRight,LogOut,CalendarDays,ShieldCheck,Clapperboard,UsersRound,FileSignature,Sparkles,CheckCircle2,Clock3,Wallet,MessageCircleMore,Eye,EyeOff,Brush,SlidersHorizontal,KeyRound,Settings} from 'lucide-react';
 import HostingMarketplace from './HostingMarketplace';
+import ProfessionalLandingHero from './ProfessionalLandingHero';
 import HostProfileSettings from './HostProfileSettings';
 import {HOST_TERMS,HOST_TERMS_VERSION} from './hostTerms';
 import {integrationAction} from './integrationApi';
-const input='w-full rounded-xl border border-[#36425E] bg-[#0E172B] px-4 py-3 text-sm text-white outline-none focus:ring-2 focus:ring-[#43CBED]';
+const input='w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-4 py-3 text-sm text-[var(--cc-text-primary)] outline-none focus:ring-2 focus:ring-[var(--cc-focus)]';
 const primary='oh-primary inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold';
 const secondary='oh-secondary inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm';
 
@@ -72,7 +73,7 @@ export default function OnlyHostApp(){
   setView('workspace');
   window.scrollTo({top:0,behavior:'smooth'});
  };
- return <div className="oh-app host-connect-theme min-h-screen text-[#F5F8FF]">
+ return <div className="oh-app host-connect-theme min-h-screen text-[var(--cc-text-primary)]">
   <div className="oh-topline"/>
   <header className="oh-header sticky top-0 z-40">
    <div className="oh-header-inner mx-auto flex w-full max-w-[1600px] items-center gap-3 px-4 py-3 md:px-8">
@@ -93,20 +94,18 @@ export default function OnlyHostApp(){
    {loading?<div className="mx-auto max-w-7xl px-6 py-24 text-center">Loading…</div>:view==='workspace'&&ready?
     <div className="mx-auto max-w-7xl px-4 py-8 md:px-6">
      <div className="oh-panel mb-5 flex flex-wrap items-center justify-between gap-3 p-5">
-      <div><h1 className="text-2xl font-bold">Host Connect property dashboard</h1><p className="mt-1 text-sm text-[#B5C5DC]">Manage your locations, rules, equipment, availability, staff, and booking requests in one place.</p></div>
+      <div><h1 className="text-2xl font-bold">Host Connect property dashboard</h1><p className="mt-1 text-sm text-[var(--cc-text-secondary)]">Manage your locations, rules, equipment, availability, staff, and booking requests in one place.</p></div>
       <a href="/" className={secondary}>Back to Content Connect X</a>
      </div>
      <HostingMarketplace paid={true} isAdmin={false} user={user} brand="host_connect" initialSection="host" hostOnly/>
     </div>
    :<div className="oh-marketing">
-     <section className="oh-landing-banner" aria-label="Host Connect studios and locations">
-      <img src="/Host_Connect_Banner.png" alt="Host Connect — studios, locations and sets for professional productions" className="oh-landing-banner-image"/>
-     </section>
+     <ProfessionalLandingHero host onStart={openWorkspace}/>
      <section className="oh-landing-section oh-landing-intro" aria-labelledby="oh-features-title">
       <div className="oh-landing-container">
        <div className="oh-landing-heading">
         <p className="oh-landing-kicker"><Sparkles size={15}/> YOUR PROPERTY · YOUR RULES · YOUR INCOME</p>
-        <h1 id="oh-features-title">Your space has potential. <span className="oh-gradient-text">You set the terms.</span></h1>
+        <h2 id="oh-features-title">Your space has potential. <span className="oh-gradient-text">You set the terms.</span></h2>
         <p>List houses, lofts, studios and private locations for professional adult-content production. Welcome nude photography or explicit adult filming on your own terms—with informed permission, custom rules, and a host dashboard built for you.</p>
        </div>
        <div className="oh-landing-cards">
@@ -153,14 +152,14 @@ export default function OnlyHostApp(){
       </div>
       <div className="oh-landing-account-box">
 
-     <a href="/" className="text-sm text-[#A6C9F0]">← Return to Content Connect X</a>
+     <a href="/" className="text-sm text-[var(--cc-link)]">← Return to Content Connect X</a>
      <section className="oh-panel space-y-4 p-6 md:p-8">
       <h2 className="text-2xl font-bold">Your Host Connect account</h2>
-      {!user?<><p className="text-[#BBCBE0]">Sign in or create an account to list spaces for adult photography and filming—with clear authorization and house rules.</p>
+      {!user?<><p className="text-[var(--cc-text-secondary)]">Sign in or create an account to list spaces for adult photography and filming—with clear authorization and house rules.</p>
         <button className={primary} onClick={()=>setShowLogin(true)}>Sign in or create a host account</button></>:
-       <><p className="text-sm text-[#B5C8DF]">Signed in as {user.email}</p>
+       <><p className="text-sm text-[var(--cc-text-secondary)]">Signed in as {user.email}</p>
         {!ready?<div className="space-y-4">
-          <p className="text-sm text-[#B9C9E2]">Before activating hosting, review the complete agreement and confirm the following requirements.</p>
+          <p className="text-sm text-[var(--cc-text-secondary)]">Before activating hosting, review the complete agreement and confirm the following requirements.</p>
           <details className="oh-terms-details"><summary>Read the Host Connect Property Host Agreement (required)</summary>
            <div className="oh-terms-content"><p>Agreement version: {HOST_TERMS_VERSION}. Please review every section before accepting.</p>
             {HOST_TERMS.map(section=><section key={section.title}><h3>{section.title}</h3><p>{section.body}</p></section>)}
@@ -171,11 +170,11 @@ export default function OnlyHostApp(){
           <label className="oh-terms-check"><input type="checkbox" checked={adultUseOK} onChange={e=>setAdultUseOK(e.target.checked)}/>I understand this marketplace can be used for nude photography and sexually explicit adult video shoots, and I will choose permitted activities and comply with applicable rules.</label>
           <label className="oh-terms-check"><input type="checkbox" checked={terms} onChange={e=>setTerms(e.target.checked)}/>I have read and agree to the complete Host Connect Property Host Agreement.</label>
           <button className={primary+' w-full'} disabled={busy||!terms||!capacityOK||!authorityOK||!adultUseOK} onClick={register}>{account?.registered?'Accept updated host agreement':'Activate free host account'}</button>
-        </div>:<div className="space-y-3"><p className="text-sm text-[#8de6ce]">Host terms accepted. You can manage your listings.</p>
+        </div>:<div className="space-y-3"><p className="text-sm text-[var(--cc-link)]">Host terms accepted. You can manage your listings.</p>
           <button className={primary+' w-full'} onClick={openWorkspace}>Open property dashboard <ArrowRight size={16}/></button></div>}
        </>}
-      {error&&<p role="alert" className="text-sm text-red-300">{error}</p>}
-      {notice&&<p role="status" className="text-sm text-emerald-300">{notice}</p>}
+      {error&&<p role="alert" className="text-sm text-red-800">{error}</p>}
+      {notice&&<p role="status" className="text-sm text-emerald-800">{notice}</p>}
      </section>
       </div>
      </section>
@@ -186,15 +185,15 @@ export default function OnlyHostApp(){
    <section role="dialog" aria-modal="true" aria-label="Host Connect account" className="oh-modal max-w-md" onClick={e=>e.stopPropagation()}>
     <button className="absolute right-5 top-5" aria-label="Close" onClick={()=>setShowLogin(false)}>Close ×</button>
     <h2 className="text-2xl font-bold">{signUp?'Create a Host Connect account':'Welcome to Host Connect'}</h2>
-    <p className="mt-2 text-sm text-[#A5BBD4]">One secure sign-in across Host Connect and Content Connect X.</p>
+    <p className="mt-2 text-sm text-[var(--cc-text-secondary)]">One secure sign-in across Host Connect and Content Connect X.</p>
     <form className="mt-6 space-y-3" onSubmit={auth}>
      <label className="block text-xs">Email<input className={input+' mt-2'} type="email" autoComplete="email" value={email} onChange={e=>setEmail(e.target.value)} required/></label>
-     <label className="block text-xs">Password<span className="relative mt-2 block"><input className={input+' pr-12'} type={showPassword?'text':'password'} autoComplete={signUp?'new-password':'current-password'} minLength={8} value={password} onChange={e=>setPassword(e.target.value)} required/><button type="button" className="absolute inset-y-0 right-0 grid w-12 place-items-center text-[#B5C5DC]" onClick={()=>setShowPassword(value=>!value)} aria-label={showPassword?'Hide password':'Show password'} aria-pressed={showPassword}>{showPassword?<EyeOff size={18}/>:<Eye size={18}/>}</button></span></label>
+     <label className="block text-xs">Password<span className="relative mt-2 block"><input className={input+' pr-12'} type={showPassword?'text':'password'} autoComplete={signUp?'new-password':'current-password'} minLength={8} value={password} onChange={e=>setPassword(e.target.value)} required/><button type="button" className="absolute inset-y-0 right-0 grid w-12 place-items-center text-[var(--cc-text-secondary)]" onClick={()=>setShowPassword(value=>!value)} aria-label={showPassword?'Hide password':'Show password'} aria-pressed={showPassword}>{showPassword?<EyeOff size={18}/>:<Eye size={18}/>}</button></span></label>
      <button className={primary+' w-full'} disabled={busy}>{signUp?'Create free account':'Sign in'}</button>
     </form>
-    <button className="mt-4 text-sm text-[#70DAEE]" onClick={()=>setSignUp(!signUp)}>{signUp?'Already registered? Sign in':'Create your account'}</button>
-    {error&&<p role="alert" className="mt-3 text-sm text-red-300">{error}</p>}
-    {notice&&<p className="mt-3 text-sm text-emerald-300">{notice}</p>}
+    <button className="mt-4 text-sm text-[var(--cc-link)]" onClick={()=>setSignUp(!signUp)}>{signUp?'Already registered? Sign in':'Create your account'}</button>
+    {error&&<p role="alert" className="mt-3 text-sm text-red-800">{error}</p>}
+    {notice&&<p className="mt-3 text-sm text-emerald-800">{notice}</p>}
    </section></div>}
  </div>;
 }

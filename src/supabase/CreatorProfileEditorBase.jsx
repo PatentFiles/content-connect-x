@@ -14,7 +14,7 @@ import {originalUSCities,originalUSStateCodes} from './originalLocationData';
 import {countries,countryCode,countryName,regionOptions,roleOptions,
  genderOptions,orientationOptions,contentCategories,scenePairings,specialties} from './profileOptions';
 
-const input='w-full min-w-0 rounded-xl bg-[#0F1520] border border-[#34445D] px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-fuchsia-500';
+const input='w-full min-w-0 rounded-xl bg-[var(--cc-surface-subtle)] border border-[var(--cc-border)] px-3 py-2.5 text-[var(--cc-text-primary)] focus:outline-none focus:ring-2 focus:ring-fuchsia-500';
 const panel='ccx-surface space-y-4 p-5';
 const initial={gender_identity:'',sexual_orientation:'',pronouns:'',gender_self_description:'',
  orientation_self_description:'',preferred_collaborators:[],content_categories:[],
@@ -22,12 +22,12 @@ const initial={gender_identity:'',sexual_orientation:'',pronouns:'',gender_self_
  show_gender_in_discovery:false,show_categories_in_discovery:false};
 function CheckList({label,options,selected,change}){
  const toggle=value=>change(selected.includes(value)?selected.filter(item=>item!==value):[...selected,value]);
- return <fieldset><legend className="mb-2 text-sm font-semibold text-white">{label}</legend>
+ return <fieldset><legend className="mb-2 text-sm font-semibold text-[var(--cc-text-primary)]">{label}</legend>
   <div className="flex flex-wrap gap-2">{options.map(([value,name])=>{
    const active=selected.includes(value);
    return <button type="button" key={value} aria-pressed={active} onClick={()=>toggle(value)}
     className="rounded-lg border px-3 py-2 text-sm leading-5 transition hover:-translate-y-0.5"
-    style={{background:active?'rgba(79,140,255,.15)':'transparent',borderColor:active?'#4F8CFF':'var(--cc-border)',color:active?'var(--cc-blue)':'var(--cc-text-secondary)'}}>{name}</button>;
+    style={{background:active?'var(--cc-surface-hover)':'transparent',borderColor:active?'var(--cc-link)':'var(--cc-border)',color:active?'var(--cc-blue)':'var(--cc-text-secondary)'}}>{name}</button>;
   })}</div></fieldset>;
 }
 export default function CreatorProfileEditor({user,profile,onSaved,approved=false,paid=false,isAdmin=false,onNavigate}){
@@ -127,7 +127,7 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
  };
  return <div className="min-h-screen pb-20 md:pb-8" style={{background:'var(--cc-bg)',color:'var(--cc-text-primary)'}}>
   <div className="relative">
-   <label className="group relative block h-48 cursor-pointer overflow-hidden md:h-64" style={{background:'linear-gradient(135deg,#0B0F14,#263248)'}}>
+   <label className="group relative block h-48 cursor-pointer overflow-hidden md:h-64" style={{background:'var(--cc-surface-subtle)'}}>
     {assetPreview.cover&&<img src={assetPreview.cover} alt="Profile banner" className="h-full w-full object-cover"/>}
     <span className="absolute inset-0 grid place-items-center bg-black/45 text-sm text-white opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100"><span className="flex items-center gap-2"><Upload size={16}/>{uploading==='cover'?'Uploading…':'Change banner'}</span></span>
     <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={e=>uploadProfileAsset('cover',e)} disabled={Boolean(uploading)}/>
@@ -148,12 +148,12 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
       <div className="mt-2 flex items-center justify-center gap-2">
        <span className="rounded-full border px-3 py-1 text-xs capitalize"
         style={{borderColor:'var(--cc-border)'}}>{form.role_type.replaceAll('_',' ')}</span>
-       {approved&&<span className="inline-flex items-center gap-1 rounded-full border border-emerald-700 px-3 py-1 text-xs text-emerald-300">
+       {approved&&<span className="inline-flex items-center gap-1 rounded-full border border-emerald-300 px-3 py-1 text-xs text-emerald-800">
         <ShieldCheck size={13}/>Verified</span>}
       </div>
       <button type="button" onClick={()=>setOpenSection('basic')}
-       className="mt-3 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-white"
-       style={{background:'#4F8CFF'}}><Edit2 size={16}/>Edit profile</button>
+       className="mt-3 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-[var(--cc-text-primary)]"
+       style={{background:'var(--cc-action)',color:'var(--cc-on-action)'}}><Edit2 size={16}/>Edit profile</button>
      </div>
     </div>
    </div>
@@ -165,16 +165,16 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
       {key:'analytics',name:'Analytics',Icon:Activity}].map(({key,name,Icon})=>
      <button type="button" key={key} role="tab" aria-selected={activeTab===key}
       className="flex items-center justify-center gap-2 rounded-lg px-3 py-3 text-sm font-medium"
-      style={{background:activeTab===key?'rgba(79,140,255,.12)':'transparent',
+      style={{background:activeTab===key?'var(--cc-surface-hover)':'transparent',
        color:activeTab===key?'var(--cc-blue)':'var(--cc-text-secondary)'}}
       onClick={()=>setActiveTab(key)}><Icon size={17}/>{name}</button>)}
    </div>
-   {error&&<p role="alert" className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-red-200">{error}</p>}
-   {notice&&<p role="status" className="mb-4 rounded-lg bg-emerald-950 p-3 text-emerald-200">{notice}</p>}
+   {error&&<p role="alert" className="mb-4 rounded-lg border border-red-300 bg-red-50 p-3 text-red-800">{error}</p>}
+   {notice&&<p role="status" className="mb-4 rounded-lg bg-emerald-50 p-3 text-emerald-800">{notice}</p>}
    {activeTab==='profile'&&<form className="space-y-4" onSubmit={save}>
    {[
-     {id:'basic',title:'Basic information',description:'Name, role, location',Icon:User,color:'#4F8CFF',bg:'rgba(79,140,255,0.12)'},
-     {id:'identity',title:'Personal identity',description:'Identity and privacy',Icon:Heart,color:'#FF8ADE',bg:'rgba(255,138,222,0.12)'},
+     {id:'basic',title:'Basic information',description:'Name, role, location',Icon:User,color:'var(--cc-link)',bg:'var(--cc-surface-hover)'},
+     {id:'identity',title:'Personal identity',description:'Identity and privacy',Icon:Heart,color:'var(--cc-text-secondary)',bg:'rgba(255,138,222,0.12)'},
      {id:'collaboration',title:'Collaboration',description:'Matching and travel',Icon:Users,color:'#10B981',bg:'rgba(16,185,129,0.12)'},
      {id:'production',title:'Production details',description:'Acts, positioning and rates',Icon:Clapperboard,color:'#F59E0B',bg:'rgba(245,158,11,0.12)'},
      {id:'health',title:'Health & testing',description:'Private clearance records',Icon:Stethoscope,color:'#EF4444',bg:'rgba(239,68,68,0.12)'},
@@ -212,7 +212,7 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
           placeholder="Introduce your work, experience and what you're looking to create."/></label>
         </section>
         <section className={panel}><h3 className="text-lg font-semibold">Location</h3>
-         <p className="text-xs text-[#AABBD4]">Only city, state or region, and country are shared in discovery. Never enter your exact address here.</p>
+         <p className="text-xs text-[var(--cc-text-secondary)]">Only city, state or region, and country are shared in discovery. Never enter your exact address here.</p>
          <div className="grid gap-3 sm:grid-cols-3">
           <label className="block text-sm">Country
            <select className={input+' mt-2'} value={form.country}
@@ -239,7 +239,7 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
         </section>
       </>}
       {id==='identity'&&<section className={panel}><h3 className="text-lg font-semibold">Personal identity</h3>
-       <p className="text-sm text-[#AABBD4]">All fields are optional. Identity and orientation are private by default and never required to register.</p>
+       <p className="text-sm text-[var(--cc-text-secondary)]">All fields are optional. Identity and orientation are private by default and never required to register.</p>
        <div className="grid gap-3 sm:grid-cols-2">
         <label className="block text-sm">Gender identity<select className={input+' mt-2'} value={prefs.gender_identity}
           onChange={e=>preference('gender_identity',e.target.value)}>
@@ -257,7 +257,7 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
        </div>
       </section>}
       {id==='collaboration'&&form.role_type!=='host'&&<section className={panel}><h3 className="text-lg font-semibold">Collaboration preferences</h3>
-       <p className="text-sm text-[#AABBD4]">Selections indicate interest only. They are not consent to any activity or booking.</p>
+       <p className="text-sm text-[var(--cc-text-secondary)]">Selections indicate interest only. They are not consent to any activity or booking.</p>
        <CheckList label="Preferred collaborators" options={genderOptions.filter(([v])=>v&&v!=='self_describe')}
         selected={prefs.preferred_collaborators} change={v=>preference('preferred_collaborators',v)}/>
        <CheckList label="Content categories" options={contentCategories}
@@ -268,33 +268,33 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
         selected={prefs.specialties} change={v=>preference('specialties',v)}/>
        <button type="button" aria-pressed={prefs.available_to_travel} onClick={()=>preference('available_to_travel',!prefs.available_to_travel)}
         className="rounded-lg border px-3 py-2 text-left text-sm transition"
-        style={{background:prefs.available_to_travel?'rgba(16,185,129,.15)':'transparent',borderColor:prefs.available_to_travel?'#10B981':'var(--cc-border)',color:prefs.available_to_travel?'#6EE7B7':'var(--cc-text-secondary)'}}>Available to travel for collaborations</button>
+        style={{background:prefs.available_to_travel?'rgba(16,185,129,.15)':'transparent',borderColor:prefs.available_to_travel?'#10B981':'var(--cc-border)',color:prefs.available_to_travel?'var(--cc-success)':'var(--cc-text-secondary)'}}>Available to travel for collaborations</button>
       </section>}
       {id==='production'&&form.role_type==='creator'&&<OriginalCreatorPreferences value={creatorPrefs}
         genderIdentity={prefs.gender_identity} onChange={setCreatorPrefs} onNavigate={onNavigate}/>}
-      {id==='production'&&form.role_type!=='creator'&&<section className={panel}><h3 className="text-lg font-semibold">Professional details</h3><p className="text-sm text-[#AABBD4]">Add the specialties and services that describe your {form.role_type.replaceAll('_',' ')} role.</p><CheckList label="Professional specialties" options={specialties} selected={prefs.specialties} change={v=>preference('specialties',v)}/></section>}
+      {id==='production'&&form.role_type!=='creator'&&<section className={panel}><h3 className="text-lg font-semibold">Professional details</h3><p className="text-sm text-[var(--cc-text-secondary)]">Add the specialties and services that describe your {form.role_type.replaceAll('_',' ')} role.</p><CheckList label="Professional specialties" options={specialties} selected={prefs.specialties} change={v=>preference('specialties',v)}/></section>}
       {id==='health'&&<section className={panel}><h3 className="text-lg font-semibold">Health & testing</h3>
        <p className="text-sm" style={{color:'var(--cc-text-secondary)'}}>Sensitive work-clearance records are controlled by the verified Trust & Readiness workflow, not saved in public profile fields.</p>
        <button type="button" className="mt-2 text-sm font-semibold" style={{color:'var(--cc-blue)'}}
         onClick={()=>onNavigate?.('testing')}>Manage testing and clearance</button>
       </section>}
       {id==='privacy'&&<section className={panel}><h3 className="text-lg font-semibold">Discoverability & privacy</h3>
-       <p className="text-sm text-[#AABBD4]">Your name, professional role and general location appear only to eligible verified members. Sensitive matching details are never exposed unless you choose to share them.</p>
+       <p className="text-sm text-[var(--cc-text-secondary)]">Your name, professional role and general location appear only to eligible verified members. Sensitive matching details are never exposed unless you choose to share them.</p>
        <div className="flex flex-wrap gap-2">
         <button type="button" aria-pressed={prefs.show_gender_in_discovery} onClick={()=>preference('show_gender_in_discovery',!prefs.show_gender_in_discovery)}
          className="rounded-lg border px-3 py-2 text-left text-sm transition"
-         style={{background:prefs.show_gender_in_discovery?'rgba(20,184,166,.15)':'transparent',borderColor:prefs.show_gender_in_discovery?'#14B8A6':'var(--cc-border)',color:prefs.show_gender_in_discovery?'#5EEAD4':'var(--cc-text-secondary)'}}>Show my gender identity in verified creator searches</button>
+         style={{background:prefs.show_gender_in_discovery?'rgba(20,184,166,.15)':'transparent',borderColor:prefs.show_gender_in_discovery?'#14B8A6':'var(--cc-border)',color:prefs.show_gender_in_discovery?'var(--cc-success)':'var(--cc-text-secondary)'}}>Show my gender identity in verified creator searches</button>
         <button type="button" aria-pressed={prefs.show_categories_in_discovery} onClick={()=>preference('show_categories_in_discovery',!prefs.show_categories_in_discovery)}
          className="rounded-lg border px-3 py-2 text-left text-sm transition"
-         style={{background:prefs.show_categories_in_discovery?'rgba(20,184,166,.15)':'transparent',borderColor:prefs.show_categories_in_discovery?'#14B8A6':'var(--cc-border)',color:prefs.show_categories_in_discovery?'#5EEAD4':'var(--cc-text-secondary)'}}>Show my content categories and specialties in verified creator searches</button>
+         style={{background:prefs.show_categories_in_discovery?'rgba(20,184,166,.15)':'transparent',borderColor:prefs.show_categories_in_discovery?'#14B8A6':'var(--cc-border)',color:prefs.show_categories_in_discovery?'var(--cc-success)':'var(--cc-text-secondary)'}}>Show my content categories and specialties in verified creator searches</button>
        </div>
-       <p className="text-xs text-[#93A4BE]">Your sexual orientation, self-descriptions and collaborator preferences are not published in discovery.</p>
+       <p className="text-xs text-[var(--cc-text-secondary)]">Your sexual orientation, self-descriptions and collaborator preferences are not published in discovery.</p>
       </section>}
      </div>}
     </div>;
    })}
    <div className="flex justify-center pt-2">
-    <button id="profile-save" type="submit" disabled={saving||loading} className="ccx-primary rounded-xl px-8 py-3 font-semibold shadow-2xl disabled:opacity-50">
+    <button id="profile-save" type="submit" disabled={saving||loading} className="ccx-primary rounded-xl px-8 py-3 font-semibold shadow-lg disabled:opacity-50">
      {saving?'Saving…':loading?'Loading profile…':'Save profile changes'}</button>
    </div>
   </form>}

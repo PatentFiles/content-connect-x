@@ -26,15 +26,15 @@ export default function MembershipPlanAdmin(){
  };
  return <div className="space-y-4">
   <div><h2 className="text-xl font-semibold">Professional memberships</h2>
-   <p className="mt-1 text-sm text-[#B3C5DC]">Configure flat monthly prices without charging users. Provider activation and verified billing webhooks are separate release controls.</p></div>
-  {error&&<p role="alert" className="rounded-xl bg-red-950 p-3 text-red-200">{error}</p>}
-  {notice&&<p role="status" className="rounded-xl bg-emerald-950 p-3 text-emerald-200">{notice}</p>}
+   <p className="mt-1 text-sm text-[var(--cc-text-secondary)]">Configure flat monthly prices without charging users. Provider activation and verified billing webhooks are separate release controls.</p></div>
+  {error&&<p role="alert" className="rounded-xl bg-red-50 p-3 text-red-800">{error}</p>}
+  {notice&&<p role="status" className="rounded-xl bg-emerald-50 p-3 text-emerald-800">{notice}</p>}
   <div className="grid gap-3 md:grid-cols-2">
    {items.map(plan=><article key={plan.plan_code} className="ccx-surface space-y-3 p-4">
     <div><h3 className="font-semibold">{plan.label}</h3>
-     <p className="text-xs capitalize text-[#A6BBD6]">{plan.role_type.replaceAll('_',' ')} · Monthly USD</p></div>
+     <p className="text-xs capitalize text-[var(--cc-text-secondary)]">{plan.role_type.replaceAll('_',' ')} · Monthly USD</p></div>
     <label className="block text-sm">Monthly price (USD)
-     <input className="mt-1 w-full rounded-lg border border-[#34445D] bg-[#0F1520] px-3 py-2.5"
+     <input className="mt-1 w-full rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-2.5"
       inputMode="decimal" value={edit[plan.plan_code]??(plan.monthly_cents/100).toFixed(2)}
       onChange={e=>setEdit(v=>({...v,[plan.plan_code]:e.target.value}))}/></label>
     <button type="button" onClick={()=>save(plan)} disabled={busy}

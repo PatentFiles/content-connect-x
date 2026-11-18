@@ -14,11 +14,11 @@ function Metric({widget,metric,onNavigate}){
  if(!metric)return <p className="text-sm" role="status">Loading metric…</p>;
  if(metric.status!=='ready'){
   const copy=accessCopy(metric.status);
-  return <div className="space-y-2"><p className="text-sm font-medium">{copy.title}</p><p className="text-xs leading-5" style={{color:'var(--cc-text-secondary)'}}>{copy.description}</p>{copy.tab&&<button type="button" onClick={()=>onNavigate(copy.tab)} className="text-xs text-[#FF8DD9] underline">{copy.action}</button>}</div>;
+  return <div className="space-y-2"><p className="text-sm font-medium">{copy.title}</p><p className="text-xs leading-5" style={{color:'var(--cc-text-secondary)'}}>{copy.description}</p>{copy.tab&&<button type="button" onClick={()=>onNavigate(copy.tab)} className="text-xs text-[var(--cc-link)] underline">{copy.action}</button>}</div>;
  }
  return <><p className="text-3xl font-bold tabular-nums">{displayNumber(metric.value)}</p><p className="mt-2 text-xs leading-5" style={{color:'var(--cc-text-secondary)'}}>{metric.subtitle}</p>
   {Array.isArray(metric.items)&&<div className="mt-3 space-y-2">{metric.items.length===0?<p className="text-xs" style={{color:'var(--cc-text-muted)'}}>No entries yet.</p>:metric.items.map(item=><div key={item.id} className="border-t pt-2" style={{borderColor:'var(--cc-border)'}}><p className="text-sm break-words">{item.title}</p><time className="text-xs" style={{color:'var(--cc-text-muted)'}} dateTime={item.at}>{new Date(item.at).toLocaleString()}</time></div>)}</div>}
-  <button type="button" onClick={()=>onNavigate(widget.tab)} className="mt-4 inline-flex items-center gap-1 text-xs text-[#FF8DD9]">Open {widget.title.toLowerCase()}<ArrowRight size={13}/></button></>;
+  <button type="button" onClick={()=>onNavigate(widget.tab)} className="mt-4 inline-flex items-center gap-1 text-xs text-[var(--cc-link)]">Open {widget.title.toLowerCase()}<ArrowRight size={13}/></button></>;
 }
 export default function CustomDashboard({profile,onNavigate,roleOverride}){
  const workspace=useRoleWorkspace();
@@ -71,8 +71,8 @@ export default function CustomDashboard({profile,onNavigate,roleOverride}){
    <div className="flex flex-wrap gap-2">{editing?<><button type="button" className={primary} onClick={save} disabled={saving}><Save size={16}/>{saving?'Saving…':'Save dashboard'}</button><button type="button" className={secondary} disabled={saving} onClick={()=>{setEditing(false);setError('');void load();}}><X size={16}/>Cancel</button></>:<><button type="button" className={secondary} onClick={()=>void load()} disabled={loading} aria-label="Refresh dashboard"><RefreshCw size={16}/></button><button type="button" className={primary} onClick={customize} disabled={preview||loading||!data}><Settings2 size={16}/>Customize dashboard</button></>}</div>
   </header>
   {preview&&<p className="rounded-xl border p-4 text-sm" style={{borderColor:'var(--cc-border)',color:'var(--cc-text-secondary)'}}>You are viewing the {roleTitle(role)} layout with live metrics from your signed-in account. Role-specific tools keep their permissions. Return to My dashboard to save a layout.</p>}
-  {error&&<div role="alert" className="rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-sm text-red-200"><p>{error}</p>{!editing&&<button type="button" className="mt-2 underline" onClick={()=>void load()}>Retry dashboard</button>}</div>}
-  {notice&&<p role="status" className="text-sm text-emerald-300">{notice}</p>}
+  {error&&<div role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800"><p>{error}</p>{!editing&&<button type="button" className="mt-2 underline" onClick={()=>void load()}>Retry dashboard</button>}</div>}
+  {notice&&<p role="status" className="text-sm text-emerald-800">{notice}</p>}
   {editing&&<section aria-label="Add dashboard widgets" className="ccx-surface space-y-3 p-5"><div className="flex flex-wrap justify-between gap-2"><h2 className="font-semibold">Add widgets</h2><button type="button" className="text-xs underline" onClick={()=>setDraft(defaultDashboardLayout(role))} disabled={saving}>Reset to role defaults</button></div><p className="text-xs" style={{color:'var(--cc-text-secondary)'}}>Add or remove metrics, change their order, and choose a normal or wide card. Save to keep this layout on your other devices.</p><div className="flex flex-wrap gap-2">{catalog.filter(w=>!draft.some(item=>item.id===w.id)).map(w=><button type="button" key={w.id} className={secondary} disabled={saving} title={w.description} onClick={()=>setDraft(v=>[...v,{id:w.id,width:'normal'}])}><Plus size={14}/>{w.title}</button>)}</div></section>}
   {shown.length===0&&<div className="ccx-surface p-6 text-sm">Your dashboard is empty. Use Customize dashboard to add the metrics you want.</div>}
   <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">{shown.map((item,index)=>{

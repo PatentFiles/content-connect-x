@@ -23,7 +23,7 @@ export const tabFromLegacyPath=pathname=>{const part=decodeURIComponent(String(p
 export const legacyPathForTab=tab=>'/'+(reverseRoutes[tab]||'Dashboard');
 const tabMatches=(tab,path)=>tab===keyFor(path);
 const roleLabel={creator:'Creator',agent:'Agent',studio:'Studio',photographer:'Photographer',videographer:'Videographer',video_editor:'Video Editor'};
-const navBackground='rgba(79,140,255,0.12)';
+const navBackground='var(--cc-surface-hover)';
 const sideText='var(--cc-text-secondary)';
 function RoleDashboardSwitcher({value,onChange,mobile=false}){
  return <section aria-label="Admin dashboard switcher" className={'border-b p-4 '+(mobile?'space-y-3':'space-y-2')} style={{borderColor:'var(--cc-border)'}}>
@@ -46,7 +46,6 @@ function MenuLink({item,tab,onNavigate,onClose=()=>{},mobile=false}){
 }
 export default function OriginalShell({children,tab,onNavigate,user,profile,isAdmin=false,approved=false,onSignOut,onRolePreviewChange,featureFlags=null,isPremiumMember=false}){
  const [mobileOpen,setMobileOpen]=useState(false),[adminRole,setAdminRole]=useState('admin');
- const [theme,setTheme]=useState(()=>typeof document!=='undefined'&&document.documentElement.classList.contains('dark')?'dark':'light');
  const [unread,setUnread]=useState(0);
  const shellRef=React.useRef(null),headerRef=React.useRef(null);
  useEffect(()=>{
@@ -80,19 +79,17 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
   return()=>{live=false;window.clearInterval(timer);window.removeEventListener('ccx-data-changed',refresh);window.removeEventListener('focus',refresh);void supabase.removeChannel(channel);};
  },[user?.id,tab]);
  useEffect(()=>{const handler=e=>{if(e.key==='Escape')setMobileOpen(false);};window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler);},[]);
- const toggleTheme=()=>{const next=theme==='dark'?'light':'dark';setTheme(next);document.documentElement.classList.toggle('dark',next==='dark');localStorage.setItem('cc_theme',next);};
  return <RoleWorkspaceContext.Provider value={workspace}><div ref={shellRef} className="ccx-original-shell min-h-screen" style={{background:'var(--cc-bg)',color:'var(--cc-text-primary)'}}>
   <header ref={headerRef} className="ccx-shell-fixed-header fixed left-0 right-0 top-0 z-40 border-b backdrop-blur-xl" style={{paddingTop:'env(safe-area-inset-top,0px)',backgroundColor:'color-mix(in srgb,var(--cc-bg) 95%,transparent)',borderColor:'var(--cc-border)'}}>
    <div className="ccx-shell-toolbar">
     <button type="button" className="flex shrink-0 items-center gap-2" onClick={()=>onNavigate('dashboard')} aria-label="Content Connect X dashboard">
-     <img src="/content_connect_logo.png" alt="" className="h-8 w-8 shrink-0 rounded-lg object-cover"/><span className="hidden text-lg font-semibold sm:block">Content Connect X</span>
+     <span className="ccx-monogram" aria-hidden="true">CX</span><span className="hidden text-lg font-semibold sm:block">Content Connect X</span>
     </button>
     <div className="ccx-shell-header-actions">
      {isAdmin&&<a href="/hostconnect" className="ccx-admin-host-link" aria-label="Open Host Connect">Host Connect</a>}
      <button type="button" onClick={()=>onNavigate('membership')} aria-label={'Membership: '+(isPremiumMember?'Premium Account':'Free Account')+'; view plans'} className="inline-flex min-h-10 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-semibold sm:px-3" style={{borderColor:'var(--cc-border)',background:'var(--cc-surface)',color:'var(--cc-text-primary)'}}>
-      <CreditCard size={15} className="text-[#FF8AD8]"/><span className="hidden sm:inline">Membership</span><span>{isPremiumMember?'Premium':'Free'}</span>
+      <CreditCard size={15} className="text-[var(--cc-link)]"/><span className="hidden sm:inline">Membership</span><span>{isPremiumMember?'Premium':'Free'}</span>
      </button>
-     <button type="button" onClick={toggleTheme} title="Toggle light/dark theme" className="flex h-10 w-10 items-center justify-center rounded-lg" aria-label="Toggle theme" style={{color:'var(--cc-text-secondary)'}}><span className="text-lg" aria-hidden="true">{theme==='dark'?'☀':'☾'}</span></button>
      <button type="button" onClick={()=>onNavigate('notifications')} title="Notifications" className="relative flex h-10 w-10 items-center justify-center rounded-lg" aria-label="Notifications"><Bell size={20}/>{unread>0&&<span className="absolute -right-1 -top-1 rounded-full bg-red-600 px-1.5 text-[10px] text-white">{unread>9?'9+':unread}</span>}</button>
      <button type="button" onClick={()=>onNavigate('settings')} className="hidden h-10 w-10 items-center justify-center rounded-lg md:flex" aria-label="Settings"><Settings size={20}/></button>
      <button type="button" className="flex h-11 w-11 items-center justify-center rounded-lg md:hidden" aria-label="Open navigation menu" aria-expanded={mobileOpen} onClick={()=>setMobileOpen(true)}><Menu size={24}/></button>
@@ -115,7 +112,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
    <div className="border-t p-4" style={{borderColor:'var(--cc-border)'}}><button type="button" onClick={onSignOut} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm" style={{color:'var(--cc-text-secondary)'}}><LogOut size={20}/>Log Out</button></div>
   </aside>
   {mobileOpen&&<div className="fixed inset-0 z-[70] md:hidden">
-   <button className="absolute inset-0 bg-black/60" aria-label="Close navigation" onClick={()=>setMobileOpen(false)}/>
+   <button className="absolute inset-0 bg-black/60 text-white" aria-label="Close navigation" onClick={()=>setMobileOpen(false)}/>
    <div role="dialog" aria-modal="true" aria-label="Navigation" className="absolute bottom-0 left-0 top-0 w-80 max-w-[85vw] overflow-y-auto border-r" style={{backgroundColor:'var(--cc-bg)',borderColor:'var(--cc-border)'}}>
     <div className="flex items-center justify-between border-b p-4" style={{borderColor:'var(--cc-border)'}}><div><div className="font-medium">{profile?.display_name||'Member'}</div><div className="text-xs capitalize" style={{color:'var(--cc-text-muted)'}}>{roleLabel[role]||role}</div></div><button className="p-2" onClick={()=>setMobileOpen(false)} aria-label="Close navigation"><X size={22}/></button></div>
     {isAdmin&&<RoleDashboardSwitcher mobile value={adminRole} onChange={switchDashboard}/>}

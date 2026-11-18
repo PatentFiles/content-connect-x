@@ -2,9 +2,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { CalendarDays, MapPin, Plane, Trash2, Search } from 'lucide-react';
 import { platformAction } from './platformApi';
 
-const panel='rounded-xl bg-[#151D2B] border border-[#263248] p-5';
-const control='rounded-lg bg-[#0F1520] text-white border border-[#34445D] p-2 w-full';
-const button='rounded-lg ccx-action-primary text-white font-semibold text-sm px-4 py-2 disabled:opacity-50';
+const panel='rounded-xl bg-[var(--cc-surface-subtle)] border border-[var(--cc-border)] p-5';
+const control='rounded-lg bg-[var(--cc-surface-subtle)] text-[var(--cc-text-primary)] border border-[var(--cc-border)] p-2 w-full';
+const button='rounded-lg ccx-action-primary text-[var(--cc-text-primary)] font-semibold text-sm px-4 py-2 disabled:opacity-50';
 
 export default function ScheduleHub({paid=false,userId,creatorBookingEnabled=false}){
   const [list,setList]=useState([]);
@@ -113,37 +113,37 @@ export default function ScheduleHub({paid=false,userId,creatorBookingEnabled=fal
   };
   const short=(value)=>new Date(value).toLocaleString(undefined,{dateStyle:'medium',timeStyle:'short'});
   return <section className="space-y-5">
-    <div><h2 className="text-2xl font-semibold flex gap-2 items-center"><CalendarDays size={24}/> Creator availability</h2><p className="text-sm text-[#9AA6BC] mt-1">Find travel overlaps, production windows and studio availability by city. Exact home addresses are never exposed.</p></div>
-    {error&&<p className="bg-red-950 rounded-lg p-3 text-red-200 text-sm" role="alert">{error}</p>}
-    {info&&<p className="bg-emerald-950 rounded-lg p-3 text-emerald-200 text-sm" role="status">{info}</p>}
+    <div><h2 className="text-2xl font-semibold flex gap-2 items-center"><CalendarDays size={24}/> Creator availability</h2><p className="text-sm text-[var(--cc-text-secondary)] mt-1">Find travel overlaps, production windows and studio availability by city. Exact home addresses are never exposed.</p></div>
+    {error&&<p className="bg-red-50 rounded-lg p-3 text-red-800 text-sm" role="alert">{error}</p>}
+    {info&&<p className="bg-emerald-50 rounded-lg p-3 text-emerald-800 text-sm" role="status">{info}</p>}
     <form className={panel+' flex flex-wrap gap-3 items-end'} onSubmit={e=>{e.preventDefault();load(search);}}>
       <label className="flex-1 min-w-[180px] text-sm">Search by city<input className={control+' mt-1'} value={search} onChange={e=>setSearch(e.target.value)} placeholder="e.g., Los Angeles" maxLength={100}/></label>
       <button className={button} disabled={busy}><Search size={16} className="inline mr-1"/>Search</button>
     </form>
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
       {list.map(item=><article className={panel} key={item.id}>
-        <h3 className="font-semibold flex gap-2 items-center"><MapPin size={16} className="text-blue-400"/>{item.city}, {item.country}</h3>
-        <p className="text-sm text-[#9AA6BC] capitalize">{item.kind.replaceAll('_',' ')} · {item.region||'Travel schedule'}</p>
-        <p className="text-sm mt-3">{short(item.starts_at)}</p><p className="text-sm text-[#9AA6BC]">Through {short(item.ends_at)}</p>
+        <h3 className="font-semibold flex gap-2 items-center"><MapPin size={16} className="text-[var(--cc-text-secondary)]"/>{item.city}, {item.country}</h3>
+        <p className="text-sm text-[var(--cc-text-secondary)] capitalize">{item.kind.replaceAll('_',' ')} · {item.region||'Travel schedule'}</p>
+        <p className="text-sm mt-3">{short(item.starts_at)}</p><p className="text-sm text-[var(--cc-text-secondary)]">Through {short(item.ends_at)}</p>
         {item.note&&<p className="text-sm mt-3 whitespace-pre-wrap">{item.note}</p>}
         {paid&&creatorBookingEnabled&&['shoot','studio'].includes(item.kind)&&<button className={button+' mt-3'} onClick={()=>{setHostId(item.user_id);setBookStart('');setBookEnd('');}} disabled={busy}>Request shoot booking</button>}
       </article>)}
     </div>
-    {!list.length&&<div className={panel}><p className="text-[#9AA6BC] text-sm">No matching published availability. Search another city or date.</p></div>}
-    {!paid&&<p className="text-[#9AA6BC] text-sm">Premium members can list their own shoot dates and see additional availability entries.</p>}
+    {!list.length&&<div className={panel}><p className="text-[var(--cc-text-secondary)] text-sm">No matching published availability. Search another city or date.</p></div>}
+    {!paid&&<p className="text-[var(--cc-text-secondary)] text-sm">Premium members can list their own shoot dates and see additional availability entries.</p>}
     {paid&&creatorBookingEnabled&&<form className={panel+' space-y-3'} onSubmit={requestBooking}>
       <h3 className="font-semibold">Request a creator shoot slot</h3>
-      <p className="text-xs text-[#9AA6BC]">Only accepted mutual connections can request times that the host listed for shoots or studios. Requests do not reserve or charge anyone until confirmed.</p>
+      <p className="text-xs text-[var(--cc-text-secondary)]">Only accepted mutual connections can request times that the host listed for shoots or studios. Requests do not reserve or charge anyone until confirmed.</p>
       <label className="text-sm block">Creator member ID<input className={control+' mt-1'} required value={hostId} onChange={e=>setHostId(e.target.value)} placeholder="Verified host UUID"/></label>
       <div className="grid sm:grid-cols-2 gap-3"><label className="text-sm">Start<input type="datetime-local" required className={control+' mt-1'} value={bookStart} onChange={e=>setBookStart(e.target.value)}/></label><label className="text-sm">End<input type="datetime-local" required className={control+' mt-1'} value={bookEnd} onChange={e=>setBookEnd(e.target.value)}/></label></div>
       <label className="block text-sm">Message for host<textarea className={control+' mt-1'} maxLength={1000} rows={2} value={bookNotes} onChange={e=>setBookNotes(e.target.value)}/></label>
       <button className={button} disabled={busy||!hostId||!bookStart||!bookEnd}>Send booking request</button>
     </form>}
     <div className={panel+' space-y-3'}><h3 className="font-semibold">Creator booking requests</h3>
-      {!bookings.length&&<p className="text-sm text-[#9AA6BC]">No private booking requests yet.</p>}
-      {bookings.map(item=><div className="border-b border-[#34445D] pb-3 space-y-2" key={item.id}>
+      {!bookings.length&&<p className="text-sm text-[var(--cc-text-secondary)]">No private booking requests yet.</p>}
+      {bookings.map(item=><div className="border-b border-[var(--cc-border)] pb-3 space-y-2" key={item.id}>
         <p className="text-sm font-semibold">{item.status} · {short(item.starts_at)}</p>
-        <p className="text-xs text-[#9AA6BC]">Host: {item.host_id} · Requester: {item.requester_id}</p>
+        <p className="text-xs text-[var(--cc-text-secondary)]">Host: {item.host_id} · Requester: {item.requester_id}</p>
         <p className="text-sm">{item.notes}</p>
         <div className="flex flex-wrap gap-2">{item.host_id===userId&&item.status==='requested'&&<><button className={button} disabled={busy} onClick={()=>respondBooking(item.id,'confirmed')}>Confirm</button><button className={button} disabled={busy} onClick={()=>respondBooking(item.id,'declined')}>Decline</button></>}
         {['requested','confirmed'].includes(item.status)&&<button className={button} disabled={busy} onClick={()=>cancelBooking(item.id)}>Cancel</button>}</div>
@@ -166,12 +166,12 @@ export default function ScheduleHub({paid=false,userId,creatorBookingEnabled=fal
       <div className={panel+' space-y-3'}>
         <h3 className="font-semibold">Manage your listings</h3>
         <div className="flex flex-wrap gap-2"><button disabled={!mine.length||busy} className={button} onClick={exportCalendar}>Export iCalendar (.ics)</button><button disabled={!mine.length||busy} className={button} onClick={checkOverlaps}>Find date overlaps</button></div>
-        {!!overlaps.length&&<div className="bg-[#0F1520] rounded-lg p-3 space-y-2"><h4 className="font-semibold text-sm">Matching creators and shared windows</h4>{overlaps.map((m,i)=><div key={m.user_id+'-'+i} className="text-xs border-b border-[#263248] pb-2"><strong>{m.city}, {m.country}</strong> · {short(m.starts_at)} to {short(m.ends_at)} · {m.overlap_hours} hours · Member: {m.user_id}</div>)}</div>}
+        {!!overlaps.length&&<div className="bg-[var(--cc-surface-subtle)] rounded-lg p-3 space-y-2"><h4 className="font-semibold text-sm">Matching creators and shared windows</h4>{overlaps.map((m,i)=><div key={m.user_id+'-'+i} className="text-xs border-b border-[var(--cc-border)] pb-2"><strong>{m.city}, {m.country}</strong> · {short(m.starts_at)} to {short(m.ends_at)} · {m.overlap_hours} hours · Member: {m.user_id}</div>)}</div>}
 
-        {!mine.length&&<p className="text-sm text-[#9AA6BC]">You have no scheduled entries yet.</p>}
-        {mine.map(entry=><div key={entry.id} className="flex items-center justify-between gap-2 border-b border-[#263248] pb-2">
+        {!mine.length&&<p className="text-sm text-[var(--cc-text-secondary)]">You have no scheduled entries yet.</p>}
+        {mine.map(entry=><div key={entry.id} className="flex items-center justify-between gap-2 border-b border-[var(--cc-border)] pb-2">
           <span className="text-sm">{entry.city} · {short(entry.starts_at)} · {entry.kind}</span>
-          <button aria-label="Remove availability" title="Remove availability" onClick={()=>remove(entry.id)} disabled={busy} className="text-red-300"><Trash2 size={17}/></button>
+          <button aria-label="Remove availability" title="Remove availability" onClick={()=>remove(entry.id)} disabled={busy} className="text-red-800"><Trash2 size={17}/></button>
         </div>)}
       </div>
     </>}

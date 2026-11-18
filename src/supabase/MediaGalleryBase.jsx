@@ -3,8 +3,8 @@ import { Image, ShieldCheck, Search, RefreshCw, Video, FolderPlus, Folder, Trash
 import { supabase } from '@/api/supabaseClient';
 
 const panel='ccx-surface p-5';
-const input='w-full rounded-lg border border-[#34445D] bg-[#0F1520] p-2 text-sm';
-const button='rounded-lg ccx-action-primary text-white px-4 py-2 text-sm font-semibold disabled:opacity-50';
+const input='w-full rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-2 text-sm';
+const button='rounded-lg ccx-action-primary text-[var(--cc-text-primary)] px-4 py-2 text-sm font-semibold disabled:opacity-50';
 const ghostBtn='rounded-lg border px-3 py-2 text-sm font-medium disabled:opacity-50';
 async function mediaRequest(action,data={}){
   const {data:result,error}=await supabase.functions.invoke('media-gateway',{body:{action,...data}});
@@ -118,9 +118,9 @@ export default function MediaGallery({userId,paid=false,admin=false}){
   };
   const albumName=id=>albums.find(a=>a.id===id)?.title||'Unassigned';
   return <section className="space-y-5">
-    <div className="flex justify-between gap-2 items-center"><div><h2 className="text-2xl font-semibold">Creator media</h2><p className="text-sm text-[#9AA6BC] mt-1">Age-gated private storage, rights attestation and human moderation before publishing.</p></div><div className="flex gap-2"><button onClick={load} disabled={busy} className={button} aria-label="Refresh media"><RefreshCw size={16}/></button></div></div>
-    {error&&<p className="rounded-lg bg-red-950 p-3 text-sm text-red-200" role="alert">{error}</p>}
-    {notice&&<p className="rounded-lg bg-emerald-950 p-3 text-sm text-emerald-200" role="status">{notice}</p>}
+    <div className="flex justify-between gap-2 items-center"><div><h2 className="text-2xl font-semibold">Creator media</h2><p className="text-sm text-[var(--cc-text-secondary)] mt-1">Age-gated private storage, rights attestation and human moderation before publishing.</p></div><div className="flex gap-2"><button onClick={load} disabled={busy} className={button} aria-label="Refresh media"><RefreshCw size={16}/></button></div></div>
+    {error&&<p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{error}</p>}
+    {notice&&<p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800" role="status">{notice}</p>}
     {paid&&<section className={panel+' space-y-4'}>
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h3 className="font-semibold flex gap-2 items-center"><Folder size={18}/> Albums</h3>
@@ -134,9 +134,9 @@ export default function MediaGallery({userId,paid=false,admin=false}){
         <button className={ghostBtn} style={{borderColor:selectedAlbum===''?'var(--cc-blue)':'var(--cc-border)',color:selectedAlbum===''?'var(--cc-blue)':'var(--cc-text-secondary)'}} onClick={()=>setSelectedAlbum('')}>All media ({assets.length})</button>
         {albums.map(a=><div key={a.id} className="flex items-center gap-1 rounded-lg border" style={{borderColor:selectedAlbum===a.id?'var(--cc-blue)':'var(--cc-border)'}}>
           <button className="px-3 py-2 text-sm font-medium" style={{color:selectedAlbum===a.id?'var(--cc-blue)':'var(--cc-text-secondary)'}} onClick={()=>setSelectedAlbum(a.id)}>{a.title} ({a.count})</button>
-          <button className="px-1.5 py-2 text-red-400 hover:text-red-300" disabled={busy} onClick={()=>deleteAlbum(a.id)} aria-label={`Delete ${a.title}`}><Trash2 size={14}/></button>
+          <button className="px-1.5 py-2 text-red-800 hover:text-red-800" disabled={busy} onClick={()=>deleteAlbum(a.id)} aria-label={`Delete ${a.title}`}><Trash2 size={14}/></button>
         </div>)}
-        {!albums.length&&!showAlbumForm&&<p className="text-xs text-[#9AA6BC]">No albums yet — create one to organize your photos.</p>}
+        {!albums.length&&!showAlbumForm&&<p className="text-xs text-[var(--cc-text-secondary)]">No albums yet — create one to organize your photos.</p>}
       </div>
     </section>}
     <form onSubmit={e=>{e.preventDefault();load();}} className={panel+' flex flex-wrap gap-3 items-end'}>
@@ -144,12 +144,12 @@ export default function MediaGallery({userId,paid=false,admin=false}){
       <button className={button}><Search size={16} className="inline mr-1"/>Find</button>
     </form>
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {assets.map(asset=><article className={panel} key={asset.id}><div className="flex items-center gap-2"><Image size={17} className="text-blue-400"/><p className="font-semibold">Approved media</p></div><p className="text-xs mt-1 text-[#9AA6BC]">{new Date(asset.created_at).toLocaleDateString()}</p>{asset.album_id&&<p className="text-xs text-[#7A8BA5]">Album: {albumName(asset.album_id)}</p>}<p className="my-3 text-sm break-words">{asset.caption||'Creator gallery'}</p><button className={button} disabled={busy} onClick={()=>open(asset.id)}>View private media</button></article>)}
+      {assets.map(asset=><article className={panel} key={asset.id}><div className="flex items-center gap-2"><Image size={17} className="text-[var(--cc-text-secondary)]"/><p className="font-semibold">Approved media</p></div><p className="text-xs mt-1 text-[var(--cc-text-secondary)]">{new Date(asset.created_at).toLocaleDateString()}</p>{asset.album_id&&<p className="text-xs text-[var(--cc-text-secondary)]">Album: {albumName(asset.album_id)}</p>}<p className="my-3 text-sm break-words">{asset.caption||'Creator gallery'}</p><button className={button} disabled={busy} onClick={()=>open(asset.id)}>View private media</button></article>)}
     </div>
-    {!assets.length&&<div className={panel}><p className="text-[#9AA6BC] text-sm">No approved media entries are available for this member.</p></div>}
-    {image&&<div className={panel+' space-y-3'}><div className="flex gap-2 items-center text-sm text-[#9AA6BC]">{image.mime_type.startsWith('video')?<Video size={17}/>:<Image size={17}/>}Temporary media preview (link expires in 60 seconds)</div>
+    {!assets.length&&<div className={panel}><p className="text-[var(--cc-text-secondary)] text-sm">No approved media entries are available for this member.</p></div>}
+    {image&&<div className={panel+' space-y-3'}><div className="flex gap-2 items-center text-sm text-[var(--cc-text-secondary)]">{image.mime_type.startsWith('video')?<Video size={17}/>:<Image size={17}/>}Temporary media preview (link expires in 60 seconds)</div>
       {image.mime_type.startsWith('video')?<video controls className="rounded-lg max-h-96 w-full" src={image.url}/>:<img className="rounded-lg max-h-96 w-full object-contain" src={image.url} alt="Approved creator media"/>}
-      <button className="text-blue-400 text-sm" onClick={()=>setImage(null)}>Close preview</button>
+      <button className="text-[var(--cc-text-secondary)] text-sm" onClick={()=>setImage(null)}>Close preview</button>
     </div>}
     {paid&&<form onSubmit={upload} className={panel+' space-y-3'}>
       <h3 className="font-semibold flex gap-2 items-center"><ShieldCheck size={17}/> Upload private media for review</h3>
@@ -159,14 +159,14 @@ export default function MediaGallery({userId,paid=false,admin=false}){
       <label className="block text-sm">Add to album (optional)<select className={input+' mt-1'} value={uploadAlbumId} onChange={e=>setUploadAlbumId(e.target.value)}><option value="">No album</option>{albums.map(a=><option key={a.id} value={a.id}>{a.title}</option>)}</select></label>
       <label className="flex min-w-0 items-start gap-2 text-sm"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)} className="mt-1 shrink-0"/><span className="min-w-0 break-words">I have the authority to submit this media and confirm that everyone depicted is an adult and that required permissions and releases exist. This attestation will be reviewed; it is not proof by itself.</span></label>
       <button className={button} disabled={busy||!file||!rights}>Submit for review</button>
-      <div className="space-y-3 border-t border-[#263248] pt-3">
+      <div className="space-y-3 border-t border-[var(--cc-border)] pt-3">
         <h4 className="font-semibold text-sm">My submissions ({owned.length})</h4>
-        {owned.map(v=><div key={v.id} className="rounded-lg border border-[#263248] p-3 space-y-2">
+        {owned.map(v=><div key={v.id} className="rounded-lg border border-[var(--cc-border)] p-3 space-y-2">
           <div className="flex items-center justify-between gap-2">
             <p className="text-sm break-words flex-1 min-w-0">{v.caption||v.mime_type} · <span className="capitalize">{v.status}</span></p>
-            <span className="text-xs text-[#7A8BA5] shrink-0">{new Date(v.created_at).toLocaleDateString()}</span>
+            <span className="text-xs text-[var(--cc-text-secondary)] shrink-0">{new Date(v.created_at).toLocaleDateString()}</span>
           </div>
-          {v.album_id&&<p className="text-xs text-[#7A8BA5]">Album: {albumName(v.album_id)}</p>}
+          {v.album_id&&<p className="text-xs text-[var(--cc-text-secondary)]">Album: {albumName(v.album_id)}</p>}
           {v.status==='approved'&&<div className="ccx-action-row flex gap-2 items-center">
             <select className={input+' max-w-[180px]'} value={assignTarget[v.id]||v.album_id||''} onChange={e=>setAssignTarget(p=>({...p,[v.id]:e.target.value}))}>
               <option value="">Unassigned</option>
@@ -175,14 +175,14 @@ export default function MediaGallery({userId,paid=false,admin=false}){
             <button className={ghostBtn} disabled={busy} onClick={()=>assignAlbum(v.id,assignTarget[v.id]||null)}><Check size={14} className="inline mr-1"/>Assign</button>
           </div>}
         </div>)}
-        {!owned.length&&<p className="text-[#9AA6BC] text-xs">No submissions yet.</p>}
+        {!owned.length&&<p className="text-[var(--cc-text-secondary)] text-xs">No submissions yet.</p>}
       </div>
     </form>}
     {admin&&<div className={panel+' space-y-3'}>
       <h3 className="font-semibold">Media moderation queue ({review.length})</h3>
-      <p className="text-xs text-[#9AA6BC]">OpenModerate scanning requires a configured self-hosted service and does not establish age or consent. Final publication stays disabled until adult-content release and recordkeeping processes are approved. Never auto-approve media based solely on a model score.</p>
+      <p className="text-xs text-[var(--cc-text-secondary)]">OpenModerate scanning requires a configured self-hosted service and does not establish age or consent. Final publication stays disabled until adult-content release and recordkeeping processes are approved. Never auto-approve media based solely on a model score.</p>
       <label className="flex min-w-0 items-start gap-2 text-sm"><input type="checkbox" className="mt-1 shrink-0" checked={humanReviewed} onChange={e=>setHumanReviewed(e.target.checked)}/><span className="min-w-0 break-words">I personally reviewed the content and rights evidence before deciding.</span></label>
-      {review.map(item=><div className="border-t border-[#263248] py-3 space-y-2" key={item.id}><p className="text-sm break-all">ID: {item.id}</p><p className="text-sm text-[#9AA6BC]">{item.caption||item.mime_type} · Rights attested: {String(item.uploader_rights_attested)}</p>
+      {review.map(item=><div className="border-t border-[var(--cc-border)] py-3 space-y-2" key={item.id}><p className="text-sm break-all">ID: {item.id}</p><p className="text-sm text-[var(--cc-text-secondary)]">{item.caption||item.mime_type} · Rights attested: {String(item.uploader_rights_attested)}</p>
         <div className="flex flex-wrap gap-2"><button className={button} disabled={busy} onClick={()=>open(item.id)}>Inspect</button><button className={button} disabled={busy} onClick={()=>scan(item.id)}>OpenModerate scan</button><button className={button} disabled={busy||!humanReviewed} onClick={()=>decide(item.id,'approved')}>Approve</button><button className="rounded-lg bg-red-700 text-white px-4 py-2 text-sm disabled:opacity-50" disabled={busy||!humanReviewed} onClick={()=>decide(item.id,'rejected')}>Reject</button></div>
       </div>)}
     </div>}

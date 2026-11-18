@@ -26,17 +26,18 @@ import CreatorProfileEditor from './CreatorProfileEditor';
 import CreatorDiscovery from './CreatorDiscovery';
 import YotiVerification from './YotiVerification';
 import PublicLandingSections from './PublicLandingSections';
+import ProfessionalLandingHero,{PublicBrand} from './ProfessionalLandingHero';
 import PublicPricing from './PublicPricing';
 import AgeGateOnboarding from './AgeGateOnboarding';
 const HostingMarketplace = React.lazy(() => import('./HostingMarketplace'));
 import {   AlertTriangle, Loader2, RefreshCw, Eye, EyeOff } from 'lucide-react';
 
-const shell = 'ccx-app min-h-screen text-[#F5F3FF]';
+const shell = 'ccx-app min-h-screen text-[var(--cc-text-primary)]';
 const panel = 'ccx-surface p-5';
-const input = 'w-full rounded-lg bg-[#0F1520] border border-[#34445D] px-3 py-2.5 text-white placeholder-[#7D8BA3] focus:outline-none focus:ring-2 focus:ring-blue-500';
-const primary = 'ccx-primary rounded-xl px-4 py-2.5 text-white font-semibold disabled:opacity-50';
-const muted = 'text-[#9AA6BC]';
-function ErrorMessage({message}) { return message ? <p role="alert" className="rounded-lg border border-red-500/40 bg-red-500/10 p-3 text-sm text-red-200">{message}</p> : null; }
+const input = 'w-full rounded-lg bg-[var(--cc-surface-subtle)] border border-[var(--cc-border)] px-3 py-2.5 text-[var(--cc-text-primary)] placeholder-[var(--cc-text-muted)] focus:outline-none focus:ring-2 focus:ring-blue-500';
+const primary = 'ccx-primary rounded-xl px-4 py-2.5 text-[var(--cc-text-primary)] font-semibold disabled:opacity-50';
+const muted = 'text-[var(--cc-text-secondary)]';
+function ErrorMessage({message}) { return message ? <p role="alert" className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm text-red-800">{message}</p> : null; }
 
 export default function SupabaseApp() {
   const [session,setSession] = useState(null);
@@ -259,8 +260,8 @@ export default function SupabaseApp() {
   if(user&&!accountLoaded&&error&&!loading)return <div className={shell+' grid min-h-screen place-items-center px-5'}>
     <section role="alert" className={panel+' max-w-md space-y-4 text-center'}>
       <h2 className="text-xl font-bold">Unable to load your account permissions</h2>
-      <p className="text-sm text-[#C4CDE1]">{error}</p>
-      <p className="text-xs text-[#9BAEC8]">No verification status has been changed. Retry once to load your current account.</p>
+      <p className="text-sm text-[var(--cc-text-secondary)]">{error}</p>
+      <p className="text-xs text-[var(--cc-text-secondary)]">No verification status has been changed. Retry once to load your current account.</p>
       <button className={primary} onClick={()=>{setError('');void refresh(session).catch(e=>setError(e.message));}}>Retry account check</button>
     </section>
   </div>;
@@ -271,7 +272,7 @@ export default function SupabaseApp() {
       <nav className="mx-auto flex max-w-7xl flex-wrap justify-center gap-2">
         <a href="/login" className="ccx-secondary rounded-lg px-3 py-2 text-sm">Log in</a>
         <a href="/signup" className="ccx-primary rounded-lg px-3 py-2 text-sm">Sign up</a>
-        <a href="/pricing" aria-current="page" className="ccx-secondary rounded-lg border-[#FF8CDE] px-3 py-2 text-sm">Pricing</a>
+        <a href="/pricing" aria-current="page" className="ccx-secondary rounded-lg border-[var(--cc-border)] px-3 py-2 text-sm">Pricing</a>
       </nav>
     </header>
     <PublicPricing/>
@@ -279,6 +280,7 @@ export default function SupabaseApp() {
   if(!user&&!authPage)return <div className={shell}>
     <div className="ccx-brand-topline"/>
     <header className="ccx-public-auth-links px-4 py-3 sm:px-6" aria-label="Account links">
+      <PublicBrand/>
       <nav className="ccx-public-nav" aria-label="Public navigation">
         <a href="/login" className="ccx-public-nav-button ccx-secondary">Log in</a>
         <a href="/signup" className="ccx-public-nav-button ccx-primary">Sign up</a>
@@ -286,35 +288,29 @@ export default function SupabaseApp() {
         <a href="/hostconnect" className="ccx-public-nav-button ccx-host-connect-header">Host Connect</a>
       </nav>
     </header>
-    <section className="ccx-hero-image relative w-full overflow-hidden">
-      <picture>
-        <source media="(max-width: 640px)" srcSet="/ContentConnectX__Create,_Collaborate,_Grow.png"/>
-        <img src="/content_conect_hero.png" alt="Content Connect X — Create. Collaborate. Connect." className="block h-auto w-full object-cover"/>
-      </picture>
-      <div className="ccx-public-hero-actions pointer-events-none absolute inset-x-0 z-10 flex justify-center px-5">
-        <a href="/signup" className="ccx-primary pointer-events-auto inline-flex items-center rounded-full px-7 py-3 text-sm">Create your profile <span aria-hidden="true" className="ml-2 text-lg leading-none">→</span></a>
-      </div>
-    </section>
+    <main id="main-content">
+    <ProfessionalLandingHero/>
     <PublicLandingSections/>
+    </main>
   </div>;
   if(!user&&authPage)return <div className={shell}>
     <div className="ccx-brand-topline"/>
     <div className="relative flex min-h-[calc(100vh-4px)] items-center justify-center overflow-hidden px-4 py-8 sm:px-6">
       <section className="ccx-login-art absolute inset-0 rounded-none border-0" aria-hidden="true"/>
-      <section id="ccx-auth" className="ccx-surface relative z-10 w-full max-w-xl scroll-mt-24 bg-[#11182b]/90 p-6 backdrop-blur-xl sm:p-8" aria-label={signUp?'Create a Content Connect X account':'Sign in to Content Connect X'}>
+      <section id="ccx-auth" className="ccx-surface relative z-10 w-full max-w-xl scroll-mt-24 bg-[var(--cc-surface-subtle)] p-6 backdrop-blur-xl sm:p-8" aria-label={signUp?'Create a Content Connect X account':'Sign in to Content Connect X'}>
         <div className="flex items-center gap-4">
-          <img src="/content_connect_logo.png" alt="Content Connect X" className="ccx-brand-mark h-16 w-16 shrink-0 rounded-2xl object-cover"/>
+          <span className="ccx-monogram ccx-monogram-auth" aria-hidden="true">CX</span>
           <div><p className="ccx-eyebrow">Content Connect X</p><h2 className="mt-1 text-2xl font-bold">{signUp?'Join the network':'Welcome back'}</h2></div>
         </div>
-        <p className="mt-5 text-sm leading-6 text-[#B7C3DD]">Start with free registration and independent age verification. Membership and premium actions are available only when their services are activated.</p>
+        <p className="mt-5 text-sm leading-6 text-[var(--cc-text-secondary)]">Start with free registration and independent age verification. Membership and premium actions are available only when their services are activated.</p>
         {recovering?
           <form onSubmit={requestRecovery} className="mt-6 space-y-4">
-            <p className="text-sm text-[#B7C3DD]">Enter your account email. We will send a recovery link if the address is registered.</p>
+            <p className="text-sm text-[var(--cc-text-secondary)]">Enter your account email. We will send a recovery link if the address is registered.</p>
             <label className="block text-sm font-medium">Email address
               <input className={input+' mt-2'} type="email" inputMode="email" autoCapitalize="none" spellCheck={false} value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/>
             </label>
             <button className={primary+' w-full'} disabled={busy}>{busy?'Sending…':'Email recovery link'}</button>
-            <button type="button" className="w-full text-sm font-medium text-[#FF87D8] underline underline-offset-4"
+            <button type="button" className="w-full text-sm font-medium text-[var(--cc-link)] underline underline-offset-4"
               onClick={()=>{setRecovering(false);setNotice('');setError('');}}>Back to sign in</button>
           </form>
         :<>
@@ -325,7 +321,7 @@ export default function SupabaseApp() {
               </label>
               <label className="block text-sm font-medium">Public display name
                 <input className={input+' mt-2'} autoComplete="nickname" value={displayName} onChange={e=>setDisplayName(e.target.value)} required minLength={2} maxLength={80}/>
-                <span className="mt-1 block text-xs text-[#A6B6D0]">Choose the professional name people will see on your profile.</span>
+                <span className="mt-1 block text-xs text-[var(--cc-text-secondary)]">Choose the professional name people will see on your profile.</span>
               </label>
             </>}
 
@@ -336,26 +332,26 @@ export default function SupabaseApp() {
               <span className="relative mt-2 block">
                 <input className={input+' pr-12'} type={showPassword?'text':'password'} autoCapitalize="none" spellCheck={false} value={password} onChange={e=>setPassword(e.target.value)}
                   minLength={signUp?12:1} required autoComplete={signUp?'new-password':'current-password'}/>
-                <button type="button" className="absolute inset-y-0 right-0 grid w-12 place-items-center text-[#B7C3DD]" onClick={()=>setShowPassword(value=>!value)} aria-label={showPassword?'Hide password':'Show password'} aria-pressed={showPassword}>
+                <button type="button" className="absolute inset-y-0 right-0 grid w-12 place-items-center text-[var(--cc-text-secondary)]" onClick={()=>setShowPassword(value=>!value)} aria-label={showPassword?'Hide password':'Show password'} aria-pressed={showPassword}>
                   {showPassword?<EyeOff size={19}/>:<Eye size={19}/>} 
                 </button>
               </span>
             </label>
             <button className={primary+' w-full'} disabled={busy}>{busy?'Working…':signUp?'Create free account':'Sign in securely'}</button>
           </form>
-          <button className="mt-4 w-full text-sm font-medium text-[#FF87D8] underline underline-offset-4"
+          <button className="mt-4 w-full text-sm font-medium text-[var(--cc-link)] underline underline-offset-4"
             onClick={()=>{setSignUp(!signUp);setError('');setNotice('');}}>
             {signUp?'Already have an account? Sign in':'New here? Create your free account'}
           </button>
-          {!signUp&&<button type="button" className="mt-2 w-full text-sm text-[#B7C3DD] underline underline-offset-4"
+          {!signUp&&<button type="button" className="mt-2 w-full text-sm text-[var(--cc-text-secondary)] underline underline-offset-4"
             onClick={()=>{setRecovering(true);setError('');setNotice('');}}>
             Forgot password?
           </button>}
         </>}
-        <div className="mt-5"><ErrorMessage message={error}/>{notice&&<p className="mt-3 text-sm text-emerald-300" role="status">{notice}</p>}</div>
-        <p className="mt-5 text-center text-xs text-[#99A9C4]">Next: verify your government ID and live selfie with Yoti. New accounts must complete this step before entering the site.</p>
-        <a href="/" className="mt-4 block text-center text-sm text-[#FF87D8] underline underline-offset-4">Back to home page</a>
-        <a href="/pricing" className="mt-2 block text-center text-sm text-[#B7C3DD] underline underline-offset-4">View membership pricing</a>
+        <div className="mt-5"><ErrorMessage message={error}/>{notice&&<p className="mt-3 text-sm text-emerald-800" role="status">{notice}</p>}</div>
+        <p className="mt-5 text-center text-xs text-[var(--cc-text-secondary)]">Next: verify your government ID and live selfie with Yoti. New accounts must complete this step before entering the site.</p>
+        <a href="/" className="mt-4 block text-center text-sm text-[var(--cc-link)] underline underline-offset-4">Back to home page</a>
+        <a href="/pricing" className="mt-2 block text-center text-sm text-[var(--cc-text-secondary)] underline underline-offset-4">View membership pricing</a>
       </section>
     </div>
   </div>;
@@ -363,7 +359,7 @@ export default function SupabaseApp() {
   if(passwordRecoverySession)return <div className={shell+' grid min-h-screen place-items-center px-4'}>
     <form onSubmit={updateRecoveredPassword} className={panel+' w-full max-w-lg space-y-4'}>
       <h1 className="text-2xl font-bold">Set a new password</h1>
-      <p className="text-sm text-[#B7C3DD]">Your recovery link has been verified. Create a new password to protect your account.</p>
+      <p className="text-sm text-[var(--cc-text-secondary)]">Your recovery link has been verified. Create a new password to protect your account.</p>
       <label className="block text-sm">New password (12+ characters)
         <input className={input+' mt-2'} type="password" autoCapitalize="none" spellCheck={false} autoComplete="new-password" required minLength={12}
           value={newPassword} onChange={e=>setNewPassword(e.target.value)}/>
@@ -374,7 +370,7 @@ export default function SupabaseApp() {
       </label>
       <button className={primary+' w-full'} disabled={busy}>{busy?'Updating…':'Update password securely'}</button>
       <ErrorMessage message={error}/>
-      <button type="button" className="text-sm text-[#B7C3DD] underline"
+      <button type="button" className="text-sm text-[var(--cc-text-secondary)] underline"
         onClick={()=>supabase.auth.signOut()}>Cancel and sign out</button>
     </form>
   </div>;
@@ -382,7 +378,7 @@ export default function SupabaseApp() {
   if(mfaError)return <div className={shell+' grid min-h-screen place-items-center px-5'}>
     <section role="alert" className={panel+' max-w-md space-y-4 text-center'}>
       <h2 className="text-xl font-bold">Sign-in check unavailable</h2><p>{mfaError}</p>
-      <p className="text-sm text-[#B4C6DF]">No two-factor setup is required. This check only honors protection you already chose for your account.</p>
+      <p className="text-sm text-[var(--cc-text-secondary)]">No two-factor setup is required. This check only honors protection you already chose for your account.</p>
       <button className={primary} onClick={()=>setMfaRetry(v=>v+1)}>Retry sign-in check</button>
       <button className="block w-full text-sm underline" onClick={()=>supabase.auth.signOut()}>Sign out</button>
     </section>
@@ -433,15 +429,15 @@ export default function SupabaseApp() {
     onNavigate={navigateInWorkspace} onSignOut={signOut}
     onRolePreviewChange={setRolePreview}>
     <ErrorMessage message={error}/>
-    {notice&&<p role="status" className="my-3 text-green-400">{notice}</p>}
+    {notice&&<p role="status" className="my-3 text-green-800">{notice}</p>}
     {suspended?<div className="space-y-4">
-      <div className={panel}><AlertTriangle className="mb-2 text-red-400"/>
+      <div className={panel}><AlertTriangle className="mb-2 text-red-800"/>
       Account access is suspended. You can still review or withdraw your existing consent.</div>
       <ConsentCenter user={user} canGrant={false}/>
       <ProductionManager user={user} paid={false} isAdmin={false}/>
     </div>:approved&&!isModuleEnabled(tab,visibleFeatures)?<section className={panel+' space-y-3'}>
       <h2 className="text-xl font-semibold">This module is currently turned off</h2>
-      <p className="text-sm text-[#B7C5DA]">Your existing records remain stored. An administrator can enable this feature from Platform Controls.</p>
+      <p className="text-sm text-[var(--cc-text-secondary)]">Your existing records remain stored. An administrator can enable this feature from Platform Controls.</p>
       <button className={primary} onClick={()=>navigateInWorkspace('dashboard')}>Return to dashboard</button>
     </section>:<>
     {tab==='dashboard'&&<OriginalRoleDashboard profile={profile} verified={ageVerified}
@@ -459,7 +455,7 @@ export default function SupabaseApp() {
       !approved?<div className={panel}>Complete account onboarding to enter your workspace.</div>:
       !paid&&!['messages','connections','notifications'].includes(tab)?<div className={panel+' space-y-3'}>
         <h2 className="text-xl font-semibold">Premium member workspace</h2>
-        <p className="text-sm text-[#AABBD4]">This workflow requires an active paid membership.
+        <p className="text-sm text-[var(--cc-text-secondary)]">This workflow requires an active paid membership.
           Existing creator records are preserved and remain protected.</p>
         <button className={primary} onClick={()=>navigateInWorkspace('membership')}>Membership details</button>
       </div>:
@@ -492,7 +488,7 @@ export default function SupabaseApp() {
     {tab==='roster'&&approved&&<ProductionManager user={user} paid={paid} isAdmin={isAdmin}/>}
     {tab==='representations'&&<div className={panel+' space-y-2'}>
       <h2 className="text-xl font-semibold">Representations</h2>
-      <p className="text-sm text-[#AABBD4]">The original agent and studio representation
+      <p className="text-sm text-[var(--cc-text-secondary)]">The original agent and studio representation
        manager is not yet connected to the Supabase representation records.
        Existing production team and collaboration workflows remain accessible.</p>
       <button className={primary} onClick={()=>navigateInWorkspace('production')}>Production teams</button>
