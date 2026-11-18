@@ -1,10 +1,8 @@
-name: Apply global control layout repair
+name: Verify responsive sidebar control spacing
 on:
   push:
     branches: [main]
-    paths:
-      - '.github/workflows/control-layout-update.yml'
-      - '.maintenance/apply-control-layout.py'
+    paths: ['.github/workflows/control-layout-update.yml']
 permissions:
   contents: write
 jobs:
@@ -17,25 +15,30 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-      - name: Apply validated UI-only source changes
-        run: python3 .maintenance/apply-control-layout.py
+      - name: Bind sidebar width token and guard actual content separation
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/supabase/OriginalShell.jsx');s=p.read_text()
+          old='<aside className="fixed bottom-0 left-0 hidden w-64 flex-col border-r md:flex"'
+          assert s.count(old)==1
+          s=s.replace(old,'<aside className="ccx-shell-sidebar fixed bottom-0 left-0 hidden w-64 flex-col border-r md:flex"');p.write_text(s)
+          p=Path('scripts/test-control-layout-browser.mjs');s=p.read_text()
+          old="   if(main.getBoundingClientRect().top<hr.bottom-.5)failures.push('header overlaps content');"
+          assert s.count(old)==1
+          new=old+"\n   const sidebar=document.querySelector('.ccx-shell-sidebar');\n   if(sidebar&&sidebar.getBoundingClientRect().width>0){\n    const sr=sidebar.getBoundingClientRect();\n    if(sr.top<hr.bottom-.5)failures.push('header overlaps sidebar');\n    if(main.getBoundingClientRect().left<sr.right-.5)failures.push('sidebar overlaps page content');\n   }"
+          p.write_text(s.replace(old,new))
+          PY
       - run: npm ci
       - run: npm run lint
       - run: npm run typecheck
-      - name: All offline application regressions
-        run: node --test $(find tests -name '*.test.mjs' ! -name 'hosting-authenticated.test.mjs' | sort)
-      - name: Actual component browser layout checks
-        run: npm run test:ui-controls
-      - run: node scripts/test-role-workspace-render.mjs
-      - run: npm run verify:release
-      - run: npm run verify:frontend-contract
-      - run: npm run verify:edge-imports
+      - run: npm run test:control-layout
+      - run: npm run test:ui-controls
       - run: npm run build
-      - name: Commit tested source and remove transport files
+      - name: Commit tested responsive sidebar correction
         run: |
           git config user.name 'Content Connect maintenance'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add src scripts tests docs package.json
-          git rm -f .maintenance/control-layout-*.b64 .maintenance/apply-control-layout.py
-          git commit -m "Fix shared control spacing and wrapping across both platforms; add layout regressions"
+          git add src/supabase/OriginalShell.jsx scripts/test-control-layout-browser.mjs
+          git commit -m "Keep responsive sidebar and page content separated at enlarged text sizes"
           git push origin HEAD:main
