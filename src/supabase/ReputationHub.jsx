@@ -51,10 +51,10 @@ export default function ReputationHub({isAdmin=false}){
         <button disabled={!project||!target||busy} className={button}>Submit review</button>
       </form>
     </div>
-    <div className={panel+' space-y-3'}><h3 className="font-semibold">Public verified reviews</h3><div className="flex gap-2"><input className={field} value={target} onChange={e=>setTarget(e.target.value)} placeholder="Member UUID"/><button className={button} disabled={busy||!target} onClick={refresh}>Search</button></div>
+    <div className={panel+' space-y-3'}><h3 className="font-semibold">Public verified reviews</h3><div className="ccx-action-row flex gap-2"><input className={field} value={target} onChange={e=>setTarget(e.target.value)} placeholder="Member UUID"/><button className={button} disabled={busy||!target} onClick={refresh}>Search</button></div>
       {summary&&<p className="text-sm text-blue-300">{summary.count} verified reviews · {summary.average??'No'} average rating</p>}
       {reviews.map(r=><div key={r.id} className="border-b border-[#34445D] pb-3"><p className="font-semibold">{r.rating}/5</p><p className="text-sm whitespace-pre-wrap">{r.comment}</p></div>)}
     </div>
-    {isAdmin&&<div className={panel+' space-y-3'}><h3 className="font-semibold">Review moderation queue ({moderation.length})</h3>{moderation.map(r=><div key={r.id} className="border-b border-[#34445D] pb-3"><p className="text-sm">Rating {r.rating}/5 — {r.comment}</p><div className="flex gap-2 mt-2"><button className={button} disabled={busy} onClick={()=>act('admin_review_decide',{review_id:r.id,status:'published'},'Review published.')}>Approve</button><button className="rounded-lg bg-red-700 px-4 py-2 text-sm disabled:opacity-50" disabled={busy} onClick={()=>act('admin_review_decide',{review_id:r.id,status:'hidden'},'Review hidden.')}>Reject</button></div></div>)}</div>}
+    {isAdmin&&<div className={panel+' space-y-3'}><h3 className="font-semibold">Review moderation queue ({moderation.length})</h3>{moderation.map(r=><div key={r.id} className="border-b border-[#34445D] pb-3"><p className="text-sm">Rating {r.rating}/5 — {r.comment}</p><div className="ccx-action-row flex gap-2 mt-2"><button className={button} disabled={busy} onClick={()=>act('admin_review_decide',{review_id:r.id,status:'published'},'Review published.')}>Approve</button><button className="rounded-lg bg-red-700 px-4 py-2 text-sm disabled:opacity-50" disabled={busy} onClick={()=>act('admin_review_decide',{review_id:r.id,status:'hidden'},'Review hidden.')}>Reject</button></div></div>)}</div>}
   </section>;
 }

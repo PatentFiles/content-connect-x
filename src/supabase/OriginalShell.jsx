@@ -48,6 +48,19 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
  const [mobileOpen,setMobileOpen]=useState(false),[adminRole,setAdminRole]=useState('admin');
  const [theme,setTheme]=useState(()=>typeof document!=='undefined'&&document.documentElement.classList.contains('dark')?'dark':'light');
  const [unread,setUnread]=useState(0);
+ const shellRef=React.useRef(null),headerRef=React.useRef(null);
+ useEffect(()=>{
+  const header=headerRef.current,shell=shellRef.current;
+  if(!header||!shell)return;
+  // Wrapped header actions must push the sidebar/content down by their REAL
+  // height; a fixed 4rem offset overlaps content at small widths or large text.
+  const measure=()=>shell.style.setProperty('--cc-shell-header-height',Math.ceil(header.getBoundingClientRect().height)+'px');
+  measure();
+  const observer=typeof ResizeObserver==='undefined'?null:new ResizeObserver(measure);
+  observer?.observe(header);window.addEventListener('resize',measure);
+  return()=>{observer?.disconnect();window.removeEventListener('resize',measure);};
+ },[]);
+
  const role=profile?.role_type||'creator';
  const effectiveRole=effectiveWorkspaceRole(role,adminRole,isAdmin);
  const switchDashboard=next=>{setAdminRole(next);onRolePreviewChange?.(next==='admin'?null:next);onNavigate('dashboard');setMobileOpen(false);};
@@ -68,13 +81,13 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
  },[user?.id,tab]);
  useEffect(()=>{const handler=e=>{if(e.key==='Escape')setMobileOpen(false);};window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler);},[]);
  const toggleTheme=()=>{const next=theme==='dark'?'light':'dark';setTheme(next);document.documentElement.classList.toggle('dark',next==='dark');localStorage.setItem('cc_theme',next);};
- return <RoleWorkspaceContext.Provider value={workspace}><div className="ccx-original-shell min-h-screen" style={{background:'var(--cc-bg)',color:'var(--cc-text-primary)'}}>
-  <header className="fixed left-0 right-0 top-0 z-40 border-b backdrop-blur-xl" style={{height:'calc(4rem + env(safe-area-inset-top,0px))',paddingTop:'env(safe-area-inset-top,0px)',backgroundColor:'color-mix(in srgb,var(--cc-bg) 95%,transparent)',borderColor:'var(--cc-border)'}}>
-   <div className="flex h-16 w-full items-center justify-between px-4">
+ return <RoleWorkspaceContext.Provider value={workspace}><div ref={shellRef} className="ccx-original-shell min-h-screen" style={{background:'var(--cc-bg)',color:'var(--cc-text-primary)'}}>
+  <header ref={headerRef} className="ccx-shell-fixed-header fixed left-0 right-0 top-0 z-40 border-b backdrop-blur-xl" style={{paddingTop:'env(safe-area-inset-top,0px)',backgroundColor:'color-mix(in srgb,var(--cc-bg) 95%,transparent)',borderColor:'var(--cc-border)'}}>
+   <div className="ccx-shell-toolbar">
     <button type="button" className="flex shrink-0 items-center gap-2" onClick={()=>onNavigate('dashboard')} aria-label="Content Connect X dashboard">
      <img src="/content_connect_logo.png" alt="" className="h-8 w-8 shrink-0 rounded-lg object-cover"/><span className="hidden text-lg font-semibold sm:block">Content Connect X</span>
     </button>
-    <div className="flex items-center gap-2">
+    <div className="ccx-shell-header-actions">
      {isAdmin&&<a href="/hostconnect" className="ccx-admin-host-link" aria-label="Open Host Connect">Host Connect</a>}
      <button type="button" onClick={()=>onNavigate('membership')} aria-label={'Membership: '+(isPremiumMember?'Premium Account':'Free Account')+'; view plans'} className="inline-flex min-h-10 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-semibold sm:px-3" style={{borderColor:'var(--cc-border)',background:'var(--cc-surface)',color:'var(--cc-text-primary)'}}>
       <CreditCard size={15} className="text-[#FF8AD8]"/><span className="hidden sm:inline">Membership</span><span>{isPremiumMember?'Premium':'Free'}</span>
@@ -86,7 +99,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
     </div>
    </div>
   </header>
-  <aside className="fixed bottom-0 left-0 hidden w-64 flex-col border-r md:flex" style={{top:'calc(4rem + env(safe-area-inset-top,0px))',backgroundColor:'var(--cc-surface)',borderColor:'var(--cc-border)'}}>
+  <aside className="fixed bottom-0 left-0 hidden w-64 flex-col border-r md:flex" style={{top:'var(--cc-shell-header-height,calc(4rem + env(safe-area-inset-top,0px)))',backgroundColor:'var(--cc-surface)',borderColor:'var(--cc-border)'}}>
    <div className="border-b p-4" style={{borderColor:'var(--cc-border)'}}>
     <button className="flex w-full items-center gap-3 rounded-lg p-2 text-left" onClick={()=>onNavigate('profile')}>
      <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full" style={{background:'var(--cc-surface-hover)',color:'var(--cc-blue)'}}>{profile?.avatar_path?<img src={profile.avatar_path} alt="" className="h-full w-full object-cover"/>:(profile?.display_name||'U').slice(0,1).toUpperCase()}</span>
@@ -113,7 +126,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
     </nav>
    </div>
   </div>}
-  <main id="main-content" className="min-h-screen px-4 pb-24 pt-24 md:pl-[calc(16rem+1.5rem)] md:pr-6 md:pb-10" style={{paddingTop:'calc(5.5rem + env(safe-area-inset-top,0px))'}}><div className="mx-auto max-w-7xl"><ModuleAccessBoundary tab={tab} flags={featureFlags} onNavigate={onNavigate}>{children}</ModuleAccessBoundary></div></main>
+  <main id="main-content" className="ccx-shell-main min-h-screen px-4 pb-24 pt-24 md:pl-[calc(16rem+1.5rem)] md:pr-6 md:pb-10" style={{paddingTop:'calc(var(--cc-shell-header-height,4rem) + 1.5rem)'}}><div className="mx-auto max-w-7xl"><ModuleAccessBoundary tab={tab} flags={featureFlags} onNavigate={onNavigate}>{children}</ModuleAccessBoundary></div></main>
   <nav aria-label="Mobile bottom navigation" className="fixed bottom-0 left-0 right-0 z-50 flex border-t backdrop-blur-xl md:hidden" style={{backgroundColor:'color-mix(in srgb,var(--cc-bg) 95%,transparent)',borderColor:'var(--cc-border)',paddingBottom:'env(safe-area-inset-bottom,0px)'}}>
    {nav.slice(0,5).map(item=>{const Icon=item.icon,active=tabMatches(tab,item.path);return <button key={item.path} onClick={()=>onNavigate(keyFor(item.path))} className="flex min-h-14 flex-1 flex-col items-center justify-center gap-1 px-1 py-2" aria-current={active?'page':undefined} style={{color:active?'var(--cc-blue)':'var(--cc-text-muted)'}}><Icon size={20}/><span className="max-w-full truncate text-[10px] font-medium">{item.label}</span></button>;})}
   </nav>

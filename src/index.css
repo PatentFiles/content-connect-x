@@ -1,5 +1,6 @@
 /* globals.css must be imported before @tailwind so token :root vars are defined first */
 @import './globals.css';
+@import './control-layout.css';
 
 @tailwind base;
 @tailwind components;

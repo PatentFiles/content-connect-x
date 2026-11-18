@@ -26,7 +26,9 @@
     "verify:release": "node scripts/release-static-guards.mjs",
     "verify:frontend-contract": "node scripts/frontend-backend-contract.mjs",
     "verify:edge-imports": "node scripts/verify-edge-dependencies.mjs",
-    "test:workspace-host": "node --test tests/workspace-host-upgrade.test.mjs tests/property-catalog-runtime.test.mjs"
+    "test:workspace-host": "node --test tests/workspace-host-upgrade.test.mjs tests/property-catalog-runtime.test.mjs",
+    "test:control-layout": "node --test tests/control-layout.test.mjs",
+    "test:ui-controls": "node --experimental-websocket scripts/test-control-layout-browser.mjs"
   },
   "dependencies": {
     "@flagsmith/flagsmith": "12.5.0",

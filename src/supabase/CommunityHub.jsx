@@ -36,7 +36,7 @@ function Comments({post,paid}){
     {expanded&&<div className="space-y-3 mt-3">
       {comments.map(comment=><p key={comment.id} className="bg-[#0F1520] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap">{comment.body}</p>)}
       {!comments.length&&<p className="text-sm text-[#9AA6BC]">No approved comments yet.</p>}
-      {paid&&<form className="flex gap-2" onSubmit={send}>
+      {paid&&<form className="ccx-action-row flex gap-2" onSubmit={send}>
         <input className={control} value={body} minLength={2} maxLength={2000} onChange={e=>setBody(e.target.value)} placeholder="Reply (subject to review)" required/>
         <button className={button} disabled={busy} aria-label="Submit comment"><Send size={16}/></button>
       </form>}

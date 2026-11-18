@@ -64,7 +64,7 @@ export default function HostingWorkforceManager({propertyId=null,worker=false}){
     <h4 className="font-semibold">My property invitations</h4>
     {invites.map(i=><div key={i.property_id} className="flex flex-wrap justify-between gap-2 border-t border-[#334961] py-2 text-xs">
       <span className="break-all">{i.property_id} · {i.role} · {i.status}</span>
-      {i.status==='invited'&&<div className="flex gap-2"><button className={btn} onClick={()=>act('staff_respond',{property_id:i.property_id,status:'active'},'Staff invitation accepted.')}>Accept</button>
+      {i.status==='invited'&&<div className="ccx-action-row flex gap-2"><button className={btn} onClick={()=>act('staff_respond',{property_id:i.property_id,status:'active'},'Staff invitation accepted.')}>Accept</button>
         <button className={secondary} onClick={()=>act('staff_respond',{property_id:i.property_id,status:'declined'},'Invitation declined.')}>Decline</button></div>}
     </div>)}
     {!invites.length&&<p className="text-xs text-[#9FB5D0]">No staff invitations yet.</p>}
@@ -114,7 +114,7 @@ export default function HostingWorkforceManager({propertyId=null,worker=false}){
     {stock.map(i=><div key={i.id} className="flex flex-wrap justify-between gap-2 border-t border-[#334961] pt-2 text-xs">
       <span>{i.label} · {i.quantity} {i.unit}
         {Number(i.quantity)<=Number(i.reorder_at)&&<strong className="ml-2 text-amber-300"><AlertTriangle size={13} className="inline mr-1"/>Low stock</strong>}</span>
-      <div className="flex gap-2"><button type="button" className={secondary} onClick={()=>adjust(i,-1)}>Use 1</button><button type="button" className={secondary} onClick={()=>adjust(i,1)}>Restock 1</button></div>
+      <div className="ccx-action-row flex gap-2"><button type="button" className={secondary} onClick={()=>adjust(i,-1)}>Use 1</button><button type="button" className={secondary} onClick={()=>adjust(i,1)}>Restock 1</button></div>
     </div>)}
   </form>}
   {!worker&&performance.length>0&&<div className={card+' space-y-2'}>

@@ -162,10 +162,11 @@ option {
 /* ── Touch targets ──────────────────────────────────────────────────────── */
 button, [role="button"], [role="tab"], [role="menuitem"], [role="option"] { min-height: 44px; }
 a:not(:where(p a, span a, li a, td a, .inline-link)) { min-height: 44px; display: inline-flex; align-items: center; }
-input[type="checkbox"], input[type="radio"] { min-width: 20px; min-height: 20px; padding: 12px; margin: -12px; }
+/* Checkbox/radio geometry and label hit areas live in control-layout.css.
+   Never enlarge native controls with padding or negative margins. */
 button[aria-label], button.icon-btn, [role="tab"], [role="menuitem"] { user-select: none; -webkit-user-select: none; }
-.touch-target { position: relative; }
-.touch-target::after { content: ''; position: absolute; inset: -8px; min-width: 44px; min-height: 44px; }
+.touch-target { position: relative; min-width: 44px; min-height: 44px; }
+/* The touch target occupies layout space; no invisible overlapping hit box. */
 
 /* ── Reduced motion ─────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {

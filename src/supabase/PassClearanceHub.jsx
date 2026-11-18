@@ -132,7 +132,7 @@ export default function PassClearanceHub({isAdmin=false}){
      <label className="text-sm block">From date<input type="date" className={input+' mt-1'} value={dateFilter.from} onChange={e=>setDateFilter(p=>({...p,from:e.target.value}))}/></label>
      <label className="text-sm block">To date<input type="date" className={input+' mt-1'} value={dateFilter.to} onChange={e=>setDateFilter(p=>({...p,to:e.target.value}))}/></label>
      <label className="text-sm block">Search by weekday<input className={input+' mt-1'} placeholder="e.g. Sunday" value={weekdaySearch} onChange={e=>setWeekdaySearch(e.target.value)}/></label>
-     <div className="flex items-end gap-2">
+     <div className="ccx-action-row flex items-end gap-2">
       <button className={button} disabled={busy} onClick={loadHistory}><Search size={14} className="inline mr-1"/>Search</button>
       <button className={ghostBtn} disabled={busy} onClick={()=>{setDateFilter({from:'',to:''});setWeekdaySearch('');}}>Reset</button>
      </div>
@@ -198,7 +198,7 @@ export default function PassClearanceHub({isAdmin=false}){
     <button className="ccx-secondary rounded-lg px-3 py-2" onClick={async()=>{try{const d=await integrationAction('admin_clearance_document',{id:v.id});const u=new URL(d.url);if(u.protocol==='https:')window.open(u.toString(),'_blank','noopener,noreferrer');}catch(e){setError(e.message);}}}>Open private evidence (90 sec)</button>
     <label className="block">First sample collection date<input className={input+' mt-1'} type="date" value={dates[v.id]||''} onChange={e=>setDates(p=>({...p,[v.id]:e.target.value}))}/></label>
     <label className="flex min-w-0 items-start gap-2"><input type="checkbox" className="mt-1 shrink-0" checked={Boolean(confirm[v.id])} onChange={e=>setConfirm(p=>({...p,[v.id]:e.target.checked}))}/><span className="min-w-0 break-words">I independently verified current clearance with the qualified provider, not merely this uploaded document.</span></label>
-    <div className="flex gap-2">
+    <div className="ccx-action-row flex gap-2">
      <button className={button} disabled={busy||!confirm[v.id]||!dates[v.id]} onClick={()=>execute('admin_clearance_review',{id:v.id,decision:'verified_offsite',independent_provider_confirmation:true,sample_collected_on:dates[v.id]},'Confirmed status for 14 days from sample date.')}>Record verified clearance</button>
      <button className="ccx-secondary rounded-lg px-3 py-2" disabled={busy} onClick={()=>execute('admin_clearance_review',{id:v.id,decision:'rejected'},'Submission rejected.')}>Reject</button>
     </div>

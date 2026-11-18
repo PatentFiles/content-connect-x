@@ -1,0 +1,184 @@
+/* Shared interaction geometry for BOTH Content Connect X and Host Connect.
+ * Imported once in index.css, including native top-layer dialogs/portals.
+ * A visible label supplies the touch target; controls never escape their box.
+ * This file changes layout, not consent, form values, permissions or handlers.
+ */
+:root {
+  --cc-control-size: 20px;
+  --cc-control-gap: .75rem;
+  --cc-control-target: 44px;
+}
+
+/* Native choices: an actual, non-shrinking 20px box. Do not use padding or
+ * negative margins to simulate a 44px target: that overlaps adjacent text.
+ * Keep screen-reader-only / hidden controls hidden for custom widgets.
+ */
+input:is([type="checkbox"], [type="radio"]):not(:where(.sr-only, [hidden])) {
+  box-sizing: border-box;
+  display: inline-block;
+  flex: 0 0 var(--cc-control-size);
+  width: var(--cc-control-size);
+  height: var(--cc-control-size);
+  min-width: var(--cc-control-size);
+  min-height: var(--cc-control-size);
+  padding: 0;
+  margin: 0;
+  vertical-align: middle;
+}
+
+/* Also applies to existing labels automatically and to newly added pages.
+ * Explicit utility alignment (items-start/items-center) is retained. A label
+ * is the click target, so its 44px minimum adds space rather than stealing it.
+ */
+:where(label:has(> input:is([type="checkbox"], [type="radio"]):not([hidden]))),
+.ccx-choice-row {
+  display: flex;
+  align-items: center;
+  column-gap: var(--cc-control-gap);
+  min-width: 0;
+  min-height: var(--cc-control-target);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+/* Enforce a positive separation even if a compact page sets gap-0/gap-1.
+ * Logical margins respect RTL without relying on a negative physical margin.
+ */
+label:has(> input:is([type="checkbox"], [type="radio"]):not([hidden])) {
+  column-gap: var(--cc-control-gap);
+}
+label:has(> input:is([type="checkbox"], [type="radio"])) > :where(span, div) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+input:is([type="checkbox"], [type="radio"]):focus-visible {
+  outline: 2px solid var(--cc-blue, #4f8cff);
+  outline-offset: 3px;
+}
+input:is([type="checkbox"], [type="radio"]):disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+
+/* Standard actions can wrap their captions instead of drawing text on top
+ * of a neighbor. Intentionally stacked cards and image buttons are excluded.
+ */
+:where(.ccx-primary, .ccx-secondary, .ccx-action-primary, .oh-primary, .oh-secondary) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+:where(button, [role="button"], a) > svg { flex-shrink: 0; }
+
+/* Reusable action/composer row. Use on normal form actions, NOT navigation,
+ * calendar cells, image overlays or tabs that intentionally scroll sideways.
+ * Fields stay useful on narrow screens and buttons move to the next line.
+ */
+.ccx-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .5rem;
+  min-width: 0;
+  max-width: 100%;
+}
+.ccx-action-row > :where(button, a) {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.ccx-action-row > :where(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), select, textarea, label) {
+  flex: 1 1 12rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Text inputs must be allowed to shrink inside grid/flex cards. Replaced
+ * elements otherwise use an intrinsic width that can push the next action out.
+ */
+:where(form, .ccx-surface, .oh-panel) :where(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Icon-only controls keep a genuinely square target. Previously the global
+ * 44px min-height combined with local 29–38px widths produced distorted boxes.
+ * These selectors are deliberately limited to real controls, not status icons.
+ */
+:is(.oh-circle-control, .oh-photo-step, .oh-property-heart, .oh-icon-button),
+.oh-photo-grid figure > button,
+.oh-photo-selection-grid figure > button {
+  width: var(--cc-control-target);
+  height: var(--cc-control-target);
+  min-width: var(--cc-control-target);
+  min-height: var(--cc-control-target);
+  flex-shrink: 0;
+}
+
+@media (forced-colors: active) {
+  input:is([type="checkbox"], [type="radio"]) {
+    appearance: auto;
+    forced-color-adjust: auto;
+  }
+  input:is([type="checkbox"], [type="radio"])::after { display: none; }
+}
+
+/* Cards and page headings must not use a flex/grid child's intrinsic text
+ * width as a minimum. In particular this preserves 200% text on small screens.
+ */
+:where(.ccx-app, .ccx-original-shell, .oh-app, .host-connect-theme, .oh-dialog)
+  :where(.flex, .grid) > :where(div, form, section, header, fieldset) {
+  min-width: 0;
+}
+:where(.ccx-app, .ccx-original-shell, .oh-app, .host-connect-theme, .oh-dialog)
+  :where(h1, h2, h3) {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* Fixed app chrome: ordinary actions wrap instead of shrinking icon hit boxes.
+ * OriginalShell observes the resulting height and shares the offset with its
+ * main content and sidebar. No hard-coded mobile header height is needed.
+ */
+.ccx-original-shell { --cc-shell-sidebar-width: min(16rem, 38vw); }
+.ccx-shell-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  min-height: 4rem;
+  padding: .5rem 1rem;
+}
+.ccx-shell-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .5rem;
+  min-width: 0;
+  max-width: 100%;
+  margin-inline-start: auto;
+}
+.ccx-shell-header-actions > :where(button, a) {
+  flex-shrink: 0;
+  min-width: var(--cc-control-target);
+  min-height: var(--cc-control-target);
+  max-width: 100%;
+}
+:where(.ccx-original-shell) button { overflow-wrap: anywhere; }
+@media (min-width: 768px) {
+  .ccx-original-shell .ccx-shell-sidebar { width: var(--cc-shell-sidebar-width); }
+  .ccx-original-shell .ccx-shell-main { padding-left: calc(var(--cc-shell-sidebar-width) + 1.5rem); }
+}
+/* Long names/status text also needs to break within a narrow card. */
+:where(.ccx-surface, .oh-panel, .oh-dialog) { overflow-wrap: anywhere; }

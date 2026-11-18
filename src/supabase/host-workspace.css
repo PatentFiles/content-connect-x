@@ -52,7 +52,7 @@
 .oh-dialog-content{overflow-y:auto;overscroll-behavior:contain;min-height:0;padding:25px 30px 30px;scrollbar-width:thin;scrollbar-color:#4f6a8d #15243b}
 .oh-dialog .ccx-surface{background:transparent;border:none;border-radius:0;box-shadow:none;padding:0}.oh-dialog .space-y-4>*,.oh-dialog .space-y-3>*{position:relative}
 .oh-dialog form>label,.oh-dialog .grid>label{font-size:12px;font-weight:650;color:#cbdbee;line-height:1.7}
-.oh-dialog input:not([type=checkbox]):not([type=file]),.oh-dialog select,.oh-dialog textarea{border:1px solid #405775;background:#0d182a;color:#f5faff;border-radius:12px;min-height:46px;padding:11px 13px;font-size:14px;font-weight:400;line-height:1.5;width:100%;box-sizing:border-box}
+.oh-dialog input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]):not([type=hidden]):not([type=button]):not([type=submit]):not([type=reset]),.oh-dialog select,.oh-dialog textarea{border:1px solid #405775;background:#0d182a;color:#f5faff;border-radius:12px;min-height:46px;padding:11px 13px;font-size:14px;font-weight:400;line-height:1.5;width:100%;box-sizing:border-box}
 .oh-dialog input:focus,.oh-dialog select:focus,.oh-dialog textarea:focus{outline:2px solid #51c6e9;outline-offset:1px}.oh-dialog textarea{resize:vertical;min-height:100px}
 .oh-dialog input[type=file]{font-size:12px;color:#bed2eb;max-width:100%}.oh-dialog input[type=file]::file-selector-button{border:1px solid #42638a;background:#233d5e;color:#edf5ff;border-radius:9px;padding:9px 12px;margin-right:10px;cursor:pointer}
 .oh-editor-tabs{display:flex;gap:7px;overflow-x:auto;border-bottom:1px solid #354965;padding:0 0 15px;margin-bottom:24px;scrollbar-width:thin}

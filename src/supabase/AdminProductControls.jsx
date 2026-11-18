@@ -94,7 +94,7 @@ export default function AdminProductControls({onFeatureChange}){
     </section>
     <section className="space-y-3"><h3 className="text-lg font-semibold flex items-center gap-2"><ShieldAlert size={19}/> Community moderation queue ({queue.length})</h3>
       <p className="text-[#9AA6BC] text-sm">All text posts and comments require human approval. Never mark an account age-verified based on post content or images.</p>
-      {queue.map(item=><div className={panel+' space-y-3'} key={item.id}><p className="text-xs text-[#9AA6BC]">{item.content_type} · {new Date(item.created_at).toLocaleString()}</p><p className="text-sm whitespace-pre-wrap break-words">{item.body}</p><div className="flex gap-2"><button className={button} disabled={busy} onClick={()=>review(item.id,'approved')}>Approve</button><button className="bg-red-700 text-white rounded-lg px-4 py-2 text-sm disabled:opacity-50" disabled={busy} onClick={()=>review(item.id,'rejected')}>Reject</button></div></div>)}
+      {queue.map(item=><div className={panel+' space-y-3'} key={item.id}><p className="text-xs text-[#9AA6BC]">{item.content_type} · {new Date(item.created_at).toLocaleString()}</p><p className="text-sm whitespace-pre-wrap break-words">{item.body}</p><div className="ccx-action-row flex gap-2"><button className={button} disabled={busy} onClick={()=>review(item.id,'approved')}>Approve</button><button className="bg-red-700 text-white rounded-lg px-4 py-2 text-sm disabled:opacity-50" disabled={busy} onClick={()=>review(item.id,'rejected')}>Reject</button></div></div>)}
       {!queue.length&&<div className={panel}><p className="text-sm text-[#9AA6BC]">Queue empty.</p></div>}
     </section>
   </div>;

@@ -126,7 +126,7 @@ export default function MediaGallery({userId,paid=false,admin=false}){
         <h3 className="font-semibold flex gap-2 items-center"><Folder size={18}/> Albums</h3>
         <button className={button} disabled={busy} onClick={()=>setShowAlbumForm(v=>!v)}><FolderPlus size={16} className="inline mr-1"/>New album</button>
       </div>
-      {showAlbumForm&&<form onSubmit={createAlbum} className="flex gap-2 items-end">
+      {showAlbumForm&&<form onSubmit={createAlbum} className="ccx-action-row flex gap-2 items-end">
         <label className="flex-1 text-sm">Album name<input className={input+' mt-1'} maxLength={120} value={albumTitle} onChange={e=>setAlbumTitle(e.target.value)} placeholder="e.g. Studio shoots 2026"/></label>
         <button className={button} disabled={busy||!albumTitle.trim()}>Create</button>
       </form>}
@@ -167,7 +167,7 @@ export default function MediaGallery({userId,paid=false,admin=false}){
             <span className="text-xs text-[#7A8BA5] shrink-0">{new Date(v.created_at).toLocaleDateString()}</span>
           </div>
           {v.album_id&&<p className="text-xs text-[#7A8BA5]">Album: {albumName(v.album_id)}</p>}
-          {v.status==='approved'&&<div className="flex gap-2 items-center">
+          {v.status==='approved'&&<div className="ccx-action-row flex gap-2 items-center">
             <select className={input+' max-w-[180px]'} value={assignTarget[v.id]||v.album_id||''} onChange={e=>setAssignTarget(p=>({...p,[v.id]:e.target.value}))}>
               <option value="">Unassigned</option>
               {albums.map(a=><option key={a.id} value={a.id}>{a.title}</option>)}

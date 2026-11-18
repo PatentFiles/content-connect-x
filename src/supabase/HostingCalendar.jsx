@@ -28,7 +28,7 @@ export default function HostingCalendar({periods=[],onSelect,selectedDate}) {
  return <div className="rounded-xl border border-[#34465E] bg-[#0C1726] p-4">
    <div className="flex items-center justify-between">
      <h4 className="flex items-center gap-2 text-sm font-semibold"><CalendarDays size={16}/> {month.toLocaleDateString(undefined,{month:'long',year:'numeric'})}</h4>
-     <div className="flex gap-2"><button className="rounded-lg p-2 hover:bg-[#283B55]" onClick={()=>move(-1)} aria-label="Previous month"><ChevronLeft size={16}/></button><button className="rounded-lg p-2 hover:bg-[#283B55]" onClick={()=>move(1)} aria-label="Next month"><ChevronRight size={16}/></button></div>
+     <div className="ccx-action-row flex gap-2"><button className="rounded-lg p-2 hover:bg-[#283B55]" onClick={()=>move(-1)} aria-label="Previous month"><ChevronLeft size={16}/></button><button className="rounded-lg p-2 hover:bg-[#283B55]" onClick={()=>move(1)} aria-label="Next month"><ChevronRight size={16}/></button></div>
    </div>
    <div className="mt-3 grid grid-cols-7 gap-1 text-center">{days.map(d=><span key={d} className="py-1 text-[11px] font-semibold text-[#8FA7C4]">{d}</span>)}
      {cells.map((date,i)=>{

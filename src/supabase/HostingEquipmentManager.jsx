@@ -48,7 +48,7 @@ export default function HostingEquipmentManager({propertyId}){
     <label className="text-xs flex gap-2 items-center"><input type="checkbox" checked={item.active} onChange={e=>setItem(v=>({...v,active:e.target.checked}))}/>Available to rent</label>
    </div>
    <textarea maxLength={1500} className={input} rows={2} value={item.description} onChange={e=>setItem(v=>({...v,description:e.target.value}))} placeholder="Condition and specifications"/>
-   <div className="flex gap-2"><button className={button} disabled={busy}>Save equipment</button><button type="button" className={button+' bg-[#2B405D]'} onClick={()=>setItem(empty)}>New</button></div>
+   <div className="ccx-action-row flex gap-2"><button className={button} disabled={busy}>Save equipment</button><button type="button" className={button+' bg-[#2B405D]'} onClick={()=>setItem(empty)}>New</button></div>
   </form>
   <div className={panel+' space-y-2'}>
    <h4 className="flex gap-2 font-semibold"><Boxes size={18}/>Inventory ({assets.length})</h4>

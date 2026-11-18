@@ -127,11 +127,11 @@ export default function ProductionManager({user,paid=false,isAdmin=false}){
         {!items.length&&<p className="text-sm text-[#9AA6BC]">No production teams yet.</p>}
         {items.map(entry=><div className="border-b border-[#34445D] pb-3" key={entry.id}>
           <p className="font-semibold">{entry.name}</p><p className="text-xs text-[#9AA6BC]">{entry.my_membership?.status} · {entry.my_membership?.role}</p>
-          {entry.my_membership?.status==='invited'&&<div className="flex gap-2 mt-2"><button className={button} disabled={busy} onClick={()=>mutate('teams_respond',{team_id:entry.id,status:'active'},'Invitation accepted.')}>Accept</button><button className={secondary} disabled={busy} onClick={()=>mutate('teams_respond',{team_id:entry.id,status:'declined'},'Invitation declined.')}>Decline</button></div>}
+          {entry.my_membership?.status==='invited'&&<div className="ccx-action-row flex gap-2 mt-2"><button className={button} disabled={busy} onClick={()=>mutate('teams_respond',{team_id:entry.id,status:'active'},'Invitation accepted.')}>Accept</button><button className={secondary} disabled={busy} onClick={()=>mutate('teams_respond',{team_id:entry.id,status:'declined'},'Invitation declined.')}>Decline</button></div>}
           {entry.my_membership?.status==='active'&&<button className="text-blue-300 text-sm mt-2" onClick={()=>chooseTeam(entry.id)}>Show members and invitations</button>}
           {team===entry.id&&<div className="space-y-2 mt-3 bg-[#0F1520] p-3 rounded-lg">
             {teamMembers.map(x=><p key={x.member_id} className="text-xs break-all">{x.member_id} · {x.role} · {x.status}</p>)}
-            {['owner','manager'].includes(entry.my_membership?.role)&&<div className="flex gap-2"><input className={control} placeholder="Verified creator UUID" value={target} onChange={e=>setTarget(e.target.value)}/><button className={button} disabled={busy||!target} onClick={()=>mutate('teams_invite',{team_id:team,member_id:target},'Team invitation sent.')}>Invite</button></div>}
+            {['owner','manager'].includes(entry.my_membership?.role)&&<div className="ccx-action-row flex gap-2"><input className={control} placeholder="Verified creator UUID" value={target} onChange={e=>setTarget(e.target.value)}/><button className={button} disabled={busy||!target} onClick={()=>mutate('teams_invite',{team_id:team,member_id:target},'Team invitation sent.')}>Invite</button></div>}
           </div>}
         </div>)}
       </div>
@@ -158,7 +158,7 @@ export default function ProductionManager({user,paid=false,isAdmin=false}){
           <p className="font-semibold">{event.title}</p><p className="text-sm text-[#9AA6BC]">{event.city||'Location to be confirmed'} · {new Date(event.starts_at).toLocaleString()} — {new Date(event.ends_at).toLocaleString()}</p>
           <p className="text-xs">Capacity {event.capacity} · RSVP {event.my_rsvp||'Not answered'} · {event.status}</p>
           {event.status==='scheduled'&&<div className="flex flex-wrap gap-2">{['going','maybe','declined'].map(status=><button className={secondary} key={status} disabled={busy} onClick={()=>mutate('events_rsvp',{event_id:event.id,status},'RSVP updated.')}>{status}</button>)}</div>}
-          {event.organizer_id===user.id&&<div className="flex gap-2"><input className={control} placeholder="Member UUID" value={eventTarget} onChange={e=>setEventTarget(e.target.value)}/><button className={button} disabled={busy||!eventTarget} onClick={()=>mutate('events_invite',{event_id:event.id,member_id:eventTarget},'Invitation sent.')}>Invite</button></div>}
+          {event.organizer_id===user.id&&<div className="ccx-action-row flex gap-2"><input className={control} placeholder="Member UUID" value={eventTarget} onChange={e=>setEventTarget(e.target.value)}/><button className={button} disabled={busy||!eventTarget} onClick={()=>mutate('events_invite',{event_id:event.id,member_id:eventTarget},'Invitation sent.')}>Invite</button></div>}
         </div>)}
       </div>
     </div>}

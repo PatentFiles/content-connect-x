@@ -76,7 +76,7 @@ export default function IntegrationSettings(){
     <div className="space-y-3">
      {(p.fields||[]).map(field=><div key={field.name}>
       <label className="block text-xs font-semibold text-[#B3BFD5]" htmlFor={'ccx-'+field.name}>{field.name.replaceAll('_',' ')} · {field.configured?'Stored':'Missing'}</label>
-      <div className="mt-1 flex gap-2">
+      <div className="ccx-action-row mt-1 flex gap-2">
        <input id={'ccx-'+field.name} className={styles.input+' min-w-0 flex-1'} autoComplete="off" spellCheck={false}
         type={visible[field.name]?'text':'password'} placeholder={field.configured?'Replace saved credential':'Paste provider API credential'}
         value={values[field.name]||''} onChange={e=>setValues(v=>({...v,[field.name]:e.target.value}))}/>

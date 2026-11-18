@@ -145,7 +145,7 @@ export default function HostingProductionPacket({bookingId,userId}){
     <input type="file" required accept="application/pdf,image/jpeg,image/png,image/webp" onChange={e=>setInsuranceFile(e.target.files?.[0]||null)} className="text-xs"/>
     <button className={button} disabled={busy||!insuranceFile}>Submit private insurance evidence</button>
    </form>
-   <div className="flex gap-2">
+   <div className="ccx-action-row flex gap-2">
     <button className={second} onClick={()=>act('insurance_review',{booking_id:bookingId,status:'approved',review_confirmed:true},'Insurance approved by host.')}>Host approve insurance</button>
     <button className={second} onClick={()=>act('insurance_review',{booking_id:bookingId,status:'rejected',review_confirmed:true},'Insurance returned for changes.')}>Return for changes</button>
    </div>

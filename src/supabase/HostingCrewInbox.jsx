@@ -80,7 +80,7 @@ export default function HostingCrewInbox(){
      {messages.map(m=><p className="text-xs break-words" key={m.id}><strong>{m.sender_id?.slice(0,8)}:</strong> {m.body}</p>)}
      {!messages.length&&<p className="text-xs text-[#9CB3D0]">No messages yet. A host or guest must create the conversation first.</p>}
     </div>
-    <form className="flex gap-2" onSubmit={send}>
+    <form className="ccx-action-row flex gap-2" onSubmit={send}>
      <input required minLength={1} maxLength={3000} className={input+' flex-1'} value={text} onChange={e=>setText(e.target.value)} placeholder="Coordinate with your production team"/>
      <button className={button} disabled={busy}>Send</button>
     </form>

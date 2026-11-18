@@ -49,7 +49,7 @@ export default function HostingCalendarManager({propertyId}){
    {connections.map(c=><div key={c.id} className="flex flex-wrap items-center justify-between gap-2 border-t border-[#30445D] py-3">
     <div><p className="text-sm font-semibold capitalize">{c.provider} · {c.status}</p><p className="text-xs text-[#9AB1CE]">{c.last_synced_at?'Last sync '+formatDate(c.last_synced_at):'Awaiting first import'} · {c.last_successful_count||0} busy intervals</p>
      {c.last_error&&<p className="text-xs text-amber-200">{c.last_error}</p>}</div>
-    <div className="flex gap-2">
+    <div className="ccx-action-row flex gap-2">
      <button className={button} disabled={busy} onClick={()=>act('sync_now',{id:c.id},'External calendar synchronized.')}>Sync now</button>
      <button className={button+' bg-red-800'} disabled={busy} onClick={()=>act('disconnect',{id:c.id},'Calendar disconnected; only its imported blocks were removed.')}>Disconnect</button>
     </div>

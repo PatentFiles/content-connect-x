@@ -286,7 +286,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
     <div className={panel+' space-y-4'}><h3 className="font-semibold">Private photos awaiting approval ({pendingImages.length})</h3>
       {pendingImages.map(pic=><div key={pic.id} className="flex flex-wrap items-center gap-4 border-b border-[#34465E] pb-3">
         {pic.url?<img className="h-24 w-32 rounded-lg object-cover" src={pic.url} alt="Private property review"/>:<ImageIcon size={32}/>}
-        <div className="flex-1 min-w-[200px]"><p className="break-all text-xs text-[#AABDD3]">Listing {pic.property_id}</p><div className="mt-3 flex gap-2">
+        <div className="flex-1 min-w-[200px]"><p className="break-all text-xs text-[#AABDD3]">Listing {pic.property_id}</p><div className="ccx-action-row mt-3 flex gap-2">
           <button disabled={busy||!approvalChecked} className={button} onClick={()=>reviewImage(pic.id,'approved')}>Approve photo</button>
           <button disabled={busy||!approvalChecked} className={secondary} onClick={()=>reviewImage(pic.id,'rejected')}>Reject</button></div>
         </div>
@@ -311,12 +311,12 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
         </div>
         <p className="mt-2 text-xs text-[#A7BAD3]">Rules: {p.rules||'None specified'}</p>
         <PropertyVirtualTour propertyId={p.id} title={p.title}/>
-        <div className="mt-3 flex gap-2"><button disabled={busy||!approvalChecked} className={button} onClick={()=>reviewListing(p.id,'active')}>Publish approved listing</button><button disabled={busy||!approvalChecked} className={secondary} onClick={()=>reviewListing(p.id,'paused')}>Return for changes</button></div>
+        <div className="ccx-action-row mt-3 flex gap-2"><button disabled={busy||!approvalChecked} className={button} onClick={()=>reviewListing(p.id,'active')}>Publish approved listing</button><button disabled={busy||!approvalChecked} className={secondary} onClick={()=>reviewListing(p.id,'paused')}>Return for changes</button></div>
       </div>)}
       {!pending.length&&<p className={muted}>No listings waiting for review.</p>}
     </div>
     <div className={panel+' space-y-3'}><h3 className="font-semibold">Guest reviews awaiting publication ({reviewQueue.length})</h3>
-      {reviewQueue.map(review=><div key={review.id} className="border-b border-[#34465E] pb-3"><p className="text-sm font-semibold">{review.rating}/5 stars</p><p className="text-sm whitespace-pre-wrap">{review.description}</p><p className="text-xs text-[#829AB5]">Property {review.property_id}</p><div className="mt-3 flex gap-2"><button disabled={busy||!approvalChecked} className={button} onClick={()=>reviewGuest(review.id,'published')}>Publish</button><button disabled={busy||!approvalChecked} className={secondary} onClick={()=>reviewGuest(review.id,'rejected')}>Reject</button></div></div>)}
+      {reviewQueue.map(review=><div key={review.id} className="border-b border-[#34465E] pb-3"><p className="text-sm font-semibold">{review.rating}/5 stars</p><p className="text-sm whitespace-pre-wrap">{review.description}</p><p className="text-xs text-[#829AB5]">Property {review.property_id}</p><div className="ccx-action-row mt-3 flex gap-2"><button disabled={busy||!approvalChecked} className={button} onClick={()=>reviewGuest(review.id,'published')}>Publish</button><button disabled={busy||!approvalChecked} className={secondary} onClick={()=>reviewGuest(review.id,'rejected')}>Reject</button></div></div>)}
       {!reviewQueue.length&&<p className={muted}>No pending guest reviews.</p>}
     </div>
   </div>:<>
@@ -496,7 +496,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           </button>
           {expandedBooking===b.id&&<div className="mt-4 max-w-3xl"><HostingBookingOperations bookingId={b.id} userId={user?.id}/></div>}
         </div>
-        {b.status==='accepted'&&new Date(b.ends_at)<new Date()&&<button className={button} onClick={()=>completeBooking(b.id)} disabled={busy}>Mark completed</button>}{b.status==='requested'&&<div className="flex gap-2"><button className={button} disabled={busy} onClick={()=>mutate('host_booking_respond',{id:b.id,status:'accepted'},'Request accepted; no payment charged.')}>Accept</button><button className={secondary} disabled={busy} onClick={()=>mutate('host_booking_respond',{id:b.id,status:'declined'},'Request declined.')}>Decline</button></div>}
+        {b.status==='accepted'&&new Date(b.ends_at)<new Date()&&<button className={button} onClick={()=>completeBooking(b.id)} disabled={busy}>Mark completed</button>}{b.status==='requested'&&<div className="ccx-action-row flex gap-2"><button className={button} disabled={busy} onClick={()=>mutate('host_booking_respond',{id:b.id,status:'accepted'},'Request accepted; no payment charged.')}>Accept</button><button className={secondary} disabled={busy} onClick={()=>mutate('host_booking_respond',{id:b.id,status:'declined'},'Request declined.')}>Decline</button></div>}
       </div>)}
     </div>
     {marketFullscreen?<HostDialog title="Local Market" subtitle="Explore approved nearby properties and compare asking rates." fullscreen onClose={()=>setMarketFullscreen(false)}>

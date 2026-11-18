@@ -79,7 +79,7 @@ export default function HostingAdminOperations(){
       <p className="text-sm">Adult production: {v.adult_production_permitted?'Host permits':'Not declared'} · Privacy: {v.privacy_level} · Soundproofing: {v.soundproof_confirmed?'Declared':'Not declared'}</p>
       <p className="text-xs text-[#AABDD3]">Parking: {v.parking_spaces} · Dressing rooms: {v.separate_dressing_rooms}</p>
       <p className="text-xs whitespace-pre-wrap text-[#AABDD3]">Restrictions: {v.noise_restrictions||'None provided'}</p>
-      <div className="flex gap-2">
+      <div className="ccx-action-row flex gap-2">
         <button className={button} disabled={busy||!reviewed} onClick={()=>perform(hostingProduction,'admin_suitability_review',{property_id:v.property_id,approved:true,review_confirmed:true},'Suitability approved after independent review.')}>Confirm verified suitability</button>
         <button className={secondary} disabled={busy||!reviewed} onClick={()=>perform(hostingProduction,'admin_suitability_review',{property_id:v.property_id,approved:false,review_confirmed:true},'Venue declarations remain unverified.')}>Leave unverified</button>
       </div>
