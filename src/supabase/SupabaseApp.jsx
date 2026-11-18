@@ -26,7 +26,7 @@ import CreatorProfileEditor from './CreatorProfileEditor';
 import CreatorDiscovery from './CreatorDiscovery';
 import YotiVerification from './YotiVerification';
 import PublicLandingSections from './PublicLandingSections';
-import ProfessionalLandingHero,{PublicBrand} from './ProfessionalLandingHero';
+import {useAuthAppearance} from './authAppearance';
 import PublicPricing from './PublicPricing';
 import AgeGateOnboarding from './AgeGateOnboarding';
 const HostingMarketplace = React.lazy(() => import('./HostingMarketplace'));
@@ -94,6 +94,7 @@ export default function SupabaseApp() {
   },[]);
   const sessionRef=React.useRef(null);
   const user = session?.user;
+  useAuthAppearance(user);
   const authPage = window.location.pathname==='/login'||window.location.pathname==='/signup';
   const pricingPage = /^\/pricing\/?$/i.test(window.location.pathname);
   const isAdmin = security?.admin === true;
@@ -280,7 +281,6 @@ export default function SupabaseApp() {
   if(!user&&!authPage)return <div className={shell}>
     <div className="ccx-brand-topline"/>
     <header className="ccx-public-auth-links px-4 py-3 sm:px-6" aria-label="Account links">
-      <PublicBrand/>
       <nav className="ccx-public-nav" aria-label="Public navigation">
         <a href="/login" className="ccx-public-nav-button ccx-secondary">Log in</a>
         <a href="/signup" className="ccx-public-nav-button ccx-primary">Sign up</a>
@@ -289,7 +289,16 @@ export default function SupabaseApp() {
       </nav>
     </header>
     <main id="main-content">
-    <ProfessionalLandingHero/>
+    <h1 className="sr-only">Content Connect X — Create. Collaborate. Connect.</h1>
+    <section className="ccx-hero-image relative w-full overflow-hidden">
+      <picture>
+        <source media="(max-width: 640px)" srcSet="/ContentConnectX__Create,_Collaborate,_Grow.png"/>
+        <img src="/content_conect_hero.png" alt="Content Connect X — Create. Collaborate. Connect." className="block h-auto w-full object-cover"/>
+      </picture>
+      <div className="ccx-public-hero-actions pointer-events-none absolute inset-x-0 z-10 flex justify-center px-5">
+        <a href="/signup" className="ccx-primary pointer-events-auto inline-flex items-center rounded-full px-7 py-3 text-sm">Create your profile <span aria-hidden="true" className="ml-2 text-lg leading-none">→</span></a>
+      </div>
+    </section>
     <PublicLandingSections/>
     </main>
   </div>;
@@ -299,7 +308,7 @@ export default function SupabaseApp() {
       <section className="ccx-login-art absolute inset-0 rounded-none border-0" aria-hidden="true"/>
       <section id="ccx-auth" className="ccx-surface relative z-10 w-full max-w-xl scroll-mt-24 bg-[var(--cc-surface-subtle)] p-6 backdrop-blur-xl sm:p-8" aria-label={signUp?'Create a Content Connect X account':'Sign in to Content Connect X'}>
         <div className="flex items-center gap-4">
-          <span className="ccx-monogram ccx-monogram-auth" aria-hidden="true">CX</span>
+          <img src="/content_connect_logo.png" alt="Content Connect X" className="ccx-brand-mark h-16 w-16 shrink-0 rounded-2xl object-cover"/>
           <div><p className="ccx-eyebrow">Content Connect X</p><h2 className="mt-1 text-2xl font-bold">{signUp?'Join the network':'Welcome back'}</h2></div>
         </div>
         <p className="mt-5 text-sm leading-6 text-[var(--cc-text-secondary)]">Start with free registration and independent age verification. Membership and premium actions are available only when their services are activated.</p>

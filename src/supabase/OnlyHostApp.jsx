@@ -7,6 +7,7 @@ import {supabase} from '@/api/supabaseClient';
 import {Home,ArrowUpRight,ArrowRight,LogOut,CalendarDays,ShieldCheck,Clapperboard,UsersRound,FileSignature,Sparkles,CheckCircle2,Clock3,Wallet,MessageCircleMore,Eye,EyeOff,Brush,SlidersHorizontal,KeyRound,Settings} from 'lucide-react';
 import HostingMarketplace from './HostingMarketplace';
 import ProfessionalLandingHero from './ProfessionalLandingHero';
+import {useAuthAppearance} from './authAppearance';
 import HostProfileSettings from './HostProfileSettings';
 import {HOST_TERMS,HOST_TERMS_VERSION} from './hostTerms';
 import {integrationAction} from './integrationApi';
@@ -23,6 +24,7 @@ export default function OnlyHostApp(){
  const [terms,setTerms]=useState(false),[capacityOK,setCapacityOK]=useState(false),[authorityOK,setAuthorityOK]=useState(false),[adultUseOK,setAdultUseOK]=useState(false);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const user=session?.user;
+ useAuthAppearance(user);
  useEffect(()=>{
   const params=new URLSearchParams(window.location.search);
   if(params.has('age_verification')){
@@ -44,7 +46,7 @@ export default function OnlyHostApp(){
    setSession(data.session);await refreshAccount(data.session);
   }).catch(e=>active&&setError(e.message)).finally(()=>active&&setLoading(false));
   const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,next)=>{
-   if(active)setSession(next);
+   if(active){setSession(next);if(!next?.user){setAccount(null);setView('account');setShowSettings(false);}}
   });
   return()=>{active=false;subscription.unsubscribe();};
  },[refreshAccount]);
@@ -66,7 +68,7 @@ export default function OnlyHostApp(){
    setNotice(r.note||'Account activated');await refreshAccount(session);
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
- const ready=Boolean(account?.registered&&account?.host_terms_current);
+ const ready=Boolean(user&&account?.registered&&account?.host_terms_current);
  const openWorkspace=()=>{
   if(!user){setShowLogin(true);return;}
   if(!ready){setView('account');return;}
@@ -100,7 +102,12 @@ export default function OnlyHostApp(){
      <HostingMarketplace paid={true} isAdmin={false} user={user} brand="host_connect" initialSection="host" hostOnly/>
     </div>
    :<div className="oh-marketing">
-     <ProfessionalLandingHero host onStart={openWorkspace}/>
+     {user?<ProfessionalLandingHero host onStart={openWorkspace}/>:<>
+      <h1 className="sr-only">Host Connect — studios, locations and sets for professional productions</h1>
+      <section className="oh-landing-banner" aria-label="Host Connect studios and locations">
+      <img src="/Host_Connect_Banner.png" alt="Host Connect — studios, locations and sets for professional productions" className="oh-landing-banner-image"/>
+     </section>
+     </>}
      <section className="oh-landing-section oh-landing-intro" aria-labelledby="oh-features-title">
       <div className="oh-landing-container">
        <div className="oh-landing-heading">

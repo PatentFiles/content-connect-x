@@ -12,6 +12,8 @@ import './onlyhost-theme.css';
 import './host-workspace.css';
 import './public-landing.css';
 import './professional-theme.css';
+import './public-brand-theme.css';
+import {applyAuthAppearance} from './authAppearance';
 import {initializeOptionalIntegrations} from './integrations';
 import {initializeFormKeyboardHints} from './formKeyboard.mjs';
 
@@ -35,7 +37,8 @@ class StartupErrorBoundary extends React.Component{
  }
 }
 
-document.documentElement.classList.remove('dark');
+// Public branding is the initial state; each app switches after Auth resolves.
+applyAuthAppearance(false);
 void initializeOptionalIntegrations().catch(error=>{
  // Optional monitoring/feature-flag services must not stop the main website.
  console.warn('Optional frontend integration unavailable',error);

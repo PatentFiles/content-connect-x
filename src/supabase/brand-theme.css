@@ -1,4 +1,5 @@
-:root {
+/* Signed-in appearance only. Public branding is isolated in public-brand-theme.css. */
+:root:where(:not([data-ccx-appearance="public"])) {
   --ccx-fuchsia: var(--cc-link);
   --ccx-pink: var(--cc-link);
   --ccx-blue: var(--cc-link);
@@ -8,7 +9,7 @@
   --ccx-gradient: var(--cc-action);
 }
 
-.ccx-app {
+:where(html:not([data-ccx-appearance="public"])) .ccx-app {
   --cc-blue: var(--cc-link);
   --cc-pink: var(--cc-link);
   --cc-bg: #FFFFFF;
@@ -18,36 +19,36 @@
   color: var(--cc-text-secondary);
 }
 
-.ccx-brand-topline {
+:where(html:not([data-ccx-appearance="public"])) .ccx-brand-topline {
   height: 4px;
   background: var(--cc-surface);
   box-shadow: var(--cc-shadow);
 }
 
-.ccx-shell-header {
+:where(html:not([data-ccx-appearance="public"])) .ccx-shell-header {
   background: var(--cc-surface);
   border-bottom: 1px solid var(--cc-border);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-.ccx-brand-mark {
+:where(html:not([data-ccx-appearance="public"])) .ccx-brand-mark {
   box-shadow: var(--cc-shadow);
 }
-.ccx-gradient-text {
+:where(html:not([data-ccx-appearance="public"])) .ccx-gradient-text {
   background: none;
   -webkit-background-clip: text;
   background-clip: text;
   color: var(--cc-text-primary);
 }
-.ccx-eyebrow {
+:where(html:not([data-ccx-appearance="public"])) .ccx-eyebrow {
   color: var(--cc-text-secondary);
   font-size: .72rem;
   letter-spacing: .19em;
   font-weight: 750;
   text-transform: uppercase;
 }
-.ccx-primary,
-.ccx-action-primary {
+:where(html:not([data-ccx-appearance="public"])) .ccx-primary,
+:where(html:not([data-ccx-appearance="public"])) .ccx-action-primary {
   background: var(--cc-action);
   color: var(--cc-text-secondary);
   font-weight: 700;
@@ -55,24 +56,24 @@
   box-shadow: var(--cc-shadow);
   transition: filter .18s ease, transform .18s ease, box-shadow .18s ease;
 }
-.ccx-primary:hover:not(:disabled),
-.ccx-action-primary:hover:not(:disabled) {
+:where(html:not([data-ccx-appearance="public"])) .ccx-primary:hover:not(:disabled),
+:where(html:not([data-ccx-appearance="public"])) .ccx-action-primary:hover:not(:disabled) {
   filter: none;
   transform: none;
   box-shadow: var(--cc-shadow-raised);
 }
-.ccx-primary:disabled,
-.ccx-action-primary:disabled { opacity: .5; cursor: not-allowed; }
+:where(html:not([data-ccx-appearance="public"])) .ccx-primary:disabled,
+:where(html:not([data-ccx-appearance="public"])) .ccx-action-primary:disabled { opacity: .5; cursor: not-allowed; }
 
-.ccx-secondary {
+:where(html:not([data-ccx-appearance="public"])) .ccx-secondary {
   border: 1px solid var(--cc-border);
   color: var(--cc-text-secondary);
   background: var(--cc-surface);
   transition: border-color .2s, background .2s;
 }
-.ccx-secondary:hover { border-color: var(--cc-border); background: var(--cc-surface-subtle); }
+:where(html:not([data-ccx-appearance="public"])) .ccx-secondary:hover { border-color: var(--cc-border); background: var(--cc-surface-subtle); }
 
-.ccx-nav-pill {
+:where(html:not([data-ccx-appearance="public"])) .ccx-nav-pill {
   min-height: 43px;
   border: 1px solid var(--cc-border);
   border-radius: .82rem;
@@ -83,26 +84,26 @@
   background: var(--cc-surface);
   transition: color .2s, background .2s, border-color .2s, box-shadow .2s;
 }
-.ccx-nav-pill:hover:not(.is-active) {
+:where(html:not([data-ccx-appearance="public"])) .ccx-nav-pill:hover:not(.is-active) {
   border-color: var(--cc-border);
   background: var(--cc-surface-subtle);
   color: var(--cc-text-secondary);
 }
-.ccx-nav-pill.is-active {
+:where(html:not([data-ccx-appearance="public"])) .ccx-nav-pill.is-active {
   border-color: var(--cc-border);
   background: var(--cc-surface-subtle);
   color: var(--cc-text-secondary);
   box-shadow: var(--cc-shadow);
 }
-.ccx-nav-pill.is-active svg { color: var(--cc-text-secondary); }
+:where(html:not([data-ccx-appearance="public"])) .ccx-nav-pill.is-active svg { color: var(--cc-text-secondary); }
 
-.ccx-surface {
+:where(html:not([data-ccx-appearance="public"])) .ccx-surface {
   border: 1px solid var(--cc-border);
   border-radius: 1.15rem;
   background: var(--cc-surface);
   box-shadow: var(--cc-shadow);
 }
-.ccx-module-card {
+:where(html:not([data-ccx-appearance="public"])) .ccx-module-card {
   border: 1px solid var(--cc-border);
   border-radius: 1.25rem;
   min-height: 178px;
@@ -117,18 +118,18 @@
     var(--cc-surface);
   transition: transform .2s, border-color .2s, box-shadow .2s;
 }
-.ccx-module-card:hover:not(:disabled) {
+:where(html:not([data-ccx-appearance="public"])) .ccx-module-card:hover:not(:disabled) {
   transform: none;
   border-color: var(--cc-border);
   box-shadow: var(--cc-shadow-raised);
 }
-.ccx-module-card:focus-visible,
-.ccx-nav-pill:focus-visible,
-.ccx-primary:focus-visible {
+:where(html:not([data-ccx-appearance="public"])) .ccx-module-card:focus-visible,
+:where(html:not([data-ccx-appearance="public"])) .ccx-nav-pill:focus-visible,
+:where(html:not([data-ccx-appearance="public"])) .ccx-primary:focus-visible {
   outline: 2px solid var(--cc-focus);
   outline-offset: 3px;
 }
-.ccx-icon-wrap {
+:where(html:not([data-ccx-appearance="public"])) .ccx-icon-wrap {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -140,8 +141,8 @@
   color: var(--cc-text-secondary);
 }
 
-.ccx-hero,
-.ccx-login-art {
+:where(html:not([data-ccx-appearance="public"])) .ccx-hero,
+:where(html:not([data-ccx-appearance="public"])) .ccx-login-art {
   isolation: isolate;
   overflow: hidden;
   position: relative;
@@ -152,8 +153,8 @@
   background-size: cover;
   background-position: center;
 }
-.ccx-hero::after,
-.ccx-login-art::after {
+:where(html:not([data-ccx-appearance="public"])) .ccx-hero::after,
+:where(html:not([data-ccx-appearance="public"])) .ccx-login-art::after {
   content: '';
   pointer-events: none;
   position: absolute;
@@ -162,62 +163,62 @@
   z-index: 2;
   background: var(--cc-surface);
 }
-.ccx-hero-ambient {
+:where(html:not([data-ccx-appearance="public"])) .ccx-hero-ambient {
   background: var(--cc-surface);
 }
-.ccx-stat-card {
+:where(html:not([data-ccx-appearance="public"])) .ccx-stat-card {
   border: 1px solid var(--cc-border);
   border-radius: 1.1rem;
   padding: 1.15rem;
   background: var(--cc-surface-subtle);
 }
-.ccx-stat-marker { width: 26px; height: 3px; border-radius: 12px; background: var(--cc-surface-subtle); }
-.ccx-text-muted { color: var(--cc-text-secondary); }
-.ccx-outline-pink { border: 1px solid var(--cc-border); }
+:where(html:not([data-ccx-appearance="public"])) .ccx-stat-marker { width: 26px; height: 3px; border-radius: 12px; background: var(--cc-surface-subtle); }
+:where(html:not([data-ccx-appearance="public"])) .ccx-text-muted { color: var(--cc-text-secondary); }
+:where(html:not([data-ccx-appearance="public"])) .ccx-outline-pink { border: 1px solid var(--cc-border); }
 
-.ccx-app input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus-visible,
-.ccx-app select:focus-visible,
-.ccx-app textarea:focus-visible {
+:where(html:not([data-ccx-appearance="public"])) .ccx-app input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):focus-visible,
+:where(html:not([data-ccx-appearance="public"])) .ccx-app select:focus-visible,
+:where(html:not([data-ccx-appearance="public"])) .ccx-app textarea:focus-visible {
   outline: 2px solid var(--cc-focus);
   outline-offset: 2px;
 }
-.ccx-app a:not(.ccx-primary) { text-underline-offset: 3px; }
-.ccx-app button:focus-visible { outline-color: var(--cc-focus); }
+:where(html:not([data-ccx-appearance="public"])) .ccx-app a:not(.ccx-primary) { text-underline-offset: 3px; }
+:where(html:not([data-ccx-appearance="public"])) .ccx-app button:focus-visible { outline-color: var(--cc-focus); }
 
 @media (max-width: 640px) {
-  .ccx-hero,
-  .ccx-login-art {
+  :where(html:not([data-ccx-appearance="public"])) .ccx-hero,
+  :where(html:not([data-ccx-appearance="public"])) .ccx-login-art {
     background-position: 60% center;
     background-image:
       none;
   }
-  .ccx-module-card { min-height: 154px; }
+  :where(html:not([data-ccx-appearance="public"])) .ccx-module-card { min-height: 154px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ccx-module-card,
-  .ccx-primary,
-  .ccx-action-primary,
-  .ccx-nav-pill { transition: none; }
-  .ccx-module-card:hover,
-  .ccx-primary:hover,
-  .ccx-action-primary:hover { transform: none; }
+  :where(html:not([data-ccx-appearance="public"])) .ccx-module-card,
+  :where(html:not([data-ccx-appearance="public"])) .ccx-primary,
+  :where(html:not([data-ccx-appearance="public"])) .ccx-action-primary,
+  :where(html:not([data-ccx-appearance="public"])) .ccx-nav-pill { transition: none; }
+  :where(html:not([data-ccx-appearance="public"])) .ccx-module-card:hover,
+  :where(html:not([data-ccx-appearance="public"])) .ccx-primary:hover,
+  :where(html:not([data-ccx-appearance="public"])) .ccx-action-primary:hover { transform: none; }
 }
 
 /* Accent per module keeps native CSS custom properties out of JSX style bindings. */
-.ccx-module-card[data-accent="directory"] { --ccx-card-glow: transparent; }
-.ccx-module-card[data-accent="production"] { --ccx-card-glow: transparent; }
-.ccx-module-card[data-accent="hosting"] { --ccx-card-glow: transparent; }
-.ccx-module-card[data-accent="workspace"] { --ccx-card-glow: transparent; }
-.ccx-module-card[data-accent="schedule"] { --ccx-card-glow: transparent; }
-.ccx-module-card[data-accent="account-security"] { --ccx-card-glow: transparent; }
-.ccx-hosting-banner {
+:where(html:not([data-ccx-appearance="public"])) .ccx-module-card[data-accent="directory"] { --ccx-card-glow: transparent; }
+:where(html:not([data-ccx-appearance="public"])) .ccx-module-card[data-accent="production"] { --ccx-card-glow: transparent; }
+:where(html:not([data-ccx-appearance="public"])) .ccx-module-card[data-accent="hosting"] { --ccx-card-glow: transparent; }
+:where(html:not([data-ccx-appearance="public"])) .ccx-module-card[data-accent="workspace"] { --ccx-card-glow: transparent; }
+:where(html:not([data-ccx-appearance="public"])) .ccx-module-card[data-accent="schedule"] { --ccx-card-glow: transparent; }
+:where(html:not([data-ccx-appearance="public"])) .ccx-module-card[data-accent="account-security"] { --ccx-card-glow: transparent; }
+:where(html:not([data-ccx-appearance="public"])) .ccx-hosting-banner {
   border: 1px solid var(--cc-border);
   background:
     var(--cc-surface);
   box-shadow: var(--cc-shadow);
 }
-.ccx-hosting-banner::after {
+:where(html:not([data-ccx-appearance="public"])) .ccx-hosting-banner::after {
   content:'';
   position:absolute;
   height:3px;
@@ -228,36 +229,36 @@
 }
 
 /* Mobile app navigation preserves discoverability without occupying multiple screens. */
-.ccx-shell-header {
+:where(html:not([data-ccx-appearance="public"])) .ccx-shell-header {
   padding-top: max(.75rem, env(safe-area-inset-top, 0px));
 }
-.ccx-app .scrollbar-hide {
+:where(html:not([data-ccx-appearance="public"])) .ccx-app .scrollbar-hide {
   scroll-snap-type: x proximity;
 }
-.ccx-app .ccx-nav-pill {
+:where(html:not([data-ccx-appearance="public"])) .ccx-app .ccx-nav-pill {
   white-space: nowrap;
   flex-shrink: 0;
   scroll-snap-align: start;
 }
-.ccx-mobile-menu-trigger,
-.ccx-mobile-menu {
+:where(html:not([data-ccx-appearance="public"])) .ccx-mobile-menu-trigger,
+:where(html:not([data-ccx-appearance="public"])) .ccx-mobile-menu {
   border: 1px solid var(--cc-border);
   background: var(--cc-surface);
   box-shadow: var(--cc-shadow);
 }
-.ccx-mobile-menu-trigger { color: var(--cc-text-secondary); }
-.ccx-mobile-menu { backdrop-filter: none; }
-.ccx-mobile-menu .ccx-nav-pill { border-color: transparent; }
-.ccx-mobile-menu .ccx-nav-pill + .ccx-nav-pill { margin-top: .25rem; }
+:where(html:not([data-ccx-appearance="public"])) .ccx-mobile-menu-trigger { color: var(--cc-text-secondary); }
+:where(html:not([data-ccx-appearance="public"])) .ccx-mobile-menu { backdrop-filter: none; }
+:where(html:not([data-ccx-appearance="public"])) .ccx-mobile-menu .ccx-nav-pill { border-color: transparent; }
+:where(html:not([data-ccx-appearance="public"])) .ccx-mobile-menu .ccx-nav-pill + .ccx-nav-pill { margin-top: .25rem; }
 /* Public homepage: desktop right-aligned floating navigation, mobile equal columns. */
-.ccx-public-auth-links {
+:where(html:not([data-ccx-appearance="public"])) .ccx-public-auth-links {
   position: relative;
   z-index: 30; /* Keep the floating buttons in front of the hero, never underneath it. */
   overflow: visible;
   background: var(--cc-surface);
   border-bottom: 1px solid var(--cc-border);
 }
-.ccx-public-nav {
+:where(html:not([data-ccx-appearance="public"])) .ccx-public-nav {
   position: relative;
   z-index: 31;
   display: flex;
@@ -268,7 +269,7 @@
   max-width: 100%;
   margin-inline: auto;
 }
-.ccx-public-nav-button {
+:where(html:not([data-ccx-appearance="public"])) .ccx-public-nav-button {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -287,18 +288,18 @@
   pointer-events: auto;
   transition: filter .22s ease, box-shadow .22s ease;
 }
-.ccx-public-nav-button:hover {
+:where(html:not([data-ccx-appearance="public"])) .ccx-public-nav-button:hover {
   filter: none;
   box-shadow: var(--cc-shadow-raised);
   animation-play-state: paused;
   transform: none;
 }
-.ccx-public-nav-button:focus-visible {
+:where(html:not([data-ccx-appearance="public"])) .ccx-public-nav-button:focus-visible {
   outline: 3px solid var(--cc-focus);
   outline-offset: 4px;
   animation-play-state: paused;
 }
-.ccx-host-connect-header {
+:where(html:not([data-ccx-appearance="public"])) .ccx-host-connect-header {
   position: relative;
   inset: auto;
   background: var(--cc-surface);
@@ -309,28 +310,28 @@
   margin-left: 3px;
 }
 /* Desktop: shift the hero CTA lower without changing the mobile image positioning. */
-.ccx-public-hero-actions {
+:where(html:not([data-ccx-appearance="public"])) .ccx-public-hero-actions {
   display: flex;
   bottom: 4.5%;
   transform: none;
 }
-.ccx-public-hero-actions .ccx-primary {
+:where(html:not([data-ccx-appearance="public"])) .ccx-public-hero-actions .ccx-primary {
   font-size: 1.5rem;
   padding: 1.5rem 2.5rem;
   border-radius: 12px;
 }
-.ccx-public-hero-actions .ccx-primary span { font-size: 1.75rem; }
+:where(html:not([data-ccx-appearance="public"])) .ccx-public-hero-actions .ccx-primary span { font-size: 1.75rem; }
 @media (max-width: 640px) {
-  .ccx-public-auth-links { padding: 10px 9px; }
-  .ccx-public-nav {
+  :where(html:not([data-ccx-appearance="public"])) .ccx-public-auth-links { padding: 10px 9px; }
+  :where(html:not([data-ccx-appearance="public"])) .ccx-public-nav {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 6px;
     width: 100%;
     max-width: 100%;
   }
-  .ccx-public-nav-button,
-  .ccx-public-nav-button:nth-child(n) {
+  :where(html:not([data-ccx-appearance="public"])) .ccx-public-nav-button,
+  :where(html:not([data-ccx-appearance="public"])) .ccx-public-nav-button:nth-child(n) {
     width: 100%;
     min-width: 0;
     min-height: 38px;
@@ -342,27 +343,27 @@
     line-height: 1;
     transform: none;
   }
-  .ccx-public-nav-button:hover { transform: none; }
-  .ccx-host-connect-header { position: relative; inset: auto; }
-  .ccx-public-hero-actions {
+  :where(html:not([data-ccx-appearance="public"])) .ccx-public-nav-button:hover { transform: none; }
+  :where(html:not([data-ccx-appearance="public"])) .ccx-host-connect-header { position: relative; inset: auto; }
+  :where(html:not([data-ccx-appearance="public"])) .ccx-public-hero-actions {
     display: flex;
     bottom: 20%;
     transform: none;
   }
-  .ccx-public-hero-actions .ccx-primary {
+  :where(html:not([data-ccx-appearance="public"])) .ccx-public-hero-actions .ccx-primary {
     font-size: 1rem;
     padding: .75rem 1.75rem;
   }
-  .ccx-public-hero-actions .ccx-primary span { font-size: 1.125rem; }
+  :where(html:not([data-ccx-appearance="public"])) .ccx-public-hero-actions .ccx-primary span { font-size: 1.125rem; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ccx-public-nav-button, .ccx-public-hero-actions .ccx-primary { transition: none !important; }
-  .ccx-public-nav-button:hover { transform: none; }
+  :where(html:not([data-ccx-appearance="public"])) .ccx-public-nav-button, :where(html:not([data-ccx-appearance="public"])) .ccx-public-hero-actions .ccx-primary { transition: none !important; }
+  :where(html:not([data-ccx-appearance="public"])) .ccx-public-nav-button:hover { transform: none; }
 }
 
 /* Authenticated admin cross-brand navigation; no changes to public navigation. */
-.ccx-admin-host-link{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 14px;border-radius:12px;border:1px solid var(--cc-border);background:var(--cc-action);color:var(--cc-text-secondary);font-size:12px;font-weight:750;white-space:nowrap;box-shadow:var(--cc-shadow);transition:filter .2s,box-shadow .2s}
-.ccx-admin-host-link:hover{filter:none;box-shadow:var(--cc-shadow-raised)}
-.ccx-admin-host-link:focus-visible{outline:3px solid var(--cc-focus);outline-offset:3px}
-@media(max-width:480px){.ccx-admin-host-link{padding:8px;font-size:11px}}
-@media(prefers-reduced-motion:reduce){.ccx-admin-host-link{transition:none}}
+:where(html:not([data-ccx-appearance="public"])) .ccx-admin-host-link{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:9px 14px;border-radius:12px;border:1px solid var(--cc-border);background:var(--cc-action);color:var(--cc-text-secondary);font-size:12px;font-weight:750;white-space:nowrap;box-shadow:var(--cc-shadow);transition:filter .2s,box-shadow .2s}
+:where(html:not([data-ccx-appearance="public"])) .ccx-admin-host-link:hover{filter:none;box-shadow:var(--cc-shadow-raised)}
+:where(html:not([data-ccx-appearance="public"])) .ccx-admin-host-link:focus-visible{outline:3px solid var(--cc-focus);outline-offset:3px}
+@media(max-width:480px){:where(html:not([data-ccx-appearance="public"])) .ccx-admin-host-link{padding:8px;font-size:11px}}
+@media(prefers-reduced-motion:reduce){:where(html:not([data-ccx-appearance="public"])) .ccx-admin-host-link{transition:none}}
