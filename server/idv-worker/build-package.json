@@ -16,5 +16,8 @@
   "workspaces": [
     "shared",
     "engine"
-  ]
+  ],
+  "overrides": {
+    "multer": "2.5.0"
+  }
 }
