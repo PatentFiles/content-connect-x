@@ -3,7 +3,6 @@ from pathlib import Path
 import base64,hashlib,json,zlib
 root=Path('.')
 parts=[(root/'.maintenance'/f'enterprise-{i}.b64').read_text().strip() for i in range(5)]
-# Exact measured transport corrections; the final original SHA256 remains mandatory.
 corrections=[[[585,586,'']],[[363,364,''],[387,388,''],[389,390,'y'],[639,640,''],[1894,1896,'f'],[2105,2105,'IvE'],[2127,2129,'ng'],[2136,2142,'3nz']],[[1136,1138,'2j'],[5274,5275,'D']]]
 for i,edits in enumerate(corrections):
  for start,end,text in reversed(edits):parts[i]=parts[i][:start]+text+parts[i][end:]
@@ -15,7 +14,7 @@ pending=[]
 for name,before,after,edits in records:
  p=Path(name)
  assert not p.is_absolute() and '..' not in p.parts
- assert p.parts[0] in {'src','supabase','scripts','tests','docs','deploy','Dockerfile','README.md','package.json','vite.config.js'}
+ assert p.parts[0] in {'src','public','supabase','scripts','tests','docs','deploy','Dockerfile','README.md','package.json','vite.config.js'},name
  old=p.read_text() if p.exists() else ''
  assert hashlib.sha256(old.encode()).hexdigest()==before,'Concurrent source change: '+name
  lines=old.splitlines(keepends=True)
