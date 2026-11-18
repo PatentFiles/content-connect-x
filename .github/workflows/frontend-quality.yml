@@ -26,6 +26,8 @@ jobs:
         run: npm run test:unit
       - name: Desktop, mobile and enlarged-text control geometry
         run: npm run test:ui-controls
+      - name: Professional light theme across public pages, host dialogs and all role dashboards
+        run: npm run test:ui-theme
       - name: Yoti-only onboarding browser regression
         run: node scripts/test-yoti-onboarding-browser.mjs
       - name: Render actual role workspaces and shared cards
