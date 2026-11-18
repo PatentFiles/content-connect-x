@@ -25,6 +25,10 @@ jobs:
         run: npm run lint
       - name: Type-check entire application
         run: npm run typecheck
+      - name: Global control layout contracts
+        run: npm run test:control-layout
+      - name: Desktop, mobile and enlarged-text control geometry
+        run: npm run test:ui-controls
       - name: Hosting policy and geospatial tests
         run: npm run test:hosting
       - name: Host refresh and private gallery authorization
