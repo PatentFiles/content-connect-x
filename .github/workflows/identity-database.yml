@@ -1,0 +1,42 @@
+name: Identity database integration
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: ccx-idv-database-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  identity-database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: ccx_idv_ci
+          POSTGRES_PASSWORD: fixture-only-disposable-database
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ccx_idv_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGDATABASE: ccx_idv_ci
+      PGPASSWORD: fixture-only-disposable-database
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify isolated target
+        run: |
+          test "$GITHUB_ACTIONS" = true
+          test "$PGHOST" = 127.0.0.1
+          test "$PGDATABASE" = ccx_idv_ci
+          command -v psql
+      - name: Apply actual identity SQL and test admission, names, birthday and retention
+        run: psql --no-psqlrc --set=ON_ERROR_STOP=1 --file=tests/sql/identity-integration.sql
