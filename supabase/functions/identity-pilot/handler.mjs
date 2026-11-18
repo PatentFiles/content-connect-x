@@ -29,19 +29,22 @@ export function createPilotHandler({admin,authenticate,projectOrigin,fetchImpl=f
   return {removed:paths.length};
  };
  const storageProbe=async()=>{
-  // A one-pixel PNG is a storage probe, never an ID or a synthetic verification.
-  const data=decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aD9sAAAAASUVORK5CYII='),path=`system-probes/${crypto.randomUUID()}.png`;
+  // Only a synthetic one-pixel PNG. The proof uses successful authenticated
+  // listings before AND after deletion; an arbitrary download error is not proof.
+  const data=decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aD9sAAAAASUVORK5CYII='),filename=`${crypto.randomUUID()}.png`,path=`system-probes/${filename}`;
   await run(admin.from('ccx_idv_pilot_uploads').insert({path,session_id:null,kind:'probe',sha256:await digest(data),bytes:data.length,content_type:'image/png'}));
   try{
    await run(admin.storage.from(BUCKET).upload(path,data,{contentType:'image/png',upsert:false,cacheControl:'0'}));
    const read=await run(admin.storage.from(BUCKET).download(path));
    if(await digest(new Uint8Array(await read.arrayBuffer()))!==await digest(data))throw new PilotError('Private storage read failed.',500);
+   const before=await run(admin.storage.from(BUCKET).list('system-probes',{search:filename,limit:10}));
+   if(!Array.isArray(before)||!before.some(item=>item.name===filename))throw new PilotError('Private storage listing failed.',500);
    const publicRead=await fetchImpl(`${projectOrigin}/storage/v1/object/public/${BUCKET}/${path}`,{redirect:'error',signal:AbortSignal.timeout(10000)});
    await publicRead.body?.cancel();
    if(![400,401,403,404].includes(publicRead.status))throw new PilotError('Private storage protection failed.',500);
    await run(admin.storage.from(BUCKET).remove([path]));
-   const removed=await admin.storage.from(BUCKET).download(path);
-   if(!removed.error||![400,404].includes(Number(removed.error.statusCode||removed.error.status)))throw new PilotError('Storage deletion could not be verified.',500);
+   const after=await run(admin.storage.from(BUCKET).list('system-probes',{search:filename,limit:10}));
+   if(!Array.isArray(after)||after.some(item=>item.name===filename))throw new PilotError('Storage deletion could not be verified.',500);
    await run(admin.from('ccx_idv_pilot_uploads').delete().eq('path',path));
    await run(admin.from('ccx_idv_pilot_config').update({last_probe_at:clock().toISOString()}).eq('singleton',true));
    return {private_read:true,public_read_denied:true,deletion_verified:true};
