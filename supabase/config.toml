@@ -83,3 +83,13 @@ verify_jwt = true
 
 [functions.hosting-discovery]
 verify_jwt = true
+
+[functions.yoti-verification]
+verify_jwt = true
+
+[functions.membership-billing]
+verify_jwt = true
+
+# Authenticated by the scoped HMAC relay, never by a browser return URL.
+[functions.membership-ccbill-webhook]
+verify_jwt = false

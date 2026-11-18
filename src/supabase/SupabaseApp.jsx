@@ -29,7 +29,7 @@ import PublicLandingSections from './PublicLandingSections';
 import PublicPricing from './PublicPricing';
 import AgeGateOnboarding from './AgeGateOnboarding';
 const HostingMarketplace = React.lazy(() => import('./HostingMarketplace'));
-import { UploadCloud, CheckCircle2, AlertTriangle, Loader2, RefreshCw, Eye, EyeOff } from 'lucide-react';
+import {   AlertTriangle, Loader2, RefreshCw, Eye, EyeOff } from 'lucide-react';
 
 const shell = 'ccx-app min-h-screen text-[#F5F3FF]';
 const panel = 'ccx-surface p-5';
@@ -51,6 +51,8 @@ export default function SupabaseApp() {
   const [verification,setVerification] = useState(null);
   const [billing,setBilling] = useState(null);
   const [security,setSecurity] = useState(null);
+  const [fullName,setFullName] = useState('');
+  const [displayName,setDisplayName] = useState('');
   const [email,setEmail] = useState('');
   const [password,setPassword] = useState('');
   const [showPassword,setShowPassword] = useState(false);
@@ -59,7 +61,6 @@ export default function SupabaseApp() {
   const [passwordRecoverySession,setPasswordRecoverySession] = useState(false);
   const [newPassword,setNewPassword] = useState('');
   const [confirmNewPassword,setConfirmNewPassword] = useState('');
-  const [documents,setDocuments] = useState({id:null,selfie:null});
   const [reviews,setReviews] = useState([]);
   const [mfaChecking,setMfaChecking] = useState(true);
   const [mfaNeeded,setMfaNeeded] = useState(false);
@@ -80,6 +81,7 @@ export default function SupabaseApp() {
     if(params.has('age_verification')){
       setTab('verification');
       params.delete('age_verification');
+      params.delete('sessionId');params.delete('sdkId');
       const remainder=params.toString();
       // Only a navigation hint: this does not grant age or identity verification.
       // The Yoti view will retrieve the real outcome from our protected backend.
@@ -216,8 +218,10 @@ export default function SupabaseApp() {
     event.preventDefault();setBusy(true);setError('');setNotice('');
     try {
       const client=requireSupabase();
+      if(signUp&&(fullName.trim().length<2||displayName.trim().length<2))throw Error('Enter your name and public display name.');
       const {data,error:authError} = signUp
-        ? await client.auth.signUp({email,password,options:{emailRedirectTo:window.location.origin}})
+        ? await client.auth.signUp({email:email.trim(),password,options:{emailRedirectTo:window.location.origin,
+            data:{full_name:fullName.trim(),display_name:displayName.trim()}}})
         : await client.auth.signInWithPassword({email,password});
       if(authError) throw authError;
       if(signUp && !data.session) setNotice('Check your inbox to confirm your email, then sign in.');
@@ -249,30 +253,6 @@ export default function SupabaseApp() {
       setPasswordRecoverySession(false);setNewPassword('');setConfirmNewPassword('');
       await requireSupabase().auth.signOut();
       setNotice('Password updated. Sign in using your new password.');
-    }catch(e){setError(e.message);}finally{setBusy(false);}
-  };
-
-  const upload=(kind)=>async(event)=>{
-    const file=event.target.files?.[0];if(!file)return;
-    setBusy(true);setError('');setNotice('');
-    try{
-      if(file.size>10*1024*1024)throw new Error('Maximum file size is 10 MB.');
-      if(!['image/jpeg','image/png','image/webp','application/pdf'].includes(file.type)) throw new Error('Upload a PDF, JPEG, PNG or WEBP file.');
-      const path=`${user.id}/${kind}-${crypto.randomUUID()}.${file.type==='application/pdf'?'pdf':file.type.split('/')[1]}`;
-      const {error:uploadError}=await supabase.storage.from('age-verification').upload(path,file,{contentType:file.type,upsert:false});
-      if(uploadError)throw uploadError;
-      setDocuments(previous=>({...previous,[kind]:path}));setNotice(`${kind==='id'?'ID document':'Selfie'} uploaded privately.`);
-    }catch(e){setError(e.message);}finally{setBusy(false);}
-  };
-
-  const submitVerification=async()=>{
-    setBusy(true);setError('');setNotice('');
-    try{
-      if(!documents.id||!documents.selfie)throw new Error('Upload both documents first.');
-      const {data,error:submitError}=await supabase.functions.invoke('submit-age-verification',{body:{id_document_path:documents.id,selfie_document_path:documents.selfie}});
-      if(submitError)throw submitError;
-      if(data?.error)throw new Error(data.error);
-      setDocuments({id:null,selfie:null});await refresh(session);setNotice('Your age-verification request was submitted for review.');
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
 
@@ -339,13 +319,23 @@ export default function SupabaseApp() {
           </form>
         :<>
           <form onSubmit={authenticate} className="mt-6 space-y-4">
+            {signUp&&<>
+              <label className="block text-sm font-medium">Full name
+                <input className={input+' mt-2'} autoComplete="name" value={fullName} onChange={e=>setFullName(e.target.value)} required minLength={2} maxLength={120}/>
+              </label>
+              <label className="block text-sm font-medium">Public display name
+                <input className={input+' mt-2'} autoComplete="nickname" value={displayName} onChange={e=>setDisplayName(e.target.value)} required minLength={2} maxLength={80}/>
+                <span className="mt-1 block text-xs text-[#A6B6D0]">Choose the professional name people will see on your profile.</span>
+              </label>
+            </>}
+
             <label className="block text-sm font-medium">Email address
               <input className={input+' mt-2'} type="email" inputMode="email" autoCapitalize="none" spellCheck={false} value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email"/>
             </label>
             <label className="block text-sm font-medium">Password
               <span className="relative mt-2 block">
                 <input className={input+' pr-12'} type={showPassword?'text':'password'} autoCapitalize="none" spellCheck={false} value={password} onChange={e=>setPassword(e.target.value)}
-                  minLength={8} required autoComplete={signUp?'new-password':'current-password'}/>
+                  minLength={signUp?12:1} required autoComplete={signUp?'new-password':'current-password'}/>
                 <button type="button" className="absolute inset-y-0 right-0 grid w-12 place-items-center text-[#B7C3DD]" onClick={()=>setShowPassword(value=>!value)} aria-label={showPassword?'Hide password':'Show password'} aria-pressed={showPassword}>
                   {showPassword?<EyeOff size={19}/>:<Eye size={19}/>} 
                 </button>
@@ -363,7 +353,7 @@ export default function SupabaseApp() {
           </button>}
         </>}
         <div className="mt-5"><ErrorMessage message={error}/>{notice&&<p className="mt-3 text-sm text-emerald-300" role="status">{notice}</p>}</div>
-        <p className="mt-5 text-center text-xs text-[#99A9C4]">New accounts complete independent age verification once during signup before entering Content Connect X.</p>
+        <p className="mt-5 text-center text-xs text-[#99A9C4]">Next: verify your government ID and live selfie with Yoti. New accounts must complete this step before entering the site.</p>
         <a href="/" className="mt-4 block text-center text-sm text-[#FF87D8] underline underline-offset-4">Back to home page</a>
         <a href="/pricing" className="mt-2 block text-center text-sm text-[#B7C3DD] underline underline-offset-4">View membership pricing</a>
       </section>
@@ -406,7 +396,7 @@ export default function SupabaseApp() {
   // 18+ approval. URL navigation, Escape, refresh and backdrop clicks cannot
   // dismiss this required onboarding. Log out is the only exit.
   if(user&&!approved)return <AgeGateOnboarding
-    user={user} verification={verification} onReload={()=>refresh(session)}
+    onReload={()=>refresh(session)}
     onSignOut={async()=>{
       const {error:signoutError}=await supabase.auth.signOut();
       if(signoutError)throw signoutError;
@@ -417,11 +407,6 @@ export default function SupabaseApp() {
   const loadReviews=async()=>{
     setBusy(true);setError('');
     try{const {data,error}=await supabase.functions.invoke('admin-age-review',{body:{action:'list'}});if(error||data?.error)throw new Error(data?.error||error.message);setReviews(data.requests||[]);}catch(e){setError(e.message);}finally{setBusy(false);}
-  };
-  const reviewAge=async(recordId,action)=>{
-    if(action==='approve' && !window.confirm('I have reviewed both documents and confirmed this person is at least 18 years old. Approve?')) return;
-    setBusy(true);setError('');
-    try{const {data,error}=await supabase.functions.invoke('admin-age-review',{body:{request_id:recordId,action,age_confirmed:action==='approve'}});if(error||data?.error)throw new Error(data?.error||error.message);await loadReviews();setNotice('Review saved.');}catch(e){setError(e.message);}finally{setBusy(false);}
   };
   const openReviewDocument=async(recordId,document_type)=>{
     setBusy(true);setError('');
@@ -465,12 +450,11 @@ export default function SupabaseApp() {
     {tab==='profile'&&<CreatorProfileEditor user={user} profile={profile} approved={ageVerified}
       paid={paid} isAdmin={isAdmin} onNavigate={navigateInWorkspace}
       onSaved={()=>refresh(session)}/>}
-    {tab==='verification'&&<div className={`${panel} space-y-4 max-w-2xl`}><h2 className="text-xl font-semibold">Free age verification</h2><p className={muted}>Identity documents are stored privately for authorized review. Upload your ID and a selfie; this does not grant immediate verified status.</p>{ageVerified?<div className="flex gap-2 text-green-400"><CheckCircle2/>Verified</div>:verification?.status==='pending'?<p className="text-amber-300">Your documents are under review. No payment is required.</p>:<><label className="block text-sm">Government ID<input type="file" accept="image/jpeg,image/png,image/webp,application/pdf" onChange={upload('id')} className="block mt-2 text-sm" disabled={busy}/></label><label className="block text-sm">Selfie<input type="file" accept="image/jpeg,image/png,image/webp" onChange={upload('selfie')} className="block mt-2 text-sm" disabled={busy}/></label><button className={`${primary} inline-flex gap-2 items-center`} disabled={busy||!documents.id||!documents.selfie} onClick={submitVerification}><UploadCloud size={16}/> Submit for review</button></>}</div>}
-    {tab==='verification'&&<div className="mt-5 max-w-2xl"><YotiVerification/></div>}
+    {tab==='verification'&&<div className="mx-auto max-w-md"><YotiVerification onApproval={()=>refresh(session)}/></div>}
     {['directory','search','favorites'].includes(tab)&&
       <CreatorDiscovery key={tab} user={user} approved={approved} paid={paid}
        mode={tab==='directory'?'discovery':tab} onNavigate={navigateInWorkspace}/>}
-    {tab==='reviews'&&isAdmin&&approved&&<div className="space-y-4"><div className="flex justify-between items-center"><h2 className="text-xl font-semibold">Age verification review queue</h2><button className={primary} onClick={loadReviews} disabled={busy}><RefreshCw size={16}/></button></div><p className={muted}>Only authorized administrators can open short-lived private document links or approve requests.</p>{reviews.map(request=><div key={request.id} className={`${panel} space-y-2`}><p className="text-sm">Request {request.id} · {request.status}</p><p className={muted}>{new Date(request.created_at).toLocaleString()}</p><div className="flex flex-wrap gap-2"><button className={primary} onClick={()=>openReviewDocument(request.id,'id')} disabled={busy}>View ID</button><button className={primary} onClick={()=>openReviewDocument(request.id,'selfie')} disabled={busy}>View selfie</button>{request.status==='pending'&&<><button className={primary} onClick={()=>reviewAge(request.id,'approve')} disabled={busy}>Approve</button><button className="rounded-lg bg-red-700 px-4 py-2.5 text-white disabled:opacity-50" onClick={()=>reviewAge(request.id,'reject')} disabled={busy}>Reject</button></>}</div></div>)}{reviews.length===0&&<p className={muted}>Select refresh to load recent review requests.</p>}</div>}
+    {tab==='reviews'&&isAdmin&&approved&&<div className="space-y-4"><div className="flex justify-between items-center"><h2 className="text-xl font-semibold">Age verification records</h2><button className={primary} onClick={loadReviews} disabled={busy}><RefreshCw size={16}/></button></div><p className={muted}>Historical verification records are read-only. New members verify through Yoti; manual approval is no longer available.</p>{reviews.map(request=><div key={request.id} className={`${panel} space-y-2`}><p className="text-sm">Request {request.id} · {request.status}</p><p className={muted}>{new Date(request.created_at).toLocaleString()}</p><div className="flex flex-wrap gap-2"><button className={primary} onClick={()=>openReviewDocument(request.id,'id')} disabled={busy}>View ID</button><button className={primary} onClick={()=>openReviewDocument(request.id,'selfie')} disabled={busy}>View selfie</button></div></div>)}{reviews.length===0&&<p className={muted}>Select refresh to load recent review requests.</p>}</div>}
     {['workspace','messages','connections','collaborations','contracts'].includes(tab)&&(
       !approved?<div className={panel}>Complete account onboarding to enter your workspace.</div>:
       !paid&&!['messages','connections','notifications'].includes(tab)?<div className={panel+' space-y-3'}>

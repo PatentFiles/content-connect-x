@@ -7,7 +7,7 @@ import {ROLE_ROUTES} from '../src/supabase/roleNavigationData.mjs';
 const get=path=>readFileSync(path,'utf8');
 const root='src/supabase';
 const clients=readdirSync(root).filter(x=>/\.(jsx|js)$/.test(x));
-const backend={hostingAction:'hosting-marketplace',hostingBusiness:'hosting-operations',hostingAgreement:'hosting-docusign',hostingCheckout:'hosting-ccbill',hostingAdvanced:'hosting-advanced',hostingProduction:'hosting-production',hostingCalendar:'hosting-calendar',platformAction:'platform-extras',productionAction:'production-manager'};
+const backend={membershipCall:'membership-billing',hostingAction:'hosting-marketplace',hostingBusiness:'hosting-operations',hostingAgreement:'hosting-docusign',hostingCheckout:'hosting-ccbill',hostingAdvanced:'hosting-advanced',hostingProduction:'hosting-production',hostingCalendar:'hosting-calendar',platformAction:'platform-extras',productionAction:'production-manager'};
 const src=new Map();
 for(const name of new Set([...Object.values(backend),'member-workflows','agreement-packets','hosting-discovery'])){const file='supabase/functions/'+name+'/index.ts';assert.ok(existsSync(file),'Missing backend function: '+name);src.set(name,get(file));}
 const allowed=new Map();

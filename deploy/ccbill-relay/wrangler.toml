@@ -1,0 +1,7 @@
+name = "ccx-ccbill-relay"
+main = "worker.mjs"
+compatibility_date = "2026-11-18"
+workers_dev = true
+[vars]
+SUPABASE_ORIGIN = "https://yxuqbygykpfbioslljlf.supabase.co"
+# Set CCBILL_WEBHOOK_RELAY_SECRET with wrangler secret put. Never put it here.

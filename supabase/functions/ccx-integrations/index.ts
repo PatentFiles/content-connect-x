@@ -7,7 +7,7 @@
  * No unsupported PASS API protocol is invented. No lab reports are returned here.
  */
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
-import {getYotiReturnOrigin,isYotiConfigured} from './yotiPolicy.mjs';
+import {isYotiConfigured} from './yotiPolicy.mjs';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version','Access-Control-Allow-Methods':'POST,OPTIONS'};
 const out=(v:unknown,s=200)=>Response.json(v,{status:s,headers:{...cors,'Cache-Control':'no-store'}});
 const bad=(msg:string,s=400)=>out({error:msg},s);
@@ -96,21 +96,15 @@ Deno.serve(async req=>{
   if(error)throw error;return typeof data==='string'?data:null;
  };
  const yotiReady=async()=>{
-  const [token,sdk,setting]=await Promise.all([getSecret('yoti_token'),getSecret('yoti_sdk_id'),conf('yoti')]);
+  // Supabase Edge secrets are the primary deployment path. Older encrypted
+  // Vault configuration remains compatible; only presence is exposed to clients.
+  const [token,sdk,setting]=await Promise.all([
+   Promise.resolve(Deno.env.get('YOTI_API_KEY')||'').then(v=>v||getSecret('yoti_token')),
+   Promise.resolve(Deno.env.get('YOTI_SDK_ID')||'').then(v=>v||getSecret('yoti_sdk_id')),
+   conf('yoti')]);
   return {token,sdk,setting,ready:Boolean(token&&sdk&&setting?.enabled)};
  };
- const yotiRequest=async(method:string,session:string|null,data?:object)=>{
-  const cfg=await yotiReady();
-  if(!cfg.ready)throw Error('Yoti is not connected or enabled');
-  const endpoint='https://age.yoti.com/api/v1/sessions'+(session?'/'+encodeURIComponent(session)+'/result':'');
-  const response=await fetch(endpoint,{
-   method,headers:{'Authorization':'Bearer '+cfg.token,
-    'Yoti-Sdk-Id':cfg.sdk!,'Content-Type':'application/json','Accept':'application/json'},
-   ...(data?{body:JSON.stringify(data)}:{}),redirect:'error',signal:AbortSignal.timeout(15000)
-  });
-  if(!response.ok)throw Error('Yoti session request failed; HTTP '+response.status);
-  return await response.json();
- };
+
  try{
  switch(action){
  case 'admin_list':{
@@ -180,123 +174,19 @@ Deno.serve(async req=>{
     callback_origin:yoti.setting?.callback_origin
   });
   return out({yoti_configured:available,pass_partner_connected:pass?.enabled===true,
-   yoti_note:'Provider age checks are not sufficient to establish performer identity without additional evidence review.',
+   yoti_note:'Yoti securely checks a government ID and a live selfie. No ID upload or manual approval is available on this site.',
    pass_note:'PASS partner access remains unverified. Only approved clearance status, never laboratory results, may be shared.'});
  }
- case 'yoti_start':{
-  const mode=body.mode==='performer_identity'?'performer_identity':'age_gate';
-  const cfg=await yotiReady();
-  if(!cfg.ready)return bad('Yoti is not configured. Use manual ID verification until onboarding is complete.',503);
-  // Select by brand using trusted server config. Never send OnlyHost users
-  // back to CCX because their brand's origin is missing or misconfigured.
-  const trustedOrigin=getYotiReturnOrigin(cfg.setting,body.brand);
-  if(!trustedOrigin)return bad(body.brand==='onlyhost'
-    ? 'OnlyHost HTTPS Yoti return origin must be configured first'
-    : 'Content Connect X HTTPS Yoti return origin must be configured first',503);
-  const {data:prior}=await db.from('ccx_age_provider_sessions').select('id')
-   .eq('user_id',uid).gte('created_at',new Date(Date.now()-3600000).toISOString()).limit(5);
-  if(prior&&prior.length>=5)return bad('Verification retry limit reached; try again later',429);
-  const reference=crypto.randomUUID();
-  const isID=mode==='performer_identity';
-  const payload={
-   type:'OVER',ttl:900,reference_id:reference,synchronous_checks:true,
-   age_estimation:{allowed:!isID,threshold:21,retry_limit:2,level:'PASSIVE',authenticity:'AUTO'},
-   digital_id:{allowed:!isID,threshold:18,age_estimation_allowed:false,retry_limit:2},
-   doc_scan:{allowed:true,threshold:18,retry_limit:2,level:'PASSIVE',authenticity:'AUTO',synchronous_checks:true},
-   credit_card:{allowed:false},mobile:{allowed:false},
-   callback:{auto:true,url:trustedOrigin+'/?age_verification=complete'},
-   cancel_url:trustedOrigin+'/?age_verification=cancelled',
-   block_biometric_consent:false
-  };
-  const response=await yotiRequest('POST',null,payload);
-  if(!id(response.id)||!response.expires_at)return bad('Provider returned an invalid session',503);
-  const {data,error}=await db.from('ccx_age_provider_sessions').insert({
-   user_id:uid,provider_session_id:response.id,reference_id:reference,mode,
-   expires_at:response.expires_at,status:'pending'
-  }).select('id').single();
-  if(error)throw error;
-  const view='https://age.yoti.com?sessionId='+encodeURIComponent(response.id)+'&sdkId='+encodeURIComponent(cfg.sdk!);
-  return out({session_id:data.id,url:view,note:'Complete verification on Yoti. Performer identity requires separate document review.'},201);
- }
+ case 'yoti_start':
  case 'yoti_status':{
-  const {data,error}=await db.from('ccx_age_provider_sessions')
-   .select('id,mode,status,method,expires_at,confirmed_at,provider_session_id,reference_id')
-   .eq('user_id',uid).order('created_at',{ascending:false}).limit(1);
-  if(error)throw error;
-  const latest=data?.[0];
-  if(!latest)return out({status:'not_started'});
-  if(!body.refresh||!['pending','processing','provider_error'].includes(latest.status))
-   return out({status:latest.status,mode:latest.mode,method:latest.method,confirmed_at:latest.confirmed_at});
-  if(Date.parse(latest.expires_at)<Date.now()){
-   await db.from('ccx_age_provider_sessions').update({status:'expired'}).eq('id',latest.id);
-   return out({status:'expired'});
-  }
-  const result=await yotiRequest('GET',latest.provider_session_id);
-  if(result.id!==latest.provider_session_id||result.reference_id!==latest.reference_id||result.type!=='OVER')
-   return bad('Yoti session identity did not match',503);
-  // Yoti AVS COMPLETE for an OVER session is an independently returned
-  // above-threshold result. Verify the provider session, method and threshold
-  // before granting age access. A redirect itself is NEVER proof.
-  const method=txt(result.method,70).toUpperCase();
-  const doc=/DOC_SCAN|DOCUMENT|ID_VERIFICATION/.test(method);
-  const digital=/DIGITAL_ID|YOTI_APP/.test(method);
-  const estimate=/AGE_ESTIMATION|FACIAL_AGE/.test(method);
-  const threshold=doc?Number(result.doc_scan?.threshold)
-    :digital?Number(result.digital_id?.threshold)
-    :estimate?Number(result.age_estimation?.threshold):0;
-  const validMethod=doc||digital||estimate;
-  // Yoti documents that OVER+COMPLETE means the threshold passed; the
-  // returned age is that verified threshold (not the individual's DOB).
-  // Require a matching allowed method and explicit age threshold.
-  const allowed=doc?result.doc_scan?.allowed===true
-    :digital?result.digital_id?.allowed===true
-    :estimate?result.age_estimation?.allowed===true:false;
-  const checkedAge=Number(result.age);
-  const agePass=result.type==='OVER'&&result.status==='COMPLETE'&&
-   result.result!==false&&validMethod&&allowed&&
-   Number.isFinite(threshold)&&threshold>=(estimate?21:18)&&
-   Number.isFinite(checkedAge)&&checkedAge>=18&&checkedAge>=threshold;
-  const digestBytes=new TextEncoder().encode(JSON.stringify(result));
-  const hash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',digestBytes)))
-    .map(x=>x.toString(16).padStart(2,'0')).join('');
-  let status='processing';
-  if(result.status==='COMPLETE')status=agePass?'age_confirmed':'review_required';
-  else if(['FAIL','CANCELLED'].includes(result.status))status='rejected';
-  else if(result.status==='ERROR')status='provider_error';
-  else if(result.status==='EXPIRED')status='expired';
-  const now=new Date().toISOString();
-  let requestId=null;
-  if(agePass){
-   // Provider-approved age is a separate assertion from creator document/
-   // identity checks required in production agreements.
-   const {data:current,error:lookupError}=await db.from('age_verification_requests')
-    .select('id,status').eq('user_id',uid).order('created_at',{ascending:false}).limit(1);
-   if(lookupError)throw lookupError;
-   if(current?.[0]?.status==='approved')requestId=current[0].id;
-   else{
-    const {data:record,error:verificationError}=await db.from('age_verification_requests')
-     .upsert({user_id:uid,status:'approved',provider:'yoti',
-       provider_session_id:latest.provider_session_id,verification_method:method,
-       evidence_reference:txt(result.evidence_id,100)||latest.reference_id,
-       verified_at:now,reviewed_at:now},
-       {onConflict:'provider_session_id'}).select('id').single();
-    if(verificationError)throw verificationError;
-    requestId=record.id;
-   }
-   await audit('ccx_age_verified_by_yoti',latest.id);
-  }
-  const {error:saveError}=await db.from('ccx_age_provider_sessions').update({
-   status,method:method||null,evidence_id:txt(result.evidence_id,120)||null,
-   age_threshold_passed:agePass,provider_response_hash:hash,
-   verification_request_id:requestId,
-   confirmed_at:agePass?now:null
-  }).eq('id',latest.id);
-  if(saveError)throw saveError;
-  await audit('ccx_yoti_session_checked',latest.id);
-  return out({status,mode:latest.mode,method:method||null,
-   age_verified:agePass,identity_verified:false,
-   note:agePass?'Your age has been independently verified by Yoti. Additional performer identity evidence may still be required for certain productions.'
-    :'Access remains locked until a qualified age-verification method succeeds.'});
+  // Existing clients route through the same Yoti-only service. Never maintain a
+  // second approval path, manual fallback, weaker method or non-atomic write.
+  const response=await fetch(url+'/functions/v1/yoti-verification',{
+   method:'POST',headers:{'Content-Type':'application/json',apikey:key,
+    Authorization:req.headers.get('Authorization')||''},
+   body:JSON.stringify({action,brand:body.brand,refresh:body.refresh}),
+   redirect:'error',signal:AbortSignal.timeout(25000)});
+  return out(await response.json(),response.status);
  }
  case 'onlyhost_register':{
   // Host-only registrations do NOT grant creator or performer privileges.

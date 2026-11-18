@@ -27,6 +27,7 @@ Deno.serve(async(req)=>{
   const {data:record,error:findError}=await admin.from('age_verification_requests').select('id,user_id,status,id_document_path,selfie_document_path').eq('id',body.request_id).maybeSingle();
   if(findError||!record)return respond({error:'Not found'},404);
   if(record.user_id===user.id)return respond({error:'Administrators cannot review their own age verification'},403);
+  if(body.action==='approve')return respond({error:'Manual age approvals are retired. Only the verified Yoti result can complete new signup.'},410);
   if(body.action==='document'){
     if(record.status!=='pending'&&record.status!=='approved'&&record.status!=='rejected')return respond({error:'Invalid status'},400);
     const path=body.document_type==='id'?record.id_document_path:body.document_type==='selfie'?record.selfie_document_path:null;
@@ -37,11 +38,10 @@ Deno.serve(async(req)=>{
     return respond({url:data.signedUrl,expires_in:120});
   }
   if(record.status!=='pending')return respond({error:'Request already resolved'},409);
-  // Explicit human 18+ determination is required before approval.
-  if(body.action==='approve' && body.age_confirmed!==true)return respond({error:'Reviewer must confirm age 18 or older'},400);
-  const status=body.action==='approve'?'approved':'rejected';
+  // Historical manual submissions may be rejected or inspected, never approved.
+  const status='rejected';
   const now=new Date().toISOString();
-  const {data,error}=await admin.from('age_verification_requests').update({status,reviewer_id:user.id,reviewed_at:now,verified_at:status==='approved'?now:null}).eq('id',record.id).eq('status','pending').select('id,status').maybeSingle();
+  const {data,error}=await admin.from('age_verification_requests').update({status,reviewer_id:user.id,reviewed_at:now,verified_at:null}).eq('id',record.id).eq('status','pending').select('id,status').maybeSingle();
   if(error)return respond({error:'Unable to update request'},500);
   if(!data)return respond({error:'Request updated by another reviewer'},409);
   await admin.from('platform_action_audit').insert({actor_id:user.id,action:'review_age_verification',target_type:'age_verification',target_id:record.id,metadata:{status}});

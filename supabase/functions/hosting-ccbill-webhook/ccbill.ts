@@ -12,14 +12,16 @@ export const flexConfigured=()=>Boolean(
  Deno.env.get('CCBILL_CLIENT_SUBACC')&&
  Deno.env.get('CCBILL_FLEX_ID')&&
  Deno.env.get('CCBILL_SALT')&&
+ (Deno.env.get('CCBILL_WEBHOOK_RELAY_SECRET')||'').length>=32&&
+ Deno.env.get('CCBILL_EVENT_TIMEZONE')&&
  optionalProviderSetting('CCBILL_BOOKING_PERIOD_DAYS')
 );
 export const md5Hex=(value:string)=>createHash('md5').update(value,'utf8').digest('hex');
 export const sha256Hex=(value:string)=>createHash('sha256').update(value,'utf8').digest('hex');
 export const safeEq=(a:string,b:string)=>{
  if(!/^[0-9a-f]{32}$/i.test(a)||!/^[0-9a-f]{32}$/i.test(b))return false;
- const aa=Buffer.from(a.toLowerCase(),'hex'),bb=Buffer.from(b.toLowerCase(),'hex');
- let x=0;for(let i=0;i<aa.length;i++)x|=aa[i]^bb[i];return x===0;
+ const aa=a.toLowerCase(),bb=b.toLowerCase();
+ let x=0;for(let i=0;i<32;i++)x|=aa.charCodeAt(i)^bb.charCodeAt(i);return x===0;
 };
 export function buildFlexformUrl(bookingId:string,cents:number){
  if(!flexConfigured())throw Error('Adult merchant and dynamic checkout are not approved/configured');
@@ -33,6 +35,7 @@ export function buildFlexformUrl(bookingId:string,cents:number){
  const amount=(cents/100).toFixed(2);
  const digest=md5Hex(amount+period+'840'+Deno.env.get('CCBILL_SALT'));
  const url=new URL('https://api.ccbill.com/wap-frontflex/flexforms/'+flex);
+ url.searchParams.set('clientAccnum',account);
  url.searchParams.set('clientSubacc',sub);
  url.searchParams.set('initialPrice',amount);
  url.searchParams.set('initialPeriod',String(period));

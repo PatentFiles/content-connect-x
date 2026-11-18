@@ -3,9 +3,10 @@
 import React,{useEffect,useState} from 'react';
 import {ArrowRight,Check,ShieldCheck,UsersRound,Building2,LockKeyhole} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
+import {membershipCall} from './membershipBillingApi';
 import {PROFESSIONAL_ROLES,ROLE_BENEFITS,FREE_BENEFITS,DEFAULT_PREMIUM_PLANS} from './membershipCatalog.mjs';
 
-function Card({eyebrow,title,price,features,subtitle,highlight=false,action,href='/signup',disabled=false}){
+function Card({eyebrow,title,price,features,subtitle,highlight=false,action,href='/signup',disabled=false,onClick=null}){
  return <article className={'flex h-full flex-col rounded-2xl border p-5 sm:p-7 '+
  (highlight?'border-[#D34DBB]/70 bg-[#20172F] shadow-xl shadow-black/20':'border-[#34445D] bg-[#111A2B]')}>
   <p className="text-xs font-bold uppercase tracking-[.15em] text-[#FF91D9]">{eyebrow}</p>
@@ -17,7 +18,7 @@ function Card({eyebrow,title,price,features,subtitle,highlight=false,action,href
     <Check size={18} className="mt-1 shrink-0 text-[#FF79C8]"/><span>{feature}</span>
    </li>)}
   </ul>
-  {disabled?<p className="mt-7 rounded-xl border border-[#53425A] bg-[#30263D] px-4 py-3 text-center text-sm font-semibold text-[#E7CDE5]">{action}</p>:
+  {onClick&&!disabled?<button type="button" onClick={onClick} className="ccx-primary mt-7 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white">{action}<ArrowRight size={17}/></button>:disabled?<p className="mt-7 rounded-xl border border-[#53425A] bg-[#30263D] px-4 py-3 text-center text-sm font-semibold text-[#E7CDE5]">{action}</p>:
    <a href={href||'/signup'} className="ccx-primary mt-7 inline-flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold text-white">{action}<ArrowRight size={17}/></a>}
  </article>;
 }
@@ -25,6 +26,27 @@ export default function PublicPricing({signedIn=false,onNavigate=(destination)=>
  const [role,setRole]=useState(PROFESSIONAL_ROLES.some(x=>x.id===initialRole)?initialRole:'creator');
  const [plans,setPlans]=useState(DEFAULT_PREMIUM_PLANS);
  const [agentPlan,setAgentPlan]=useState('agent_10');
+ const [billing,setBilling]=useState(null),[billingError,setBillingError]=useState(''),[paying,setPaying]=useState(false);
+ useEffect(()=>{
+  if(!signedIn)return;
+  let active=true;
+  const refresh=()=>membershipCall('status').then(v=>{if(active){setBilling(v);setBillingError('');}}).catch(e=>{if(active)setBillingError(e.message);});
+  void refresh();const timer=window.setInterval(()=>{if(!document.hidden)void refresh();},15000);
+  window.addEventListener('focus',refresh);
+  return()=>{active=false;window.clearInterval(timer);window.removeEventListener('focus',refresh);};
+ },[signedIn]);
+ const checkout=async()=>{
+  if(!selected||paying)return;setPaying(true);setBillingError('');
+  try{
+   const data=await membershipCall('create_checkout',{plan_code:selected.plan_code});
+   if(data.amount_cents!==selected.monthly_cents)throw Error('This plan price was updated. Refresh the page and review the current price before paying.');
+   const target=new URL(data.checkout_url);
+   if(target.origin!=='https://api.ccbill.com'||!target.pathname.startsWith('/wap-frontflex/flexforms/'))throw Error('Invalid hosted checkout URL');
+   window.location.assign(target.href);
+  }catch(e){setBillingError(e.message);setPaying(false);}
+ };
+ const currentlyPaid=['active','trial'].includes(billing?.subscription?.status)&&(!billing.subscription.period_end||Date.parse(billing.subscription.period_end)>Date.now());
+
  useEffect(()=>{
   let live=true;
   void (async()=>{
@@ -74,10 +96,10 @@ export default function PublicPricing({signedIn=false,onNavigate=(destination)=>
    <Card eyebrow="Get started" title="Free Membership" price="$0" subtitle="No payment is required for registration or independent age verification."
     features={FREE_BENEFITS} action={signedIn?'Free plan information':'Create a free account'} href="/signup" disabled={signedIn}/>
    <Card highlight eyebrow="Expanded access" title={role==='studio'?'Studio Membership':'Professional Membership'}
-    price={price+(selected?'/mo':'')} subtitle={role==='agent'
+    price={price+(selected?' / 30 days':'')} subtitle={role==='agent'
      ?selected?.label+' · Cancel according to the published subscription terms.'
-     :'Flat monthly membership. No Content Connect X percentage taken from your project earnings.'}
-    features={premium.items} disabled action="Membership checkout opens after approved billing is connected"/>
+     :'Recurring membership billed every 30 days. No Content Connect X percentage taken from your project earnings.'}
+    features={premium.items} disabled={signedIn?(!billing?.ready||paying||currentlyPaid):false} href="/signup" onClick={signedIn?checkout:null} action={!signedIn?'Create an account to subscribe':currentlyPaid?'Your membership is active':paying?'Opening secure checkout…':billing?.ready?'Subscribe securely with CCBill':'Membership checkout opens after approved billing is connected'}/>
   </section>
   <section className="mx-auto mt-7 grid max-w-5xl gap-4 sm:grid-cols-3">
    <div className="ccx-surface p-5"><ShieldCheck size={22} className="text-[#FF83D5]"/><h3 className="mt-3 font-semibold text-white">Verified adults only</h3>
@@ -89,7 +111,10 @@ export default function PublicPricing({signedIn=false,onNavigate=(destination)=>
   </section>
   <div className="mx-auto mt-7 max-w-5xl rounded-2xl border border-[#354360] bg-[#10192A] p-5 text-sm leading-7 text-[#B5C5DC]">
    <div className="flex items-center gap-2 font-semibold text-white"><LockKeyhole size={19}/> Billing status</div>
-   <p className="mt-2">These monthly prices are configured in the membership catalog. Paid checkout is not yet enabled because an adult-industry-approved merchant provider and subscription webhooks must be verified before charges are accepted.</p>
+   <p className="mt-2">{billing?.ready?'Secure card entry is hosted by CCBill. Membership renews every 30 days at the accepted checkout price. Cancellation stops future renewals; paid access continues through the recorded paid period.':'Checkout opens after the approved recurring merchant account, hosted form and authenticated callback service are connected. No payment is needed to create a free account.'}</p>
+   {billing?.subscription?.billing_provider==='ccbill'&&<p className="mt-3"><a className="font-semibold underline" href="https://support.ccbill.com" target="_blank" rel="noopener noreferrer">Manage or cancel your CCBill subscription</a>{billing.cancel_at_period_end&&' · Renewal cancelled.'}{billing.subscription.period_end&&' Paid-through date: '+new Date(billing.subscription.period_end).toLocaleDateString()}</p>}
+   {billing?.reconciliation_required&&<p role="status" className="mt-3 text-amber-200">A payment needs merchant reconciliation. Do not submit a second payment; contact support with your CCBill receipt.</p>}
+   {billingError&&<p role="alert" className="mt-3 text-red-200">{billingError}</p>}
   </div>
   <div className="mt-10 flex justify-center">
    {signedIn?<button type="button" className="ccx-secondary rounded-xl px-5 py-3 text-sm font-semibold"

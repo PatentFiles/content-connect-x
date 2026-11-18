@@ -1,7 +1,7 @@
 /** CCBill FlexForms checkout: no card data enters Content Connect X. */
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
 import {flexConfigured,buildFlexformUrl} from './ccbill.ts';
-const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type','Access-Control-Allow-Methods':'POST,OPTIONS'};
+const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info,x-supabase-client-platform,x-supabase-client-platform-version,x-supabase-client-runtime,x-supabase-client-runtime-version','Access-Control-Allow-Methods':'POST,OPTIONS'};
 const send=(body:unknown,status=200)=>Response.json(body,{status,headers:cors});
 const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 Deno.serve(async req=>{
@@ -15,13 +15,13 @@ Deno.serve(async req=>{
  const db=createClient(url,secret),uid=user.id;
  const [age,security,sub]=await Promise.all([
   db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(1),
-  db.from('account_security').select('banned,suspended').eq('user_id',uid).maybeSingle(),
+  db.from('account_security').select('admin,banned,suspended').eq('user_id',uid).maybeSingle(),
   db.from('member_subscriptions').select('status,period_end').eq('user_id',uid).maybeSingle()
  ]);
- if(age.error||security.error||sub.error||security.data?.banned||security.data?.suspended||
+ if(age.error||security.error||sub.error||!security.data||security.data?.banned||security.data?.suspended||
    !age.data?.[0]?.admitted_at)
   return send({error:'Complete account onboarding first'},403);
- if(!['active','trial'].includes(sub.data?.status)||sub.data?.period_end&&Date.parse(sub.data.period_end)<=Date.now())
+ if(!security.data?.admin&&(!['active','trial'].includes(sub.data?.status)||sub.data?.period_end&&Date.parse(sub.data.period_end)<=Date.now()))
   return send({error:'Active premium membership required'},403);
  const payload=await req.json().catch(()=>({}));
  if(payload.action!=='create_checkout'||!uuid(payload.booking_id))return send({error:'Invalid checkout request'},400);
@@ -35,33 +35,11 @@ Deno.serve(async req=>{
   .eq('property_id',booking.property_id).eq('status','approved').limit(1);
  if(!host?.some((x:any)=>!x.expires_at||Date.parse(x.expires_at)>Date.now()))
   return send({error:'Host authority verification has expired'},403);
- const {data:terms}=await db.from('booking_policy_snapshots').select('rental_cents,deposit_cents').eq('booking_id',booking.id).maybeSingle();
- const amount=Number(terms?.rental_cents||0);
- if(!Number.isSafeInteger(amount)||amount<300)return send({error:'Booking price is not payable through this form'},409);
- const {data:existing}=await db.from('booking_payment_intents').select('id,provider,status,amount_cents')
-  .eq('booking_id',booking.id).eq('kind','rental').maybeSingle();
- if(existing&&existing.amount_cents!==amount)return send({error:'Previously quoted price mismatch'},409);
- let intentId:string;
- if(existing){
-  if(!['not_started','failed','pending'].includes(existing.status))return send({error:'Payment already processed'},409);
-  if(!['unconfigured','ccbill'].includes(existing.provider))return send({error:'Another payment provider owns this intent'},409);
-  const {data,error}=await db.from('booking_payment_intents').update({
-    provider:'ccbill',status:'pending',updated_at:new Date().toISOString()
-  }).eq('id',existing.id).select('id').single();
-  if(error)throw error;intentId=data.id;
- }else{
-  const {data,error}=await db.from('booking_payment_intents').insert({
-    booking_id:booking.id,provider:'ccbill',kind:'rental',amount_cents:amount,currency:'USD',status:'pending'
-  }).select('id').single();
-  if(error)throw error;intentId=data.id;
- }
- // This is an external hosted checkout request, NOT an authorization or capture.
- const {data:attempt,error:insertError}=await db.from('hosting_payment_attempts').insert({
-  booking_id:booking.id,intent_id:intentId,provider:'ccbill',status:'created'
- }).select('id,checkout_nonce,expires_at').single();
- if(insertError)throw insertError;
+ const {data:attempt,error:checkoutError}=await db.rpc('ccx_start_rental_checkout',{p_actor:uid,p_booking:booking.id});
+ if(checkoutError)return send({error:checkoutError.message||'Checkout cannot be prepared'},409);
+ const amount=Number(attempt.amount_cents);
  const urlToPay=buildFlexformUrl(attempt.checkout_nonce,amount);
  return send({checkout_url:urlToPay,expires_at:attempt.expires_at,
-  amount_cents:amount,deposit_cents:Number(terms.deposit_cents),
+  amount_cents:amount,deposit_cents:Number(attempt.deposit_cents),
   note:'External CCBill hosted form. Do not trust return redirects; confirmed webhook and reconciliation are required.'});
 });

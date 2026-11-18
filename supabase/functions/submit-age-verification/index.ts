@@ -10,22 +10,5 @@ Deno.serve(async req=>{
   const client=createClient(url,key,{global:{headers:{Authorization:req.headers.get('Authorization')||''}}});
   const {data:{user},error}=await client.auth.getUser();
   if(error||!user) return respond({error:'Unauthorized'},401);
-  const admin=createClient(url,secret);
-  const {data:security}=await admin.from('account_security').select('banned,suspended').eq('user_id',user.id).maybeSingle();
-  if(security?.banned||security?.suspended)return respond({error:'Account unavailable'},403);
-  const {data:existing}=await admin.from('age_verification_requests').select('status').eq('user_id',user.id).order('created_at',{ascending:false}).limit(1);
-  if(existing?.some(v=>['approved','pending'].includes(v.status)))return respond({error:'Already submitted or verified'},409);
-  const body=await req.json().catch(()=>({}));
-  const idPath=body.id_document_path,selfiePath=body.selfie_document_path;
-  const valid=(p:unknown)=>typeof p==='string'&&p.startsWith(`${user.id}/`)&&p.length<512&&!p.includes('..');
-  if(!valid(idPath)||!valid(selfiePath)||idPath===selfiePath)return respond({error:'Private document paths required'},400);
-  // Validate the user can reference actual files under their own private folder.
-  const [identity,selfie]=await Promise.all([
-    admin.storage.from('age-verification').info(idPath),
-    admin.storage.from('age-verification').info(selfiePath),
-  ]);
-  if(identity.error||selfie.error)return respond({error:'Upload both documents before submitting'},400);
-  const {data, error:insertError}=await admin.from('age_verification_requests').insert({user_id:user.id,status:'pending',provider:'manual',id_document_path:idPath,selfie_document_path:selfiePath}).select('id,status').single();
-  if(insertError)return respond({error:'Verification submission failed'},500);
-  return respond(data,201);
+  return respond({error:'Manual ID uploads are retired. Start secure document and selfie verification with Yoti.',provider:'yoti'},410);
 });
