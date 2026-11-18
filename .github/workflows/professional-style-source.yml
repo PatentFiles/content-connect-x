@@ -1,0 +1,17 @@
+name: Prepare professional style source
+on:
+  push:
+    paths: ['.github/workflows/professional-style-source.yml']
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: git archive HEAD -o /tmp/professional-style-source.tar
+      - uses: actions/upload-artifact@v4
+        with:
+          name: professional-style-source
+          path: /tmp/professional-style-source.tar
+          retention-days: 1
