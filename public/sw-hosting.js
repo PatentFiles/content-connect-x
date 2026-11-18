@@ -1,18 +1,22 @@
-/* Content Connect X: neutral transactional browser push notifications only. */
+/* Transactional previews remain neutral; navigation never trusts remote URLs. */
 self.addEventListener('push',event=>{
  event.waitUntil((async()=>{
-  let data={};try{data=event.data?.json()||{};}catch{}
-  const title=typeof data.title==='string'?data.title:'Content Connect X update';
-  const body=typeof data.body==='string'?data.body:'You have a new account notification.';
-  const options={body,tag:'ccx-hosting',data:{url:'/'},icon:'/content_connect_logo.png'};
-  await self.registration.showNotification(title,options);
+  let data={};try{data=event.data?.json()||{};}catch{/* malformed payload uses generic copy */}
+  const title=typeof data.title==='string'?data.title.slice(0,120):'Content Connect X update';
+  await self.registration.showNotification(title,{
+   body:'You have a new private account update. Sign in to view details.',
+   tag:typeof data.event_id==='string'?data.event_id.slice(0,100):'ccx-hosting',
+   data:{url:'/Notifications'},icon:'/content_connect_logo.png'
+  });
  })());
 });
 self.addEventListener('notificationclick',event=>{
  event.notification.close();
- event.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(async windows=>{
-  const current=windows.find(c=>c.url.startsWith(self.location.origin));
-  if(current){await current.focus();return;}
-  return self.clients.openWindow('/');
- }));
+ event.waitUntil((async()=>{
+  const target=new URL('/Notifications',self.location.origin).href;
+  const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+  const current=windows.find(client=>{try{return new URL(client.url).origin===self.location.origin;}catch{return false;}});
+  if(current){if('navigate' in current)await current.navigate(target);return current.focus();}
+  return self.clients.openWindow(target);
+ })());
 });
