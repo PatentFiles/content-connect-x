@@ -1,0 +1,38 @@
+name: Repair pinned identity worker dependency lock
+on:
+  push:
+    branches: [feat/self-hosted-idv-evaluation]
+    paths: ['.github/workflows/identity-worker-lock.yml']
+permissions:
+  contents: write
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/self-hosted-idv-evaluation
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Resolve only the required upstream workspaces
+        run: |
+          set -euo pipefail
+          git clone --no-checkout https://github.com/team-idswyft/idswyft-community.git /tmp/ccx-idv-upstream
+          git -C /tmp/ccx-idv-upstream checkout --detach 3c6f17f1aba84bc980dc759f6be42f69b576f439
+          test "$(git -C /tmp/ccx-idv-upstream rev-parse HEAD)" = 3c6f17f1aba84bc980dc759f6be42f69b576f439
+          cd /tmp/ccx-idv-upstream
+          node --input-type=module -e "import fs from 'node:fs';const p=JSON.parse(fs.readFileSync('package.json'));p.workspaces=['shared','engine'];delete p.scripts;delete p.devDependencies;p.overrides={...p.overrides,multer:'2.5.0'};fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n');"
+          npm install --package-lock-only --ignore-scripts --workspace=shared --workspace=engine --include-workspace-root
+          cp package.json "$GITHUB_WORKSPACE/server/idv-worker/build-package.json"
+          cp package-lock.json "$GITHUB_WORKSPACE/server/idv-worker/build-package-lock.json"
+      - name: Commit exact resolved lock on the existing feature branch
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add server/idv-worker/build-package.json server/idv-worker/build-package-lock.json
+          git diff --cached --quiet && exit 0
+          git commit -m 'Lock patched Multer 2.5.0 in engine-only dependency tree'
+          git push origin HEAD:feat/self-hosted-idv-evaluation

@@ -1,0 +1,59 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {decide,eligibilityDate,legalName,nameKey,isoDate,validateCapture,SCHEMA,ENGINE_REVISION,PHASES,publicMessage} from '../supabase/functions/identity-verification/policy.mjs';
+import {createHandler} from '../supabase/functions/identity-verification/handler.mjs';
+const userId='11111111-1111-4111-8111-111111111111',sessionId='22222222-2222-4222-8222-222222222222';
+const hash='a'.repeat(64);
+const fixture=()=>{
+ const session={id:sessionId,user_id:userId,legal_name:'Jane Anne Doe',document_type:'drivers_license',issuing_country:'US',status:'collecting',reason:'collecting',expires_at:'2026-11-18T23:59:59Z',evidence:Object.fromEntries(['front','back','selfie','capture'].map(k=>[k,{sha256:hash,path:`${userId}/${sessionId}/${k}.jpg`}]))};
+ const report={schema:SCHEMA,engine_revision:ENGINE_REVISION,session_id:sessionId,evidence_hashes:Object.fromEntries(Object.keys(session.evidence).map(k=>[k,hash])),document:{type:'drivers_license',country:'US',name:'Jane Anne Doe',dob:'1990-05-20',expiry:'2030-05-20',number:'SYNTHETIC-ONLY',fields_confident:true,cross_checked:true,authenticity_passed:true},face:{matched:true,distance:0.31,liveness_passed:true,frame_identity_passed:true}};
+ return {session,report};
+};
+for(const [dob,want] of [['2008-11-18','2026-11-19'],['2008-12-31','2027-01-01'],['2008-02-29','2026-03-02'],['2006-02-28','2024-02-29'],['2000-01-01','2018-01-02']])test(`calendar eligibility ${dob}`,()=>assert.equal(eligibilityDate(dob),want));
+for(const value of ['2008-02-30','11/18/2008','2008-13-01','',null,'0000-01-01'])test(`reject ambiguous or invalid date ${value}`,()=>assert.equal(isoDate(value),null));
+test('age is read from DOB, not a facial age estimate',()=>{const {session,report}=fixture();report.document.dob='2010-01-01';report.face.estimated_age=55;assert.equal(decide(report,session,'2026-11-18').status,'age_restricted');});
+test('eighteenth birthday remains restricted',()=>{const {session,report}=fixture();report.document.dob='2008-11-18';const d=decide(report,session,'2026-11-18');assert.equal(d.reason,'birthday_wait');assert.equal(d.eligible_on,'2026-11-19');});
+test('next day passes age screening',()=>{const {session,report}=fixture();report.document.dob='2008-11-18';assert.equal(decide(report,session,'2026-11-19').status,'approved');});
+test('a name mismatch is not approval',()=>{const {session,report}=fixture();session.legal_name='Jane Smith';assert.equal(decide(report,session,'2026-11-18').status,'name_mismatch');});
+test('case and ordinary whitespace normalize without removing identity tokens',()=>{assert.equal(nameKey('  JANE   ANNE DOE '),nameKey('Jane Anne Doe'));assert.notEqual(nameKey('Jane Doe'),nameKey('Jane Anne Doe'));assert.notEqual(nameKey('José Doe'),nameKey('Jose Doe'));});
+test('single-part and Unicode legal names are accepted',()=>{assert.equal(legalName('李'),'李');assert.equal(legalName('Sukarno'),'Sukarno');});
+for(const [label,mutate] of [
+ ['different account session',r=>r.session_id=userId],['wrong engine revision',r=>r.engine_revision='latest'],['no selfie hash',r=>delete r.evidence_hashes.selfie],
+ ['missing document check',r=>delete r.document.cross_checked],['string true is not boolean',r=>r.document.authenticity_passed='true'],
+ ['low OCR confidence flag',r=>r.document.fields_confident=false],['future DOB',r=>r.document.dob='2030-01-01'],['unreadable DOB',r=>r.document.dob='01/01/90'],
+ ['expired ID',r=>r.document.expiry='2020-01-01'],['face mismatch',r=>r.face.matched=false],['no liveness',r=>r.face.liveness_passed=false],
+ ['different person in motion frames',r=>r.face.frame_identity_passed=false],['unbounded match score',r=>r.face.distance=Infinity],['negative match score',r=>r.face.distance=-1]
+])test(`fails closed: ${label}`,()=>{const {session,report}=fixture();mutate(report);assert.equal(decide(report,session,'2026-11-18').status,'review_required');});
+test('age restriction takes precedence over name correction',()=>{const {session,report}=fixture();session.legal_name='Changed Name';report.document.dob='2010-01-01';assert.equal(decide(report,session,'2026-11-18').status,'age_restricted');});
+const captureFixture=()=>({challenge_id:sessionId,challenge_type:'head_turn',directions:['left','right'],start_timestamp:0,end_timestamp:18000,frames:PHASES.map((phase,i)=>({phase,timestamp:[0,4000,8000,10000,14000,18000][i],frame_base64:'QUFBQUFBQUFBQUFB'}))});
+test('two complete server-bound head turns accepted structurally',()=>assert.equal(validateCapture(captureFixture(),{challenge_id:sessionId,directions:['left','right']}).frames.length,6));
+test('challenge replay to another session rejected',()=>assert.throws(()=>validateCapture(captureFixture(),{challenge_id:userId,directions:['left','right']})));
+test('changing the assigned directions rejected',()=>assert.throws(()=>validateCapture(captureFixture(),{challenge_id:sessionId,directions:['right','left']})));
+test('instant fabricated timing rejected',()=>{const c=captureFixture();c.frames[2].timestamp=4500;assert.throws(()=>validateCapture(c,{challenge_id:sessionId,directions:c.directions}));});
+test('underage message explains restriction and review',()=>assert.match(publicMessage('age_restricted','under_18','2028-01-02'),/not permitted.*2028-01-02.*request a review/));
+
+function harness({user={id:userId,email_confirmed_at:'2026-11-01'},adminRole=false,enabled=true,reportOverride,sessionOverride,admitted=false}={}){
+ const {session,report}=fixture();Object.assign(session,sessionOverride||{});
+ const calls=[];const rows={account_security:[{user_id:userId,admin:adminRole,banned:false,suspended:false}],ccx_idv_config:[{singleton:true,enabled,notice_text:'Synthetic notice for offline tests only.',notice_version:'fixture',supported_countries:['US'],worker_origin:'https://ccx-test.up.railway.app'}],ccx_idv_sessions:[session],ccx_idv_accounts:[],member_profiles:[{id:userId,real_name:'Jane Anne Doe'}],member_admissions:admitted?[{id:'fixture',user_id:userId}]:[]};
+ const db={from(table){const filters=[];let mode='select',record;const q={select(){return q;},eq(k,v){filters.push(r=>r[k]===v);return q;},order(){return q;},limit(){return q;},single(){return q;},maybeSingle(){return q;},insert(v){mode='insert';record=v;return q;},then(resolve){calls.push({table,mode,record});const selected=(rows[table]||[]).filter(r=>filters.every(f=>f(r)));return Promise.resolve({data:mode==='insert'?null:selected[0]||null,error:null}).then(resolve);}};return q;},
+ rpc(name,args){calls.push({rpc:name,args});if(name==='ccx_idv_maintenance_authorized')return Promise.resolve({data:false,error:null});if(name==='ccx_idv_transition'){
+  if(args.p_action==='begin')return Promise.resolve({data:{...session,status:'processing'},error:null});
+  if(args.p_action==='finish')return Promise.resolve({data:{...session,status:args.p_data.checks_passed?'approved':'review_required'},error:null});
+  if(args.p_action==='fail')return Promise.resolve({data:{...session,status:'retryable_error'},error:null});
+  return Promise.resolve({data:null,error:{message:'INVALID_CAPABILITY'}});
+ }throw Error('Unexpected RPC');}};
+ const handler=createHandler({admin:db,authenticate:async()=>user,clock:()=>new Date('2026-11-18T12:00:00Z'),fetchImpl:async()=>new Response(JSON.stringify(reportOverride||report),{status:200})});
+ return {calls,handler,invoke:body=>handler(new Request('https://example.test/identity-verification',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}))};
+}
+test('anonymous requests cannot read verification state',async()=>{const h=harness({user:null});assert.equal((await h.invoke({action:'status'})).status,401);assert.equal(h.calls.length,0);});
+test('browser cannot post an approval action',async()=>{const h=harness();assert.equal((await h.invoke({action:'approve',age_verified:true})).status,400);assert.equal(h.calls.some(c=>c.rpc),false);});
+test('non-owner cannot submit another session',async()=>{const h=harness({sessionOverride:{user_id:'33333333-3333-4333-8333-333333333333'}});assert.equal((await h.invoke({action:'submit',session_id:sessionId})).status,404);});
+test('disabled integration rejects evidence submission',async()=>{const h=harness({enabled:false});assert.equal((await h.invoke({action:'submit',session_id:sessionId})).status,503);});
+test('trusted worker is called and only its result reaches finalization',async()=>{const h=harness();const r=await h.invoke({action:'submit',session_id:sessionId,dob:'2015-01-01',legal_name:'Attacker Value'});assert.equal(r.status,200);const c=h.calls.find(c=>c.args?.p_action==='finish');assert.equal(c.args.p_data.dob,'1990-05-20');assert.equal(c.args.p_data.extracted_name,'Jane Anne Doe');});
+test('browser-provided passed flag cannot compensate for missing worker checks',async()=>{const h=harness({reportOverride:{schema:SCHEMA}});await h.invoke({action:'submit',session_id:sessionId,checks_passed:true});assert.equal(h.calls.find(c=>c.args?.p_action==='finish').args.p_data.checks_passed,false);});
+test('status responses never include DOB, document paths or job capabilities',async()=>{const h=harness({sessionOverride:{dob:'1990-05-20',job_hash:'SECRET',document_fingerprint:'PRIVATE'}});const r=await h.invoke({action:'status'});const text=await r.text();for(const forbidden of ['1990-05-20','SECRET','PRIVATE',`${userId}/${sessionId}/`])assert.equal(text.includes(forbidden),false);assert.equal(r.headers.get('Cache-Control'),'no-store');});
+test('non-admin cannot read the review queue',async()=>{const h=harness();assert.equal((await h.invoke({action:'admin_list'})).status,403);});
+test('admin cannot review their own evidence',async()=>{const h=harness({adminRole:true,admitted:true});assert.equal((await h.invoke({action:'admin_document',session_id:sessionId,kind:'selfie',reason:'Testing own evidence access'})).status,403);});
+test('invalid worker capability rejected before any database read',async()=>{const h=harness({user:null});assert.equal((await h.invoke({action:'worker_claim',session_id:sessionId,token:'bad'})).status,401);assert.equal(h.calls.length,0);});
+test('retention job requires an independent maintenance capability',async()=>{const h=harness({user:null});assert.equal((await h.invoke({action:'purge'})).status,401);});
+test('malformed action is a client error',async()=>{const h=harness();assert.equal((await h.invoke({action:123})).status,400);});

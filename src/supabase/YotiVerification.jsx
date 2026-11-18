@@ -1,8 +1,12 @@
-/** The ID camera and selfie/liveness UI run on Yoti, not in an imitation uploader. */
+/** Compatibility route: Content Connect uses first-party capture; explicit other brands retain their hosted provider. */
 import React,{useEffect,useRef,useState} from 'react';
 import {Camera,CheckCircle2,RefreshCw} from 'lucide-react';
 import {integrationAction} from './integrationApi';
-export default function YotiVerification({brand='content_connect',onApproval=()=>{},onboarding=false}){
+import IdentityVerification from './IdentityVerification';
+export default function VerificationRoute({brand='content_connect',onApproval=()=>{},onboarding=false}){
+ return brand==='content_connect'?<IdentityVerification onApproval={onApproval} onboarding={onboarding}/>:<HostedYotiVerification brand={brand} onApproval={onApproval} onboarding={onboarding}/>;
+}
+function HostedYotiVerification({brand,onApproval,onboarding}){
  const [status,setStatus]=useState(null),[configured,setConfigured]=useState(null);
  const [busy,setBusy]=useState(false),[error,setError]=useState('');
  const callback=useRef(onApproval);callback.current=onApproval;

@@ -1,0 +1,92 @@
+name: Identity verification validation
+on:
+  push:
+    branches: [feat/self-hosted-idv-evaluation]
+  pull_request:
+    paths:
+      - 'server/idv-worker/**'
+      - 'supabase/functions/identity-verification/**'
+      - 'supabase/sql/self_hosted_identity_v2.sql'
+      - 'src/supabase/*Identity*'
+      - 'src/supabase/identityApi.js'
+      - 'tests/identity-*'
+permissions:
+  contents: read
+concurrency:
+  group: identity-validation-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  application:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Worker and Edge policies must be identical
+        run: cmp server/idv-worker/policy.mjs supabase/functions/identity-verification/policy.mjs
+      - name: Identity policy and authenticated handler regressions
+        run: |
+          set -o pipefail
+          node --test tests/identity-verification.test.mjs tests/identity-lifecycle.test.mjs server/self-hosted-idv/idswyft.test.mjs | tee identity-test-results.txt
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Build frontend
+        run: npm run build
+      - name: Deployed API rejects unauthenticated identity operations
+        run: |
+          set -euo pipefail
+          for action in status start upload submit confirm_name admin_list admin_document; do
+            code=$(curl --silent --show-error --max-time 20 -o /tmp/idv-response -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d "{\"action\":\"$action\"}" 'https://yxuqbygykpfbioslljlf.supabase.co/functions/v1/identity-verification')
+            test "$code" = 401 || { echo "$action returned unexpected status $code"; exit 1; }
+            echo "$action: anonymous request rejected ($code)"
+          done
+      - name: Save exact tested sources and validation output
+        if: always()
+        run: |
+          mkdir -p /tmp/identity-validation
+          git archive --format=zip --output=/tmp/identity-validation/tested-source.zip HEAD
+          cp identity-test-results.txt /tmp/identity-validation/ 2>/dev/null || true
+          git rev-parse HEAD > /tmp/identity-validation/commit.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: identity-validation
+          path: /tmp/identity-validation/
+          retention-days: 7
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: ci_disposable_only
+          POSTGRES_DB: identity_test
+        ports: ['5432:5432']
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: ci_disposable_only
+      PGDATABASE: identity_test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply actual migration and test service-role admission in disposable database
+        run: |
+          set -euo pipefail
+          psql -v ON_ERROR_STOP=1 -f tests/identity-database-fixture.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/sql/self_hosted_identity_v2.sql
+          psql -v ON_ERROR_STOP=1 -f tests/identity-database-regression.sql | tee identity-database-results.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: identity-database-validation
+          path: identity-database-results.txt
+          retention-days: 7
