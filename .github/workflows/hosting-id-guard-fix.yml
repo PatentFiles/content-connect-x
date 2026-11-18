@@ -1,0 +1,55 @@
+name: Hosting identifier guard repair
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/hosting-id-guard-fix.yml']
+permissions:
+  contents: write
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Correct UUID shape without changing authorization
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('supabase/functions/hosting-marketplace/index.ts')
+          s=p.read_text()
+          old="const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);"
+          new="const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);"
+          assert s.count(old)==1,'Unexpected identifier validator; stop instead of overwriting'
+          p.write_text(s.replace(old,new))
+          p=Path('tests/account-entry-runtime.test.mjs')
+          addition='''
+          test('property ID validator accepts canonical UUIDs and rejects malformed IDs',()=>{
+           const source=fs.readFileSync('supabase/functions/hosting-marketplace/index.ts','utf8');
+           const line=source.split('\\n').find(value=>value.startsWith('const uuid='));
+           assert.ok(line,'property identifier validator exists');
+           const expression=line.slice(line.indexOf('&&')+2,line.lastIndexOf('.test(v)'));
+           const matcher=new vm.Script(expression).runInNewContext();
+           assert.equal(matcher.test('12345678-1234-4234-8234-123456789abc'),true);
+           assert.equal(matcher.test('12345678-1234-4234-8234-abcd-123456789abc'),false);
+           assert.equal(matcher.test('not-a-property-id'),false);
+          });
+          '''
+          p.write_text(p.read_text()+addition)
+          PY
+      - run: npm ci
+      - run: npm run test:admission
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run verify:edge-imports
+      - run: npm run build
+      - name: Commit tested source correction
+        run: |
+          git config user.name 'Content Connect maintenance'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add supabase/functions/hosting-marketplace/index.ts tests/account-entry-runtime.test.mjs
+          git commit -m "Correct property UUID validation and prevent hosting identifier regression"
+          git push origin HEAD:main
