@@ -1,0 +1,20 @@
+{
+  "name": "idswyft-mvp",
+  "version": "1.0.0",
+  "description": "Identity verification platform MVP with document processing and face recognition",
+  "type": "module",
+  "keywords": [
+    "identity",
+    "verification",
+    "kyc",
+    "ocr",
+    "face-recognition",
+    "api"
+  ],
+  "author": "Idswyft Team",
+  "license": "MIT",
+  "workspaces": [
+    "shared",
+    "engine"
+  ]
+}
