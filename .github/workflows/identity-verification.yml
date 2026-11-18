@@ -1,0 +1,51 @@
+name: Identity verification validation
+on:
+  push:
+    branches: [feat/self-hosted-idv-evaluation]
+  pull_request:
+    paths:
+      - 'server/idv-worker/**'
+      - 'supabase/functions/identity-verification/**'
+      - 'supabase/sql/self_hosted_identity_v2.sql'
+      - 'src/supabase/*Identity*'
+      - 'src/supabase/identityApi.js'
+      - 'tests/identity-*.test.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: identity-validation-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  application:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Identity policy and authenticated handler regressions
+        run: |
+          set -o pipefail
+          node --test tests/identity-verification.test.mjs tests/identity-lifecycle.test.mjs server/self-hosted-idv/idswyft.test.mjs | tee identity-test-results.txt
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Build frontend
+        run: npm run build
+      - name: Save exact tested sources and validation output
+        if: always()
+        run: |
+          mkdir -p /tmp/identity-validation
+          git archive --format=zip --output=/tmp/identity-validation/tested-source.zip HEAD
+          cp identity-test-results.txt /tmp/identity-validation/ 2>/dev/null || true
+          git rev-parse HEAD > /tmp/identity-validation/commit.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: identity-validation
+          path: /tmp/identity-validation/
+          retention-days: 7
