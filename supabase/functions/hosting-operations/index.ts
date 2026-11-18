@@ -1,3 +1,4 @@
+import {isSupportedPushEndpoint,validPushKeys} from './pushPolicy.mjs';
 import {optionalProviderSetting} from './providerConfig.mjs';
 /**
  * Content Connect X: Hosting operations for verified hosts and booking parties.
@@ -410,22 +411,24 @@ Deno.serve(async request=>{
   return reject('Booking quote recorded. Approved adult-industry processor and capture API have not been configured.',503);
  }
  case 'notification_preferences':{
-  const {data}=await db.from('member_notification_preferences').select('email_digest,booking_reminders,message_alerts')
+  const {data,error}=await db.from('member_notification_preferences').select('email_digest,booking_reminders,message_alerts')
    .eq('user_id',uid).maybeSingle();
+  if(error)return reject('Notification preferences unavailable',503);
   return response({item:data||{email_digest:false,booking_reminders:true,message_alerts:true}});
  }
  case 'push_register':{
   if(!paid)return reject('Account must be active',403);
   const endpoint=short(body.endpoint,1600),p256dh=short(body.p256dh,500),authSecret=short(body.auth,500);
-  let parsed:URL;try{parsed=new URL(endpoint);}catch{return reject('Invalid push endpoint');}
-  if(parsed.protocol!=='https:'||!p256dh||!authSecret)return reject('Push subscription must contain secure browser keys',400);
+  if(!isSupportedPushEndpoint(endpoint)||!validPushKeys(p256dh,authSecret))return reject('Unsupported push service or invalid browser subscription keys',400);
+  const {data:existing,error:readError}=await db.from('hosting_push_subscriptions').select('id,user_id').eq('endpoint',endpoint).maybeSingle();
+  if(readError)return reject('Push registration unavailable',503);
+  if(existing&&existing.user_id!==uid)return reject('Push subscription already belongs to another account; unsubscribe in that account first',409);
   const {count,error:countError}=await db.from('hosting_push_subscriptions').select('id',{head:true,count:'exact'}).eq('user_id',uid);
   if(countError)throw countError;
-  if((count||0)>10)return reject('Maximum push devices reached',429);
-  const {error}=await db.from('hosting_push_subscriptions').upsert({
-    user_id:uid,endpoint,p256dh,auth_secret:authSecret
-  },{onConflict:'endpoint'});
-  if(error)throw error;
+  if(!existing&&(count||0)>=10)return reject('Maximum push devices reached',429);
+  const result=existing?await db.from('hosting_push_subscriptions').update({p256dh,auth_secret:authSecret}).eq('id',existing.id).eq('user_id',uid):
+    await db.from('hosting_push_subscriptions').insert({user_id:uid,endpoint,p256dh,auth_secret:authSecret});
+  if(result.error)return reject('Push registration changed; please retry',409);
   return response({ok:true,note:'Device registered. Delivery requires an approved push provider configuration.'});
  }
  case 'push_unregister':{

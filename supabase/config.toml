@@ -25,8 +25,9 @@ verify_jwt = true
 [functions.hosting-advanced]
 verify_jwt = true
 
+# Handler validates its own token/job secret; member POSTs still use auth.getUser.
 [functions.hosting-calendar]
-verify_jwt = true
+verify_jwt = false
 
 [functions.hosting-ccbill]
 verify_jwt = true
@@ -43,8 +44,9 @@ verify_jwt = false
 [functions.hosting-marketplace]
 verify_jwt = true
 
+# Handler validates its own token/job secret; member POSTs still use auth.getUser.
 [functions.hosting-notification-worker]
-verify_jwt = true
+verify_jwt = false
 
 [functions.hosting-operations]
 verify_jwt = true

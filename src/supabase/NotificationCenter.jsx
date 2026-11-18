@@ -24,21 +24,23 @@ const destination=notification=>{
 export default function NotificationCenter({user,onNavigate}){
  const [notifications,setNotifications]=useState([]),[friends,setFriends]=useState([]),[invitations,setInvitations]=useState([]),[names,setNames]=useState({});
  const [busy,setBusy]=useState(false),[saving,setSaving]=useState(''),[error,setError]=useState(''),[notice,setNotice]=useState('');
+ const [requestsUnavailable,setRequestsUnavailable]=useState(false);
  const generation=useRef(0);
  const load=useCallback(async()=>{
   const request=++generation.current;setBusy(true);setError('');
   try{
-   const [alerts,requests,invites]=await Promise.all([
+   const [alertsResult,requestsResult,invitesResult]=await Promise.allSettled([
     action('list_notifications'),action('list_connection_requests'),
-    // RLS limits this query to this member's invitations; it does not grant
-    // collaboration membership, change plan access or approve an invitation.
     supabase.from('collaboration_invitations').select('id,collaboration_id,invited_by,invitee_id,status,created_at').eq('invitee_id',user.id).eq('status','pending').order('created_at',{ascending:false}).limit(100),
    ]);
    if(request!==generation.current)return;
-   if(invites.error)throw invites.error;
-   const pending=(requests.items||[]).filter(v=>v.recipient_id===user.id&&v.status==='pending');
-   setNotifications(alerts.items||[]);setFriends(pending);setInvitations(invites.data||[]);
-   const ids=[...new Set([...pending.map(v=>v.requester_id),...(invites.data||[]).map(v=>v.invited_by)])].slice(0,100);
+   if(alertsResult.status==='rejected')throw alertsResult.reason;
+   const requests=requestsResult.status==='fulfilled'?requestsResult.value.items||[]:[];
+   const invites=invitesResult.status==='fulfilled'&&!invitesResult.value.error?invitesResult.value.data||[]:[];
+   const pending=requests.filter(v=>v.recipient_id===user.id&&v.status==='pending');
+   setNotifications(alertsResult.value.items||[]);setFriends(pending);setInvitations(invites);
+   setRequestsUnavailable(requestsResult.status==='rejected'||invitesResult.status==='rejected'||!!(invitesResult.status==='fulfilled'&&invitesResult.value.error));
+   const ids=[...new Set([...pending.map(v=>v.requester_id),...invites.map(v=>v.invited_by)])].slice(0,100);
    if(ids.length){const {data}=await supabase.functions.invoke('directory',{body:{ids}});if(request===generation.current)setNames(Object.fromEntries((data?.results||[]).map(v=>[v.id,v.display_name])));}
   }catch(e){if(request===generation.current)setError(e.message||'Notifications could not be loaded.');}
   finally{if(request===generation.current)setBusy(false);}
@@ -59,14 +61,15 @@ export default function NotificationCenter({user,onNavigate}){
   }catch(e){setError(e.message);}finally{setSaving('');}
  };
  const markRead=async(id)=>{setSaving(id);try{await action('mark_notification_read',{notification_id:id});setNotifications(v=>v.map(n=>n.id===id?{...n,read_at:new Date().toISOString()}:n));window.dispatchEvent(new Event('ccx-data-changed'));}catch(e){setError(e.message);}finally{setSaving('');}};
- const markAll=async()=>{setSaving('all');setError('');try{for(const item of notifications.filter(n=>!n.read_at))await action('mark_notification_read',{notification_id:item.id});await load();window.dispatchEvent(new Event('ccx-data-changed'));}catch(e){setError(e.message);}finally{setSaving('');}};
+ const markAll=async()=>{setSaving('all');setError('');try{await action('mark_all_notifications_read');await load();window.dispatchEvent(new Event('ccx-data-changed'));}catch(e){setError(e.message);}finally{setSaving('');}};
  return <section className="space-y-6" data-member-page="notifications">
   <header className="flex flex-wrap items-start justify-between gap-3"><div><h1 className="flex items-center gap-3 text-2xl font-bold"><Bell/>Notifications</h1><p className="mt-2 text-sm text-[#A4BAD5]">Your updates, friend requests and collaboration invitations, together.</p></div>
    <div className="ccx-action-row flex gap-2"><button type="button" className={secondary} disabled={busy} onClick={()=>void load()} aria-label="Refresh notifications"><RefreshCw size={18}/></button><button type="button" className={primary} disabled={!!saving||!notifications.some(n=>!n.read_at)} onClick={markAll}><Check size={16}/>Mark all read</button></div></header>
   {error&&<p role="alert" className="rounded-xl border border-red-500/40 bg-red-950 p-4 text-sm">{error}</p>}
   {notice&&<p role="status" className="text-sm text-emerald-300">{notice}</p>}
   <section className={panel+' space-y-4'} aria-labelledby="notification-invitations"><h2 id="notification-invitations" className="flex items-center gap-2 text-lg font-semibold"><UserPlus size={20}/>Invitations & requests <span className="text-sm text-[#91BCD9]">{friends.length+invitations.length}</span></h2>
-   {!busy&&!friends.length&&!invitations.length&&<p className="text-sm text-[#A4BAD5]">No pending invitations or friend requests.</p>}
+   {requestsUnavailable&&<p role="status" className="text-sm text-amber-200">Some request lists could not be loaded or are not enabled. Your notifications remain available.</p>}
+   {!busy&&!requestsUnavailable&&!friends.length&&!invitations.length&&<p className="text-sm text-[#A4BAD5]">No pending invitations or friend requests.</p>}
    {[...friends.map(item=>({kind:'friend',item})),...invitations.map(item=>({kind:'collaboration',item}))].map(({kind,item})=><article key={item.id} className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-[#34445D] p-4">
     <div><h3 className="flex items-center gap-2 font-medium">{kind==='friend'?<UserPlus size={17}/>:<Users size={17}/>} {kind==='friend'?'Friend request':'Collaboration invitation'}</h3><p className="mt-1 text-sm text-[#A4BAD5]">From {names[item.requester_id||item.invited_by]||'a member'} · {new Date(item.requested_at||item.created_at).toLocaleDateString()}</p></div>
     <div className="ccx-action-row flex gap-2"><button type="button" className={primary} disabled={!!saving} onClick={()=>respond(kind,item,'accepted')}>Accept</button><button type="button" className={secondary} disabled={!!saving} onClick={()=>respond(kind,item,'declined')}>Decline</button></div>

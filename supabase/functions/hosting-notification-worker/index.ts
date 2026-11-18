@@ -1,123 +1,87 @@
+import {isSupportedPushEndpoint} from './pushPolicy.mjs';
+/** Authenticated, leased, retryable notifications. Provider acceptance is not inbox delivery. */
 import {optionalProviderSetting} from './providerConfig.mjs';
-/**
- * Hosting transactional notifications. This is a server-only, opt-in dispatcher.
- * Generic messages contain no adult content or sensitive booking information.
- */
+import {validJobBearer} from './jobAuth.mjs';
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
 import webpush from 'npm:web-push@3.6.7';
 const reply=(body:unknown,status=200)=>Response.json(body,{status});
-const titleByTemplate:Record<string,string>={
- hosting_cancelled:'Booking cancellation',
- hosting_reschedule:'Booking schedule updated',
- hosting_refund:'Refund request update',
- hosting_claim:'Rental damage-claim update',
- hosting_verification:'Host verification update',
- hosting_signature:'Agreement signing update',
- hosting_paid:'Payment status updated',
- hosting_booking:'Booking request update',
-};
 Deno.serve(async req=>{
  if(req.method!=='POST')return reply({error:'Method not allowed'},405);
- const secret=Deno.env.get('HOSTING_NOTIFIER_JOB_SECRET');
- if(!secret||!req.headers.get('Authorization')||req.headers.get('Authorization')!=='Bearer '+secret)
+ if(!await validJobBearer(req.headers.get('Authorization'),Deno.env.get('HOSTING_NOTIFIER_JOB_SECRET')))
   return reply({error:'Unauthorized job'},401);
  const url=Deno.env.get('SUPABASE_URL'),key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
  if(!url||!key)return reply({error:'Backend not configured'},503);
  const db=createClient(url,key);
- const emailEnabled=optionalProviderSetting('HOSTING_EMAIL_PROVIDER_ENABLED')==='true'&&
-   Boolean(optionalProviderSetting('HOSTING_EMAIL_API_URL')&&Deno.env.get('HOSTING_EMAIL_API_TOKEN')&&optionalProviderSetting('HOSTING_EMAIL_FROM'));
- const pushEnabled=optionalProviderSetting('HOSTING_PUSH_PROVIDER_ENABLED')==='true'&&
-   Boolean(Deno.env.get('WEB_PUSH_VAPID_PUBLIC_KEY')&&Deno.env.get('WEB_PUSH_VAPID_PRIVATE_KEY')&&optionalProviderSetting('WEB_PUSH_SUBJECT'));
- if(!emailEnabled&&!pushEnabled)return reply({error:'No approved notification provider configured'},503);
- if(pushEnabled)webpush.setVapidDetails(
-   optionalProviderSetting('WEB_PUSH_SUBJECT')!,
-   Deno.env.get('WEB_PUSH_VAPID_PUBLIC_KEY')!,
-   Deno.env.get('WEB_PUSH_VAPID_PRIVATE_KEY')!
- );
- const result=await db.from('hosting_notification_outbox')
-  .select('id,event_key,recipient_id,channel,template,payload,attempts')
-  .in('status',['queued','failed']).lte('next_attempt_at',new Date().toISOString())
-  .lt('attempts',5).order('created_at').limit(35);
- if(result.error)return reply({error:'Queue unavailable'},503);
- let delivered=0,failed=0,skipped=0;
- for(const job of result.data||[]){
-  if(job.channel==='email'&&!emailEnabled||job.channel==='push'&&!pushEnabled){skipped++;continue;}
-  const {data:lock,error:lockError}=await db.from('hosting_notification_outbox')
-   .update({status:'processing',attempts:job.attempts+1}).eq('id',job.id)
-   .in('status',['queued','failed']).select('id').maybeSingle();
-  if(lockError||!lock)continue;
-  try{
-   const {data:preferences}=await db.from('member_notification_preferences')
-     .select('email_digest,booking_reminders,message_alerts').eq('user_id',job.recipient_id).maybeSingle();
-   const bookingReminder=job.template.includes('reminder');
-   if(bookingReminder&&preferences?.booking_reminders===false){
-    await db.from('hosting_notification_outbox').update({status:'disabled'}).eq('id',job.id);
-    continue;
-   }
-   const title=titleByTemplate[job.template]||'Content Connect X account update';
-   const message='You have a new private booking update in Content Connect X. Sign in to view details.';
-   let identifier='sent';
-   if(job.channel==='email'){
-    const address=await db.auth.admin.getUserById(job.recipient_id);
-    if(address.error||!address.data.user?.email)throw Error('Account email missing');
-    const destination=optionalProviderSetting('HOSTING_EMAIL_API_URL')!;
-    const target=new URL(destination);
-    if(target.protocol!=='https:'||target.username||target.password||!target.hostname.includes('.'))
-     throw Error('Unapproved HTTPS notification endpoint');
-    // Endpoint must implement the documented CCX generic JSON notification contract.
-    // Configure it only with a provider that has accepted the platform's use case.
-    const sent=await fetch(target.toString(),{
-      method:'POST',headers:{'content-type':'application/json',
-        authorization:'Bearer '+Deno.env.get('HOSTING_EMAIL_API_TOKEN')!},
-      body:JSON.stringify({from:optionalProviderSetting('HOSTING_EMAIL_FROM'),to:address.data.user.email,
-        subject:title,text:message,reference_id:job.event_key}),
-      signal:AbortSignal.timeout(12000)
+ const email=optionalProviderSetting('HOSTING_EMAIL_PROVIDER_ENABLED')==='true'&&Boolean(optionalProviderSetting('HOSTING_EMAIL_API_URL')&&optionalProviderSetting('HOSTING_EMAIL_FROM')&&Deno.env.get('HOSTING_EMAIL_API_TOKEN'));
+ const push=optionalProviderSetting('HOSTING_PUSH_PROVIDER_ENABLED')==='true'&&Boolean(Deno.env.get('WEB_PUSH_VAPID_PUBLIC_KEY')&&Deno.env.get('WEB_PUSH_VAPID_PRIVATE_KEY')&&optionalProviderSetting('WEB_PUSH_SUBJECT'));
+ const channels=[...(email?['email']:[]),...(push?['push']:[])];
+ if(!channels.length)return reply({error:'No approved notification provider configured'},503);
+ let accepted=0,failed=0,skipped=0;
+ try{
+  if(push)webpush.setVapidDetails(optionalProviderSetting('WEB_PUSH_SUBJECT')!,Deno.env.get('WEB_PUSH_VAPID_PUBLIC_KEY')!,Deno.env.get('WEB_PUSH_VAPID_PRIVATE_KEY')!);
+  // Small bounded batch. SKIP LOCKED and a lease token prevent competing workers
+  // from delivering the same live claim; abandoned claims are recovered later.
+  const {data:jobs,error}=await db.rpc('ccx_claim_hosting_notifications',{p_channels:channels,p_limit:3});
+  if(error)return reply({error:'Notification claim unavailable'},503);
+  for(const job of jobs||[]){
+   const finish=async(status:string,remote:string|null=null)=>{
+    const {data,error:saveError}=await db.rpc('ccx_finish_hosting_notification',{
+      p_id:job.id,p_lease:job.lease_token,p_status:status,p_remote:remote
     });
-    if(!sent.ok)throw Error('Email delivery gateway returned '+sent.status);
-    identifier=sent.headers.get('x-message-id')||job.id;
-   }else{
-    const {data:devices,error:deviceError}=await db.from('hosting_push_subscriptions')
-      .select('id,endpoint,p256dh,auth_secret').eq('user_id',job.recipient_id).limit(12);
-    if(deviceError)throw deviceError;
-    if(!devices?.length){
-     await db.from('hosting_notification_outbox').update({status:'disabled'}).eq('id',job.id);
-     continue;
+    if(saveError||data!==true)throw Error('Notification state could not be recorded');
+   };
+   try{
+    const [prefs,security]=await Promise.all([
+      db.from('member_notification_preferences').select('email_digest,booking_reminders,message_alerts').eq('user_id',job.recipient_id).maybeSingle(),
+      db.from('account_security').select('banned,suspended').eq('user_id',job.recipient_id).maybeSingle()
+    ]);
+    if(prefs.error||security.error)throw Error('Recipient preferences unavailable');
+    const template=String(job.template||'');
+    if(!security.data||security.data.banned||security.data.suspended||
+      template.includes('reminder')&&prefs.data?.booking_reminders===false||
+      template.includes('message')&&prefs.data?.message_alerts===false||
+      template.includes('digest')&&prefs.data?.email_digest!==true){
+     await finish('disabled');skipped++;continue;
     }
-    const push=JSON.stringify({title,body:message,url:optionalProviderSetting('HOSTING_FRONTEND_ORIGIN')||'/'});
-    let successes=0;
-    for(const device of devices){
-     try{
-      const ack=await webpush.sendNotification({
-       endpoint:device.endpoint,keys:{p256dh:device.p256dh,auth:device.auth_secret}
-      },push,{TTL:1800});
-      if(ack.statusCode>=200&&ack.statusCode<300)successes++;
-     }catch(e){
-      // Remove subscriptions that the browser's push service has invalidated.
-      if([404,410].includes(Number((e as any)?.statusCode))){
-       await db.from('hosting_push_subscriptions').delete().eq('id',device.id);
+    let remote=job.id;
+    if(job.channel==='email'){
+     const {data,error:addressError}=await db.auth.admin.getUserById(job.recipient_id);
+     if(addressError||!data.user?.email)throw Error('Recipient unavailable');
+     const target=new URL(optionalProviderSetting('HOSTING_EMAIL_API_URL')!);
+     if(target.protocol!=='https:'||target.username||target.password||!target.hostname.includes('.'))throw Error('Invalid notification endpoint');
+     const response=await fetch(target,{method:'POST',redirect:'error',headers:{
+      'content-type':'application/json','authorization':'Bearer '+Deno.env.get('HOSTING_EMAIL_API_TOKEN'),
+      'Idempotency-Key':job.event_key
+     },body:JSON.stringify({from:optionalProviderSetting('HOSTING_EMAIL_FROM'),to:data.user.email,
+       subject:'Content Connect X account update',text:'You have a new private account update. Sign in to view details.',reference_id:job.event_key}),
+       signal:AbortSignal.timeout(8000)});
+     if(!response.ok)throw Error('Email provider rejected delivery');
+     remote=response.headers.get('x-message-id')||job.id;
+    }else{
+     const {data:devices,error:deviceError}=await db.from('hosting_push_subscriptions').select('id,endpoint,p256dh,auth_secret').eq('user_id',job.recipient_id).limit(12);
+     if(deviceError)throw deviceError;
+     if(!devices?.length){await finish('disabled');skipped++;continue;}
+     const results=await Promise.all(devices.map(async(device:any)=>{
+      try{
+       if(!isSupportedPushEndpoint(device.endpoint))return false;
+       const ack=await webpush.sendNotification({endpoint:device.endpoint,keys:{p256dh:device.p256dh,auth:device.auth_secret}},
+        JSON.stringify({title:'Content Connect X account update',event_id:job.event_key,url:'/Notifications'}),{TTL:1800,timeout:8000});
+       return ack.statusCode>=200&&ack.statusCode<300;
+      }catch(e){
+       if([404,410].includes(Number((e as any)?.statusCode)))await db.from('hosting_push_subscriptions').delete().eq('id',device.id);
+       return false;
       }
-     }
+     }));
+     if(!results.some(Boolean))throw Error('No push service accepted notification');
     }
-    if(successes<1)throw Error('No push device accepted the message');
-    identifier=job.id;
+    await finish('delivered',remote);accepted++;
+   }catch{
+    failed++;
+    // Retain lease protection even if the external service responded before the
+    // DB failed. Email providers must honor Idempotency-Key for duplicate defense.
+    try{await finish('failed');}catch{/* Expiry recovers this claim on a later run. */}
    }
-   await db.from('hosting_notification_outbox').update({
-     status:'delivered',sent_at:new Date().toISOString(),last_error:null
-   }).eq('id',job.id);
-   await db.from('hosting_notification_delivery_log').insert({
-     outbox_id:job.id,delivery_provider:job.channel,remote_message_id:identifier
-   });
-   delivered++;
-  }catch(error){
-   failed++;
-   const attempts=job.attempts+1;
-   const minutes=Math.min(60,2**attempts);
-   await db.from('hosting_notification_outbox').update({
-     status:'failed',next_attempt_at:new Date(Date.now()+minutes*60000).toISOString(),
-     last_error:'Delivery attempt failed'
-   }).eq('id',job.id);
-   console.error('Hosting notification delivery failed',job.id,String(error).slice(0,130));
   }
- }
- return reply({delivered,failed,skipped});
+  return reply({accepted,failed,skipped,note:'Accepted counts provider acknowledgement, not guaranteed end-user delivery.'});
+ }catch{return reply({error:'Notification worker unavailable'},503);}
 });

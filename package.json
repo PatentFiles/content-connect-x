@@ -28,7 +28,9 @@
     "verify:edge-imports": "node scripts/verify-edge-dependencies.mjs",
     "test:workspace-host": "node --test tests/workspace-host-upgrade.test.mjs tests/property-catalog-runtime.test.mjs",
     "test:control-layout": "node --test tests/control-layout.test.mjs",
-    "test:ui-controls": "node --experimental-websocket scripts/test-control-layout-browser.mjs"
+    "test:ui-controls": "node --experimental-websocket scripts/test-control-layout-browser.mjs",
+    "test:unit": "node scripts/test-unit-suite.mjs",
+    "test:enterprise": "node --test tests/enterprise-audit.test.mjs tests/enterprise-runtime.test.mjs"
   },
   "dependencies": {
     "@flagsmith/flagsmith": "12.5.0",

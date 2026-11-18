@@ -1,3 +1,4 @@
+import {sanitizeMonitoringEvent} from './monitoringPrivacy.mjs';
 /**
  * Optional external integrations.
  * - Sentry observes client errors only when explicitly configured.
@@ -19,21 +20,7 @@ export async function initializeOptionalIntegrations() {
         sampleRate:0.2,
         // No replay or user-session recordings are enabled for an adult platform.
         beforeBreadcrumb(){return null;},
-        beforeSend(event){
-          // Never transmit account details, user inputs, URLs containing tokens,
-          // private document references, health data, headers or extra context.
-          delete event.user;
-          delete event.request;
-          delete event.extra;
-          delete event.contexts;
-          delete event.breadcrumbs;
-          if(event.exception?.values){
-            for(const value of event.exception.values){
-              if(value.value)value.value=value.type||'Application error';
-            }
-          }
-          return event;
-        },
+        beforeSend:sanitizeMonitoringEvent,
       });
     }catch(err){console.warn('Optional error monitoring could not initialize');}
   }

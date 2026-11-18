@@ -1,3 +1,5 @@
+import {validJobBearer} from './jobAuth.mjs';
+import {parseEvents} from './calendarParser.mjs';
 import {optionalProviderSetting} from './providerConfig.mjs';
 /**
  * Secured two-way iCalendar interface:
@@ -22,54 +24,6 @@ const allowedUrl=(address:string,provider:string)=>{
   provider==='booking'?['booking.com']:(optionalProviderSetting('HOSTING_EXTRA_CALENDAR_HOSTS')||'').split(',').map(s=>s.trim()).filter(Boolean);
  return domains.some(d=>u.hostname===d||u.hostname.endsWith('.'+d));
 };
-const parseDate=(line:string,venueTz:string)=>{
- const pos=line.indexOf(':');if(pos<0)return null;
- const details=line.slice(0,pos),value=line.slice(pos+1).trim();
- const match=value.match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z)?)?$/);
- if(!match)return null;
- const nums=[...match.slice(1,7)].map((x,i)=>x?Number(x):i<3?1:0);
- const stamp=Date.UTC(nums[0],nums[1]-1,nums[2],nums[3],nums[4],nums[5]);
- if(!Number.isFinite(stamp))return null;
- if(match[7]==='Z')return new Date(stamp).toISOString();
- const tz=details.match(/TZID=([^;:]+)/)?.[1]||(!match[4]?venueTz:null);
- if(!tz)return null;
- try{
-  const formatter=new Intl.DateTimeFormat('en-US',{timeZone:tz,hour12:false,hourCycle:'h23',
-   year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  let attempt=stamp;
-  for(let i=0;i<4;i++){
-   const parts=Object.fromEntries(formatter.formatToParts(new Date(attempt)).map(x=>[x.type,Number(x.value)]));
-   const localStamp=Date.UTC(parts.year,parts.month-1,parts.day,parts.hour%24,parts.minute,parts.second);
-   attempt+=stamp-localStamp;
-  }
-  return new Date(attempt).toISOString();
- }catch{return null;}
-};
-function parseEvents(raw:string,tz:string){
- const unfolded=raw.replace(/\r\n/g,'\n').replace(/\n[ \t]/g,'').replace(/\r/g,'');
- if(!unfolded.includes('BEGIN:VCALENDAR')||!unfolded.includes('END:VCALENDAR'))throw Error('Not a complete iCalendar file');
- const blocks=unfolded.split('BEGIN:VEVENT').slice(1);
- if(blocks.length>500)throw Error('Calendar is too large');
- let unsupported=0;
- const out=[];
- for(const section of blocks){
-  if(!section.includes('END:VEVENT')){unsupported++;continue;}
-  const lines=section.slice(0,section.indexOf('END:VEVENT')).split('\n').map(v=>v.trim());
-  if(lines.find(x=>x==='STATUS:CANCELLED'))continue;
-  const start=lines.find(x=>x.startsWith('DTSTART:')||x.startsWith('DTSTART;'));
-  const end=lines.find(x=>x.startsWith('DTEND:')||x.startsWith('DTEND;'));
-  const uid=lines.find(x=>x.startsWith('UID:'))?.slice(4)?.trim();
-  if(!start||!end||!uid){unsupported++;continue;}
-  const a=parseDate(start,tz),b=parseDate(end,tz);
-  if(!a||!b||Date.parse(b)<=Date.parse(a)||Date.parse(b)-Date.parse(a)>90*86400000){
-   unsupported++;continue;
-  }
-  if(Date.parse(b)<Date.now()-30*86400000)continue;
-  out.push({uid,starts_at:a,ends_at:b});
- }
- if(unsupported>0)throw Error('Calendar contains unsupported timezones or malformed events; existing imported blocks were kept');
- return out;
-}
 async function boundedFeed(url:string){
  const response=await fetch(url,{redirect:'error',headers:{accept:'text/calendar'},
   signal:AbortSignal.timeout(12000)});
@@ -98,17 +52,25 @@ Deno.serve(async req=>{
   const {data:token}=await db.from('hosting_calendar_export_tokens')
    .select('property_id,revoked_at').eq('token_hash',digest).maybeSingle();
   if(!token||token.revoked_at)return new Response('Not found',{status:404});
-  const [venue,bookings,blocks]=await Promise.all([
-   db.from('properties').select('id,status').eq('id',token.property_id).maybeSingle(),
-   db.from('property_booking_requests').select('id,starts_at,ends_at')
-    .eq('property_id',token.property_id).in('status',['requested','accepted'])
-    .gte('ends_at',new Date(Date.now()-30*86400000).toISOString()).limit(400),
-   db.from('property_unavailable').select('id,starts_at,ends_at')
-    .eq('property_id',token.property_id)
-    .gte('ends_at',new Date(Date.now()-30*86400000).toISOString()).limit(400)
-  ]);
-  if(venue.data?.status!=='active'||bookings.error||blocks.error)return new Response('Unavailable',{status:404});
-  const events=[...(bookings.data||[]),...(blocks.data||[])].map((b:any)=>[
+  const {data:venue,error:venueError}=await db.from('properties').select('id,status,owner_id').eq('id',token.property_id).maybeSingle();
+  if(venueError||venue?.status!=='active')return new Response('Unavailable',{status:404});
+  const {data:owner,error:ownerError}=await db.from('account_security').select('banned,suspended').eq('user_id',venue.owner_id).maybeSingle();
+  if(ownerError||!owner||owner.banned||owner.suspended)return new Response('Unavailable',{status:404});
+  const allBusy=async(table:string)=>{
+    const rows:any[]=[];
+    for(let offset=0;offset<20000;offset+=500){
+      let q=db.from(table).select('id,starts_at,ends_at').eq('property_id',token.property_id)
+       .gte('ends_at',new Date(Date.now()-30*86400000).toISOString()).order('id').range(offset,offset+499);
+      if(table==='property_booking_requests')q=q.in('status',['requested','accepted']);
+      const {data,error}=await q;if(error)throw error;
+      rows.push(...data);if(data.length<500)return rows;
+    }
+    throw Error('Calendar export exceeds safe batch capacity');
+  };
+  let busy:any[];
+  try{busy=(await Promise.all([allBusy('property_booking_requests'),allBusy('property_unavailable')])).flat();}
+  catch{return new Response('Calendar temporarily unavailable',{status:503,headers:{'cache-control':'no-store'}});}
+  const events=busy.map((b:any)=>[
    'BEGIN:VEVENT','UID:'+b.id+'@contentconnectx.invalid','DTSTAMP:'+icsTimestamp(new Date().toISOString()),
    'DTSTART:'+icsTimestamp(b.starts_at),'DTEND:'+icsTimestamp(b.ends_at),
    'SUMMARY:Unavailable','TRANSP:OPAQUE','END:VEVENT'
@@ -121,7 +83,8 @@ Deno.serve(async req=>{
  const bearer=req.headers.get('Authorization')||'';
  const body=await req.json().catch(()=>({})),action=str(body.action,40);
  const jobSecret=Deno.env.get('HOSTING_CALENDAR_JOB_SECRET');
- const cron=action==='cron_sync'&&Boolean(jobSecret)&&bearer==='Bearer '+jobSecret;
+ const cron=action==='cron_sync'&&await validJobBearer(bearer,jobSecret);
+ if(action==='cron_sync'&&!cron)return err('Unauthorized job',401);
  let uid:string|null=null;
  if(!cron){
   const auth=createClient(url,anon,{global:{headers:{Authorization:bearer}}});
@@ -139,8 +102,8 @@ Deno.serve(async req=>{
    hostAccount.data?.legal_capacity_confirmed===true&&hostAccount.data?.property_authority_confirmed===true&&
    hostAccount.data?.adult_production_understood===true;
   if(age.error||security.error||sub.error||hostAccount.error||
-    security.data?.banned||security.data?.suspended||!adultVerified&&!hostEligible)return err('Account unavailable',403);
-  if(!hostEligible&&!security.data?.admin&&!['active','trial'].includes(sub.data?.status))return err('Premium required',403);
+    !security.data||security.data.banned||security.data.suspended||!adultVerified&&!hostEligible)return err('Account unavailable',403);
+  if(!hostEligible&&!security.data?.admin&&(!['active','trial'].includes(sub.data?.status)||(sub.data?.period_end&&Date.parse(sub.data.period_end)<=Date.now())))return err('Premium required',403);
  }
  const own=async(propertyId:unknown)=>{
   if(!uid||!uuid(propertyId))return null;

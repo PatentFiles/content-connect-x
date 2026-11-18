@@ -2,6 +2,7 @@
 import React,{useEffect,useState} from 'react';
 import {Bell,ShieldCheck} from 'lucide-react';
 import {productionAction} from './productionApi';
+import {waitForActiveWorker} from './pushLifecycle.mjs';
 import {hostingBusiness} from './hostingBusinessApi';
 const panel='ccx-surface p-5';
 const button='rounded-lg ccx-action-primary px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50';
@@ -22,8 +23,8 @@ export default function HostingNotificationSettings(){
   let active=true;
   productionAction('notification_preferences').then(x=>{if(active)setPreferences(x.item||preferences);})
    .catch(e=>{if(active)setError(e.message);});
-  if('serviceWorker' in navigator)navigator.serviceWorker.ready.then(async registration=>{
-    if(!active)return;
+  if('serviceWorker' in navigator)navigator.serviceWorker.getRegistration('/sw-hosting.js').then(async registration=>{
+    if(!active||!registration)return;
     const sub=await registration.pushManager.getSubscription();
     if(active)setEnabled(Boolean(sub));
   }).catch(()=>{});
@@ -41,19 +42,21 @@ export default function HostingNotificationSettings(){
    if(!('serviceWorker' in navigator)||!('PushManager' in window))throw Error('This browser does not support web push notifications.');
    const permission=await Notification.requestPermission();
    if(permission!=='granted')throw Error('Browser permission was not granted.');
-   const registration=await navigator.serviceWorker.register('/sw-hosting.js');
-   const subscription=await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:decodeKey(key)});
+   const registration=await waitForActiveWorker(await navigator.serviceWorker.register('/sw-hosting.js'));
+   const existing=await registration.pushManager.getSubscription();
+   const subscription=existing||await registration.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:decodeKey(key)});
    const json=subscription.toJSON();
    if(!json.endpoint||!json.keys?.auth||!json.keys?.p256dh)throw Error('Push keys missing');
-   await hostingBusiness('push_register',{endpoint:json.endpoint,p256dh:json.keys.p256dh,auth:json.keys.auth});
+   try{await hostingBusiness('push_register',{endpoint:json.endpoint,p256dh:json.keys.p256dh,auth:json.keys.auth});}
+   catch(e){if(!existing)await subscription.unsubscribe().catch(()=>{});throw e;}
    setEnabled(true);setNotice('This device was registered. Delivery starts when the approved push service is enabled.');
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
  const deactivate=async()=>{
   setBusy(true);setError('');
   try{
-   const registration=await navigator.serviceWorker.ready;
-   const subscription=await registration.pushManager.getSubscription();
+   const registration=await navigator.serviceWorker.getRegistration('/sw-hosting.js');
+   const subscription=await registration?.pushManager.getSubscription();
    if(subscription){await hostingBusiness('push_unregister',{endpoint:subscription.endpoint});await subscription.unsubscribe();}
    setEnabled(false);setNotice('Push notifications disabled for this browser.');
   }catch(e){setError(e.message);}finally{setBusy(false);}

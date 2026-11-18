@@ -40,7 +40,7 @@ Deno.serve(async req=>{
   ]);
   if(securityResult.error||verificationResult.error||subscriptionResult.error)return fail('Account status unavailable',503);
   const security=securityResult.data;
-  if(security?.banned||security?.suspended)return fail('Account unavailable',403);
+  if(!security||security.banned||security.suspended)return fail('Account unavailable',403);
   const adminRole=security?.admin===true;
   // One persisted signup admission grants entry; no feature-specific age or MFA gate.
   const verified=isAdmitted(verificationResult.data||[]);
@@ -50,7 +50,8 @@ Deno.serve(async req=>{
   const action=text(body.action,65);
   if(!verified)return fail('Complete account onboarding first',403);
   const freeSafetyActions=new Set(['block_user','unblock_user','submit_report','list_blocks']);
-  if(!paid&&!freeSafetyActions.has(action)&&!isFreeAction(action))return fail('Active paid membership required',402);
+  const decliningInvitation=action==='respond_invitation'&&body.status==='declined';
+  if(!paid&&!freeSafetyActions.has(action)&&!isFreeAction(action)&&!decliningInvitation)return fail('Active paid membership required',402);
   // Real feature flags are evaluated on the server, never trusted from UI.
   const actionFeatures:Record<string,string>={
     request_connection:'connections',respond_connection:'connections',
@@ -60,14 +61,13 @@ Deno.serve(async req=>{
     mark_conversation_read:'messages',create_group_conversation:'messages',
     edit_message:'messages',delete_message:'messages',react_message:'messages',
     create_collaboration:'collaborations',invite_collaborator:'collaborations',
-    respond_invitation:'collaborations',
-    request_connection:'connections',respond_connection:'connections',
+    respond_invitation:'collaborations',list_collaborations:'collaborations',list_invitations:'collaborations',
     list_contracts:'contracts',create_contract:'contracts',sign_contract:'contracts',
     list_properties:'property_bookings',list_my_properties:'property_bookings',
     create_property:'property_bookings',list_bookings:'property_bookings',
     book_property:'property_bookings',respond_booking:'property_bookings'
   };
-  const featureKey=actionFeatures[action];
+  const featureKey=decliningInvitation?null:actionFeatures[action];
   if(featureKey){
     const {data:flag,error:flagError}=await admin.from('product_feature_flags')
       .select('enabled,allowed_tiers,rollout_percent').eq('key',featureKey).maybeSingle();
@@ -150,22 +150,28 @@ Deno.serve(async req=>{
       case 'create_collaboration':{
         const title=text(body.title,140),description=text(body.description,3000);
         if(title.length<3)return fail('Collaboration title is required');
-        const {data:record,error}=await admin.from('collaborations').insert({creator_id:uid,title,description,status:'draft',requires_work_clearance:body.requires_work_clearance===true}).select('id,title,status,created_at').single();
-        if(error)throw error;
-        const {error:joinError}=await admin.from('collaboration_members').insert({collaboration_id:record.id,user_id:uid,membership_role:'owner'});
-        if(joinError){await admin.from('collaborations').delete().eq('id',record.id);throw joinError;}
-        await audit('create_collaboration',record.id);
-        return respond({item:record},201);
+        const {data,error}=await admin.rpc('ccx_create_collaboration',{
+          p_actor:uid,p_title:title,p_description:description,p_requires_clearance:body.requires_work_clearance===true
+        });
+        if(error)return fail('Unable to create collaboration',error.code==='42501'?403:400);
+        return respond({item:data},201);
       }
       case 'invite_collaborator':{
         const cid=body.collaboration_id, invitee=body.invitee_id;
         if(!isId(cid)||!isId(invitee)||invitee===uid)return fail('Valid collaboration and invitee required');
-        const {data:collab,error:collabError}=await admin.from('collaborations').select('id,creator_id,title').eq('id',cid).maybeSingle();
+        const {data:collab,error:collabError}=await admin.from('collaborations').select('id,creator_id,title,status').eq('id',cid).maybeSingle();
         if(collabError||!collab||collab.creator_id!==uid)return fail('Only the collaboration owner can invite members',403);
+        if(['completed','cancelled','archived','closed'].includes(collab.status))return fail('Collaboration is closed',409);
         if(await memberOf(cid,invitee))return fail('Already a member',409);
-        const {data:theirAge,error:ageError}=await admin.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',invitee).order('created_at',{ascending:false}).limit(1);
-        const {data:theirSubscription,error:subError}=await admin.from('member_subscriptions').select('status,period_end').eq('user_id',invitee).maybeSingle();
-        if(ageError||subError||!isAdmitted(theirAge||[])||!isActive(theirSubscription))return fail('Invitee must be verified and subscribed',403);
+        const [theirAge,theirSubscription,theirSecurity,blocks]=await Promise.all([
+          admin.from('member_admissions').select('admitted_at').eq('user_id',invitee).limit(1),
+          admin.from('member_subscriptions').select('status,period_end').eq('user_id',invitee).maybeSingle(),
+          admin.from('account_security').select('admin,banned,suspended').eq('user_id',invitee).maybeSingle(),
+          admin.from('member_blocks').select('blocker_id').or(`and(blocker_id.eq.${uid},blocked_id.eq.${invitee}),and(blocker_id.eq.${invitee},blocked_id.eq.${uid})`).limit(1)
+        ]);
+        if([theirAge,theirSubscription,theirSecurity,blocks].some(result=>result.error))return fail('Invitee eligibility unavailable',503);
+        if(!theirSecurity.data||theirSecurity.data.banned||theirSecurity.data.suspended||blocks.data?.length||
+          !isAdmitted(theirAge.data||[])||!(theirSecurity.data.admin||isActive(theirSubscription.data)))return fail('Invitee is unavailable',403);
         const {data,error}=await admin.from('collaboration_invitations').insert({collaboration_id:cid,invited_by:uid,invitee_id:invitee,status:'pending'}).select('id,collaboration_id,status').single();
         if(error)return fail('Invitation already exists or cannot be created',409);
         await notification(invitee,'collaboration_invite','New collaboration invitation',{invitation_id:data.id,collaboration_id:cid});
@@ -180,18 +186,13 @@ Deno.serve(async req=>{
       case 'respond_invitation':{
         const invitation_id=body.invitation_id;
         if(!isId(invitation_id)||!['accepted','declined'].includes(body.status))return fail('Invalid invitation');
-        const {data:invite,error}=await admin.from('collaboration_invitations').select('id,collaboration_id,invitee_id,invited_by,status').eq('id',invitation_id).maybeSingle();
-        if(error||!invite||invite.invitee_id!==uid)return fail('Invitation unavailable',403);
-        if(invite.status!=='pending')return fail('Invitation already handled',409);
-        if(body.status==='accepted'){
-          const {error:insertError}=await admin.from('collaboration_members').insert({collaboration_id:invite.collaboration_id,user_id:uid,membership_role:'participant'});
-          if(insertError)return fail('Could not join collaboration',409);
-        }
-        const {error:saveError}=await admin.from('collaboration_invitations').update({status:body.status,responded_at:new Date().toISOString()}).eq('id',invitation_id).eq('status','pending');
-        if(saveError)throw saveError;
-        await notification(invite.invited_by,'collaboration_invite',`Collaboration invitation ${body.status}`,{collaboration_id:invite.collaboration_id});
-        await audit('respond_invitation',invitation_id,{status:body.status});
-        return respond({item:{id:invitation_id,status:body.status}});
+        // Row locking and membership/status changes execute in one transaction.
+        // Actor identity is taken only from auth.getUser(), never from the body.
+        const {data,error}=await admin.rpc('ccx_respond_collaboration_invitation',{
+          p_actor:uid,p_invitation:invitation_id,p_status:body.status
+        });
+        if(error)return fail(error.code==='42501'?'Invitation unavailable':'Invitation was already handled or is no longer available',error.code==='42501'?403:409);
+        return respond({item:data});
       }
       case 'list_connection_requests':{
         const {data,error}=await admin.from('member_connection_requests')
@@ -223,12 +224,8 @@ Deno.serve(async req=>{
         if(prior&&['pending','accepted'].includes(prior.status))return fail('Respond to the existing request instead',409);
         const localBlock=await enforceFreeContact(target);
         if(localBlock)return fail(localBlock,403);
-        const {data,error}=await admin.from('member_connection_requests').upsert({
-          requester_id:uid,recipient_id:target,status:'pending',requested_at:new Date().toISOString(),responded_at:null
-        },{onConflict:'requester_id,recipient_id'}).select('id,status').single();
-        if(error)throw error;
-        await notification(target,'connection_request','New connection request',{request_id:data.id});
-        await audit('request_connection',data.id);
+        const {data,error}=await admin.rpc('ccx_request_connection',{p_actor:uid,p_target:target});
+        if(error)return fail(error.code==='40001'?'A connection or pending request already exists':'Unable to request connection',error.code==='42501'?403:409);
         return respond({item:data},201);
       }
       case 'respond_connection':{
@@ -262,10 +259,10 @@ Deno.serve(async req=>{
         if(loadError)throw loadError;
         const enriched=await Promise.all((data||[]).map(async c=>{
           const cursor=links?.find(l=>l.conversation_id===c.id)?.last_read_at;
-          let q=admin.from('messages').select('id',{head:true,count:'exact'}).eq('conversation_id',c.id).neq('sender_id',uid);
+          let q=admin.from('messages').select('id',{head:true,count:'exact'}).eq('conversation_id',c.id).neq('sender_id',uid).is('deleted_at',null);
           if(cursor)q=q.gt('created_at',cursor);
           const {count,error:countError}=await q;
-          return {...c,unread:countError?0:(count||0)};
+          return {...c,unread:countError?null:(count||0),unread_available:!countError};
         }));
         return respond({items:enriched});
       }
@@ -530,6 +527,13 @@ Deno.serve(async req=>{
         const {data,error}=await admin.from('member_notifications').select('id,kind,title,details,read_at,created_at').eq('recipient_id',uid).order('created_at',{ascending:false}).limit(50);
         if(error)throw error;
         return respond({items:data});
+      }
+      case 'mark_all_notifications_read':{
+        const cutoff=new Date().toISOString();
+        const {error}=await admin.from('member_notifications').update({read_at:cutoff})
+          .eq('recipient_id',uid).is('read_at',null).lte('created_at',cutoff);
+        if(error)throw error;
+        return respond({ok:true,read_through:cutoff});
       }
       case 'mark_notification_read':{
         if(!isId(body.notification_id))return fail('Invalid notification');

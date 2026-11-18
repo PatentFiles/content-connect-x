@@ -10,6 +10,7 @@
  * A partial pair pointing to another project is rejected, never mixed with
  * the key for Content Connect X. This avoids silently selecting a wrong DB.
  */
+import {browserKeyIsUnsafe} from './browserKeySafety.mjs';
 export const CCX_SUPABASE_PROJECT_REF='yxuqbygykpfbioslljlf';
 export const CCX_SUPABASE_PUBLIC_URL='https://yxuqbygykpfbioslljlf.supabase.co';
 // Browser publishable keys are documented as safe to distribute; NEVER place
@@ -41,7 +42,7 @@ export function resolveBrowserSupabaseConfig(env={}){
       return failure('Supabase URL must be a valid HTTPS project origin.');
     }
   }
-  if(requestedKey.startsWith('sb_secret_')||requestedKey.toLowerCase().includes('service_role')){
+  if(browserKeyIsUnsafe(raw.VITE_SUPABASE_PUBLISHABLE_KEY)||browserKeyIsUnsafe(raw.VITE_SUPABASE_ANON_KEY)){
     return failure('Do not use a service-role/secret key in the browser.');
   }
   const mismatchedProject=Boolean(parsed&&parsed.origin!==CCX_SUPABASE_PUBLIC_URL);

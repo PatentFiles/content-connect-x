@@ -26,6 +26,7 @@ FROM nginxinc/nginx-unprivileged:1.27-alpine AS runtime
 ENV PORT=8080
 COPY --from=build --chown=101:101 /app/dist/ /usr/share/nginx/html/
 COPY deploy/nginx.conf.template /etc/nginx/templates/default.conf.template
+COPY deploy/security-headers.conf /etc/nginx/snippets/security-headers.conf
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
  CMD wget -q -O /dev/null "http://127.0.0.1:${PORT:-8080}/healthz" || exit 1
