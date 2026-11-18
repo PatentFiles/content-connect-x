@@ -3,107 +3,111 @@
   "functions": {
     "admin-age-review": {
       "hasChanged": false,
-      "hash": "a79b18fb450200354d10357df26562b05f1d389f6434854d35969228911a7579"
+      "hash": "18ba521b5271db254bfa660c0608d0c5f2d48b48f64ad276c6529a1aa8a25095"
     },
     "agreement-packets": {
       "hasChanged": false,
-      "hash": "c08d323434cc578523f59bb83157f222a49fc1a7ed091c4b3a53a09351c157dd"
+      "hash": "9da38a35d3ff9bc73bc37d0c828e362646d2c454f9beecb4c6c55c3580682fb8"
     },
     "ccx-integrations": {
       "hasChanged": false,
-      "hash": "8f2405378ff2f97cb389f956bef5ef702c42ecd94db0ce2d0bda72828e503cc8"
+      "hash": "f80f873bd8ed12030c62fcba5ba0bb6050f05b34190db6f128ce73dbbd97364a656d12403c793c1dc4297f8ae36e79e755be9340cd6d3b066149758b80678a9e"
     },
     "collaboration-consent": {
       "hasChanged": false,
-      "hash": "66707f479edd00147ee16fed8fc97d150675dd7ee65b98879cac1818be6a5133"
+      "hash": "80c18c4627d0053a3569be29806eecb4bc721c659beeb7b8dd99b0384fa50271"
     },
     "create-checkout": {
       "hasChanged": false,
-      "hash": "667d53ec762a32aa8a62a14f2685ca11e062e6aed53826cd0b39428badbf789e"
+      "hash": "39d5b72507e1fb03dda70ee546a6bd1749f9c18b28b771a28b76ef77c24d24b5"
     },
     "directory": {
       "hasChanged": false,
-      "hash": "6382f97a61dcb61320b71f5fa6fdab52d873fef9b63a7e0303e9059b9a31fcaa"
+      "hash": "2aac5e57316b1dc443bedc319d4d08baf3b62883664267872081a2ff8fe8fbd6"
     },
     "hosting-advanced": {
       "hasChanged": false,
-      "hash": "bcb282bb428e44c7630720b85ea387590ea172da9836ef583ac1a2cac1bc48d7"
+      "hash": "7875a784e352ff3da58b5e49ef2bf95bdcef3ad51d0e99752ce5f3080fbbe33c"
     },
     "hosting-calendar": {
       "hasChanged": false,
-      "hash": "4bc199a929f1cdde7c999afd79d8cbf981c91527ce566e930a1c7ad316544ed3"
+      "hash": "f88be646f93211a8677b41d27f0730f9be9cfeb7264d8fc0dd6916a9e5fb869c"
     },
     "hosting-ccbill": {
       "hasChanged": false,
-      "hash": "ae72609f776f88b2ebf86b5c54ea974009d36d692cae28011cf3a0fe90aa0c2a"
+      "hash": "4f0fce22bbb520ddc14f7113e3bce583221169f4883dbc2eba66cc2c6f63309b"
     },
     "hosting-ccbill-webhook": {
       "hasChanged": false,
-      "hash": "fd9d5f8dd390cea4599275cd82cb249cca0c784534690fc238a3c8b623b766b6"
+      "hash": "2638d8227ad186a1da57dfaf46553e2a7a360a915b68b0bdf48d6440a37e2cd9"
+    },
+    "hosting-discovery": {
+      "hasChanged": false,
+      "hash": "3524cfe8d6d4a8286ca899a34622a13f25a96280e93a1d3870178ddab786c6b5"
     },
     "hosting-docusign": {
       "hasChanged": false,
-      "hash": "e64601d73dd76f90aed839e9eb0446b7fa3add9a26250bf14dfed9185900917f"
+      "hash": "153834b5ccbefbd3ab1d003829c0e88e3b8b338a9059598260ea2e798bd1b512"
     },
     "hosting-docusign-webhook": {
       "hasChanged": false,
-      "hash": "15ddbddc700d6eeb9a834ab98d314b72084040a56bc8a70b75a6500d20c58d68"
+      "hash": "5f316b0ba0d6f050e44379769a8ffa389b2403d19e9752742ab1060d37ed3270"
     },
     "hosting-marketplace": {
       "hasChanged": false,
-      "hash": "713ad81de68acd8b5825e8cbe742337609aa46e002d74b9e0ce1fea87c77bc64"
+      "hash": "3090df5f8e1c3936eff06e266684b5e3880e8fb13611ea6c87497c87c5bcbf19"
     },
     "hosting-notification-worker": {
       "hasChanged": false,
-      "hash": "7c47d291837ae171feb773545bad94e471654801950190281c6a5eca95c31ad5"
+      "hash": "a8c6f2942ae45f644b0f223c6d76e71fb9cf12fc485ceaa9adae8de7b4f9e911"
     },
     "hosting-operations": {
       "hasChanged": false,
-      "hash": "227275aeeaa313f1d86dcadcb4677580e6c190378f53c42eed8cfe6cd29f3f5b"
+      "hash": "e62c41211a6947f2ab600deab3413d65ae5dd09cea25ab013de72f274d06ceac"
     },
     "hosting-production": {
       "hasChanged": false,
-      "hash": "c454ae9df84ebbaad69fd10c210ec7ad1a94c6a718577584372e60c6bc939bc6"
+      "hash": "0068f32fd6d63d071eb25cfab38bcd07e356a8e8d731f0e97ede012806586680"
     },
     "integration-health": {
       "hasChanged": false,
-      "hash": "51e0fba05e0275473f547acac5c5a5fef5804d0be74fb162248ff4afb1ecf70b"
+      "hash": "76612d2c508f7eac0094da7854e1cea84252603a832ffe7baf8c3588e497ffae"
     },
     "media-gateway": {
       "hasChanged": false,
-      "hash": "c42e72b39baa0e77f79ed2c7b23c98575dd2660bd1b40d02ae28d21dfe4a0036"
+      "hash": "f5b9955cd8ce6f0ba4abaf34d74aea245b3008d61b9a2357c52dc14d9da17b54"
     },
     "member-workflows": {
       "hasChanged": false,
-      "hash": "b02c67ea87d4e9f8586ba02b351ae7dcba768cb7fa19f8e5337e232b479f9564"
+      "hash": "d9702dcc7910e36ebb4ca3cd1d94068c9b306880372727bf7d5bcacbfa2950be"
     },
     "membership-admin": {
       "hasChanged": false,
-      "hash": "8ed0aa6f6e6c0943d1728df6abc7ad3eb5d78d81fe7a14814b1fec833f0327d7"
+      "hash": "520116b768186c39a9b1a63a5e6962102c8c7e70b0799a6ed0efd164458ad946"
     },
     "onlyhost-public": {
       "hasChanged": false,
-      "hash": "4564f25446e4cc2b75a625063366dd2f4c04a30bc5aca0e880e38a5bf6bfc612"
+      "hash": "c722ed30a1dc89680a1cc0c33cb7185e24a8e1b90994bc9fb310d9ffaf30a216"
     },
     "performer-readiness": {
       "hasChanged": false,
-      "hash": "d0ce8bf4adf314fa3aebab25da77669145576bc185fd5279876008200bf902d8"
+      "hash": "9d4ea6edfa3167927d6d50cc9da4e3bda30a297c15caab209f39c9c2653ae534656d12403c793c1dc4297f8ae36e79e755be9340cd6d3b066149758b80678a9e"
     },
     "platform-extras": {
       "hasChanged": false,
-      "hash": "8c2095fe170ecb967a4584278e770c2753803d08b685c20f0ba5365ecaa23de7"
+      "hash": "31a2fdc435e59ae2693368f90e6d9f716ac35ba11487db2d6726648dd0193a44"
     },
     "production-manager": {
       "hasChanged": false,
-      "hash": "02a3bc902e2f4e4a514a27b289367fb2d5cfe47060d1f8b8c8302760b8367714"
+      "hash": "e132ccf943c79e1271c199b7a448f69fe3af7a70ae657d73df2cabf59543fa43"
     },
     "profile-analytics": {
       "hasChanged": false,
-      "hash": "50688c64035c74726fdf06d707283cfbf477b1470d53b84de9179db389e534f1"
+      "hash": "b997663983a20e71ef1917cf2a431f8400fa90f9f51fae9108b500163d74f2cd"
     },
     "stripe-webhook": {
       "hasChanged": false,
-      "hash": "46308b9d054b898b6b4a9cae3b0c76a9686fb05b8d31ad2fc26014af43534db2"
+      "hash": "e2957e24ac27a11d4c90a9111cf613b562b232b03673c73d792923b0a5ce4d5b"
     },
     "submit-age-verification": {
       "hasChanged": false,

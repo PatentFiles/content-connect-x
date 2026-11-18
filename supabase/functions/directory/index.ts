@@ -44,7 +44,7 @@ Deno.serve(async req=>{
  if(security.error||blocks.error)return json({error:'Unable to load directory'},503);
  const allowed=new Set((security.data||[]).filter(row=>!row.banned&&!row.suspended).map(row=>row.user_id));
  const blocked=new Set((blocks.data||[]).map(row=>row.blocker_id===user.id?row.blocked_id:row.blocker_id));
- let eligible=[...newest.entries()].filter(([id,value])=>allowed.has(id)&&!blocked.has(id)&&Boolean(value.admitted_at)).map(([id])=>id);
+ let eligible=[...newest.entries()].filter(([id,value])=>id!==user.id&&allowed.has(id)&&!blocked.has(id)&&Boolean(value.admitted_at)).map(([id])=>id);
  if(filters.ids)eligible=eligible.filter(id=>filters.ids.includes(id));
  if(!eligible.length)return json({results:[],preview:!premium,limit:filters.limit,has_more:false});
  // Opt-in matching only. Never use private orientation, clinical or identity data.
