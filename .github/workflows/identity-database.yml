@@ -32,11 +32,18 @@ jobs:
       PGPASSWORD: fixture-only-disposable-database
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
       - name: Verify isolated target
         run: |
           test "$GITHUB_ACTIONS" = true
           test "$PGHOST" = 127.0.0.1
           test "$PGDATABASE" = ccx_idv_ci
           command -v psql
+      - name: Private pilot authorization and non-admitting diagnostics
+        run: node --test tests/identity-pilot.test.mjs
       - name: Apply actual identity SQL and test admission, names, birthday and retention
         run: psql --no-psqlrc --set=ON_ERROR_STOP=1 --file=tests/sql/identity-integration.sql
+      - name: Apply actual pilot SQL and prove isolation from production admission
+        run: psql --no-psqlrc --set=ON_ERROR_STOP=1 --file=tests/sql/identity-pilot-integration.sql

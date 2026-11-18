@@ -93,3 +93,13 @@ verify_jwt = true
 # Authenticated by the scoped HMAC relay, never by a browser return URL.
 [functions.membership-ccbill-webhook]
 verify_jwt = false
+
+# User actions verify auth.getUser; workers consume a single-use capability;
+# cleanup uses its own independent, high-entropy maintenance capability.
+[functions.identity-verification]
+verify_jwt = false
+
+# Same action-specific authentication plus trusted admitted-administrator checks.
+# Pilot results can never create membership admissions.
+[functions.identity-pilot]
+verify_jwt = false
