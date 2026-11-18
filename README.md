@@ -1,108 +1,103 @@
 # Content Connect X
 
-> **Enterprise readiness:** Not yet approved for enterprise production. See [verified repairs and remaining release blockers](docs/ENTERPRISE_AUDIT_2026-11-17.md). Run `npm run test:unit`; passing local/build tests is not provider acceptance or a complete security certification.
+Content Connect X is a professional collaboration platform for adult creators, studios, agents, photographers, videographers, editors and production teams.
 
-> **Current account-entry policy (2026-11-17):** New Content Connect X signups complete independent age verification once before entry. After admission, features do not impose additional age-verification or mandatory MFA gates. Two-factor enrollment is optional; a voluntarily enrolled factor still protects sign-in. Existing admin continuity is recorded separately from independent age evidence. See [account-entry policy](docs/ACCOUNT_ENTRY_AND_OPTIONAL_MFA.md). Older rollout/MFA descriptions below are historical.
+> **Release status:** Infrastructure and passing software tests are not verification-provider acceptance, biometric accuracy validation, or legal/security certification. New first-party identity collection remains **disabled** until its release prerequisites are completed. See [identity rollout](docs/SELF_HOSTED_IDENTITY_V2.md) and [enterprise audit](docs/ENTERPRISE_AUDIT_2026-11-17.md).
 
-Content Connect X is an age-verified professional collaboration platform for adult creators, studios, agents, photographers, videographers and production teams.
+## Hosting and architecture — do not migrate the website
 
-## Architecture
+- **Bolt hosts the website.** React + Vite + Tailwind provide public pages, signup, camera capture and member/admin screens. Keep the existing website domain and Bolt publishing workflow.
+- **Supabase is the account and evidence authority.** Use the established project **`yxuqbygykpfbioslljlf`** for Auth, Postgres, RLS, private Storage, Realtime, Edge Functions and Cron. Do not substitute a Bolt-native database or create a duplicate production database.
+- **Railway runs only the dedicated verification worker.** In the separate **Content Connect X - Identity** project, `ccx-identity-worker` performs ID extraction and face/liveness processing. It is not the website host, account database, or permanent document store. Leave unrelated Railway projects untouched.
 
-The application uses **React + Vite + Tailwind CSS**, with **Supabase Auth, PostgreSQL, Row Level Security, Storage, Realtime, Edge Functions and Cron**. There is one frontend and one backend. The default development and production builds use Supabase.
+```text
+Bolt website: signup, legal-name form, ID upload, live camera UI
+    -> Supabase identity-verification: authentication and session/evidence control
+        -> Railway ccx-identity-worker: bounded verification job
+    <- Supabase: trusted decision, private evidence and audit records
+Bolt website: restricted, correction/review, or verified result
+```
 
-## Start
+The current worker's self-contained Railway build uses root `/server/idv-worker`, Dockerfile `Dockerfile`, port `8080`, and health path `/health`. Older repository-root build instructions predate this packaging. Do not deploy the entire website on Railway as a substitute for Bolt.
+
+## Development and validation
 
 ```bash
 npm ci
 npm run dev
 ```
 
-## Validate
-
 ```bash
 npm run lint
 npm run typecheck
+npm run test:unit
+node scripts/test-identity-onboarding-browser.mjs
+npm run verify:release
+npm run verify:frontend-contract
+npm run verify:edge-imports
 npm run build
 npm run smoke:supabase
-npm run test:readiness
-npm run test:directory
-npm run test:bolt-config
-npm run verify:edge-imports
 ```
 
-The smoke script checks authentication protection on deployed backend endpoints; it is not a substitute for end-to-end tests with verified users.
+The browser suite requires Chromium and uses synthetic API responses. The identity database CI workflow runs the actual identity SQL in a disposable PostgreSQL database with fixture Auth/Storage/Vault schemas. Neither suite proves biometric accuracy or real Storage deletion. Never run synthetic acceptance tests against real members or grant production approvals for test convenience.
 
-## Configuration
+The root Dockerfile is a test/staging website container, not an instruction to change production hosting. GitHub merge, Bolt synchronization and Bolt publication are distinct release events.
 
-This GitHub repository is the source for the Bolt frontend, and Supabase is the only backend. The frontend's canonical project is `yxuqbygykpfbioslljlf`.
+## Supabase configuration
 
-The browser is **pinned to the existing Content Connect X project** (`yxuqbygykpfbioslljlf`) even if Bolt injects a complete `VITE_SUPABASE_URL` and publishable-key pair for its separate, incomplete native database. The public project URL and safe **browser publishable key** are in `src/api/publicSupabaseConfig.mjs`, and different-project environment variables are ignored with a development-console warning. A *same-project* public key can still be supplied explicitly. No server/service-role credentials are bundled. After syncing into Bolt, restart its Vite preview/rebuild the site, and **sign back in to the original Supabase account**, because sessions from the duplicate database cannot be transferred between projects.
+The frontend is pinned to `yxuqbygykpfbioslljlf` through `src/api/publicSupabaseConfig.mjs`. Different-project Bolt-injected variables are ignored with a development warning; a same-project publishable key may be supplied. No server credentials are bundled. Users must sign in to the established Supabase account; sessions from another project do not transfer.
 
-**Bolt's native database connection indicator is separate from the app's `@supabase/supabase-js` connection.** If Bolt's database panel still reports no Supabase project, reselect the existing project from Bolt's Database > Advanced > Connect Supabase controls. Do not create or claim a new Bolt database and do not overwrite the production Supabase project. A frontend source update cannot establish the Bolt account's OAuth authorization.
+Bolt's database-panel connection indicator is separate from the application's Supabase client. Reconnect the existing project rather than creating another database. A source-code change cannot establish an account's OAuth authorization.
 
-Never put service-role, `sb_secret_`, webhook secrets, ID documents, or medical information in browser variables or GitHub. Optional monitoring and UI experiments use `VITE_SENTRY_DSN` and `VITE_FLAGSMITH_ENVIRONMENT_ID`.
+**Never place service-role or `sb_secret_` keys, webhook credentials, ID images, biometric captures, or medical documents in GitHub, browser variables, public buckets or application telemetry.** Optional frontend monitoring uses `VITE_SENTRY_DSN`; experiments use `VITE_FLAGSMITH_ENVIRONMENT_ID`.
+
+## Account entry and identity rules
+
+The [November 17 account-entry policy](docs/ACCOUNT_ENTRY_AND_OPTIONAL_MFA.md) governs durable membership admission. An authenticated signup alone does not grant entry: a server-owned `member_admissions` row is required. Existing legacy-administrator continuity is not evidence of independent age verification. Subsequent enabled-feature access does not impose repeated age or mandatory MFA gates. Voluntary two-factor enrollment remains available. Database roles, suspension, ownership, consent and subscription entitlements still apply.
+
+The first-party identity flow adds:
+
+1. Confirmed email, a private legal name and explicit versioned consent before evidence collection.
+2. Government-ID front/back as applicable, plus a server-assigned live camera challenge. Birth date is extracted from the ID, not estimated from the face.
+3. Document checks, matching face evidence and live-challenge checks. Ambiguous, incomplete or failed checks never become approval.
+4. Legal-name correction when the ID name differs. Only the private verified name is changed; public stage/display names stay separate.
+5. Access restricted through the eighteenth birthday, with a fresh attempt eligible the following **UTC calendar day**. February 29 is conservatively mapped to March 1 in a non-leap eighteenth year, then the following day. This is a product policy, not a statement of jurisdictional law.
+6. Private evidence, decision/evidence hashes and restricted audit records. Browser fields, redirects, URL flags and user metadata cannot grant admission.
+
+The historical `YotiVerification.jsx` export is a compatibility route: Content Connect uses `IdentityVerification`; explicit other-brand usage retains its hosted component. Older descriptions of manual signup approval, Yoti age-estimation admission or mandatory administrator MFA are historical and must not be used to reintroduce bypasses. Membership verification is not automatically performer recordkeeping compliance.
+
+## Identity deployment status
+
+The established Supabase project now has the six `ccx_idv_*` tables, private `ccx-identity-evidence` bucket, service-only identity state machine, private-name lock and retention/legal-hold guards. RLS and browser-denied table/function privileges were checked. The existing `identity-verification` Edge Function is deployed, and its worker origin is configured.
+
+**Collection is still disabled.** Privacy/security approval timestamps and successful-evidence retention are not fabricated. The installed hourly retention job is **paused**: effective permissions on the managed `pg_net` queue did not allow the attempted credential-read restriction to take effect. No identity data has been collected. Do not enable a queue-based credential-bearing job while the relevant queue remains readable to application roles. A subsequent private-transport migration attempt was blocked and is not installed.
+
+Pending release work includes safe retention execution and actual deletion tests, reviewed notice/retention, complete appeal handling, supported-document/face/liveness acceptance, and final Bolt publication. See the [current identity deployment record](docs/SELF_HOSTED_IDENTITY_V2.md). A successful worker health response does not establish those outcomes.
 
 ## Project layout
 
-- `src/supabase/` — application screens, workflows and client integrations
-- `src/api/supabaseClient.js` — the single Supabase client
-- `supabase/functions/` — secure server-side operations
-- `supabase/sql/` — database migrations, policies and constraints
-- `supabase/PRODUCTION_MANAGER_IMPLEMENTATION.md` — current feature status and launch gates
+- `src/supabase/`: screens and authenticated client workflows
+- `src/api/supabaseClient.js`: the single frontend Supabase client
+- `supabase/functions/`: server-side gateways, including `identity-verification`
+- `supabase/sql/` and `supabase/migrations/`: reviewed schema/policy source and migration history
+- `server/idv-worker/`: separately deployed identity computation service
+- `tests/` and `scripts/`: policy, database, browser and deployment validation
+- `supabase/PRODUCTION_MANAGER_IMPLEMENTATION.md`: feature status and launch gates
 
-## Release status
+## Other platform modules
 
-The frontend and database foundation compile. No complete authenticated multi-user acceptance suite has passed yet. Real document signing requires DocuSign setup and qualified review; paid subscriptions require an approved adult-industry merchant processor. Media publication and provider-backed clearance remain protected until their corresponding procedures are ready. A successful build is **not** production certification.
+Directory/search expose explicitly public profile fields and enforce backend admission/entitlements. Recovery requires a genuine Supabase email recovery session. Public social links are owner-opt-in and protected by server policy. Free contact limits use general city locations, not household coordinates. Pricing and membership grants are server-owned; selecting a plan is not proof of payment.
 
-## Current creator directory and account recovery
+Feature administration uses the server-backed `product_feature_flags` registry. Hiding UI is not authorization. Core account access, privacy, consent and verification enforcement must remain available. Administrator preview changes presentation, not actual role or privileges. Profile analytics are owner-scoped aggregates, not disclosure of visitor identity or clinical data.
 
-Verified members can filter public directory results by display name, creator role, city and country. Age-gate and server-side subscription restrictions remain in force, free users see at most 12 result profiles, and premium results are paginated. Only explicitly public profile fields are returned. Account recovery sends a Supabase email link and requires a verified recovery session before a member can set a new password. Delivery, authenticated user flows and UI accessibility must still be tested against Bolt's actual deployment with the authorized Supabase redirect origin.
+PASS automatic integration is not connected until authorized partner documentation and sandbox access are supplied. Private uploaded evidence needs independent review; a PDF alone is not approved clearance. The Trust & Readiness module supports voluntary sharing and revocation without exposing clinical reports to collaboration partners. See `ops/PASS_PARTNER_ONBOARDING.md`.
 
-## Modular feature administration and PASS testing
+Payments and real signatures require approved provider contracts, configured credentials and successful lifecycle tests. CCBill/DocuSign setup and related release gates are documented in `docs/CCBILL_YOTI_SETUP.md` and `ops/PROVIDER_ACTIVATION.md`. Do not mark users premium or contracts signed because a UI choice or callback URL claims success.
 
-The Bolt frontend keeps the separate desktop and mobile PNG hero assets unchanged. Member pages are individually gated by the server-backed `product_feature_flags` registry: Discovery, Search, Favorites, Connections, Collaborations, Testing, Contracts, Hosting, Production and more. Admins can control switches, tiers and rollout percentages in **Platform Controls**. The same admin console links API provider configuration, account security and medical-document review. Core verification, account access, privacy and consent withdrawal cannot be disabled.
+The Hosting Marketplace supports moderated venue listings, galleries, favorites, booking requests, protected addresses, calendars and reviews. See [hosting implementation](supabase/HOSTING_MARKETPLACE.md). Do not infer payment settlement or executed contracts from booking requests.
 
-The feature-switch migration `20261117122619_modular_feature_toggles_054.sql` is now applied to the established Supabase database; it is idempotent and preserves previously configured flags. Run `npm run test:modules`, then the usual lint, typecheck and build checks. Additional server acceptance testing is still necessary for every module; UI hiding is not an authorization boundary. Supabase remains the authority for protected API actions.
+## Change governance
 
-The Testing sidebar now mounts the existing `PassClearanceHub` module: private signed PDF/image uploads (10 MB max), human review, optional per-collaboration yes/no sharing, consent revocation, and PASS account-link requests. **PASS has no publicly documented partner API contract verified for this project.** Credentials can be vaulted through the admin integration panel, but automatic verification and production-hold monitoring are NOT enabled until PASS provides authorized API documentation and sandbox access. A PDF by itself never establishes an approved clearance. Check official PASS at https://www.passcertified.org/ and ask info@passcertified.org for partner integration details.
+Document any architectural or enforcement change here and in its relevant runbook. Preserve consent, immutable contract snapshots, server-owned admission and append-only application audit behavior. RLS does not make evidence immutable against database owners; hashes and `upsert:false` are not WORM storage. Use restricted access and appropriate independent retention/backup controls.
 
-## Creator profile analytics and administrator previews
-
-Admin roles are granted in the existing Supabase `account_security` table, never inferred from an email address in client code. The role-dashboard switcher is visible to administrators in both desktop sidebar and mobile drawer. Previewing another role changes the dashboard UI, **not** the account's actual role, age status, subscription or backend entitlements. Admin API operations still require AAL2 MFA and independent age verification.
-
-Profile Analytics now records actual modal-open events in a private, RLS-protected `member_profile_view_events` table (one per age-verified viewer/profile/UTC day), excluding self views. The `profile-analytics` Edge Function returns owner-only aggregates and no visitor identities, IP addresses, medical records or other sensitive fields. Historical Base44 traffic cannot be recovered or invented. The migration was applied to the existing Supabase project; the function must be deployed with the site's updated version.
-
-The Yoti provider remains disabled until you enter its **Yoti Hub API token and SDK ID**, configure the approved HTTPS return origins, and complete provider testing. The private ID/selfie manual review is separate and stays available; an age threshold result does not grant performer identity verification automatically.
-
-## Mandatory adult onboarding, memberships and free access
-
-The authenticated application now renders a standalone, non-dismissible onboarding panel before mounting ANY protected creator screen: first a minimal professional profile, then independent 18+ verification. The only early escape is Log out, with verification still required next login. Verified age is checked again in Supabase Edge Functions; hiding a page in React is not a substitute for backend authorization. The onboarding panel rechecks verification periodically and after Yoti returns. The existing ID/selfie evidence is private; only a qualified reviewer can approve a manual request, and an administrator cannot approve their own documents.
-
-Yoti's authenticated OVER session result must return COMPLETE, a matching session/reference, a recognized method and an appropriate threshold. The verified result is recorded with provider method, reference ID, evidence ID and SHA-256 digest without storing raw biometric images in membership tables. Yoti credentials and the approved callback origin must still be configured before live checks can start. Provider age verification does not replace separate professional identity and consent checks.
-
-Professional membership prices are stored in `membership_plan_catalog` and can be edited by independently age-verified MFA administrators. The Content Connect X pricing page excludes the separate OnlyHost Host role. Role prices: Creator $19.99, Photographer $29.99, Videographer and Video Editor $49.99, Agent $49.99 (10), $99.99 (25), $249.99 (100+), Studio from $249.99 monthly. Higher agent prices are configurable proposals.
-
-Free members may browse and save age-verified profiles worldwide, but new outgoing contacts are limited to five distinct people during a rolling seven days and within 25 miles, based on configured **city centers** rather than household coordinates. If city coordinates are unavailable, the backend permits same-city interactions only; this is an approximation and not a physical distance/identity verification service. Each accepted direct contact uses a transactional per-user quota reservation to prevent concurrent requests exceeding five. Group chat and full global contact require Premium, and private social links are disclosed through a protected API only to verified premium users when the profile owner opts in. Core safety and antispam restrictions remain for all tiers.
-
-**Payments are not enabled.** Stripe currently prohibits adult content/services. Prices and a secure admin pricing editor are implemented, but charging and granting premium status require an adult-industry-approved merchant contract, verified subscription webhooks, and successful payment lifecycle tests. Do not mark users premium merely because they selected a plan.
-
-The existing Supabase migrations `20261117132004_membership_catalog_age_evidence_free_contacts.sql` and `20261117132747_member_social_links_opt_in.sql` are applied. Run `npm run test:memberships`, lint, typecheck and build before promoting frontend releases.
-
-## Hands-on tests before launch
-
-The production configuration console is restricted to independently age-verified MFA administrators. It shows provider prerequisites and missing server settings without exposing credentials; a configured provider is not proof of a working provider transaction. Follow [the at-home acceptance test matrix](ops/AT_HOME_TEST_MATRIX.md), capture the tested commit SHA and use a dedicated staging environment for any test data.
-
-## Production location marketplace
-
-The private age-gated Hosting Marketplace supports filtered venue discovery, galleries, favorites, hourly booking requests, host dashboards, image moderation, protected addresses and entry instructions, availability buffers, turnovers and guest reviews. See [hosting implementation](supabase/HOSTING_MARKETPLACE.md). Requests do not process payments, and listings require human approval.
-
-
-## Identity provider integration controls
-
-The **Integrations** area is available to independently age-verified administrators with MFA (AAL2). API credentials are stored server-side using Supabase Vault and are never returned to the browser. In **Verification**, users can start a Yoti hosted age-threshold check, or use the private ID-and-selfie review fallback.
-
-Yoti needs **both** the API token and SDK ID, a trusted HTTPS Content Connect X return origin, administrator activation and real provider testing. OnlyHost uses a separate explicitly configured HTTPS return origin and **never** falls back to the Content Connect X website. Successful Yoti age threshold results do **not** automatically approve creator identity or protected access. The UI polls the provider after return and keeps independent document/identity review as a separate requirement.
-
-The **Trust & Readiness** area supports voluntary PASS link requests, per-collaboration binary clearance sharing with revocation, and private uploaded evidence reviewed by separate staff. An official PASS partner API is not connected; no clinical reports are exposed to collaboration partners.
-
-Run `npm run test:integrations` for brand return-origin, HTTPS safety and credential-readiness tests. Those tests exercise local policy; authenticated multi-user, provider sandbox and record-retention acceptance tests remain required before enabling live provider operations.
+Run the [at-home acceptance matrix](ops/AT_HOME_TEST_MATRIX.md) on the actual Bolt deployment with approved redirect origins and separate test users. Record tested source revision and distinguish mocks, disposable database fixtures, live infrastructure checks and real provider/biometric acceptance. Never present one as a substitute for another.
