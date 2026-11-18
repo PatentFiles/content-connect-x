@@ -1,0 +1,32 @@
+name: Enterprise audit source snapshot
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/enterprise-audit-source.yml']
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm ci --ignore-scripts
+      - name: Snapshot tracked source and dependency inventory without credentials
+        run: |
+          git archive --format=tar HEAD > /tmp/enterprise-source.tar
+          tar -czf /tmp/enterprise-dependencies.tgz node_modules
+          npm audit --json > /tmp/enterprise-audit.json || test "$?" -eq 1
+      - uses: actions/upload-artifact@v4
+        with:
+          name: enterprise-audit-source
+          path: |
+            /tmp/enterprise-source.tar
+            /tmp/enterprise-dependencies.tgz
+            /tmp/enterprise-audit.json
+          retention-days: 1
