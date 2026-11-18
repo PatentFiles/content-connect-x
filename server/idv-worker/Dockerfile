@@ -4,6 +4,10 @@ FROM node:22-bookworm-slim AS build
 RUN apt-get update && apt-get install -y --no-install-recommends git ca-certificates python3 make g++ libcairo2-dev libjpeg-dev libpango1.0-dev libgif-dev librsvg2-dev pkg-config wget bzip2 && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 RUN git init . && git remote add origin https://github.com/team-idswyft/idswyft-community.git && git fetch --depth=1 origin 3c6f17f1aba84bc980dc759f6be42f69b576f439 && git checkout --detach FETCH_HEAD && test "$(git rev-parse HEAD)" = 3c6f17f1aba84bc980dc759f6be42f69b576f439
+# The upstream root lock is out of sync. This reviewed engine-only lock was
+# resolved once and committed; builds must never run an unpinned npm install.
+COPY build-package.json /app/package.json
+COPY build-package-lock.json /app/package-lock.json
 RUN npm ci --include=optional --workspace=shared --workspace=engine --include-workspace-root
 COPY prepare-build.mjs /app/ccx/prepare-build.mjs
 RUN node /app/ccx/prepare-build.mjs
