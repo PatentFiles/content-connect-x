@@ -81,6 +81,12 @@ try{
    if(header.scrollWidth>innerWidth+1)failures.push('header overflows');
    if(document.documentElement.scrollWidth>innerWidth+1)failures.push('page overflows');
    if(main.getBoundingClientRect().top<hr.bottom-.5)failures.push('header overlaps content');
+   const sidebar=document.querySelector('.ccx-shell-sidebar');
+   if(sidebar&&sidebar.getBoundingClientRect().width>0){
+    const sr=sidebar.getBoundingClientRect();
+    if(sr.top<hr.bottom-.5)failures.push('header overlaps sidebar');
+    if(main.getBoundingClientRect().left<sr.right-.5)failures.push('sidebar overlaps page content');
+   }
    for(const c of controls)if(c.r.left<-.5||c.r.right>innerWidth+.5)failures.push('control outside viewport: '+c.name);
    for(let i=0;i<controls.length;i++)for(let j=i+1;j<controls.length;j++){const a=controls[i].r,b=controls[j].r;if(Math.min(a.right,b.right)-Math.max(a.left,b.left)>.5&&Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top)>.5)failures.push('overlapping header controls');}
    return {failures,errors:window.__uiErrors,width:innerWidth,scrollX,scrollWidth:document.documentElement.scrollWidth,textOverflow:(()=>{const out=[],w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let t;while(t=w.nextNode()){if(!t.textContent.trim()||t.parentElement.closest('script,style'))continue;const r=document.createRange();r.selectNodeContents(t);for(const b of r.getClientRects())if(b.right>innerWidth+.5)out.push({text:t.textContent.slice(0,70),parent:t.parentElement.className,right:b.right});}return out.slice(0,10);})(),overflow:failures.length?[...document.querySelectorAll('body *')].map(e=>({e,r:e.getBoundingClientRect()})).filter(({r})=>r.width&&r.right>innerWidth+.5).slice(0,12).map(({e,r})=>({tag:e.tagName,classes:e.className,right:r.right,width:r.width})):[]};
@@ -92,8 +98,18 @@ try{
  console.log(`PASS ${results.length} Chromium layouts: ${inventory.files} JSX modules inventoried; ${inventory.labels.length} native choice sites, ${inventory.rows.length} action rows, actual Collaborations markup, keyboard/label/disabled behavior.`);
  await send('Browser.close');
 }finally{
- socket?.close();browser?.kill();
- // Chrome may still hold files briefly after Browser.close().
- await new Promise(resolve=>setTimeout(resolve,100));
- fs.rmSync(folder,{recursive:true,force:true,maxRetries:5,retryDelay:100});
+ socket?.close();
+ // Chrome's child processes may finish profile writes after Browser.close().
+ // Wait for process exit and retry asynchronously, never blocking its exit event.
+ if(browser&&browser.exitCode===null)await new Promise(resolve=>{
+  const timer=setTimeout(()=>{browser.kill('SIGKILL');resolve();},5000);
+  browser.once('exit',()=>{clearTimeout(timer);resolve();});browser.kill();
+ });
+ try{await fs.promises.rm(folder,{recursive:true,force:true,maxRetries:12,retryDelay:200});}
+ catch(error){
+  // A locked throwaway profile is not a failed geometry assertion. Keep all
+  // assertion/runtime failures fatal, and report cleanup-only OS contention.
+  if(!['ENOTEMPTY','EBUSY'].includes(error.code))throw error;
+  console.warn('Browser checks completed; temporary profile cleanup deferred:',error.code);
+ }
 }

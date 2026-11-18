@@ -99,7 +99,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
     </div>
    </div>
   </header>
-  <aside className="fixed bottom-0 left-0 hidden w-64 flex-col border-r md:flex" style={{top:'var(--cc-shell-header-height,calc(4rem + env(safe-area-inset-top,0px)))',backgroundColor:'var(--cc-surface)',borderColor:'var(--cc-border)'}}>
+  <aside className="ccx-shell-sidebar fixed bottom-0 left-0 hidden w-64 flex-col border-r md:flex" style={{top:'var(--cc-shell-header-height,calc(4rem + env(safe-area-inset-top,0px)))',backgroundColor:'var(--cc-surface)',borderColor:'var(--cc-border)'}}>
    <div className="border-b p-4" style={{borderColor:'var(--cc-border)'}}>
     <button className="flex w-full items-center gap-3 rounded-lg p-2 text-left" onClick={()=>onNavigate('profile')}>
      <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full" style={{background:'var(--cc-surface-hover)',color:'var(--cc-blue)'}}>{profile?.avatar_path?<img src={profile.avatar_path} alt="" className="h-full w-full object-cover"/>:(profile?.display_name||'U').slice(0,1).toUpperCase()}</span>
