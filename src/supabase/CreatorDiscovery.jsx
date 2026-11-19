@@ -19,6 +19,7 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
  const [filters,setFilters]=useState(()=>mode==='discovery'?local:emptyFilters);
  const [applied,setApplied]=useState(()=>mode==='discovery'?local:emptyFilters);
  const [results,setResults]=useState([]),[saved,setSaved]=useState([]),[favoriteBusy,setFavoriteBusy]=useState([]);
+ const [inviteEligibility,setInviteEligibility]=useState(null);
  const [working,setWorking]=useState(false),[searched,setSearched]=useState(false),[more,setMore]=useState(false),[offset,setOffset]=useState(0);
  const [error,setError]=useState(''),[favoriteError,setFavoriteError]=useState(''),[selected,setSelected]=useState(null),[socials,setSocials]=useState({}),[contactNotice,setContactNotice]=useState(''),[contactBusy,setContactBusy]=useState(false);
  const sequence=useRef(0),favoriteLocks=useRef(new Set());
@@ -46,7 +47,8 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
   }catch(e){setFavoriteError(e.message);}finally{favoriteLocks.current.delete(id);setFavoriteBusy(old=>old.filter(value=>value!==id));}
  };
  const openProfile=person=>{
-  setSelected(person);setSocials({});setContactNotice('');
+  setSelected(person);setSocials({});setContactNotice('');setInviteEligibility(null);
+  if(paid&&person.id!==user.id)void supabase.functions.invoke('collaboration-workspace',{body:{action:'eligibility',target_user_id:person.id}}).then(({data,error})=>{if(!error)setInviteEligibility(current=>current===null?{member_id:person.id,...data}:current);}).catch(()=>{});
   if(paid)void supabase.functions.invoke('member-workflows',{body:{action:'view_social_links',target_user_id:person.id}}).then(({data,error:failure})=>{if(!failure)setSocials(data?.socials||{});}).catch(()=>{});
   // Only an actual opened profile counts; listing/searching does not record views.
   if(person.id!==user.id)void supabase.functions.invoke('profile-analytics',{body:{action:'record',profile_owner_id:person.id}}).catch(()=>{});
@@ -80,6 +82,11 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
     {paid?<div className="space-y-2"><h4 className="text-sm font-semibold">Shared professional links</h4>{Object.entries(socials).filter(([,url])=>validateWorkLink(url)).map(([provider,url])=><a key={provider} href={String(url)} target="_blank" rel="noopener noreferrer" className="ccx-secondary mr-2 inline-flex rounded-lg px-3 py-2 text-sm capitalize">{provider==='twitter'?'X / Twitter':provider}</a>)}{!Object.keys(socials).length&&<p className="text-xs text-[var(--cc-text-secondary)]">No links have been shared with premium members.</p>}</div>:<p className="text-xs text-[var(--cc-text-secondary)]">Social-link visibility follows the existing owner permissions and membership rules.</p>}
     {contactNotice&&<p role="status" className="rounded-lg border border-[var(--cc-border)] p-3 text-sm">{contactNotice}</p>}
     <button type="button" disabled={contactBusy||selected.id===user.id} className="ccx-secondary w-full rounded-xl px-4 py-2.5" onClick={connect}>{contactBusy?'Checking eligibility…':paid?'Request connection':'Request local connection'}</button>
+    {paid&&selected.id!==user.id&&<div className="space-y-2">
+      {inviteEligibility?.member_id===selected.id&&inviteEligibility.eligible?<button type="button" className="ccx-primary w-full rounded-xl px-4 py-2.5" onClick={()=>onNavigate?.('collaborations',{targetUserId:selected.id})}>Create collaboration</button>:<p className="rounded-lg bg-[var(--cc-surface-subtle)] p-2 text-xs text-[var(--cc-text-secondary)]">{inviteEligibility?.member_id===selected.id?inviteEligibility.reason:'Checking collaboration eligibility…'}</p>}
+      {(selected.role_type==='agent'||selected.role_type==='studio')&&<button type="button" className="ccx-secondary w-full rounded-xl px-4 py-2.5" onClick={()=>onNavigate?.('roster',{targetUserId:selected.id})}>Request representation</button>}
+      {['agent','studio'].includes(workspace.profile?.role_type)&&['creator','photographer','videographer','video_editor'].includes(selected.role_type)&&<button type="button" className="ccx-secondary w-full rounded-xl px-4 py-2.5" onClick={()=>onNavigate?.('roster',{targetUserId:selected.id})}>Offer representation</button>}
+    </div>}
     <button type="button" className="ccx-primary w-full rounded-xl px-4 py-2.5" disabled={favoriteBusy.includes(selected.id)} onClick={()=>void toggle(selected.id)}>{saved.includes(selected.id)?'Remove from favorites':'Add to favorites'}</button>
     <button type="button" className="text-sm text-[var(--cc-link)] underline" onClick={()=>onNavigate?.('connections')}>View connection requests</button>
    </section></div>}
