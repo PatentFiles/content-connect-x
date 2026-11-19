@@ -40,3 +40,39 @@
 .ccx-profile-links a{padding:8px 12px;border:1px solid #dbe3ee;border-radius:9px;color:#285488;font-size:13px;overflow-wrap:anywhere}
 .ccx-catalog-option:focus-visible,.ccx-person-preview:focus-visible,.ccx-profile-dialog button:focus-visible,.ccx-profile-links a:focus-visible{outline:3px solid #7394c0;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.ccx-person-preview{transition:none}}
+
+/* Marketplace refinement: warm, readable accents on authenticated surfaces only.
+ * Public Content Connect and Host Connect artwork stays exactly as shipped.
+ * Every module uses shared tokens instead of individually hard-coded palettes.
+ */
+:root[data-ccx-appearance="workspace"] .ccx-original-shell{
+ --cc-link:#087487;
+ --cc-blue:#087487;
+ --cc-focus:#b34f42;
+ --cc-border:#d9e5e6;
+ --cc-border-hover:#9ec9c8;
+ --cc-surface-hover:#e6f4f2;
+ --cc-surface-subtle:#f5faf9;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-surface{
+ background:linear-gradient(150deg,#ffffff 2%,#f7fbfb 100%);
+ border-color:var(--cc-border);
+ box-shadow:0 6px 20px rgba(17,83,93,.055);
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-dashboard-card::before{
+ content:"";position:absolute;inset:0 auto 0 0;width:3px;
+ border-radius:18px 0 0 18px;background:#42a998;pointer-events:none;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-dashboard-card:nth-child(3n+2)::before{background:#d99573}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-dashboard-card:nth-child(3n)::before{background:#77a8ce}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-shell-sidebar{
+ background:linear-gradient(180deg,#f9fcfc 0%,#eef8f6 100%)!important;
+ border-color:var(--cc-border)!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-person-preview{
+ background:var(--cc-surface-subtle);border-color:var(--cc-border);transition:border-color .15s,transform .15s;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-person-preview:hover{border-color:#42a998;transform:translateY(-1px)}
+@media (prefers-reduced-motion:reduce){
+ :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-person-preview:hover{transform:none}
+}
