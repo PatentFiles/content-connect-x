@@ -153,7 +153,11 @@ Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUser
  await click('Open selfie camera');await wait("Boolean("+button('Start head-turn capture')+")",'playable selfie camera');
  assert.equal(await evaluate("(()=>{const v=document.querySelector('video');return v.videoWidth>0&&!v.paused&&v.muted&&v.playsInline&&v.getBoundingClientRect().width>0;})()"),true);
  await record('cached camera permission opens a real inline video preview');
+ assert.equal(await evaluate("document.querySelector('[data-capture-instructions]').textContent.includes('hold for three seconds')"),true);
  await click('Start head-turn capture');
+ await wait("document.querySelector('[data-identity-countdown]')?.textContent==='3'",'visible 3–2–1 countdown');
+ await wait("document.querySelector('[data-identity-countdown]')?.textContent==='2'",'visible second countdown step');
+ await wait("document.querySelector('[data-identity-countdown]')?.textContent==='1'",'visible final countdown step');
  await wait("window.__uploadKind==='capture'",'complete two-turn live capture',30000);
  const capture=await evaluate('window.__capturePayload');
  assert.deepEqual(capture.frames.map(f=>f.phase),['turn1_start','turn1_peak','turn1_return','turn_start','turn_peak','turn_return']);

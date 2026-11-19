@@ -4,24 +4,31 @@ import {Camera,CheckCircle2,RefreshCw,ShieldCheck} from 'lucide-react';
 import {identityAction,identityUpload} from './identityApi';
 import LiveIdentityCamera from './LiveIdentityCamera';
 import IdentityUploadProgress from './IdentityUploadProgress';
+import {mergeIdentitySnapshot,identityFinished,identityResultTitle} from './identityResultState.mjs';
 const field='mt-1 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900';
 export default function IdentityVerification({onApproval=()=>{},onboarding=false,action=identityAction,uploadAction=identityUpload,testing=false}){
  const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [name,setName]=useState(''),[documentType,setDocumentType]=useState('drivers_license'),[country,setCountry]=useState('US');
  const [consent,setConsent]=useState(false),[correction,setCorrection]=useState('');
  const [cameraBusy,setCameraBusy]=useState(false),[transfers,setTransfers]=useState(/** @type {Record<string,{phase:string,percent:number|null}>} */ ({}));
+ const [refreshing,setRefreshing]=useState(false),[lastChecked,setLastChecked]=useState(null);
+ const refreshInFlight=useRef(null);
  const alive=useRef(true),approval=useRef(onApproval),inputs=useRef({}),uploadController=useRef(null),operation=useRef(false);
  approval.current=onApproval;
  const accept=async(result)=>{
   if(!alive.current)return;
-  if(result.session!==undefined){setState(old=>({...old,...result}));setCorrection(result.session?.expected_name||'');}
+  if(result.session!==undefined){setState(old=>mergeIdentitySnapshot(old,result));setCorrection(result.session?.expected_name||'');}
   else setState(result);
   // A pilot result is never an onboarding-completion callback, even if all checks pass.
   if(result.session?.status==='approved'&&!testing)await approval.current?.();
  };
- const refresh=async()=>{
-  const result=await action('status');await accept(result);
-  if(alive.current)setName(previous=>previous||result.legal_name||'');
+ const refresh=()=>{
+  if(refreshInFlight.current)return refreshInFlight.current;
+  if(alive.current)setRefreshing(true);
+  const task=(async()=>{
+   try{const result=await action('status');await accept(result);if(alive.current){setName(previous=>previous||result.legal_name||'');setLastChecked(new Date().toLocaleTimeString());}}
+   finally{refreshInFlight.current=null;if(alive.current)setRefreshing(false);}
+  })();refreshInFlight.current=task;return task;
  };
  const perform=async(fn)=>{
   if(operation.current)return;operation.current=true;setBusy(true);setError('');
@@ -30,9 +37,14 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
  useEffect(()=>{alive.current=true;void perform(refresh);return()=>{alive.current=false;uploadController.current?.abort();};},[]);
  useEffect(()=>{
   if(state?.session?.status!=='processing')return;
-  const timer=window.setInterval(()=>{void refresh().catch(()=>{});},5000);
-  return()=>window.clearInterval(timer);
- },[state?.session?.status]);
+  let active=true,timer;
+  const poll=async()=>{
+   try{await refresh();}catch(e){if(active&&alive.current)setError('The latest result could not be loaded. '+e.message);}
+   if(active)timer=window.setTimeout(poll,1000);
+  };
+  timer=window.setTimeout(poll,1000);
+  return()=>{active=false;window.clearTimeout(timer);};
+ },[state?.session?.id,state?.session?.status]);
  const session=state?.session,status=session?.status,locked=busy||cameraBusy;
  const start=()=>perform(async()=>{
   setTransfers({});
@@ -76,6 +88,7 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
   {state?.enabled===false&&<p role="status" className="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">{testing?'Private testing is paused, expired, or awaiting a successful cleanup check. No test uploads are accepted. Your existing access is unchanged.':'Identity verification is not available yet. Your account remains restricted until the service is connected and verification succeeds. No ID uploads are accepted while it is unavailable.'}</p>}
   {state&&!state.email_confirmed&&<p role="status" className="mt-4 text-sm">Confirm your email address before continuing.</p>}
   {status==='approved'&&<p role="status" className="mt-5 flex items-center justify-center gap-2 text-emerald-800"><CheckCircle2/>{testing?session.message:'Verification complete'}</p>}
+  {identityFinished(status)&&<div role="status" aria-live="polite" data-identity-result={status} className="mt-5 rounded-xl border p-4"><h2 className="text-lg font-semibold">{identityResultTitle(status,testing)}</h2>{testing&&<p className="mt-1 text-sm">This is the completed test result. Your existing account access is unchanged.</p>}</div>}
   {session?.message&&status!=='approved'&&<p role="status" className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-900">{session.message}</p>}
   {canStart&&state?.enabled&&<div className="mt-5 space-y-4">
    <label className="block text-sm font-medium">Full legal name on your ID<input autoComplete="name" maxLength={160} value={name} onChange={e=>setName(e.target.value)} className={field}/></label>
@@ -102,7 +115,7 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
    <IdentityUploadProgress progress={transfers.capture} label="Live camera capture"/>
    <button type="button" disabled={locked||!complete} onClick={submit} className="ccx-primary min-h-12 w-full rounded-xl px-4 py-3">Check my identity and age</button>
   </div>}
-  {status==='processing'&&<p role="status" className="mt-4 text-center text-sm">Checking your saved evidence. You can return to this screen to check the result.</p>}
+  {status==='processing'&&<p role="status" className="mt-4 text-center text-sm">Checking your saved evidence now. The result will appear here automatically—no refresh is needed.</p>}
   {status==='name_mismatch'&&<div className="mt-5 space-y-3">
    <label className="block text-sm font-medium">Legal name read from your ID<input maxLength={160} autoComplete="name" value={correction} onChange={e=>setCorrection(e.target.value)} className={field}/></label>
    <button type="button" disabled={locked||!state?.enabled} onClick={()=>perform(async()=>accept(await action('confirm_name',{session_id:session.id,legal_name:correction})))} className="ccx-primary min-h-12 w-full rounded-xl px-4 py-3">{testing?'Update test name and finish':'Update private legal name and finish'}</button>
@@ -111,7 +124,9 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
   {!testing&&['age_restricted','review_required','name_mismatch','retryable_error'].includes(status)&&<button type="button" disabled={locked||session.review_requested} onClick={()=>perform(async()=>accept(await action('request_review',{session_id:session.id})))} className="ccx-secondary mt-4 min-h-11 w-full rounded-xl px-4 py-3">{session.review_requested?'Review requested — access remains restricted':'Request a review'}</button>}
   {['collecting','review_required','name_mismatch','retryable_error'].includes(status)&&<button type="button" disabled={locked} onClick={restart} className="mt-3 min-h-11 w-full text-sm">Cancel this attempt and start again</button>}
   {error&&<p role="alert" className="mt-4 rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}
-  <button type="button" disabled={locked} onClick={()=>perform(refresh)} className="mx-auto mt-4 flex min-h-11 items-center gap-2 rounded-xl px-4 text-sm text-[var(--cc-link)]"><RefreshCw size={16}/>Check status</button>
+  <button type="button" disabled={refreshing} onClick={()=>{setError('');void refresh().catch(e=>{if(alive.current)setError(e.message);});}} className="mx-auto mt-4 flex min-h-11 items-center gap-2 rounded-xl px-4 text-sm text-[var(--cc-link)]"><RefreshCw size={16} className={refreshing?'animate-spin':''}/>{refreshing?'Refreshing result…':'Check status'}</button>
+  {lastChecked&&<p role="status" className="mt-1 text-center text-xs text-[var(--cc-text-secondary)]">Last result check: {lastChecked}</p>}
+  {testing&&['review_required','approved','age_restricted'].includes(status)&&<button type="button" disabled={locked} onClick={restart} className="ccx-secondary mt-3 min-h-11 w-full rounded-xl px-4 py-3">Start a new private test</button>}
   {onboarding&&<p className="mt-5 text-center text-xs text-[var(--cc-text-secondary)]">Account created · Identity verification · Enter the site</p>}
  </section>;
 }

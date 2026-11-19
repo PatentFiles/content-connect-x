@@ -28,3 +28,15 @@ for(const [from,to] of [
  ['          age: result.age,\n          gender: result.gender,',''],
 ]){if(!source.includes(from))throw Error('Pinned upstream face service has changed');source=source.replace(from,to);}
 await fs.writeFile(file,source);
+
+// Compatibility repair of the exact pinned barcode extractor. No new models.
+const barcodeFile='/app/engine/src/services/barcode.ts';
+let barcode=await fs.readFile(barcodeFile,'utf8');
+function replaceOnce(source,from,to){if(!source.includes(from))throw Error('Pinned barcode source changed');return source.replace(from,to);}
+barcode=replaceOnce(barcode,'        ...ocrData,\n        pdf417_data:',"        ...ocrData,\n        ...({ccx_decoded_pdf417:pdf417RawData} as any),\n        pdf417_data:");
+barcode=replaceOnce(barcode,'      } else {\n        pdf417Data = await this.detectPDF417WithOCRFromBuffer(imageBuffer);\n      }','      }');
+barcode=replaceOnce(barcode,'// Also run OCR for additional data\n      const ocrData = await this.scanWithLocalOCRFromBuffer(imageBuffer);','// A decoded barcode needs no redundant text OCR; otherwise allow MRZ/text extraction.\n      const ocrData: BackOfIdData = pdf417RawData ? {parsed_data:{},verification_codes:[],security_features:[]} : await this.scanWithLocalOCRFromBuffer(imageBuffer);');
+await fs.writeFile(barcodeFile,barcode);
+const extractionFile='/app/engine/src/routes/extract.ts';let extraction=await fs.readFile(extractionFile,'utf8');
+extraction=replaceOnce(extraction,"    logger.info('Back extraction complete', {","    (result as any).ccx_decoded_pdf417=(barcodeData as any)?.ccx_decoded_pdf417||null;\n\n    logger.info('Back extraction complete', {");
+await fs.writeFile(extractionFile,extraction);

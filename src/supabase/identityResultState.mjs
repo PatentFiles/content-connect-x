@@ -21,6 +21,9 @@ export function identityResultTitle(status,testing=false){
  if(status==='expired')return 'This attempt expired';
  return 'Verification status';
 }
+/** @param {string} key
+ * @param {any} diagnostics
+ * @param {string} today */
 export function identityDiagnosticHelp(key,diagnostics={},today=new Date().toISOString().slice(0,10)){
  if(diagnostics[key]===true)return '';
  const details=diagnostics.check_details||{};

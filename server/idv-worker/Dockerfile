@@ -28,7 +28,7 @@ COPY --from=build /app/shared/package.json /app/shared/package.json
 COPY --from=build /app/LICENSE /app/ccx/LICENSE-IDSWYFT
 COPY --from=build /app/ccx/model-manifest.json /app/ccx/model-manifest.json
 COPY --from=build /app/ccx/LICENSE-FACE-MODELS /app/ccx/LICENSE-FACE-MODELS
-COPY worker.mjs policy.mjs /app/ccx/
+COPY worker.mjs policy.mjs document-contract.mjs /app/ccx/
 # Application and face weights stay read-only for the runtime user. OCR may cache
 # model downloads only in its own home directory (or /tmp).
 RUN mkdir -p /home/node/.cache/ppu-paddle-ocr && chown -R node:node /home/node/.cache
