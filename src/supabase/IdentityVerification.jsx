@@ -22,12 +22,12 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
   // A pilot result is never an onboarding-completion callback, even if all checks pass.
   if(result.session?.status==='approved'&&!testing)await approval.current?.();
  };
- const refresh=()=>{
+ const refresh=(quiet=false)=>{
   if(refreshInFlight.current)return refreshInFlight.current;
-  if(alive.current)setRefreshing(true);
+  if(alive.current&&!quiet)setRefreshing(true);
   const task=(async()=>{
    try{const result=await action('status');await accept(result);if(alive.current){setName(previous=>previous);setLastChecked(new Date().toLocaleTimeString());}}
-   finally{refreshInFlight.current=null;if(alive.current)setRefreshing(false);}
+   finally{refreshInFlight.current=null;if(alive.current&&!quiet)setRefreshing(false);}
   })();refreshInFlight.current=task;return task;
  };
  const perform=async(fn)=>{
@@ -39,8 +39,8 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
   if(state?.session?.status!=='processing')return;
   let active=true,timer;
   const poll=async()=>{
-   try{await refresh();}catch(e){if(active&&alive.current)setError('The latest result could not be loaded. '+e.message);}
-   if(active)timer=window.setTimeout(poll,1000);
+   try{await refresh(true);}catch(e){if(active&&alive.current)setError('The latest result could not be loaded. '+e.message);}
+   if(active)timer=window.setTimeout(poll,3000);
   };
   timer=window.setTimeout(poll,1000);
   return()=>{active=false;window.clearTimeout(timer);};
