@@ -172,7 +172,7 @@ grant execute on function public.ccx_feed_create(uuid,text,text,uuid[],uuid) to 
 
 create function public.ccx_feed_interact(p_actor uuid,p_post uuid,p_action text,p_text text default null)
 returns jsonb language plpgsql security invoker set search_path='' as $interact$
-declare id uuid;prior boolean;clean text:=btrim(coalesce(p_text,''));
+declare comment_id uuid;clean text:=btrim(coalesce(p_text,''));
 begin
  if p_actor is null or not public.ccx_feed_can_view(p_actor,p_post) then
   raise exception 'FEED_POST_UNAVAILABLE' using errcode='42501'; end if;
@@ -197,9 +197,9 @@ begin
      where author_id=p_actor and created_at>now()-interval '24 hours')>=30
   then raise exception 'FEED_RATE_LIMIT' using errcode='54000'; end if;
   insert into public.community_comments(post_id,author_id,body,status)
-  values(p_post,p_actor,clean,'pending') returning id into id;
+  values(p_post,p_actor,clean,'pending') returning community_comments.id into comment_id;
   insert into public.content_moderation_queue(content_type,content_id,submitter_id,status)
-  values('comment',id,p_actor,'pending');
+  values('comment',comment_id,p_actor,'pending');
   return jsonb_build_object('status','pending');
  end if;
  raise exception 'FEED_INVALID_ACTION' using errcode='22023';
