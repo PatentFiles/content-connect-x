@@ -5,8 +5,8 @@
  */
 const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 const abortError=()=>new DOMException('Upload cancelled. Check status before taking another photo.','AbortError');
-/** @param {{projectUrl:string,publicKey:string,getSession:()=>Promise<any>,endpoint:string,sessionId:string,kind:string,file:Blob,onProgress?:(progress:{phase:string,percent:number|null})=>void,signal?:AbortSignal,timeoutMs?:number,xhrFactory?:()=>XMLHttpRequest}} options */
-export function transferIdentityEvidence({projectUrl,publicKey,getSession,endpoint,sessionId,kind,file,onProgress=()=>{},signal,timeoutMs=180000,xhrFactory=()=>new XMLHttpRequest()}){
+/** @param {{projectUrl:string,publicKey:string,getSession:()=>Promise<any>,endpoint:string,sessionId:string,kind:string,file:Blob,onProgress?:(progress:{phase:string,percent:number|null})=>void,signal?:AbortSignal,evidenceRevision?:number,timeoutMs?:number,xhrFactory?:()=>XMLHttpRequest}} options */
+export function transferIdentityEvidence({projectUrl,publicKey,getSession,endpoint,sessionId,kind,file,onProgress=()=>{},signal,evidenceRevision,timeoutMs=180000,xhrFactory=()=>new XMLHttpRequest()}){
  return new Promise((resolve,reject)=>{
   let xhr,settled=false,timer,lastPercent=0;
   const emit=(phase,percent)=>{if(!settled)onProgress({phase,percent});};
@@ -32,6 +32,10 @@ export function transferIdentityEvidence({projectUrl,publicKey,getSession,endpoi
     if(error||!token)throw Error('Your sign-in expired. Sign in again before uploading.');
     const url=origin.origin+'/functions/v1/'+endpoint;
     const body=new FormData();body.append('session_id',sessionId);body.append('kind',kind);body.append('file',file);
+    if(endpoint==='identity-verification'){
+      if(!Number.isSafeInteger(evidenceRevision)||evidenceRevision<0)throw Error('Refresh your verification session before uploading a photo.');
+      body.append('evidence_revision',String(evidenceRevision));
+    }
     xhr=xhrFactory();
     // Install upload listeners BEFORE open/send for mobile-browser compatibility.
     xhr.upload.onprogress=event=>{
