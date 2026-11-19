@@ -63,7 +63,7 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
   const onProgress=progress=>{if(alive.current&&uploadController.current===controller)setTransfers(old=>({...old,[kind]:progress}));};
   onProgress({phase:'authorizing',percent:0});
   try{
-   const result=await uploadAction(session.id,kind,file,{onProgress,signal:controller.signal});
+   const result=await uploadAction(session.id,kind,file,{onProgress,signal:controller.signal,evidenceRevision:session.evidence_revision??0});
    if(result?.session?.id!==session.id||result.session.uploaded?.[kind]!==true)throw Error('The private save could not be confirmed. Check status before retrying.');
    onProgress({phase:'complete',percent:100});await accept(result);
   }catch(error){
@@ -75,6 +75,11 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
   if(!file)return;
   if(!['image/jpeg','image/png'].includes(file.type)||file.size>8*1024*1024)throw Error('Use a JPEG or PNG no larger than 8 MB.');
   await saveEvidence(kind,file);
+ });
+ const retake=kind=>perform(async()=>{
+  uploadController.current?.abort();
+  setTransfers({});
+  await accept(await action('retake',{session_id:session.id,kind}));
  });
  const submit=()=>perform(async()=>{
   setState(old=>({...old,session:{...old.session,status:'processing',message:'Your ID and live camera capture are being checked.'}}));
@@ -100,6 +105,9 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
      <h2 id="ccx-recovery-heading" className="font-semibold text-base">{recovery.title}</h2>
      <ol className="mt-3 list-decimal space-y-2 pl-5 leading-6">{recovery.steps.map((step,i)=><li key={i}>{step}</li>)}</ol>
      <p className="mt-3 border-t border-amber-200 pt-3 text-xs leading-5 text-slate-700">{recovery.note}</p>
+     {!testing&&status==='review_required'&&!session.review_requested&&state?.enabled&&<div className="mt-3 grid gap-2 sm:grid-cols-2" aria-label="Retake only the unclear evidence">
+       {['front',...(session.document_type==='passport'?[]:['back']),'capture'].map(kind=><button key={kind} type="button" disabled={locked} onClick={()=>retake(kind)} className="ccx-secondary min-h-11 rounded-xl px-3 py-2 text-sm">{kind==='front'?'Retake front of ID':kind==='back'?'Retake back of ID':'Retry camera challenge'}</button>)}
+      </div>}
    </section>}
   {canStart&&state?.enabled&&<div className="mt-5 space-y-4">
    <fieldset className="space-y-3 rounded-xl border border-slate-200 p-4"><legend className="px-1 text-sm font-semibold">Full legal name on your ID</legend><p className="text-xs leading-5 text-slate-600">Enter each name exactly as printed on your ID. Include your middle name or initial, accents, spaces and hyphenated surnames. Do not use a stage name.</p>
