@@ -22,7 +22,7 @@ test('status API never returns case payload, staff identity, notes or a claimed 
  assert.equal(result.status,200);
  assert.equal(result.headers.get('cache-control'),'no-store');
  const data=await result.json();
- assert.deepEqual(data,{verified:true,status:'reviewing',message:'A reviewer is assessing your report.',created_at:'2026-11-19T12:00:00Z',updated_at:null});
+ assert.deepEqual(data,{verified:true,status:'reviewing',message:'Your report is under review.',created_at:'2026-11-19T12:00:00Z',updated_at:null});
 });
 test('guessing the case number alone cannot disclose status',async()=>{
  let called=0;
