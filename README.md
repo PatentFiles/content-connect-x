@@ -1,3 +1,15 @@
+## Collaboration and representation lifecycle revision — November 19, 2026
+
+The authenticated collaboration workspace now presents a grid for current, completed and member-hidden historical collaborations. A production plan captures time, general location, proposed approved Host Connect property (not a booking), scope, activities, deliverables, and publishing rights. Draft plan versions are append-only and contracts, signatures, consent records, invitations, and participant roles are viewable only through an authenticated member-gated endpoint. Signed contracts cannot be overwritten by editing a plan; amendments require a fresh agreement and consent process. "Delete / archive" hides an entry only for that member and never destroys signed evidence.
+
+Invitations are guarded by the database itself: either an accepted friendship or a non-deleted two-way direct conversation must predate the invitation; 20 invitations per day is the maximum; five declined invitations within seven days activate a 30-day outgoing block. Recipient identity and status are server-owned. The messages and profile "Create collaboration" actions use the same protected workflow.
+
+Representation offers now support agent/studio to creator/photographer/videographer/editor and reverse requests, fixed written terms and hashes, explicit two-party acceptance, expiry reminders, voluntary renewal, ordinary notice and immediate safety-related exit. Historical agreements and audit events remain append-only; the two parties are unlinked after expiry or effective cancellation. Former active legacy relationships remain historical, not retroactively represented as signed new terms. **Electronic acceptance is not a substitute for legal review or third-party qualified signing when required.**
+
+Member Settings include server-saved notifications, Supabase Auth password and authenticator, safety, consent, privacy and membership links. Mobile navigation uses Dashboard / Testing / Discovery / Collaborations / Properties; full menus preserve Favorites and the other destinations. The marketplace color layer is scoped to the signed-in shell so neither public hero changes.
+
+**Deployment boundary:** Updating GitHub source does not itself deploy the Supabase migration or Edge Functions. Do not present these features as operational until the isolated PostgreSQL regression, full frontend gate, backend deployment, real accounts and legal/safety acceptance have passed. Bolt remains website hosting, Railway remains ID worker only.
+
 ## Guided identity capture and result repair — November 19, 2026
 
 See `docs/IDENTITY_GUIDANCE_RESULTS.md`: advance directions and visible countdowns, automatic final results, strict barcode/date/name compatibility repairs, and live-selfie continuity. Required verification gates and private evidence retention remain enforced. Bolt remains the website host; public homepage styles are unchanged.
