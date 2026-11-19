@@ -85,7 +85,7 @@ BEGIN
       created_at
     LIMIT 100
   ) q;
-  RETURN jsonb_build_object('items',rows);
+  RETURN jsonb_build_object('items',rows,'reviewer_id',u);
  ELSIF p_action IN('claim','release') THEN
   IF p_id IS NULL THEN RAISE EXCEPTION 'Case required' USING ERRCODE='22023';END IF;
   SELECT * INTO item FROM public.ccx_trust_requests WHERE id=p_id FOR UPDATE;
