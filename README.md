@@ -77,6 +77,8 @@ An Auth account is **not** an approved account. Verified email, applicable versi
 
 Current production verification is disabled pending the recorded approvals. The private pilot is diagnostic only and uses separately retained evidence scheduled for deletion; a pilot pass cannot change membership access. A genuine-document acceptance study is required before general availability.
 
+**Qualified review implementation (gated):** A member's review request is queued once in `ccx_idv_review_cases`. The `identity-verification` Edge Function requires a verified administrator account **and current Supabase Auth AAL2** before accessing the review queue or signed private evidence. Admins must claim cases, cannot read their own evidence or another reviewer's case, and can only close with non-admitting outcome codes. `ccx_idv_review_events` is append-only, with no raw ID text in events. Members see only their own review progress. This is a workflow guard, **not** a declaration that qualified staff are available or an authorization to enable production verification. No manual approval override exists. Follow `ops/IDENTITY_REVIEW_OPERATIONS.md` and issue #26 for remaining independent review, retention, real-ID acceptance and operator signoff.
+
 Original ID and facial evidence are sensitive. Store only justified evidence in restricted Supabase Storage with access audit, bounded signed URLs, encryption/key controls, explicit deletion schedule and case-based legal hold. Durable decision manifests and hashes are not equivalent to retaining all original images or making the evidence immutable. Law enforcement never receives a standing unrestricted backend login.
 
 ## 6. Collaboration lifecycle, agreement and consent
