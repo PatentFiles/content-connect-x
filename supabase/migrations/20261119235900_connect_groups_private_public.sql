@@ -247,7 +247,7 @@ begin
    event_action:='removed';response_status:='removed';
   elsif p_action in('promote','demote') then
    if not can_owner or target_member.status<>'active' or
-    target_member.role<>case when p_action='promote' then 'member' else 'admin' end
+    target_member.role<>(case when p_action='promote' then 'member' else 'admin' end)
      then raise exception 'GROUP_OWNER_ONLY' using errcode='42501';end if;
    update public.ccx_social_group_members set role=case when p_action='promote' then 'admin' else 'member' end,updated_at=now()
      where group_id=p_group and user_id=p_target;
