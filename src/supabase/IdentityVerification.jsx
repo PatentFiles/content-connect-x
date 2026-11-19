@@ -97,7 +97,7 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
      <h2 id="ccx-recovery-heading" className="font-semibold text-base">{recovery.title}</h2>
      <ol className="mt-3 list-decimal space-y-2 pl-5 leading-6">{recovery.steps.map((step,i)=><li key={i}>{step}</li>)}</ol>
      <p className="mt-3 border-t border-amber-200 pt-3 text-xs leading-5 text-slate-700">{recovery.note}</p>
-   </section>
+   </section>}
   {canStart&&state?.enabled&&<div className="mt-5 space-y-4">
    <fieldset className="space-y-3 rounded-xl border border-slate-200 p-4"><legend className="px-1 text-sm font-semibold">Full legal name on your ID</legend><p className="text-xs leading-5 text-slate-600">Enter each name exactly as printed on your ID. Include your middle name or initial, accents, spaces and hyphenated surnames. Do not use a stage name.</p>
     <label className="block text-sm font-medium">First / given name<input autoComplete="given-name" maxLength={90} value={name} onChange={e=>setName(e.target.value)} className={field}/></label>
