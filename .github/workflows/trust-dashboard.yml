@@ -67,4 +67,5 @@ jobs:
       - name: Apply the exact trust migration and exercise database permissions
         run: |
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261119141902_trust_request_intake_disabled_until_operator_review.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261119194000_trust_reporter_status_and_case_claiming.sql
           psql -v ON_ERROR_STOP=1 -f scripts/test-trust-database.sql

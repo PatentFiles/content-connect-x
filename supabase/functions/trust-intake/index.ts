@@ -12,6 +12,7 @@ const encoder=new TextEncoder();
 const key=await crypto.subtle.importKey('raw',encoder.encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
 Deno.serve(createTrustIntakeHandler({
  submit:(payload:unknown,rateKey:string,idempotency:string)=>db.rpc('ccx_trust_submit',{p_payload:payload,p_rate_key:rateKey,p_idempotency:idempotency}),
+ status:(reference:string,accessCode:string,rateKey:string)=>db.rpc('ccx_trust_reporter_status',{p_reference:reference,p_access_code:accessCode,p_rate_key:rateKey}),
  rateKey:async(req:Request)=>{
   // An edge-provided network hint is a rate signal, never authentication or identity.
   // It is keyed and rotated by day; raw IPs are not added to request records or logs.

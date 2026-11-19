@@ -19,3 +19,14 @@ export function validateTrustRequest(raw){
  if(payload.kind==='law_enforcement'&&(!payload.email||['agency','jurisdiction','case_reference'].some(k=>payload[k].length<2)||['legal_basis','scope'].some(k=>payload[k].length<5)))throw Error('Provide agency, jurisdiction, official contact, case reference, legal basis and narrow scope.');
  return {payload,idempotency:raw.idempotency_key};
 }
+
+/** Report status requires BOTH a reference and the private code provided on
+ * its original receipt. Do not grant access from a report ID alone.
+ */
+export function validateTrustStatus(raw){
+ if(!raw||typeof raw!=='object'||Array.isArray(raw)||raw.action!=='status')throw Error('Invalid case lookup.');
+ const uuid=/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
+ if(typeof raw.reference!=='string'||!uuid.test(raw.reference)||typeof raw.access_code!=='string'||!uuid.test(raw.access_code))
+  throw Error('Enter both the receipt reference and private access code.');
+ return {reference:raw.reference.toLowerCase(),accessCode:raw.access_code.toLowerCase()};
+}
