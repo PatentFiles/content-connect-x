@@ -16,14 +16,14 @@ const user={id:'00000000-0000-4000-8000-000000000001'};
 const people=[{id:'00000000-0000-4000-8000-000000000002',display_name:'Synthetic professional',role_type:'creator',city:'Phoenix',country:'United States',bio:'Synthetic professional biography',age_verified:true}];
 let authUser=user;const listeners=new Set();
 window.__fixtureRoute=location.pathname+location.search;
-window.__db={calls:[],layout:JSON.parse(sessionStorage.getItem('fixture-layout')||'null'),revision:0,failLoad:location.search.includes('failLoad'),allowProfile:true,failIntake:false,staff:location.search.includes('staff=1')};
+window.__db={calls:[],layout:JSON.parse(sessionStorage.getItem('fixture-layout')||'null'),revision:Number(sessionStorage.getItem('fixture-revision')||0),failLoad:location.search.includes('failLoad'),allowProfile:true,failIntake:false,staff:location.search.includes('staff=1')};
 window.__signOut=()=>{authUser=null;window.__db.staff=false;for(const listener of listeners)listener('SIGNED_OUT',null);};
 export const supabase={auth:{onAuthStateChange(cb){listeners.add(cb);queueMicrotask(()=>cb('INITIAL_SESSION',{user:authUser}));return {data:{subscription:{unsubscribe(){listeners.delete(cb);}}}};}},
  rpc:async(name,args={})=>{
   const db=window.__db;db.calls.push({name,args});
   if(name==='ccx_dashboard_action'){
    if(db.failLoad)return {error:{message:'Synthetic load unavailable'}};
-   if(args.p_action==='save'){db.layout=args.p_layout;db.revision++;sessionStorage.setItem('fixture-layout',JSON.stringify(db.layout));return {data:{layout:db.layout,revision:db.revision,role:'creator'}};}
+   if(args.p_action==='save'){db.layout=args.p_layout;db.revision++;sessionStorage.setItem('fixture-layout',JSON.stringify(db.layout));sessionStorage.setItem('fixture-revision',String(db.revision));return {data:{layout:db.layout,revision:db.revision,role:'creator'}};}
    return {data:{schema_version:1,role:'creator',layout:db.layout,revision:db.revision,metrics:{favorites:{status:'ready',value:0,subtitle:'Synthetic metric'}},checked_at:'2026-11-19T12:00:00Z'}};
   }
   if(name==='ccx_trust_public_config')return {data:{ready:location.search.includes('ready=1'),policies_approved:false}};
@@ -89,23 +89,25 @@ try{
  const screenshot=async name=>{if(!process.env.STYLE_SCREENSHOT_DIR)return;fs.mkdirSync(process.env.STYLE_SCREENSHOT_DIR,{recursive:true});const shot=await page('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});fs.writeFileSync(path.join(process.env.STYLE_SCREENSHOT_DIR,name),Buffer.from(shot.data,'base64'));};
  await page('Page.enable');await page('Runtime.enable');await page('Network.enable');await page('Network.setBlockedURLs',{urls:['https://*']});
  await page('Emulation.setDeviceMetricsOverride',{width:1320,height:1000,deviceScaleFactor:1,mobile:false});
- await visit('/dashboard');await hasText('Your dashboard, your way');
- assert.equal(await run(()=>document.querySelectorAll('.ccx-dashboard-card').length),0);
+ await visit('/dashboard');await hasText('Connect Feed');
+ assert.equal(await run(()=>document.querySelectorAll('.ccx-dashboard-card').length),3);
+ assert.equal(await run(()=>!!document.querySelector('[data-connect-feed]')),true);
+ assert.equal(await run(()=>!!document.querySelector('aside[aria-label="Sponsored advertisements"]')),true);
  assert.equal(await run(()=>window.__db.calls.some(c=>c.name==='directory')),false);
  await click('Customize Dashboard');await wait(()=>document.querySelectorAll('.ccx-catalog-option').length===window.__catalogCount);
  await selectClick('[aria-label="Add Featured creators"]');await wait(()=>!!document.querySelector('.ccx-person-preview'));
  await click('Save dashboard');await hasText('Dashboard saved');
- assert.deepEqual(await run(()=>window.__db.layout),[{id:'featured_creators',width:'wide'}]);
+ assert.deepEqual(await run(()=>window.__db.layout),[{id:'connections',width:'normal'},{id:'unread_messages',width:'normal'},{id:'upcoming',width:'normal'},{id:'featured_creators',width:'normal'}]);
  await selectClick('.ccx-person-preview');await wait(()=>document.querySelector('dialog[open]')?.textContent.includes('Synthetic professional biography'));
  await wait(()=>document.querySelector('.ccx-profile-links a')?.textContent==='Website');
  assert.equal(await run(()=>!!document.querySelector('a[href^="javascript:"]')),false);await click('Close');
  await run(()=>{window.__db.allowProfile=false;});await selectClick('.ccx-person-preview');await hasText('no longer available');await click('Close');
  await visit('/dashboard');await wait(()=>!!document.querySelector('.ccx-person-preview'));
- assert.equal(await run(()=>document.querySelectorAll('.ccx-dashboard-card').length),1);await noErrors();await screenshot('dashboard-professionals.png');
- await click('Customize Dashboard');await click('Clear dashboard');await click('Save dashboard');await hasText('Your dashboard, your way');
+ assert.equal(await run(()=>document.querySelectorAll('.ccx-dashboard-card').length),4);await noErrors();await screenshot('dashboard-professionals.png');
+ await click('Customize Dashboard');await click('Clear dashboard');await click('Save dashboard');await hasText('Connect Feed');
  await visit('/dashboard?failLoad=1');await hasText('Synthetic load unavailable');
  assert.equal(await run(()=>[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Customize Dashboard').disabled),true);
- await run(()=>{window.__db.failLoad=false;});await click('Retry dashboard');await hasText('Your dashboard, your way');
+ await run(()=>{window.__db.failLoad=false;});await click('Retry dashboard');await hasText('Connect Feed');
  await visit('/trust/content-removal');await hasText('Request intake is not open yet');await hasText('Check an existing report');assert.equal(await run(()=>document.querySelectorAll('form').length),1);assert.equal(await run(()=>!!document.querySelector('[data-private-trust-status] form')),true);
  await visit('/trust/cookies');await wait(()=>document.querySelectorAll('input[type=checkbox]').length===2);
  assert.equal(await run(()=>[...document.querySelectorAll('input[type=checkbox]')].every(e=>!e.checked)),true);
@@ -119,7 +121,7 @@ try{
  await run(()=>window.__signOut());await wait(()=>!document.body.innerText.includes('private-case-fixture'));await click('Load review queue');await hasText('Staff MFA required');
  await page('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await visit('/trust/anti-trafficking');
  assert.equal(await run(()=>document.documentElement.scrollWidth<=window.innerWidth+1),true,'No mobile horizontal overflow');await noErrors();await screenshot('trust-mobile.png');
- console.log('PASS real-browser empty/preserved dashboards, full picker, profile reauthorization, failed-load UX, cookie persistence/rejection, closed intake, success/error receipts, staff logout clearing and mobile footer. Synthetic fixtures only.');
+ console.log('PASS real-browser feed-focused dashboards, four-widget banner, preserved layouts, full picker, profile reauthorization, failed-load UX, cookie persistence/rejection, closed intake, success/error receipts, staff logout clearing and mobile footer. Synthetic fixtures only.');
 }finally{
  socket?.close();browser?.kill('SIGTERM');
  if(server)await new Promise(resolve=>server.close(resolve));
