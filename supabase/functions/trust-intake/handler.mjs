@@ -1,6 +1,7 @@
 import {validateTrustRequest,validateTrustStatus} from './policy.mjs';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const json=(body,status=200)=>Response.json(body,{status,headers:{...cors,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
+const PUBLIC_STATUS_MESSAGE=Object.freeze({pending:'Your report is recorded and awaiting review.',reviewing:'Your report is under review.',action_required:'The report requires further action by the review team.',resolved:'The report has been marked resolved. Contact support with the reference if you need more information or wish to appeal.'});
 async function boundedJson(req){
  const reader=req.body?.getReader();if(!reader)throw Error('A request body is required.');
  const chunks=[];let length=0;
@@ -29,7 +30,7 @@ export function createTrustIntakeHandler({submit,rateKey,status}){
     const allowed=new Set(['pending','reviewing','action_required','resolved']);
     if(!allowed.has(data.status))return json({error:'Status is temporarily unavailable.'},503);
     // A verified capability can access the public-safe status only.
-    return json({verified:true,status:data.status,message:String(data.message||'').slice(0,250),
+    return json({verified:true,status:data.status,message:PUBLIC_STATUS_MESSAGE[data.status],
      created_at:data.created_at||null,updated_at:data.updated_at||null});
    }catch{return json({error:'Status could not be checked. Try again later.'},503);}
   }
