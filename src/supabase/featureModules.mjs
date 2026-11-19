@@ -1,6 +1,6 @@
 /** Shared module registry. Visibility and authorization are deliberately distinct. */
 export const MODULE_FEATURES=Object.freeze({
- directory:'creator_discovery',search:'search',favorites:'favorites',connections:'connections',messages:'messages',collaborations:'collaborations',
+ directory:'creator_discovery',search:'search',favorites:'favorites',connections:'connections',groups:'community_feed',messages:'messages',collaborations:'collaborations',
  invitations:'collaborations',workspace:'collaborations',contracts:'contracts',testing:'testing',trust:'testing',hosting:'hosting_marketplace',
  host:'hosting_marketplace','host-settings':'hosting_marketplace',schedule:'availability',production:'production_manager',roster:'roster',
  representations:'roster',portfolio:'portfolio',media:'media_gallery',community:'community_feed',feedback:'product_feedback',reputation:'verified_reviews',agreements:'contracts'

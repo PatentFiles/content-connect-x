@@ -6,10 +6,9 @@ import {isModuleVisible} from './featureModules.mjs';
 import {RoleWorkspaceContext} from './RoleWorkspaceContext';
 import {effectiveWorkspaceRole} from './roleWorkspacePolicy.mjs';
 import ModuleAccessBoundary from './ModuleAccessBoundary';
-import SponsorshipSlot from './SponsorshipSlot';
 import {supabase} from '@/api/supabaseClient';
 const routeMap=Object.freeze({
- Dashboard:'dashboard',Discovery:'directory',Search:'directory',Favorites:'favorites',Connections:'connections',Messages:'messages',Collaborations:'collaborations',
+ Dashboard:'dashboard',Discovery:'directory',Search:'directory',Favorites:'favorites',Connections:'connections',Groups:'groups',Messages:'messages',Collaborations:'collaborations',
  Contracts:'contracts',Testing:'testing',Verification:'verification',Properties:'hosting',HostingMarketplace:'hosting',HostDashboard:'host',HostProfile:'profile',
  HostSettings:'host-settings',Profile:'profile',Settings:'settings',Representations:'roster',Roster:'roster',RosterPortfolio:'roster',Portfolio:'portfolio',
  Invitations:'notifications',Notifications:'notifications',AccountSecurity:'account-security',Consent:'consent',ProductionManager:'production',AvailabilitySchedule:'schedule',TravelSchedule:'schedule',AdminDashboard:'controls',AgentManagement:'controls',
@@ -17,7 +16,7 @@ const routeMap=Object.freeze({
  CreateCollaboration:'collaborations',CollaborationDetail:'collaborations',ViewProfile:'directory',ViewContract:'contracts',PropertyDetail:'hosting'
 });
 const keyFor=path=>routeMap[path]||'dashboard';
-const reverseRoutes={dashboard:'Dashboard',directory:'Discovery',favorites:'Favorites',connections:'Connections',messages:'Messages',collaborations:'Collaborations',
+const reverseRoutes={dashboard:'Dashboard',directory:'Discovery',favorites:'Favorites',connections:'Connections',groups:'Groups',messages:'Messages',collaborations:'Collaborations',
  contracts:'Contracts',testing:'Testing',verification:'Verification',hosting:'Properties',host:'HostDashboard',profile:'Profile',settings:'Settings',portfolio:'Portfolio',
  invitations:'Notifications',notifications:'Notifications','account-security':'AccountSecurity',consent:'Consent',production:'ProductionManager',schedule:'AvailabilitySchedule',representations:'Roster',roster:'Roster','host-settings':'HostSettings',controls:'AdminDashboard',integrations:'CompliancePortal','testing-reviews':'TestingReviews',membership:'Pricing'};
 export const tabFromLegacyPath=pathname=>{const part=decodeURIComponent(String(pathname||'').split('/').filter(Boolean)[0]||'');const matched=Object.keys(routeMap).find(key=>key.toLowerCase()===part.toLowerCase());return matched?routeMap[matched]:'dashboard';};
@@ -110,7 +109,6 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
     {isAdmin&&adminRole==='admin'&&<><div className="mb-2 px-3 text-xs font-medium uppercase tracking-wider" style={{color:'var(--cc-text-muted)'}}>Admin</div>{adminNav.map(item=><MenuLink key={item.path} item={item} tab={tab} onNavigate={onNavigate}/>)}<div className="my-2 border-b" style={{borderColor:'var(--cc-border)'}}/></>}
     {nav.map(item=><MenuLink key={item.path} item={item} tab={tab} onNavigate={onNavigate}/>)}
    </nav>
-   <SponsorshipSlot placement="sidebar"/>
    <div className="border-t p-4" style={{borderColor:'var(--cc-border)'}}><button type="button" onClick={onSignOut} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm" style={{color:'var(--cc-text-secondary)'}}><LogOut size={20}/>Log Out</button></div>
   </aside>
   {mobileOpen&&<div className="fixed inset-0 z-[70] md:hidden">
