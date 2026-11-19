@@ -1,7 +1,7 @@
 -- Disposable PostgreSQL fixture only. Never run against a real Supabase project.
 CREATE ROLE anon NOLOGIN;
 CREATE ROLE authenticated NOLOGIN;
-CREATE ROLE service_role NOLOGIN;
+CREATE ROLE service_role NOLOGIN BYPASSRLS;
 CREATE SCHEMA auth;
 CREATE SCHEMA ccx_workspace_private;
 CREATE SCHEMA cron;
@@ -38,6 +38,7 @@ CREATE TABLE public.contracts(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),coll
 
 \i supabase/migrations/20261119181000_collaboration_plans_archive_and_invitation_cooldown.sql
 \i supabase/migrations/20261119182000_mutual_professional_representation_agreements.sql
+\i supabase/migrations/20261119234000_voluntary_collaboration_safety_checkins.sql
 
 DO $test$
 DECLARE owner uuid:='10000000-0000-4000-8000-000000000001';
@@ -133,3 +134,4 @@ BEGIN
  END IF;
 END $test$;
 SELECT 'PASS: private collaboration archives, cooldowns, mutual representation, notice and safety exit' AS verified;
+\i scripts/test-collaboration-safety.sql
