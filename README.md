@@ -135,6 +135,7 @@ Before a live provider is marked ready, record: approved merchant/vendor account
 
 Reference:
 - `docs/PROVIDER_READINESS_2026-11-18.md` — historic provider implementation snapshot (may be stale)
+- `docs/PROVIDER_AND_SAFETY_ACTIVATION_RUNBOOK.md` — current acceptance and activation gates for CCBill, DocuSign, identity, safety and communications
 - `docs/MARKETPLACE_SAFETY_PRODUCT_REQUIREMENTS_2026-11-19.md` — scope and safety roadmap
 - `docs/IDENTITY_GUIDANCE_RESULTS.md` — guided ID-capture implementation
 - `docs/RELEASE_NOTES_ARCHIVE_2026-11-19.md` — previous README preserved for history, not current authority
