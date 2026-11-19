@@ -21,7 +21,7 @@ declare
  v_public uuid;v_private uuid;v_post uuid;out jsonb;
 begin
  out:=public.ccx_group_action(a,'create',null,null,'Public Industry Group',
-   'A moderated professional interest community','Be respectful and use consent','public',null);
+   'A moderated professional interest community','public','Be respectful and use consent',null);
  v_public:=(out->>'id')::uuid;
  if out->>'state'<>'pending_platform' then raise exception 'FAIL: unreviewed public group active';end if;
  out:=public.ccx_group_action(c,'discover');
@@ -81,7 +81,7 @@ begin
  if out->>'status'<>'pending' then raise exception 'FAIL: Free member group comment';end if;
 
  out:=public.ccx_group_action(a,'create',null,null,'Private Adult Community',
-  'Private invitation-only member circle','Privacy and consent rules','private',null);
+  'Private invitation-only member circle','private','Privacy and consent rules',null);
  v_private:=(out->>'id')::uuid;
  if out->>'state'<>'active' then raise exception 'FAIL: private group creation';end if;
  out:=public.ccx_group_action(c,'discover');
