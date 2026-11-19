@@ -1,0 +1,60 @@
+name: Connect Feed privacy and moderation integration
+on:
+  pull_request:
+    paths:
+      - 'supabase/migrations/*connect_feed*'
+      - 'supabase/functions/connect-feed/**'
+      - 'supabase/functions/platform-extras/**'
+      - 'src/supabase/ConnectFeed.jsx'
+      - 'src/supabase/CustomDashboard.jsx'
+      - 'tests/connect-feed.test.mjs'
+      - 'scripts/test-connect-feed-database.sql'
+      - '.github/workflows/connect-feed.yml'
+  push:
+    branches: [feat/connect-feed-dashboard-20261119]
+permissions:
+  contents: read
+concurrency:
+  group: connect-feed-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  database:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: ccx_feed_test
+          POSTGRES_PASSWORD: fixture-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ccx_feed_test"
+          --health-interval 5s --health-timeout 5s --health-retries 12
+    env:
+      PGHOST: localhost
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGDATABASE: ccx_feed_test
+      PGPASSWORD: fixture-only
+    steps:
+      - uses: actions/checkout@v4
+      - name: Enforce disposable target and run actual feed SQL
+        run: |
+          test "$PGDATABASE" = ccx_feed_test
+          psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/test-connect-feed-database.sql
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Private feed authorization, DTO and dashboard assertions
+        run: node --test tests/connect-feed.test.mjs
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run build

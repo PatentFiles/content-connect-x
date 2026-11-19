@@ -340,7 +340,8 @@ Deno.serve(async(req)=>{
         const blocked=await blockedUsers();
         const {data,error}=await db.from('community_posts')
           .select('id,author_id,body,created_at,published_at')
-          .eq('status','published').order('published_at',{ascending:false}).limit(paid?55:15);
+          .eq('status','published').eq('audience','verified').is('hidden_at',null)
+          .order('published_at',{ascending:false}).limit(paid?55:15);
         if(error)throw error;
         const authorIds=[...new Set((data||[]).map((v:any)=>v.author_id))];
         const {data:restricted,error:restrictedError}=authorIds.length?
@@ -392,6 +393,8 @@ Deno.serve(async(req)=>{
         if(!uuid(body.post_id)||!await feature('community_feed'))return reject('Post unavailable',400);
         const {data:post,error:pError}=await db.from('community_posts').select('id,status').eq('id',body.post_id).maybeSingle();
         if(pError||post?.status!=='published')return reject('Post unavailable',404);
+        const {data:canView,error:accessError}=await db.rpc('ccx_feed_can_view',{p_actor:uid,p_post:body.post_id});
+        if(accessError||!canView)return reject('Post unavailable',404);
         const {data,error}=await db.from('community_comments').select('id,author_id,body,created_at')
           .eq('post_id',body.post_id).eq('status','published').order('created_at').limit(100);
         if(error)throw error;
@@ -406,6 +409,8 @@ Deno.serve(async(req)=>{
         const {data:post,error:pError}=await db.from('community_posts')
           .select('id,status').eq('id',body.post_id).maybeSingle();
         if(pError||post?.status!=='published')return reject('Post unavailable',404);
+        const {data:canView,error:accessError}=await db.rpc('ccx_feed_can_view',{p_actor:uid,p_post:body.post_id});
+        if(accessError||!canView)return reject('Post unavailable',404);
         if(!await rate('community_comments','author_id',30,86400000))return reject('Daily comment limit reached',429);
         const {data,error}=await db.from('community_comments').insert({
           post_id:post.id,author_id:uid,body:content,status:'pending'
@@ -421,6 +426,8 @@ Deno.serve(async(req)=>{
         const {data:post,error:pError}=await db.from('community_posts')
           .select('id,status').eq('id',body.post_id).maybeSingle();
         if(pError||post?.status!=='published')return reject('Post unavailable',404);
+        const {data:canView,error:accessError}=await db.rpc('ccx_feed_can_view',{p_actor:uid,p_post:body.post_id});
+        if(accessError||!canView)return reject('Post unavailable',404);
         const {data:prior,error:existingError}=await db.from('community_reactions').select('post_id')
           .eq('post_id',post.id).eq('user_id',uid).maybeSingle();
         if(existingError)throw existingError;

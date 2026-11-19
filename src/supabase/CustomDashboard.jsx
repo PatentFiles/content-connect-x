@@ -1,6 +1,6 @@
 /** Per-account dashboard. A fresh account starts empty; saved choices stay intact. */
 import React,{useCallback,useEffect,useRef,useState} from 'react';
-import {ArrowUp,ArrowDown,ArrowRight,Plus,RefreshCw,Settings2,Trash2,Save,X,LayoutGrid} from 'lucide-react';
+import {ArrowUp,ArrowDown,ArrowRight,Plus,RefreshCw,Settings2,Trash2,Save,X} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
 import {useRoleWorkspace} from './RoleWorkspaceContext';
 import {roleTitle} from './roleWorkspacePolicy.mjs';
@@ -9,6 +9,7 @@ import {accessCopy} from './moduleAccessPolicy.mjs';
 import DashboardPeople from './DashboardPeople';
 import DashboardProperties from './DashboardProperties';
 import SponsorshipSlot from './SponsorshipSlot';
+import ConnectFeed from './ConnectFeed';
 const secondary='ccx-secondary inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm disabled:opacity-50';
 const primary='ccx-primary inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm disabled:opacity-50';
 const displayNumber=value=>typeof value==='number'?new Intl.NumberFormat().format(value):String(value??'—');
@@ -55,9 +56,12 @@ export default function CustomDashboard({profile,onNavigate,roleOverride}){
   const interval=window.setInterval(refresh,30000);
   return()=>{window.removeEventListener('focus',refresh);window.removeEventListener('ccx-data-changed',refresh);window.clearInterval(interval);};
  },[load,editing,saving]);
- const customize=()=>{sequence.current++;setLoading(false);setDraft(layout.map(w=>({...w})));setEditing(true);setError('');setNotice('');};
+ const defaultStrip=[{id:'connections',width:'normal'},{id:'unread_messages',width:'normal'},{id:'upcoming',width:'normal'}];
+ const suggested=data?.revision===0&&layout.length===0?defaultStrip:layout;
+ const customize=()=>{sequence.current++;setLoading(false);setDraft(suggested.slice(0,4).map(w=>({...w})));setEditing(true);setError('');setNotice('');};
  const save=async()=>{
   if(preview||!data||saving)return;
+  if(draft.length>4){setError('The dashboard banner holds up to four widgets.');return;}
   setSaving(true);setError('');
   try{
    const {data:result,error:saveError}=await supabase.rpc('ccx_dashboard_action',{p_action:'save',p_layout:draft,p_revision:revision});
@@ -66,29 +70,38 @@ export default function CustomDashboard({profile,onNavigate,roleOverride}){
   }catch(e){setError(e.message||'Could not save. Your edits are still available.');}
   finally{setSaving(false);}
  };
- const shown=editing?draft:layout;
+ const shown=editing?draft:suggested.slice(0,4);
  return <section className="ccx-personal-dashboard space-y-6">
-  <header className="ccx-dashboard-heading flex flex-wrap items-start justify-between gap-3"><div><p className="ccx-workspace-eyebrow">YOUR WORKSPACE</p><h1 className="text-2xl font-bold">{roleTitle(role)} Dashboard</h1><p className="mt-2 text-sm" style={{color:'var(--cc-text-secondary)'}}>Welcome{profile?.display_name?', '+profile.display_name:''}. Choose the people and tools that matter to your work.</p></div>
+  <header className="ccx-dashboard-heading flex flex-wrap items-start justify-between gap-3"><div><p className="ccx-workspace-eyebrow">YOUR WORKSPACE</p><h1 className="text-2xl font-bold">{roleTitle(role)} Dashboard</h1><p className="mt-2 text-sm" style={{color:'var(--cc-text-secondary)'}}>Welcome{profile?.display_name?', '+profile.display_name:''}. Your personalized widget strip and the Connect Feed for your professional network.</p></div>
    <div className="flex flex-wrap gap-2">{editing?<><button type="button" className={primary} onClick={save} disabled={saving}><Save size={16}/>{saving?'Saving…':'Save dashboard'}</button><button type="button" className={secondary} disabled={saving} onClick={()=>{setEditing(false);setError('');void load();}}><X size={16}/>Cancel</button></>:<><button type="button" className={secondary} onClick={()=>void load()} disabled={loading} aria-label="Refresh dashboard"><RefreshCw size={16}/></button><button type="button" className={primary} onClick={customize} disabled={preview||loading||!data}><Settings2 size={16}/>Customize Dashboard</button></>}</div>
   </header>
   {preview&&<p className="ccx-surface p-4 text-sm">This is a role preview, not another member’s dashboard. Return to My dashboard to customize your own layout.</p>}
   {error&&<div role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800"><p>{error}</p>{!editing&&<button type="button" className="mt-2 underline" onClick={()=>void load()}>Retry dashboard</button>}</div>}
   {notice&&<p role="status" className="text-sm text-emerald-800">{notice}</p>}
-  {editing&&<section aria-label="Add dashboard widgets" className="ccx-surface space-y-3 p-5"><div className="flex flex-wrap justify-between gap-2"><h2 className="font-semibold">Choose your modules</h2><button type="button" className="text-xs underline" onClick={()=>setDraft([])} disabled={saving}>Clear dashboard</button></div><p className="text-sm" style={{color:'var(--cc-text-secondary)'}}>Add people, metrics and tools. Change their order or card width, then save. Access and role requirements still apply.</p><div className="ccx-widget-catalog">{catalog.map(w=>{
+  {editing&&<section aria-label="Add dashboard widgets" className="ccx-surface space-y-3 p-5"><div className="flex flex-wrap justify-between gap-2"><h2 className="font-semibold">Choose up to four widgets</h2><button type="button" className="text-xs underline" onClick={()=>setDraft([])} disabled={saving}>Clear dashboard</button></div><p className="text-sm" style={{color:'var(--cc-text-secondary)'}}>The top banner displays up to four chosen widgets. The social feed stays visible below; access and role requirements still apply.</p><div className="ccx-widget-catalog">{catalog.map(w=>{
    const added=draft.some(item=>item.id===w.id);
-   return <button type="button" key={w.id} className="ccx-catalog-option" disabled={saving||added} aria-label={(added?'Added ':'Add ')+w.title} onClick={()=>setDraft(v=>[...v,{id:w.id,width:['people','properties'].includes(w.kind)?'wide':'normal'}])}><span className="flex items-center gap-2"><Plus size={15}/><strong>{w.title}</strong></span><span>{w.description}</span><small>{added?'Added to your dashboard':'Add module'}</small></button>;
+   return <button type="button" key={w.id} className="ccx-catalog-option" disabled={saving||added||draft.length>=4} aria-label={(added?'Added ':'Add ')+w.title} onClick={()=>setDraft(v=>v.length>=4?v:[...v,{id:w.id,width:'normal'}])}><span className="flex items-center gap-2"><Plus size={15}/><strong>{w.title}</strong></span><span>{w.description}</span><small>{added?'Added to your dashboard':'Add module'}</small></button>;
   })}</div></section>}
   {loading&&!data&&<p role="status" className="ccx-widget-note">Loading your saved dashboard…</p>}
-  {!loading&&!error&&shown.length===0&&<div className="ccx-surface ccx-empty-dashboard"><span className="ccx-empty-icon"><LayoutGrid size={28}/></span><h2>Your dashboard, your way</h2><p>Use the Customize Dashboard button to customize it to what you need.</p><p className="ccx-widget-note">Start with featured professionals, creators near you, messages, your schedule or any available module. Nothing is added until you choose it.</p>{!editing&&!preview&&<button type="button" className={primary} onClick={customize} disabled={!data}><Settings2 size={16}/>Customize Dashboard</button>}</div>}
-  <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">{shown.map((item,index)=>{
+  {!loading&&!error&&shown.length===0&&<p className="text-sm text-[var(--cc-text-secondary)]">Your feed is ready. Use Customize Dashboard to add up to four optional widgets above it.</p>}
+  <section className="ccx-widget-strip grid gap-3 sm:grid-cols-2 xl:grid-cols-4" aria-label="Customizable dashboard widget strip">{shown.map((item,index)=>{
    const widget=catalog.find(w=>w.id===item.id);if(!widget)return null;
-   return <article key={item.id} aria-label={widget.title} className={'ccx-surface ccx-dashboard-card min-w-0 p-5 '+(item.width==='wide'?(widget.kind==='properties'?'sm:col-span-2 xl:col-span-3':'sm:col-span-2'):'')}>
+   return <article key={item.id} aria-label={widget.title} className={'ccx-surface ccx-dashboard-card min-w-0 max-h-64 overflow-y-auto p-4'}>
     <h2 className="mb-3 text-sm font-semibold">{widget.title}</h2>
     {editing&&<div className="mb-4 flex flex-wrap items-center gap-2"><button className={secondary} type="button" disabled={saving||index===0} aria-label={'Move '+widget.title+' earlier'} onClick={()=>setDraft(v=>moveDashboardWidget(v,item.id,-1))}><ArrowUp size={15}/></button><button className={secondary} type="button" disabled={saving||index===shown.length-1} aria-label={'Move '+widget.title+' later'} onClick={()=>setDraft(v=>moveDashboardWidget(v,item.id,1))}><ArrowDown size={15}/></button><label className="text-xs">Width<select className="ml-2 rounded-lg border bg-transparent p-2" style={{borderColor:'var(--cc-border)'}} value={item.width} disabled={saving} onChange={e=>setDraft(v=>v.map(w=>w.id===item.id?{...w,width:e.target.value}:w))}><option value="normal">Normal</option><option value="wide">Wide</option></select></label><button type="button" className={secondary} disabled={saving} aria-label={'Remove '+widget.title} onClick={()=>setDraft(v=>v.filter(w=>w.id!==item.id))}><Trash2 size={15}/></button></div>}
     {widget.kind==='properties'?<DashboardProperties onNavigate={onNavigate}/>:widget.kind==='people'?<DashboardPeople widget={widget} profile={profile} onNavigate={onNavigate}/>:<Metric widget={widget} metric={data?.metrics?.[item.id]} onNavigate={onNavigate}/>}
    </article>;
-  })}</div>
-  <SponsorshipSlot placement="feed"/>
+  })}</section>
+  <div className="grid min-w-0 grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_280px]">
+   <ConnectFeed userId={userId} paid={data?.account?.tier==='premium'||data?.account?.admin===true} preview={preview}/>
+   <aside className="min-w-0 space-y-3 xl:sticky xl:top-20" aria-label="Sponsored advertisements">
+    <div className="ccx-surface rounded-xl p-4">
+     <h2 className="text-sm font-semibold">Sponsored</h2>
+     <p className="mt-2 text-xs text-[var(--cc-text-secondary)]">Approved professional advertisers and affiliate partners appear here when available. This is not a member targeting profile.</p>
+    </div>
+    <SponsorshipSlot placement="sidebar"/>
+   </aside>
+  </div>
   {data?.checked_at&&<p className="text-xs" style={{color:'var(--cc-text-muted)'}}>Updated {new Date(data.checked_at).toLocaleString()}. Unknown or restricted values are never shown as zero.</p>}
  </section>;
 }
