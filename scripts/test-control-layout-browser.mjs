@@ -61,11 +61,11 @@ try{
   }
  }
  // These are native semantics, not synthetic replacement switches.
- assert.equal(await evaluate("(()=>{const c=document.querySelector('#collaboration-page input[type=checkbox]');c.checked=false;c.closest('label').click();c.focus();return c.checked;})()"),true,'The full label must toggle the checkbox');
+ assert.equal(await evaluate("(()=>{const c=document.querySelector('[data-choice] input[type=checkbox]');c.checked=false;c.closest('label').click();c.focus();return c.checked;})()"),true,'The full label must toggle the checkbox');
  await page('Input.dispatchKeyEvent',{type:'keyDown',key:' ',code:'Space',windowsVirtualKeyCode:32});
  await page('Input.dispatchKeyEvent',{type:'keyUp',key:' ',code:'Space',windowsVirtualKeyCode:32});
- assert.equal(await evaluate("document.querySelector('#collaboration-page input[type=checkbox]').checked"),false,'Space must toggle the focused checkbox');
- assert.equal(await evaluate("(()=>{const c=document.querySelector('#collaboration-page input[type=checkbox]');c.disabled=true;c.checked=false;c.closest('label').click();return c.checked;})()"),false,'Disabled checkboxes must stay disabled');
+ assert.equal(await evaluate("document.querySelector('[data-choice] input[type=checkbox]').checked"),false,'Space must toggle the focused checkbox');
+ assert.equal(await evaluate("(()=>{const c=document.querySelector('[data-choice] input[type=checkbox]');c.disabled=true;c.checked=false;c.closest('label').click();return c.checked;})()"),false,'Disabled checkboxes must stay disabled');
  if(process.env.CONTROL_SCREENSHOT_DIR)fs.writeFileSync(path.join(process.env.CONTROL_SCREENSHOT_DIR,'results.json'),JSON.stringify({sourceFiles:inventory.files,choiceSites:inventory.labels.length,actionRows:inventory.rows.length,layouts:results},null,2));
  // Real hydrated header: verify responsive wrapping and measured content offsets.
  const shellHtml=await createInteractiveShellFixture(html);
