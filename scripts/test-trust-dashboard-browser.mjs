@@ -106,7 +106,7 @@ try{
  await visit('/dashboard?failLoad=1');await hasText('Synthetic load unavailable');
  assert.equal(await run(()=>[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Customize Dashboard').disabled),true);
  await run(()=>{window.__db.failLoad=false;});await click('Retry dashboard');await hasText('Your dashboard, your way');
- await visit('/trust/content-removal');await hasText('Request intake is not open yet');assert.equal(await run(()=>document.querySelectorAll('form').length),0);
+ await visit('/trust/content-removal');await hasText('Request intake is not open yet');await hasText('Check an existing report');assert.equal(await run(()=>document.querySelectorAll('form').length),1);assert.equal(await run(()=>!!document.querySelector('[data-private-trust-status] form')),true);
  await visit('/trust/cookies');await wait(()=>document.querySelectorAll('input[type=checkbox]').length===2);
  assert.equal(await run(()=>[...document.querySelectorAll('input[type=checkbox]')].every(e=>!e.checked)),true);
  await selectClick('input[type=checkbox]');await reloadClick('Save preferences and reload');await wait(()=>document.querySelector('input[type=checkbox]')?.checked===true);
