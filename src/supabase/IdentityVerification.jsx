@@ -8,7 +8,7 @@ import {mergeIdentitySnapshot,identityFinished,identityResultTitle} from './iden
 const field='mt-1 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900';
 export default function IdentityVerification({onApproval=()=>{},onboarding=false,action=identityAction,uploadAction=identityUpload,testing=false}){
  const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
- const [name,setName]=useState(''),[documentType,setDocumentType]=useState('drivers_license'),[country,setCountry]=useState('US');
+ const [name,setName]=useState(''),[middleName,setMiddleName]=useState(''),[familyName,setFamilyName]=useState(''),[documentType,setDocumentType]=useState('drivers_license'),[country,setCountry]=useState('US');
  const [consent,setConsent]=useState(false),[correction,setCorrection]=useState('');
  const [cameraBusy,setCameraBusy]=useState(false),[transfers,setTransfers]=useState(/** @type {Record<string,{phase:string,percent:number|null}>} */ ({}));
  const [refreshing,setRefreshing]=useState(false),[lastChecked,setLastChecked]=useState(null);
@@ -26,7 +26,7 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
   if(refreshInFlight.current)return refreshInFlight.current;
   if(alive.current)setRefreshing(true);
   const task=(async()=>{
-   try{const result=await action('status');await accept(result);if(alive.current){setName(previous=>previous||result.legal_name||'');setLastChecked(new Date().toLocaleTimeString());}}
+   try{const result=await action('status');await accept(result);if(alive.current){setName(previous=>previous);setLastChecked(new Date().toLocaleTimeString());}}
    finally{refreshInFlight.current=null;if(alive.current)setRefreshing(false);}
   })();refreshInFlight.current=task;return task;
  };
@@ -48,7 +48,8 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
  const session=state?.session,status=session?.status,locked=busy||cameraBusy;
  const start=()=>perform(async()=>{
   setTransfers({});
-  await accept(await action('start',{legal_name:name,document_type:documentType,issuing_country:country,consent,notice_version:state.notice_version}));
+  const fullLegalName=[name,middleName,familyName].map(part=>part.trim()).filter(Boolean).join(' ');
+  await accept(await action('start',{legal_name:fullLegalName,document_type:documentType,issuing_country:country,consent,notice_version:state.notice_version}));
  });
  /** The percentage follows upload events, never a timer. Completion is shown
   * only after the backend confirms this session's evidence was saved. */
@@ -76,7 +77,7 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
  });
  const restart=()=>perform(async()=>{
   if(['collecting','retryable_error','review_required','name_mismatch'].includes(status))await action('cancel',{session_id:session.id});
-  setState(old=>({...old,session:null}));setConsent(false);setCorrection('');setTransfers({});
+  setState(old=>({...old,session:null}));setConsent(false);setCorrection('');setTransfers({});setName('');setMiddleName('');setFamilyName('');
  });
  const complete=session?.uploaded?.front&&session?.uploaded?.capture&&(session.document_type==='passport'||session?.uploaded?.back);
  const canStart=!session||['cancelled','expired','eligible_to_retry'].includes(status);
@@ -91,7 +92,11 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
   {identityFinished(status)&&<div role="status" aria-live="polite" data-identity-result={status} className="mt-5 rounded-xl border p-4"><h2 className="text-lg font-semibold">{identityResultTitle(status,testing)}</h2>{testing&&<p className="mt-1 text-sm">This is the completed test result. Your existing account access is unchanged.</p>}</div>}
   {session?.message&&status!=='approved'&&<p role="status" className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-900">{session.message}</p>}
   {canStart&&state?.enabled&&<div className="mt-5 space-y-4">
-   <label className="block text-sm font-medium">Full legal name on your ID<input autoComplete="name" maxLength={160} value={name} onChange={e=>setName(e.target.value)} className={field}/></label>
+   <fieldset className="space-y-3 rounded-xl border border-slate-200 p-4"><legend className="px-1 text-sm font-semibold">Full legal name on your ID</legend><p className="text-xs leading-5 text-slate-600">Enter each name exactly as printed on your ID. Include your middle name or initial, accents, spaces and hyphenated surnames. Do not use a stage name.</p>
+    <label className="block text-sm font-medium">First / given name<input autoComplete="given-name" maxLength={90} value={name} onChange={e=>setName(e.target.value)} className={field}/></label>
+    <label className="block text-sm font-medium">Middle name or initial (if printed)<input autoComplete="additional-name" maxLength={60} value={middleName} onChange={e=>setMiddleName(e.target.value)} className={field}/></label>
+    <label className="block text-sm font-medium">Last / family name (including hyphens or both surnames)<input autoComplete="family-name" maxLength={90} value={familyName} onChange={e=>setFamilyName(e.target.value)} className={field}/></label>
+   </fieldset>
    <label className="block text-sm font-medium">Document type<select value={documentType} onChange={e=>setDocumentType(e.target.value)} className={field}><option value="drivers_license">Driver’s license</option><option value="passport">Passport</option><option value="national_id">National identity card</option></select></label>
    <label className="block text-sm font-medium">Issuing country<select value={country} onChange={e=>setCountry(e.target.value)} className={field}>{state.supported_countries?.map(code=><option key={code} value={code}>{code==='US'?'United States':code}</option>)}</select></label>
    <div className="max-h-56 overflow-y-auto rounded-xl border p-3 text-sm leading-6 whitespace-pre-wrap">{state.notice}</div>
