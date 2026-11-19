@@ -127,6 +127,15 @@ begin
   perform public.ccx_group_action(a,'leave',v_private);
   raise exception 'FAIL: owner abandoned ownership silently';
  exception when others then if sqlerrm<>'GROUP_OWNER_TRANSFER_REQUIRED' then raise;end if;end;
+ -- Shared single-post links must enforce the exact same group membership policy.
+ out:=public.ccx_feed_page(b,'single',v_post,null,null,1);
+ if jsonb_array_length(out->'items')<>1 then raise exception 'FAIL: permitted public-group shared post'; end if;
+ out:=public.ccx_feed_page(c,'single',v_post,null,null,1);
+ if jsonb_array_length(out->'items')<>0 then raise exception 'FAIL: denied applicant saw shared group post'; end if;
+ out:=public.ccx_feed_create_group(a,v_private,'Private member-only update after admin removal');
+ update public.community_posts set status='published',published_at=now() where id=(out->>'id')::uuid;
+ out:=public.ccx_feed_page(b,'single',(out->>'id')::uuid,null,null,1);
+ if jsonb_array_length(out->'items')<>0 then raise exception 'FAIL: removed group admin viewed private shared post'; end if;
  if (select count(*) from public.ccx_social_group_events where group_id=v_private)<6
  then raise exception 'FAIL: group membership audit incomplete';end if;
 end $test$;
