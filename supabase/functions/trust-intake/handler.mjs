@@ -1,4 +1,4 @@
-import {validateTrustRequest} from './policy.mjs';
+import {validateTrustRequest,validateTrustStatus} from './policy.mjs';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const json=(body,status=200)=>Response.json(body,{status,headers:{...cors,'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 async function boundedJson(req){
@@ -8,12 +8,32 @@ async function boundedJson(req){
  const bytes=new Uint8Array(length);let offset=0;for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.length;}
  try{return JSON.parse(new TextDecoder().decode(bytes));}catch{throw Error('Invalid request format.');}
 }
-export function createTrustIntakeHandler({submit,rateKey}){
+export function createTrustIntakeHandler({submit,rateKey,status}){
  return async req=>{
   if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
   if(req.method!=='POST')return json({error:'Method not allowed'},405);
-  let request;
-  try{request=validateTrustRequest(await boundedJson(req));}catch(e){return json({error:e.message},400);}
+  let raw,request;
+  try{raw=await boundedJson(req);}catch(e){return json({error:e.message},400);}
+  if(raw?.action==='status'){
+   let lookup;
+   try{lookup=validateTrustStatus(raw);}catch(e){return json({error:e.message},400);}
+   if(typeof status!=='function')return json({error:'Private status lookup is not configured.'},503);
+   try{
+    const key=await rateKey(req);
+    const {data,error}=await status(lookup.reference,lookup.accessCode,key);
+    if(error){
+     if(error.code==='54000')return json({error:'Too many status checks. Try again later.'},429);
+     return json({error:'Status could not be checked. Try again later.'},503);
+    }
+    if(data?.verified!==true)return json({error:'The reference and private code could not be verified.'},404);
+    const allowed=new Set(['pending','reviewing','action_required','resolved']);
+    if(!allowed.has(data.status))return json({error:'Status is temporarily unavailable.'},503);
+    // A verified capability can access the public-safe status only.
+    return json({verified:true,status:data.status,message:String(data.message||'').slice(0,250),
+     created_at:data.created_at||null,updated_at:data.updated_at||null});
+   }catch{return json({error:'Status could not be checked. Try again later.'},503);}
+  }
+  try{request=validateTrustRequest(raw);}catch(e){return json({error:e.message},400);}
   try{
    const key=await rateKey(req);
    const {data,error}=await submit(request.payload,key,request.idempotency);
