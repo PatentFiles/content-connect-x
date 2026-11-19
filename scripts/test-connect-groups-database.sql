@@ -30,10 +30,12 @@ begin
   perform public.ccx_group_action(c,'detail',v_public);
   raise exception 'FAIL: unapproved group visible to outsider';
  exception when others then if sqlerrm<>'GROUP_NOT_FOUND' then raise;end if;end;
+ update public.account_security set admin=true where user_id=a;
  begin
   perform public.ccx_group_action(a,'moderate',v_public,null,null,null,'approve');
   raise exception 'FAIL: owner self-approved platform group';
  exception when others then if sqlerrm<>'GROUP_INVALID_REVIEW' then raise;end if;end;
+ update public.account_security set admin=false where user_id=a;
  out:=public.ccx_group_action(b,'admin_queue');
  if out::text not like '%Public Industry Group%' then raise exception 'FAIL: moderator missing group';end if;
  out:=public.ccx_group_action(b,'moderate',v_public,null,null,null,'approve');
