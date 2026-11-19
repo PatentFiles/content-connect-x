@@ -5,10 +5,12 @@
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info','Access-Control-Allow-Methods':'POST,OPTIONS'};
 const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,'content-type':'application/json','cache-control':'no-store','x-content-type-options':'nosniff'}});
 const uuid=x=>typeof x==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(x);
-const modes=new Set(['friends','following','discover','profile']);
+const modes=new Set(['friends','following','discover','profile','group']);
 const flags=new Set(['unsafe','rights','privacy','harassment','other']);
 const actions=new Set(['feed','create','repost','like','unlike','comment','comments','save','unsave','report','hide','my_photos']);
 const clientErrorCodes={
+ GROUP_NOT_MEMBER:[403,'Only active group members may see these posts.'],
+ GROUP_INVALID_POST:[400,'Group posts must be 5–3,000 characters.'],
  FEED_PREMIUM_REQUIRED:[403,'Premium membership is required to publish or repost.'],
  FEED_NOT_VERIFIED:[403,'Complete verified adult onboarding to use the feed.'],
  FEED_INVALID_QUERY:[400,'Invalid feed request.'],
@@ -53,7 +55,7 @@ export function createConnectFeedHandler({authenticate,db,storage}){
   const original=post.original?{id:post.original.id,body:post.original.body,author_id:post.original.author_id,
    author_name:post.original.author_name||'Member',created_at:post.original.created_at}:null;
   return {id:post.id,author_id:post.author_id,author:{display_name:post.display_name||'Member',role_type:post.role_type||''},
-   body:post.body,audience:post.audience,repost_of:post.repost_of||null,allow_repost:post.allow_repost===true,
+   body:post.body,audience:post.audience,group_id:post.group_id||null,repost_of:post.repost_of||null,allow_repost:post.allow_repost===true,
    published_at:post.published_at,photos:photos.filter(Boolean),likes:Number(post.likes)||0,liked:post.liked===true,
    comments:Number(post.comments)||0,saved:post.saved===true,reposts:Number(post.reposts)||0,original};
  }));
@@ -69,8 +71,8 @@ export function createConnectFeedHandler({authenticate,db,storage}){
    const who=user.id,action=body.action;
    if(action==='feed'){
     const mode=modes.has(body.mode)?body.mode:'friends';
-    const author=mode==='profile'&&uuid(body.author_id)?body.author_id:null;
-    if(mode==='profile'&&!author)return reply({error:'Select a valid profile.'},400);
+    const author=['profile','group'].includes(mode)&&uuid(body.author_id)?body.author_id:null;
+    if(['profile','group'].includes(mode)&&!author)return reply({error:'Select a valid profile or group.'},400);
     const before=typeof body.before==='string'&&Number.isFinite(Date.parse(body.before))?body.before:null;
     const beforeId=uuid(body.before_id)?body.before_id:null;
     const limit=16;
@@ -101,8 +103,12 @@ export function createConnectFeedHandler({authenticate,db,storage}){
     const audience=['verified','friends','only_me'].includes(body.audience)?body.audience:'friends';
     const id=action==='repost'&&uuid(body.post_id)?body.post_id:null;
     if(action==='repost'&&!id)return reply({error:'Select a valid post to repost.'},400);
-    const out=await rpc('ccx_feed_create',{p_actor:who,p_body:body.text,p_audience:audience,
-      p_media:media,p_repost:id});
+    const groupId=uuid(body.group_id)?body.group_id:null;
+    if(body.group_id&&!groupId)return reply({error:'Invalid group.'},400);
+    if(groupId&&(action==='repost'||media.length))return reply({error:'Group posts currently support moderated text only. Group-specific private image processing is not yet activated.'},409);
+    const out=groupId
+     ?await rpc('ccx_feed_create_group',{p_actor:who,p_group:groupId,p_body:body.text})
+     :await rpc('ccx_feed_create',{p_actor:who,p_body:body.text,p_audience:audience,p_media:media,p_repost:id});
     return reply({item:out,note:'Submitted for moderation. Your update is not visible to friends until approved.'},201);
    }
    if(!uuid(body.post_id))return reply({error:'Select a valid post.'},400);
