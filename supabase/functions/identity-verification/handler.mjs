@@ -100,6 +100,7 @@ export function createHandler({admin,authenticate,assurance=async()=>null,fetchI
      const s=await run(admin.from('ccx_idv_sessions').select('*').eq('id',identifier(body.session_id)).maybeSingle());
      if(!s||s.user_id===user.id)return reply({error:'Independent review is required.'},403);
      if(!['front','back','selfie','capture'].includes(body.kind)||!s.evidence?.[body.kind])throw new RequestError('Document unavailable.',404);
+     if(typeof s.evidence[body.kind].path!=='string'||!s.evidence[body.kind].path.startsWith(`${s.user_id}/${s.id}/`))throw new RequestError('Document evidence path is invalid.',403);
      if(typeof body.reason!=='string'||body.reason.trim().length<10||body.reason.length>500)throw new RequestError('Record the purpose of this access (10–500 characters).');
      // Database atomically checks case ownership and records access intent.
      await run(admin.rpc('ccx_idv_review_case',{p_actor:user.id,p_session:s.id,p_action:'authorize_read'}));
