@@ -1,32 +1,25 @@
-name: Connect Feed privacy and moderation integration
+name: Connect Feed and Groups privacy integration
 on:
   pull_request:
     paths:
       - 'supabase/migrations/*connect_feed*'
+      - 'supabase/migrations/*connect_groups*'
       - 'supabase/functions/connect-feed/**'
       - 'supabase/functions/connect-groups/**'
-      - 'supabase/migrations/*connect_groups*'
-      - 'src/supabase/ConnectGroups.jsx'
-      - 'src/supabase/SupabaseApp.jsx'
-      - 'src/supabase/roleNavigationData.mjs'
-      - 'src/supabase/OriginalShell.jsx'
-      - 'scripts/test-connect-groups-database.sql'
-      - 'tests/connect-groups.test.mjs'
-      - 'supabase/functions/connect-groups/**'
-      - 'supabase/migrations/*connect_groups*'
-      - 'src/supabase/ConnectGroups.jsx'
-      - 'src/supabase/SupabaseApp.jsx'
-      - 'src/supabase/roleNavigationData.mjs'
-      - 'scripts/test-connect-groups-database.sql'
-      - 'tests/connect-groups.test.mjs'
       - 'supabase/functions/platform-extras/**'
       - 'src/supabase/ConnectFeed.jsx'
+      - 'src/supabase/ConnectGroups.jsx'
       - 'src/supabase/CustomDashboard.jsx'
-      - 'tests/connect-feed.test.mjs'
+      - 'src/supabase/SupabaseApp.jsx'
+      - 'src/supabase/OriginalShell.jsx'
+      - 'src/supabase/roleNavigationData.mjs'
       - 'scripts/test-connect-feed-database.sql'
+      - 'scripts/test-connect-groups-database.sql'
+      - 'tests/connect-feed.test.mjs'
+      - 'tests/connect-groups.test.mjs'
       - '.github/workflows/connect-feed.yml'
   push:
-    branches: [feat/connect-feed-dashboard-20261119]
+    branches: [feat/connect-community-groups-20261119]
 permissions:
   contents: read
 concurrency:
@@ -54,13 +47,10 @@ jobs:
       PGPASSWORD: fixture-only
     steps:
       - uses: actions/checkout@v4
-      - name: Enforce disposable target and run actual feed SQL
+      - name: Run real Feed and Groups SQL against disposable PostgreSQL
         run: |
           test "$PGDATABASE" = ccx_feed_test
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/test-connect-feed-database.sql
-          psql --no-psqlrc -v ON_ERROR_STOP=1 -c "alter table public.account_security add column admin boolean not null default false"
-          psql --no-psqlrc -v ON_ERROR_STOP=1 -f supabase/migrations/20261119235900_connect_groups_private_public.sql
-          psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/test-connect-groups-database.sql
           psql --no-psqlrc -v ON_ERROR_STOP=1 -c "alter table public.account_security add column admin boolean not null default false"
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f supabase/migrations/20261119235900_connect_groups_private_public.sql
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/test-connect-groups-database.sql
@@ -74,8 +64,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - name: Private feed authorization, DTO and dashboard assertions
-        run: node --test tests/connect-feed.test.mjs tests/connect-groups.test.mjs tests/connect-groups.test.mjs
+      - name: Feed and Groups auth, privacy, moderation and dashboard tests
+        run: node --test tests/connect-feed.test.mjs tests/connect-groups.test.mjs
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build
