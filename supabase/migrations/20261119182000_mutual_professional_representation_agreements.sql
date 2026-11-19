@@ -159,7 +159,7 @@ BEGIN
    IF months<1 OR months>24 OR notice<0 OR notice>90 OR pct<0 OR pct>100 THEN RAISE EXCEPTION 'Representation terms out of range'; END IF;
    exclusive_flag:=p_data->>'exclusive'='true';
    agreement:=jsonb_build_object('scope',scope,'term_months',months,'notice_days',notice,'commission_pct',pct,'exclusive',exclusive_flag,
-      'version',1,'changes_require_mutual_acceptance',true,'safety_and_consent_withdrawal_unrestricted',true);
+      'version',1,'changes_require_mutual_acceptance',true,'safety_and_consent_withdrawal_unrestricted',true,'public_profile_linking',true);
    h:=encode(sha256(convert_to(agreement::text,'UTF8')),'hex');
    INSERT INTO public.member_representations(representative_id,creator_id,representative_role,relationship_type,status,offered_by,
       agreement_terms,agreement_hash,notice_days,agreed_by_representative_at,agreed_by_professional_at)
