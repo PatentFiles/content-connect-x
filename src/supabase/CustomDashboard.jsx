@@ -8,6 +8,7 @@ import {widgetsForRole,defaultDashboardLayout,normalizeDashboardLayout,moveDashb
 import {accessCopy} from './moduleAccessPolicy.mjs';
 import DashboardPeople from './DashboardPeople';
 import DashboardProperties from './DashboardProperties';
+import SponsorshipSlot from './SponsorshipSlot';
 const secondary='ccx-secondary inline-flex items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm disabled:opacity-50';
 const primary='ccx-primary inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm disabled:opacity-50';
 const displayNumber=value=>typeof value==='number'?new Intl.NumberFormat().format(value):String(value??'—');
@@ -87,6 +88,7 @@ export default function CustomDashboard({profile,onNavigate,roleOverride}){
     {widget.kind==='properties'?<DashboardProperties onNavigate={onNavigate}/>:widget.kind==='people'?<DashboardPeople widget={widget} profile={profile} onNavigate={onNavigate}/>:<Metric widget={widget} metric={data?.metrics?.[item.id]} onNavigate={onNavigate}/>}
    </article>;
   })}</div>
+  <SponsorshipSlot placement="feed"/>
   {data?.checked_at&&<p className="text-xs" style={{color:'var(--cc-text-muted)'}}>Updated {new Date(data.checked_at).toLocaleString()}. Unknown or restricted values are never shown as zero.</p>}
  </section>;
 }
