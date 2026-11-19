@@ -40,10 +40,3 @@ await fs.writeFile(barcodeFile,barcode);
 const extractionFile='/app/engine/src/routes/extract.ts';let extraction=await fs.readFile(extractionFile,'utf8');
 extraction=replaceOnce(extraction,"    logger.info('Back extraction complete', {","    (result as any).ccx_decoded_pdf417=(barcodeData as any)?.ccx_decoded_pdf417||null;\n\n    logger.info('Back extraction complete', {");
 await fs.writeFile(extractionFile,extraction);
-
-// Node workers cannot depend on browser Blob URLs. Keep OCR language, engine
-// mode, segmentation and matching thresholds unchanged.
-const ocrFile='/app/engine/src/services/ocr.ts';
-let ocr=await fs.readFile(ocrFile,'utf8');
-ocr=replaceOnce(ocr,"this.tesseractWorker = await createWorker('eng');","this.tesseractWorker = await createWorker('eng', 1, {workerBlobURL:false});");
-await fs.writeFile(ocrFile,ocr);
