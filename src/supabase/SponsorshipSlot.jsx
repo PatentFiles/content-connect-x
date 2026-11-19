@@ -9,8 +9,7 @@ export default function SponsorshipSlot({placement='feed'}){
  useEffect(()=>{let active=true;void supabase.from('ccx_sponsorship_campaigns')
   .select('id,sponsor_name,headline,link_url,disclosure')
   .eq('placement',placement).eq('approved',true).order('starts_at',{ascending:false}).limit(1)
-  .then(({data,error})=>{if(active&&!error)setItem(data?.[0]||null);})
-  .catch(()=>{});return()=>{active=false;};
+  .then(({data,error})=>{if(active&&!error)setItem(data?.[0]||null);},()=>{});return()=>{active=false;};
  },[placement]);
  if(!item)return null;
  let safe=false;try{const u=new URL(item.link_url);safe=u.protocol==='https:'&&!u.username&&!u.password&&!u.hash;}catch{}
