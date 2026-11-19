@@ -5,6 +5,7 @@ const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'au
 const json=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const allowed=new Set(['status','check_in','mark_safe','leave','record_concern']);
+const safeStatuses=new Set(['not_started','checked_in','safe','left','concern_recorded']);
 const messages={
  SAFETY_NOT_PARTICIPANT:'This safety record is only available to accepted participants.',
  SAFETY_SIGN_IN_REQUIRED:'Sign in to access this check-in.',
@@ -40,9 +41,16 @@ export function createSafetyHandler({authenticate,act}){
     const key=Object.keys(messages).find(k=>String(error.message||'').includes(k));
     return json({error:key?messages[key]:'Safety check-in is not available. No update was recorded.'},error.code==='42501'?403:error.code==='22023'?409:503);
    }
-   if(!data||typeof data!=='object'||data.monitored_emergency_response!==false)
+   if(!data||typeof data!=='object'||data.monitored_emergency_response!==false||!safeStatuses.has(data.status))
     return json({error:'Safety acknowledgement could not be verified. Check status before retrying.'},503);
-   return json({item:data});
+   // A fixed allowlist prevents future DB metadata, private contact details,
+   // location or another member's record from leaking into the response.
+   return json({item:{status:data.status,checked_in_at:data.checked_in_at||null,
+    marked_safe_at:data.marked_safe_at||null,left_at:data.left_at||null,
+    concern_recorded_at:data.concern_recorded_at||null,
+    contact_informed_by_member:data.contact_informed_by_member===true,
+    can_check_in:data.can_check_in===true,schedule_available:data.schedule_available===true,
+    monitored_emergency_response:false}});
   }catch(error){
    if(error?.message==='too_large')return json({error:'Request too large'},413);
    return json({error:'Safety check-in is unavailable. No monitored alert was sent.'},503);
