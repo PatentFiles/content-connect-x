@@ -95,9 +95,11 @@ test('report acknowledges receipt but not action or emergency response',async()=
 test('Dashboard keeps widget strip and social timeline separate from sponsored sidebar',()=>{
  const src=fs.readFileSync('src/supabase/CustomDashboard.jsx','utf8');
  const feed=fs.readFileSync('src/supabase/ConnectFeed.jsx','utf8');
- assert.match(src,/ccx-widget-strip/);
+ assert.match(src,/ccx-widget-rail/);
  assert.match(src,/shown\.slice\(0,4\)|suggested\.slice\(0,4\)/);
  assert.match(src,/SponsorshipSlot placement="sidebar"/);
+ assert.match(src,/hidden min-w-0 space-y-4 xl:block/);
+ assert.match(src,/initialMode="discover"/);
  assert.match(src,/ConnectFeed userId/);
  assert.match(feed,/Upload a new photo for moderation/);
  assert.match(feed,/Friends.*Following.*Discover/s);
