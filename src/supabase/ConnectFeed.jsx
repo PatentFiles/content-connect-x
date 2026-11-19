@@ -201,32 +201,29 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
  return <section data-connect-feed="true" className="min-w-0 space-y-4" aria-label={groupId?'Private group posts':profileId?'Profile timeline':'Connect Feed'}>
   {paid&&!preview&&!profileId?<form className="ccx-surface space-y-3 rounded-2xl p-4 sm:p-5" onSubmit={publish}>
    <label className="block text-sm font-semibold">{groupId?'Share in this group':'Share an update'}
-    <textarea className={input+' mt-2'} value={text} rows={3} required minLength={5} maxLength={3000}
+    <textarea className={input+' mt-2'} value={text} rows={3} required={!uploadFile} minLength={uploadFile?0:5} maxLength={3000}
      onChange={e=>setText(e.target.value)} placeholder="Share your projects, photos, collaborations or professional updates…"/>
    </label>
    <div className="flex flex-wrap items-center gap-2">
     {!groupId&&<label className="text-xs">Audience
-     <select className="ml-2 min-h-11 rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-2" value={audience} onChange={e=>{setAudience(e.target.value);setMediaIds([]);}}>
+     <select className="ml-2 min-h-11 rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-2" value={audience} onChange={e=>setAudience(e.target.value)}>
       {Object.entries(audienceLabels).map(([v,label])=><option key={v} value={v}>{label}</option>)}
      </select>
     </label>}
-    {!groupId&&<button className={secondary} type="button" onClick={()=>void photos()}><ImagePlus size={16}/>Approved photos</button>}
-    <button className={primary} type="submit" disabled={loading||text.trim().length<5}>Submit post</button>
+    <button className={primary} type="submit" disabled={loading||uploading||(!uploadFile&&text.trim().length<5)||Boolean(uploadFile&&!rights)}>{loading?'Publishing…':'Publish update'}</button>
    </div>
-   {!groupId&&gallery.length>0&&<div className="space-y-2"><p className="text-xs">Choose up to four approved photos from your media library. Private photos cannot be shared.</p>
-    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">{gallery.filter(m=>m.visibility==='verified'||audience!=='verified'&&m.visibility==='connections').map(photo=><button key={photo.id} type="button" aria-pressed={mediaIds.includes(photo.id)} className={'overflow-hidden rounded-xl border-2 '+(mediaIds.includes(photo.id)?'border-[var(--cc-link)]':'border-transparent')} onClick={()=>setMediaIds(v=>v.includes(photo.id)?v.filter(id=>id!==photo.id):v.length<4?[...v,photo.id]:v)}>
-     <img src={photo.url} alt={photo.caption||'Approved photo'} loading="lazy" referrerPolicy="no-referrer" className="aspect-square w-full object-cover"/>
-    </button>)}</div>
-    <p className="text-xs">{mediaIds.length} of 4 photos selected</p>
+   {!groupId&&<div className="space-y-3 rounded-xl border border-[var(--cc-border)] p-3" aria-label="Attach a photo">
+    <label className="flex cursor-pointer items-center gap-2 text-sm font-medium"><ImagePlus size={17}/>Add a photo
+     <input type="file" accept="image/jpeg,image/png,image/webp" className="mt-1 block w-full text-xs" onChange={e=>{setUploadFile(e.target.files?.[0]||null);setRights(false);}}/>
+    </label>
+    {uploadFile&&<div className="space-y-2">
+     <p className="text-xs">{uploadFile.name} · The image will be resized and stripped of location metadata before upload.</p>
+     <label className="flex items-start gap-2 text-xs"><input type="checkbox" checked={adultNudity} onChange={e=>setAdultNudity(e.target.checked)}/><span>This photo contains adult nudity. Nudity itself is permitted for verified adults.</span></label>
+     <label className="flex items-start gap-2 text-xs"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/><span>I am 18 or older, I am the only person depicted, I have the right to publish this image, and it contains no sexual act. Other people or sexual activity need separate documented clearance.</span></label>
+    </div>}
+    <p className="text-xs text-[var(--cc-text-secondary)]">Verified Premium members can post their own photos without routine manual image approval. Reports can temporarily remove posts for review. No IDs or private testing records.</p>
    </div>}
-   {!groupId&&<details className="rounded-xl border border-[var(--cc-border)] p-3 text-sm">
-    <summary className="cursor-pointer font-semibold">Upload a new photo for moderation</summary>
-    <p className="mt-2 text-xs">New photos must be approved before they can appear in a feed. No explicit media, private ID records, or content without participant rights.</p>
-    <input type="file" accept="image/jpeg,image/png,image/webp" className="mt-3 block w-full text-xs" onChange={e=>setUploadFile(e.target.files?.[0]||null)}/>
-    <label className="mt-3 flex items-start gap-2 text-xs"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/><span>I own the necessary rights and have required participant permissions to share this photo.</span></label>
-    <button type="button" className={secondary+' mt-3'} disabled={uploading||!uploadFile||!rights} onClick={()=>void upload()}>{uploading?'Uploading…':'Send photo for approval'}</button>
-   </details>}
-   <p className="text-xs text-[var(--cc-text-secondary)]">Posting and reposting require Premium. All posts and comments remain private until moderation approves them. Group posts are restricted to active members and currently support text only.</p>
+   <p className="text-xs text-[var(--cc-text-secondary)]">Publishing requires Premium. Your Feed post appears after verified self-attestation; comments and group discussions still follow separate moderation. Group posts currently support text only.</p>
   </form>:!profileId&&<div className="ccx-surface rounded-xl p-4 text-sm text-[var(--cc-text-secondary)]">Verified Free members can browse, like, save, share links and submit moderated comments. Premium is required to publish posts, upload photos or repost.</div>}
   {!profileId&&!groupId&&<header className="flex flex-wrap items-center justify-between gap-2">
    <div><h2 className="text-xl font-bold">Feed</h2><p className="mt-1 text-xs text-[var(--cc-text-secondary)]">Latest posts from your verified community, friends and following.</p></div>
