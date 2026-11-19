@@ -107,6 +107,11 @@ BEGIN
  IF NOT EXISTS(SELECT 1 FROM public.member_representations WHERE id=rep AND status='active' AND expires_at>now()+interval '11 months' AND agreed_by_professional_at IS NOT NULL) THEN
   RAISE EXCEPTION 'Mutual representation agreement not activated correctly';
  END IF;
+ SELECT public.ccx_representation_agreement_action('profile_links',jsonb_build_object('target_id',owner)) INTO res;
+ IF jsonb_array_length(res->'items')<>1 OR (res->'items'->0->>'display_name')<>'Test Agent'
+    OR res->'items'->0 ? 'agreement_terms' THEN
+  RAISE EXCEPTION 'Active profile representation should be public-scope only';
+ END IF;
  PERFORM public.ccx_representation_agreement_action('give_notice',jsonb_build_object('id',rep));
  IF NOT EXISTS(SELECT 1 FROM public.member_representations WHERE id=rep AND termination_effective_at>now()+interval '29 days') THEN
   RAISE EXCEPTION 'Contract notice period missing';
@@ -118,6 +123,8 @@ BEGIN
  EXCEPTION WHEN insufficient_privilege THEN NULL;
  END;
  PERFORM public.ccx_representation_agreement_action('end_for_safety',jsonb_build_object('id',rep));
+ SELECT public.ccx_representation_agreement_action('profile_links',jsonb_build_object('target_id',owner)) INTO res;
+ IF jsonb_array_length(res->'items')<>0 THEN RAISE EXCEPTION 'Ended representation remains public'; END IF;
  IF NOT EXISTS(SELECT 1 FROM public.member_representations WHERE id=rep AND status='ended') THEN
   RAISE EXCEPTION 'Immediate safety exit unavailable';
  END IF;
