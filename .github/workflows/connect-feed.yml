@@ -4,6 +4,9 @@ on:
     paths:
       - 'supabase/migrations/*connect_feed*'
       - 'supabase/migrations/*connect_groups*'
+      - 'supabase/migrations/*feed_verified_self_photo*'
+      - 'supabase/functions/media-gateway/**'
+      - 'scripts/test-feed-verified-self-photo.sql'
       - 'supabase/functions/connect-feed/**'
       - 'supabase/functions/connect-groups/**'
       - 'supabase/functions/platform-extras/**'
@@ -58,6 +61,8 @@ jobs:
           psql --no-psqlrc -v ON_ERROR_STOP=1 -c "alter table public.account_security add column admin boolean not null default false"
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f supabase/migrations/20261119235900_connect_groups_private_public.sql
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f supabase/migrations/20261120003000_connect_feed_post_permalink.sql
+          psql --no-psqlrc -v ON_ERROR_STOP=1 -f supabase/migrations/20261120014500_feed_verified_self_photo.sql
+          psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/test-feed-verified-self-photo.sql
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/test-connect-groups-database.sql
   frontend:
     runs-on: ubuntu-latest
