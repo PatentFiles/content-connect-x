@@ -5,6 +5,7 @@
  */
 const UUID=/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
 const abortError=()=>new DOMException('Upload cancelled. Check status before taking another photo.','AbortError');
+/** @param {{projectUrl:string,publicKey:string,getSession:()=>Promise<any>,endpoint:string,sessionId:string,kind:string,file:Blob,onProgress?:(progress:{phase:string,percent:number|null})=>void,signal?:AbortSignal,timeoutMs?:number,xhrFactory?:()=>XMLHttpRequest}} options */
 export function transferIdentityEvidence({projectUrl,publicKey,getSession,endpoint,sessionId,kind,file,onProgress=()=>{},signal,timeoutMs=180000,xhrFactory=()=>new XMLHttpRequest()}){
  return new Promise((resolve,reject)=>{
   let xhr,settled=false,timer,lastPercent=0;

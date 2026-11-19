@@ -12,6 +12,7 @@ export async function identityAction(action,values={}){
 }
 /** Fixed endpoint allowlist and receipt validation live in the transport. The
  * normal browser publishable key and signed-in user's token are the only keys. */
+/** @param {{onProgress?: (progress: {phase:string,percent:number|null}) => void, signal?: AbortSignal}} options */
 export function identityUploadTo(endpoint,sessionId,kind,file,{onProgress,signal}={}){
  const client=requireSupabase();
  return transferIdentityEvidence({projectUrl:supabaseConfiguration.url,publicKey:supabaseConfiguration.key,

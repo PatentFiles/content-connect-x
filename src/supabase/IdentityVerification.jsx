@@ -9,7 +9,7 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
  const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
  const [name,setName]=useState(''),[documentType,setDocumentType]=useState('drivers_license'),[country,setCountry]=useState('US');
  const [consent,setConsent]=useState(false),[correction,setCorrection]=useState('');
- const [cameraBusy,setCameraBusy]=useState(false),[transfers,setTransfers]=useState({});
+ const [cameraBusy,setCameraBusy]=useState(false),[transfers,setTransfers]=useState(/** @type {Record<string,{phase:string,percent:number|null}>} */ ({}));
  const alive=useRef(true),approval=useRef(onApproval),inputs=useRef({}),uploadController=useRef(null),operation=useRef(false);
  approval.current=onApproval;
  const accept=async(result)=>{

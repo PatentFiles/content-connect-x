@@ -6,7 +6,8 @@ export function stopTracks(stream){for(const track of stream?.getTracks?.()||[])
 export function cameraAccessIssue(nav=globalThis.navigator,doc=globalThis.document,secure=globalThis.isSecureContext){
  if(secure===false)return 'The live camera needs HTTPS. Open the published website in Safari or Chrome.';
  if(!nav?.mediaDevices?.getUserMedia)return 'This browser cannot open a live camera. Open the published website directly in Safari or Chrome, not an in-app browser.';
- const policy=doc?.permissionsPolicy||doc?.featurePolicy;
+ const policies=/** @type {Document & {permissionsPolicy?: {allowsFeature: (name:string) => boolean}, featurePolicy?: {allowsFeature: (name:string) => boolean}}} */ (doc);
+ const policy=policies?.permissionsPolicy||policies?.featurePolicy;
  if(policy?.allowsFeature&&!policy.allowsFeature('camera'))return 'Camera access is blocked in this embedded preview. Open the published website directly in a new browser tab.';
  return null;
 }
@@ -20,6 +21,8 @@ export function cameraErrorMessage(error){
  if(error?.name==='AbortError')return 'Camera capture cancelled. Your saved ID photos have not been removed.';
  return 'The live camera could not start. Allow camera access and open the published website directly in Safari or Chrome.';
 }
+/** @param {{mediaDevices?: MediaDevices, signal?: AbortSignal, timeoutMs?: number}} options
+ * @returns {Promise<MediaStream>} */
 export function requestIdentityCamera({mediaDevices=globalThis.navigator?.mediaDevices,signal,timeoutMs=25000}={}){
  return new Promise((resolve,reject)=>{
   let settled=false,timer;
@@ -40,6 +43,10 @@ export function requestIdentityCamera({mediaDevices=globalThis.navigator?.mediaD
   }catch(error){fail(error);}
  });
 }
+/** @param {HTMLVideoElement} video
+ * @param {MediaStream} stream
+ * @param {{signal?: AbortSignal, timeoutMs?: number}} options
+ * @returns {Promise<void>} */
 export function playIdentityPreview(video,stream,{signal,timeoutMs=15000}={}){
  return new Promise((resolve,reject)=>{
   let settled=false,timer;

@@ -6,6 +6,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import {flushSync} from 'react-dom';
 import {Camera,Loader2} from 'lucide-react';
 import {cameraAccessIssue,cameraErrorMessage,requestIdentityCamera,playIdentityPreview,stopTracks,cameraDelay} from './identityCamera.mjs';
+/** @param {{session: any, disabled?: boolean, onCapture: (file: File) => Promise<void>, onBusyChange?: (busy: boolean) => void}} props */
 export default function LiveIdentityCamera({session,disabled=false,onCapture,onBusyChange=()=>{}}){
  const [phase,setPhase]=useState('idle'),[instruction,setInstruction]=useState(''),[error,setError]=useState('');
  const video=useRef(null),media=useRef(null),controller=useRef(null),epoch=useRef(0),alive=useRef(true);
