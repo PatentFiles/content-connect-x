@@ -70,7 +70,7 @@ test('invalid administrative targets and unknown transitions fail before databas
 test('database denies unauthorized requests with generic safe errors',async()=>{
  const h=harness({failure:'GROUP_ADMIN_REQUIRED'});
  const r=await h.handler(request({action:'members',group_id:group}));
- assert.equal(r.status,403);assert.match((await r.json()).error,/administrator/i);
+ const info=await r.json();assert.equal(r.status,403,JSON.stringify(info));assert.match(info.error,/administrator/i);
 });
 test('browser UI exposes admin invitation and approved join, but never public member list or inferred targeting',()=>{
  const ui=fs.readFileSync('src/supabase/ConnectGroups.jsx','utf8');
