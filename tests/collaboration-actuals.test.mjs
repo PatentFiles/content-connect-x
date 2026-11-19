@@ -23,12 +23,12 @@ test('anonymous and malformed input never reach the statement RPC',async()=>{
  assert.equal((await anon.handler(req(submit()))).status,401);
  assert.equal(anon.calls.length,0);
  const h=harness();
- for(const bad of [{action:'update',collaboration_id:cid}, {action:'submit',collaboration_id:'wrong',...submit()},
+ for(const bad of [{action:'update',collaboration_id:cid}, {...submit(),collaboration_id:'wrong'},
   {...submit(),idempotency_key:'bad'}, {...submit(),work_completed:'abc'}, {...submit(),deliverables_completed:'a'.repeat(4100)}]){
   // Set a deliberately invalid identifier after spreading a valid sample.
   if(bad.collaboration_id==='wrong')bad.collaboration_id='wrong';
   const response=await h.handler(req(bad));
-  if(bad.action==='update'||bad.idempotency_key==='bad'||bad.work_completed==='abc'||bad.deliverables_completed?.length>4000)
+  if(bad.action==='update'||bad.collaboration_id==='wrong'||bad.idempotency_key==='bad'||bad.work_completed==='abc'||bad.deliverables_completed?.length>4000)
     assert.equal(response.status,400);
  }
  assert.equal(h.calls.length,0);
