@@ -3,7 +3,7 @@
  * Immediate safety exit never depends on serving contractual notice.
  */
 import React,{useCallback,useEffect,useState} from 'react';
-import {FileSignature,Handshake,RefreshCw,Clock3,ShieldAlert,Users} from 'lucide-react';
+import {FileSignature,Handshake,RefreshCw,Clock3,ShieldAlert} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
 import MemberPicker from './MemberPicker';
 const panel='ccx-surface rounded-2xl p-5';
