@@ -7,7 +7,8 @@ export function usDocumentDate(value){
  const text=value.trim();if(validISO(text))return text;
  const m=/^(\d{2})[\/-](\d{2})[\/-](\d{4})$/.exec(text)||/^(\d{2})(\d{2})(\d{4})$/.exec(text);
  if(m)return validISO(`${m[3]}-${m[1]}-${m[2]}`);
- const iso=/^(\\d{4})[\\/\\-](\\d{2})[\\/\\-](\\d{2})$/.exec(text);\n return iso?validISO(`${iso[1]}-${iso[2]}-${iso[3]}`):null;
+ const iso=/^(\d{4})[\/-](\d{2})[\/-](\d{2})$/.exec(text);
+ return iso?validISO(`${iso[1]}-${iso[2]}-${iso[3]}`):null;
 }
 const clean=value=>typeof value==='string'?value.normalize('NFKC').trim().replace(/\s+/g,' '):'';
 export function decodedUSDocument(raw){
