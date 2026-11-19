@@ -43,7 +43,7 @@ function FeedPost({post,paid,userId,onChanged,onError}){
   try{const result=await action('comments',{post_id:post.id});setComments(result.items||[]);}catch(e){onError(e.message);}finally{setBusy(false);}
  };
  const share=()=>{
-  const url=new URL(window.location.href);
+  const url=new URL('/Dashboard',window.location.origin);
   url.searchParams.set('ccx_post',post.id);
   const text=url.toString();
   if(navigator.clipboard?.writeText){
@@ -107,6 +107,7 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
  const modeOptions=groupId?[['group','Group posts']]:profileId?[['profile','Posts']]:[['friends','Friends'],['following','Following'],['discover','Discover']];
  const [mode,setMode]=useState(groupId?'group':profileId?'profile':initialMode),[items,setItems]=useState([]),[cursor,setCursor]=useState(null);
  const [loading,setLoading]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
+ const [sharedPost,setSharedPost]=useState(null),[sharedError,setSharedError]=useState(''),[loadingShared,setLoadingShared]=useState(false);
  const [text,setText]=useState(''),[audience,setAudience]=useState('friends'),[gallery,setGallery]=useState([]);
  const [mediaIds,setMediaIds]=useState([]),[uploadFile,setUploadFile]=useState(null),[rights,setRights]=useState(false),[uploading,setUploading]=useState(false);
  const reqNo=useRef(0),posting=useRef(false);
@@ -128,6 +129,22 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
    .finally(()=>{if(alive)setLoading(false);});
   return()=>{alive=false;reqNo.current++;};
  },[mode,profileId,groupId,userId]);
+ useEffect(()=>{
+  if(profileId||groupId)return;
+  const value=new URLSearchParams(window.location.search).get('ccx_post');
+  if(!value)return;
+  let active=true;setSharedPost(null);setSharedError('');setLoadingShared(true);
+  void action('post',{post_id:value}).then(result=>{
+   if(active)setSharedPost(result.post||null);
+  },e=>{if(active)setSharedError(e.message);}).finally(()=>{if(active)setLoadingShared(false);});
+  return()=>{active=false;};
+ },[userId,profileId,groupId]);
+ const clearShared=()=>{
+  const url=new URL(window.location.href);
+  url.searchParams.delete('ccx_post');
+  window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);
+  setSharedPost(null);setSharedError('');
+ };
  const photos=async()=>{
   try{const result=await action('my_photos');setGallery(result.items||[]);}catch(e){setError(e.message);}
  };
@@ -199,6 +216,12 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
   </div>}
   {error&&<p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-900">{error}</p>}
   {notice&&<p role="status" className="rounded-xl bg-[var(--cc-surface-subtle)] p-3 text-sm">{notice}</p>}
+  {!profileId&&!groupId&&(loadingShared||sharedPost||sharedError)&&<section className="space-y-3 rounded-xl border-2 border-[var(--cc-border)] p-3" aria-label="Shared post">
+   <div className="flex items-center justify-between gap-3"><h3 className="font-semibold">Shared post</h3><button type="button" className={secondary} onClick={clearShared}>Close shared post</button></div>
+   {loadingShared&&<p role="status" className="text-sm">Checking your permission to view this post…</p>}
+   {sharedError&&<p role="alert" className="text-sm">This post is not available to your account. It may be private, removed, or shared with a different audience.</p>}
+   {sharedPost&&<FeedPost post={sharedPost} paid={paid} userId={userId} onError={setError} onChanged={clearShared}/>}
+  </section>}
   <div className="space-y-4">{items.map(post=><FeedPost key={post.id} post={post} paid={paid} userId={userId} onError={setError} onChanged={()=>void load(false)}/>)}</div>
   {!loading&&items.length===0&&<div className="ccx-surface rounded-xl p-6 text-center text-sm text-[var(--cc-text-secondary)]">
    {mode==='friends'?'Your friends’ approved posts will appear here. Connect with members to build your feed.':mode==='following'?'Follow verified members to see their posts here.':'No approved posts have been published here yet.'}
