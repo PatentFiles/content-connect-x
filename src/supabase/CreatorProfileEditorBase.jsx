@@ -20,7 +20,7 @@ const panel='ccx-surface space-y-4 p-5';
 const initial={gender_identity:'',sexual_orientation:'',pronouns:'',gender_self_description:'',
  orientation_self_description:'',preferred_collaborators:[],content_categories:[],
  scene_pairings:[],specialties:[],available_to_travel:false,
- show_gender_in_discovery:false,show_categories_in_discovery:false};
+ show_gender_in_discovery:false,show_categories_in_discovery:false,show_orientation_in_discovery:false};
 function CheckList({label,options,selected,change}){
  const toggle=value=>change(selected.includes(value)?selected.filter(item=>item!==value):[...selected,value]);
  return <fieldset><legend className="mb-2 text-sm font-semibold text-[var(--cc-text-primary)]">{label}</legend>
@@ -111,6 +111,7 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
     content_categories:prefs.content_categories,scene_pairings:prefs.scene_pairings,
     specialties:prefs.specialties,available_to_travel:Boolean(prefs.available_to_travel),
     show_gender_in_discovery:Boolean(prefs.show_gender_in_discovery),
+    show_orientation_in_discovery:Boolean(prefs.show_orientation_in_discovery),
     show_categories_in_discovery:Boolean(prefs.show_categories_in_discovery),
     updated_at:new Date().toISOString()};
    const {error:detailsError}=await supabase.from('member_profile_preferences').upsert(details,{onConflict:'user_id'});
@@ -291,7 +292,10 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
          className="rounded-lg border px-3 py-2 text-left text-sm transition"
          style={{background:prefs.show_categories_in_discovery?'rgba(20,184,166,.15)':'transparent',borderColor:prefs.show_categories_in_discovery?'#14B8A6':'var(--cc-border)',color:prefs.show_categories_in_discovery?'var(--cc-success)':'var(--cc-text-secondary)'}}>Show my content categories and specialties in verified creator searches</button>
        </div>
-       <p className="text-xs text-[var(--cc-text-secondary)]">Your sexual orientation, self-descriptions and collaborator preferences are not published in discovery.</p>
+       <p className="text-xs text-[var(--cc-text-secondary)]">Orientation is private unless you choose to share it. It is never used for advertising and you can turn sharing off.</p>
+       <button type="button" aria-pressed={prefs.show_orientation_in_discovery} onClick={()=>preference('show_orientation_in_discovery',!prefs.show_orientation_in_discovery)}
+        className="rounded-lg border px-3 py-2 text-left text-sm transition"
+        style={{background:prefs.show_orientation_in_discovery?'var(--cc-surface-hover)':'transparent',borderColor:prefs.show_orientation_in_discovery?'var(--cc-link)':'var(--cc-border)'}}>Show my selected orientation in verified member profiles (optional)</button>
       </section>}
      </div>}
     </div>;
