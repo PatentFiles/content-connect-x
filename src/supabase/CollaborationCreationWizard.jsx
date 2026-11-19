@@ -56,7 +56,7 @@ export default function CollaborationCreationWizard({user,title,setTitle,descrip
    </>}
    {index===2&&<><p className={'text-sm '+muted}>Clearly distinguish proposed work from what participants later confirm was actually completed. Additional activities require new voluntary agreement.</p>
     {[['scope_of_work','Proposed professional scope'],['activities','Proposed activities (comma-separated)'],['deliverables','Deliverables and deadlines'],['usage_rights','Permitted usage and distribution rights']].map(([key,label])=><label key={key} className="block text-sm">{label}<textarea className={field} value={plan[key]||''} onChange={e=>update(key,e.target.value)} rows={2} maxLength={key==='activities'?6000:4000} required={key==='scope_of_work'}/></label>)}
-    <label className="flex min-h-11 items-center gap-3 text-sm"><input type="checkbox" checked={requiresClearance} onChange={e=>setRequiresClearance(e.target.checked)}/>Require provider-confirmed work clearance, when applicable, before signing.</label>
+    <label className="flex min-h-11 items-center gap-3 py-4 text-sm"><input type="checkbox" checked={requiresClearance} onChange={e=>setRequiresClearance(e.target.checked)}/>Require provider-confirmed work clearance, when applicable, before signing.</label>
    </>}
    {index===3&&<><p className={'text-sm '+muted}>You may save a private plan without an invitee. Invitations require an accepted friendship or genuine two-way conversation and are not sent until final confirmation.</p>
     <MemberPicker label="Invite a verified professional (optional)" value={target} excludeIds={[user?.id].filter(Boolean)} onChange={(id,person)=>{setTarget(id);if(person?.role_type)setRole(person.role_type);}}/>
