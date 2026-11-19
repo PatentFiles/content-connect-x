@@ -1,144 +1,217 @@
-## Collaboration and representation lifecycle revision — November 19, 2026
+# Content Connect X / Host Connect — Developer ReadMe
 
-The authenticated collaboration workspace now presents a grid for current, completed and member-hidden historical collaborations. A production plan captures time, general location, proposed approved Host Connect property (not a booking), scope, activities, deliverables, and publishing rights. Draft plan versions are append-only and contracts, signatures, consent records, invitations, and participant roles are viewable only through an authenticated member-gated endpoint. Signed contracts cannot be overwritten by editing a plan; amendments require a fresh agreement and consent process. "Delete / archive" hides an entry only for that member and never destroys signed evidence.
+**Canonical operational reference · updated November 19, 2026**  
+**Source of truth:** deployed server configuration and schema, current GitHub `main`, and verified release checks. Do not mistake a code module, enabled UI flag, mocked integration, or archived design for a production capability.
 
-Invitations are guarded by the database itself: either an accepted friendship or a non-deleted two-way direct conversation must predate the invitation; 20 invitations per day is the maximum; five declined invitations within seven days activate a 30-day outgoing block. Recipient identity and status are server-owned. The messages and profile "Create collaboration" actions use the same protected workflow.
+## 1. Product boundary
 
-Representation offers now support agent/studio to creator/photographer/videographer/editor and reverse requests, fixed written terms and hashes, explicit two-party acceptance, expiry reminders, voluntary renewal, ordinary notice and immediate safety-related exit. Historical agreements and audit events remain append-only; the two parties are unlinked after expiry or effective cancellation. Former active legacy relationships remain historical, not retroactively represented as signed new terms. **Electronic acceptance is not a substitute for legal review or third-party qualified signing when required.**
+**Content Connect X:** a professional networking and collaboration-management marketplace for verified adults: creators, videographers, photographers, video editors, agents, studios and production teams.  
+**Host Connect:** a separate, connected marketplace for filming/photography properties, booking requests, location terms and host services.
 
-Member Settings include server-saved notifications, Supabase Auth password and authenticator, safety, consent, privacy and membership links. Mobile navigation uses Dashboard / Testing / Discovery / Collaborations / Properties; full menus preserve Favorites and the other destinations. The marketplace color layer is scoped to the signed-in shell so neither public hero changes.
+The platforms **do not sell, host for public distribution, publish, distribute, or monetize explicit audiovisual content**. Private verification evidence, contracts and legitimately necessary professional records have separate narrowly defined access and retention. An external creator's content-link does not convert this platform into a publishing service.
 
-**Deployment boundary:** Updating GitHub source does not itself deploy the Supabase migration or Edge Functions. Do not present these features as operational until the isolated PostgreSQL regression, full frontend gate, backend deployment, real accounts and legal/safety acceptance have passed. Bolt remains website hosting, Railway remains ID worker only.
+The product journey: **identity eligibility → professional profile → Discovery → accepted connection/two-way conversation → collaboration invitation → agreed plan → individual consent and signatures → production readiness → property/schedule confirmation → participant completion → independent reviews → historical archive.** The absence of an approved provider or participant agreement cannot be represented as success.
 
-## Guided identity capture and result repair — November 19, 2026
+## 2. Deployment and systems
 
-See `docs/IDENTITY_GUIDANCE_RESULTS.md`: advance directions and visible countdowns, automatic final results, strict barcode/date/name compatibility repairs, and live-selfie continuity. Required verification gates and private evidence retention remain enforced. Bolt remains the website host; public homepage styles are unchanged.
+| Component | Authority | Current deployment boundary |
+|---|---|---|
+| **Bolt** | Website, public homepages, signed-in React UI, mobile layout | Production website; publishing is user-controlled in existing Bolt project |
+| **GitHub** | Versioned React/Vite code, SQL, Edge Function sources, CI | `PatentFiles/content-connect-x`; merging does not publish Bolt |
+| **Supabase** | Auth, admission decisions, Postgres/RLS, Storage, Edge Functions, audit and Cron | Established project `yxuqbygykpfbioslljlf` |
+| **Railway** | Identity document OCR, face/liveness processing, dedicated retention worker | Separate `Content Connect X - Identity` project only, never website hosting |
+| **DocuSign** | Authorized electronic signatures and completed evidence | Integration source exists; not certified for actual collaboration signing |
+| **CCBill** | Authorized member subscription and approved rental checkout | Integration source exists; live merchant flows require provider approval, secrets and transaction testing |
+| **Voice/video provider** | Future authorized private calls | **Not enabled**; never issue a room token from the browser |
 
-## Public homepage styling boundary — November 18, 2026
+**Do not place** Supabase service keys, biometric bytes, health documents, processor credentials, private file URLs, or signing secrets in Bolt browser assets, GitHub, ordinary logs, or public storage.
 
-The logged-out Content Connect X and Host Connect pages retain their original dark/neon branding, original hero artwork, gradients and responsive layout. The professional white redesign applies **after sign-in**, including member, administrator, verification and host workspaces. Do not replace public artwork or apply workspace CSS globally.
+### Source locations
 
-The public skin is restored from commit `21b95435a02e9e1e6ddc10e8805f377bf4b9a67d`. `authAppearance.js` follows the actual Auth session and changes presentation only. Every theme selector is scoped to either public or non-public appearance, with original specificity preserved via `:where()`. This cannot grant admission or bypass any backend rule. Signing out restores public styling and clears the Host workspace display.
+- App entry/navigation: `src/supabase/SupabaseApp.jsx`, `OriginalShell.jsx`, `roleNavigationData.mjs`
+- Private identity: `src/supabase/IdentityVerification.jsx`, `IdentityPilot.jsx`, `supabase/functions/identity-verification/`, `supabase/functions/identity-pilot/`, `server/idv-worker/`
+- Collaboration: `src/supabase/CollaborationHub.jsx`, `MemberWorkspace.jsx`, `supabase/functions/collaboration-workspace/`, `member-workflows/`
+- Consent/agreements: `src/supabase/ConsentCenter.jsx`, `AgreementPackets.jsx`, `supabase/functions/collaboration-consent/`, `agreement-packets/`
+- Representation: `RepresentationAgreements.jsx`; private `ccx_workspace_private` procedures
+- Host marketplace/booking: `src/supabase/OnlyHostApp.jsx`, `HostingMarketplace.jsx`, `supabase/functions/hosting-*/`
+- Safety/trust: `TrustSite.jsx`, `SafetyPanel.jsx`, `supabase/functions/trust-intake/`, `supabase/migrations/20261119141902_trust_request_intake_disabled_until_operator_review.sql`
+- Payments: `supabase/functions/membership-billing/`, `membership-ccbill-webhook/`, `hosting-ccbill/`
+- Shared professional appearance: `src/supabase/professional-theme.css`, `workspace-refinement.css`; public hero appearance is separate
+- Feature availability: `product_feature_flags` and actual provider readiness; do not trust a frontend toggle alone
 
-Regression tests verify all three original asset hashes, every CSS scope, real image decoding at mobile/desktop sizes, and real component sign-in/sign-out transitions using isolated Auth fixtures. Existing white-workspace/modal, identity and account-access tests remain in place. Bolt is still the website host; no Supabase or Railway deployment is needed for this presentation fix.
+## 3. Verified live configuration snapshot (November 19, 2026)
 
-# Content Connect X
+This is a **point-in-time audit**, not an invariant or a claim of end-to-end acceptance.
 
-Content Connect X is a professional collaboration platform for adult creators, studios, agents, photographers, videographers, editors and production teams.
+| Capability | Observed | Release rule |
+|---|---|---|
+| Public production self-hosted ID verification | **Disabled**; security and privacy approvals absent | Validate real documents/camera behavior, recovery, consent, retention and reviewed release |
+| Private administrator ID pilot | **Enabled and time-limited**; private bucket and frequent cleanup | Never grant admission from a test run |
+| Public trust/safety report intake | **Disabled**; policy/reviewer-coverage approvals absent | Establish actual staffed response, timely handling and escalation before opening |
+| Collaboration and contracts UI/backend | Enabled in premium feature registry | Signed-envelope provider and multi-user acceptance not yet established |
+| Representation agreements | Backend tables/RPC, expiry job active; zero existing representation records at snapshot | Real two-party flows and legal templates still require acceptance |
+| Host property bookings | `property_bookings` **disabled** | Merchant, availability, booking, cancellation and host acceptance |
+| Verified collaboration reviews | `verified_reviews` **disabled** | Genuine completed-collaboration checks, moderation and appeal |
+| CCBill memberships | Billing adapters present; subscription ledger had **zero entries** | No “active payment” claim without approved and reconciled provider transaction |
+| Approved sponsorships | **Zero** current campaigns | Operator review, disclosure, privacy and merchant terms before ads |
+| Identity evidence storage | Production and pilot private storage buckets | Purpose-specific retention/holds; no indefinite raw-ID archive |
+| Scheduled representation expiry | One active Cron job | Confirm actual notifications reach both parties, not just table insertions |
 
-> **Private ID testing:** Existing admitted administrators can use **Platform Controls → Test my ID** after this frontend is synchronized and published through Bolt. The separate, consent-based test runs the real ID and live-camera pipeline without granting membership. Pilot access is enabled through November 25, 2026 at 22:59 UTC; test evidence is scheduled for deletion after 24 hours. See [private testing and verified deployment details](docs/PRIVATE_IDENTITY_PILOT.md).
+The existing code's tests and CI provide useful confidence but do **not** certify biometric accuracy, merchant approval, human moderation, a real DocuSign signed envelope, or real iOS/Android behavior.
 
-> **Public release status:** Infrastructure and passing software tests are not verification-provider acceptance, biometric accuracy validation, or legal/security certification. Ordinary first-party signup identity collection remains **disabled** until its release prerequisites are completed. The private pilot does not bypass that gate. See [identity rollout](docs/SELF_HOSTED_IDENTITY_V2.md) and [enterprise audit](docs/ENTERPRISE_AUDIT_2026-11-17.md).
+## 4. Role access and account admission
 
-## Hosting and architecture — do not migrate the website
+Roles: **creator, photographer, videographer, video_editor, agent, studio**. Host Connect has its own host permissions and property ownership rules. Role previews are not authorization. Premium membership gates are checked server-side. Private legal identity and a public stage name are distinct; no private legal/health/ID data may appear in public profile responses.
 
-- **Bolt hosts the website.** React + Vite + Tailwind provide public pages, signup, camera capture and member/admin screens. Keep the existing website domain and Bolt publishing workflow.
-- **Supabase is the account and evidence authority.** Use the established project **`yxuqbygykpfbioslljlf`** for Auth, Postgres, RLS, private Storage, Realtime, Edge Functions and Cron. Do not substitute a Bolt-native database or create a duplicate production database.
-- **Railway runs verification computation and private scheduled cleanup only.** In the separate **Content Connect X - Identity** project, `ccx-identity-worker` performs ID extraction and face/liveness processing; `ccx-identity-retention` calls authenticated cleanup every 15 minutes. Railway is not the website host, account database, or permanent document store. Leave unrelated Railway projects untouched.
+An Auth account is **not** an approved account. Verified email, applicable versioned notice, document-derived DOB and reliable live face checks form the identity workflow. Access requires trusted `member_admissions` state. Birth-date and legal-name decisions must not depend on user editable Auth metadata, client UI or facial-age estimates.
 
-```text
-Bolt website: signup, legal-name form, ID upload, live camera UI
-    -> Supabase identity-verification: authentication and session/evidence control
-        -> Railway ccx-identity-worker: bounded verification job
-    <- Supabase: trusted decision, private evidence and audit records
-Bolt website: restricted, correction/review, or verified result
+## 5. Identity verification, recovery and evidence
 
-Bolt administrator Test my ID -> Supabase identity-pilot -> same worker in pilot mode
-    -> isolated private test evidence/results; NEVER creates member admission
-Railway retention cron -> authenticated Supabase cleanup -> private evidence deletion
-```
+1. Confirm email and explain private ID/selfie processing and retention.
+2. Collect exact legal first/middle/family name and applicable issuing country/document type.
+3. Capture ID sides or passport page; read printed fields and independent machine-readable data when available.
+4. Perform a server-assigned live selfie challenge, clearly showing each pose and countdown.
+5. Validate name, DOB eligibility, expiration, document consistency/authenticity, live facial match, and both head-turn checks independently.
+6. Only a fully trusted, bound, completed server decision may grant signup admission.
+7. On uncertainty, offer clear **Retake ID**, **Retry live capture**, **Correct entered legal name**, or **Request review**. None of these is a bypass or a declaration of fraud.
 
-The current worker's self-contained Railway build uses root `/server/idv-worker`, Dockerfile `Dockerfile`, port `8080`, and health path `/health`. Older repository-root build instructions predate this packaging. Do not deploy the entire website on Railway as a substitute for Bolt.
+Current production verification is disabled pending the recorded approvals. The private pilot is diagnostic only and uses separately retained evidence scheduled for deletion; a pilot pass cannot change membership access. A genuine-document acceptance study is required before general availability.
 
-## Development and validation
+Original ID and facial evidence are sensitive. Store only justified evidence in restricted Supabase Storage with access audit, bounded signed URLs, encryption/key controls, explicit deletion schedule and case-based legal hold. Durable decision manifests and hashes are not equivalent to retaining all original images or making the evidence immutable. Law enforcement never receives a standing unrestricted backend login.
 
-```bash
-npm ci
-npm run dev
-```
+## 6. Collaboration lifecycle, agreement and consent
 
-```bash
-npm run lint
-npm run typecheck
-npm run test:unit
-node scripts/test-identity-onboarding-browser.mjs
-npm run verify:release
-npm run verify:frontend-contract
-npm run verify:edge-imports
-npm run build
-npm run smoke:supabase
-```
+Collaboration records support membership, invitations, versioned plans, professional roles, consent and draft contracts. The system maintains a historical participant record; hiding a collaboration from the dashboard does **not** erase required contract/consent/audit data. Paid features must never permanently block a participant from retrieving records the platform still lawfully retains.
 
-The browser suite requires Chromium and uses synthetic API responses. The identity database CI workflow runs the actual identity SQL in a disposable PostgreSQL database with fixture Auth/Storage/Vault schemas. Neither suite proves biometric accuracy or real Storage deletion. The separate live private-storage probe has exercised upload, authenticated download, public-access denial and deletion with a one-pixel PNG. Never run synthetic acceptance tests against real members or grant production approvals for test convenience.
+**Proposed state model (not a claim currently enforced everywhere):**
+`draft → proposed → accepted → scope-agreed → awaiting-signatures → signed → scheduled → ready → completed → reviewed → archived`.
+Cancellation, withdrawal, dispute, blocked scheduling and revision are separate paths; no frontend-only transition controls release.
 
-The root Dockerfile is a test/staging website container, not an instruction to change production hosting. GitHub merge, Bolt synchronization and Bolt publication are distinct release events.
+A collaboration plan contains time-zone aware dates, location or approved Host property reference (**not** a confirmed booking), proposed scope, roles, professional deliverables and usage rights. Individual participation, recording, distribution and download consent are separate. Participants may reduce/withdraw consent; no earlier signature creates permission to force additional activities.
 
-## Supabase configuration
+After production, each participant can confirm their own statement of actual activities/services and deliverables. That is not proof of another participant's conduct. Editing signed plans requires explicit amendment/version, renewed consent and signatures when needed. A completed DocuSign event and its certificate must be verified server-side and linked immutably; a saved JSON draft is not a signed contract.
 
-The frontend is pinned to `yxuqbygykpfbioslljlf` through `src/api/publicSupabaseConfig.mjs`. Different-project Bolt-injected variables are ignored with a development warning; a same-project publishable key may be supplied. No server credentials are bundled. Users must sign in to the established Supabase account; sessions from another project do not transfer.
+Invitations require an accepted connection or real reciprocal conversation. Unsolicited-volume and decline cooldown restrictions are server-controlled. Appeals and anti-retaliation are required for fair enforcement.
 
-Bolt's database-panel connection indicator is separate from the application's Supabase client. Reconnect the existing project rather than creating another database. A source-code change cannot establish an account's OAuth authorization.
+## 7. Representation and exclusivity
 
-**Never place service-role or `sb_secret_` keys, webhook credentials, ID images, biometric captures, or medical documents in GitHub, browser variables, public buckets or application telemetry.** Optional frontend monitoring uses `VITE_SENTRY_DSN`; experiments use `VITE_FLAGSMITH_ENVIRONMENT_ID`.
+Representatives and professionals enter distinct role-scoped agreements. Backend records agreement terms/hash, mutual acceptance, dates, notice, renewal proposal and private audit history. Active public profile linking contains **only** professional names/roles permitted by the signed agreement. Terminated or expired representation must not convey continued privileges.
 
-## Account entry and identity rules
+**Still required:** cross-agreement exclusivity conflicts; a represented participant's contract-signing workflow with scope-limited agent permissions; verified notifications and renewal acceptance; real-world legal review. A representative cannot withdraw or override a creator's consent on their behalf.
 
-The [November 17 account-entry policy](docs/ACCOUNT_ENTRY_AND_OPTIONAL_MFA.md) governs durable membership admission. An authenticated signup alone does not grant entry: a server-owned `member_admissions` row is required. Existing legacy-administrator continuity is not evidence of independent age verification. Subsequent enabled-feature access does not impose repeated age or mandatory MFA gates. Voluntary two-factor enrollment remains available. Database roles, suspension, ownership, consent and subscription entitlements still apply.
+## 8. Host Connect booking and payments
 
-The first-party identity flow adds:
+Host listings and requests need atomic time-slot reservations, property/host approval, IANA time zones, transparent quote snapshots, booking state, capacity limits, property rules, private location access, cancellation handling, refunds/holds where applicable, and dispute records. Selecting a property on a collaboration plan **does not reserve it**.
 
-1. Confirmed email, a private legal name and explicit versioned consent before evidence collection.
-2. Government-ID front/back as applicable, plus a server-assigned live camera challenge. Birth date is extracted from the ID, not estimated from the face.
-3. Document checks, matching face evidence and live-challenge checks. Ambiguous, incomplete or failed checks never become approval.
-4. Legal-name correction when the ID name differs. Only the private verified name is changed; public stage/display names stay separate.
-5. Access restricted through the eighteenth birthday, with a fresh attempt eligible the following **UTC calendar day**. February 29 is conservatively mapped to March 1 in a non-leap eighteenth year, then the following day. This is a product policy, not a statement of jurisdictional law.
-6. Private evidence, decision/evidence hashes and restricted audit records. Browser fields, redirects, URL flags and user metadata cannot grant admission.
+CCBill provider adapters are separate for membership versus approved marketplace charges. Subscription or booking entitlements arise only from authenticated/reconciled server events. Do not infer payment from a redirect or a screenshot. No automatic earnings split or escrow promise is made: such services require actual processor approval and a separate legal/accounting design.
 
-The historical `YotiVerification.jsx` export is a compatibility route: Content Connect uses `IdentityVerification`; explicit other-brand usage retains its hosted component. Older descriptions of manual signup approval, Yoti age-estimation admission or mandatory administrator MFA are historical and must not be used to reintroduce bypasses. Membership verification is not automatically performer recordkeeping compliance.
+## 9. Trust reporting, privacy, moderation and compliance
 
-## Identity deployment status
+Content Connect and Host Connect are professional marketplaces, not content distributors. This does **not** eliminate duties arising from hosting profiles, messages, private records or user-uploaded material.
 
-The established Supabase project has the six production `ccx_idv_*` tables, private `ccx-identity-evidence` bucket, service-only identity state machine, private-name lock and retention/legal-hold guards. RLS and browser-denied table/function privileges were checked. The existing `identity-verification` Edge Function is deployed, and its worker origin is configured.
+The public reporting interface must work without a paid account once a monitored staffed response is operational. Reports require a reference, real case routing, severity triage, deadline tracking, evidence access and deletion/hold policy, reporter updates, qualified human moderation and appeals. Reporting suspected crime is distinct from a publicly visible rating or unreviewed allegation.
 
-**Ordinary signup collection is still disabled. Private administrator testing is enabled separately.** The pilot adds three RLS-protected `ccx_idv_pilot_*` tables, `ccx-identity-pilot-evidence`, and the authenticated `identity-pilot` function. Pilot results cannot change production age requests, private account names, public display names or member admissions. It accepts only the existing admitted, confirmed-email administrator's own-ID test with explicit consent. There is no manually forced successful result.
+Law-enforcement access is verified, case-specific, least-privilege, expiring and fully logged, subject to the applicable legal basis and jurisdiction. Safety concerns require a separate immediate escalation path. Do not claim automated scanning, staffing or legal compliance without actual evidence.
 
-The old hourly Supabase pg_net retention job remains **paused** because managed queue permissions did not permit the attempted credential-read restriction. It is not used. A separate Railway cron now carries a scoped maintenance token in its private environment and invokes production/pilot cleanup plus a synthetic Storage probe every 15 minutes. The live round trip passed on November 18 at 22:57 UTC. A pilot cleanup heartbeat older than 45 minutes pauses new tests. Test evidence expires after 24 hours, or can be requested for early deletion; in-flight upload safety delays and operational outages can delay actual deletion. This is a private testing policy, not an approved production legal-retention rule.
+Use an explicit **country allowlist** only after country/service-specific review; do not infer legal eligibility from religion or ethnicity. Cookie preferences, opt-in discovery details, deletion rights and accessibility are separate from marketing consent.
 
-Pending public release work includes reviewed notice/retention, complete appeal handling, supported-document/face/liveness acceptance and final Bolt publication. No real ID has been processed as part of the implementation checks. Privacy/security approval timestamps and successful-evidence production retention were not fabricated. The [private pilot runbook](docs/PRIVATE_IDENTITY_PILOT.md) supersedes the older rollout record only for private-test and retention-deployment status.
+## 10. Messaging, notifications and calls
 
-## Project layout
+Current private messages require account and mutual-contact eligibility. Notification DB entries are not proof of actual delivery. Implement provider acknowledgement, bounded retries, dead-letter work, monitoring, user controls, and transactional email/push acceptance.
 
-- `src/supabase/`: screens and authenticated client workflows, including `IdentityPilot.jsx`
-- `src/api/supabaseClient.js`: the single frontend Supabase client
-- `supabase/functions/`: server-side gateways, including `identity-verification` and `identity-pilot`
-- `supabase/sql/` and `supabase/migrations/`: reviewed schema/policy source and migration history
-- `server/idv-worker/`: separately deployed identity computation service
-- `server/idv-retention/`: scoped cleanup script deployed as a Railway cron function
-- `tests/` and `scripts/`: policy, database, browser and deployment validation
-- `supabase/PRODUCTION_MANAGER_IMPLEMENTATION.md`: feature status and launch gates
+Voice/video calls are **planned**: server-signed short-lived room tokens, participant permissions, blocks, call invite/accept, report, reconnection and platform/region review. Recording must be off by default; if added it needs participant notice, explicit applicable consent, retention and access policy. Never treat a call recording as proof of capacity or consent.
 
-## Other platform modules
+## 11. Reviews, Discovery, sponsorship, deliverables
 
-Directory/search expose explicitly public profile fields and enforce backend admission/entitlements. Recovery requires a genuine Supabase email recovery session. Public social links are owner-opt-in and protected by server policy. Free contact limits use general city locations, not household coordinates. Pricing and membership grants are server-owned; selecting a plan is not proof of payment.
+Only independently verified completed collaborations qualify for professional reviews; use double-blind publication, abuse/retaliation screening, moderation and appeals. No automatic criminal labels or permanent bans solely from ratings.
 
-Feature administration uses the server-backed `product_feature_flags` registry. Hiding UI is not authorization. Core account access, privacy, consent and verification enforcement must remain available. Administrator preview changes presentation, not actual role or privileges. Profile analytics are owner-scoped aggregates, not disclosure of visitor identity or clinical data.
+Discovery ranks relevant professional criteria and substantiated completed work, not private sex-life/health/identity details. Creator orientation disclosure requires affirmative choice; sensitive data cannot be used for ad targeting. Sponsors require approval, clear labels, allowed destinations and contextual/non-sensitive placement only. No partner account or campaign is active by code alone.
 
-PASS automatic integration is not connected until authorized partner documentation and sandbox access are supplied. Private uploaded evidence needs independent review; a PDF alone is not approved clearance. The Trust & Readiness module supports voluntary sharing and revocation without exposing clinical reports to collaboration partners. See `ops/PASS_PARTNER_ONBOARDING.md`.
+Private deliverables will be restricted to legitimate non-explicit professional documents, briefs, receipts, approvals, and file manifests. Do not build an explicit media distribution or monetization feature.
 
-Payments and real signatures require approved provider contracts, configured credentials and successful lifecycle tests. CCBill/DocuSign setup and related release gates are documented in `docs/CCBILL_YOTI_SETUP.md` and `ops/PROVIDER_ACTIVATION.md`. Do not mark users premium or contracts signed because a UI choice or callback URL claims success.
+## 12. Providers and activation requirements
 
-The Hosting Marketplace supports moderated venue listings, galleries, favorites, booking requests, protected addresses, calendars and reviews. See [hosting implementation](supabase/HOSTING_MARKETPLACE.md). Do not infer payment settlement or executed contracts from booking requests.
+Before a live provider is marked ready, record: approved merchant/vendor account, configured server-only keys and HMAC/OAuth/Webhook credentials, matching feature flags, endpoint ownership, explicit allowed service categories, webhook replay/idempotency tests, sandbox transaction lifecycle, cancellations/refunds, failure/retry paths, and documented legal/compliance approval. **Adding a key alone is insufficient**.
 
-## Change governance
+Reference:
+- `docs/PROVIDER_READINESS_2026-11-18.md` — historic provider implementation snapshot (may be stale)
+- `docs/MARKETPLACE_SAFETY_PRODUCT_REQUIREMENTS_2026-11-19.md` — scope and safety roadmap
+- `docs/IDENTITY_GUIDANCE_RESULTS.md` — guided ID-capture implementation
+- `docs/RELEASE_NOTES_ARCHIVE_2026-11-19.md` — previous README preserved for history, not current authority
 
-Document any architectural or enforcement change here and in its relevant runbook. Preserve consent, immutable contract snapshots, server-owned admission and append-only application audit behavior. RLS does not make evidence immutable against database owners; hashes and `upsert:false` are not WORM storage. Use restricted access and appropriate independent retention/backup controls.
+## 13. Security, test and release acceptance
 
-Run the [at-home acceptance matrix](ops/AT_HOME_TEST_MATRIX.md) on the actual Bolt deployment with approved redirect origins and separate test users. Record tested source revision and distinguish mocks, disposable database fixtures, live infrastructure checks and real provider/biometric acceptance. Never present one as a substitute for another.
+Supabase exposed public-schema tables must have RLS and narrowly scoped grants. Review `SECURITY DEFINER` RPCs for ownership, authenticated actor, explicit search paths, data exposure and abuse protections. The project currently has security-advisor warnings; investigate rather than relaxing controls just to suppress warnings. Leaked-password checks can be enabled with an eligible paid Supabase plan; until then use robust password policy, optional or role-mandated MFA as appropriate, and abuse monitoring.
 
-## Mobile identity capture feedback — November 18, 2026
+Release checklist:
+1. Change sources via feature branch and reviewed PR; include migrations and tests.
+2. Validate lint, types, production build, actual browser layouts, unit checks, CI authorization tests, disposable PostgreSQL and provider-specific fixture tests.
+3. Test with **separate consenting adult accounts** in an isolated non-billable environment; never use actual IDs for CI, never generate fictitious production admission or payments.
+4. Apply migrations through tracked history, verify RLS/grants, deploy matched Edge Functions; keep unapproved capabilities disabled.
+5. Run signed-webhook/callback and delivery tests with the relevant provider's sandbox; verify idempotency and no access escalation.
+6. Verify monitoring, scheduled cleanup, backups/restore, rollback, retention and incident response.
+7. Publish the frontend from **Bolt**. A GitHub merge or Railway worker success does not publish Bolt.
+8. Record exact deployed revisions, externally approved services, open risks and owner acceptance.
 
-The shared signup/private-test capture screen uses explicit **Take photo** buttons with camera icons and the existing rear-camera file capture. Upload progress measures browser-transferred bytes from 0–100%; it never runs a fabricated timer. A distinct **Saving securely** state remains until the server returns the matching session/evidence receipt. Network/timeout errors do not claim a private save. Both identity endpoints retain their existing server authentication and private-storage path.
+## 14. Feature status vocabulary
 
-The live selfie video is mounted before permission is requested and waits for actual playable frames. Opening/permission states, bounded timeouts, an autoplay gesture fallback, contextual errors and cancellation are visible. Late permission grants, unmounts and interrupted captures release camera tracks. The existing server-bound six-frame/two-turn challenge is unchanged: a file upload cannot replace liveness. Public hero designs, logged-out styling, admission, names, birthday policy, evidence retention and infrastructure are unchanged.
+- **Source present:** Code exists; may be dormant, untested or incompatible with deployed schema.
+- **Deployed:** Server/asset is installed; no claim of actual customer transaction.
+- **Validated in isolation:** Mocks, browser fixtures, or disposable database tests pass.
+- **Provider accepted:** Real eligible sandbox flow plus required merchant/vendor approval passed.
+- **Operational:** Production provider, tested real workflows, monitoring, support and policy/retention coverage confirmed.
+- **Disabled:** Feature remains intentionally unavailable even if code or UI exists.
+- **Proposed:** Not yet implemented; not included in pricing/marketing guarantees.
 
-Regression tests use synthetic files, controlled API receipts, and playable canvas MediaStreams in Chromium. They do not establish physical iPhone/Android compatibility or biometric accuracy. Publish the tested GitHub main revision through the existing Bolt website, then retest on the actual phone.
+## 15. Legacy capability decision register — choose REBUILD, REPLACE, or RETIRE
+
+The following capabilities were described by the historical Developer ReadMe. The old descriptions are **not evidence they exist or work in the current repository**. The proposed disposition is a product decision, not a migration assertion. Leave this appendix at the **bottom of the README** for operator review.
+
+| Historical capability | Current direction | Suggested decision |
+|---|---|---|
+| Advanced professional role wizard, agent/studio detail entities | Modern shared professional profile forms; parity still to audit | REBUILD selectively |
+| Legacy one-page scene/contract creation and auto-locking | Guided, multi-party production workflow with explicit acceptance | REPLACE |
+| Standalone CollaborationRequirement / Task / PacketItem entities | Readiness checklist and signed packet manifest | REPLACE |
+| CollaborationActivityLog and ContractAuditLog | Server-owned versioned plan, consent, signature and action ledgers | REBUILD gaps |
+| CollaborationConfirmation and collaboration calendar | Multi-party completion attestations and schedule-aware timeline | REBUILD |
+| CollaborationDispute and ArbitrationCase | Confidential safety and commercial dispute/case system with appeals | REPLACE |
+| DisputeSimulation test runner | Isolation and abuse-case CI fixtures | REPLACE |
+| ContractTemplate / ContractVersion / ContractReminder | Approved provider templates, versioned envelopes and reminder outbox | REBUILD |
+| StudioCollaborationObserver | Role-limited, contract-bound representative involvement | REPLACE |
+| Delegated agent signature permissions | Explicit contract-scope delegation plus independent participant consent | REBUILD |
+| Automated agent/studio revenue split and EarningsRecord settlement | No settlement until separately approved processor/accounting mandate | RETIRE for initial marketplace |
+| Creator booking requests that automatically create collaborations | Explicit accepted booking/invitation and separate agreement lifecycle | REPLACE |
+| Studio room availability and package rates | Host property availability, role-specific service offerings | REBUILD selectively |
+| Travel calendar / ScheduleEntry | Timezone-correct schedules and consented travel-availability sharing | REBUILD |
+| Automatic recurrence, Google Calendar/Outlook sync | Provider-backed synchronization with recurrence acceptance tests | REBUILD later |
+| Social media link verification | Owner-opted-in premium professional link visibility; validation remains | REBUILD selectively |
+| FriendSettings / MESSAGE_FIRST / NO_ONE | Current mutual connection + two-way invite guard; expand privacy settings | REBUILD |
+| FriendActivityLog and decline warnings | Audited anti-spam cooldown, appeal and fair recipient limits | REBUILD |
+| IdentityFingerprint and consistency agent | Privacy-reviewed duplicate-account detection with human appeal | REEVALUATE |
+| SafetyCheckInWidget and SafetyCheckIn history | Consent-aware production safety check-ins without permanent tracking | REBUILD |
+| ConsentRevocation automated takedown | Real consent withdrawal, scope changes and case handling | REBUILD |
+| TestingCredential, TestingRequirement, TestingDeadline jobs | Provider-confirmed, explicit opt-in binary work clearance if legally appropriate | REPLACE |
+| Work-health document sharing | Do not expose private medical records to collaborators | RETIRE raw sharing |
+| ComplianceRecord and compliance-score events | Audited case outcomes and documented control checks | REPLACE |
+| CompliancePortalAccess | Narrow lawful case-specific disclosure with logged authorization | REBUILD |
+| AI safety agent, AgentRun, AgentFlag | Human-review-first prohibited-solicitation/abuse detection | REPLACE |
+| AIRiskPrediction | No opaque automated permanent restriction or public criminal risk score | RETIRE |
+| AIMatchSuggestion / `generateMatches` | Explainable skill/availability/location matching, no sensitive-data ads | REPLACE |
+| ReputationScore calculation | Moderated verified completed-work feedback, appeals and clear provenance | REPLACE |
+| Background screening scanner | Separate lawful vendor-supported service with human review if justified | DEFER |
+| `autoCreateEarnings` and `updateEarningsSettlement` | No automatic payment/earnings promise in initial marketplace | RETIRE |
+| Gallery, GalleryPermission, media albums | Non-explicit professional portfolios, separate access-controlled document vault | REBUILD selectively |
+| Full raw video/file delivery features | Non-explicit artifacts and permitted external delivery receipts only | RETIRE explicit hosting |
+| Profile AI bio generator | Optional professional writing assistance subject to moderation | DEFER |
+| Custom tags, city submissions and catalog moderation | Controlled professional taxonomies/region catalog | REBUILD selectively |
+| QuickTask / creator action widget | Contextual readiness tasks inside collaboration, not a global task farm | REPLACE |
+| Provider-to-Drive contract export | Optional later authorized document connector | DEFER |
+| Google calendar automatic event creation | Optional later synchronized events after OAuth approval | DEFER |
+| Platform-specific admin agent console | Real safety/financial/provider operations dashboard with least privilege | REPLACE |
+| Legal hold / compliance evidence exports | Case-scoped audit exports, retention and verified lawful requests | REBUILD |
+| Coupon / CouponRedemption | Processor-approved membership promotions, not self-created payment grants | DEFER |
+| Automated affiliate networks and payout attribution | Reviewed contextual professional sponsorship/affiliate attribution | DEFER pending partner approval |
+| One-click voice/video rooms | Authorized participants, provider tokens and recording-off default | REBUILD |
+| Miscellaneous retired backend shortcuts and stale UI modules | Remove only after owner decides and parity/usage evidence is recorded | REEVALUATE |
+
+**Decision instructions:** Mark each item REBUILD, REPLACE or RETIRE after reviewing the current implementation. Do not remove unknown legal records or re-enable retired services as a side effect of the documentation cleanup.
