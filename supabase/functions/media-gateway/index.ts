@@ -52,282 +52,56 @@ Deno.serve(async req=>{
   };
   try{
     if(action==='register_self_feed_photo'){
-      // Immediate self-photo availability, never a blanket age/consent release.
-      // Nudity alone is not prohibited; other depicted people or sexual acts
-      // need a separately reviewed performer-release/recordkeeping process.
-      if(!paid)return reply({error:'Premium membership is required to publish a photo'},403);
+      // Solo images only: account verification is NOT verification of other performers.
+      if(!paid)return reply({error:'Premium membership is required to publish photos'},403);
       if(body.attest_self_only!==true||body.attest_rights!==true||body.attest_no_sex_act!==true)
-        return reply({error:'Confirm the photo depicts only you, with all rights, and contains no sexual act. Other people and explicit acts require separate release review.'},400);
-      const path=plain(body.storage_path,500),type=plain(body.mime_type,90);
-      if(!new RegExp('^'+uid.replaceAll('-','\\-')+'/media/[0-9a-f-]{36}\\.(jpg|jpeg|png|webp)
-      if(!paid)return reply({error:'Premium membership required for uploads'},403);
-      if(body.attest_rights!==true)return reply({error:'Confirm your authority and all required participant permissions before uploading'},400);
+        return reply({error:'Confirm that the photo depicts only you, you control the rights, and no sexual act is shown.'},400);
       const path=plain(body.storage_path,500),type=plain(body.mime_type,90);
       const prefix=uid+'/media/';
-      if(!path.startsWith(prefix)||path.includes('..')||!/^[-\w./]+$/.test(path))
-        return reply({error:'Invalid private media path'},400);
-      if(!['image/jpeg','image/png','image/webp','video/mp4'].includes(type))
-        return reply({error:'Unsupported media type'},400);
-      const meta=await bucket.info(path);
-      if(meta.error||!meta.data)return reply({error:'Upload media to your private account folder first'},400);
-      if(meta.data.metadata?.mimetype&&meta.data.metadata.mimetype!==type)
-        return reply({error:'MIME type mismatch'},400);
-      const {count,error:rateError}=await db.from('member_media_assets').select('id',{count:'exact',head:true})
-        .eq('owner_id',uid).gte('created_at',new Date(Date.now()-86400000).toISOString());
-      if(rateError)return reply({error:'Upload limit unavailable'},503);
-      if((count||0)>=10)return reply({error:'Daily media submission limit reached'},429);
-      const visibility=['verified','connections','private'].includes(body.visibility)?body.visibility:'verified';
-      let albumId:string|null=null;
-      if(uuid(body.album_id)){
-        const {data:album}=await db.from('member_media_albums').select('id').eq('id',body.album_id).eq('owner_id',uid).maybeSingle();
-        if(album)albumId=album.id;
-      }
-      const {data,error}=await db.from('member_media_assets').insert({
-        owner_id:uid,storage_path:path,mime_type:type,caption:plain(body.caption,500),
-        status:'pending',visibility,album_id:albumId,uploader_rights_attested:true,rights_attested_at:new Date().toISOString()
-      }).select('id,status').single();
-      if(error)return reply({error:'Media could not be registered'},400);
-      const {error:queueError}=await db.from('content_moderation_queue').insert({
-        content_type:'media',content_id:data.id,submitter_id:uid,status:'pending'
-      });
-      if(queueError){
-        await db.from('member_media_assets').delete().eq('id',data.id);
-        return reply({error:'Moderation queue unavailable'},503);
-      }
-      await audit('media_submitted',data.id);
-      return reply({item:data,note:'Media is private until approved by a moderator'},201);
-    }
-    if(action==='my_media'){
-      const {data,error}=await db.from('member_media_assets')
-        .select('id,caption,status,visibility,mime_type,album_id,created_at').eq('owner_id',uid)
-        .order('created_at',{ascending:false}).limit(60);
-      if(error)throw error;
-      return reply({items:data||[]});
-    }
-    if(action==='list_albums'){
-      const {data,error}=await db.from('member_media_albums')
-        .select('id,title,created_at,updated_at').eq('owner_id',uid)
-        .order('created_at',{ascending:false});
-      if(error)throw error;
-      const albums=(data||[]).map((a:any)=>({...a,count:0}));
-      if(albums.length){
-        const {data:counts}=await db.from('member_media_assets')
-          .select('album_id').in('album_id',albums.map((a:any)=>a.id));
-        const map:Record<string,number>={};
-        for(const c of counts||[]){if(c.album_id)map[c.album_id]=(map[c.album_id]||0)+1;}
-        for(const a of albums)a.count=map[a.id]||0;
-      }
-      return reply({items:albums});
-    }
-    if(action==='create_album'){
-      if(!paid)return reply({error:'Premium membership required for albums'},403);
-      const title=plain(body.title,120);
-      if(!title)return reply({error:'Album title is required'},400);
-      const {count}=await db.from('member_media_albums').select('id',{count:'exact',head:true}).eq('owner_id',uid);
-      if((count||0)>=20)return reply({error:'Album limit reached (20)'},429);
-      const {data,error}=await db.from('member_media_albums').insert({owner_id:uid,title})
-        .select('id,title,created_at').single();
-      if(error)return reply({error:'Could not create album'},400);
-      return reply({item:data},201);
-    }
-    if(action==='update_album'){
-      if(!uuid(body.album_id))return reply({error:'Invalid album'},400);
-      const title=plain(body.title,120);
-      if(!title)return reply({error:'Album title is required'},400);
-      const {data,error}=await db.from('member_media_albums').update({title,updated_at:new Date().toISOString()})
-        .eq('id',body.album_id).eq('owner_id',uid).select('id,title').maybeSingle();
-      if(error||!data)return reply({error:'Album not found'},404);
-      return reply({item:data});
-    }
-    if(action==='delete_album'){
-      if(!uuid(body.album_id))return reply({error:'Invalid album'},400);
-      const {error}=await db.from('member_media_albums').delete().eq('id',body.album_id).eq('owner_id',uid);
-      if(error)return reply({error:'Could not delete album'},400);
-      return reply({ok:true});
-    }
-    if(action==='assign_album'){
-      if(!uuid(body.media_id))return reply({error:'Invalid media'},400);
-      let albumId:string|null=null;
-      if(uuid(body.album_id)){
-        const {data:album}=await db.from('member_media_albums').select('id').eq('id',body.album_id).eq('owner_id',uid).maybeSingle();
-        if(!album)return reply({error:'Album not found'},404);
-        albumId=album.id;
-      }
-      const {error}=await db.from('member_media_assets').update({album_id:albumId})
-        .eq('id',body.media_id).eq('owner_id',uid);
-      if(error)return reply({error:'Could not assign album'},400);
-      return reply({ok:true});
-    }
-    if(action==='gallery'){
-      const target=uuid(body.owner_id)?body.owner_id:uid;
-      let q=db.from('member_media_assets')
-        .select('id,owner_id,caption,status,mime_type,visibility,album_id,created_at')
-        .eq('owner_id',target).eq('status','approved').order('created_at',{ascending:false}).limit(50);
-      if(uuid(body.album_id))q=q.eq('album_id',body.album_id);
-      const {data,error}=await q;if(error)throw error;
-      const [ownerAge,ownerSecurity]=await Promise.all([
-        db.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',target)
-          .order('created_at',{ascending:false}).limit(1),
-        db.from('account_security').select('banned,suspended').eq('user_id',target).maybeSingle()
-      ]);
-      if(ownerAge.error||ownerSecurity.error||ownerSecurity.data?.banned||
-        ownerSecurity.data?.suspended||!ownerAge.data?.[0]?.admitted_at)
-        return reply({items:[]});
-      const {data:blocks,error:blockError}=await db.from('member_blocks').select('blocker_id')
-        .or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1);
-      if(blockError)throw blockError;
-      if(blocks?.length)return reply({items:[]});
-      const {data:connections,error:connectError}=await db.from('member_connection_requests')
-        .select('id').eq('status','accepted')
-        .or(`and(requester_id.eq.${uid},recipient_id.eq.${target}),and(requester_id.eq.${target},recipient_id.eq.${uid})`).limit(1);
-      if(connectError)throw connectError;
-      const connected=Boolean(connections?.length);
-      const filtered=(data||[]).filter((m:any)=>
-        m.owner_id===uid||m.visibility==='verified'||m.visibility==='connections'&&connected
-      );
-      return reply({items:filtered});
-    }
-    if(action==='view'){
-      if(!uuid(body.id))return reply({error:'Invalid media'},400);
-      const {data:asset,error}=await db.from('member_media_assets')
-        .select('id,owner_id,storage_path,status,visibility,mime_type').eq('id',body.id).maybeSingle();
-      if(error||!asset)return reply({error:'Media not found'},404);
-      if(asset.owner_id!==uid&&asset.status!=='approved')return reply({error:'Media not available'},403);
-      if(asset.owner_id!==uid){
-        const [ownerAge,ownerSecurity]=await Promise.all([
-          db.from('member_admissions').select('id,user_id,admitted_at,source,created_at')
-            .eq('user_id',asset.owner_id).order('created_at',{ascending:false}).limit(1),
-          db.from('account_security').select('banned,suspended')
-            .eq('user_id',asset.owner_id).maybeSingle()
-        ]);
-        if(ownerAge.error||ownerSecurity.error||ownerSecurity.data?.banned||
-          ownerSecurity.data?.suspended||!ownerAge.data?.[0]?.admitted_at)
-          return reply({error:'Media unavailable'},403);
-        if(asset.visibility==='private')return reply({error:'Private media'},403);
-        const {data:blocks,error:blockError}=await db.from('member_blocks').select('blocker_id')
-          .or(`and(blocker_id.eq.${uid},blocked_id.eq.${asset.owner_id}),and(blocker_id.eq.${asset.owner_id},blocked_id.eq.${uid})`).limit(1);
-        if(blockError||blocks?.length)return reply({error:'Media unavailable'},403);
-        if(asset.visibility==='connections'){
-          const {data:connection,error:cError}=await db.from('member_connection_requests')
-            .select('id').eq('status','accepted')
-            .or(`and(requester_id.eq.${uid},recipient_id.eq.${asset.owner_id}),and(requester_id.eq.${asset.owner_id},recipient_id.eq.${uid})`).limit(1);
-          if(cError||!connection?.length)return reply({error:'Connection required'},403);
-        }
-      }
-      const {data:link,error:linkError}=await bucket.createSignedUrl(asset.storage_path,60);
-      if(linkError)return reply({error:'Media URL unavailable'},503);
-      return reply({url:link.signedUrl,expires_in:60,mime_type:asset.mime_type});
-    }
-    if(action==='admin_queue'){
-      if(!admin)return reply({error:'Administrator required'},403);
-      const {data,error}=await db.from('member_media_assets')
-        .select('id,owner_id,caption,status,mime_type,created_at,uploader_rights_attested')
-        .eq('status','pending').order('created_at').limit(70);
-      if(error)throw error;
-      return reply({items:data||[]});
-    }
-    if(action==='admin_scan'){
-      if(!admin)return reply({error:'Administrator required'},403);
-      if(!uuid(body.id))return reply({error:'Invalid asset'},400);
-      const endpoint=optionalProviderSetting('OPENMODERATE_SERVICE_URL'),key=Deno.env.get('OPENMODERATE_API_KEY');
-      if(!endpoint||!key)return reply({error:'Self-hosted OpenModerate service is not configured'},503);
-      const target=new URL(endpoint);
-      if(target.protocol!=='https:'||!target.pathname.endsWith('/v1/moderate'))
-        return reply({error:'Only a configured HTTPS OpenModerate endpoint is permitted'},503);
-      const {data:media,error}=await db.from('member_media_assets')
-        .select('id,storage_path,mime_type').eq('id',body.id).maybeSingle();
-      if(error||!media)return reply({error:'Media not found'},404);
-      if(media.mime_type==='video/mp4')
-        return reply({error:'Video scanning requires a dedicated processing worker; manual moderation remains required'},503);
-      const {data:file,error:downloadError}=await bucket.download(media.storage_path);
-      if(downloadError||!file)return reply({error:'Media unavailable'},503);
-      const form=new FormData();
-      form.append('file',file,media.id+(media.mime_type==='video/mp4'?'.mp4':'.jpg'));
-      const response=await fetch(target.toString(),{
-        method:'POST',headers:{'X-API-Key':key},body:form,signal:AbortSignal.timeout(15000)
-      });
-      if(!response.ok)return reply({error:'Moderation service unavailable'},503);
-      const result=await response.json();
-      // An adult platform must not reject consensual adult nudity automatically.
-      // Human review remains mandatory, and AI cannot certify legal age.
-      const signals=Array.isArray(result?.violations)?
-        result.violations.filter((v:any)=>['violence','weapons','hate_symbols','drugs'].includes(v.name))
-          .map((v:any)=>({category:String(v.name),confidence:Number(v.confidence)||0})):[];
-      await audit('media_scanned',media.id,{signals:signals.map(v=>v.category)});
-      return reply({human_review_required:true,signals,
-        note:'Model observations are advisory only. Verify content rights, age and consent independently.'});
-    }
-    if(action==='admin_review'){
-      if(!admin)return reply({error:'Administrator required'},403);
-      if(!uuid(body.id)||!['approved','rejected'].includes(body.status))
-        return reply({error:'Invalid review'},400);
-      const {data:asset,error}=await db.from('member_media_assets')
-        .select('id,status,uploader_rights_attested').eq('id',body.id).maybeSingle();
-      if(error||asset?.status!=='pending')return reply({error:'Media already reviewed'},409);
-      if(!asset.uploader_rights_attested)return reply({error:'Uploader rights attestation required'},403);
-      if(body.status==='approved' && optionalProviderSetting('ADULT_MEDIA_PUBLICATION_READY')!=='true')
-        return reply({error:'Publication is paused until releases, retention and content-review policies are approved'},503);
-      if(body.manual_review_confirmed!==true)return reply({error:'Human content and consent review is required'},400);
-      const {data,error:saveError}=await db.from('member_media_assets').update({
-        status:body.status,reviewed_by:uid,reviewed_at:new Date().toISOString()
-      }).eq('id',body.id).eq('status','pending').select('id,status').maybeSingle();
-      if(saveError||!data)return reply({error:'Moderation conflict'},409);
-      await db.from('content_moderation_queue').update({
-        status:body.status==='approved'?'approved':'rejected',
-        reviewer_id:uid,reviewed_at:new Date().toISOString()
-      }).eq('content_type','media').eq('content_id',body.id);
-      await audit('media_reviewed',data.id,{status:data.status});
-      return reply({item:data});
-    }
-    return reply({error:'Unknown action'},404);
-  }catch(e){
-    console.error('media-gateway',action,e);
-    return reply({error:'Unable to process media action'},500);
-  }
-});
-,'i').test(path)
-        ||path.includes('..'))return reply({error:'Invalid private photo path'},400);
+      const fileName=path.startsWith(prefix)?path.slice(prefix.length):'';
+      if(!uuid(fileName.split('.')[0])||fileName.split('.').length!==2||!['jpg','jpeg','png','webp'].includes(fileName.split('.')[1]))
+        return reply({error:'Invalid private photo path'},400);
       if(!['image/jpeg','image/png','image/webp'].includes(type))
-        return reply({error:'Only JPG, PNG and WebP photos may be published'},400);
-      const label=body.content_label==='adult_nudity'?'adult_nudity':'professional';
-      const meta=await bucket.info(path);
-      if(meta.error||!meta.data)return reply({error:'Upload the photo into your private account folder first'},400);
-      const sourceMime=meta.data.metadata?.mimetype;
-      if(sourceMime&&sourceMime!==type)return reply({error:'Photo MIME type does not match the stored object'},400);
-      const size=Number(meta.data.metadata?.size||meta.data.size);
-      if(!Number.isSafeInteger(size)||size<16||size>8*1024*1024)
-        return reply({error:'Use a photo no larger than 8 MB'},400);
-      const {data:photo,error:readError}=await bucket.download(path);
-      if(readError||!photo)return reply({error:'Photo could not be verified'},503);
-      const imageBytes=new Uint8Array(await photo.arrayBuffer());
-      const valid=type==='image/jpeg'
-        ?imageBytes[0]===0xff&&imageBytes[1]===0xd8&&imageBytes[2]===0xff
+        return reply({error:'Only JPG, PNG and WebP photos are supported'},400);
+      const contentLabel=body.content_label==='adult_nudity'?'adult_nudity':'professional';
+      const info=await bucket.info(path);
+      if(info.error||!info.data)return reply({error:'Upload the photo to your private account first'},400);
+      if(info.data.metadata?.mimetype&&info.data.metadata.mimetype!==type)
+        return reply({error:'The stored photo has a different MIME type'},400);
+      const storedSize=Number(info.data.metadata?.size||info.data.size);
+      if(!Number.isSafeInteger(storedSize)||storedSize<16||storedSize>8*1024*1024)
+        return reply({error:'Photo size must be between 16 bytes and 8 MB'},400);
+      const {data:file,error:downloadError}=await bucket.download(path);
+      if(downloadError||!file)return reply({error:'Photo verification unavailable'},503);
+      const bytes=new Uint8Array(await file.arrayBuffer());
+      const magicOk=type==='image/jpeg'
+        ?bytes[0]===255&&bytes[1]===216&&bytes[2]===255
         :type==='image/png'
-          ?imageBytes.slice(0,8).every((byte,i)=>byte===[137,80,78,71,13,10,26,10][i])
-          :String.fromCharCode(...imageBytes.slice(0,4))==='RIFF'&&String.fromCharCode(...imageBytes.slice(8,12))==='WEBP';
-      if(!valid)return reply({error:'The file is not a supported photo'},400);
-      const {count,error:rateError}=await db.from('member_media_assets').select('id',{count:'exact',head:true})
-        .eq('owner_id',uid).gte('created_at',new Date(Date.now()-86400000).toISOString());
-      if(rateError)return reply({error:'Photo upload limit unavailable'},503);
-      if((count||0)>=10)return reply({error:'Daily photo limit reached'},429);
-      const visibility=['verified','connections'].includes(body.visibility)?body.visibility:'verified';
+          ?bytes.slice(0,8).every((b,i)=>b===[137,80,78,71,13,10,26,10][i])
+          :String.fromCharCode(...bytes.slice(0,4))==='RIFF'&&String.fromCharCode(...bytes.slice(8,12))==='WEBP';
+      if(!magicOk)return reply({error:'Unsupported or invalid photo content'},400);
+      const {count,error:rateError}=await db.from('member_media_assets')
+        .select('id',{count:'exact',head:true}).eq('owner_id',uid)
+        .gte('created_at',new Date(Date.now()-86400000).toISOString());
+      if(rateError)return reply({error:'Media rate limit unavailable'},503);
+      if((count||0)>=10)return reply({error:'Daily media upload limit reached'},429);
+      const visibility=body.visibility==='connections'?'connections':'verified';
       const {data:asset,error:saveError}=await db.from('member_media_assets').insert({
-        owner_id:uid,storage_path:path,mime_type:type,
-        caption:plain(body.caption,500),
-        visibility,status:'approved',uploader_rights_attested:true,
-        rights_attested_at:new Date().toISOString(),approval_origin:'verified_self_attestation',
-        self_only_attested:true,content_label:label
+        owner_id:uid,storage_path:path,mime_type:type,caption:plain(body.caption,500),
+        status:'approved',visibility,uploader_rights_attested:true,rights_attested_at:new Date().toISOString(),
+        approval_origin:'verified_self_attestation',self_only_attested:true,content_label:contentLabel
       }).select('id,status,content_label').single();
-      if(saveError||!asset)return reply({error:'Photo could not be registered'},409);
+      if(saveError||!asset)return reply({error:'Photo registration failed'},409);
       const {error:auditError}=await db.from('platform_action_audit').insert({
         actor_id:uid,action:'media_self_published',target_type:'media',target_id:asset.id,
-        metadata:{basis:'verified_adult_solo_attestation',content_label:label}
+        metadata:{publication_basis:'verified_solo_attestation',content_label:contentLabel}
       });
       if(auditError){
-        await db.from('member_media_assets').update({status:'hidden'}).eq('id',asset.id).eq('owner_id',uid);
-        return reply({error:'Photo audit unavailable. No photo was published.'},503);
+        await db.from('member_media_assets').update({status:'hidden'})
+          .eq('id',asset.id).eq('owner_id',uid);
+        return reply({error:'Publishing audit unavailable. Photo was not published.'},503);
       }
-      return reply({item:asset,note:'Photo ready for your Feed post. It may be hidden and reviewed after a safety or rights report.'},201);
+      return reply({item:asset,note:'Photo is ready to share. Rights and safety reports can temporarily remove it.'},201);
     }
     if(action==='register_upload'){
       if(!paid)return reply({error:'Premium membership required for uploads'},403);
