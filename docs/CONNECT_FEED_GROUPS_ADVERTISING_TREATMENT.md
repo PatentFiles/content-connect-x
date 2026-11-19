@@ -8,7 +8,7 @@ This treatment is additive to the canonical root README. Bolt remains the websit
 
 Every admitted adult member has a **Connect Feed** inside the dashboard. It is permanent; it is never a widget that can be removed by the Customize button.
 
-The top horizontal dashboard banner contains up to **four** customizable compact widgets. New viewers may see **Friends**, **Unread Messages** and **Upcoming Schedule** as initial suggestions. Existing saved layouts must not be overwritten during migration. The central column hosts post composer and tabs **Friends / Following / Discover**, followed by the social timeline. The right sidebar hosts approved, explicitly labeled **Sponsored** placements. On narrow devices the widget strip scrolls/reflows and the central feed remains full width; the sponsored rail moves after the feed.
+The desktop dashboard's **right vertical rail** contains up to **four** customizable cards (with featured profile photos and expandable lists). On mobile the rail, customization controls and sponsor placements are hidden, leaving the Feed and composer at the top. New viewers may see **Friends**, **Unread Messages** and **Upcoming Schedule** as initial suggestions. Existing saved layouts must not be overwritten during migration. The central column starts immediately with the post composer and tabs **Friends / Following / Discover**, defaulting to the entire verified community, followed by the social timeline. The right sidebar hosts approved, explicitly labeled **Sponsored** placements. On narrow devices the widget strip scrolls/reflows and the central feed remains full width; the sponsored rail moves after the feed.
 
 ## 2. Audience, entitlement and identity
 
