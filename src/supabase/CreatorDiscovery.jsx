@@ -48,7 +48,7 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
  };
  const openProfile=person=>{
   setSelected(person);setSocials({});setContactNotice('');setInviteEligibility(null);setRepresentativeProfiles([]);
-  if(person.id!==user.id)void supabase.rpc('ccx_representation_agreement_action',{p_action:'profile_links',p_data:{target_id:person.id}}).then(({data,error})=>{if(!error)setRepresentativeProfiles(data?.items||[]);}).catch(()=>{});
+  if(person.id!==user.id)void supabase.rpc('ccx_representation_agreement_action',{p_action:'profile_links',p_data:{target_id:person.id}}).then(({data,error})=>{if(!error)setRepresentativeProfiles(data?.items||[]);},()=>{});
   if(paid&&person.id!==user.id)void supabase.functions.invoke('collaboration-workspace',{body:{action:'eligibility',target_user_id:person.id}}).then(({data,error})=>{if(!error)setInviteEligibility(current=>current===null?{member_id:person.id,...data}:current);}).catch(()=>{});
   if(paid)void supabase.functions.invoke('member-workflows',{body:{action:'view_social_links',target_user_id:person.id}}).then(({data,error:failure})=>{if(!failure)setSocials(data?.socials||{});}).catch(()=>{});
   // Only an actual opened profile counts; listing/searching does not record views.
