@@ -17,6 +17,8 @@ on:
       - 'scripts/test-connect-groups-database.sql'
       - 'tests/connect-feed.test.mjs'
       - 'tests/connect-groups.test.mjs'
+      - 'tests/connect-feed-permalink.test.mjs'
+      - 'src/supabase/CreatorDiscovery.jsx'
       - '.github/workflows/connect-feed.yml'
   push:
     branches: [feat/connect-community-groups-20261119]
@@ -53,6 +55,7 @@ jobs:
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/test-connect-feed-database.sql
           psql --no-psqlrc -v ON_ERROR_STOP=1 -c "alter table public.account_security add column admin boolean not null default false"
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f supabase/migrations/20261119235900_connect_groups_private_public.sql
+          psql --no-psqlrc -v ON_ERROR_STOP=1 -f supabase/migrations/20261120003000_connect_feed_post_permalink.sql
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/test-connect-groups-database.sql
   frontend:
     runs-on: ubuntu-latest
@@ -65,7 +68,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Feed and Groups auth, privacy, moderation and dashboard tests
-        run: node --test tests/connect-feed.test.mjs tests/connect-groups.test.mjs
+        run: node --test tests/connect-feed.test.mjs tests/connect-groups.test.mjs tests/connect-feed-permalink.test.mjs
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build
