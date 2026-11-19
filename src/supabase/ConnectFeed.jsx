@@ -103,13 +103,32 @@ function FeedPost({post,paid,userId,onChanged,onError}){
   {notice&&<p role="status" className="rounded-lg bg-[var(--cc-surface-subtle)] p-2 text-xs">{notice}</p>}
  </article>;
 }
+/** Re-encoding strips EXIF/GPS before any picture leaves the browser. */
+async function safePhotoBlob(file){
+ if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>12*1024*1024)
+  throw Error('Choose a JPG, PNG or WebP image smaller than 12 MB.');
+ if(typeof createImageBitmap!=='function')throw Error('This browser cannot safely prepare images. Please use an updated browser.');
+ const bitmap=await createImageBitmap(file);
+ try{
+  if(bitmap.width*bitmap.height>30000000)throw Error('Image dimensions are too large.');
+  const scale=Math.min(1,2200/Math.max(bitmap.width,bitmap.height));
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+  const ctx=canvas.getContext('2d');
+  if(!ctx)throw Error('Cannot process this photo.');
+  ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',0.88));
+  if(!blob||blob.size>8*1024*1024)throw Error('Compressed photo exceeds the 8 MB limit.');
+  return blob;
+ }finally{bitmap.close();}
+}
 export default function ConnectFeed({userId,paid=false,preview=false,initialMode='discover',profileId=null,groupId=null,onNavigate=(_tab)=>{}}){
  const modeOptions=groupId?[['group','Group posts']]:profileId?[['profile','Posts']]:[['friends','Friends'],['following','Following'],['discover','Discover']];
  const [mode,setMode]=useState(groupId?'group':profileId?'profile':initialMode),[items,setItems]=useState([]),[cursor,setCursor]=useState(null);
  const [loading,setLoading]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [sharedPost,setSharedPost]=useState(null),[sharedError,setSharedError]=useState(''),[loadingShared,setLoadingShared]=useState(false);
- const [text,setText]=useState(''),[audience,setAudience]=useState('verified'),[gallery,setGallery]=useState([]);
- const [mediaIds,setMediaIds]=useState([]),[uploadFile,setUploadFile]=useState(null),[rights,setRights]=useState(false),[uploading,setUploading]=useState(false);
+ const [text,setText]=useState(''),[audience,setAudience]=useState('verified');
+ const [uploadFile,setUploadFile]=useState(null),[rights,setRights]=useState(false),[adultNudity,setAdultNudity]=useState(false),[uploading,setUploading]=useState(false);
  const reqNo=useRef(0),posting=useRef(false);
  const load=useCallback(async(more=false)=>{
   if(more&&!cursor)return;const seq=++reqNo.current;setLoading(true);setError('');
@@ -145,36 +164,38 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
   window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);
   setSharedPost(null);setSharedError('');
  };
- const photos=async()=>{
-  try{const result=await action('my_photos');setGallery(result.items||[]);}catch(e){setError(e.message);}
- };
- const upload=async()=>{
-  if(!paid||!uploadFile||!rights||uploading||!userId)return;
-  setUploading(true);setError('');setNotice('');
+ const uploadPhoto=async()=>{
+  if(!uploadFile||!rights||!userId)throw Error('Confirm the photo depicts only you and you own all publishing rights.');
+  setUploading(true);
   try{
-   if(!['image/jpeg','image/png','image/webp'].includes(uploadFile.type)||uploadFile.size>8*1024*1024)
-    throw Error('Use JPG, PNG or WebP photos of no more than 8 MB.');
-   const ext=uploadFile.type.split('/')[1];
-   const path=userId+'/media/'+crypto.randomUUID()+'.'+ext;
-   const {error:failure}=await supabase.storage.from('member-private').upload(path,uploadFile,{
-    contentType:uploadFile.type,upsert:false,cacheControl:'0'
+   const image=await safePhotoBlob(uploadFile);
+   const path=userId+'/media/'+crypto.randomUUID()+'.jpg';
+   const {error:uploadError}=await supabase.storage.from('member-private').upload(path,image,{
+    upsert:false,contentType:'image/jpeg',cacheControl:'0'
    });
-   if(failure)throw failure;
-   const {data,error:registerError}=await supabase.functions.invoke('media-gateway',{body:{
-    action:'register_upload',storage_path:path,mime_type:uploadFile.type,caption:'Connect Feed photo',visibility:audience==='verified'?'verified':'connections',attest_rights:true
+   if(uploadError)throw Error('Private photo upload failed: '+uploadError.message);
+   const {data,error}=await supabase.functions.invoke('media-gateway',{body:{
+    action:'register_self_feed_photo',storage_path:path,mime_type:'image/jpeg',caption:text.slice(0,500),
+    visibility:audience==='verified'?'verified':'connections',
+    content_label:adultNudity?'adult_nudity':'professional',
+    attest_rights:true,attest_self_only:true,attest_no_sex_act:true
    }});
-   if(registerError||data?.error)throw Error(data?.error||'Photo review submission failed. Contact support if it persists.');
-   setUploadFile(null);setRights(false);
-   setNotice('Photo uploaded for moderation. When it is approved, refresh your photo library and attach it to a post.');
-  }catch(e){setError(e.message);}finally{setUploading(false);}
+   if(error||data?.error||!data?.item?.id)throw Error(data?.error||'The photo was not accepted. Your text remains available; retry or contact support.');
+   return data.item.id;
+  }finally{setUploading(false);}
  };
  const publish=async event=>{
-  event.preventDefault();if(posting.current||!paid||preview)return;
+  event.preventDefault();
+  if(posting.current||!paid||preview)return;
+  if(uploadFile&&!rights)return setError('Confirm that the photo depicts only you, and that you own its rights.');
   posting.current=true;setLoading(true);setError('');setNotice('');
   try{
-   const result=await action('create',{text,audience,media_ids:groupId?[]:mediaIds,group_id:groupId||undefined});
-   setText('');setMediaIds([]);
-   setNotice(result.note||'Post submitted for moderation.');
+   const mediaIds=(!groupId&&uploadFile)?[await uploadPhoto()]:[];
+   const message=text.trim().length>=5?text:'Shared a photo';
+   const result=await action('create',{text:message,audience,media_ids:mediaIds,group_id:groupId||undefined});
+   setText('');setUploadFile(null);setRights(false);setAdultNudity(false);
+   setNotice(result.item?.status==='published'?'Your update is live on the Feed. Reports may temporarily hide it for review.':result.note||'Update submitted.');
+   if(result.item?.status==='published')void load(false);
   }catch(e){setError(e.message);}finally{posting.current=false;setLoading(false);}
  };
  return <section data-connect-feed="true" className="min-w-0 space-y-4" aria-label={groupId?'Private group posts':profileId?'Profile timeline':'Connect Feed'}>
