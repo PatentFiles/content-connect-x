@@ -13,6 +13,13 @@ const handler=createHandler({admin,authenticate:async(req:Request)=>{
  if(!authorization.startsWith('Bearer '))return null;
  const {data,error}=await admin.auth.getUser(authorization.slice(7));
  return error?null:data.user;
+},assurance:async(req:Request)=>{
+ // Supabase Auth validates the specific JWT rather than trusting frontend
+ // claims or an earlier admin session. No service role key goes to the browser.
+ const authorization=req.headers.get('Authorization')||'';
+ if(!authorization.startsWith('Bearer '))return null;
+ const {data,error}=await admin.auth.mfa.getAuthenticatorAssuranceLevel(authorization.slice(7));
+ return error?null:data?.currentLevel;
 }});
 Deno.serve(async(req:Request)=>{
  const response=await handler(req);
