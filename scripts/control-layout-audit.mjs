@@ -98,7 +98,11 @@ export async function createInteractiveShellFixture(template){
  const {build}=await import('esbuild');
  const mock=`const chain={select(){return this},eq(){return this},is(){return this},then(resolve){return Promise.resolve({count:0,data:[],error:null}).then(resolve)}};
  const channel={on(){return this},subscribe(){return this},track:async()=>{},untrack:async()=>{},send:async()=>{},presenceState:()=>({})};
- export const supabase={from:()=>Object.create(chain),channel:()=>Object.create(channel),removeChannel:async()=>{},functions:{invoke:async()=>({data:{items:[]},error:null})}};`;
+ export const supabase={from:()=>Object.create(chain),channel:()=>Object.create(channel),removeChannel:async()=>{},functions:{invoke:async()=>({data:{items:[]},error:null})}};
+ // Match the real module's named exports without authorizing uploads or using
+ // a production key. These layout fixtures never call an identity endpoint.
+ export const supabaseConfiguration={ready:true,url:'https://aaaaaaaaaaaaaaaaaaaa.supabase.co',key:'fixture-only-no-network'};
+ export const requireSupabase=()=>supabase;`;
  const code=`import React from 'react';import{createRoot}from'react-dom/client';import Shell from './src/supabase/OriginalShell.jsx';import Workspace from './src/supabase/MemberWorkspace.jsx';import {MODULE_FEATURES} from './src/supabase/featureModules.mjs';
  const flags=Object.fromEntries(Object.values(MODULE_FEATURES).map(key=>[key,true]));flags.__ccxLoaded=true;flags.__ccxAccess={collaborations:{eligible:true,reason:'ready'}};
  const user={id:'00000000-0000-4000-8000-000000000001'},profile={role_type:'creator',display_name:'Control layout preview'};
