@@ -103,7 +103,7 @@ function FeedPost({post,paid,userId,onChanged,onError}){
   {notice&&<p role="status" className="rounded-lg bg-[var(--cc-surface-subtle)] p-2 text-xs">{notice}</p>}
  </article>;
 }
-export default function ConnectFeed({userId,paid=false,preview=false,initialMode='friends',profileId=null,groupId=null}){
+export default function ConnectFeed({userId,paid=false,preview=false,initialMode='friends',profileId=null,groupId=null,onNavigate=()=>{}}){
  const modeOptions=groupId?[['group','Group posts']]:profileId?[['profile','Posts']]:[['friends','Friends'],['following','Following'],['discover','Discover']];
  const [mode,setMode]=useState(groupId?'group':profileId?'profile':initialMode),[items,setItems]=useState([]),[cursor,setCursor]=useState(null);
  const [loading,setLoading]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
@@ -163,7 +163,7 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
  return <section data-connect-feed="true" className="min-w-0 space-y-4" aria-label={groupId?'Private group posts':profileId?'Profile timeline':'Connect Feed'}>
   {!profileId&&!groupId&&<header className="flex flex-wrap items-center justify-between gap-2">
    <div><h2 className="text-xl font-bold">Connect Feed</h2><p className="mt-1 text-xs text-[var(--cc-text-secondary)]">Updates from your verified professional network.</p></div>
-   <button className={secondary} disabled={loading} onClick={()=>void load(false)} aria-label="Refresh Connect Feed"><RefreshCw size={16}/>Refresh</button>
+   <div className="flex flex-wrap gap-2"><button className={secondary} type="button" onClick={()=>onNavigate('groups')}><MessageCircle size={16}/>Groups</button><button className={secondary} disabled={loading} onClick={()=>void load(false)} aria-label="Refresh Connect Feed"><RefreshCw size={16}/>Refresh</button></div>
   </header>}
   {paid&&!preview&&!profileId?<form className="ccx-surface space-y-3 rounded-2xl p-4 sm:p-5" onSubmit={publish}>
    <label className="block text-sm font-semibold">{groupId?'Share in this group':'Share an update'}
