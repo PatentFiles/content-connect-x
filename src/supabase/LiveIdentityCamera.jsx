@@ -68,7 +68,9 @@ export default function LiveIdentityCamera({session,disabled=false,onCapture,onB
    const canvas=document.createElement('canvas'),ratio=Math.min(640/source.videoWidth,640/source.videoHeight,1);
    canvas.width=Math.round(source.videoWidth*ratio);canvas.height=Math.round(source.videoHeight*ratio);
    canvas.getContext('2d').drawImage(source,0,0,canvas.width,canvas.height);
-   // Show a visible shutter flash at every captured pose: center, each turn, and return-to-center.\n   // The server still receives all six timestamped evidence frames and independently verifies movement.\n   if(['turn1_start','turn1_peak','turn1_return','turn_start','turn_peak','turn_return'].includes(phase)){
+   // Show a visible shutter flash at every captured pose: center, each turn, and return-to-center.
+   // The server still receives all six timestamped evidence frames and independently verifies movement.
+   if(['turn1_start','turn1_peak','turn1_return','turn_start','turn_peak','turn_return'].includes(phase)){
     setFlash(true);if(flashTimer.current)window.clearTimeout(flashTimer.current);
     flashTimer.current=window.setTimeout(()=>{if(current(run))setFlash(false);},240);
    }
