@@ -55,8 +55,8 @@ test('AAL2 platform group moderation has only approved decision codes',async()=>
  const r=await h.handler(request({action:'moderate',group_id:group,decision:'approve',secret:'x'}));
  assert.equal(r.status,200);assert.equal(h.calls[0].args.p_visibility,'approve');
  const bad=await h.handler(request({action:'moderate',group_id:group,decision:'force_visible'}));
- assert.equal(bad.status,200);
- assert.equal(h.calls[1].args.p_visibility,null);
+ assert.equal(bad.status,400);
+ assert.equal(h.calls.length,1);
 });
 test('invalid administrative targets and unknown transitions fail before database access',async()=>{
  const h=harness();
