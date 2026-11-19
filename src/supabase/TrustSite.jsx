@@ -14,7 +14,7 @@ export function TrustFooter({legalPage=false}){
  useEffect(()=>{
   if(!active||!formKind)return;
   let alive=true;setConfig(null);setConfigError(false);
-  void supabase.rpc('ccx_trust_public_config').then(({data,error})=>{if(alive){setConfig(error?null:data);setConfigError(!!error);}}).catch(()=>{if(alive)setConfigError(true);});
+  void supabase.rpc('ccx_trust_public_config').then(({data,error})=>{if(alive){setConfig(error?null:data);setConfigError(!!error);}},()=>{if(alive)setConfigError(true);});
   return()=>{alive=false;};
  },[active,formKind]);
  const page=TRUST_PAGES[active];
