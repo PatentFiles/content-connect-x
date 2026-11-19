@@ -3,6 +3,7 @@
  * preferences live in an owner-only table, never in public member_profiles.
  * Visibility flags default OFF; directory opt-in is independent of saving.
  */
+import {bioSafetyMessage} from './bioSafety.mjs';
 import React,{useEffect,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
 import {Image,Activity,User,Edit2,ShieldCheck,Upload,Heart,Users,Clapperboard,Stethoscope,Lock,ChevronDown} from 'lucide-react';
@@ -90,6 +91,8 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
  const save=async(event)=>{
   event.preventDefault();setSaving(true);setError('');setNotice('');
   try{
+  const safetyWarning=bioSafetyMessage(form.bio);
+  if(safetyWarning)throw new Error(safetyWarning);
    const display_name=form.display_name.trim().slice(0,100);
    if(!display_name)throw Error('Enter a display name.');
    const profileData={id:user.id,display_name,role_type:form.role_type,
