@@ -1,4 +1,5 @@
 /** The private pilot runs the real engine but can NEVER grant membership. */
+import {sanitizedCheckDetails} from './check-details.mjs';
 import {decide,legalName,nameKey,isoDate,eligibilityDate,SCHEMA,ENGINE_REVISION} from '../identity-verification/policy.mjs';
 export const BUCKET='ccx-identity-pilot-evidence';
 export const NOTICE_VERSION='ccx-private-test-2026-11-18-v1';
@@ -21,7 +22,8 @@ export function pilotResult(report,session,today){
  const dob=isoDate(doc.dob),eligible=dob?eligibilityDate(dob):null;
  const diagnostics={test_only:true,admission_granted:false,engine_revision:ENGINE_REVISION,schema:SCHEMA,
   extracted_name:name,extracted_dob:dob,extracted_expiry:isoDate(doc.expiry),eligible_on:eligible,name_matches:matches,
-  age_eligible:eligible&&dob<=today?today>=eligible:null,
+  age_eligible:eligible&&dob<=today?today>=eligible:null,document_current:isoDate(doc.expiry)?isoDate(doc.expiry)>=today:null,
+  check_details:sanitizedCheckDetails(report.check_details),
   document_fields_confident:doc.fields_confident===true,document_cross_checked:doc.cross_checked===true,
   document_authenticity_check:doc.authenticity_passed===true,face_matched:face.matched===true,
   face_distance:Number.isFinite(face.distance)&&face.distance>=0?Number(face.distance.toFixed(4)):null,

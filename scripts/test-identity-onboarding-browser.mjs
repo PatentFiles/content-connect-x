@@ -16,7 +16,19 @@ const state=(extra={})=>({enabled:true,policy:'ccx-idv-v2',email_confirmed:true,
 const mock=`export async function identityAction(action,values={}){
  window.__calls.push({action,values:structuredClone(values)});
  const f=window.__fixture;
- if(action==='status'){if(f.error)throw Error(f.error);return structuredClone(f.response);}
+ if(action==='status'){
+  if(f.error)throw Error(f.error);
+  const snapshot=structuredClone(f.response);
+  if(f.deferStatus){f.deferStatus=false;return new Promise(resolve=>{window.__releaseStatus=()=>{window.__releaseStatus=null;resolve(snapshot);};});}
+  return snapshot;
+ }
+ if(action==='submit'&&f.deferSubmit){
+  f.response.session={...f.response.session,status:'processing',message:'Checking your ID and live capture.'};
+  return new Promise(resolve=>{window.__finishSubmit=()=>{
+   f.response.session={...f.response.session,status:'review_required',reason:'document_checks_incomplete',message:'Check complete. Your existing access is unchanged.',diagnostics:{engine_revision:'synthetic',document_fields_confident:false,document_cross_checked:false,face_matched:true,age_eligible:true}};
+   resolve({session:structuredClone(f.response.session)});
+  };});
+ }
  if(action==='start'){
   if(values.consent!==true||!values.legal_name||!values.notice_version)throw Error('Missing consent');
   f.response.session=structuredClone(f.newSession);
@@ -45,15 +57,19 @@ export async function identityUpload(id,kind,file,{onProgress=()=>{},signal}={})
   };
   window.__failUpload=()=>{signal?.removeEventListener('abort',abort);reject(Error('Synthetic save failure'));};
  });
-}`;
+}
+window.__identityAction=identityAction;
+export const identityUploadTo=(endpoint,id,kind,file,options)=>identityUpload(id,kind,file,options);
+`;
 try{
  const fixturePath=path.join(folder,'source.html');await createControlFixture(fixturePath);
  const template=fs.readFileSync(fixturePath,'utf8');
- const bundle=await build({stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import Gate from './src/supabase/AgeGateOnboarding.jsx';const root=createRoot(document.getElementById('root'));window.__unmountIdentity=()=>root.unmount();root.render(<Gate onReload={()=>window.__approval++} onSignOut={()=>window.__signout++}/>);`,loader:'jsx',resolveDir:process.cwd()},bundle:true,write:false,format:'iife',platform:'browser',define:{'process.env.NODE_ENV':'"production"'},plugins:[{name:'isolated-api',setup(b){
+ const bundle=await build({stdin:{contents:`import React from 'react';import {createRoot} from 'react-dom/client';import Gate from './src/supabase/AgeGateOnboarding.jsx';import Pilot from './src/supabase/IdentityPilot.jsx';const root=createRoot(document.getElementById('root'));window.__unmountIdentity=()=>root.unmount();root.render(window.__fixture.pilot?<Pilot/>:<Gate onReload={()=>window.__approval++} onSignOut={()=>window.__signout++}/>);`,loader:'jsx',resolveDir:process.cwd()},bundle:true,write:false,format:'iife',platform:'browser',define:{'process.env.NODE_ENV':'"production"'},plugins:[{name:'isolated-api',setup(b){
   b.onResolve({filter:/(?:^|\/)identityApi(?:\.js)?$/},()=>({path:'identity',namespace:'fixture'}));
   // The compatibility component imports the other-brand API even on CCX.
   b.onResolve({filter:/(?:^|\/)integrationApi(?:\.js)?$/},()=>({path:'legacy',namespace:'fixture'}));
-  b.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:args.path==='identity'?mock:`export async function integrationAction(){throw Error('CCX must not call Yoti');}`,loader:'js'}));
+  b.onResolve({filter:/api\/supabaseClient/},()=>({path:'pilotClient',namespace:'fixture'}));
+  b.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:args.path==='pilotClient'?`export const supabase={functions:{invoke:async(name,{body})=>({data:{...await window.__identityAction(body.action,body),test_only:true,admission_granted:false},error:null})}};`:args.path==='identity'?mock:`export async function integrationAction(){throw Error('CCX must not call Yoti');}`,loader:'js'}));
  }}]});
  browser=spawn(chrome,['--headless','--no-sandbox','--disable-dev-shm-usage','--disable-background-networking','--remote-debugging-port=0','--user-data-dir='+path.join(folder,'profile'),'about:blank'],{stdio:['ignore','ignore','pipe']});
  const endpoint=await new Promise((resolve,reject)=>{let output='';const timer=setTimeout(()=>reject(Error('Chromium startup timed out')),20000);browser.once('error',e=>{clearTimeout(timer);reject(e);});browser.once('exit',code=>{clearTimeout(timer);reject(Error('Chromium exited: '+code));});browser.stderr.on('data',data=>{output+=data;const m=output.match(/DevTools listening on (ws:\/\/\S+)/);if(m){clearTimeout(timer);resolve(m[1]);}});});
@@ -153,7 +169,11 @@ Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUser
  await click('Open selfie camera');await wait("Boolean("+button('Start head-turn capture')+")",'playable selfie camera');
  assert.equal(await evaluate("(()=>{const v=document.querySelector('video');return v.videoWidth>0&&!v.paused&&v.muted&&v.playsInline&&v.getBoundingClientRect().width>0;})()"),true);
  await record('cached camera permission opens a real inline video preview');
+ assert.equal(await evaluate("document.querySelector('[data-capture-instructions]').textContent.includes('hold for three seconds')"),true);
  await click('Start head-turn capture');
+ await wait("document.querySelector('[data-identity-countdown]')?.textContent==='3'",'visible 3–2–1 countdown');
+ await wait("document.querySelector('[data-identity-countdown]')?.textContent==='2'",'visible second countdown step');
+ await wait("document.querySelector('[data-identity-countdown]')?.textContent==='1'",'visible final countdown step');
  await wait("window.__uploadKind==='capture'",'complete two-turn live capture',30000);
  const capture=await evaluate('window.__capturePayload');
  assert.deepEqual(capture.frames.map(f=>f.phase),['turn1_start','turn1_peak','turn1_return','turn_start','turn_peak','turn_return']);
@@ -177,6 +197,29 @@ Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUser
  await mount(state({session:session()}));await evaluate("window.__cameraMode='stream'");await click('Open selfie camera');
  await wait("Boolean("+button('Start head-turn capture')+")",'camera before unmount');await evaluate('window.__unmountIdentity()');
  await wait("window.__tracks.every(t=>t.readyState==='ended')",'unmount releases camera');await record('leaving the verification screen releases the camera');
+
+ // The actual administrator pilot parent and capture child must agree after
+ // a pending status request arrives later than a completed submit request.
+ await mount(state({session:session('collecting',{uploaded:{front:true,back:true,selfie:true,capture:true}})}),{pilot:true,deferSubmit:true});
+ await click('Check my identity and age');
+ await evaluate('window.__fixture.deferStatus=true');
+ await wait("typeof window.__releaseStatus==='function'",'automatic pending poll');
+ await evaluate('window.__finishSubmit()');
+ await wait("document.querySelector('[data-identity-result=review_required]')&&document.querySelector('#pilot-results')",'automatic completed pilot result');
+ await evaluate('window.__releaseStatus()');
+ await wait("!document.querySelector('#root').textContent.includes('Refreshing result…')",'late status settled');
+ assert.equal(await evaluate("Boolean(document.querySelector('[data-identity-result=review_required]'))"),true);
+ assert.equal(await evaluate(textIncludes('Checking your saved evidence now')),false);
+ assert.equal(await evaluate('window.__approval'),0);
+ await record('actual pilot result survives a late pending response without account approval');
+ await evaluate('window.__fixture.deferStatus=true');await click('Check status');
+ await wait(textIncludes('Refreshing result…'),'visible manual refresh');
+ await evaluate('window.__releaseStatus()');await wait(textIncludes('Last result check:'),'visible result refresh confirmation');
+ await record('manual status refresh has immediate visible feedback');
+ await mount(state({session:session('processing')}),{pilot:true});
+ await evaluate("window.__fixture.response.session={...window.__fixture.response.session,status:'approved',message:'Private test complete.',diagnostics:{engine_revision:'synthetic',face_matched:true,age_eligible:true}}");
+ await wait(textIncludes('Private test passed'),'automatic pass with no status click');
+ assert.equal(await evaluate('window.__approval'),0);await record('passing pilot result appears automatically and never admits a member');
 
  console.log(`PASS ${results.length} real React scenarios with synthetic API responses. Synthetic camera streams and API responses only; no physical phone, real ID, biometric accuracy or provider transaction was tested.`);
  if(process.env.IDENTITY_BROWSER_RESULTS_DIR){fs.mkdirSync(process.env.IDENTITY_BROWSER_RESULTS_DIR,{recursive:true});fs.writeFileSync(path.join(process.env.IDENTITY_BROWSER_RESULTS_DIR,'identity-browser-results.json'),JSON.stringify({tests:results,realProviderCalls:false,modelAccuracyTested:false},null,2));}

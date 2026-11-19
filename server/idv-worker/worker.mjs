@@ -3,6 +3,7 @@
  * Public callers cannot choose file URLs, identities, or verification decisions.
  */
 import http from 'node:http';
+import {decodedUSDocument,compareDocumentFields,WORKER_REVISION} from './document-contract.mjs';
 import {createHash} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {readFileSync} from 'node:fs';
@@ -77,6 +78,7 @@ async function liveFace(bytes){
  }finally{tensor.dispose();}
 }
 async function processJob(job){
+ const began=performance.now();
  const hashes=Object.fromEntries(Object.entries(job.evidence).map(([k,v])=>[k,v.sha256]));
  const frontBytes=await artifact(job.evidence.front,job.purpose),captureBytes=await artifact(job.evidence.capture,job.purpose);
  await checkImage(frontBytes);
@@ -93,45 +95,59 @@ async function processJob(job){
  const confidence=ocr.confidence_scores||{};
  const required=[confidence.name??confidence.full_name,confidence.date_of_birth,confidence.expiration_date??confidence.expiry_date,confidence.document_number??confidence.id_number];
  const fieldsConfident=required.every(x=>Number.isFinite(x)&&x>=0.90&&x<=1);
- let crossChecked=false;
+ let crossChecked=false,fieldComparison={passed:false,mismatches:[]};
  if(job.document_type==='passport'){
   const mrz=extractMRZFromText(ocr.raw_text||'');
   crossChecked=!!mrz&&mrz.check_digits_valid===true&&mrz.fields.date_of_birth===dob
    &&mrz.fields.document_number===number&&mrz.fields.expiry_date===expiry
    &&safeName(mrz.fields.full_name)===safeName(name);
  }else{
-  const p=back?.qr_payload;
-  crossChecked=!!p&&isoDate(p.date_of_birth)===isoDate(dob)&&!!isoDate(dob)
-   &&p.id_number===number&&isoDate(p.expiry_date)===isoDate(expiry)&&!!isoDate(expiry)
-   &&safeName(p.full_name)!==null&&safeName(p.full_name)===safeName(name)
-   &&(['PDF417','QR_CODE','DATA_MATRIX'].includes(back.barcode_format)||(back.mrz_result?.checksums_valid===true&&!!back.mrz_result?.fields));
+  const decoded=decodedUSDocument(back?.ccx_decoded_pdf417);
+  // OCR fallback is never represented as an independently decoded barcode.
+  const p=decoded||(back?.barcode_format==='PDF417'?null:back?.qr_payload);
+  fieldComparison=compareDocumentFields({name,dob,expiry,number},p,safeName);
+  crossChecked=fieldComparison.passed&&(!!decoded||['QR_CODE','DATA_MATRIX'].includes(back?.barcode_format)||(back?.mrz_result?.checksums_valid===true&&!!back?.mrz_result?.fields));
  }
  const a=front.authenticity;
  const authenticityPassed=a?.isAuthentic===true&&Number.isFinite(a.score)&&a.score>=0.80&&Array.isArray(a.flags)&&a.flags.every(x=>x==='MISSING_EXIF_JPEG');
  const embedding=front.face_embedding;
  let frameIdentity=true,faceDistance=Infinity;
- const detections=new Map();
+ const detections=new Map(),frameChecks=[];
+ let selfieReference=null;
  for(let i=0;i<frameBytes.length;i++){
   const face=await liveFace(frameBytes[i]);detections.set(HASH(frameBytes[i]),face);
   const d=distance(embedding,face?Array.from(face.embedding):null);
-  if(i===0)faceDistance=d;
-  if(!face||face.confidence<0.9||d>0.5)frameIdentity=false;
+  if(i===0){faceDistance=d;selfieReference=face?Array.from(face.embedding):null;}
+  // Document-to-selfie is checked separately. Temporal continuity must compare
+  // each movement frame with the initial LIVE selfie, not the old ID portrait.
+  const liveDistance=distance(selfieReference,face?Array.from(face.embedding):null);
+  const passed=!!face&&face.confidence>=0.9&&liveDistance<=0.5;
+  frameChecks.push({phase:capture.frames[i].phase,face_present:!!face,confidence_passed:!!face&&face.confidence>=0.9,identity_passed:passed});
+  if(!passed)frameIdentity=false;
  }
- let live=true;
+ let live=true;const turnChecks=[];
  const requiredChecks=['face_present_all_frames','head_turn_detected','correct_direction','return_to_center','temporal_plausibility','face_bbox_consistency'];
  for(let turn=0;turn<2;turn++){
   const frames=capture.frames.slice(turn*3,turn*3+3).map(f=>({...f,phase:f.phase.replace('turn1_','turn_')}));
   const verdict=await verifyHeadTurnLiveness({...capture,challenge_direction:capture.directions[turn],frames},{detectFaceLandmarksFromBuffer:async b=>detections.get(HASH(b))||null});
-  if(verdict.passed!==true||!requiredChecks.every(k=>verdict.checks?.[k]?.passed===true))live=false;
+  const failed_checks=requiredChecks.filter(k=>verdict.checks?.[k]?.passed!==true);
+  turnChecks.push({direction:capture.directions[turn],failed_checks});
+  if(verdict.passed!==true||failed_checks.length)live=false;
  }
  return {schema:SCHEMA,engine_revision:ENGINE_REVISION,session_id:job.id,evidence_hashes:hashes,model_manifest:modelManifest,
+  check_details:{worker_revision:WORKER_REVISION,processing_ms:Math.round(performance.now()-began),
+   low_confidence_fields:['legal_name','date_of_birth','expiry_date','document_number'].filter((_,i)=>!Number.isFinite(required[i])||required[i]<0.90||required[i]>1),
+   barcode_decoded:job.document_type==='passport'?null:!!back?.ccx_decoded_pdf417,
+   front_back_mismatches:job.document_type==='passport'?[]:fieldComparison.mismatches,
+   authenticity_available:!!a,authenticity_score:Number.isFinite(a?.score)?a.score:null,authenticity_flag_count:Array.isArray(a?.flags)?a.flags.length:null,
+   frame_checks:frameChecks,turn_checks:turnChecks},
   document:{type:job.document_type,country:job.issuing_country,name,dob,expiry,number,fields_confident:fieldsConfident,cross_checked:crossChecked,authenticity_passed:authenticityPassed},
   face:{matched:front.face_confidence>=0.9&&faceDistance<=0.5,distance:Number.isFinite(faceDistance)?faceDistance:null,liveness_passed:live,frame_identity_passed:frameIdentity}};
 }
 const respond=(res,status,body)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(body));};
 const server=http.createServer(async(req,res)=>{
  if(req.method==='GET'&&req.url==='/health'){
-  try{if(!ready)throw Error();const r=await fetch('http://127.0.0.1:3002/health',{signal:AbortSignal.timeout(3000)});if(!r.ok)throw Error();respond(res,200,{status:'ok',schema:SCHEMA,engine_revision:ENGINE_REVISION,model_files:Object.keys(modelManifest).length,ocr_self_test:true,modes:['signup','pilot']});}catch{respond(res,503,{status:'starting'});}return;
+  try{if(!ready)throw Error();const r=await fetch('http://127.0.0.1:3002/health',{signal:AbortSignal.timeout(3000)});if(!r.ok)throw Error();respond(res,200,{status:'ok',schema:SCHEMA,engine_revision:ENGINE_REVISION,model_files:Object.keys(modelManifest).length,ocr_self_test:true,worker_revision:WORKER_REVISION,modes:['signup','pilot']});}catch{respond(res,503,{status:'starting'});}return;
  }
  if(req.method!=='POST'||req.url!=='/process')return respond(res,404,{error:'Not found'});
  if(!ready)return respond(res,503,{error:'Worker is starting'});

@@ -1,3 +1,7 @@
+## Guided identity capture and result repair — November 19, 2026
+
+See `docs/IDENTITY_GUIDANCE_RESULTS.md`: advance directions and visible countdowns, automatic final results, strict barcode/date/name compatibility repairs, and live-selfie continuity. Required verification gates and private evidence retention remain enforced. Bolt remains the website host; public homepage styles are unchanged.
+
 ## Public homepage styling boundary — November 18, 2026
 
 The logged-out Content Connect X and Host Connect pages retain their original dark/neon branding, original hero artwork, gradients and responsive layout. The professional white redesign applies **after sign-in**, including member, administrator, verification and host workspaces. Do not replace public artwork or apply workspace CSS globally.
