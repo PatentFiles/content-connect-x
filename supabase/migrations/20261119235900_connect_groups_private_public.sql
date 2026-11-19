@@ -59,7 +59,7 @@ create function public.ccx_group_action(
  p_rules text default null,p_query text default null
 ) returns jsonb language plpgsql security invoker set search_path='' as $groups$
 declare
- g public.ccx_social_groups%rowtype;
+ group_row public.ccx_social_groups%rowtype;
  actor_member public.ccx_social_group_members%rowtype;
  target_member public.ccx_social_group_members%rowtype;
  list jsonb; group_id uuid;event_action text;response_status text;
@@ -133,7 +133,7 @@ begin
  end if;
  if p_group is null then raise exception 'GROUP_NOT_FOUND' using errcode='22023'; end if;
  perform pg_advisory_xact_lock(hashtextextended('group:'||p_group::text,941));
- select * into g from public.ccx_social_groups where id=p_group for update;
+ select * into group_row from public.ccx_social_groups where id=p_group for update;
  if not found then raise exception 'GROUP_NOT_FOUND' using errcode='42501'; end if;
  select * into actor_member from public.ccx_social_group_members
   where group_id=p_group and user_id=p_actor for update;
@@ -144,8 +144,8 @@ begin
   if not exists(select 1 from public.account_security
    where user_id=p_actor and admin and not banned and not suspended)
    then raise exception 'GROUP_ADMIN_REQUIRED' using errcode='42501'; end if;
-  if g.visibility<>'public' or g.state<>'pending_platform'
-    or g.owner_id=p_actor or p_visibility not in('approve','reject')
+  if group_row.visibility<>'public' or group_row.state<>'pending_platform'
+    or group_row.owner_id=p_actor or p_visibility not in('approve','reject')
    then raise exception 'GROUP_INVALID_REVIEW' using errcode='22023'; end if;
   update public.ccx_social_groups
    set state=case when p_visibility='approve' then 'active' else 'rejected' end,
@@ -157,16 +157,16 @@ begin
  end if;
 
  if p_action='detail' then
-  if g.visibility='private' and coalesce(actor_member.status,'none') not in('active','invited')
+  if group_row.visibility='private' and coalesce(actor_member.status,'none') not in('active','invited')
     then raise exception 'GROUP_NOT_FOUND' using errcode='42501'; end if;
-  if g.visibility='public' and g.state<>'active' and coalesce(actor_member.status,'none')<>'active'
+  if group_row.visibility='public' and group_row.state<>'active' and coalesce(actor_member.status,'none')<>'active'
     then raise exception 'GROUP_NOT_FOUND' using errcode='42501'; end if;
   return jsonb_build_object('group',jsonb_build_object(
-   'id',g.id,'name',g.name,'description',g.description,'rules',g.rules,
-   'visibility',g.visibility,'state',g.state,'owner_id',g.owner_id,
+   'id',group_row.id,'name',group_row.name,'description',group_row.description,'rules',group_row.rules,
+   'visibility',group_row.visibility,'state',group_row.state,'owner_id',group_row.owner_id,
    'member_status',actor_member.status,'member_role',actor_member.role,
    'members', (select count(*) from public.ccx_social_group_members
-       where group_id=g.id and status='active')));
+       where group_id=group_row.id and status='active')));
  end if;
 
  if p_action in('requests','members') then
@@ -192,10 +192,10 @@ begin
   end if;
   return jsonb_build_object('items',list);
  end if;
- if g.state<>'active' then raise exception 'GROUP_UNAVAILABLE' using errcode='42501'; end if;
+ if group_row.state<>'active' then raise exception 'GROUP_UNAVAILABLE' using errcode='42501'; end if;
 
  if p_action='apply' then
-  if g.visibility<>'public' then raise exception 'GROUP_INVITE_ONLY' using errcode='42501'; end if;
+  if group_row.visibility<>'public' then raise exception 'GROUP_INVITE_ONLY' using errcode='42501'; end if;
   if actor_member.status='active' then return jsonb_build_object('status','active'); end if;
   if actor_member.status in ('removed','left')
    then raise exception 'GROUP_REJOIN_REQUIRES_INVITE' using errcode='42501'; end if;
