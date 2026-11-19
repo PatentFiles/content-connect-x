@@ -56,6 +56,13 @@ Source: `supabase/functions/trust-intake/`, `src/supabase/TrustSite.jsx`, `ccx_t
 
 When off, **show the supported contact channel** and do not tell a reporter their submission was received. Never turn on the intake solely to make the frontend appear functional.
 
+### Reporter status and case assignment
+
+After an actual accepted report, show the UUID report reference and a separate randomly generated private access code once; the reporter must preserve both securely. Case status is available without login only when both match, via a rate-limited, service-owned endpoint. The status response intentionally excludes reporter details, case content, review notes, staff identity and evidence. The code is held in page memory only, not localStorage, browser URL or analytics. If lost, the public contact channel is the recovery route; do not allow report-reference-only lookup.
+
+The staff triage queue is gated by a verified administrator account and MFA AAL2. A reviewer claims a pending case before an outcome change; competing claims are blocked and audit events are append-only. Overdue internal target warnings are not evidence of completed remediation. Staff must record the **actual** action taken. This release does not automatically email reporters, disable material, accept public report submissions or certify legal deadlines.
+
+
 ## Calls and notifications
 
 Voice/video are not implemented. Before choosing a calling service, verify data region, retention, accessibility, role-based room tokens, block/report integration and recording-off default. Video room/recipient tokens come from an authenticated server endpoint only. Recording requires separate explicit, applicable consent.
