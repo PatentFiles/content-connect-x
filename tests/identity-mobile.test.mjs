@@ -102,3 +102,17 @@ test('camera context distinguishes unsupported, insecure and embedding-policy fa
 test('cancelling a head turn interrupts its delay immediately',async()=>{
  const controller=new AbortController(),promise=cameraDelay(10000,controller.signal);controller.abort();await assert.rejects(promise,{name:'AbortError'});
 });
+
+
+test('production capture requires revision and transmits it with the evidence receipt',async()=>{
+ const {xhr,promise}=upload({endpoint:'identity-verification',evidenceRevision:2});
+ await tick();
+ assert.equal(xhr.body.get('evidence_revision'),'2');
+ xhr.respond({session:{id:sid,evidence_revision:2,uploaded:{front:true}}});
+ await promise;
+});
+test('production capture without revision never sends evidence',async()=>{
+ const {xhr,promise}=upload({endpoint:'identity-verification'});
+ await assert.rejects(promise,/Refresh your verification session/);
+ assert.equal(xhr.body,undefined);
+});
