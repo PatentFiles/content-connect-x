@@ -22,6 +22,7 @@ const clientErrorCodes={
  FEED_INVALID_COMMENT:[400,'Comments must contain 2–2,000 characters.'],
  FEED_INVALID_REPORT:[403,'This report cannot be recorded.'],
  FEED_RATE_LIMIT:[429,'Your daily community activity limit has been reached.'],
+ FEED_PUBLISH_CONFLICT:[409,'This update changed while publishing. Check your feed before trying again.'],
  FEED_INVALID_ACTION:[400,'Unsupported feed action.']
 };
 async function boundedBody(req){
@@ -50,7 +51,7 @@ export function createConnectFeedHandler({authenticate,db,storage}){
  const decorate=async items=>Promise.all(items.map(async post=>{
   const photos=await Promise.all((post.media||[]).slice(0,4).map(async media=>{
    const url=await mediaUrl(media.path);
-   return url?{id:media.id,url,caption:media.caption||'',mime_type:media.mime_type}:null;
+   return url?{id:media.id,url,caption:media.caption||'',mime_type:media.mime_type,content_label:media.content_label==='adult_nudity'?'adult_nudity':'professional'}:null;
   }));
   const original=post.original?{id:post.original.id,body:post.original.body,author_id:post.original.author_id,
    author_name:post.original.author_name||'Member',created_at:post.original.created_at}:null;
@@ -108,7 +109,7 @@ export function createConnectFeedHandler({authenticate,db,storage}){
     const media=Array.isArray(body.media_ids)&&body.media_ids.length<=4&&body.media_ids.every(uuid)?body.media_ids:[];
     if(Array.isArray(body.media_ids)&&(media.length!==body.media_ids.length))
       return reply({error:'Choose up to four approved photos.'},400);
-    const audience=['verified','friends','only_me'].includes(body.audience)?body.audience:'friends';
+    const audience=['verified','friends','only_me'].includes(body.audience)?body.audience:'verified';
     const id=action==='repost'&&uuid(body.post_id)?body.post_id:null;
     if(action==='repost'&&!id)return reply({error:'Select a valid post to repost.'},400);
     const groupId=uuid(body.group_id)?body.group_id:null;
@@ -116,8 +117,8 @@ export function createConnectFeedHandler({authenticate,db,storage}){
     if(groupId&&(action==='repost'||media.length))return reply({error:'Group posts currently support moderated text only. Group-specific private image processing is not yet activated.'},409);
     const out=groupId
      ?await rpc('ccx_feed_create_group',{p_actor:who,p_group:groupId,p_body:body.text})
-     :await rpc('ccx_feed_create',{p_actor:who,p_body:body.text,p_audience:audience,p_media:media,p_repost:id});
-    return reply({item:out,note:'Submitted for moderation. Your update is not visible to friends until approved.'},201);
+     :await rpc('ccx_feed_create_trusted',{p_actor:who,p_body:body.text,p_audience:audience,p_media:media,p_repost:id});
+    return reply({item:out,note:out?.status==='published'?'Your update is published to its selected audience.':'Submitted for moderation; group updates appear after approval.'},201);
    }
    if(!uuid(body.post_id))return reply({error:'Select a valid post.'},400);
    if(action==='hide'){
@@ -128,7 +129,7 @@ export function createConnectFeedHandler({authenticate,db,storage}){
     if(!flags.has(body.reason))return reply({error:'Select a reporting category.'},400);
     const out=await rpc('ccx_feed_report',{p_actor:who,p_post:body.post_id,p_reason:body.reason});
     return reply({received:out?.received===true,reference:out?.reference,
-      note:'Report received for moderation. This does not confirm a removal or emergency response.'});
+      note:out?.quarantined?'Post temporarily hidden for privacy and safety review. No automatic account penalty was imposed.':'Report received for moderator review. This does not confirm a removal or emergency response.'});
    }
    const readable=await allowed(who,body.post_id);
    if(!readable)return reply({error:'This post is not available to your account.'},404);
