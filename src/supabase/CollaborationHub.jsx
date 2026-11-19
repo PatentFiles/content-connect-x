@@ -3,7 +3,7 @@
  * "Delete" hides an item for this member; it never erases signed evidence.
  */
 import React,{useCallback,useEffect,useState} from 'react';
-import {BriefcaseBusiness,CalendarDays,FileText,MapPin,Plus,RefreshCw,ShieldCheck,Users,Archive,RotateCcw} from 'lucide-react';
+import {CalendarDays,FileText,MapPin,Plus,RefreshCw,ShieldCheck,Archive,RotateCcw} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
 import MemberPicker from './MemberPicker';
 const panel='ccx-surface min-w-0 rounded-2xl p-5';
