@@ -18,7 +18,7 @@ async function rpc(action,data={}){
 }
 export default function RepresentationAgreements({role='creator',preview=false}){
  const representing=['agent','studio'].includes(role);
- const [items,setItems]=useState([]),[target,setTarget]=useState(window.history.state?.memberContext?.targetUserId||'');
+ const [items,setItems]=useState([]),[target,setTarget]=useState(typeof window!=='undefined'?window.history.state?.memberContext?.targetUserId||'':'');
  const [roleFilter,setRoleFilter]=useState(representing?'creator':'agent');
  const [scope,setScope]=useState('Professional representation for content productions, negotiations and bookings; all work remains subject to the professional’s separate informed consent.');
  const [months,setMonths]=useState('12'),[noticeDays,setNoticeDays]=useState('30'),[commission,setCommission]=useState('10'),[exclusive,setExclusive]=useState(false);
