@@ -48,7 +48,7 @@ DO $$ DECLARE queue jsonb;id uuid;item jsonb;BEGIN
 END $$;
 RESET ROLE;
 -- Status lookup requires BOTH the receipt number and the private access code.
-DO $ DECLARE ref uuid;code uuid;data jsonb;wrong uuid:=gen_random_uuid();i integer;BEGIN
+DO $status_test$ DECLARE ref uuid;code uuid;data jsonb;wrong uuid:=gen_random_uuid();i integer;BEGIN
  SELECT id,access_code INTO ref,code FROM receipt_secrets;
  data:=public.ccx_trust_reporter_status(ref,wrong,repeat('c',64));
  ASSERT data->>'verified'='false';
@@ -63,7 +63,7 @@ DO $ DECLARE ref uuid;code uuid;data jsonb;wrong uuid:=gen_random_uuid();i integ
   PERFORM public.ccx_trust_reporter_status(ref,wrong,repeat('c',64));
   RAISE EXCEPTION 'Status brute-force limit bypassed';
  EXCEPTION WHEN SQLSTATE '54000' THEN NULL;END;
-END $;
+END $status_test$;
 UPDATE public.account_security SET suspended=true WHERE user_id='00000000-0000-4000-8000-000000000001';
 SET LOCAL ROLE authenticated;
 DO $$ BEGIN BEGIN PERFORM public.ccx_trust_review('list');RAISE EXCEPTION 'Suspended reviewer accepted';EXCEPTION WHEN insufficient_privilege THEN NULL;END;END $$;
