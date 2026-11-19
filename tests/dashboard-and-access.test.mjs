@@ -1,23 +1,26 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {DASHBOARD_WIDGETS,defaultDashboardLayout,normalizeDashboardLayout,moveDashboardWidget,widgetsForRole} from '../src/supabase/dashboardWidgets.mjs';
+import {DASHBOARD_WIDGETS,PEOPLE_WIDGETS,defaultDashboardLayout,normalizeDashboardLayout,moveDashboardWidget,widgetsForRole} from '../src/supabase/dashboardWidgets.mjs';
 import {accessReason} from '../src/supabase/moduleAccessPolicy.mjs';
 import {compatibleEdgeFetch} from '../src/api/edgeTransport.mjs';
-for(const role of ['creator','agent','studio','photographer','videographer','video_editor'])test(role+' dashboard defaults contain only allowed unique metrics',()=>{
- const layout=defaultDashboardLayout(role),allowed=widgetsForRole(role).map(w=>w.id);
+for(const role of ['creator','agent','studio','photographer','videographer','video_editor','host'])test(role+' new dashboard is empty without resetting an existing saved layout',()=>{
+ assert.deepEqual(defaultDashboardLayout(role),[]);
+ assert.deepEqual(normalizeDashboardLayout(null,role),[]);
+ const layout=widgetsForRole(role).map(w=>({id:w.id,width:w.kind==='people'?'wide':'normal'}));
  assert.equal(new Set(layout.map(w=>w.id)).size,layout.length);
- for(const w of layout)assert.ok(allowed.includes(w.id));
  assert.deepEqual(normalizeDashboardLayout(layout,role),layout);
 });
 test('empty user layouts stay empty and malicious/duplicate/other-role widgets are removed',()=>{
  assert.deepEqual(normalizeDashboardLayout([],'creator'),[]);
  assert.deepEqual(normalizeDashboardLayout([{id:'favorites',width:'wide',sql:'BAD'},{id:'favorites'},{id:'roster'},{id:'<script>'}],'creator'),[{id:'favorites',width:'wide'}]);
- assert.equal(DASHBOARD_WIDGETS.length,15);
+ assert.equal(DASHBOARD_WIDGETS.length,21);assert.equal(PEOPLE_WIDGETS.length,6);
+ assert.deepEqual(PEOPLE_WIDGETS.map(w=>w.id),['featured_professionals','featured_creators','featured_videographers','featured_photographers','featured_editors','creators_near_me']);
 });
 test('reordering is bounded and does not mutate the saved layout',()=>{
  const a=[{id:'favorites',width:'normal'},{id:'connections',width:'normal'}];
  assert.equal(moveDashboardWidget(a,'favorites',-1),a);
  assert.deepEqual(moveDashboardWidget(a,'favorites',1).map(x=>x.id),['connections','favorites']);
+ assert.equal(moveDashboardWidget(a,'favorites',99),a);
  assert.equal(a[0].id,'favorites');
 });
 test('authorization and load failures are never mislabeled disabled',()=>{

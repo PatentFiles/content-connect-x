@@ -5,8 +5,6 @@ import {renderToStaticMarkup} from 'react-dom/server';
 import {createServer} from 'vite';
 import {ROLE_ROUTES} from '../src/supabase/roleNavigationData.mjs';
 import {MODULE_FEATURES} from '../src/supabase/featureModules.mjs';
-// SSR-only checks do not need the browser dependency optimizer. Disabling its
-// discovery prevents a background scan racing with server.close() after tests.
 const server=await createServer({server:{middlewareMode:true},appType:'custom',optimizeDeps:{noDiscovery:true,include:[]}});
 let checks=0;
 try{
@@ -25,7 +23,10 @@ try{
   if(['agent','studio'].includes(role))assert.ok(html.includes('Roster'));
   if(['photographer','videographer','video_editor'].includes(role))assert.ok(html.includes('Portfolio'));
   checks++;
-  assert.ok(html.includes('Customize dashboard')&&html.includes('Profile views')&&html.includes('Unread messages'),role+' must render metrics instead of only shortcut modules');checks++;
+  // Fresh layouts deliberately have no preset metric cards. The browser suite
+  // covers the post-load empty state and adding/saving a real optional module.
+  assert.ok(html.includes('Customize Dashboard'),role+' must expose customization');
+  assert.ok(!html.includes('aria-label="Profile views"')&&!html.includes('aria-label="Unread messages"'),role+' must not invent a saved layout');checks++;
   if(role!=='creator'){
    const settings=renderToStaticMarkup(React.createElement(ProfessionalProfile,{user,profile,role,preview:true,approved:true}));
    assert.ok(!settings.includes('Production details')&&!settings.includes('Health &amp; testing'),role+' must not render performer settings');
