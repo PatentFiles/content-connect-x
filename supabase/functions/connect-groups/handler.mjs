@@ -67,7 +67,7 @@ export function createGroupHandler({authenticate,assurance=async()=>null,db}){
    const {data,error}=await db.rpc('ccx_group_action',args);
    if(error){
     const key=Object.keys(errors).find(code=>String(error.message||'').includes(code));
-    const [message,status]=key?errors[key]:['Group operation could not be completed. Check your permissions and retry.',503];
+    const [status,message]=key?errors[key]:[503,'Group operation could not be completed. Check your permissions and retry.'];
     return reply({error:message},status);
    }
    if(!data||typeof data!=='object')return reply({error:'Group result could not be confirmed.'},503);
