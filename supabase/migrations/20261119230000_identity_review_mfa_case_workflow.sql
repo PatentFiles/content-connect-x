@@ -70,7 +70,7 @@ CREATE FUNCTION public.ccx_idv_review_case(
  p_actor uuid, p_session uuid, p_action text, p_disposition text DEFAULT NULL
 ) RETURNS jsonb LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $review$
 DECLARE
-  c public.ccx_idv_review_cases%rowtype;
+  case_item public.ccx_idv_review_cases%rowtype;
   summary jsonb;
 BEGIN
  IF p_actor IS NULL OR NOT EXISTS(
@@ -96,39 +96,39 @@ BEGIN
   RETURN jsonb_build_object('cases',summary,'reviewer_id',p_actor);
  END IF;
  IF p_session IS NULL THEN RAISE EXCEPTION 'REVIEW_CASE_REQUIRED' USING ERRCODE='22023'; END IF;
- SELECT * INTO c FROM public.ccx_idv_review_cases
+ SELECT * INTO case_item FROM public.ccx_idv_review_cases
  WHERE session_id=p_session FOR UPDATE;
  IF NOT FOUND THEN RAISE EXCEPTION 'REVIEW_CASE_NOT_FOUND' USING ERRCODE='42501'; END IF;
- IF c.requester_id=p_actor THEN
+ IF case_item.requester_id=p_actor THEN
    RAISE EXCEPTION 'INDEPENDENT_REVIEW_REQUIRED' USING ERRCODE='42501';
  END IF;
  IF p_action='claim' THEN
-  IF c.status='closed' OR (c.status='claimed' AND c.assigned_reviewer_id<>p_actor)
+  IF case_item.status='closed' OR (case_item.status='claimed' AND case_item.assigned_reviewer_id<>p_actor)
     THEN RAISE EXCEPTION 'REVIEW_CASE_UNAVAILABLE' USING ERRCODE='42501'; END IF;
-  IF c.status='queued' THEN
+  IF case_item.status='queued' THEN
    UPDATE public.ccx_idv_review_cases SET
      status='claimed',assigned_reviewer_id=p_actor,assigned_at=now(),updated_at=now()
-   WHERE session_id=p_session RETURNING * INTO c;
+   WHERE session_id=p_session RETURNING * INTO case_item;
    INSERT INTO public.ccx_idv_review_events(session_id,actor_id,action,from_status,to_status)
      VALUES(p_session,p_actor,'case_claimed','queued','claimed');
   END IF;
  ELSIF p_action='release' THEN
-  IF c.status<>'claimed' OR c.assigned_reviewer_id IS DISTINCT FROM p_actor
+  IF case_item.status<>'claimed' OR case_item.assigned_reviewer_id IS DISTINCT FROM p_actor
     THEN RAISE EXCEPTION 'REVIEW_NOT_ASSIGNED' USING ERRCODE='42501'; END IF;
   UPDATE public.ccx_idv_review_cases SET status='queued',
     assigned_reviewer_id=NULL,assigned_at=NULL,updated_at=now()
-  WHERE session_id=p_session RETURNING * INTO c;
+  WHERE session_id=p_session RETURNING * INTO case_item;
   INSERT INTO public.ccx_idv_review_events(session_id,actor_id,action,from_status,to_status)
     VALUES(p_session,p_actor,'case_released','claimed','queued');
  ELSIF p_action IN ('close','authorize_read') THEN
-  IF c.status<>'claimed' OR c.assigned_reviewer_id IS DISTINCT FROM p_actor
+  IF case_item.status<>'claimed' OR case_item.assigned_reviewer_id IS DISTINCT FROM p_actor
     THEN RAISE EXCEPTION 'REVIEW_NOT_ASSIGNED' USING ERRCODE='42501'; END IF;
   IF p_action='close' THEN
    IF p_disposition NOT IN ('fresh_capture_required','insufficient_evidence','specialist_followup') OR p_disposition IS NULL
      THEN RAISE EXCEPTION 'REVIEW_DISPOSITION_REQUIRED' USING ERRCODE='22023'; END IF;
    UPDATE public.ccx_idv_review_cases SET status='closed',assigned_reviewer_id=NULL,
      assigned_at=NULL,closed_at=now(),disposition=p_disposition,updated_at=now()
-   WHERE session_id=p_session RETURNING * INTO c;
+   WHERE session_id=p_session RETURNING * INTO case_item;
    INSERT INTO public.ccx_idv_review_events(session_id,actor_id,action,from_status,to_status,reason_code)
      VALUES(p_session,p_actor,'case_closed','claimed','closed',p_disposition);
   ELSE
@@ -141,8 +141,8 @@ BEGIN
  ELSE
   RAISE EXCEPTION 'REVIEW_UNKNOWN_ACTION' USING ERRCODE='22023';
  END IF;
- RETURN jsonb_build_object('id',c.session_id,'case_status',c.status,
-   'assigned_reviewer_id',c.assigned_reviewer_id,'disposition',c.disposition);
+ RETURN jsonb_build_object('id',case_item.session_id,'case_status',case_item.status,
+   'assigned_reviewer_id',case_item.assigned_reviewer_id,'disposition',case_item.disposition);
 END $review$;
 REVOKE ALL ON FUNCTION public.ccx_idv_review_case(uuid,uuid,text,text) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.ccx_idv_review_case(uuid,uuid,text,text) TO service_role;
