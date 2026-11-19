@@ -47,6 +47,7 @@ export function createGroupHandler({authenticate,assurance=async()=>null,db}){
    const action=body.action;
    if(['admin_queue','moderate'].includes(action)&&await assurance(req)!=='aal2')
     return reply({error:'Complete administrator two-factor authentication before moderating groups.'},403);
+   if(action==='moderate'&&!['approve','reject'].includes(body.decision))return reply({error:'Choose approve or reject.'},400);
    const groupId=uuid(body.group_id)?body.group_id:null;
    if(!['discover','mine','create','admin_queue'].includes(action)&&!groupId)
     return reply({error:'Choose a valid group.'},400);
