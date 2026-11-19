@@ -456,7 +456,7 @@ export default function SupabaseApp() {
       paid={paid} isAdmin={isAdmin} onNavigate={navigateInWorkspace}
       onSaved={()=>refresh(session)}/>}
     {tab==='verification'&&<div className="mx-auto max-w-md"><YotiVerification onApproval={()=>refresh(session)}/></div>}
-    {['directory','search','favorites'].includes(tab)&&
+    {['directory','favorites'].includes(tab)&&
       <CreatorDiscovery key={tab} user={user} approved={approved} paid={paid}
        mode={tab==='directory'?'discovery':tab} onNavigate={navigateInWorkspace}/>}
     {tab==='reviews'&&isAdmin&&approved&&<div className="space-y-4"><div className="flex justify-between items-center"><h2 className="text-xl font-semibold">Age verification records</h2><button className={primary} onClick={loadReviews} disabled={busy}><RefreshCw size={16}/></button></div><p className={muted}>Historical verification records are read-only. New members verify through Yoti; manual approval is no longer available.</p>{reviews.map(request=><div key={request.id} className={`${panel} space-y-2`}><p className="text-sm">Request {request.id} · {request.status}</p><p className={muted}>{new Date(request.created_at).toLocaleString()}</p><div className="flex flex-wrap gap-2"><button className={primary} onClick={()=>openReviewDocument(request.id,'id')} disabled={busy}>View ID</button><button className={primary} onClick={()=>openReviewDocument(request.id,'selfie')} disabled={busy}>View selfie</button></div></div>)}{reviews.length===0&&<p className={muted}>Select refresh to load recent review requests.</p>}</div>}
