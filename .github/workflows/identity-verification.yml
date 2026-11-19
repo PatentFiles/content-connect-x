@@ -86,6 +86,7 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f supabase/sql/self_hosted_identity_v2.sql
           psql -v ON_ERROR_STOP=1 -f supabase/sql/self_hosted_identity_retention_hardening.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261119212000_identity_selective_retake.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261119230000_identity_review_mfa_case_workflow.sql
           psql -v ON_ERROR_STOP=1 -f tests/identity-database-regression.sql | tee identity-database-results.txt
       - uses: actions/upload-artifact@v4
         if: always()
