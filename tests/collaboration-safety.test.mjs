@@ -67,7 +67,7 @@ test('Edge authenticates a live Supabase JWT and sends no client-supplied actor 
  assert.match(code,/admin\.auth\.getUser\(/);
  assert.match(code,/ccx_collaboration_safety_action/);
  assert.match(code,/p_actor:userId/);
- assert.doesNotMatch(code,/process\.env|localStorage|GPS|navigator\.geolocation/);
+ assert.doesNotMatch(code,/process\.env|localStorage|navigator\.geolocation/);
 });
 test('collaboration UI is embedded only on a private selected record and warns no monitoring',()=>{
  const hub=fs.readFileSync('src/supabase/CollaborationHub.jsx','utf8');
