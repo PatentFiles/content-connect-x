@@ -6,6 +6,7 @@ import LiveIdentityCamera from './LiveIdentityCamera';
 import IdentityUploadProgress from './IdentityUploadProgress';
 import {mergeIdentitySnapshot,identityFinished,identityResultTitle} from './identityResultState.mjs';
 import {identityRecoveryGuide} from './identityRecoveryGuide.mjs';
+import {createIdentityApprovalGate} from './identityApprovalOnce.mjs';
 const field='mt-1 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900';
 export default function IdentityVerification({onApproval=()=>{},onboarding=false,action=identityAction,uploadAction=identityUpload,testing=false}){
  const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -15,13 +16,15 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
  const [refreshing,setRefreshing]=useState(false),[lastChecked,setLastChecked]=useState(null);
  const refreshInFlight=useRef(null);
  const alive=useRef(true),approval=useRef(onApproval),inputs=useRef({}),uploadController=useRef(null),operation=useRef(false);
+ const approvalGate=useRef(null);
+ if(!approvalGate.current)approvalGate.current=createIdentityApprovalGate();
  approval.current=onApproval;
  const accept=async(result)=>{
   if(!alive.current)return;
   if(result.session!==undefined){setState(old=>mergeIdentitySnapshot(old,result));setCorrection(result.session?.expected_name||'');}
   else setState(result);
   // A pilot result is never an onboarding-completion callback, even if all checks pass.
-  if(result.session?.status==='approved'&&!testing)await approval.current?.();
+  if(!testing)await approvalGate.current(result.session,()=>approval.current?.());
  };
  const refresh=(quiet=false)=>{
   if(refreshInFlight.current)return refreshInFlight.current;
