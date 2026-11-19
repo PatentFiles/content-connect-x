@@ -21,6 +21,7 @@ async function action(name,payload={}){
 function FeedPost({post,paid,userId,onChanged,onError}){
  const [comments,setComments]=useState(null),[commentText,setCommentText]=useState('');
  const [busy,setBusy]=useState(false),[repostText,setRepostText]=useState(''),[reposting,setReposting]=useState(false);
+ const [revealedPhotos,setRevealedPhotos]=useState([]);
  const [reporting,setReporting]=useState(false),[reportReason,setReportReason]=useState('unsafe');
  const [local,setLocal]=useState(post),[notice,setNotice]=useState('');
  useEffect(()=>{setLocal(post);},[post]);
@@ -63,9 +64,18 @@ function FeedPost({post,paid,userId,onChanged,onError}){
    <p className="mt-2 whitespace-pre-wrap break-words">{local.original.body}</p>
   </div>}
   {local.photos?.length>0&&<div className={'grid gap-2 '+(local.photos.length>1?'grid-cols-2':'grid-cols-1')}>
-   {local.photos.map(photo=><a key={photo.id} href={photo.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" aria-label={'View attached photo '+(photo.caption||'')} className="block overflow-hidden rounded-xl border border-[var(--cc-border)]">
-    <img src={photo.url} alt={photo.caption||'Shared professional photo'} loading="lazy" referrerPolicy="no-referrer" className="aspect-square h-auto w-full object-cover"/>
-   </a>)}
+   {local.photos.map(photo=>{
+    const concealed=photo.content_label==='adult_nudity'&&!revealedPhotos.includes(photo.id);
+    return <div key={photo.id} className="relative overflow-hidden rounded-xl border border-[var(--cc-border)]">
+     <a href={concealed?undefined:photo.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"
+      aria-label={'View attached photo '+(photo.caption||'')} className="block">
+      <img src={photo.url} alt={concealed?'Adult image concealed until revealed':photo.caption||'Shared professional photo'}
+       loading="lazy" referrerPolicy="no-referrer" className={'aspect-square h-auto w-full object-cover '+(concealed?'blur-2xl':'')}/>
+     </a>
+     {concealed&&<button type="button" className="absolute inset-0 flex items-center justify-center bg-black/40 px-4 text-center text-sm font-semibold text-white"
+      onClick={()=>setRevealedPhotos(v=>[...v,photo.id])}>Adult nudity — click to reveal</button>}
+    </div>;
+   })}
   </div>}
   <div className="flex flex-wrap items-center gap-1 border-t border-[var(--cc-border)] pt-3">
    <button type="button" className={secondary} disabled={busy} aria-label={local.liked?'Unlike post':'Like post'} onClick={()=>void mutate(local.liked?'unlike':'like')}>
