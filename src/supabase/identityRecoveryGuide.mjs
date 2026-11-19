@@ -8,11 +8,11 @@ export function identityRecoveryGuide(status,reason,{testing=false,eligibleOn=nu
  if(status==='review_required'){
   if(documentReasons.has(reason))return {
    title:'Your ID needs a clearer check',kind:'document',
-   steps:['Compare the printed name, date of birth and expiry with what was read. A misread date does not prove your ID is invalid.','If possible, take a new, sharp photo of the entire front and back without glare.','This version requires restarting both ID and live camera capture. If it still fails, use the review route.'],
+   steps:['Compare the printed name, date of birth and expiry with what was read. A misread date does not prove your ID is invalid.','If possible, take a new, sharp photo of the entire front and back without glare.','Use the Retake front/back button for the affected image, if available. Other securely saved evidence can remain in this attempt. If it still fails, request qualified review.'],
    note:testing?'Private testing cannot approve an account.':'Your access remains restricted until a trusted check succeeds or an authorized review resolves the issue.'};
   if(captureReasons.has(reason))return {
    title:'Your live camera check needs another attempt',kind:'camera',
-   steps:['Use a well-lit room with your face unobstructed.','Follow the left/right head-turn instructions and look back toward the camera after each hold.','Start a new attempt. The current workflow must capture a fresh ID and new selfie together.'],
+   steps:['Use a well-lit room with your face unobstructed.','Follow the left/right head-turn instructions and look back toward the camera after each hold.','Use Retry camera challenge to capture a fresh live sequence where available, while retaining your saved ID images. Otherwise start a new attempt.'],
    note:'A face mismatch or liveness failure is not automatically an accusation of fraud.'};
   if(securityReasons.has(reason))return {
    title:'We could not safely link this attempt',kind:'technical',
