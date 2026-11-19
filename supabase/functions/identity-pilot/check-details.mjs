@@ -13,6 +13,10 @@ export function sanitizedCheckDetails(value){
   low_confidence_fields:list(value.low_confidence_fields,FIELDS,4),
   barcode_decoded:typeof value.barcode_decoded==='boolean'?value.barcode_decoded:null,
   front_back_mismatches:list(value.front_back_mismatches,FIELDS,4),
+  // Permit only a validated calendar date and a boolean; never return raw barcode text.
+  barcode_expiry:typeof value.barcode_expiry==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value.barcode_expiry)?value.barcode_expiry:null,
+  visual_expiry_conflict:value.visual_expiry_conflict===true,
+  middle_initial_ocr_join_corrected:value.middle_initial_ocr_join_corrected===true,
   authenticity_available:typeof value.authenticity_available==='boolean'?value.authenticity_available:null,
   authenticity_score:boundedNumber(value.authenticity_score,1),
   authenticity_flag_count:Number.isInteger(value.authenticity_flag_count)?boundedNumber(value.authenticity_flag_count,100):null,
