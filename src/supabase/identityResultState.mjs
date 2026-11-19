@@ -6,6 +6,11 @@ export function mergeIdentitySnapshot(previous,incoming){
  if(!incoming||typeof incoming!=='object')return previous;
  const old=previous?.session,next=incoming.session;
  if(old?.id&&next?.id===old.id){
+  // A server-authorized retake increments the evidence revision. Older status
+  // polls must never restore a superseded verdict or uploaded-file receipt.
+  const oldRevision=old.evidence_revision??0,nextRevision=next.evidence_revision??0;
+  if(nextRevision<oldRevision)return {...previous,...incoming,session:old};
+  if(nextRevision>oldRevision)return {...previous,...incoming};
   // A status request started during processing may arrive after the submit result.
   // Never replace a final result with that earlier pending snapshot.
   if((complete.has(old.status)&&pending.has(next.status))||(old.status==='processing'&&next.status==='collecting'))return {...previous,...incoming,session:old};
