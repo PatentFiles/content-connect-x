@@ -6,6 +6,7 @@ import {countries,countryName,regionOptions,contentCategories,genderOptions,role
 import {localDiscoveryFilters,validateWorkLink} from './roleWorkspacePolicy.mjs';
 import {useRoleWorkspace} from './RoleWorkspaceContext';
 import MemberDiscoveryCard from './MemberDiscoveryCard';
+import SponsorshipSlot from './SponsorshipSlot';
 const input='w-full min-w-0 rounded-xl bg-[var(--cc-surface-subtle)] border border-[var(--cc-border)] px-3 py-2.5 text-[var(--cc-text-primary)] focus:outline-none focus:ring-2 focus:ring-fuchsia-500';
 const panel='ccx-surface p-5';
 const emptyFilters={query:'',role:'',country:'',state:'',city:'',category:'',gender:''};
@@ -71,6 +72,7 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
    {working&&<p role="status" className="text-sm text-[var(--cc-text-secondary)]">Loading profiles…</p>}
    {searched&&!results.length&&!working&&!error&&<div className={panel+' text-sm text-[var(--cc-text-secondary)]'}>{mode==='favorites'?'No saved profiles are available. Use the heart on a Discovery card.':'No matching profiles found. Try a different city or broader filters.'}</div>}
    <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 xl:grid-cols-3">{results.map(p=><MemberDiscoveryCard key={p.id} person={p} saved={saved.includes(p.id)} busy={favoriteBusy.includes(p.id)} canFavorite={p.id!==user.id} onFavorite={()=>void toggle(p.id)} onClick={()=>openProfile(p)}/>)}</div>
+   <SponsorshipSlot placement="feed"/>
    {more&&<button type="button" className="ccx-primary rounded-xl px-5 py-3" disabled={working} onClick={()=>void search(applied,true)}>Load more</button>}
    {selected&&<div role="dialog" aria-modal="true" aria-label="Public professional profile" className="fixed inset-0 z-[100] grid place-items-center bg-black/80 p-4" onClick={()=>setSelected(null)}><section className="ccx-surface max-h-[85dvh] w-full max-w-lg space-y-4 overflow-y-auto p-6" onClick={e=>e.stopPropagation()}>
     <header className="flex items-start justify-between gap-3"><div><h3 className="text-xl font-semibold">{selected.display_name}</h3><p className="mt-1 text-sm text-[var(--cc-link)]">{roleNames[selected.role_type]||selected.role_type}</p></div><button type="button" className="p-2" aria-label="Close profile" onClick={()=>setSelected(null)}><X size={20}/></button></header>
