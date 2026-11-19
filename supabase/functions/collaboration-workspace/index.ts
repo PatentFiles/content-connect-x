@@ -34,7 +34,9 @@ Deno.serve(async req=>{
  const paid=security.data?.admin===true||!!(subscription.data&&['active','trial'].includes(subscription.data.status)&&(!subscription.data.period_end||Date.parse(subscription.data.period_end)>Date.now()));
  const featureActions=new Set(['list','detail','save_plan','hide','unhide','eligibility','properties']);
  if(!featureActions.has(action))return fail('Unsupported action');
- if(!paid)return fail('Premium membership required for collaboration planning',402);
+ // Past signed records and consent must remain visible even after a subscription lapses.
+ // Only active planning, invitations and professional discovery require Premium.
+ if(!paid&&!['list','detail','hide','unhide'].includes(action))return fail('Premium membership required for new collaboration planning',402);
  const member=async cid=>{
   const {data,error}=await admin.from('collaboration_members').select('user_id').eq('collaboration_id',cid).eq('user_id',uid).maybeSingle();
   if(error)throw error;return !!data;
@@ -108,12 +110,14 @@ Deno.serve(async req=>{
   if(ce||!collab)return fail('Collaboration unavailable',404);
   if(action==='save_plan'){
    if(collab.creator_id!==uid||terminal.has(collab.status))return fail('Only an active collaboration owner may edit its plan',403);
-   const [signed,prior]=await Promise.all([
-    admin.from('contracts').select('id').eq('collaboration_id',cid).not('locked_at','is',null).limit(1),
-    admin.from('ccx_collaboration_plans').select('version').eq('collaboration_id',cid).maybeSingle()
+   const [signed,prior,consentRows]=await Promise.all([
+    admin.from('contracts').select('id,status,locked_at').eq('collaboration_id',cid).limit(100),
+    admin.from('ccx_collaboration_plans').select('version').eq('collaboration_id',cid).maybeSingle(),
+    admin.from('collaboration_consents').select('user_id').eq('collaboration_id',cid).is('revoked_at',null).limit(1)
    ]);
-   if(signed.error||prior.error)throw Error('Plan status unavailable');
-   if(signed.data?.length)return fail('Signed agreements cannot be overwritten. Create an amendment with renewed consent.',409);
+   if(signed.error||prior.error||consentRows.error)throw Error('Plan status unavailable');
+   if(signed.data?.some(x=>x.locked_at||['signed','executed','locked','completed'].includes(x.status)))return fail('Signed agreements cannot be overwritten. Create an amendment with renewed consent.',409);
+   if(consentRows.data?.length)return fail('Existing participant consent must be re-confirmed before changing the production plan.',409);
    const starts=safe(payload.starts_at,40),ends=safe(payload.ends_at,40);
    if(starts&&!Number.isFinite(Date.parse(starts))||ends&&!Number.isFinite(Date.parse(ends))||starts&&ends&&Date.parse(ends)<=Date.parse(starts))return fail('Check the shoot start and end times');
    const activities=Array.isArray(payload.activities)?payload.activities.filter(x=>typeof x==='string'&&x.trim().length>0).map(x=>x.trim().slice(0,100)).slice(0,60):[];
