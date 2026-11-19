@@ -5,7 +5,8 @@ import {identityRecoveryGuide} from '../src/supabase/identityRecoveryGuide.mjs';
 test('OCR uncertainty offers retake and qualified review, never an identity allegation',()=>{
  const guide=identityRecoveryGuide('review_required','id_expired_or_unclear');
  assert.equal(guide.kind,'document');
- assert.match(guide.steps.join(' '),/clearer|misread|photo|capture/i);
+ assert.match(guide.steps.join(' '),/clearer|misread|photo|capture|retake/i);
+ assert.match(guide.steps.join(' '),/Retake front\/back/i);
  assert.doesNotMatch(guide.steps.join(' '),/automatically approve|fake ID|fraud committed/i);
 });
 test('face/liveness uncertainty is distinct from ID authenticity',()=>{

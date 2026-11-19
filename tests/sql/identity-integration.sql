@@ -51,6 +51,7 @@ GRANT SELECT,INSERT,UPDATE ON public.age_verification_requests TO service_role;
 
 \ir ../../supabase/sql/self_hosted_identity_v2.sql
 \ir ../../supabase/sql/self_hosted_identity_retention_hardening.sql
+\ir ../../supabase/migrations/20261119212000_identity_selective_retake.sql
 CREATE TRIGGER ccx_yoti_approval_only BEFORE INSERT OR UPDATE OF status ON public.age_verification_requests FOR EACH ROW EXECUTE FUNCTION ccx_internal.require_yoti_new_approval();
 
 CREATE TABLE public.ci_cases(kind text PRIMARY KEY,uid uuid,sid uuid);
@@ -120,6 +121,7 @@ BEGIN
  END LOOP;
 END $$;
 RESET ROLE;
+\ir ./identity-retake-assertions.sql
 UPDATE public.ccx_idv_sessions SET purge_after=now()-interval '1 day';
 UPDATE public.ccx_idv_sessions SET legal_hold=true WHERE id=(SELECT sid FROM public.ci_cases WHERE kind='held');
 SET ROLE service_role;

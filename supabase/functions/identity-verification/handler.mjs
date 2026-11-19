@@ -7,7 +7,7 @@ const BUCKET='ccx-identity-evidence';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const reply=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{...cors,'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 class RequestError extends Error { constructor(message,status=400){super(message);this.status=status;} }
-const errors={INVALID_CAPABILITY:'The verification capability is invalid or expired.',VERIFICATION_UNAVAILABLE:'Verification is not available yet.',CONFIRM_EMAIL:'Confirm your email address before verification.',ACCOUNT_RESTRICTED:'This account is restricted.',DAILY_ATTEMPT_LIMIT:'You have reached the daily verification limit. Please try again later.',SESSION_NOT_FOUND:'Verification session not found.',NOTICE_CHANGED:'The verification notice changed. Review it and consent again.',COUNTRY_UNSUPPORTED:'This issuing country is not supported yet.',SESSION_LOCKED:'This session cannot be changed. Check its status or start a new attempt.',SESSION_EXPIRED_OR_DISABLED:'This session expired or verification is unavailable. Start a new attempt.',EVIDENCE_IMMUTABLE:'This evidence is already saved. Start a new attempt to replace it.',EVIDENCE_INCOMPLETE:'Upload all required ID images and complete the camera check.',ATTEMPT_LIMIT:'This attempt has reached its retry limit. Request a review.',NAME_DOES_NOT_MATCH:'Enter the full legal name printed on the ID.',REVIEW_UNAVAILABLE:'A review cannot be requested for this session yet.'};
+const errors={INVALID_CAPABILITY:'The verification capability is invalid or expired.',VERIFICATION_UNAVAILABLE:'Verification is not available yet.',CONFIRM_EMAIL:'Confirm your email address before verification.',ACCOUNT_RESTRICTED:'This account is restricted.',DAILY_ATTEMPT_LIMIT:'You have reached the daily verification limit. Please try again later.',SESSION_NOT_FOUND:'Verification session not found.',NOTICE_CHANGED:'The verification notice changed. Review it and consent again.',COUNTRY_UNSUPPORTED:'This issuing country is not supported yet.',SESSION_LOCKED:'This session cannot be changed. Check its status or start a new attempt.',SESSION_EXPIRED_OR_DISABLED:'This session expired or verification is unavailable. Start a new attempt.',EVIDENCE_IMMUTABLE:'This evidence is already saved. Start a new attempt to replace it.',EVIDENCE_INCOMPLETE:'Upload all required ID images and complete the camera check.',ATTEMPT_LIMIT:'This attempt has reached its retry limit. Request a review.',NAME_DOES_NOT_MATCH:'Enter the full legal name printed on the ID.',REVIEW_UNAVAILABLE:'A review cannot be requested for this session yet.',RETAKE_UNAVAILABLE:'This image cannot be retaken in the current attempt. Request review or start a new verification session.',STALE_EVIDENCE_REVISION:'This photo belongs to an earlier capture. Refresh your status and retake the photo.'};
 async function boundedBody(stream,max){
  if(!stream)return new Uint8Array();const reader=stream.getReader();const chunks=[];let size=0;
  try{for(;;){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>max)throw new RequestError('The upload is too large.',413);chunks.push(value);}}finally{await reader.cancel().catch(()=>{});}
@@ -24,7 +24,7 @@ export function publicSession(s,now=Date.now()){
  expected_name:s.status==='name_mismatch'?s.extracted_name:null,
  challenge_id:s.status==='collecting'?s.challenge_id:null,directions:s.status==='collecting'?s.directions:null,
  uploaded:Object.fromEntries(['front','back','selfie','capture'].map(k=>[k,Boolean(s.evidence?.[k])])),
- expires_at:s.expires_at,review_requested:Boolean(s.review_requested_at)};
+ expires_at:s.expires_at,evidence_revision:s.evidence_revision??0,review_requested:Boolean(s.review_requested_at)};
 }
 function workerOrigin(value){
  const url=new URL(value);
@@ -46,7 +46,7 @@ export function createHandler({admin,authenticate,fetchImpl=fetch,clock=()=>new 
    if(multipart&&(!uploadUser||uploadUser.is_anonymous))return reply({error:'Sign in to continue.'},401);
    const bytes=await boundedBody(req.body,multipart?MAX_IMAGE+65536:16384);
    let form=null,body;
-   if(multipart){form=await new Response(bytes,{headers:{'Content-Type':req.headers.get('Content-Type')}}).formData();body={action:'upload',session_id:form.get('session_id'),kind:form.get('kind')};}
+   if(multipart){form=await new Response(bytes,{headers:{'Content-Type':req.headers.get('Content-Type')}}).formData();body={action:'upload',session_id:form.get('session_id'),kind:form.get('kind'),evidence_revision:form.get('evidence_revision')};}
    else {try{body=JSON.parse(new TextDecoder().decode(bytes));}catch{throw new RequestError('Invalid request.');}}
    if(!body||typeof body!=='object'||Array.isArray(body)||typeof body.action!=='string')throw new RequestError('Invalid request.');
    if(body.action==='worker_claim'){
@@ -119,10 +119,15 @@ export function createHandler({admin,authenticate,fetchImpl=fetch,clock=()=>new 
      issuing_country:body.issuing_country,consent_version:body.notice_version,consent_hash:await digest(new TextEncoder().encode(cfg.notice_text||''))});
     return reply({session:publicSession(s)});
    }
-   if(!['upload','submit','confirm_name','request_review','cancel'].includes(body.action))throw new RequestError('Unknown action.');
+   if(!['upload','submit','confirm_name','request_review','cancel','retake'].includes(body.action))throw new RequestError('Unknown action.');
    const id=identifier(body.session_id),s=await getSession(id,user.id);
    if(!s)throw new RequestError('Verification session not found.',404);
    if(body.action==='request_review'||body.action==='cancel')return reply({session:publicSession(await transition(user.id,id,body.action))});
+   if(body.action==='retake'){
+    if(!['front','back','capture'].includes(body.kind))throw new RequestError('Select an ID side or the camera check to retake.');
+    const recovered=await run(admin.rpc('ccx_idv_request_retake',{p_user:user.id,p_session:id,p_kind:body.kind}));
+    return reply({session:publicSession(recovered)});
+   }
    if(!cfg.enabled)throw new RequestError('Verification is not available yet.',503);
    if(body.action==='confirm_name'){
     const name=legalName(body.legal_name);
@@ -131,6 +136,8 @@ export function createHandler({admin,authenticate,fetchImpl=fetch,clock=()=>new 
    }
    if(body.action==='upload'){
     if(s.status!=='collecting'||new Date(s.expires_at)<=clock())throw new RequestError('Start a new verification attempt.',409);
+    const revision=Number(body.evidence_revision);
+    if(!Number.isSafeInteger(revision)||revision<0||revision!==s.evidence_revision)throw new RequestError(errors.STALE_EVIDENCE_REVISION,409);
     if(!['front','back','capture'].includes(body.kind)||body.kind==='back'&&s.document_type==='passport')throw new RequestError('Invalid upload type.');
     const file=form?.get('file');if(!(file instanceof Blob)||file.size===0)throw new RequestError('Select a file.');
     const raw=new Uint8Array(await file.arrayBuffer()),assets=[];
@@ -156,7 +163,7 @@ export function createHandler({admin,authenticate,fetchImpl=fetch,clock=()=>new 
      await run(admin.storage.from(BUCKET).upload(path,data,{contentType:mime,upsert:false,cacheControl:'0'}));
      parts[kind]={path,sha256:hash,bytes:data.length,content_type:mime};
     }
-    return reply({session:publicSession(await transition(user.id,id,'upload',{parts}))});
+    return reply({session:publicSession(await run(admin.rpc('ccx_idv_upload_versioned',{p_user:user.id,p_session:id,p_revision:revision,p_parts:parts})))});
    }
    // Submit: freeze the evidence, mint a short-lived worker capability, and await
    // a direct HTTPS response. A webhook or browser cannot submit a verdict.

@@ -88,3 +88,14 @@ test('middle initial fused by OCR is matched only when barcode corroborates all 
  assert.equal(middleInitialJoinedByOCR('JORDANX EXAMPLE',barcode.full_name,nameKey),false);
  assert.equal(middleInitialJoinedByOCR('JORDAN EXAMPLE',barcode.full_name,nameKey),false);
 });
+
+
+test('a newer evidence revision replaces a final review verdict; stale polls cannot restore it',()=>{
+ const old={enabled:true,session:{id:'same',status:'review_required',evidence_revision:0,uploaded:{front:true,back:true,capture:true}}};
+ const retaken=mergeIdentitySnapshot(old,{session:{id:'same',status:'collecting',evidence_revision:1,uploaded:{front:false,back:true,capture:true}}});
+ assert.equal(retaken.session.status,'collecting');
+ assert.equal(retaken.session.uploaded.front,false);
+ const stale=mergeIdentitySnapshot(retaken,{session:{id:'same',status:'review_required',evidence_revision:0,uploaded:{front:true}}});
+ assert.equal(stale.session.evidence_revision,1);
+ assert.equal(stale.session.uploaded.front,false);
+});
