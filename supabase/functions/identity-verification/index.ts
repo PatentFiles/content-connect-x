@@ -1,8 +1,9 @@
-// Deployment wrapper pins the already-tested application handler and policy.
-// The bundle resolves these imports at build time. Every user action verifies
+// Deployment wrapper bundles the exact versioned local handler and policy.
+// Never import an older GitHub commit: those bytes can silently disagree with
+// the deployed database migration. Every user action verifies
 // Supabase Auth; worker/retention actions use their own one-use capabilities.
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
-import {createHandler} from 'https://raw.githubusercontent.com/PatentFiles/content-connect-x/21f1969b30e9ac672ae963e9ed04d22c08cdc8f9/supabase/functions/identity-verification/handler.mjs';
+import {createHandler} from './handler.mjs';
 const url=Deno.env.get('SUPABASE_URL');
 const key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 if(!url||!key)throw new Error('Server configuration is missing');
