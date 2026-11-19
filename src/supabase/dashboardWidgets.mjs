@@ -16,7 +16,7 @@ export const DASHBOARD_WIDGETS=Object.freeze([
  {id:'collaborations',title:'Active collaborations',description:'Your open production projects',tab:'collaborations'},
  {id:'invitations',title:'Collaboration invitations',description:'Invitations awaiting your response',tab:'collaborations'},
  {id:'contracts',title:'Pending contracts',description:'Your draft and pending agreements',tab:'contracts'},
- {id:'properties',title:'Upcoming property requests',description:'Your requested or accepted future bookings',tab:'hosting'},
+ {id:'properties',title:'Saved properties',description:'Full-width cards for approved marketplace locations you saved',tab:'hosting',kind:'properties'},
  {id:'testing',title:'Testing submissions',description:'Your private documents awaiting review',tab:'testing'},
  {id:'roster',title:'Active roster',description:'Accepted creators and pending invitations',tab:'roster',roles:['agent','studio']},
  {id:'portfolio',title:'Portfolio items',description:'Your uploaded photos and work links',tab:'portfolio',roles:['photographer','videographer','video_editor']},
