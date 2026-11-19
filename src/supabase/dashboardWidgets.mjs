@@ -26,9 +26,9 @@ export const DASHBOARD_WIDGETS=Object.freeze([
  ...PEOPLE_WIDGETS
 ]);
 export const widgetsForRole=role=>DASHBOARD_WIDGETS.filter(w=>!w.roles||w.roles.includes(role));
-// A missing saved layout means a genuinely empty workspace, not a marketing dashboard.
+// Retain the optional role argument for existing callers. Every role starts empty.
 // Existing non-null layouts are normalized below, never reset during this release.
-export function defaultDashboardLayout(){return [];}
+export function defaultDashboardLayout(_role=''){return [];}
 export function normalizeDashboardLayout(layout,role){
  if(!Array.isArray(layout))return defaultDashboardLayout();
  const allowed=new Set(widgetsForRole(role).map(w=>w.id)),seen=new Set();

@@ -74,7 +74,8 @@ export default function TrustSite({children}){
  useEffect(()=>{
   if(!legalPage)return;let active=true;
   if(!supabase){setConfigError(true);return;}
-  void supabase.rpc('ccx_trust_public_config').then(({data,error})=>{if(active){setConfig(error?null:data);setConfigError(Boolean(error));}}).catch(()=>{if(active)setConfigError(true);});
+  // PostgREST builders are PromiseLike, not Promise: assimilate before using catch.
+  void Promise.resolve(supabase.rpc('ccx_trust_public_config')).then(({data,error})=>{if(active){setConfig(error?null:data);setConfigError(Boolean(error));}}).catch(()=>{if(active)setConfigError(true);});
   return()=>{active=false;};
  },[legalPage]);
  useEffect(()=>{if(legalPage)document.title=(page?.title|| (slug==='cookies'?'Cookie preferences':slug==='review'?'Staff review':'Trust & safety'))+' | Content Connect X';},[legalPage,page,slug]);
