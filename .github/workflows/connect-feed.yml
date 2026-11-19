@@ -19,6 +19,8 @@ on:
       - 'tests/connect-groups.test.mjs'
       - 'tests/connect-feed-permalink.test.mjs'
       - 'src/supabase/CreatorDiscovery.jsx'
+      - 'src/supabase/SponsorshipSlot.jsx'
+      - 'ops/AD_NETWORK_ONBOARDING.md'
       - '.github/workflows/connect-feed.yml'
   push:
     branches: [feat/connect-community-groups-20261119]
