@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import {decide,eligibilityDate,legalName,nameKey,isoDate,validateCapture,SCHEMA,ENGINE_REVISION,PHASES,publicMessage} from '../supabase/functions/identity-verification/policy.mjs';
 import {createHandler} from '../supabase/functions/identity-verification/handler.mjs';
 const userId='11111111-1111-4111-8111-111111111111',sessionId='22222222-2222-4222-8222-222222222222';
@@ -74,4 +75,15 @@ test('retake cannot address another member session',async()=>{
  const h=harness({sessionOverride:{user_id:'33333333-3333-4333-8333-333333333333',status:'review_required'}});
  assert.equal((await h.invoke({action:'retake',session_id:sessionId,kind:'front'})).status,404);
  assert.equal(h.calls.some(c=>c.rpc==='ccx_idv_request_retake'),false);
+});
+
+
+test('deployed identity entrypoint bundles the checked-in handler rather than a stale remote SHA',()=>{
+ const wrapper=fs.readFileSync('supabase/functions/identity-verification/index.ts','utf8');
+ const handler=fs.readFileSync('supabase/functions/identity-verification/handler.mjs','utf8');
+ assert.match(wrapper,/import \{createHandler\} from '\.\/handler\.mjs'/);
+ assert.doesNotMatch(wrapper,/raw\.githubusercontent\.com|https:\/\/.*handler\.mjs/);
+ assert.match(handler,/ccx_idv_request_retake/);
+ assert.match(handler,/ccx_idv_upload_versioned/);
+ assert.match(handler,/from '\.\/policy\.mjs'/);
 });
