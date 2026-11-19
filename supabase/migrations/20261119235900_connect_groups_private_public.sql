@@ -62,7 +62,7 @@ declare
  group_row public.ccx_social_groups%rowtype;
  actor_member public.ccx_social_group_members%rowtype;
  target_member public.ccx_social_group_members%rowtype;
- list jsonb; group_id uuid;event_action text;response_status text;
+ list jsonb; created_group_id uuid;event_action text;response_status text;
  can_admin boolean:=false;can_owner boolean:=false;
 begin
  if p_actor is null or not exists(select 1 from public.member_admissions a
@@ -109,12 +109,12 @@ begin
   insert into public.ccx_social_groups(owner_id,name,description,rules,visibility,state)
    values(p_actor,btrim(p_name),btrim(coalesce(p_description,'')),btrim(coalesce(p_rules,'')),
     p_visibility,case when p_visibility='public' then 'pending_platform' else 'active' end)
-   returning id into group_id;
+   returning id into created_group_id;
   insert into public.ccx_social_group_members(group_id,user_id,role,status)
-   values(group_id,p_actor,'owner','active');
+   values(created_group_id,p_actor,'owner','active');
   insert into public.ccx_social_group_events(group_id,actor_id,action)
-   values(group_id,p_actor,'created');
-  return jsonb_build_object('id',group_id,'state',
+   values(created_group_id,p_actor,'created');
+  return jsonb_build_object('id',created_group_id,'state',
    case when p_visibility='public' then 'pending_platform' else 'active' end);
  end if;
 
