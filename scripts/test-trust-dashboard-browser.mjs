@@ -89,10 +89,11 @@ try{
  const screenshot=async name=>{if(!process.env.STYLE_SCREENSHOT_DIR)return;fs.mkdirSync(process.env.STYLE_SCREENSHOT_DIR,{recursive:true});const shot=await page('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});fs.writeFileSync(path.join(process.env.STYLE_SCREENSHOT_DIR,name),Buffer.from(shot.data,'base64'));};
  await page('Page.enable');await page('Runtime.enable');await page('Network.enable');await page('Network.setBlockedURLs',{urls:['https://*']});
  await page('Emulation.setDeviceMetricsOverride',{width:1320,height:1000,deviceScaleFactor:1,mobile:false});
- await visit('/dashboard');await hasText('Connect Feed');
+ await visit('/dashboard');await hasText('Feed');
  assert.equal(await run(()=>document.querySelectorAll('.ccx-dashboard-card').length),3);
+ assert.equal(await run(()=>document.querySelector('[data-dashboard-feed-layout]')?.dataset.dashboardFeedLayout),'desktop-rail-mobile-feed');
  assert.equal(await run(()=>!!document.querySelector('[data-connect-feed]')),true);
- assert.equal(await run(()=>!!document.querySelector('aside[aria-label="Sponsored advertisements"]')),true);
+ assert.equal(await run(()=>!!document.querySelector('aside[aria-label="Customizable dashboard cards and sponsored advertisements"]')),true);
  assert.equal(await run(()=>window.__db.calls.some(c=>c.name==='directory')),false);
  await click('Customize Dashboard');await wait(()=>document.querySelectorAll('.ccx-catalog-option').length===window.__catalogCount);
  await selectClick('[aria-label="Add Featured creators"]');await wait(()=>!!document.querySelector('.ccx-person-preview'));
@@ -104,10 +105,10 @@ try{
  await run(()=>{window.__db.allowProfile=false;});await selectClick('.ccx-person-preview');await hasText('no longer available');await click('Close');
  await visit('/dashboard');await wait(()=>!!document.querySelector('.ccx-person-preview'));
  assert.equal(await run(()=>document.querySelectorAll('.ccx-dashboard-card').length),4);await noErrors();await screenshot('dashboard-professionals.png');
- await click('Customize Dashboard');await click('Clear dashboard');await click('Save dashboard');await hasText('Connect Feed');
+ await click('Customize Dashboard');await click('Clear dashboard');await click('Save dashboard');await hasText('Feed');
  await visit('/dashboard?failLoad=1');await hasText('Synthetic load unavailable');
  assert.equal(await run(()=>[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Customize Dashboard').disabled),true);
- await run(()=>{window.__db.failLoad=false;});await click('Retry dashboard');await hasText('Connect Feed');
+ await run(()=>{window.__db.failLoad=false;});await click('Retry dashboard');await hasText('Feed');
  await visit('/trust/content-removal');await hasText('Request intake is not open yet');await hasText('Check an existing report');assert.equal(await run(()=>document.querySelectorAll('form').length),1);assert.equal(await run(()=>!!document.querySelector('[data-private-trust-status] form')),true);
  await visit('/trust/cookies');await wait(()=>document.querySelectorAll('input[type=checkbox]').length===2);
  assert.equal(await run(()=>[...document.querySelectorAll('input[type=checkbox]')].every(e=>!e.checked)),true);

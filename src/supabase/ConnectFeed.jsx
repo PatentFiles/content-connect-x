@@ -8,11 +8,11 @@ import {supabase} from '@/api/supabaseClient';
 const secondary='ccx-secondary inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm disabled:opacity-50';
 const primary='ccx-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold disabled:opacity-50';
 const input='w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-2.5 text-sm text-[var(--cc-text-primary)]';
-const audienceLabels={friends:'Friends',verified:'Verified Community',only_me:'Only me'};
+const audienceLabels={verified:'Entire community',friends:'Friends only',only_me:'Only me'};
 async function action(name,payload={}){
  const {data,error}=await supabase.functions.invoke('connect-feed',{body:{action:name,...payload}});
  if(error||data?.error){
-  let msg=data?.error||'Connect Feed is unavailable. Try again.';
+  let msg=data?.error||'Feed is unavailable. Try again.';
   if(error?.context?.json)try{const result=await error.context.json();msg=result?.error||msg;}catch{}
   throw Error(msg);
  }
@@ -103,12 +103,12 @@ function FeedPost({post,paid,userId,onChanged,onError}){
   {notice&&<p role="status" className="rounded-lg bg-[var(--cc-surface-subtle)] p-2 text-xs">{notice}</p>}
  </article>;
 }
-export default function ConnectFeed({userId,paid=false,preview=false,initialMode='friends',profileId=null,groupId=null,onNavigate=(_tab)=>{}}){
+export default function ConnectFeed({userId,paid=false,preview=false,initialMode='discover',profileId=null,groupId=null,onNavigate=(_tab)=>{}}){
  const modeOptions=groupId?[['group','Group posts']]:profileId?[['profile','Posts']]:[['friends','Friends'],['following','Following'],['discover','Discover']];
  const [mode,setMode]=useState(groupId?'group':profileId?'profile':initialMode),[items,setItems]=useState([]),[cursor,setCursor]=useState(null);
  const [loading,setLoading]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [sharedPost,setSharedPost]=useState(null),[sharedError,setSharedError]=useState(''),[loadingShared,setLoadingShared]=useState(false);
- const [text,setText]=useState(''),[audience,setAudience]=useState('friends'),[gallery,setGallery]=useState([]);
+ const [text,setText]=useState(''),[audience,setAudience]=useState('verified'),[gallery,setGallery]=useState([]);
  const [mediaIds,setMediaIds]=useState([]),[uploadFile,setUploadFile]=useState(null),[rights,setRights]=useState(false),[uploading,setUploading]=useState(false);
  const reqNo=useRef(0),posting=useRef(false);
  const load=useCallback(async(more=false)=>{
@@ -178,10 +178,6 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
   }catch(e){setError(e.message);}finally{posting.current=false;setLoading(false);}
  };
  return <section data-connect-feed="true" className="min-w-0 space-y-4" aria-label={groupId?'Private group posts':profileId?'Profile timeline':'Connect Feed'}>
-  {!profileId&&!groupId&&<header className="flex flex-wrap items-center justify-between gap-2">
-   <div><h2 className="text-xl font-bold">Connect Feed</h2><p className="mt-1 text-xs text-[var(--cc-text-secondary)]">Updates from your verified professional network.</p></div>
-   <div className="flex flex-wrap gap-2"><button className={secondary} type="button" onClick={()=>onNavigate('groups')}><MessageCircle size={16}/>Groups</button><button className={secondary} disabled={loading} onClick={()=>void load(false)} aria-label="Refresh Connect Feed"><RefreshCw size={16}/>Refresh</button></div>
-  </header>}
   {paid&&!preview&&!profileId?<form className="ccx-surface space-y-3 rounded-2xl p-4 sm:p-5" onSubmit={publish}>
    <label className="block text-sm font-semibold">{groupId?'Share in this group':'Share an update'}
     <textarea className={input+' mt-2'} value={text} rows={3} required minLength={5} maxLength={3000}
@@ -211,6 +207,10 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
    </details>}
    <p className="text-xs text-[var(--cc-text-secondary)]">Posting and reposting require Premium. All posts and comments remain private until moderation approves them. Group posts are restricted to active members and currently support text only.</p>
   </form>:!profileId&&<div className="ccx-surface rounded-xl p-4 text-sm text-[var(--cc-text-secondary)]">Verified Free members can browse, like, save, share links and submit moderated comments. Premium is required to publish posts, upload photos or repost.</div>}
+  {!profileId&&!groupId&&<header className="flex flex-wrap items-center justify-between gap-2">
+   <div><h2 className="text-xl font-bold">Feed</h2><p className="mt-1 text-xs text-[var(--cc-text-secondary)]">Latest posts from your verified community, friends and following.</p></div>
+   <div className="flex flex-wrap gap-2"><button className={secondary} type="button" onClick={()=>onNavigate('groups')}><MessageCircle size={16}/>Groups</button><button className={secondary} disabled={loading} onClick={()=>void load(false)} aria-label="Refresh Connect Feed"><RefreshCw size={16}/>Refresh</button></div>
+  </header>}
   {!profileId&&!groupId&&<div className="flex flex-wrap gap-2" role="tablist" aria-label="Connect Feed filter">
    {modeOptions.map(([v,label])=><button key={v} type="button" role="tab" aria-selected={mode===v} className={mode===v?primary:secondary} onClick={()=>setMode(v)}>{label}</button>)}
   </div>}
