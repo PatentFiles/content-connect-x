@@ -3,7 +3,7 @@
  * "Delete" hides an item for this member; it never erases signed evidence.
  */
 import React,{useCallback,useEffect,useState} from 'react';
-import {CalendarDays,FileText,MapPin,Plus,RefreshCw,ShieldCheck,Archive,RotateCcw} from 'lucide-react';
+import {CalendarDays,FileText,MapPin,Plus,RefreshCw,ShieldCheck,Users,Archive,RotateCcw} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
 import MemberPicker from './MemberPicker';
 const panel='ccx-surface min-w-0 rounded-2xl p-5';
@@ -22,7 +22,7 @@ async function call(fn,action,extra={}){
  }
  return data;
 }
-export default function CollaborationHub({user,onNavigate=()=>{},initialTargetId=''}) {
+export default function CollaborationHub({user,onNavigate=(destination,context)=>{void destination;void context;},initialTargetId=''}) {
  const [items,setItems]=useState([]),[hidden,setHidden]=useState([]),[invitations,setInvitations]=useState([]);
  const [filter,setFilter]=useState('current'),[editing,setEditing]=useState(false),[selected,setSelected]=useState(''),[detail,setDetail]=useState(null);
  const [properties,setProperties]=useState([]),[target,setTarget]=useState(initialTargetId),[role,setRole]=useState('creator');
