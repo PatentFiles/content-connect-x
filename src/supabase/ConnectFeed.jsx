@@ -103,7 +103,7 @@ function FeedPost({post,paid,userId,onChanged,onError}){
   {notice&&<p role="status" className="rounded-lg bg-[var(--cc-surface-subtle)] p-2 text-xs">{notice}</p>}
  </article>;
 }
-export default function ConnectFeed({userId,paid=false,preview=false,initialMode='friends',profileId=null,groupId=null,onNavigate=()=>{}}){
+export default function ConnectFeed({userId,paid=false,preview=false,initialMode='friends',profileId=null,groupId=null,onNavigate=(_tab)=>{}}){
  const modeOptions=groupId?[['group','Group posts']]:profileId?[['profile','Posts']]:[['friends','Friends'],['following','Following'],['discover','Discover']];
  const [mode,setMode]=useState(groupId?'group':profileId?'profile':initialMode),[items,setItems]=useState([]),[cursor,setCursor]=useState(null);
  const [loading,setLoading]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
