@@ -31,7 +31,7 @@ begin
   if s.legal_hold or s.review_requested_at is not null then raise exception 'RETAKE_UNAVAILABLE'; end if;
   -- Only an inconclusive completed attempt qualifies. Never reset approved,
   -- age-restricted, name-mismatched, pending or still-processing evidence.
-  if s.status<>'review_required' or not s.evidence ? 'capture'
+  if s.status<>'review_required' or not (s.evidence ? 'capture')
     or s.process_attempts>=3 or p_kind not in ('front','back','capture')
     then raise exception 'RETAKE_UNAVAILABLE'; end if;
   if (p_kind='back' and s.document_type='passport')
@@ -79,6 +79,8 @@ create or replace function public.ccx_idv_upload_versioned(
 declare s public.ccx_idv_sessions%rowtype;
 begin
   if p_user is null or p_revision is null then raise exception 'STALE_EVIDENCE_REVISION'; end if;
+  -- Match the advisory-first lock order used by the existing transition.
+  perform pg_advisory_xact_lock(hashtextextended(p_user::text,7211));
   select * into s from public.ccx_idv_sessions
     where id=p_session and user_id=p_user for update;
   if not found then raise exception 'SESSION_NOT_FOUND'; end if;
