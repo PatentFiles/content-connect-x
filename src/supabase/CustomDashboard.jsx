@@ -93,7 +93,7 @@ export default function CustomDashboard({profile,onNavigate,roleOverride}){
    </article>;
   })}</section>
   <div className="grid min-w-0 grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_280px]">
-   <ConnectFeed userId={userId} paid={data?.account?.tier==='premium'||data?.account?.admin===true} preview={preview}/>
+   <ConnectFeed userId={userId} paid={data?.account?.tier==='premium'||data?.account?.admin===true} preview={preview} onNavigate={onNavigate}/>
    <aside className="min-w-0 space-y-3 xl:sticky xl:top-20" aria-label="Sponsored advertisements">
     <div className="ccx-surface rounded-xl p-4">
      <h2 className="text-sm font-semibold">Sponsored</h2>
