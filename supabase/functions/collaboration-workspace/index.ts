@@ -76,7 +76,7 @@ Deno.serve(async req=>{
  try{
   if(action==='eligibility')return send(await invitationEligibility(payload.target_user_id));
   if(action==='properties'){
-   const {data,error}=await admin.from('properties').select('id,title,city,state,country').eq('status','active').not('approved_at','is',null).order('created_at',{ascending:false}).limit(75);
+   const {data,error}=await admin.from('properties').select('id,title,city,state,country,timezone').eq('status','active').not('approved_at','is',null).order('created_at',{ascending:false}).limit(75);
    if(error)throw error;return send({items:data||[]});
   }
   if(action==='list'){
@@ -119,15 +119,19 @@ Deno.serve(async req=>{
    if(signed.data?.some(x=>x.locked_at||['signed','executed','locked','completed'].includes(x.status)))return fail('Signed agreements cannot be overwritten. Create an amendment with renewed consent.',409);
    if(consentRows.data?.length)return fail('Existing participant consent must be re-confirmed before changing the production plan.',409);
    const starts=safe(payload.starts_at,40),ends=safe(payload.ends_at,40);
+   const timeZone=safe(payload.timezone,80)||'UTC';
+   try{new Intl.DateTimeFormat('en-US',{timeZone});}catch{return fail('Choose a valid production time zone');}
+   if(Boolean(starts)!==Boolean(ends)||starts&&!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(starts)||ends&&!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(ends))return fail('Start and end times must be complete UTC instants');
    if(starts&&!Number.isFinite(Date.parse(starts))||ends&&!Number.isFinite(Date.parse(ends))||starts&&ends&&Date.parse(ends)<=Date.parse(starts))return fail('Check the shoot start and end times');
    const activities=Array.isArray(payload.activities)?payload.activities.filter(x=>typeof x==='string'&&x.trim().length>0).map(x=>x.trim().slice(0,100)).slice(0,60):[];
    const venue=safe(payload.venue_label,240),city=safe(payload.city,160),propertyId=payload.property_id||null;
    if(propertyId){
     if(!id(propertyId))return fail('Invalid property selection');
-    const {data:property,error:e}=await admin.from('properties').select('id,status,approved_at').eq('id',propertyId).maybeSingle();
+    const {data:property,error:e}=await admin.from('properties').select('id,status,approved_at,timezone').eq('id',propertyId).maybeSingle();
     if(e||!property||property.status!=='active'||!property.approved_at)return fail('Property is not an approved active listing',403);
+    if(property.timezone&&property.timezone!==timeZone)return fail('Use the selected property’s production time zone',409);
    }
-   const data={collaboration_id:cid,starts_at:starts||null,ends_at:ends||null,timezone:safe(payload.timezone,80)||'UTC',city,venue_label:venue,property_id:propertyId,
+   const data={collaboration_id:cid,starts_at:starts||null,ends_at:ends||null,timezone:timeZone,city,venue_label:venue,property_id:propertyId,
     scope_of_work:safe(payload.scope_of_work,6000),agreed_activities:activities,deliverables:safe(payload.deliverables,6000),usage_rights:safe(payload.usage_rights,6000),
     version:(prior.data?.version||0)+1,updated_by:uid,updated_at:new Date().toISOString()};
    const out=prior.data
