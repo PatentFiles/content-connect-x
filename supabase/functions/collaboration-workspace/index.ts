@@ -76,7 +76,7 @@ Deno.serve(async req=>{
  try{
   if(action==='eligibility')return send(await invitationEligibility(payload.target_user_id));
   if(action==='properties'){
-   const {data,error}=await admin.from('properties').select('id,title,city,state,country').eq('status','active').not('approved_at','is',null).order('created_at',{ascending:false}).limit(75);
+   const {data,error}=await admin.from('properties').select('id,title,city,state,country,timezone').eq('status','active').not('approved_at','is',null).order('created_at',{ascending:false}).limit(75);
    if(error)throw error;return send({items:data||[]});
   }
   if(action==='list'){
@@ -119,15 +119,19 @@ Deno.serve(async req=>{
    if(signed.data?.some(x=>x.locked_at||['signed','executed','locked','completed'].includes(x.status)))return fail('Signed agreements cannot be overwritten. Create an amendment with renewed consent.',409);
    if(consentRows.data?.length)return fail('Existing participant consent must be re-confirmed before changing the production plan.',409);
    const starts=safe(payload.starts_at,40),ends=safe(payload.ends_at,40);
+   const timeZone=safe(payload.timezone,80)||'UTC';
+   try{new Intl.DateTimeFormat('en-US',{timeZone});}catch{return fail('Choose a valid production time zone');}
+   if(Boolean(starts)!==Boolean(ends)||starts&&!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(starts)||ends&&!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(ends))return fail('Start and end times must be complete UTC instants');
    if(starts&&!Number.isFinite(Date.parse(starts))||ends&&!Number.isFinite(Date.parse(ends))||starts&&ends&&Date.parse(ends)<=Date.parse(starts))return fail('Check the shoot start and end times');
    const activities=Array.isArray(payload.activities)?payload.activities.filter(x=>typeof x==='string'&&x.trim().length>0).map(x=>x.trim().slice(0,100)).slice(0,60):[];
    const venue=safe(payload.venue_label,240),city=safe(payload.city,160),propertyId=payload.property_id||null;
    if(propertyId){
     if(!id(propertyId))return fail('Invalid property selection');
-    const {data:property,error:e}=await admin.from('properties').select('id,status,approved_at').eq('id',propertyId).maybeSingle();
+    const {data:property,error:e}=await admin.from('properties').select('id,status,approved_at,timezone').eq('id',propertyId).maybeSingle();
     if(e||!property||property.status!=='active'||!property.approved_at)return fail('Property is not an approved active listing',403);
+    if(property.timezone&&property.timezone!==timeZone)return fail('Use the selected property’s production time zone',409);
    }
-   const data={collaboration_id:cid,starts_at:starts||null,ends_at:ends||null,timezone:safe(payload.timezone,80)||'UTC',city,venue_label:venue,property_id:propertyId,
+   const data={collaboration_id:cid,starts_at:starts||null,ends_at:ends||null,timezone:timeZone,city,venue_label:venue,property_id:propertyId,
     scope_of_work:safe(payload.scope_of_work,6000),agreed_activities:activities,deliverables:safe(payload.deliverables,6000),usage_rights:safe(payload.usage_rights,6000),
     version:(prior.data?.version||0)+1,updated_by:uid,updated_at:new Date().toISOString()};
    const out=prior.data
@@ -149,12 +153,19 @@ Deno.serve(async req=>{
   const ids=(members.data||[]).map(x=>x.user_id);
   const names=ids.length?await admin.from('member_profiles').select('id,display_name,role_type,city,country').in('id',ids):{data:[],error:null};
   if(names.error)throw names.error;
+  const [admissions,securities]=await Promise.all([
+   ids.length?admin.from('member_admissions').select('user_id,admitted_at').in('user_id',ids):Promise.resolve({data:[],error:null}),
+   ids.length?admin.from('account_security').select('user_id,banned,suspended').in('user_id',ids):Promise.resolve({data:[],error:null})
+  ]);
+  if(admissions.error||securities.error)throw Error('Participant eligibility unavailable');
+  const admittedSet=new Set((admissions.data||[]).filter(x=>!!x.admitted_at).map(x=>x.user_id));
+  const securityMap=new Map((securities.data||[]).map(x=>[x.user_id,x]));
   const profileMap=new Map((names.data||[]).map(x=>[x.id,x]));
   const signatures=(contracts.data||[]).length?await admin.from('contract_signatures').select('contract_id,signer_id,accepted_at,signed_content_hash').in('contract_id',(contracts.data||[]).map(x=>x.id)):{data:[],error:null};
   if(signatures.error)throw signatures.error;
   await admin.from('platform_action_audit').insert({actor_id:uid,action:'collaboration_detail_read',target_type:'collaboration',target_id:cid});
   return send({collaboration:collab,plan:plan.data||null,history:history.data||[],
-    members:(members.data||[]).map(x=>({...x,profile:profileMap.get(x.user_id)||null})),
+    members:(members.data||[]).map(x=>({...x,profile:profileMap.get(x.user_id)||null,admitted:admittedSet.has(x.user_id),restricted:!securityMap.has(x.user_id)||securityMap.get(x.user_id)?.banned===true||securityMap.get(x.user_id)?.suspended===true})),
     contracts:(contracts.data||[]).map(x=>({...x,signatures:(signatures.data||[]).filter(s=>s.contract_id===x.id)})),
     consents:consents.data||[],invitations:collab.creator_id===uid?invites.data||[]:[]});
  }catch(e){

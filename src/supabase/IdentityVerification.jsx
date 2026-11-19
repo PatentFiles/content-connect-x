@@ -5,6 +5,7 @@ import {identityAction,identityUpload} from './identityApi';
 import LiveIdentityCamera from './LiveIdentityCamera';
 import IdentityUploadProgress from './IdentityUploadProgress';
 import {mergeIdentitySnapshot,identityFinished,identityResultTitle} from './identityResultState.mjs';
+import {identityRecoveryGuide} from './identityRecoveryGuide.mjs';
 const field='mt-1 min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-slate-900';
 export default function IdentityVerification({onApproval=()=>{},onboarding=false,action=identityAction,uploadAction=identityUpload,testing=false}){
  const [state,setState]=useState(null),[busy,setBusy]=useState(false),[error,setError]=useState('');
@@ -46,6 +47,7 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
   return()=>{active=false;window.clearTimeout(timer);};
  },[state?.session?.id,state?.session?.status]);
  const session=state?.session,status=session?.status,locked=busy||cameraBusy;
+ const recovery=identityRecoveryGuide(status,session?.reason,{testing,eligibleOn:session?.eligible_on});
  const start=()=>perform(async()=>{
   setTransfers({});
   const fullLegalName=[name,middleName,familyName].map(part=>part.trim()).filter(Boolean).join(' ');
@@ -91,6 +93,11 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
   {status==='approved'&&<p role="status" className="mt-5 flex items-center justify-center gap-2 text-emerald-800"><CheckCircle2/>{testing?session.message:'Verification complete'}</p>}
   {identityFinished(status)&&<div role="status" aria-live="polite" data-identity-result={status} className="mt-5 rounded-xl border p-4"><h2 className="text-lg font-semibold">{identityResultTitle(status,testing)}</h2>{testing&&<p className="mt-1 text-sm">This is the completed test result. Your existing account access is unchanged.</p>}</div>}
   {session?.message&&status!=='approved'&&<p role="status" className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-900">{session.message}</p>}
+   {recovery&&<section data-identity-recovery={recovery.kind} aria-labelledby="ccx-recovery-heading" className="mt-4 rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-sm text-slate-900">
+     <h2 id="ccx-recovery-heading" className="font-semibold text-base">{recovery.title}</h2>
+     <ol className="mt-3 list-decimal space-y-2 pl-5 leading-6">{recovery.steps.map((step,i)=><li key={i}>{step}</li>)}</ol>
+     <p className="mt-3 border-t border-amber-200 pt-3 text-xs leading-5 text-slate-700">{recovery.note}</p>
+   </section>}
   {canStart&&state?.enabled&&<div className="mt-5 space-y-4">
    <fieldset className="space-y-3 rounded-xl border border-slate-200 p-4"><legend className="px-1 text-sm font-semibold">Full legal name on your ID</legend><p className="text-xs leading-5 text-slate-600">Enter each name exactly as printed on your ID. Include your middle name or initial, accents, spaces and hyphenated surnames. Do not use a stage name.</p>
     <label className="block text-sm font-medium">First / given name<input autoComplete="given-name" maxLength={90} value={name} onChange={e=>setName(e.target.value)} className={field}/></label>
