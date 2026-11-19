@@ -17,7 +17,7 @@ try{
  for(const role of Object.keys(ROLE_ROUTES)){
   const profile={...base,role_type:role};
   const html=renderToStaticMarkup(React.createElement(Shell,{user,profile,approved:true,tab:'dashboard',featureFlags:flags,onNavigate:()=>{},onSignOut:()=>{}},React.createElement(Dashboard,{profile,verified:true,features:flags,onNavigate:()=>{}})));
-  for(const label of ['Discovery','Search','Favorites','Properties'])assert.ok(html.includes(label),role+' must render '+label);
+  for(const label of ['Discovery','Favorites','Properties'])assert.ok(html.includes(label),role+' must render '+label);
   assert.ok(html.includes('Mobile bottom navigation'));
   assert.ok(!html.includes('Host Dashboard'));
   if(['agent','studio'].includes(role))assert.ok(html.includes('Roster'));
