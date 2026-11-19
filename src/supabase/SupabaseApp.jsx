@@ -484,6 +484,7 @@ export default function SupabaseApp() {
     {tab==='account-security' && <SecurityCenter/>}
     {tab==='safety' && approved && <SafetyPanel/>}
     {tab==='community' && approved && <CommunityHub paid={paid} userId={user.id}/>}
+    {tab==='groups' && approved && <ConnectGroups userId={user.id} paid={paid} isAdmin={isAdmin}/>}
     {tab==='feedback' && approved && <FeedbackHub admin={isAdmin}/>}
     {tab==='media' && approved && <MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
     {tab==='schedule' && approved && paid && <ScheduleHub paid={paid} userId={user.id} creatorBookingEnabled={Boolean(visibleFeatures?.creator_booking)}/>}
