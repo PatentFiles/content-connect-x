@@ -92,7 +92,11 @@ try{
    return {failures,errors:window.__uiErrors,width:innerWidth,scrollX,scrollWidth:document.documentElement.scrollWidth,textOverflow:(()=>{const out=[],w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let t;while(t=w.nextNode()){if(!t.textContent.trim()||t.parentElement.closest('script,style'))continue;const r=document.createRange();r.selectNodeContents(t);for(const b of r.getClientRects())if(b.right>innerWidth+.5)out.push({text:t.textContent.slice(0,70),parent:t.parentElement.className,right:b.right});}return out.slice(0,10);})(),overflow:failures.length?[...document.querySelectorAll('body *')].map(e=>({e,r:e.getBoundingClientRect()})).filter(({r})=>r.width&&r.right>innerWidth+.5).slice(0,12).map(({e,r})=>({tag:e.tagName,classes:e.className,right:r.right,width:r.width})):[]};
   })()`);
   assert.deepEqual(shell.failures,[],`${width}px header ${large?'200%':'normal'}: ${JSON.stringify(shell)}`);
-  assert.deepEqual(shell.errors,[],'No runtime errors in the actual navigation components');
+  // Chromium can dispatch its non-fatal ResizeObserver loop completion notice
+  // during multiple rapid responsive resizes. Geometry assertions above still
+  // run, and all other application errors remain fatal.
+  const actualAppErrors=shell.errors.filter(message=>message!=='ResizeObserver loop completed with undelivered notifications.');
+  assert.deepEqual(actualAppErrors,[],'No application runtime errors in the actual navigation components');
  }
  console.log('PASS 8 real React header layouts, including 200% text and measured sidebar/content offsets.');
  console.log(`PASS ${results.length} Chromium layouts: ${inventory.files} JSX modules inventoried; ${inventory.labels.length} native choice sites, ${inventory.rows.length} action rows, actual Collaborations markup, keyboard/label/disabled behavior.`);
