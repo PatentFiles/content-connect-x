@@ -216,3 +216,7 @@ The following capabilities were described by the historical Developer ReadMe. Th
 | Miscellaneous retired backend shortcuts and stale UI modules | Remove only after owner decides and parity/usage evidence is recorded | REEVALUATE |
 
 **Decision instructions:** Mark each item REBUILD, REPLACE or RETIRE after reviewing the current implementation. Do not remove unknown legal records or re-enable retired services as a side effect of the documentation cleanup.
+
+### Identity recovery reliability increment (November 19, 2026)
+
+The capture interface deduplicates its approved-session completion callback across repeated or concurrent status checks, while allowing retry if the callback itself fails. This is **frontend navigation reliability only**, not a new source of verification authority, a change to member admission, or evidence of real-ID acceptance. Production self-hosted verification remains disabled pending issue #26's real-document, liveness, false-positive, retention and human-review gates. Existing immutable evidence still requires a fresh session for recapture; selective-side retake is not yet implemented.
