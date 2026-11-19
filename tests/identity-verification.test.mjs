@@ -41,7 +41,8 @@ function harness({user={id:userId,email_confirmed_at:'2026-11-01'},adminRole=fal
   if(args.p_action==='finish')return Promise.resolve({data:{...session,status:args.p_data.checks_passed?'approved':'review_required'},error:null});
   if(args.p_action==='fail')return Promise.resolve({data:{...session,status:'retryable_error'},error:null});
   return Promise.resolve({data:null,error:{message:'INVALID_CAPABILITY'}});
- }throw Error('Unexpected RPC');}};
+ }if(name==='ccx_idv_request_retake')return Promise.resolve({data:{...session,status:'collecting',reason:'retake_requested',evidence_revision:1,evidence:{back:session.evidence.back,selfie:session.evidence.selfie,capture:session.evidence.capture}},error:null});
+ throw Error('Unexpected RPC');}};
  const handler=createHandler({admin:db,authenticate:async()=>user,clock:()=>new Date('2026-11-18T12:00:00Z'),fetchImpl:async()=>new Response(JSON.stringify(reportOverride||report),{status:200})});
  return {calls,handler,invoke:body=>handler(new Request('https://example.test/identity-verification',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}))};
 }
@@ -57,3 +58,20 @@ test('admin cannot review their own evidence',async()=>{const h=harness({adminRo
 test('invalid worker capability rejected before any database read',async()=>{const h=harness({user:null});assert.equal((await h.invoke({action:'worker_claim',session_id:sessionId,token:'bad'})).status,401);assert.equal(h.calls.length,0);});
 test('retention job requires an independent maintenance capability',async()=>{const h=harness({user:null});assert.equal((await h.invoke({action:'purge'})).status,401);});
 test('malformed action is a client error',async()=>{const h=harness();assert.equal((await h.invoke({action:123})).status,400);});
+
+test('retake is owner-bound and only accepts an ID side or the camera challenge',async()=>{
+ const h=harness({sessionOverride:{status:'review_required'}});
+ const bad=await h.invoke({action:'retake',session_id:sessionId,kind:'selfie'});
+ assert.equal(bad.status,400);
+ assert.equal(h.calls.some(c=>c.rpc==='ccx_idv_request_retake'),false);
+ const good=await h.invoke({action:'retake',session_id:sessionId,kind:'front'});
+ assert.equal(good.status,200);
+ assert.equal((await good.json()).session.evidence_revision,1);
+ const call=h.calls.find(c=>c.rpc==='ccx_idv_request_retake');
+ assert.deepEqual(call.args,{p_user:userId,p_session:sessionId,p_kind:'front'});
+});
+test('retake cannot address another member session',async()=>{
+ const h=harness({sessionOverride:{user_id:'33333333-3333-4333-8333-333333333333',status:'review_required'}});
+ assert.equal((await h.invoke({action:'retake',session_id:sessionId,kind:'front'})).status,404);
+ assert.equal(h.calls.some(c=>c.rpc==='ccx_idv_request_retake'),false);
+});
