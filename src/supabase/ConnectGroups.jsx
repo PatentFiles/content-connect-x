@@ -2,7 +2,7 @@
  * groups, while invite-only groups are discoverable only to their invitees.
  */
 import React,{useCallback,useEffect,useState} from 'react';
-import {Plus,RefreshCw,Search,Users,ShieldCheck,Lock,Globe,ArrowLeft} from 'lucide-react';
+import {Plus,RefreshCw,Search,ShieldCheck,Lock,Globe,ArrowLeft} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
 import MemberPicker from './MemberPicker';
 import ConnectFeed from './ConnectFeed';
