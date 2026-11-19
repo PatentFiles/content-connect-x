@@ -198,7 +198,7 @@ BEGIN
  RETURN jsonb_build_object('item',jsonb_build_object('id',row.id,'status',row.status,'agreement_hash',row.agreement_hash,'expires_at',row.expires_at));
 END $f$;
 CREATE OR REPLACE FUNCTION public.ccx_representation_agreement_action(p_action text,p_data jsonb DEFAULT '{}'::jsonb)
-RETURNS jsonb LANGUAGE sql SECURITY INVOKER SET search_path='' AS $f$
+RETURNS jsonb LANGUAGE sql SECURITY DEFINER SET search_path='' AS $f$
  SELECT ccx_workspace_private.ccx_representation_agreement_action(p_action,p_data)
 $f$;
 REVOKE ALL ON FUNCTION public.ccx_representation_agreement_action(text,jsonb) FROM PUBLIC,anon;
