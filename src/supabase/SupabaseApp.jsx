@@ -10,6 +10,7 @@ import SafetyPanel from './SafetyPanel';
 import ScheduleHub from './ScheduleHub';
 import CommunityHub from './CommunityHub';
 import ConnectGroups from './ConnectGroups';
+import ConnectFeed from './ConnectFeed';
 import FeedbackHub from './FeedbackHub';
 import AdminConsole from './AdminConsole';
 import MediaGallery from './MediaGallery';
@@ -459,9 +460,15 @@ export default function SupabaseApp() {
     {tab==='dashboard'&&<OriginalRoleDashboard profile={profile} verified={ageVerified}
       paid={paid} onNavigate={navigateInWorkspace}
       roleOverride={isAdmin?rolePreview:null} features={visibleFeatures}/>}
-    {tab==='profile'&&<CreatorProfileEditor user={user} profile={profile} approved={ageVerified}
+    {tab==='profile'&&<><CreatorProfileEditor user={user} profile={profile} approved={ageVerified}
       paid={paid} isAdmin={isAdmin} onNavigate={navigateInWorkspace}
-      onSaved={()=>refresh(session)}/>}
+      onSaved={()=>refresh(session)}/>
+      <section className="mx-auto mt-6 max-w-4xl space-y-3 px-3" aria-label="Your profile posts">
+       <h2 className="text-xl font-bold">Your profile posts</h2>
+       <p className="text-sm text-[var(--cc-text-secondary)]">Only approved posts visible to each viewer appear on your timeline. Create new posts from Connect Feed on your dashboard.</p>
+       <ConnectFeed key={user.id} userId={user.id} profileId={user.id}/>
+      </section>
+    </>}
     {tab==='verification'&&<div className="mx-auto max-w-md"><YotiVerification onApproval={()=>refresh(session)}/></div>}
     {['directory','favorites'].includes(tab)&&
       <CreatorDiscovery key={tab} user={user} approved={approved} paid={paid}

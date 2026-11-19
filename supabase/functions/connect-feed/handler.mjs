@@ -7,7 +7,7 @@ const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers
 const uuid=x=>typeof x==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(x);
 const modes=new Set(['friends','following','discover','profile','group']);
 const flags=new Set(['unsafe','rights','privacy','harassment','other']);
-const actions=new Set(['feed','create','repost','like','unlike','comment','comments','save','unsave','report','hide','my_photos']);
+const actions=new Set(['feed','post','create','repost','like','unlike','comment','comments','save','unsave','report','hide','my_photos']);
 const clientErrorCodes={
  GROUP_NOT_MEMBER:[403,'Only active group members may see these posts.'],
  GROUP_INVALID_POST:[400,'Group posts must be 5–3,000 characters.'],
@@ -82,6 +82,14 @@ export function createConnectFeedHandler({authenticate,db,storage}){
     const last=items.at(-1);
     return reply({items,cursor:items.length===limit?{before:last.published_at,before_id:last.id}:null,
       posting_requires_premium:true});
+   }
+   if(action==='post'){
+    if(!uuid(body.post_id))return reply({error:'Select a valid post.'},400);
+    const raw=await rpc('ccx_feed_page',{p_actor:who,p_mode:'single',p_author:body.post_id,
+      p_before:null,p_before_id:null,p_limit:1});
+    const result=await decorate(raw?.items||[]);
+    if(result.length!==1)return reply({error:'This post is not available to your account.'},404);
+    return reply({post:result[0]});
    }
    if(action==='my_photos'){
     const rows=await resultOrThrow(db.from('member_media_assets')
