@@ -103,9 +103,9 @@ function FeedPost({post,paid,userId,onChanged,onError}){
   {notice&&<p role="status" className="rounded-lg bg-[var(--cc-surface-subtle)] p-2 text-xs">{notice}</p>}
  </article>;
 }
-export default function ConnectFeed({userId,paid=false,preview=false,initialMode='friends',profileId=null}){
- const modeOptions=profileId?[['profile','Posts']]:[['friends','Friends'],['following','Following'],['discover','Discover']];
- const [mode,setMode]=useState(profileId?'profile':initialMode),[items,setItems]=useState([]),[cursor,setCursor]=useState(null);
+export default function ConnectFeed({userId,paid=false,preview=false,initialMode='friends',profileId=null,groupId=null}){
+ const modeOptions=groupId?[['group','Group posts']]:profileId?[['profile','Posts']]:[['friends','Friends'],['following','Following'],['discover','Discover']];
+ const [mode,setMode]=useState(groupId?'group':profileId?'profile':initialMode),[items,setItems]=useState([]),[cursor,setCursor]=useState(null);
  const [loading,setLoading]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [text,setText]=useState(''),[audience,setAudience]=useState('friends'),[gallery,setGallery]=useState([]);
  const [mediaIds,setMediaIds]=useState([]),[uploadFile,setUploadFile]=useState(null),[rights,setRights]=useState(false),[uploading,setUploading]=useState(false);
@@ -113,21 +113,21 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
  const load=useCallback(async(more=false)=>{
   if(more&&!cursor)return;const seq=++reqNo.current;setLoading(true);setError('');
   try{
-   const result=await action('feed',{mode:profileId?'profile':mode,author_id:profileId||undefined,
+   const result=await action('feed',{mode:groupId?'group':profileId?'profile':mode,author_id:groupId||profileId||undefined,
     ...(more&&cursor?cursor:{})});
    if(seq!==reqNo.current)return;
    setItems(prior=>more?[...prior,...(result.items||[])]:result.items||[]);
    setCursor(result.cursor||null);
   }catch(e){if(seq===reqNo.current)setError(e.message);}finally{if(seq===reqNo.current)setLoading(false);}
- },[mode,profileId,cursor?.before,cursor?.before_id]);
+ },[mode,profileId,groupId,cursor?.before,cursor?.before_id]);
  useEffect(()=>{
   reqNo.current++;setCursor(null);setItems([]);
   let alive=true;setLoading(true);setError('');
-  void action('feed',{mode:profileId?'profile':mode,author_id:profileId||undefined})
+  void action('feed',{mode:groupId?'group':profileId?'profile':mode,author_id:groupId||profileId||undefined})
    .then(data=>{if(alive){setItems(data.items||[]);setCursor(data.cursor||null);}},e=>{if(alive)setError(e.message);})
    .finally(()=>{if(alive)setLoading(false);});
   return()=>{alive=false;reqNo.current++;};
- },[mode,profileId,userId]);
+ },[mode,profileId,groupId,userId]);
  const photos=async()=>{
   try{const result=await action('my_photos');setGallery(result.items||[]);}catch(e){setError(e.message);}
  };
@@ -155,46 +155,46 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
   event.preventDefault();if(posting.current||!paid||preview)return;
   posting.current=true;setLoading(true);setError('');setNotice('');
   try{
-   const result=await action('create',{text,audience,media_ids:mediaIds});
+   const result=await action('create',{text,audience,media_ids:groupId?[]:mediaIds,group_id:groupId||undefined});
    setText('');setMediaIds([]);
    setNotice(result.note||'Post submitted for moderation.');
   }catch(e){setError(e.message);}finally{posting.current=false;setLoading(false);}
  };
- return <section data-connect-feed="true" className="min-w-0 space-y-4" aria-label={profileId?'Profile timeline':'Connect Feed'}>
-  {!profileId&&<header className="flex flex-wrap items-center justify-between gap-2">
+ return <section data-connect-feed="true" className="min-w-0 space-y-4" aria-label={groupId?'Private group posts':profileId?'Profile timeline':'Connect Feed'}>
+  {!profileId&&!groupId&&<header className="flex flex-wrap items-center justify-between gap-2">
    <div><h2 className="text-xl font-bold">Connect Feed</h2><p className="mt-1 text-xs text-[var(--cc-text-secondary)]">Updates from your verified professional network.</p></div>
    <button className={secondary} disabled={loading} onClick={()=>void load(false)} aria-label="Refresh Connect Feed"><RefreshCw size={16}/>Refresh</button>
   </header>}
   {paid&&!preview&&!profileId?<form className="ccx-surface space-y-3 rounded-2xl p-4 sm:p-5" onSubmit={publish}>
-   <label className="block text-sm font-semibold">Share an update
+   <label className="block text-sm font-semibold">{groupId?'Share in this group':'Share an update'}
     <textarea className={input+' mt-2'} value={text} rows={3} required minLength={5} maxLength={3000}
      onChange={e=>setText(e.target.value)} placeholder="Share your projects, photos, collaborations or professional updates…"/>
    </label>
    <div className="flex flex-wrap items-center gap-2">
-    <label className="text-xs">Audience
+    {!groupId&&<label className="text-xs">Audience
      <select className="ml-2 min-h-11 rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-2" value={audience} onChange={e=>{setAudience(e.target.value);setMediaIds([]);}}>
       {Object.entries(audienceLabels).map(([v,label])=><option key={v} value={v}>{label}</option>)}
      </select>
-    </label>
-    <button className={secondary} type="button" onClick={()=>void photos()}><ImagePlus size={16}/>Approved photos</button>
+    </label>}
+    {!groupId&&<button className={secondary} type="button" onClick={()=>void photos()}><ImagePlus size={16}/>Approved photos</button>}
     <button className={primary} type="submit" disabled={loading||text.trim().length<5}>Submit post</button>
    </div>
-   {gallery.length>0&&<div className="space-y-2"><p className="text-xs">Choose up to four approved photos from your media library. Private photos cannot be shared.</p>
+   {!groupId&&gallery.length>0&&<div className="space-y-2"><p className="text-xs">Choose up to four approved photos from your media library. Private photos cannot be shared.</p>
     <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">{gallery.filter(m=>m.visibility==='verified'||audience!=='verified'&&m.visibility==='connections').map(photo=><button key={photo.id} type="button" aria-pressed={mediaIds.includes(photo.id)} className={'overflow-hidden rounded-xl border-2 '+(mediaIds.includes(photo.id)?'border-[var(--cc-link)]':'border-transparent')} onClick={()=>setMediaIds(v=>v.includes(photo.id)?v.filter(id=>id!==photo.id):v.length<4?[...v,photo.id]:v)}>
      <img src={photo.url} alt={photo.caption||'Approved photo'} loading="lazy" referrerPolicy="no-referrer" className="aspect-square w-full object-cover"/>
     </button>)}</div>
     <p className="text-xs">{mediaIds.length} of 4 photos selected</p>
    </div>}
-   <details className="rounded-xl border border-[var(--cc-border)] p-3 text-sm">
+   {!groupId&&<details className="rounded-xl border border-[var(--cc-border)] p-3 text-sm">
     <summary className="cursor-pointer font-semibold">Upload a new photo for moderation</summary>
     <p className="mt-2 text-xs">New photos must be approved before they can appear in a feed. No explicit media, private ID records, or content without participant rights.</p>
     <input type="file" accept="image/jpeg,image/png,image/webp" className="mt-3 block w-full text-xs" onChange={e=>setUploadFile(e.target.files?.[0]||null)}/>
     <label className="mt-3 flex items-start gap-2 text-xs"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/><span>I own the necessary rights and have required participant permissions to share this photo.</span></label>
     <button type="button" className={secondary+' mt-3'} disabled={uploading||!uploadFile||!rights} onClick={()=>void upload()}>{uploading?'Uploading…':'Send photo for approval'}</button>
-   </details>
-   <p className="text-xs text-[var(--cc-text-secondary)]">Posting and reposting require Premium. All posts and comments remain private until moderation approves them.</p>
+   </details>}
+   <p className="text-xs text-[var(--cc-text-secondary)]">Posting and reposting require Premium. All posts and comments remain private until moderation approves them. Group posts are restricted to active members and currently support text only.</p>
   </form>:!profileId&&<div className="ccx-surface rounded-xl p-4 text-sm text-[var(--cc-text-secondary)]">Verified Free members can browse, like, save, share links and submit moderated comments. Premium is required to publish posts, upload photos or repost.</div>}
-  {!profileId&&<div className="flex flex-wrap gap-2" role="tablist" aria-label="Connect Feed filter">
+  {!profileId&&!groupId&&<div className="flex flex-wrap gap-2" role="tablist" aria-label="Connect Feed filter">
    {modeOptions.map(([v,label])=><button key={v} type="button" role="tab" aria-selected={mode===v} className={mode===v?primary:secondary} onClick={()=>setMode(v)}>{label}</button>)}
   </div>}
   {error&&<p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-900">{error}</p>}
