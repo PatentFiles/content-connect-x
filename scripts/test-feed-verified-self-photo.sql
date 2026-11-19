@@ -17,6 +17,8 @@ BEGIN
   PERFORM public.ccx_feed_create_trusted(b,'Free account cannot publish this', 'verified',ARRAY[]::uuid[],null);
   RAISE EXCEPTION 'FAIL Free account published';
  EXCEPTION WHEN OTHERS THEN IF SQLERRM<>'FEED_PREMIUM_REQUIRED' THEN RAISE;END IF;END;
+ -- Isolate the new fast-publication cap test from earlier synthetic group posts.
+ UPDATE public.community_posts SET created_at=now()-interval '2 days' WHERE author_id=a;
  result:=public.ccx_feed_create_trusted(a,'Solo adult photo for the verified community','verified',ARRAY[photo],null);
  p:=(result->>'id')::uuid;
  IF result->>'status'<>'published' OR NOT public.ccx_feed_can_view(b,p)
