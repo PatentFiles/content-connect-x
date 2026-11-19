@@ -153,12 +153,19 @@ Deno.serve(async req=>{
   const ids=(members.data||[]).map(x=>x.user_id);
   const names=ids.length?await admin.from('member_profiles').select('id,display_name,role_type,city,country').in('id',ids):{data:[],error:null};
   if(names.error)throw names.error;
+  const [admissions,securities]=await Promise.all([
+   ids.length?admin.from('member_admissions').select('user_id,admitted_at').in('user_id',ids):Promise.resolve({data:[],error:null}),
+   ids.length?admin.from('account_security').select('user_id,banned,suspended').in('user_id',ids):Promise.resolve({data:[],error:null})
+  ]);
+  if(admissions.error||securities.error)throw Error('Participant eligibility unavailable');
+  const admittedSet=new Set((admissions.data||[]).filter(x=>!!x.admitted_at).map(x=>x.user_id));
+  const securityMap=new Map((securities.data||[]).map(x=>[x.user_id,x]));
   const profileMap=new Map((names.data||[]).map(x=>[x.id,x]));
   const signatures=(contracts.data||[]).length?await admin.from('contract_signatures').select('contract_id,signer_id,accepted_at,signed_content_hash').in('contract_id',(contracts.data||[]).map(x=>x.id)):{data:[],error:null};
   if(signatures.error)throw signatures.error;
   await admin.from('platform_action_audit').insert({actor_id:uid,action:'collaboration_detail_read',target_type:'collaboration',target_id:cid});
   return send({collaboration:collab,plan:plan.data||null,history:history.data||[],
-    members:(members.data||[]).map(x=>({...x,profile:profileMap.get(x.user_id)||null})),
+    members:(members.data||[]).map(x=>({...x,profile:profileMap.get(x.user_id)||null,admitted:admittedSet.has(x.user_id),restricted:!securityMap.has(x.user_id)||securityMap.get(x.user_id)?.banned===true||securityMap.get(x.user_id)?.suspended===true})),
     contracts:(contracts.data||[]).map(x=>({...x,signatures:(signatures.data||[]).filter(s=>s.contract_id===x.id)})),
     consents:consents.data||[],invitations:collab.creator_id===uid?invites.data||[]:[]});
  }catch(e){
