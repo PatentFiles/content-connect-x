@@ -76,3 +76,11 @@
 @media (prefers-reduced-motion:reduce){
  :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-person-preview:hover{transform:none}
 }
+
+/* Guided collaboration setup is animated only in the signed-in workspace.
+ * Reduced-motion users receive an immediate, non-animated transition. */
+@keyframes ccx-wizard-appear {from{opacity:.45;transform:translateY(7px)}to{opacity:1;transform:none}}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-wizard-step{animation:ccx-wizard-appear .22s ease-out both;min-width:0}
+@media(prefers-reduced-motion:reduce){
+ :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-wizard-step{animation:none}
+}
