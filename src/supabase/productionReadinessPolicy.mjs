@@ -11,7 +11,7 @@ export function summarizeProductionReadiness(detail,{now=new Date().toISOString(
  const done=(id,label,ok,help)=>({id,label,status:ok?'confirmed':'action_required',help});
  const activeMembers=members.filter(m=>m?.user_id);
  const hasOther=activeMembers.length>=2;
- const allAccepted=hasOther&&!invitations.some(i=>i.status==='pending'||i.status==='declined');
+ const allAccepted=hasOther&&!invitations.some(i=>i.status==='pending');
  const identified=activeMembers.length>0&&activeMembers.every(m=>m.admitted===true&&m.restricted!==true);
  const scheduleValid=typeof plan.starts_at==='string'&&typeof plan.ends_at==='string'
    &&Number.isFinite(Date.parse(plan.starts_at))&&Number.isFinite(Date.parse(plan.ends_at))
