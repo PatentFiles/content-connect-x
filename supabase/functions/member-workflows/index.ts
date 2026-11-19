@@ -172,16 +172,25 @@ Deno.serve(async req=>{
         if([theirAge,theirSubscription,theirSecurity,blocks].some(result=>result.error))return fail('Invitee eligibility unavailable',503);
         if(!theirSecurity.data||theirSecurity.data.banned||theirSecurity.data.suspended||blocks.data?.length||
           !isAdmitted(theirAge.data||[])||!(theirSecurity.data.admin||isActive(theirSubscription.data)))return fail('Invitee is unavailable',403);
-        const {data,error}=await admin.from('collaboration_invitations').insert({collaboration_id:cid,invited_by:uid,invitee_id:invitee,status:'pending'}).select('id,collaboration_id,status').single();
+        const {data,error}=await admin.from('collaboration_invitations').insert({collaboration_id:cid,invited_by:uid,invitee_id:invitee,status:'pending',proposed_role:['creator','photographer','videographer','video_editor','agent','studio'].includes(body.proposed_role)?body.proposed_role:'collaborator'}).select('id,collaboration_id,status').single();
         if(error)return fail('Invitation already exists or cannot be created',409);
         await notification(invitee,'collaboration_invite','New collaboration invitation',{invitation_id:data.id,collaboration_id:cid});
         await audit('invite_collaborator',data.id);
         return respond({item:data},201);
       }
       case 'list_invitations':{
-        const {data,error}=await admin.from('collaboration_invitations').select('id,collaboration_id,invited_by,invitee_id,status,created_at').eq('invitee_id',uid).order('created_at',{ascending:false}).limit(100);
+        const {data,error}=await admin.from('collaboration_invitations').select('id,collaboration_id,invited_by,invitee_id,status,proposed_role,created_at').eq('invitee_id',uid).order('created_at',{ascending:false}).limit(100);
         if(error)throw error;
-        return respond({items:data});
+        const projectIds=[...new Set((data||[]).map(row=>row.collaboration_id))];
+        if(!projectIds.length)return respond({items:[]});
+        const [collabRows,planRows]=await Promise.all([
+          admin.from('collaborations').select('id,title').in('id',projectIds),
+          admin.from('ccx_collaboration_plans').select('collaboration_id,scope_of_work,starts_at,city').in('collaboration_id',projectIds)
+        ]);
+        if(collabRows.error||planRows.error)throw Error('Invitation details unavailable');
+        const names=new Map((collabRows.data||[]).map(row=>[row.id,row.title]));
+        const plans=new Map((planRows.data||[]).map(row=>[row.collaboration_id,row]));
+        return respond({items:(data||[]).map(row=>({...row,title:names.get(row.collaboration_id)||'Collaboration',...plans.get(row.collaboration_id)}))});
       }
       case 'respond_invitation':{
         const invitation_id=body.invitation_id;
@@ -257,12 +266,14 @@ Deno.serve(async req=>{
         if(!ids.length)return respond({items:[]});
         const {data,error:loadError}=await admin.from('conversations').select('id,created_at,title,kind').in('id',ids).order('created_at',{ascending:false});
         if(loadError)throw loadError;
+        const {data:peers,error:peerError}=await admin.from('conversation_members').select('conversation_id,user_id').in('conversation_id',ids).neq('user_id',uid).limit(250);
+        if(peerError)throw peerError;
         const enriched=await Promise.all((data||[]).map(async c=>{
           const cursor=links?.find(l=>l.conversation_id===c.id)?.last_read_at;
           let q=admin.from('messages').select('id',{head:true,count:'exact'}).eq('conversation_id',c.id).neq('sender_id',uid).is('deleted_at',null);
           if(cursor)q=q.gt('created_at',cursor);
           const {count,error:countError}=await q;
-          return {...c,unread:countError?null:(count||0),unread_available:!countError};
+          return {...c,unread:countError?null:(count||0),unread_available:!countError,peer_user_id:c.kind==='direct'?(peers||[]).find(row=>row.conversation_id===c.id)?.user_id||null:null};
         }));
         return respond({items:enriched});
       }
