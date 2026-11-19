@@ -61,11 +61,11 @@ try{
   }
  }
  // These are native semantics, not synthetic replacement switches.
- assert.equal(await evaluate("(()=>{const c=document.querySelector('#collaboration-page input[type=checkbox]');c.checked=false;c.closest('label').click();c.focus();return c.checked;})()"),true,'The full label must toggle the checkbox');
+ assert.equal(await evaluate("(()=>{const c=document.querySelector('[data-choice] input[type=checkbox]');c.checked=false;c.closest('label').click();c.focus();return c.checked;})()"),true,'The full label must toggle the checkbox');
  await page('Input.dispatchKeyEvent',{type:'keyDown',key:' ',code:'Space',windowsVirtualKeyCode:32});
  await page('Input.dispatchKeyEvent',{type:'keyUp',key:' ',code:'Space',windowsVirtualKeyCode:32});
- assert.equal(await evaluate("document.querySelector('#collaboration-page input[type=checkbox]').checked"),false,'Space must toggle the focused checkbox');
- assert.equal(await evaluate("(()=>{const c=document.querySelector('#collaboration-page input[type=checkbox]');c.disabled=true;c.checked=false;c.closest('label').click();return c.checked;})()"),false,'Disabled checkboxes must stay disabled');
+ assert.equal(await evaluate("document.querySelector('[data-choice] input[type=checkbox]').checked"),false,'Space must toggle the focused checkbox');
+ assert.equal(await evaluate("(()=>{const c=document.querySelector('[data-choice] input[type=checkbox]');c.disabled=true;c.checked=false;c.closest('label').click();return c.checked;})()"),false,'Disabled checkboxes must stay disabled');
  if(process.env.CONTROL_SCREENSHOT_DIR)fs.writeFileSync(path.join(process.env.CONTROL_SCREENSHOT_DIR,'results.json'),JSON.stringify({sourceFiles:inventory.files,choiceSites:inventory.labels.length,actionRows:inventory.rows.length,layouts:results},null,2));
  // Real hydrated header: verify responsive wrapping and measured content offsets.
  const shellHtml=await createInteractiveShellFixture(html);
@@ -92,7 +92,11 @@ try{
    return {failures,errors:window.__uiErrors,width:innerWidth,scrollX,scrollWidth:document.documentElement.scrollWidth,textOverflow:(()=>{const out=[],w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);let t;while(t=w.nextNode()){if(!t.textContent.trim()||t.parentElement.closest('script,style'))continue;const r=document.createRange();r.selectNodeContents(t);for(const b of r.getClientRects())if(b.right>innerWidth+.5)out.push({text:t.textContent.slice(0,70),parent:t.parentElement.className,right:b.right});}return out.slice(0,10);})(),overflow:failures.length?[...document.querySelectorAll('body *')].map(e=>({e,r:e.getBoundingClientRect()})).filter(({r})=>r.width&&r.right>innerWidth+.5).slice(0,12).map(({e,r})=>({tag:e.tagName,classes:e.className,right:r.right,width:r.width})):[]};
   })()`);
   assert.deepEqual(shell.failures,[],`${width}px header ${large?'200%':'normal'}: ${JSON.stringify(shell)}`);
-  assert.deepEqual(shell.errors,[],'No runtime errors in the actual navigation components');
+  // Chromium can dispatch its non-fatal ResizeObserver loop completion notice
+  // during multiple rapid responsive resizes. Geometry assertions above still
+  // run, and all other application errors remain fatal.
+  const actualAppErrors=shell.errors.filter(message=>message!=='ResizeObserver loop completed with undelivered notifications.');
+  assert.deepEqual(actualAppErrors,[],'No application runtime errors in the actual navigation components');
  }
  console.log('PASS 8 real React header layouts, including 200% text and measured sidebar/content offsets.');
  console.log(`PASS ${results.length} Chromium layouts: ${inventory.files} JSX modules inventoried; ${inventory.labels.length} native choice sites, ${inventory.rows.length} action rows, actual Collaborations markup, keyboard/label/disabled behavior.`);

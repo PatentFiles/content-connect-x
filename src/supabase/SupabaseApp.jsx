@@ -17,6 +17,8 @@ import {isModuleEnabled} from './featureModules.mjs';
 import ProductionManager from './ProductionManager';
 import ReputationHub from './ReputationHub';
 import SecurityCenter from './SecurityCenter';
+import MemberSettings from './MemberSettings';
+import RepresentationAgreements from './RepresentationAgreements';
 import MfaChallenge from './MfaChallenge';
 import {hasAdmission,needsOptedInMfa} from './accountEntryPolicy.mjs';
 import AgreementPackets from './AgreementPackets';
@@ -497,15 +499,9 @@ export default function SupabaseApp() {
     {tab==='portfolio'&&approved&&<MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
     {tab==='testing'&&approved&&<PassClearanceHub isAdmin={isAdmin}/>}
     {tab==='settings'&&(isAdmin&&!rolePreview?<AdminConsole key={tab} initialSection="features"
-       onFeatureChange={()=>refreshFeatureFlags().catch(()=>setVisibleFeatures({}))}/>:<SecurityCenter/>)}
+       onFeatureChange={()=>refreshFeatureFlags().catch(()=>setVisibleFeatures({}))}/>:<MemberSettings user={user} onNavigate={navigateInWorkspace}/>)}
     {tab==='roster'&&approved&&<ProductionManager user={user} paid={paid} isAdmin={isAdmin}/>}
-    {tab==='representations'&&<div className={panel+' space-y-2'}>
-      <h2 className="text-xl font-semibold">Representations</h2>
-      <p className="text-sm text-[var(--cc-text-secondary)]">The original agent and studio representation
-       manager is not yet connected to the Supabase representation records.
-       Existing production team and collaboration workflows remain accessible.</p>
-      <button className={primary} onClick={()=>navigateInWorkspace('production')}>Production teams</button>
-    </div>}
+    {tab==='representations'&&<RepresentationAgreements role={profile?.role_type||'creator'}/>}
     {tab==='developer'&&isAdmin&&<div className={panel}>
       The original developer documentation is preserved in the repository’s
       pre-migration reference branch.</div>}
