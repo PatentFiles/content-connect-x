@@ -16,7 +16,6 @@ export function normalizedTimeZone(value){
  try{return new Intl.DateTimeFormat('en-US',{timeZone:value}).resolvedOptions().timeZone;}
  catch{throw Error('Choose a valid production time zone.');}
 }
-const pad2=n=>String(n).padStart(2,'0');
 const parts=(ms,zone)=>{
  const p=new Intl.DateTimeFormat('en-CA',{timeZone:zone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(ms);
  return Object.fromEntries(p.map(x=>[x.type,x.value]));
