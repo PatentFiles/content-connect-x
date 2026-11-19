@@ -62,3 +62,11 @@ test('SQL single-post mode respects existing membership predicate and does not b
  assert.match(sql,/p_mode='single' and p_author is null/);
  assert.doesNotMatch(sql,/grant execute[^;]*authenticated/i);
 });
+
+test('sponsored rail supports multiple approved campaigns without third-party tracker scripts',()=>{
+ const ad=fs.readFileSync('src/supabase/SponsorshipSlot.jsx','utf8');
+ assert.match(ad,/limit\(placement==='sidebar'\?3:1\)/);
+ assert.match(ad,/rel="sponsored nofollow noopener noreferrer"/);
+ assert.match(ad,/referrerPolicy="no-referrer"/);
+ assert.doesNotMatch(ad,/<iframe|<script|trackingPixel|thirdPartyCookie/);
+});
