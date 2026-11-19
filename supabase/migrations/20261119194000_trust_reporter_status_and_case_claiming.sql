@@ -127,7 +127,7 @@ COMMENT ON FUNCTION public.ccx_trust_reporter_status(uuid,uuid,text)
 COMMENT ON FUNCTION public.ccx_trust_triage(text,uuid)
  IS 'MFA-gated staff queue and claim/release. Case creation, review and lawful disclosures are independent.';
 -- Claim ownership is required before an MFA reviewer can update case status.
-CREATE OR REPLACE FUNCTION ccx_workspace_private.ccx_trust_review(p_action text DEFAULT 'list',p_id uuid DEFAULT NULL,p_status text DEFAULT NULL,p_note text DEFAULT NULL) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $
+CREATE OR REPLACE FUNCTION ccx_workspace_private.ccx_trust_review(p_action text DEFAULT 'list',p_id uuid DEFAULT NULL,p_status text DEFAULT NULL,p_note text DEFAULT NULL) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $fn_review$
 DECLARE u uuid:=auth.uid();item public.ccx_trust_requests;result jsonb;
 BEGIN
  IF u IS NULL OR NOT EXISTS(SELECT 1 FROM public.account_security WHERE user_id=u AND admin AND NOT banned AND NOT suspended) OR coalesce(auth.jwt()->>'aal','')<>'aal2' THEN RAISE EXCEPTION 'A verified staff account with two-factor authentication is required' USING ERRCODE='42501';END IF;
@@ -150,6 +150,6 @@ BEGIN
   RETURN jsonb_build_object('updated',true);
  ELSE RAISE EXCEPTION 'Unknown review action';END IF;
 END;
-$;
+$fn_review$;
 
 NOTIFY pgrst,'reload schema';
