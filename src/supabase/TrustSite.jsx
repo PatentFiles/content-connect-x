@@ -7,11 +7,35 @@ import './trust-site.css';
 const kinds=[['ncii','Non-consensual intimate imagery'],['trafficking','Trafficking or coercion'],['csam','Suspected child exploitation'],['privacy','Privacy request'],['support','Account or technical support'],['copyright','Copyright concern'],['law_enforcement','Law-enforcement request'],['accessibility','Accessibility barrier'],['affiliate','Non-explicit professional partnership'],['appeal','Review or appeal'],['other','Other concern']];
 const emailLink=value=>typeof value==='string'&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)?'mailto:'+encodeURIComponent(value):null;
 export function TrustFooter({legalPage=false}){
- return <footer className={'ccx-trust-footer'+(legalPage?' ccx-trust-footer-standalone':'')}>
-  <div className="ccx-trust-footer-top"><div><a href="/" className="ccx-trust-brand">CONTENT CONNECT <span>X</span></a><p>Professional collaboration. Clear consent. Accountable access.</p></div><a className="ccx-trust-report-link" href="/trust/content-removal">Content removal & safety</a></div>
-  <nav aria-label="Legal, safety and support">{TRUST_LINKS.map(([slug,title])=><a key={slug} href={'/trust/'+slug}>{title}</a>)}</nav>
-  <div className="ccx-trust-footer-bottom"><p>© {new Date().getFullYear()} Content Connect X · Adults only</p><p><a href="/trust/law-enforcement">Lawful requests are reviewed case by case.</a> No unrestricted backend access.</p><a href="/trust/review">Staff review</a></div>
- </footer>;
+ const [active,setActive]=useState(null),[config,setConfig]=useState(null),[configError,setConfigError]=useState(false);
+ const modal=useRef(null);
+ const formKind={'content-removal':'ncii',support:'support',privacy:'privacy',accessibility:'accessibility',affiliates:'affiliate','law-enforcement':'law_enforcement'}[active];
+ useEffect(()=>{if(active&&modal.current&&!modal.current.open)modal.current.showModal();},[active]);
+ useEffect(()=>{
+  if(!active||!formKind)return;
+  let alive=true;setConfig(null);setConfigError(false);
+  void supabase.rpc('ccx_trust_public_config').then(({data,error})=>{if(alive){setConfig(error?null:data);setConfigError(!!error);}}).catch(()=>{if(alive)setConfigError(true);});
+  return()=>{alive=false;};
+ },[active,formKind]);
+ const page=TRUST_PAGES[active];
+ const open=(event,slug)=>{if(event.defaultPrevented||event.metaKey||event.ctrlKey||event.shiftKey||event.altKey)return;event.preventDefault();setActive(slug);};
+ return <>
+ <footer className={'ccx-trust-footer'+(legalPage?' ccx-trust-footer-standalone':'')}>
+  <div className="ccx-trust-footer-top"><div><a href="/" className="ccx-trust-brand">CONTENT CONNECT <span>X</span></a><p>Professional collaboration. Clear consent. Accountable access.</p></div><a className="ccx-trust-report-link" href="/trust/content-removal" onClick={e=>open(e,'content-removal')}>Content removal & safety</a></div>
+  <nav aria-label="Legal, safety and support">{TRUST_LINKS.map(([slug,title])=><a key={slug} href={'/trust/'+slug} onClick={e=>open(e,slug)}>{title}</a>)}</nav>
+  <div className="ccx-trust-footer-bottom"><p>© {new Date().getFullYear()} Content Connect X · Adults only</p><p><a href="/trust/law-enforcement" onClick={e=>open(e,'law-enforcement')}>Lawful requests are reviewed case by case.</a> No unrestricted backend access.</p><a href="/trust/review">Staff review</a></div>
+ </footer>
+ {active&&<dialog ref={modal} aria-labelledby="ccx-footer-modal-title" onClose={()=>setActive(null)} className="ccx-trust-modal w-[min(94vw,760px)] max-h-[90dvh] overflow-y-auto rounded-2xl border border-[var(--cc-border)] bg-white p-0 text-slate-900 shadow-2xl backdrop:bg-black/65">
+  <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b bg-white px-5 py-4"><h2 id="ccx-footer-modal-title" className="text-lg font-bold">{page?.title|| (active==='cookies'?'Cookie preferences':active==='review'?'Staff review':'Trust and support')}</h2><button type="button" onClick={()=>modal.current?.close()} aria-label="Close legal information" className="min-h-11 rounded-lg border px-4 text-sm">Close</button></div>
+  <div className="ccx-trust-page space-y-4 px-5 py-5">
+   {page&&<article className="ccx-trust-copy"><p className="ccx-trust-intro">{page.intro}</p>{page.sections.map(([heading,body])=><section key={heading}><h3 className="text-base font-semibold">{heading}</h3><p>{body}</p></section>)}</article>}
+   {!config?.policies_approved&&page&&<p className="text-xs font-semibold text-amber-800">Pre-launch draft: legal and operator review required.</p>}
+   {active==='cookies'&&<CookiePreferences/>}
+   {formKind&&<RequestForm key={active} initialKind={formKind} config={config} configError={configError}/>}
+   <a className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--cc-link)] underline" href={'/trust/'+active}>Open dedicated page</a>
+  </div>
+ </dialog>}
+ </>;
 }
 function CookiePreferences(){
  const [choices,setChoices]=useState(()=>readTracking()),[error,setError]=useState('');
