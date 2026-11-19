@@ -109,3 +109,29 @@ test('Existing community API is restricted to verified posts and validates inter
  assert.match(legacy,/eq\('audience','verified'\)/);
  assert.match(legacy,/ccx_feed_can_view/);
 });
+
+test('only verified solo images take the no-preapproval route; other media still uses review',()=>{
+ const source=fs.readFileSync('supabase/functions/media-gateway/index.ts','utf8');
+ const feed=fs.readFileSync('src/supabase/ConnectFeed.jsx','utf8');
+ const edge=fs.readFileSync('supabase/functions/connect-feed/handler.mjs','utf8');
+ assert.match(source,/register_self_feed_photo/);
+ assert.match(source,/body\.attest_self_only!==true\|\|body\.attest_rights!==true\|\|body\.attest_no_sex_act!==true/);
+ assert.match(source,/approval_origin:'verified_self_attestation'/);
+ assert.match(source,/status:'approved'/);
+ assert.match(source,/media_self_published/);
+ assert.match(source,/magicOk/);
+ assert.match(source,/if\(action==='register_upload'\)/);
+ assert.match(feed,/safePhotoBlob/);
+ assert.match(feed,/canvas\.toBlob/);
+ assert.match(feed,/attest_self_only:true/);
+ assert.match(feed,/content_label:adultNudity\?'adult_nudity':'professional'/);
+ assert.match(edge,/ccx_feed_create_trusted/);
+});
+test('adult nude photos are revealed intentionally; reports quarantine without automatic punishment',()=>{
+ const ui=fs.readFileSync('src/supabase/ConnectFeed.jsx','utf8');
+ const migration=fs.readFileSync('supabase/migrations/20261120014500_feed_verified_self_photo.sql','utf8');
+ assert.match(ui,/Adult nudity — click to reveal/);
+ assert.match(migration,/p_reason in \('unsafe','rights','privacy'\)/);
+ assert.match(migration,/status='hidden',hidden_at=now\(\)/);
+ assert.doesNotMatch(migration,/UPDATE\s+public\.account_security\s+SET\s+banned/i);
+});
