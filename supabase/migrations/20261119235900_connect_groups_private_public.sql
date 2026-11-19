@@ -137,8 +137,8 @@ begin
  if not found then raise exception 'GROUP_NOT_FOUND' using errcode='42501'; end if;
  select * into actor_member from public.ccx_social_group_members
   where group_id=p_group and user_id=p_actor for update;
- can_owner:=(actor_member.status='active' and actor_member.role='owner');
- can_admin:=(actor_member.status='active' and actor_member.role in('owner','admin'));
+ can_owner:=coalesce((actor_member.status='active' and actor_member.role='owner'),false);
+ can_admin:=coalesce((actor_member.status='active' and actor_member.role in('owner','admin')),false);
 
  if p_action='moderate' then
   if not exists(select 1 from public.account_security
@@ -157,9 +157,9 @@ begin
  end if;
 
  if p_action='detail' then
-  if g.visibility='private' and actor_member.status not in('active','invited')
+  if g.visibility='private' and coalesce(actor_member.status,'none') not in('active','invited')
     then raise exception 'GROUP_NOT_FOUND' using errcode='42501'; end if;
-  if g.visibility='public' and g.state<>'active' and actor_member.status<>'active'
+  if g.visibility='public' and g.state<>'active' and coalesce(actor_member.status,'none')<>'active'
     then raise exception 'GROUP_NOT_FOUND' using errcode='42501'; end if;
   return jsonb_build_object('group',jsonb_build_object(
    'id',g.id,'name',g.name,'description',g.description,'rules',g.rules,
