@@ -101,7 +101,7 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
    <label className="block text-sm font-medium">Issuing country<select value={country} onChange={e=>setCountry(e.target.value)} className={field}>{state.supported_countries?.map(code=><option key={code} value={code}>{code==='US'?'United States':code}</option>)}</select></label>
    <div className="max-h-56 overflow-y-auto rounded-xl border p-3 text-sm leading-6 whitespace-pre-wrap">{state.notice}</div>
    <label className="flex items-start gap-3 text-sm leading-6"><input type="checkbox" checked={consent} onChange={e=>setConsent(e.target.checked)} className="mt-1 h-5 w-5 shrink-0"/>I have read the notice and consent to the described ID, facial-comparison, liveness, and evidence-retention processing.</label>
-   <button type="button" disabled={locked||!consent||!name.trim()||!state.email_confirmed} onClick={start} className="ccx-primary min-h-12 w-full rounded-xl px-4 py-3">Start verification</button>
+   <button type="button" disabled={locked||!consent||!name.trim()||!familyName.trim()||!state.email_confirmed} onClick={start} className="ccx-primary min-h-12 w-full rounded-xl px-4 py-3">Start verification</button>
   </div>}
   {status==='collecting'&&state?.enabled&&<div className="mt-5 space-y-5">
    {['front',...(session.document_type==='passport'?[]:['back'])].map(kind=>{
