@@ -81,7 +81,7 @@ declare
  b uuid:='20000000-0000-4000-8000-000000000002';
  c uuid:='30000000-0000-4000-8000-000000000003';
  d uuid:='40000000-0000-4000-8000-000000000004';
- media uuid;badmedia uuid;post_id uuid;friend_id uuid;repost_id uuid;out jsonb;items jsonb;cursor timestamptz;
+ media uuid;badmedia uuid;created_post uuid;friend_id uuid;recreated_post uuid;out jsonb;items jsonb;cursor timestamptz;
 begin
  select id into media from public.member_media_assets where status='approved';
  select id into badmedia from public.member_media_assets where status='pending';
@@ -98,20 +98,20 @@ begin
   raise exception 'FAIL: pending media accepted';
  exception when others then if sqlerrm<>'FEED_MEDIA_NOT_APPROVED' then raise; end if; end;
  out:=public.ccx_feed_create(a,'Project update with one approved photo','verified',array[media],null);
- post_id:=(out->>'id')::uuid;
+ created_post:=(out->>'id')::uuid;
  if out->>'status'<>'pending' then raise exception 'FAIL: post published before moderation'; end if;
- if (select count(*) from public.content_moderation_queue where content_id=post_id)<>1 then raise exception 'FAIL: missing moderation queue'; end if;
- if public.ccx_feed_can_view(b,post_id) then raise exception 'FAIL: pending post visible'; end if;
- update public.community_posts set status='published',published_at=now() where id=post_id;
- if not public.ccx_feed_can_view(b,post_id) or public.ccx_feed_can_view(d,post_id) then
+ if (select count(*) from public.content_moderation_queue where content_id=created_post)<>1 then raise exception 'FAIL: missing moderation queue'; end if;
+ if public.ccx_feed_can_view(b,created_post) then raise exception 'FAIL: pending post visible'; end if;
+ update public.community_posts set status='published',published_at=now() where id=created_post;
+ if not public.ccx_feed_can_view(b,created_post) or public.ccx_feed_can_view(d,created_post) then
   raise exception 'FAIL: verified audience'; end if;
- out:=public.ccx_feed_interact(b,post_id,'like');
+ out:=public.ccx_feed_interact(b,created_post,'like');
  if out->>'liked'<>'true' then raise exception 'FAIL: verified Free member cannot react'; end if;
- out:=public.ccx_feed_interact(b,post_id,'comment','Great professional photos');
+ out:=public.ccx_feed_interact(b,created_post,'comment','Great professional photos');
  if out->>'status'<>'pending' or
   (select count(*) from public.content_moderation_queue where content_type='comment')<>1 then
   raise exception 'FAIL: Free member moderated comment'; end if;
- out:=public.ccx_feed_report(b,post_id,'privacy');
+ out:=public.ccx_feed_report(b,created_post,'privacy');
  if out->>'received'<>'true' then raise exception 'FAIL: member report not stored'; end if;
  out:=public.ccx_feed_page(b,'following',null,null,null,16);
  items:=out->'items';
@@ -131,16 +131,16 @@ begin
   perform public.ccx_feed_create(a,'Attempt repost of friends-only','verified',array[]::uuid[],friend_id);
   raise exception 'FAIL: friends-only post reposted'; 
  exception when others then if sqlerrm<>'FEED_REPOST_UNAVAILABLE' then raise; end if; end;
- out:=public.ccx_feed_create(a,'Sharing an approved professional update','verified',array[]::uuid[],post_id);
- repost_id:=(out->>'id')::uuid;
- update public.community_posts set status='published',published_at=now()+interval '2 seconds' where id=repost_id;
- if not public.ccx_feed_can_view(b,repost_id) then raise exception 'FAIL: approved repost hidden'; end if;
- update public.community_posts set status='hidden',hidden_at=now() where id=post_id;
- if public.ccx_feed_can_view(b,repost_id) then raise exception 'FAIL: deleted original still exposed in repost'; end if;
+ out:=public.ccx_feed_create(a,'Sharing an approved professional update','verified',array[]::uuid[],created_post);
+ recreated_post:=(out->>'id')::uuid;
+ update public.community_posts set status='published',published_at=now()+interval '2 seconds' where id=recreated_post;
+ if not public.ccx_feed_can_view(b,recreated_post) then raise exception 'FAIL: approved repost hidden'; end if;
+ update public.community_posts set status='hidden',hidden_at=now() where id=created_post;
+ if public.ccx_feed_can_view(b,recreated_post) then raise exception 'FAIL: deleted original still exposed in repost'; end if;
  out:=public.ccx_feed_page(b,'friends',null,null,null,16);
  if (out->'items')::text like '%Project update with one approved photo%' then
   raise exception 'FAIL: original still visible after removal'; end if;
- if (select count(*) from public.ccx_feed_flags where post_id=post_id and reporter_id=b)<>1
+ if (select count(*) from public.ccx_feed_flags where post_id=created_post and reporter_id=b)<>1
  then raise exception 'FAIL: report event missing'; end if;
 end $test$;
 reset role;
