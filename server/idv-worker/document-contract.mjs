@@ -24,10 +24,23 @@ export function decodedUSDocument(raw){
  if(!dob||!expiry||!number||number.length>100||/[\x00-\x1f]/.test(number))return null;
  return {full_name:name,date_of_birth:dob,expiry_date:expiry,id_number:number};
 }
+/** A narrow documented OCR artifact: visual-zone OCR sometimes joins the
+ * first name and a SINGLE-letter middle initial (e.g. "AdamT Staples").
+ * The independently decoded barcode must include that precise middle initial.
+ * Every DOB, expiry and document-number comparison remains mandatory; neither
+ * client-typed names nor fuzzy Levenshtein matches are accepted.
+ */
+export function middleInitialJoinedByOCR(visual,barcode,nameKey){
+ if(typeof visual!=='string'||typeof barcode!=='string')return false;
+ const front=visual.normalize('NFKC').trim().split(/\s+/u);
+ const back=barcode.normalize('NFKC').trim().split(/\s+/u);
+ if(back.length<3||front.length!==back.length-1||!/^\p{L}$/u.test(back[1]))return false;
+ return nameKey(front[0])===nameKey(back[0]+back[1])&&front.slice(1).every((piece,i)=>nameKey(piece)===nameKey(back[i+2]));
+}
 export function compareDocumentFields(front,back,nameKey){
  const mismatches=[];
  for(const [field,good] of [
-  ['legal_name',Boolean(front.name&&back?.full_name&&nameKey(front.name)===nameKey(back.full_name))],
+  ['legal_name',Boolean(front.name&&back?.full_name&&(nameKey(front.name)===nameKey(back.full_name)||middleInitialJoinedByOCR(front.name,back.full_name,nameKey)))],
   ['date_of_birth',Boolean(validISO(front.dob)&&validISO(front.dob)===usDocumentDate(back?.date_of_birth))],
   ['expiry_date',Boolean(validISO(front.expiry)&&validISO(front.expiry)===usDocumentDate(back?.expiry_date))],
   ['document_number',Boolean(front.number&&front.number===back?.id_number)],
