@@ -101,6 +101,10 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
   {status==='approved'&&<p role="status" className="mt-5 flex items-center justify-center gap-2 text-emerald-800"><CheckCircle2/>{testing?session.message:'Verification complete'}</p>}
   {identityFinished(status)&&<div role="status" aria-live="polite" data-identity-result={status} className="mt-5 rounded-xl border p-4"><h2 className="text-lg font-semibold">{identityResultTitle(status,testing)}</h2>{testing&&<p className="mt-1 text-sm">This is the completed test result. Your existing account access is unchanged.</p>}</div>}
   {session?.message&&status!=='approved'&&<p role="status" className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-900">{session.message}</p>}
+  {!testing&&session?.review_requested&&<section data-identity-review-status="true" className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm" aria-label="Identity review progress">
+   <strong>Private review: {session.review_status==='claimed'?'A qualified reviewer has claimed your case':session.review_status==='closed'?'Case closed':'Waiting for a qualified reviewer'}</strong>
+   <p className="mt-2 leading-6">{session.review_status==='closed'?session.review_disposition==='fresh_capture_required'?'A fresh verification attempt is needed. A review does not approve or change your ID result.':session.review_disposition==='specialist_followup'?'The case requires specialized follow-up. Your account remains restricted.':'The evidence was not sufficient to change your verification status. You may start a new attempt.':'Your verification status has not changed. The platform cannot promise immediate review or emergency response.'}</p>
+  </section>}
    {recovery&&<section data-identity-recovery={recovery.kind} aria-labelledby="ccx-recovery-heading" className="mt-4 rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-sm text-slate-900">
      <h2 id="ccx-recovery-heading" className="font-semibold text-base">{recovery.title}</h2>
      <ol className="mt-3 list-decimal space-y-2 pl-5 leading-6">{recovery.steps.map((step,i)=><li key={i}>{step}</li>)}</ol>
