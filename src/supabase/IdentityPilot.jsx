@@ -2,6 +2,7 @@
 import React,{useCallback,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
 import IdentityVerification from './IdentityVerification';
+import {identityUploadTo} from './identityApi';
 const checks=[['document_fields_confident','ID fields read confidently'],['document_cross_checked','ID front/back or passport machine-readable data agree'],['document_authenticity_check','Document authenticity heuristic'],['name_matches','Entered legal name matches'],['age_eligible','Eligible under the 18th-birthday-plus-one-day rule'],['face_matched','ID face matches camera face'],['frame_identity_passed','Same face throughout the capture'],['liveness_passed','Both head-turn challenges passed']];
 export default function IdentityPilot(){
  const [snapshot,setSnapshot]=useState(null),[error,setError]=useState(''),[deleting,setDeleting]=useState(false),[generation,setGeneration]=useState(0);
@@ -13,7 +14,12 @@ export default function IdentityPilot(){
   return data;
  },[]);
  const action=useCallback((name,values={})=>invoke({action:name,...values}),[invoke]);
- const upload=useCallback((sessionId,kind,file)=>{const body=new FormData();body.append('session_id',sessionId);body.append('kind',kind);body.append('file',file);return invoke(body);},[invoke]);
+ const upload=useCallback(async(sessionId,kind,file,options={})=>{
+  const data=await identityUploadTo('identity-pilot',sessionId,kind,file,options);
+  // The transport already enforces test_only, no admission, and the saved receipt.
+  if(data.session!==undefined)setSnapshot(previous=>({...previous,...data}));
+  return data;
+ },[]);
  const remove=async()=>{
   if(!snapshot?.session?.id)return;setDeleting(true);setError('');
   try{await action('delete',{session_id:snapshot.session.id});setGeneration(n=>n+1);}catch(e){setError(e.message);}finally{setDeleting(false);}
