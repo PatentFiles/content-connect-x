@@ -3,6 +3,7 @@ import {supabase} from '@/api/supabaseClient';
 import {TRUST_LINKS,TRUST_PAGES} from './trustContent.mjs';
 import {readTracking,saveTracking} from './trackingPreferences.mjs';
 import {validateTrustRequest} from '../../supabase/functions/trust-intake/policy.mjs';
+import TrustReporterStatus from './TrustReporterStatus';
 import './trust-site.css';
 const kinds=[['ncii','Non-consensual intimate imagery'],['trafficking','Trafficking or coercion'],['csam','Suspected child exploitation'],['privacy','Privacy request'],['support','Account or technical support'],['copyright','Copyright concern'],['law_enforcement','Law-enforcement request'],['accessibility','Accessibility barrier'],['affiliate','Non-explicit professional partnership'],['appeal','Review or appeal'],['other','Other concern']];
 const emailLink=value=>typeof value==='string'&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)?'mailto:'+encodeURIComponent(value):null;
@@ -54,7 +55,7 @@ function RequestForm({initialKind,config,configError}){
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[receipt,setReceipt]=useState(null);
  const key=useRef(null),lock=useRef(false);
  const change=(name,value)=>{key.current=null;setFields(old=>({...old,[name]:value}));};
- if(!config?.ready)return <aside className="ccx-trust-callout" role="status"><h2>Request intake is not open yet</h2><p>{configError?'The intake configuration could not be verified. No report can be submitted here.':'This reporting service is held closed until operator contacts and staffed review coverage are confirmed. No report has been submitted.'}</p>{emailLink(config?.contact_email)&&<p>Contact: <a href={emailLink(config.contact_email)}>{config.contact_email}</a></p>}<p>For immediate danger, contact local emergency services. This website is not an emergency-response service.</p></aside>;
+ if(!config?.ready)return <><aside className="ccx-trust-callout" role="status"><h2>Request intake is not open yet</h2><p>{configError?'The intake configuration could not be verified. No report can be submitted here.':'This reporting service is held closed until operator contacts and staffed review coverage are confirmed. No report has been submitted.'}</p>{emailLink(config?.contact_email)&&<p>Contact: <a href={emailLink(config.contact_email)}>{config.contact_email}</a></p>}<p>For immediate danger, contact local emergency services. This website is not an emergency-response service.</p></aside><TrustReporterStatus/></>;
  const submit=async event=>{
   event.preventDefault();if(lock.current)return;lock.current=true;setBusy(true);setError('');
   try{
@@ -62,10 +63,10 @@ function RequestForm({initialKind,config,configError}){
    const body={...fields,idempotency_key:key.current};validateTrustRequest(body);
    const {data,error:failure}=await supabase.functions.invoke('trust-intake',{body});
    if(failure||data?.error||data?.received!==true||!data.reference)throw Error(data?.error||'No receipt was confirmed. Keep your text and retry, or use the published contact email.');
-   setReceipt(data.reference);
+   setReceipt({reference:data.reference,accessCode:key.current});
   }catch(e){setError(e.message);}finally{lock.current=false;setBusy(false);}
  };
- if(receipt)return <section className="ccx-trust-card" role="status"><h2>Request recorded</h2><p>Keep this reference: <strong className="ccx-trust-reference">{receipt}</strong></p><p>This confirms receipt, not removal, a finding of wrongdoing, a legal disclosure or an email being sent. Use the published contact channel with this reference to follow up.</p></section>;
+ if(receipt)return <><section className="ccx-trust-card" role="status"><h2>Request recorded</h2><p>Keep this reference: <strong className="ccx-trust-reference">{receipt.reference}</strong></p><p>Your private access code: <code className="ccx-trust-reference break-all">{receipt.accessCode}</code></p><p>Save both separately before leaving. The private code is not emailed or saved to this browser. This confirms receipt, not removal, a finding of wrongdoing, or notification delivery.</p></section><TrustReporterStatus initialReference={receipt.reference} initialAccessCode={receipt.accessCode}/></>;
  const law=fields.kind==='law_enforcement',ncii=fields.kind==='ncii';
  return <form className="ccx-trust-card ccx-request-form" onSubmit={submit}><h2>Submit a confidential request</h2><p>No account or payment is required. Provide only necessary facts. Do not upload, download or copy suspected illegal imagery. Do not include passwords, payment-card numbers, ID images or medical documents.</p>
   <fieldset disabled={busy}><label>Request category<select value={fields.kind} onChange={e=>change('kind',e.target.value)}>{kinds.map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
