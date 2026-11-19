@@ -144,7 +144,11 @@ async function processJob(job){
   check_details:{worker_revision:WORKER_REVISION,processing_ms:Math.round(performance.now()-began),
    low_confidence_fields:['legal_name','date_of_birth','expiry_date','document_number'].filter((_,i)=>!Number.isFinite(required[i])||required[i]<0.90||required[i]>1),
    barcode_decoded:job.document_type==='passport'?null:!!back?.ccx_decoded_pdf417,
-   front_back_mismatches:job.document_type==='passport'?[]:fieldComparison.mismatches,\n   // Shown only in the requesting member's private diagnostics, never public profiles or general logs.\n   barcode_expiry:decodedBarcode?.expiry_date||null,\n   visual_expiry_conflict:!!decodedBarcode&&!!rawExpiry&&usDocumentDate(rawExpiry)!==decodedBarcode.expiry_date,\n   middle_initial_ocr_join_corrected:name!==visualName,
+   front_back_mismatches:job.document_type==='passport'?[]:fieldComparison.mismatches,
+   // Shown only in the requesting member's private diagnostics, never public profiles or general logs.
+   barcode_expiry:decodedBarcode?.expiry_date||null,
+   visual_expiry_conflict:!!decodedBarcode&&!!rawExpiry&&usDocumentDate(rawExpiry)!==decodedBarcode.expiry_date,
+   middle_initial_ocr_join_corrected:name!==visualName,
    authenticity_available:!!a,authenticity_score:Number.isFinite(a?.score)?a.score:null,authenticity_flag_count:Array.isArray(a?.flags)?a.flags.length:null,
    frame_checks:frameChecks,turn_checks:turnChecks},
   document:{type:job.document_type,country:job.issuing_country,name,dob,expiry,number,fields_confident:fieldsConfident,cross_checked:crossChecked,authenticity_passed:authenticityPassed},
