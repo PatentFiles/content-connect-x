@@ -115,4 +115,14 @@ try{
  await page('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await visit('/trust/anti-trafficking');
  assert.equal(await run(()=>document.documentElement.scrollWidth<=window.innerWidth+1),true,'No mobile horizontal overflow');await noErrors();await screenshot('trust-mobile.png');
  console.log('PASS real-browser empty/preserved dashboards, full picker, profile reauthorization, failed-load UX, cookie persistence/rejection, closed intake, success/error receipts, staff logout clearing and mobile footer. Synthetic fixtures only.');
-}finally{socket?.close();browser?.kill('SIGTERM');if(server)await new Promise(resolve=>server.close(resolve));fs.rmSync(folder,{recursive:true,force:true});}
+}finally{
+ socket?.close();browser?.kill('SIGTERM');
+ if(server)await new Promise(resolve=>server.close(resolve));
+ // Chromium's disposable profile can receive late writes after SIGTERM.
+ // All actual browser assertions still fail normally.
+ try{await fs.promises.rm(folder,{recursive:true,force:true,maxRetries:12,retryDelay:200});}
+ catch(error){
+  if(!['ENOTEMPTY','EBUSY'].includes(error.code))throw error;
+  console.warn('Browser checks passed; temporary Chromium profile cleanup deferred:',error.code);
+ }
+}
