@@ -68,7 +68,9 @@ export default function LiveIdentityCamera({session,disabled=false,onCapture,onB
    const canvas=document.createElement('canvas'),ratio=Math.min(640/source.videoWidth,640/source.videoHeight,1);
    canvas.width=Math.round(source.videoWidth*ratio);canvas.height=Math.round(source.videoHeight*ratio);
    canvas.getContext('2d').drawImage(source,0,0,canvas.width,canvas.height);
-   if(['turn1_start','turn1_peak','turn_peak'].includes(phase)){
+   // Show a visible shutter flash at every captured pose: center, each turn, and return-to-center.
+   // The server still receives all six timestamped evidence frames and independently verifies movement.
+   if(['turn1_start','turn1_peak','turn1_return','turn_start','turn_peak','turn_return'].includes(phase)){
     setFlash(true);if(flashTimer.current)window.clearTimeout(flashTimer.current);
     flashTimer.current=window.setTimeout(()=>{if(current(run))setFlash(false);},240);
    }
@@ -103,7 +105,7 @@ export default function LiveIdentityCamera({session,disabled=false,onCapture,onB
    {phase==='capturing'&&<><div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/80"/>
     <div role="status" aria-live="polite" className="pointer-events-none absolute inset-x-5 top-[max(3rem,env(safe-area-inset-top))] text-center text-lg font-semibold leading-7 text-white">{instruction}</div>
     {countdown!==null&&<div data-identity-countdown="true" className="pointer-events-none relative z-10 text-center text-[clamp(7rem,28vw,14rem)] font-bold leading-none tabular-nums text-white drop-shadow-xl" aria-label={String(countdown)+' seconds remaining'}>{countdown}</div>}
-    {flash&&<div aria-hidden="true" className="pointer-events-none absolute inset-0 z-20 bg-white/90"/>}
+    {flash&&<div aria-hidden="true" className="pointer-events-none absolute inset-0 z-20 bg-white/95 transition-opacity"/>}
     <button type="button" onClick={close} className="absolute bottom-[max(2rem,env(safe-area-inset-bottom))] z-30 min-h-12 rounded-full border border-white/60 bg-black/60 px-8 py-3 font-semibold text-white">Cancel capture</button></>}
   </div>
   {instruction&&<p role="status" aria-live="polite" className="mt-3 flex items-start gap-2 rounded-lg bg-slate-100 p-3 text-sm font-semibold text-slate-900">{(opening||phase==='uploading')&&<Loader2 size={18} className="mt-0.5 shrink-0 animate-spin" aria-hidden="true"/>}<span>{instruction}</span></p>}

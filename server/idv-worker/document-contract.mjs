@@ -5,8 +5,10 @@ const validISO=value=>{if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(v
 export function usDocumentDate(value){
  if(typeof value!=='string')return null;
  const text=value.trim();if(validISO(text))return text;
- const m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(text)||/^(\d{2})(\d{2})(\d{4})$/.exec(text);
- return m?validISO(`${m[3]}-${m[1]}-${m[2]}`):null;
+ const m=/^(\d{2})[\/-](\d{2})[\/-](\d{4})$/.exec(text)||/^(\d{2})(\d{2})(\d{4})$/.exec(text);
+ if(m)return validISO(`${m[3]}-${m[1]}-${m[2]}`);
+ const iso=/^(\d{4})[\/-](\d{2})[\/-](\d{2})$/.exec(text);
+ return iso?validISO(`${iso[1]}-${iso[2]}-${iso[3]}`):null;
 }
 const clean=value=>typeof value==='string'?value.normalize('NFKC').trim().replace(/\s+/g,' '):'';
 export function decodedUSDocument(raw){
@@ -41,10 +43,10 @@ export function compareDocumentFields(front,back,nameKey){
  const mismatches=[];
  for(const [field,good] of [
   ['legal_name',Boolean(front.name&&back?.full_name&&(nameKey(front.name)===nameKey(back.full_name)||middleInitialJoinedByOCR(front.name,back.full_name,nameKey)))],
-  ['date_of_birth',Boolean(validISO(front.dob)&&validISO(front.dob)===usDocumentDate(back?.date_of_birth))],
-  ['expiry_date',Boolean(validISO(front.expiry)&&validISO(front.expiry)===usDocumentDate(back?.expiry_date))],
+  ['date_of_birth',Boolean(usDocumentDate(front.dob)&&usDocumentDate(front.dob)===usDocumentDate(back?.date_of_birth))],
+  ['expiry_date',Boolean(usDocumentDate(front.expiry)&&usDocumentDate(front.expiry)===usDocumentDate(back?.expiry_date))],
   ['document_number',Boolean(front.number&&front.number===back?.id_number)],
  ])if(!good)mismatches.push(field);
  return {passed:mismatches.length===0,mismatches};
 }
-export const WORKER_REVISION='ccx-guided-capture-2026-11-19-v3';
+export const WORKER_REVISION='ccx-document-date-normalization-2026-11-19-v4';

@@ -30,7 +30,7 @@ jobs:
             sleep 2
           done
           test "$ready" = true
-          node --input-type=module -e "import fs from 'node:fs';import assert from 'node:assert/strict';const h=JSON.parse(fs.readFileSync('/tmp/idv-health.json'));assert.equal(h.worker_revision,'ccx-guided-capture-2026-11-19-v3');assert.equal(h.ocr_self_test,true);assert.ok(h.modes.includes('pilot'));console.log('PASS actual worker OCR startup, model loading and patched revision');"
+          node --input-type=module -e "import fs from 'node:fs';import assert from 'node:assert/strict';const h=JSON.parse(fs.readFileSync('/tmp/idv-health.json'));assert.equal(h.worker_revision,'ccx-document-date-normalization-2026-11-19-v4');assert.equal(h.ocr_self_test,true);assert.ok(h.modes.includes('pilot'));console.log('PASS actual worker OCR startup, model loading and patched revision');"
           code=$(curl --silent --max-time 5 -o /tmp/idv-denied -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:18080/process)
           # The existing worker deliberately returns 422 for invalid capabilities.
           # Both its status and bounded JSON error must match; success is forbidden.

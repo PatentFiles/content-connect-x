@@ -3,7 +3,7 @@
  * Public callers cannot choose file URLs, identities, or verification decisions.
  */
 import http from 'node:http';
-import {decodedUSDocument,compareDocumentFields,WORKER_REVISION} from './document-contract.mjs';
+import {decodedUSDocument,compareDocumentFields,middleInitialJoinedByOCR,usDocumentDate,WORKER_REVISION} from './document-contract.mjs';
 import {createHash} from 'node:crypto';
 import {spawn} from 'node:child_process';
 import {readFileSync} from 'node:fs';
@@ -91,7 +91,13 @@ async function processJob(job){
  let back=null;
  if(job.document_type!=='passport'){const bytes=await artifact(job.evidence.back,job.purpose);await checkImage(bytes);back=await extract('back',bytes,job);}
  const ocr=front.ocr||{};
- const name=ocr.name||ocr.full_name||'',dob=ocr.date_of_birth||'',expiry=ocr.expiration_date||ocr.expiry_date||'',number=ocr.document_number||ocr.id_number||'';
+ const visualName=ocr.name||ocr.full_name||'',rawDob=ocr.date_of_birth||'',rawExpiry=ocr.expiration_date||ocr.expiry_date||'',number=ocr.document_number||ocr.id_number||'';
+ // Reject ambiguous visual dates; normalize only unambiguous calendar formats.
+ const dob=usDocumentDate(rawDob)||rawDob,expiry=usDocumentDate(rawExpiry)||rawExpiry;
+ const decodedBarcode=job.document_type==='passport'?null:decodedUSDocument(back?.ccx_decoded_pdf417);
+ // Correct a joined single-letter middle initial ONLY when independently decoded data confirms the exact name.
+ // Cross-checks, photo authenticity and every age/face/liveness gate remain mandatory.
+ const name=decodedBarcode&&middleInitialJoinedByOCR(visualName,decodedBarcode.full_name,safeName)?decodedBarcode.full_name:visualName;
  const confidence=ocr.confidence_scores||{};
  const required=[confidence.name??confidence.full_name,confidence.date_of_birth,confidence.expiration_date??confidence.expiry_date,confidence.document_number??confidence.id_number];
  const fieldsConfident=required.every(x=>Number.isFinite(x)&&x>=0.90&&x<=1);
@@ -102,7 +108,7 @@ async function processJob(job){
    &&mrz.fields.document_number===number&&mrz.fields.expiry_date===expiry
    &&safeName(mrz.fields.full_name)===safeName(name);
  }else{
-  const decoded=decodedUSDocument(back?.ccx_decoded_pdf417);
+  const decoded=decodedBarcode;
   // OCR fallback is never represented as an independently decoded barcode.
   const p=decoded||(back?.barcode_format==='PDF417'?null:back?.qr_payload);
   fieldComparison=compareDocumentFields({name,dob,expiry,number},p,safeName);
@@ -139,6 +145,10 @@ async function processJob(job){
    low_confidence_fields:['legal_name','date_of_birth','expiry_date','document_number'].filter((_,i)=>!Number.isFinite(required[i])||required[i]<0.90||required[i]>1),
    barcode_decoded:job.document_type==='passport'?null:!!back?.ccx_decoded_pdf417,
    front_back_mismatches:job.document_type==='passport'?[]:fieldComparison.mismatches,
+   // Shown only in the requesting member's private diagnostics, never public profiles or general logs.
+   barcode_expiry:decodedBarcode?.expiry_date||null,
+   visual_expiry_conflict:!!decodedBarcode&&!!rawExpiry&&usDocumentDate(rawExpiry)!==decodedBarcode.expiry_date,
+   middle_initial_ocr_join_corrected:name!==visualName,
    authenticity_available:!!a,authenticity_score:Number.isFinite(a?.score)?a.score:null,authenticity_flag_count:Array.isArray(a?.flags)?a.flags.length:null,
    frame_checks:frameChecks,turn_checks:turnChecks},
   document:{type:job.document_type,country:job.issuing_country,name,dob,expiry,number,fields_confident:fieldsConfident,cross_checked:crossChecked,authenticity_passed:authenticityPassed},
