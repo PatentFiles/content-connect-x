@@ -6,7 +6,6 @@ import {isModuleVisible} from './featureModules.mjs';
 import {RoleWorkspaceContext} from './RoleWorkspaceContext';
 import {effectiveWorkspaceRole} from './roleWorkspacePolicy.mjs';
 import ModuleAccessBoundary from './ModuleAccessBoundary';
-import SponsorshipSlot from './SponsorshipSlot';
 import {supabase} from '@/api/supabaseClient';
 const routeMap=Object.freeze({
  Dashboard:'dashboard',Discovery:'directory',Search:'directory',Favorites:'favorites',Connections:'connections',Groups:'groups',Messages:'messages',Collaborations:'collaborations',
@@ -110,7 +109,6 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
     {isAdmin&&adminRole==='admin'&&<><div className="mb-2 px-3 text-xs font-medium uppercase tracking-wider" style={{color:'var(--cc-text-muted)'}}>Admin</div>{adminNav.map(item=><MenuLink key={item.path} item={item} tab={tab} onNavigate={onNavigate}/>)}<div className="my-2 border-b" style={{borderColor:'var(--cc-border)'}}/></>}
     {nav.map(item=><MenuLink key={item.path} item={item} tab={tab} onNavigate={onNavigate}/>)}
    </nav>
-   <SponsorshipSlot placement="sidebar"/>
    <div className="border-t p-4" style={{borderColor:'var(--cc-border)'}}><button type="button" onClick={onSignOut} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm" style={{color:'var(--cc-text-secondary)'}}><LogOut size={20}/>Log Out</button></div>
   </aside>
   {mobileOpen&&<div className="fixed inset-0 z-[70] md:hidden">
