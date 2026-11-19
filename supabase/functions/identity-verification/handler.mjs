@@ -32,7 +32,7 @@ function workerOrigin(value){
  return url.origin;
 }
 function unbase64(text){const str=atob(text);return Uint8Array.from(str,c=>c.charCodeAt(0));}
-export function createHandler({admin,authenticate,fetchImpl=fetch,clock=()=>new Date()}){
+export function createHandler({admin,authenticate,assurance=async()=>null,fetchImpl=fetch,clock=()=>new Date()}){
  const run=async(query)=>{const {data,error}=await query;if(error){const message=Object.keys(errors).find(k=>String(error.message).includes(k));throw new RequestError(message?errors[message]:'The verification operation could not be completed.',message?409:500);}return data;};
  const transition=(user,id,action,data={})=>run(admin.rpc('ccx_idv_transition',{p_user:user,p_session:id,p_action:action,p_data:data}));
  const getSession=(id,user)=>run(admin.from('ccx_idv_sessions').select('*').eq('id',identifier(id)).eq('user_id',user).maybeSingle());
@@ -82,14 +82,27 @@ export function createHandler({admin,authenticate,fetchImpl=fetch,clock=()=>new 
    if(!security||security.banned||security.suspended)return reply({error:'This account is restricted.'},403);
    if(body.action.startsWith('admin_')){
     if(!security.admin)return reply({error:'Forbidden'},403);
+    // A signed-in admin is not enough to expose private IDs. The current
+    // Auth session must be independently confirmed as MFA AAL2, fail closed.
+    if(await assurance(req)!=='aal2')return reply({error:'Complete two-factor authentication to review private identity cases.'},403);
     const admission=await run(admin.from('member_admissions').select('id').eq('user_id',user.id).maybeSingle());
     if(!admission)return reply({error:'Account onboarding required.'},403);
-    if(body.action==='admin_list')return reply({sessions:await run(admin.from('ccx_idv_sessions').select('id,user_id,status,reason,review_requested_at,purge_after,purged_at,legal_hold,created_at').order('created_at',{ascending:false}).limit(100))});
+    if(body.action==='admin_list'){
+     const cases=await run(admin.rpc('ccx_idv_review_case',{p_actor:user.id,p_session:null,p_action:'list'}));
+     return reply({sessions:cases.cases||[],reviewer_id:cases.reviewer_id});
+    }
+    if(body.action==='admin_case'){
+     if(!['claim','release','close'].includes(body.operation))throw new RequestError('Choose a supported review action.');
+     const result=await run(admin.rpc('ccx_idv_review_case',{p_actor:user.id,p_session:identifier(body.session_id),p_action:body.operation,p_disposition:body.disposition||null}));
+     return reply({case:result});
+    }
     if(body.action==='admin_document'){
      const s=await run(admin.from('ccx_idv_sessions').select('*').eq('id',identifier(body.session_id)).maybeSingle());
      if(!s||s.user_id===user.id)return reply({error:'Independent review is required.'},403);
      if(!['front','back','selfie','capture'].includes(body.kind)||!s.evidence?.[body.kind])throw new RequestError('Document unavailable.',404);
      if(typeof body.reason!=='string'||body.reason.trim().length<10||body.reason.length>500)throw new RequestError('Record the purpose of this access (10–500 characters).');
+     // Database atomically checks case ownership and records access intent.
+     await run(admin.rpc('ccx_idv_review_case',{p_actor:user.id,p_session:s.id,p_action:'authorize_read'}));
      await log(s.id,user.id,'admin_document_link_issued',body.reason.trim());
      const signed=await run(admin.storage.from(BUCKET).createSignedUrl(s.evidence[body.kind].path,120));
      return reply({url:signed.signedUrl,expires_in:120});
@@ -103,11 +116,13 @@ export function createHandler({admin,authenticate,fetchImpl=fetch,clock=()=>new 
     const latest=await run(admin.from('ccx_idv_sessions').select('*').eq('user_id',user.id).order('created_at',{ascending:false}).limit(1).maybeSingle());
     const admitted=await run(admin.from('member_admissions').select('id').eq('user_id',user.id).maybeSingle());
     const today=clock().toISOString().slice(0,10);
+    const review=latest?.review_requested_at?await run(admin.from('ccx_idv_review_cases').select('status,disposition').eq('session_id',latest.id).maybeSingle()):null;
     const birthday=account?.eligible_on?new Date(`${account.eligible_on}T00:00:00Z`):null;
     if(birthday)birthday.setUTCDate(birthday.getUTCDate()-1);
     const ageReason=birthday&&today>=birthday.toISOString().slice(0,10)?'birthday_wait':'under_18';
     let session=account?.eligible_on>today?{...publicSession(latest,clock().getTime()),status:'age_restricted',eligible_on:account.eligible_on,message:publicMessage('age_restricted',ageReason,account.eligible_on)}:publicSession(latest,clock().getTime());
     if(session?.status==='age_restricted'&&session.eligible_on<=today)session={...session,status:'eligible_to_retry',message:'You may now complete a new identity verification attempt. Access is not granted automatically.'};
+    if(session&&review)session={...session,review_status:review.status,review_disposition:review.disposition||null};
     return reply({enabled:cfg.enabled===true,policy:POLICY,notice:cfg.notice_text,notice_version:cfg.notice_version,retention_days:cfg.retention_days,
      supported_countries:cfg.supported_countries,email_confirmed:Boolean(user.email_confirmed_at),legal_name:account?.verified_name||account?.legal_name||profile?.real_name||'',admitted:Boolean(admitted),session});
    }
