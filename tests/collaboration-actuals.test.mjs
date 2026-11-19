@@ -77,7 +77,7 @@ test('current JWT is verified and handler cannot directly alter contracts/consen
  const handler=fs.readFileSync('supabase/functions/collaboration-actuals/handler.mjs','utf8');
  assert.match(wrapper,/admin\.auth\.getUser/);
  assert.match(wrapper,/ccx_collaboration_actual_action/);
- assert.match(wrapper,/p_actor:user\.id|p_actor:userId/);
+ assert.match(handler,/p_actor:user\.id/);
  assert.doesNotMatch(wrapper+/\n/+handler,/UPDATE\s+.*contracts|UPDATE\s+.*consents|member_admissions\)\.insert/i);
 });
 test('frontend never claims a participant account is an agreed amendment or authoritative proof',()=>{
