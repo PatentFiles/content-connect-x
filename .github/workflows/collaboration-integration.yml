@@ -5,11 +5,16 @@ on:
       - 'supabase/migrations/20261119181000_collaboration_plans_archive_and_invitation_cooldown.sql'
       - 'supabase/migrations/20261119182000_mutual_professional_representation_agreements.sql'
       - 'supabase/functions/collaboration-workspace/**'
+      - 'supabase/functions/collaboration-safety/**'
+      - 'supabase/migrations/20261119234000_voluntary_collaboration_safety_checkins.sql'
       - 'supabase/functions/member-workflows/**'
       - 'src/supabase/CollaborationHub.jsx'
+      - 'src/supabase/CollaborationSafetyCheckin.jsx'
       - 'src/supabase/RepresentationAgreements.jsx'
       - 'src/supabase/MemberSettings.jsx'
       - 'scripts/test-collaboration-database.sql'
+      - 'scripts/test-collaboration-safety.sql'
+      - 'tests/collaboration-safety.test.mjs'
       - '.github/workflows/collaboration-integration.yml'
   push:
     branches: [feat/collaboration-archive-representation-and-settings-20261119]
@@ -55,6 +60,8 @@ jobs:
         run: |
           npm run lint
           npm run typecheck
+      - name: Verify safety endpoint authorization and error handling
+        run: node --test tests/collaboration-safety.test.mjs
       - name: Validate import graph
         run: npm run verify:edge-imports
       - name: Build app
