@@ -27,6 +27,11 @@ export const supabase={auth:{onAuthStateChange(cb){listeners.add(cb);queueMicrot
    return {data:{schema_version:1,role:'creator',layout:db.layout,revision:db.revision,metrics:{favorites:{status:'ready',value:0,subtitle:'Synthetic metric'}},checked_at:'2026-11-19T12:00:00Z'}};
   }
   if(name==='ccx_trust_public_config')return {data:{ready:location.search.includes('ready=1'),policies_approved:false}};
+  if(name==='ccx_trust_triage'){
+   if(!db.staff)return {error:{message:'Staff MFA required'}};
+   if(args.p_action==='list')return {data:{items:[{id:people[0].id,kind:'support',status:'pending',priority:'normal',created_at:'2026-11-19T12:00:00Z',assigned_reviewer_id:null,overdue:false}]}};
+   return {data:{ok:true}};
+  }
   if(name==='ccx_trust_review'){
    if(!db.staff)return {error:{message:'Staff MFA required'}};
    if(args.p_action==='list')return {data:{items:[{id:people[0].id,kind:'support',status:'pending',priority:'normal',created_at:'2026-11-19T12:00:00Z'}]}};
