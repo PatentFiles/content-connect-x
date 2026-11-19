@@ -232,22 +232,22 @@ begin
     where ccx_social_group_members.status='declined';
    event_action:='invited';response_status:='invited';
   elsif p_action in('approve','deny') then
-   if target_member.status<>'requested' then raise exception 'GROUP_REQUEST_NOT_PENDING' using errcode='42501';end if;
+   if coalesce(target_member.status,'none')<>'requested' then raise exception 'GROUP_REQUEST_NOT_PENDING' using errcode='42501';end if;
    update public.ccx_social_group_members set
      status=case when p_action='approve' then 'active' else 'declined' end,updated_at=now()
      where group_id=p_group and user_id=p_target;
    event_action:=case when p_action='approve' then 'approved' else 'denied' end;
    response_status:=case when p_action='approve' then 'active' else 'declined' end;
   elsif p_action='remove' then
-   if target_member.status not in ('active','invited') or target_member.role='owner'
+   if coalesce(target_member.status,'none') not in ('active','invited') or coalesce(target_member.role,'none')='owner'
      or (target_member.role='admin' and not can_owner)
     then raise exception 'GROUP_CANNOT_REMOVE' using errcode='42501';end if;
    update public.ccx_social_group_members set status='removed',role='member',updated_at=now()
      where group_id=p_group and user_id=p_target;
    event_action:='removed';response_status:='removed';
   elsif p_action in('promote','demote') then
-   if not can_owner or target_member.status<>'active' or
-    target_member.role<>(case when p_action='promote' then 'member' else 'admin' end)
+   if not can_owner or coalesce(target_member.status,'none')<>'active' or
+    coalesce(target_member.role,'none')<>(case when p_action='promote' then 'member' else 'admin' end)
      then raise exception 'GROUP_OWNER_ONLY' using errcode='42501';end if;
    update public.ccx_social_group_members set role=case when p_action='promote' then 'admin' else 'member' end,updated_at=now()
      where group_id=p_group and user_id=p_target;
@@ -260,17 +260,17 @@ begin
  end if;
  if p_action in('accept','decline','leave') then
   if p_action='accept' then
-   if actor_member.status<>'invited' then raise exception 'GROUP_NO_INVITATION' using errcode='42501';end if;
+   if coalesce(actor_member.status,'none')<>'invited' then raise exception 'GROUP_NO_INVITATION' using errcode='42501';end if;
    update public.ccx_social_group_members set status='active',updated_at=now()
     where group_id=p_group and user_id=p_actor;
    response_status:='active';event_action:='accepted';
   elsif p_action='decline' then
-   if actor_member.status not in('invited','requested') then raise exception 'GROUP_NO_REQUEST' using errcode='42501';end if;
+   if coalesce(actor_member.status,'none') not in('invited','requested') then raise exception 'GROUP_NO_REQUEST' using errcode='42501';end if;
    update public.ccx_social_group_members set status='declined',updated_at=now()
     where group_id=p_group and user_id=p_actor;
    response_status:='declined';event_action:='declined';
   else
-   if actor_member.status<>'active' or actor_member.role='owner' then
+   if coalesce(actor_member.status,'none')<>'active' or actor_member.role='owner' then
     raise exception 'GROUP_OWNER_TRANSFER_REQUIRED' using errcode='42501'; end if;
    update public.ccx_social_group_members set status='left',role='member',updated_at=now()
     where group_id=p_group and user_id=p_actor;
