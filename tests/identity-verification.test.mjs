@@ -33,18 +33,19 @@ test('changing the assigned directions rejected',()=>assert.throws(()=>validateC
 test('instant fabricated timing rejected',()=>{const c=captureFixture();c.frames[2].timestamp=4500;assert.throws(()=>validateCapture(c,{challenge_id:sessionId,directions:c.directions}));});
 test('underage message explains restriction and review',()=>assert.match(publicMessage('age_restricted','under_18','2028-01-02'),/not permitted.*2028-01-02.*request a review/));
 
-function harness({user={id:userId,email_confirmed_at:'2026-11-01'},adminRole=false,enabled=true,reportOverride,sessionOverride,admitted=false}={}){
+function harness({user={id:userId,email_confirmed_at:'2026-11-01'},adminRole=false,enabled=true,reportOverride,sessionOverride,admitted=false,assuranceLevel='aal1'}={}){
  const {session,report}=fixture();Object.assign(session,sessionOverride||{});
- const calls=[];const rows={account_security:[{user_id:userId,admin:adminRole,banned:false,suspended:false}],ccx_idv_config:[{singleton:true,enabled,notice_text:'Synthetic notice for offline tests only.',notice_version:'fixture',supported_countries:['US'],worker_origin:'https://ccx-test.up.railway.app'}],ccx_idv_sessions:[session],ccx_idv_accounts:[],member_profiles:[{id:userId,real_name:'Jane Anne Doe'}],member_admissions:admitted?[{id:'fixture',user_id:userId}]:[]};
+ const calls=[];const rows={account_security:[{user_id:userId,admin:adminRole,banned:false,suspended:false}],ccx_idv_config:[{singleton:true,enabled,notice_text:'Synthetic notice for offline tests only.',notice_version:'fixture',supported_countries:['US'],worker_origin:'https://ccx-test.up.railway.app'}],ccx_idv_sessions:[session],ccx_idv_accounts:[],member_profiles:[{id:userId,real_name:'Jane Anne Doe'}],ccx_idv_review_cases:session.review_requested_at?[{session_id:sessionId,status:'queued',disposition:null}]:[],member_admissions:admitted?[{id:'fixture',user_id:userId}]:[]};
  const db={from(table){const filters=[];let mode='select',record;const q={select(){return q;},eq(k,v){filters.push(r=>r[k]===v);return q;},order(){return q;},limit(){return q;},single(){return q;},maybeSingle(){return q;},insert(v){mode='insert';record=v;return q;},then(resolve){calls.push({table,mode,record});const selected=(rows[table]||[]).filter(r=>filters.every(f=>f(r)));return Promise.resolve({data:mode==='insert'?null:selected[0]||null,error:null}).then(resolve);}};return q;},
  rpc(name,args){calls.push({rpc:name,args});if(name==='ccx_idv_maintenance_authorized')return Promise.resolve({data:false,error:null});if(name==='ccx_idv_transition'){
   if(args.p_action==='begin')return Promise.resolve({data:{...session,status:'processing'},error:null});
   if(args.p_action==='finish')return Promise.resolve({data:{...session,status:args.p_data.checks_passed?'approved':'review_required'},error:null});
   if(args.p_action==='fail')return Promise.resolve({data:{...session,status:'retryable_error'},error:null});
   return Promise.resolve({data:null,error:{message:'INVALID_CAPABILITY'}});
- }if(name==='ccx_idv_request_retake')return Promise.resolve({data:{...session,status:'collecting',reason:'retake_requested',evidence_revision:1,evidence:{back:session.evidence.back,selfie:session.evidence.selfie,capture:session.evidence.capture}},error:null});
- throw Error('Unexpected RPC');}};
- const handler=createHandler({admin:db,authenticate:async()=>user,clock:()=>new Date('2026-11-18T12:00:00Z'),fetchImpl:async()=>new Response(JSON.stringify(reportOverride||report),{status:200})});
+ }if(name==='ccx_idv_review_case')return Promise.resolve({data:args.p_action==='list'?{cases:[{id:sessionId,case_status:'queued',verification_status:'review_required'}],reviewer_id:userId}:{id:sessionId,case_status:args.p_action==='claim'?'claimed':'closed'},error:null});
+ if(name==='ccx_idv_request_retake')return Promise.resolve({data:{...session,status:'collecting',reason:'retake_requested',evidence_revision:1,evidence:{back:session.evidence.back,selfie:session.evidence.selfie,capture:session.evidence.capture}},error:null});
+ throw Error('Unexpected RPC');},storage:{from(){return {createSignedUrl(path){calls.push({signed:path});return Promise.resolve({data:{signedUrl:'https://yxuqbygykpfbioslljlf.supabase.co/storage/v1/object/sign/ccx-identity-evidence/'+path},error:null});}};}}};
+ const handler=createHandler({admin:db,authenticate:async()=>user,assurance:async()=>assuranceLevel,clock:()=>new Date('2026-11-18T12:00:00Z'),fetchImpl:async()=>new Response(JSON.stringify(reportOverride||report),{status:200})});
  return {calls,handler,invoke:body=>handler(new Request('https://example.test/identity-verification',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}))};
 }
 test('anonymous requests cannot read verification state',async()=>{const h=harness({user:null});assert.equal((await h.invoke({action:'status'})).status,401);assert.equal(h.calls.length,0);});
@@ -86,4 +87,52 @@ test('deployed identity entrypoint bundles the checked-in handler rather than a 
  assert.match(handler,/ccx_idv_request_retake/);
  assert.match(handler,/ccx_idv_upload_versioned/);
  assert.match(handler,/from '\.\/policy\.mjs'/);
+});
+
+test('admin evidence queue requires a current AAL2 MFA-authenticated session',async()=>{
+ const h=harness({adminRole:true,admitted:true,assuranceLevel:'aal1'});
+ const result=await h.invoke({action:'admin_list'});
+ assert.equal(result.status,403);
+ assert.match((await result.json()).error,/two-factor/i);
+ assert.equal(h.calls.some(c=>c.rpc==='ccx_idv_review_case'),false);
+});
+test('AAL2 reviewer can see only bounded case summaries through privileged RPC',async()=>{
+ const h=harness({adminRole:true,admitted:true,assuranceLevel:'aal2'});
+ const result=await h.invoke({action:'admin_list'});
+ assert.equal(result.status,200);
+ const json=await result.json();
+ assert.equal(json.sessions.length,1);
+ assert.equal(json.reviewer_id,userId);
+ assert.equal(h.calls.find(c=>c.rpc==='ccx_idv_review_case').args.p_actor,userId);
+ assert.equal(JSON.stringify(json).includes('Jane Anne Doe'),false);
+});
+test('admin claim and closure calls never accept browser approval decisions',async()=>{
+ const h=harness({adminRole:true,admitted:true,assuranceLevel:'aal2'});
+ const result=await h.invoke({action:'admin_case',session_id:sessionId,operation:'claim',approved:true,age_verified:true});
+ assert.equal(result.status,200);
+ const c=h.calls.find(x=>x.rpc==='ccx_idv_review_case');
+ assert.deepEqual(c.args,{p_actor:userId,p_session:sessionId,p_action:'claim',p_disposition:null});
+ const invalid=await h.invoke({action:'admin_case',session_id:sessionId,operation:'approve'});
+ assert.equal(invalid.status,400);
+});
+test('a private ID image requires both AAL2 and an assigned-review authorization',async()=>{
+ const owner='33333333-3333-4333-8333-333333333333';
+ const evidence=Object.fromEntries(['front','back','capture','selfie'].map(k=>[k,{path:owner+'/'+sessionId+'/'+k+'.jpg',sha256:hash}]));
+ const noMfa=harness({adminRole:true,admitted:true,assuranceLevel:'aal1',sessionOverride:{user_id:owner,evidence}});
+ const denied=await noMfa.invoke({action:'admin_document',session_id:sessionId,kind:'front',reason:'Investigating a reported OCR misread'});
+ assert.equal(denied.status,403);
+ assert.equal(noMfa.calls.some(c=>c.signed),false);
+ const withMfa=harness({adminRole:true,admitted:true,assuranceLevel:'aal2',sessionOverride:{user_id:owner,evidence}});
+ const allowed=await withMfa.invoke({action:'admin_document',session_id:sessionId,kind:'front',reason:'Investigating a reported OCR misread'});
+ assert.equal(allowed.status,200);
+ const claim=withMfa.calls.find(c=>c.rpc==='ccx_idv_review_case');
+ assert.equal(claim.args.p_action,'authorize_read');
+ assert.equal(claim.args.p_actor,userId);
+ assert.equal(withMfa.calls.filter(c=>c.signed).length,1);
+});
+test('admin identity AAL2 comes from Supabase Auth verification, not UI metadata',()=>{
+ const code=fs.readFileSync('supabase/functions/identity-verification/index.ts','utf8');
+ assert.match(code,/mfa\.getAuthenticatorAssuranceLevel\(/);
+ assert.match(code,/getUser\(/);
+ assert.match(code,/authorization\.slice\(7\)/);
 });
