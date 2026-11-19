@@ -8,7 +8,7 @@ import {effectiveWorkspaceRole} from './roleWorkspacePolicy.mjs';
 import ModuleAccessBoundary from './ModuleAccessBoundary';
 import {supabase} from '@/api/supabaseClient';
 const routeMap=Object.freeze({
- Dashboard:'dashboard',Discovery:'directory',Search:'search',Favorites:'favorites',Connections:'connections',Messages:'messages',Collaborations:'collaborations',
+ Dashboard:'dashboard',Discovery:'directory',Search:'directory',Favorites:'favorites',Connections:'connections',Messages:'messages',Collaborations:'collaborations',
  Contracts:'contracts',Testing:'testing',Verification:'verification',Properties:'hosting',HostingMarketplace:'hosting',HostDashboard:'host',HostProfile:'profile',
  HostSettings:'host-settings',Profile:'profile',Settings:'settings',Representations:'roster',Roster:'roster',RosterPortfolio:'roster',Portfolio:'portfolio',
  Invitations:'notifications',Notifications:'notifications',AccountSecurity:'account-security',Consent:'consent',ProductionManager:'production',AvailabilitySchedule:'schedule',TravelSchedule:'schedule',AdminDashboard:'controls',AgentManagement:'controls',
@@ -16,7 +16,7 @@ const routeMap=Object.freeze({
  CreateCollaboration:'collaborations',CollaborationDetail:'collaborations',ViewProfile:'directory',ViewContract:'contracts',PropertyDetail:'hosting'
 });
 const keyFor=path=>routeMap[path]||'dashboard';
-const reverseRoutes={dashboard:'Dashboard',directory:'Discovery',search:'Search',favorites:'Favorites',connections:'Connections',messages:'Messages',collaborations:'Collaborations',
+const reverseRoutes={dashboard:'Dashboard',directory:'Discovery',favorites:'Favorites',connections:'Connections',messages:'Messages',collaborations:'Collaborations',
  contracts:'Contracts',testing:'Testing',verification:'Verification',hosting:'Properties',host:'HostDashboard',profile:'Profile',settings:'Settings',portfolio:'Portfolio',
  invitations:'Notifications',notifications:'Notifications','account-security':'AccountSecurity',consent:'Consent',production:'ProductionManager',schedule:'AvailabilitySchedule',representations:'Roster',roster:'Roster','host-settings':'HostSettings',controls:'AdminDashboard',integrations:'CompliancePortal','testing-reviews':'TestingReviews',membership:'Pricing'};
 export const tabFromLegacyPath=pathname=>{const part=decodeURIComponent(String(pathname||'').split('/').filter(Boolean)[0]||'');const matched=Object.keys(routeMap).find(key=>key.toLowerCase()===part.toLowerCase());return matched?routeMap[matched]:'dashboard';};
@@ -125,7 +125,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
   </div>}
   <main id="main-content" className="ccx-shell-main min-h-screen px-4 pb-24 pt-24 md:pl-[calc(16rem+1.5rem)] md:pr-6 md:pb-10" style={{paddingTop:'calc(var(--cc-shell-header-height,4rem) + 1.5rem)'}}><div className="mx-auto max-w-7xl"><ModuleAccessBoundary tab={tab} flags={featureFlags} onNavigate={onNavigate}>{children}</ModuleAccessBoundary></div></main>
   <nav aria-label="Mobile bottom navigation" className="fixed bottom-0 left-0 right-0 z-50 flex border-t backdrop-blur-xl md:hidden" style={{backgroundColor:'color-mix(in srgb,var(--cc-bg) 95%,transparent)',borderColor:'var(--cc-border)',paddingBottom:'env(safe-area-inset-bottom,0px)'}}>
-   {nav.slice(0,5).map(item=>{const Icon=item.icon,active=tabMatches(tab,item.path);return <button key={item.path} onClick={()=>onNavigate(keyFor(item.path))} className="flex min-h-14 flex-1 flex-col items-center justify-center gap-1 px-1 py-2" aria-current={active?'page':undefined} style={{color:active?'var(--cc-blue)':'var(--cc-text-muted)'}}><Icon size={20}/><span className="max-w-full truncate text-[10px] font-medium">{item.label}</span></button>;})}
+   {['Dashboard','Testing','Discovery','Collaborations','Favorites'].map(path=>nav.find(item=>item.path===path)).filter(Boolean).map(item=>{const Icon=item.icon,active=tabMatches(tab,item.path);return <button key={item.path} onClick={()=>onNavigate(keyFor(item.path))} className="flex min-h-14 flex-1 flex-col items-center justify-center gap-1 px-1 py-2" aria-current={active?'page':undefined} style={{color:active?'var(--cc-blue)':'var(--cc-text-muted)'}}><Icon size={20}/><span className="max-w-full truncate text-[10px] font-medium">{item.label}</span></button>;})}
   </nav>
  </div></RoleWorkspaceContext.Provider>;
 }
