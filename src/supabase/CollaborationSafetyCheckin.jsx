@@ -16,7 +16,7 @@ async function safetyCall(action,collaborationId,contactInformed=false){
  if(!data?.item||data.item.monitored_emergency_response!==false)throw Error('Your check-in could not be confirmed. Please check status before retrying.');
  return data.item;
 }
-export default function CollaborationSafetyCheckin({collaborationId,onNavigate=()=>{}}){
+export default function CollaborationSafetyCheckin({collaborationId,onNavigate=(_destination,_context)=>{}}){
  const [item,setItem]=useState(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[contactInformed,setContactInformed]=useState(false);
  useEffect(()=>{
   let active=true;setItem(null);setNotice('');setError('');
