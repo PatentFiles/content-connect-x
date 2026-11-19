@@ -9,6 +9,7 @@ import ConsentCenter from './ConsentCenter';
 import SafetyPanel from './SafetyPanel';
 import ScheduleHub from './ScheduleHub';
 import CommunityHub from './CommunityHub';
+import ConnectGroups from './ConnectGroups';
 import FeedbackHub from './FeedbackHub';
 import AdminConsole from './AdminConsole';
 import MediaGallery from './MediaGallery';
