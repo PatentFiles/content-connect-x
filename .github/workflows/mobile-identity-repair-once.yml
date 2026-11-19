@@ -1,0 +1,45 @@
+name: Mobile identity repair validation
+on:
+  push:
+    branches: [fix/identity-mobile-camera-progress]
+    paths:
+      - scripts/repair-mobile-identity-once.mjs
+      - .github/workflows/mobile-identity-repair-once.yml
+permissions:
+  contents: write
+jobs:
+  repair-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/identity-mobile-camera-progress
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Install guarded regression updates and remove one-time tooling
+        run: node scripts/repair-mobile-identity-once.mjs
+      - name: Commit only to the repair branch
+        run: |
+          test "$(git branch --show-current)" = fix/identity-mobile-camera-progress
+          git diff --check
+          git add scripts/test-identity-onboarding-browser.mjs README.md docs/IDENTITY_MOBILE_CAPTURE.md scripts/repair-mobile-identity-once.mjs .github/workflows/mobile-identity-repair-once.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "Exercise mobile ID uploads and playable camera startup; document scoped fix"
+          git push origin HEAD:refs/heads/fix/identity-mobile-camera-progress
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - name: Actual React upload feedback and playable synthetic camera capture
+        run: node scripts/test-identity-onboarding-browser.mjs
+      - name: Preserve original public hero styles and signed-in light theme
+        run: npm run test:ui-theme
+      - run: npm run test:ui-controls
+      - run: npm run verify:release
+      - run: npm run verify:frontend-contract
+      - run: npm run verify:edge-imports
+      - run: npm run build
