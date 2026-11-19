@@ -17,7 +17,8 @@ export default function MemberDiscoveryCard({person,saved=false,busy=false,canFa
   <div className="space-y-3 p-5">
    <div className="flex items-center gap-2"><h3 className="text-lg font-semibold">{person.display_name}</h3>{person.age_verified&&<ShieldCheck size={17} className="shrink-0 text-emerald-800" aria-label="Age verified"/>}</div>
    <p className="flex items-start gap-1.5 text-sm text-[var(--cc-text-secondary)]"><MapPin size={15} className="mt-1 shrink-0"/>{[person.city,person.state,person.country].filter(Boolean).join(', ')||'Location not provided'}</p>
-   {person.bio&&<p className="line-clamp-2 text-sm text-[var(--cc-text-secondary)]">{person.bio}</p>}
+   {person.sexual_orientation&&<p className="text-xs font-medium capitalize text-[var(--cc-text-secondary)]">Orientation: {person.sexual_orientation}</p>}
+    {person.bio&&<p className="line-clamp-2 text-sm text-[var(--cc-text-secondary)]">{person.bio}</p>}
    <button type="button" onClick={onClick} className="text-sm font-medium text-[var(--cc-link)] underline underline-offset-4">View public profile</button>
   </div>
  </article>;
