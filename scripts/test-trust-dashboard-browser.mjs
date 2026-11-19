@@ -76,7 +76,8 @@ try{
  const wait=async(fn,...args)=>{for(let i=0;i<120;i++){try{if(await run(fn,...args))return;}catch(e){if(!/context|navigation/i.test(e.message))throw e;}await new Promise(r=>setTimeout(r,80));}throw Error('Timed out: '+fn.toString());};
  const click=async text=>{await wait(text=>[...document.querySelectorAll('button')].some(b=>b.textContent.trim()===text&&!b.disabled),text);assert.equal(await run(text=>{const b=[...document.querySelectorAll('button')].find(e=>e.textContent.trim()===text&&!e.disabled);if(!b)return false;b.click();return true;},text),true,'Click '+text);};
  const selectClick=async selector=>{await wait(s=>!!document.querySelector(s),selector);await run(s=>document.querySelector(s).click(),selector);};
- const hasText=async text=>wait(t=>document.body?.textContent.includes(t),text);
+ // innerText excludes the inline fixture bundle: source literals are not UI output.
+ const hasText=async text=>wait(t=>document.body?.innerText.includes(t),text);
  const visit=async route=>{const before=await run(()=>performance.timeOrigin);await page('Page.navigate',{url:origin+route});await wait((route,before)=>window.__fixtureRoute===route&&performance.timeOrigin!==before&&!!document.querySelector('.ccx-trust-footer'),route,before);};
  const reloadClick=async text=>{const before=await run(()=>performance.timeOrigin);await click(text);await wait(before=>performance.timeOrigin!==before&&!!document.querySelector('.ccx-trust-footer'),before);};
  const noErrors=async()=>assert.deepEqual(await run(()=>window.__errors),[]);
@@ -107,10 +108,10 @@ try{
  await reloadClick('Reject optional services');await wait(()=>document.querySelectorAll('input[type=checkbox]').length===2&&[...document.querySelectorAll('input[type=checkbox]')].every(e=>!e.checked));
  await visit('/trust/support?ready=1');await wait(()=>!!document.querySelector('form'));
  await run(()=>{window.__db.failIntake=true;const t=document.querySelector('textarea');Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype,'value').set.call(t,'Synthetic support request without any personal data');t.dispatchEvent(new Event('input',{bubbles:true}));});
- await click('Submit request');await wait(()=>!!document.querySelector('[role=alert]'));assert.equal(await run(()=>document.body.textContent.includes('Request recorded')),false);
+ await click('Submit request');await wait(()=>!!document.querySelector('[role=alert]'));assert.equal(await run(()=>document.body.innerText.includes('Request recorded')),false);
  await run(()=>{window.__db.failIntake=false;});await click('Submit request');await hasText('synthetic-receipt');await noErrors();
  await visit('/trust/review?staff=1');await click('Load review queue');await selectClick('.ccx-trust-cases button');await hasText('private-case-fixture');
- await run(()=>window.__signOut());await wait(()=>!document.body.textContent.includes('private-case-fixture'));await click('Load review queue');await hasText('Staff MFA required');
+ await run(()=>window.__signOut());await wait(()=>!document.body.innerText.includes('private-case-fixture'));await click('Load review queue');await hasText('Staff MFA required');
  await page('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});await visit('/trust/anti-trafficking');
  assert.equal(await run(()=>document.documentElement.scrollWidth<=window.innerWidth+1),true,'No mobile horizontal overflow');await noErrors();await screenshot('trust-mobile.png');
  console.log('PASS real-browser empty/preserved dashboards, full picker, profile reauthorization, failed-load UX, cookie persistence/rejection, closed intake, success/error receipts, staff logout clearing and mobile footer. Synthetic fixtures only.');
