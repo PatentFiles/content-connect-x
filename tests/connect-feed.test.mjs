@@ -62,7 +62,7 @@ test('only approved, private signed photos are delivered with an explicit allowl
  assert.equal(r.status,200);
  const text=await r.text();
  assert.doesNotMatch(text,/DO-NOT-RETURN|storage_path|"path"|sensitive_value/);
- assert.match(text,/signed\/member-private/);
+ assert.match(text,/sign\/member-private/);
  assert.equal(h.links[0].seconds,180);
  assert.equal(h.links.length,1);
 });
