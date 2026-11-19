@@ -51,6 +51,58 @@ Deno.serve(async req=>{
     await db.from('platform_action_audit').insert({actor_id:uid,action:event,target_type:'media',target_id:target,metadata:details});
   };
   try{
+    if(action==='register_self_feed_photo'){
+      // Solo images only: account verification is NOT verification of other performers.
+      if(!paid)return reply({error:'Premium membership is required to publish photos'},403);
+      if(body.attest_self_only!==true||body.attest_rights!==true||body.attest_no_sex_act!==true)
+        return reply({error:'Confirm that the photo depicts only you, you control the rights, and no sexual act is shown.'},400);
+      const path=plain(body.storage_path,500),type=plain(body.mime_type,90);
+      const prefix=uid+'/media/';
+      const fileName=path.startsWith(prefix)?path.slice(prefix.length):'';
+      if(!uuid(fileName.split('.')[0])||fileName.split('.').length!==2||!['jpg','jpeg','png','webp'].includes(fileName.split('.')[1]))
+        return reply({error:'Invalid private photo path'},400);
+      if(!['image/jpeg','image/png','image/webp'].includes(type))
+        return reply({error:'Only JPG, PNG and WebP photos are supported'},400);
+      const contentLabel=body.content_label==='adult_nudity'?'adult_nudity':'professional';
+      const info=await bucket.info(path);
+      if(info.error||!info.data)return reply({error:'Upload the photo to your private account first'},400);
+      if(info.data.metadata?.mimetype&&info.data.metadata.mimetype!==type)
+        return reply({error:'The stored photo has a different MIME type'},400);
+      const storedSize=Number(info.data.metadata?.size||info.data.size);
+      if(!Number.isSafeInteger(storedSize)||storedSize<16||storedSize>8*1024*1024)
+        return reply({error:'Photo size must be between 16 bytes and 8 MB'},400);
+      const {data:file,error:downloadError}=await bucket.download(path);
+      if(downloadError||!file)return reply({error:'Photo verification unavailable'},503);
+      const bytes=new Uint8Array(await file.arrayBuffer());
+      const magicOk=type==='image/jpeg'
+        ?bytes[0]===255&&bytes[1]===216&&bytes[2]===255
+        :type==='image/png'
+          ?bytes.slice(0,8).every((b,i)=>b===[137,80,78,71,13,10,26,10][i])
+          :String.fromCharCode(...bytes.slice(0,4))==='RIFF'&&String.fromCharCode(...bytes.slice(8,12))==='WEBP';
+      if(!magicOk)return reply({error:'Unsupported or invalid photo content'},400);
+      const {count,error:rateError}=await db.from('member_media_assets')
+        .select('id',{count:'exact',head:true}).eq('owner_id',uid)
+        .gte('created_at',new Date(Date.now()-86400000).toISOString());
+      if(rateError)return reply({error:'Media rate limit unavailable'},503);
+      if((count||0)>=10)return reply({error:'Daily media upload limit reached'},429);
+      const visibility=body.visibility==='connections'?'connections':'verified';
+      const {data:asset,error:saveError}=await db.from('member_media_assets').insert({
+        owner_id:uid,storage_path:path,mime_type:type,caption:plain(body.caption,500),
+        status:'approved',visibility,uploader_rights_attested:true,rights_attested_at:new Date().toISOString(),
+        approval_origin:'verified_self_attestation',self_only_attested:true,content_label:contentLabel
+      }).select('id,status,content_label').single();
+      if(saveError||!asset)return reply({error:'Photo registration failed'},409);
+      const {error:auditError}=await db.from('platform_action_audit').insert({
+        actor_id:uid,action:'media_self_published',target_type:'media',target_id:asset.id,
+        metadata:{publication_basis:'verified_solo_attestation',content_label:contentLabel}
+      });
+      if(auditError){
+        await db.from('member_media_assets').update({status:'hidden'})
+          .eq('id',asset.id).eq('owner_id',uid);
+        return reply({error:'Publishing audit unavailable. Photo was not published.'},503);
+      }
+      return reply({item:asset,note:'Photo is ready to share. Rights and safety reports can temporarily remove it.'},201);
+    }
     if(action==='register_upload'){
       if(!paid)return reply({error:'Premium membership required for uploads'},403);
       if(body.attest_rights!==true)return reply({error:'Confirm your authority and all required participant permissions before uploading'},400);

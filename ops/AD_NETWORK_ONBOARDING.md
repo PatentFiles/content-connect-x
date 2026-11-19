@@ -23,3 +23,10 @@ Existing campaign approval and validity are independently enforced in the Supaba
 The user must identify the specific previously mentioned PPC and affiliate companies and complete any signup, ownership and payment compliance requirements. The current account's password is neither accessible nor needed in source code. After that, provider integrations can be built one network at a time with auditable approval gates.
 
 **Never publish, generate or simulate live ads just to fill unused space.** Inactive inventory stays blank and the website remains on Bolt.
+
+
+## Verified Gamma Entertainment provider discovery (November 19, 2026)
+
+Programs requested: FameDollars (https://www.famedollars.com/), BlazingBucks (https://www.blazingbucks.com/), and BuddyProfits (https://www.buddyprofits.com/), all under Gamma Entertainment's GammaStats umbrella. Gamma's official landing page states that one account can promote all three. The common registration form requires a username, password, website title and URL, contact name/email/telephone, mailing/payment information, payout method, acceptance of terms, and any subsequent identity or payment verification. These are not available to this release and must not be fabricated. **Use only the provider's secure signup page for password entry.** No password was stored, copied, or submitted by these code changes. If any previously shared password is in reuse, change it before enrolling.
+
+After approval, enter each network's actual tracked referral/deep link into an independently reviewed `ccx_sponsorship_campaigns` campaign with its exact disclosure and expiration. Merely linking to a program's homepage does not create attributable affiliate revenue. No PPC impression or commission should be claimed without the provider's report.

@@ -35,7 +35,7 @@ create table public.member_media_assets(
 );
 create table public.content_moderation_queue(
  id uuid primary key default gen_random_uuid(),content_type text,content_id uuid,
- submitter_id uuid,status text default 'pending'
+ submitter_id uuid,status text default 'pending',reason text,reviewed_at timestamptz
 );
 grant usage on schema public to service_role;
 grant select,insert,update,delete on all tables in schema public to service_role;

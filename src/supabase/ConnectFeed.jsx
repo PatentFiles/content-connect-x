@@ -21,6 +21,7 @@ async function action(name,payload={}){
 function FeedPost({post,paid,userId,onChanged,onError}){
  const [comments,setComments]=useState(null),[commentText,setCommentText]=useState('');
  const [busy,setBusy]=useState(false),[repostText,setRepostText]=useState(''),[reposting,setReposting]=useState(false);
+ const [revealedPhotos,setRevealedPhotos]=useState([]);
  const [reporting,setReporting]=useState(false),[reportReason,setReportReason]=useState('unsafe');
  const [local,setLocal]=useState(post),[notice,setNotice]=useState('');
  useEffect(()=>{setLocal(post);},[post]);
@@ -63,9 +64,18 @@ function FeedPost({post,paid,userId,onChanged,onError}){
    <p className="mt-2 whitespace-pre-wrap break-words">{local.original.body}</p>
   </div>}
   {local.photos?.length>0&&<div className={'grid gap-2 '+(local.photos.length>1?'grid-cols-2':'grid-cols-1')}>
-   {local.photos.map(photo=><a key={photo.id} href={photo.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" aria-label={'View attached photo '+(photo.caption||'')} className="block overflow-hidden rounded-xl border border-[var(--cc-border)]">
-    <img src={photo.url} alt={photo.caption||'Shared professional photo'} loading="lazy" referrerPolicy="no-referrer" className="aspect-square h-auto w-full object-cover"/>
-   </a>)}
+   {local.photos.map(photo=>{
+    const concealed=photo.content_label==='adult_nudity'&&!revealedPhotos.includes(photo.id);
+    return <div key={photo.id} className="relative overflow-hidden rounded-xl border border-[var(--cc-border)]">
+     <a href={concealed?undefined:photo.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"
+      aria-label={'View attached photo '+(photo.caption||'')} className="block">
+      <img src={photo.url} alt={concealed?'Adult image concealed until revealed':photo.caption||'Shared professional photo'}
+       loading="lazy" referrerPolicy="no-referrer" className={'aspect-square h-auto w-full object-cover '+(concealed?'blur-2xl':'')}/>
+     </a>
+     {concealed&&<button type="button" className="absolute inset-0 flex items-center justify-center bg-black/40 px-4 text-center text-sm font-semibold text-white"
+      onClick={()=>setRevealedPhotos(v=>[...v,photo.id])}>Adult nudity — click to reveal</button>}
+    </div>;
+   })}
   </div>}
   <div className="flex flex-wrap items-center gap-1 border-t border-[var(--cc-border)] pt-3">
    <button type="button" className={secondary} disabled={busy} aria-label={local.liked?'Unlike post':'Like post'} onClick={()=>void mutate(local.liked?'unlike':'like')}>
@@ -103,13 +113,32 @@ function FeedPost({post,paid,userId,onChanged,onError}){
   {notice&&<p role="status" className="rounded-lg bg-[var(--cc-surface-subtle)] p-2 text-xs">{notice}</p>}
  </article>;
 }
+/** Re-encoding strips EXIF/GPS before any picture leaves the browser. */
+async function safePhotoBlob(file){
+ if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>12*1024*1024)
+  throw Error('Choose a JPG, PNG or WebP image smaller than 12 MB.');
+ if(typeof createImageBitmap!=='function')throw Error('This browser cannot safely prepare images. Please use an updated browser.');
+ const bitmap=await createImageBitmap(file);
+ try{
+  if(bitmap.width*bitmap.height>30000000)throw Error('Image dimensions are too large.');
+  const scale=Math.min(1,2200/Math.max(bitmap.width,bitmap.height));
+  const canvas=document.createElement('canvas');
+  canvas.width=Math.max(1,Math.round(bitmap.width*scale));canvas.height=Math.max(1,Math.round(bitmap.height*scale));
+  const ctx=canvas.getContext('2d');
+  if(!ctx)throw Error('Cannot process this photo.');
+  ctx.drawImage(bitmap,0,0,canvas.width,canvas.height);
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',0.88));
+  if(!blob||blob.size>8*1024*1024)throw Error('Compressed photo exceeds the 8 MB limit.');
+  return blob;
+ }finally{bitmap.close();}
+}
 export default function ConnectFeed({userId,paid=false,preview=false,initialMode='discover',profileId=null,groupId=null,onNavigate=(_tab)=>{}}){
  const modeOptions=groupId?[['group','Group posts']]:profileId?[['profile','Posts']]:[['friends','Friends'],['following','Following'],['discover','Discover']];
  const [mode,setMode]=useState(groupId?'group':profileId?'profile':initialMode),[items,setItems]=useState([]),[cursor,setCursor]=useState(null);
  const [loading,setLoading]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [sharedPost,setSharedPost]=useState(null),[sharedError,setSharedError]=useState(''),[loadingShared,setLoadingShared]=useState(false);
- const [text,setText]=useState(''),[audience,setAudience]=useState('verified'),[gallery,setGallery]=useState([]);
- const [mediaIds,setMediaIds]=useState([]),[uploadFile,setUploadFile]=useState(null),[rights,setRights]=useState(false),[uploading,setUploading]=useState(false);
+ const [text,setText]=useState(''),[audience,setAudience]=useState('verified');
+ const [uploadFile,setUploadFile]=useState(null),[rights,setRights]=useState(false),[adultNudity,setAdultNudity]=useState(false),[uploading,setUploading]=useState(false);
  const reqNo=useRef(0),posting=useRef(false);
  const load=useCallback(async(more=false)=>{
   if(more&&!cursor)return;const seq=++reqNo.current;setLoading(true);setError('');
@@ -145,67 +174,66 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
   window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);
   setSharedPost(null);setSharedError('');
  };
- const photos=async()=>{
-  try{const result=await action('my_photos');setGallery(result.items||[]);}catch(e){setError(e.message);}
- };
- const upload=async()=>{
-  if(!paid||!uploadFile||!rights||uploading||!userId)return;
-  setUploading(true);setError('');setNotice('');
+ const uploadPhoto=async()=>{
+  if(!uploadFile||!rights||!userId)throw Error('Confirm the photo depicts only you and you own all publishing rights.');
+  setUploading(true);
   try{
-   if(!['image/jpeg','image/png','image/webp'].includes(uploadFile.type)||uploadFile.size>8*1024*1024)
-    throw Error('Use JPG, PNG or WebP photos of no more than 8 MB.');
-   const ext=uploadFile.type.split('/')[1];
-   const path=userId+'/media/'+crypto.randomUUID()+'.'+ext;
-   const {error:failure}=await supabase.storage.from('member-private').upload(path,uploadFile,{
-    contentType:uploadFile.type,upsert:false,cacheControl:'0'
+   const image=await safePhotoBlob(uploadFile);
+   const path=userId+'/media/'+crypto.randomUUID()+'.jpg';
+   const {error:uploadError}=await supabase.storage.from('member-private').upload(path,image,{
+    upsert:false,contentType:'image/jpeg',cacheControl:'0'
    });
-   if(failure)throw failure;
-   const {data,error:registerError}=await supabase.functions.invoke('media-gateway',{body:{
-    action:'register_upload',storage_path:path,mime_type:uploadFile.type,caption:'Connect Feed photo',visibility:audience==='verified'?'verified':'connections',attest_rights:true
+   if(uploadError)throw Error('Private photo upload failed: '+uploadError.message);
+   const {data,error}=await supabase.functions.invoke('media-gateway',{body:{
+    action:'register_self_feed_photo',storage_path:path,mime_type:'image/jpeg',caption:text.slice(0,500),
+    visibility:audience==='verified'?'verified':'connections',
+    content_label:adultNudity?'adult_nudity':'professional',
+    attest_rights:true,attest_self_only:true,attest_no_sex_act:true
    }});
-   if(registerError||data?.error)throw Error(data?.error||'Photo review submission failed. Contact support if it persists.');
-   setUploadFile(null);setRights(false);
-   setNotice('Photo uploaded for moderation. When it is approved, refresh your photo library and attach it to a post.');
-  }catch(e){setError(e.message);}finally{setUploading(false);}
+   if(error||data?.error||!data?.item?.id)throw Error(data?.error||'The photo was not accepted. Your text remains available; retry or contact support.');
+   return data.item.id;
+  }finally{setUploading(false);}
  };
  const publish=async event=>{
-  event.preventDefault();if(posting.current||!paid||preview)return;
+  event.preventDefault();
+  if(posting.current||!paid||preview)return;
+  if(uploadFile&&!rights)return setError('Confirm that the photo depicts only you, and that you own its rights.');
   posting.current=true;setLoading(true);setError('');setNotice('');
   try{
-   const result=await action('create',{text,audience,media_ids:groupId?[]:mediaIds,group_id:groupId||undefined});
-   setText('');setMediaIds([]);
-   setNotice(result.note||'Post submitted for moderation.');
+   const mediaIds=(!groupId&&uploadFile)?[await uploadPhoto()]:[];
+   const message=text.trim().length>=5?text:'Shared a photo';
+   const result=await action('create',{text:message,audience,media_ids:mediaIds,group_id:groupId||undefined});
+   setText('');setUploadFile(null);setRights(false);setAdultNudity(false);
+   setNotice(result.item?.status==='published'?'Your update is live on the Feed. Reports may temporarily hide it for review.':result.note||'Update submitted.');
+   if(result.item?.status==='published')void load(false);
   }catch(e){setError(e.message);}finally{posting.current=false;setLoading(false);}
  };
  return <section data-connect-feed="true" className="min-w-0 space-y-4" aria-label={groupId?'Private group posts':profileId?'Profile timeline':'Connect Feed'}>
   {paid&&!preview&&!profileId?<form className="ccx-surface space-y-3 rounded-2xl p-4 sm:p-5" onSubmit={publish}>
    <label className="block text-sm font-semibold">{groupId?'Share in this group':'Share an update'}
-    <textarea className={input+' mt-2'} value={text} rows={3} required minLength={5} maxLength={3000}
+    <textarea className={input+' mt-2'} value={text} rows={3} required={!uploadFile} minLength={uploadFile?0:5} maxLength={3000}
      onChange={e=>setText(e.target.value)} placeholder="Share your projects, photos, collaborations or professional updates…"/>
    </label>
    <div className="flex flex-wrap items-center gap-2">
     {!groupId&&<label className="text-xs">Audience
-     <select className="ml-2 min-h-11 rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-2" value={audience} onChange={e=>{setAudience(e.target.value);setMediaIds([]);}}>
+     <select className="ml-2 min-h-11 rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-2" value={audience} onChange={e=>setAudience(e.target.value)}>
       {Object.entries(audienceLabels).map(([v,label])=><option key={v} value={v}>{label}</option>)}
      </select>
     </label>}
-    {!groupId&&<button className={secondary} type="button" onClick={()=>void photos()}><ImagePlus size={16}/>Approved photos</button>}
-    <button className={primary} type="submit" disabled={loading||text.trim().length<5}>Submit post</button>
+    <button className={primary} type="submit" disabled={loading||uploading||(!uploadFile&&text.trim().length<5)||Boolean(uploadFile&&!rights)}>{loading?'Publishing…':'Publish update'}</button>
    </div>
-   {!groupId&&gallery.length>0&&<div className="space-y-2"><p className="text-xs">Choose up to four approved photos from your media library. Private photos cannot be shared.</p>
-    <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">{gallery.filter(m=>m.visibility==='verified'||audience!=='verified'&&m.visibility==='connections').map(photo=><button key={photo.id} type="button" aria-pressed={mediaIds.includes(photo.id)} className={'overflow-hidden rounded-xl border-2 '+(mediaIds.includes(photo.id)?'border-[var(--cc-link)]':'border-transparent')} onClick={()=>setMediaIds(v=>v.includes(photo.id)?v.filter(id=>id!==photo.id):v.length<4?[...v,photo.id]:v)}>
-     <img src={photo.url} alt={photo.caption||'Approved photo'} loading="lazy" referrerPolicy="no-referrer" className="aspect-square w-full object-cover"/>
-    </button>)}</div>
-    <p className="text-xs">{mediaIds.length} of 4 photos selected</p>
+   {!groupId&&<div className="space-y-3 rounded-xl border border-[var(--cc-border)] p-3" aria-label="Attach a photo">
+    <label className="flex cursor-pointer items-center gap-2 text-sm font-medium"><ImagePlus size={17}/>Add a photo
+     <input type="file" accept="image/jpeg,image/png,image/webp" className="mt-1 block w-full text-xs" onChange={e=>{setUploadFile(e.target.files?.[0]||null);setRights(false);}}/>
+    </label>
+    {uploadFile&&<div className="space-y-2">
+     <p className="text-xs">{uploadFile.name} · The image will be resized and stripped of location metadata before upload.</p>
+     <label className="flex items-start gap-2 text-xs"><input type="checkbox" checked={adultNudity} onChange={e=>setAdultNudity(e.target.checked)}/><span>This photo contains adult nudity. Nudity itself is permitted for verified adults.</span></label>
+     <label className="flex items-start gap-2 text-xs"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/><span>I am 18 or older, I am the only person depicted, I have the right to publish this image, and it contains no sexual act. Other people or sexual activity need separate documented clearance.</span></label>
+    </div>}
+    <p className="text-xs text-[var(--cc-text-secondary)]">Verified Premium members can post their own photos without routine manual image approval. Reports can temporarily remove posts for review. No IDs or private testing records.</p>
    </div>}
-   {!groupId&&<details className="rounded-xl border border-[var(--cc-border)] p-3 text-sm">
-    <summary className="cursor-pointer font-semibold">Upload a new photo for moderation</summary>
-    <p className="mt-2 text-xs">New photos must be approved before they can appear in a feed. No explicit media, private ID records, or content without participant rights.</p>
-    <input type="file" accept="image/jpeg,image/png,image/webp" className="mt-3 block w-full text-xs" onChange={e=>setUploadFile(e.target.files?.[0]||null)}/>
-    <label className="mt-3 flex items-start gap-2 text-xs"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/><span>I own the necessary rights and have required participant permissions to share this photo.</span></label>
-    <button type="button" className={secondary+' mt-3'} disabled={uploading||!uploadFile||!rights} onClick={()=>void upload()}>{uploading?'Uploading…':'Send photo for approval'}</button>
-   </details>}
-   <p className="text-xs text-[var(--cc-text-secondary)]">Posting and reposting require Premium. All posts and comments remain private until moderation approves them. Group posts are restricted to active members and currently support text only.</p>
+   <p className="text-xs text-[var(--cc-text-secondary)]">Publishing requires Premium. Your Feed post appears after verified self-attestation; comments and group discussions still follow separate moderation. Group posts currently support text only.</p>
   </form>:!profileId&&<div className="ccx-surface rounded-xl p-4 text-sm text-[var(--cc-text-secondary)]">Verified Free members can browse, like, save, share links and submit moderated comments. Premium is required to publish posts, upload photos or repost.</div>}
   {!profileId&&!groupId&&<header className="flex flex-wrap items-center justify-between gap-2">
    <div><h2 className="text-xl font-bold">Feed</h2><p className="mt-1 text-xs text-[var(--cc-text-secondary)]">Latest posts from your verified community, friends and following.</p></div>
