@@ -1,4 +1,5 @@
 -- Collaboration planning & anti-spam constraints. Existing signed contracts/consents are not mutated.
+ALTER TABLE public.collaboration_invitations ADD COLUMN IF NOT EXISTS proposed_role text NOT NULL DEFAULT 'collaborator';
 CREATE TABLE IF NOT EXISTS public.ccx_collaboration_plans (
  collaboration_id uuid PRIMARY KEY REFERENCES public.collaborations(id) ON DELETE RESTRICT,
  starts_at timestamptz, ends_at timestamptz, timezone text NOT NULL DEFAULT 'UTC',
@@ -57,6 +58,8 @@ CREATE OR REPLACE FUNCTION public.ccx_guard_collaboration_invite()
 RETURNS trigger LANGUAGE plpgsql SET search_path='' AS $function$
 DECLARE owner_id uuid; locked_until timestamptz;
 BEGIN
+ IF NEW.proposed_role NOT IN ('collaborator','creator','photographer','videographer','video_editor','agent','studio') THEN RAISE EXCEPTION 'Invalid collaborator role'; END IF;
+ IF NEW.proposed_role<>'collaborator' AND NEW.proposed_role IS DISTINCT FROM (SELECT role_type FROM public.member_profiles WHERE id=NEW.invitee_id) THEN RAISE EXCEPTION 'Collaborator role does not match profile'; END IF;
  IF NEW.status <> 'pending' THEN RAISE EXCEPTION 'Invitations begin pending' USING ERRCODE='42501'; END IF;
  SELECT creator_id INTO owner_id FROM public.collaborations WHERE id=NEW.collaboration_id;
  IF owner_id IS DISTINCT FROM NEW.invited_by OR NEW.invitee_id=NEW.invited_by THEN
@@ -88,6 +91,9 @@ CREATE TRIGGER ccx_invite_relationship_gate BEFORE INSERT ON public.collaboratio
 CREATE OR REPLACE FUNCTION public.ccx_record_collaboration_declines()
 RETURNS trigger LANGUAGE plpgsql SET search_path='' AS $function$
 BEGIN
+ IF OLD.status='pending' AND NEW.status='accepted' AND NEW.proposed_role<>'collaborator' THEN
+  UPDATE public.collaboration_members SET membership_role=NEW.proposed_role WHERE collaboration_id=NEW.collaboration_id AND user_id=NEW.invitee_id;
+ END IF;
  IF OLD.status='pending' AND NEW.status='declined' THEN
   PERFORM pg_advisory_xact_lock(hashtextextended('ccx-collaboration-invite:'||NEW.invited_by::text,0));
   IF (SELECT count(*) FROM public.collaboration_invitations
