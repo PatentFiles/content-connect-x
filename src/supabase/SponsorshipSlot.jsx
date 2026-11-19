@@ -6,7 +6,7 @@ import React,{useEffect,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
 export default function SponsorshipSlot({placement='feed'}){
  const [item,setItem]=useState(null);
- useEffect(()=>{let active=true;void supabase.from('ccx_sponsorship_campaigns')
+ useEffect(()=>{let active=true;if(typeof supabase?.from!=='function')return()=>{active=false;};void supabase.from('ccx_sponsorship_campaigns')
   .select('id,sponsor_name,headline,link_url,disclosure')
   .eq('placement',placement).eq('approved',true).order('starts_at',{ascending:false}).limit(1)
   .then(({data,error})=>{if(active&&!error)setItem(data?.[0]||null);},()=>{});return()=>{active=false;};
