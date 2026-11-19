@@ -69,7 +69,7 @@ Deno.serve(async req=>{
  const page=data||[],hasMore=page.length>filters.limit&&filters.offset+filters.limit<500;
  const ids=page.slice(0,filters.limit).map(row=>row.id);
  const prefs=new Map<string,any>();
- if(ids.length){const {data:choices,error:choiceError}=await db.from('member_profile_preferences').select('user_id,gender_identity,content_categories,show_gender_in_discovery,show_categories_in_discovery').in('user_id',ids);if(choiceError)return json({error:'Unable to load directory'},503);for(const choice of choices||[])prefs.set(choice.user_id,choice);}
+ if(ids.length){const {data:choices,error:choiceError}=await db.from('member_profile_preferences').select('user_id,gender_identity,sexual_orientation,content_categories,show_gender_in_discovery,show_orientation_in_discovery,show_categories_in_discovery').in('user_id',ids);if(choiceError)return json({error:'Unable to load directory'},503);for(const choice of choices||[])prefs.set(choice.user_id,choice);}
  const {data:ageRows,error:badgeError}=await db.from('age_verification_requests').select('user_id,status,expires_at,created_at').in('user_id',ids).order('created_at',{ascending:false});
  if(badgeError)return json({error:'Unable to load verification badges'},503);
  const badges=new Map();for(const row of ageRows||[])if(!badges.has(row.user_id))badges.set(row.user_id,row);
@@ -80,7 +80,7 @@ Deno.serve(async req=>{
   if(path){const {data:link,error:linkError}=await db.storage.from('member-private').createSignedUrl(path,900);if(!linkError)avatarUrl=link?.signedUrl||null;}
   // A signed avatar is issued only after all viewer/member authorization checks.
   // Raw private storage paths, health reports, legal names and emails stay private.
-  return {id:row.id,display_name:row.display_name,role_type:row.role_type,bio:row.bio,avatar_url:avatarUrl,city:row.city,state:row.state,country:row.country,age_verified:badge?.status==='approved'&&(!badge.expires_at||Date.parse(badge.expires_at)>Date.now()),gender_identity:choice?.show_gender_in_discovery?choice.gender_identity:null,content_categories:choice?.show_categories_in_discovery?choice.content_categories:[]};
+  return {id:row.id,display_name:row.display_name,role_type:row.role_type,bio:row.bio,avatar_url:avatarUrl,city:row.city,state:row.state,country:row.country,age_verified:badge?.status==='approved'&&(!badge.expires_at||Date.parse(badge.expires_at)>Date.now()),gender_identity:choice?.show_gender_in_discovery?choice.gender_identity:null,sexual_orientation:choice?.show_orientation_in_discovery&&['straight','gay','lesbian','bisexual','pansexual','queer','asexual','questioning'].includes(choice.sexual_orientation)?choice.sexual_orientation:null,content_categories:choice?.show_categories_in_discovery?choice.content_categories:[]};
  }));
  return json({results,preview:!premium,limit:filters.limit,has_more:hasMore,offset:filters.offset});
  }catch{return json({error:'Directory service is temporarily unavailable'},503);}

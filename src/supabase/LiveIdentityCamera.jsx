@@ -10,10 +10,11 @@ import {cameraAccessIssue,cameraErrorMessage,requestIdentityCamera,playIdentityP
 /** @param {{session: any, disabled?: boolean, onCapture: (file: File) => Promise<void>, onBusyChange?: (busy: boolean) => void}} props */
 export default function LiveIdentityCamera({session,disabled=false,onCapture,onBusyChange=()=>{}}){
  const [phase,setPhase]=useState('idle'),[instruction,setInstruction]=useState(''),[error,setError]=useState('');
- const [countdown,setCountdown]=useState(null);
- const video=useRef(null),media=useRef(null),controller=useRef(null),epoch=useRef(0),alive=useRef(true);
+ const [countdown,setCountdown]=useState(null),[flash,setFlash]=useState(false);
+ const video=useRef(null),media=useRef(null),controller=useRef(null),epoch=useRef(0),alive=useRef(true),flashTimer=useRef(null);
  const callbacks=useRef({onCapture,onBusyChange});callbacks.current={onCapture,onBusyChange};
  const release=()=>{
+  if(flashTimer.current)window.clearTimeout(flashTimer.current);flashTimer.current=null;setFlash(false);
   epoch.current++;controller.current?.abort();controller.current=null;stopTracks(media.current);media.current=null;
   if(video.current){video.current.pause();video.current.srcObject=null;}
  };
@@ -67,6 +68,10 @@ export default function LiveIdentityCamera({session,disabled=false,onCapture,onB
    const canvas=document.createElement('canvas'),ratio=Math.min(640/source.videoWidth,640/source.videoHeight,1);
    canvas.width=Math.round(source.videoWidth*ratio);canvas.height=Math.round(source.videoHeight*ratio);
    canvas.getContext('2d').drawImage(source,0,0,canvas.width,canvas.height);
+   if(['turn1_start','turn1_peak','turn_peak'].includes(phase)){
+    setFlash(true);if(flashTimer.current)window.clearTimeout(flashTimer.current);
+    flashTimer.current=window.setTimeout(()=>{if(current(run))setFlash(false);},240);
+   }
    const frame_base64=canvas.toDataURL('image/jpeg',0.78).split(',')[1];
    if(frame_base64.length>200000)throw Error('The camera frame is too large. Try again in even lighting.');
    return {phase,timestamp:performance.now(),frame_base64};
@@ -93,10 +98,14 @@ export default function LiveIdentityCamera({session,disabled=false,onCapture,onB
    <ol className="mt-2 list-decimal space-y-1 pl-5">{headTurnPlan(session.directions).map(item=><li key={item.step}>{item.instruction}</li>)}</ol>
    <p className="mt-2">Turn gently, not to a full side profile. Wait for the on-screen instruction before looking back.</p>
   </div>
-  <div hidden={!showPreview} className="mt-3 overflow-hidden rounded-xl bg-slate-900">
-   <video ref={video} autoPlay playsInline muted aria-label="Live camera preview" className="aspect-[4/3] w-full -scale-x-100 object-contain"/>
+  <div hidden={!showPreview} className={phase==='capturing'?'fixed inset-0 z-[110] flex flex-col items-center justify-center overflow-hidden bg-black':'mt-3 overflow-hidden rounded-xl bg-slate-900'} data-capture-fullscreen={phase==='capturing'}>
+   <video ref={video} autoPlay playsInline muted aria-label="Live camera preview" className={phase==='capturing'?'absolute inset-0 h-full w-full -scale-x-100 object-cover':'aspect-[4/3] w-full -scale-x-100 object-contain'}/>
+   {phase==='capturing'&&<><div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/80"/>
+    <div role="status" aria-live="polite" className="pointer-events-none absolute inset-x-5 top-[max(3rem,env(safe-area-inset-top))] text-center text-lg font-semibold leading-7 text-white">{instruction}</div>
+    {countdown!==null&&<div data-identity-countdown="true" className="pointer-events-none relative z-10 text-center text-[clamp(7rem,28vw,14rem)] font-bold leading-none tabular-nums text-white drop-shadow-xl" aria-label={String(countdown)+' seconds remaining'}>{countdown}</div>}
+    {flash&&<div aria-hidden="true" className="pointer-events-none absolute inset-0 z-20 bg-white/90"/>}
+    <button type="button" onClick={close} className="absolute bottom-[max(2rem,env(safe-area-inset-bottom))] z-30 min-h-12 rounded-full border border-white/60 bg-black/60 px-8 py-3 font-semibold text-white">Cancel capture</button></>}
   </div>
-  {phase==='capturing'&&countdown!==null&&<div data-identity-countdown="true" className="mt-3 text-center text-5xl font-bold tabular-nums" aria-label={String(countdown)+' seconds remaining'}>{countdown}</div>}
   {instruction&&<p role="status" aria-live="polite" className="mt-3 flex items-start gap-2 rounded-lg bg-slate-100 p-3 text-sm font-semibold text-slate-900">{(opening||phase==='uploading')&&<Loader2 size={18} className="mt-0.5 shrink-0 animate-spin" aria-hidden="true"/>}<span>{instruction}</span></p>}
   {error&&<div role="alert" className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}{embedded&&<a href={window.location.href} target="_blank" rel="noopener noreferrer" className="mt-2 block underline">Open this page in a new tab</a>}</div>}
   {['idle','error'].includes(phase)&&<button type="button" disabled={disabled} onClick={open} className="ccx-secondary mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-xl px-4 py-3"><Camera size={18} aria-hidden="true"/>Open selfie camera</button>}

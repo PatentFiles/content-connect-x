@@ -49,7 +49,7 @@ export default function DashboardPeople({widget,profile,onNavigate}){
   {!people.length&&<p className="ccx-widget-note">No matching profiles yet. New eligible profiles will appear here.</p>}
   <div className="ccx-people-list">{people.map(person=><button type="button" key={person.id} className="ccx-person-preview" onClick={()=>setSelected(person)} aria-label={'Open '+person.display_name+' profile'}>
    <span className="ccx-person-avatar">{person.avatar_url?<img src={person.avatar_url} alt="" loading="lazy" referrerPolicy="no-referrer"/>:<span aria-hidden="true">{(person.display_name||'?').slice(0,1)}</span>}</span>
-   <span className="ccx-person-text"><strong>{person.display_name}</strong><span>{roleTitle(person.role_type)}</span><small>{[person.city,person.state,person.country].filter(Boolean).join(', ')||'Location not shared'}</small></span><span aria-hidden="true">↗</span>
+   <span className="ccx-person-text"><strong>{person.display_name}</strong><span>{roleTitle(person.role_type)}</span><small>{person.sexual_orientation?'Orientation: '+person.sexual_orientation+' · ':''}{[person.city,person.state,person.country].filter(Boolean).join(', ')||'Location not shared'}</small></span><span aria-hidden="true">↗</span>
   </button>)}</div>
   <button type="button" className="ccx-widget-link" onClick={()=>onNavigate('directory')}>Explore the directory</button>
   {selected&&<dialog ref={dialog} className="ccx-profile-dialog" aria-labelledby="ccx-profile-heading" onCancel={()=>setSelected(null)} onClose={()=>setSelected(null)}>

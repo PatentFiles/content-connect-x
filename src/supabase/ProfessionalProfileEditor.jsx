@@ -1,4 +1,5 @@
 /** Role-specific professional settings. Creator-only identity/acts remain in the original creator editor. */
+import {bioSafetyMessage} from './bioSafety.mjs';
 import React,{useEffect,useState} from 'react';
 import {User,Users,Camera,Activity,ChevronDown,Upload,ShieldCheck,Edit2} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
@@ -21,6 +22,8 @@ export default function ProfessionalProfileEditor({user,profile,onSaved,approved
   for(const kind of ['avatar','cover']){const path=profile?.[kind+'_path'];if(!path)continue;let url='';if(path.startsWith('https://'))url=path;else if(path.startsWith(user.id+'/')){const {data}=await supabase.storage.from('member-private').createSignedUrl(path,3600);url=data?.signedUrl||'';}if(alive)setAssets(old=>({...old,[kind]:url}));}
  })().catch(e=>{if(alive)setError(e.message);});return()=>{alive=false;};},[user.id,profile?.avatar_path,profile?.cover_path,preview]);
  const save=async e=>{e.preventDefault();if(preview)return;setBusy(true);setError('');setNotice('');try{
+  const safetyWarning=bioSafetyMessage(form.bio);
+  if(safetyWarning)throw new Error(safetyWarning);
   if(details.website&&!validateWorkLink(details.website))throw new Error('Use a valid HTTPS website address.');
   const {error:failure}=await supabase.rpc('ccx_save_professional_profile',{p_profile:{...form,country:countryName(form.country)},p_details:details});
   if(failure)throw failure;if(onSaved)await onSaved();setNotice(roleTitle(role)+' profile saved.');

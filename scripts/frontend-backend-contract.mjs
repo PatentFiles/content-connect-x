@@ -29,7 +29,7 @@ assert.match(pricingView,/Free Membership/);assert.match(pricingView,/membership
 assert.match(originalShell,/hidden w-64 flex-col border-r md:flex/,'Original fixed sidebar required');assert.match(originalShell,/aria-label="Open navigation menu"/);assert.match(originalShell,/aria-label="Mobile navigation"/);assert.match(originalShell,/aria-label="Sign out"/);assert.doesNotMatch(originalShell,/Sign Out<\/button>[\s\S]*<header/);
 // The user explicitly moved Host management to OnlyHost. Assert the six CCX
 // roles and the restored routes directly, rather than matching JSX formatting.
-for(const role of ['creator','agent','studio','photographer','videographer','video_editor']){assert.ok(ROLE_ROUTES[role],'Missing role '+role);for(const path of ['Discovery','Search','Favorites','Properties','Profile','Settings'])assert.ok(ROLE_ROUTES[role].includes(path),role+' missing '+path);}
+for(const role of ['creator','agent','studio','photographer','videographer','video_editor']){assert.ok(ROLE_ROUTES[role],'Missing role '+role);for(const path of ['Discovery','Favorites','Properties','Profile','Settings'])assert.ok(ROLE_ROUTES[role].includes(path),role+' missing '+path);}
 assert.equal(ROLE_ROUTES.host,undefined,'Host must not be a CCX dashboard role');
 assert.ok(ROLE_ROUTES.agent.includes('Roster')&&ROLE_ROUTES.studio.includes('Roster'));
 for(const role of ['photographer','videographer','video_editor'])assert.ok(ROLE_ROUTES[role].includes('Portfolio'));

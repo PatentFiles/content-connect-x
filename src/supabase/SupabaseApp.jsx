@@ -312,6 +312,10 @@ export default function SupabaseApp() {
           <div><p className="ccx-eyebrow">Content Connect X</p><h2 className="mt-1 text-2xl font-bold">{signUp?'Join the network':'Welcome back'}</h2></div>
         </div>
         <p className="mt-5 text-sm leading-6 text-[var(--cc-text-secondary)]">Start with free registration and independent age verification. Membership and premium actions are available only when their services are activated.</p>
+        {signUp&&<div className="mt-3 rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-xs leading-5 text-[var(--cc-text-secondary)]">
+          Content Connect X and Host Connect are professional content-production marketplaces. No escorting, paid sexual services, coercion, trafficking or non-consensual content. Before meeting anyone, check their credentials and arrange safety measures. Verification is not a guarantee of behavior.
+          <span className="mt-2 block"><a href="/trust/terms" className="font-semibold underline">Read the draft terms</a> · <a href="/trust/anti-trafficking" className="font-semibold underline">Safety policy</a> · <a href="/trust/content-removal" className="font-semibold underline">Report a concern</a></span>
+        </div>}
         {recovering?
           <form onSubmit={requestRecovery} className="mt-6 space-y-4">
             <p className="text-sm text-[var(--cc-text-secondary)]">Enter your account email. We will send a recovery link if the address is registered.</p>
@@ -456,7 +460,7 @@ export default function SupabaseApp() {
       paid={paid} isAdmin={isAdmin} onNavigate={navigateInWorkspace}
       onSaved={()=>refresh(session)}/>}
     {tab==='verification'&&<div className="mx-auto max-w-md"><YotiVerification onApproval={()=>refresh(session)}/></div>}
-    {['directory','search','favorites'].includes(tab)&&
+    {['directory','favorites'].includes(tab)&&
       <CreatorDiscovery key={tab} user={user} approved={approved} paid={paid}
        mode={tab==='directory'?'discovery':tab} onNavigate={navigateInWorkspace}/>}
     {tab==='reviews'&&isAdmin&&approved&&<div className="space-y-4"><div className="flex justify-between items-center"><h2 className="text-xl font-semibold">Age verification records</h2><button className={primary} onClick={loadReviews} disabled={busy}><RefreshCw size={16}/></button></div><p className={muted}>Historical verification records are read-only. New members verify through Yoti; manual approval is no longer available.</p>{reviews.map(request=><div key={request.id} className={`${panel} space-y-2`}><p className="text-sm">Request {request.id} · {request.status}</p><p className={muted}>{new Date(request.created_at).toLocaleString()}</p><div className="flex flex-wrap gap-2"><button className={primary} onClick={()=>openReviewDocument(request.id,'id')} disabled={busy}>View ID</button><button className={primary} onClick={()=>openReviewDocument(request.id,'selfie')} disabled={busy}>View selfie</button></div></div>)}{reviews.length===0&&<p className={muted}>Select refresh to load recent review requests.</p>}</div>}

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {headTurnPlan,runHeadTurnSequence} from '../src/supabase/identityCaptureSequence.mjs';
 import {mergeIdentitySnapshot,identityResultTitle,identityDiagnosticHelp} from '../src/supabase/identityResultState.mjs';
-import {decodedUSDocument,usDocumentDate,compareDocumentFields} from '../server/idv-worker/document-contract.mjs';
+import {decodedUSDocument,usDocumentDate,compareDocumentFields,middleInitialJoinedByOCR} from '../server/idv-worker/document-contract.mjs';
 import {sanitizedCheckDetails} from '../supabase/functions/identity-pilot/check-details.mjs';
 import {validateCapture,nameKey,decide,SCHEMA,ENGINE_REVISION} from '../supabase/functions/identity-verification/policy.mjs';
 const raw=(changes={})=>{
@@ -78,3 +78,13 @@ test('a complete valid report approves automatically while an omitted middle ini
  session.legal_name='Jordan Example';assert.equal(decide(report,session,'2026-11-19').status,'name_mismatch');
 });
 test('worker and Edge core policies remain identical',()=>assert.equal(fs.readFileSync('server/idv-worker/policy.mjs','utf8'),fs.readFileSync('supabase/functions/identity-verification/policy.mjs','utf8')));
+
+test('middle initial fused by OCR is matched only when barcode corroborates all fields',()=>{
+ const barcode=decodedUSDocument(raw()),base={name:'JORDANA EXAMPLE',dob:'1990-06-15',expiry:'2035-06-15',number:'SYNTHETIC123'};
+ assert.equal(middleInitialJoinedByOCR(base.name,barcode.full_name,nameKey),true);
+ assert.equal(compareDocumentFields(base,barcode,nameKey).passed,true);
+ assert.equal(compareDocumentFields({...base,expiry:'2023-06-15'},barcode,nameKey).passed,false);
+ assert.deepEqual(compareDocumentFields({...base,expiry:'2023-06-15'},barcode,nameKey).mismatches,['expiry_date']);
+ assert.equal(middleInitialJoinedByOCR('JORDANX EXAMPLE',barcode.full_name,nameKey),false);
+ assert.equal(middleInitialJoinedByOCR('JORDAN EXAMPLE',barcode.full_name,nameKey),false);
+});
