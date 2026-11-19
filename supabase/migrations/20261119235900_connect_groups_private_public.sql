@@ -145,7 +145,7 @@ begin
    where user_id=p_actor and admin and not banned and not suspended)
    then raise exception 'GROUP_ADMIN_REQUIRED' using errcode='42501'; end if;
   if g.visibility<>'public' or g.state<>'pending_platform'
-    or p_visibility not in('approve','reject')
+    or g.owner_id=p_actor or p_visibility not in('approve','reject')
    then raise exception 'GROUP_INVALID_REVIEW' using errcode='22023'; end if;
   update public.ccx_social_groups
    set state=case when p_visibility='approve' then 'active' else 'rejected' end,
