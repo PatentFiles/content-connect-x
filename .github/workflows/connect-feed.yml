@@ -9,6 +9,14 @@ on:
       - 'src/supabase/ConnectGroups.jsx'
       - 'src/supabase/SupabaseApp.jsx'
       - 'src/supabase/roleNavigationData.mjs'
+      - 'src/supabase/OriginalShell.jsx'
+      - 'scripts/test-connect-groups-database.sql'
+      - 'tests/connect-groups.test.mjs'
+      - 'supabase/functions/connect-groups/**'
+      - 'supabase/migrations/*connect_groups*'
+      - 'src/supabase/ConnectGroups.jsx'
+      - 'src/supabase/SupabaseApp.jsx'
+      - 'src/supabase/roleNavigationData.mjs'
       - 'scripts/test-connect-groups-database.sql'
       - 'tests/connect-groups.test.mjs'
       - 'supabase/functions/platform-extras/**'
@@ -53,6 +61,9 @@ jobs:
           psql --no-psqlrc -v ON_ERROR_STOP=1 -c "alter table public.account_security add column admin boolean not null default false"
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f supabase/migrations/20261119235900_connect_groups_private_public.sql
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/test-connect-groups-database.sql
+          psql --no-psqlrc -v ON_ERROR_STOP=1 -c "alter table public.account_security add column admin boolean not null default false"
+          psql --no-psqlrc -v ON_ERROR_STOP=1 -f supabase/migrations/20261119235900_connect_groups_private_public.sql
+          psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/test-connect-groups-database.sql
   frontend:
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -64,7 +75,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Private feed authorization, DTO and dashboard assertions
-        run: node --test tests/connect-feed.test.mjs tests/connect-groups.test.mjs
+        run: node --test tests/connect-feed.test.mjs tests/connect-groups.test.mjs tests/connect-groups.test.mjs
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build
