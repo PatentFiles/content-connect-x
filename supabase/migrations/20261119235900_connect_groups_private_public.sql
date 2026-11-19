@@ -315,7 +315,7 @@ returns boolean language sql stable security invoker set search_path='' as $can$
         select 1 from public.member_connection_requests c
         where c.status='accepted'
         and ((c.requester_id=p_actor and c.recipient_id=p.author_id)
-         or (c.recipient_id=p_actor and c.requester_id=p.author_id))))))
+         or (c.recipient_id=p_actor and c.requester_id=p.author_id)))))))
    and (p.repost_of is null or exists(
       select 1 from public.community_posts original
       join public.account_security s on s.user_id=original.author_id
