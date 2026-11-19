@@ -126,4 +126,30 @@ COMMENT ON FUNCTION public.ccx_trust_reporter_status(uuid,uuid,text)
  IS 'Server-only reference PLUS private code lookup. Never exposes case details or accepts public account claims.';
 COMMENT ON FUNCTION public.ccx_trust_triage(text,uuid)
  IS 'MFA-gated staff queue and claim/release. Case creation, review and lawful disclosures are independent.';
+-- Claim ownership is required before an MFA reviewer can update case status.
+CREATE OR REPLACE FUNCTION ccx_workspace_private.ccx_trust_review(p_action text DEFAULT 'list',p_id uuid DEFAULT NULL,p_status text DEFAULT NULL,p_note text DEFAULT NULL) RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $
+DECLARE u uuid:=auth.uid();item public.ccx_trust_requests;result jsonb;
+BEGIN
+ IF u IS NULL OR NOT EXISTS(SELECT 1 FROM public.account_security WHERE user_id=u AND admin AND NOT banned AND NOT suspended) OR coalesce(auth.jwt()->>'aal','')<>'aal2' THEN RAISE EXCEPTION 'A verified staff account with two-factor authentication is required' USING ERRCODE='42501';END IF;
+ IF p_action='list' THEN
+  INSERT INTO public.ccx_trust_request_events(actor_id,action) VALUES(u,'queue_viewed');
+  SELECT coalesce(jsonb_agg(to_jsonb(q)),'[]'::jsonb) INTO result FROM(SELECT id,kind,status,priority,created_at,due_at FROM public.ccx_trust_requests ORDER BY CASE WHEN status='resolved' THEN 1 ELSE 0 END,CASE priority WHEN 'critical' THEN 0 WHEN 'high' THEN 1 ELSE 2 END,created_at LIMIT 100)q;
+  RETURN jsonb_build_object('items',result);
+ ELSIF p_action='read' THEN
+  SELECT * INTO item FROM public.ccx_trust_requests WHERE id=p_id;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Case not found';END IF;
+  INSERT INTO public.ccx_trust_request_events(request_id,actor_id,action) VALUES(p_id,u,'case_viewed');
+  RETURN to_jsonb(item)-'idempotency_key';
+ ELSIF p_action='update' THEN
+  IF p_status IS NULL OR p_status NOT IN('reviewing','action_required','resolved') OR p_note IS NULL OR length(trim(p_note))<10 OR length(p_note)>2000 THEN RAISE EXCEPTION 'A valid status and review note are required';END IF;
+  SELECT * INTO item FROM public.ccx_trust_requests WHERE id=p_id FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Case not found';END IF;
+  IF item.assigned_reviewer_id IS DISTINCT FROM u THEN RAISE EXCEPTION 'Claim this case before recording an outcome' USING ERRCODE='42501';END IF;
+  UPDATE public.ccx_trust_requests SET status=p_status,resolution_note=p_note,reviewed_at=now() WHERE id=p_id;
+  INSERT INTO public.ccx_trust_request_events(request_id,actor_id,action,from_status,to_status) VALUES(p_id,u,'status_changed',item.status,p_status);
+  RETURN jsonb_build_object('updated',true);
+ ELSE RAISE EXCEPTION 'Unknown review action';END IF;
+END;
+$;
+
 NOTIFY pgrst,'reload schema';
