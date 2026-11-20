@@ -34,7 +34,8 @@ const safeDefaults=(source:any,amenityKeys: Set<string>=acceptedAmenities)=>{
   category:acceptedCategories.has(v.category)?v.category:'house',
   capacity:Math.round(number('capacity',1,500,4)),
   minimum_hours:Math.round(number('minimum_hours',1,72,6)),
-  hourly_rate:number('hourly_rate',1,100000,100),
+  hourly_rate:number('hourly_rate',1,100000,100), // overtime reference only, not a rental option
+  daily_rate:number('daily_rate',1,100000,800),
   cleaning_fee_cents:Math.round(number('cleaning_fee_cents',0,10000000,0)),
   min_notice_hours:Math.round(number('min_notice_hours',0,720,24)),
   preferred_cleaning_minutes:Math.round(number('preferred_cleaning_minutes',0,1440,120)),
@@ -77,7 +78,7 @@ const publicLocationFor=async(db:any,items:any[])=>{
       ?{public_latitude:lat,public_longitude:lon}:{})};
  });
 };
-const publicCols='id,owner_id,title,description,category,city,state,country,capacity,minimum_hours,hourly_rate,currency,amenities,permitted_uses,rules,setup_buffer_minutes,cleanup_buffer_minutes,cancellation_policy,deposit_percent,required_insurance,public_area_id,timezone,min_notice_hours,weekend_bps,holiday_bps,overtime_bps,cleaning_fee_cents,preferred_cleaning_minutes,status,created_at';
+const publicCols='id,owner_id,title,description,category,city,state,country,capacity,minimum_hours,hourly_rate,daily_rate,currency,amenities,permitted_uses,rules,setup_buffer_minutes,cleanup_buffer_minutes,cancellation_policy,deposit_percent,required_insurance,public_area_id,timezone,min_notice_hours,weekend_bps,holiday_bps,overtime_bps,cleaning_fee_cents,preferred_cleaning_minutes,status,created_at';
 const ownerCols=publicCols+',submitted_at,approved_at';
 const bookingCols='id,property_id,requester_id,owner_id,starts_at,ends_at,status,notes,requested_use,crew_size,estimated_total,hourly_rate_snapshot,created_at,updated_at';
 const denial=(message:string,status=400)=>reply({error:message},status);
@@ -223,7 +224,7 @@ Deno.serve(async req=>{
   if(region)query=query.eq('state',region);
   if(country)query=query.eq('country',country);
   if(category&&acceptedCategories.has(category))query=query.eq('category',category);
-  if(Number.isFinite(max)&&max>0)query=query.lte('hourly_rate',max);
+  if(Number.isFinite(max)&&max>0)query=query.lte('daily_rate',max);
   if(Number.isInteger(minCrew)&&minCrew>0)query=query.gte('capacity',minCrew);
   const selectedAmenities=Array.isArray(payload.amenities)?payload.amenities:
     (payload.amenity?[payload.amenity]:[]);
@@ -407,7 +408,7 @@ Deno.serve(async req=>{
  }
  case 'host_create':{
   const title=safe(payload.title,140),city=safe(payload.city,100),country=safe(payload.country,100);
-  const rate=finite(payload.hourly_rate),crew=finite(payload.capacity),minHours=finite(payload.minimum_hours);
+  const rate=finite(payload.hourly_rate),daily=finite(payload.daily_rate),crew=finite(payload.capacity),minHours=finite(payload.minimum_hours);
   const category=safe(payload.category,40);
   const cleaning=Number(payload.cleaning_fee_cents??0),
     notice=Number(payload.min_notice_hours??24),
@@ -416,15 +417,15 @@ Deno.serve(async req=>{
      !Number.isInteger(notice)||notice<0||notice>720||
      !Number.isInteger(cleaningMinutes)||cleaningMinutes<0||cleaningMinutes>1440)
     return denial('Invalid cleaning fee or booking notice settings');
-  if(title.length<5||city.length<2||country.length<2||!acceptedCategories.has(category)||!Number.isFinite(rate)||rate<=0||rate>100000||
+  if(title.length<5||city.length<2||country.length<2||!acceptedCategories.has(category)||!Number.isFinite(rate)||rate<=0||rate>100000||!Number.isFinite(daily)||daily<1||daily>100000||
      !Number.isInteger(crew)||crew<1||crew>500||!Number.isInteger(minHours)||minHours<1||minHours>72)
-   return denial('Valid title, location, category, rate, capacity and minimum booking hours required');
+   return denial('A confirmed daily rate, location, title and capacity are required. Rentals are by calendar day.');
   const permitted=Array.isArray(payload.permitted_uses)?payload.permitted_uses.filter((v:any)=>acceptedUses.has(v)):[];
   if(!permitted.length)return denial('Select permitted production uses');
   const amenities=Array.isArray(payload.amenities)?payload.amenities.filter((v:any)=>amenityKeys.has(v)):[];
   const publicArea=await approvedAreaFor(db,city,safe(payload.state,100),country);
   const {data,error}=await db.from('properties').insert({
-   owner_id:uid,status:'draft',public_area_id:publicArea,created_via_brand:payload.source_brand==='onlyhost'&&onlyHostEligible?'onlyhost':'content_connect',title,city,country,state:safe(payload.state,100),category,hourly_rate:rate,capacity:crew,
+   owner_id:uid,status:'draft',public_area_id:publicArea,created_via_brand:payload.source_brand==='onlyhost'&&onlyHostEligible?'onlyhost':'content_connect',title,city,country,state:safe(payload.state,100),category,hourly_rate:rate,daily_rate:daily,capacity:crew,
    minimum_hours:minHours,description:safe(payload.description,4000),permitted_uses:[...new Set(permitted)],
    amenities:[...new Set(amenities)],rules:safe(payload.rules,3000),
    setup_buffer_minutes:30,cleanup_buffer_minutes:30,
@@ -441,7 +442,7 @@ Deno.serve(async req=>{
   const allowedStatuses=['draft','pending_review','active','paused'];
   if(!allowedStatuses.includes(original.status))return denial('Contact support to update this property',403);
   const title=safe(payload.title,140),city=safe(payload.city,100),country=safe(payload.country,100),
-   category=safe(payload.category,40),rate=finite(payload.hourly_rate),crew=finite(payload.capacity),
+   category=safe(payload.category,40),rate=finite(payload.hourly_rate),daily=finite(payload.daily_rate),crew=finite(payload.capacity),
    minimum=finite(payload.minimum_hours);
   const cleaning=Number(payload.cleaning_fee_cents??original.cleaning_fee_cents??0),
     notice=Number(payload.min_notice_hours??original.min_notice_hours??24),
@@ -450,7 +451,7 @@ Deno.serve(async req=>{
      !Number.isInteger(notice)||notice<0||notice>720||
      !Number.isInteger(cleaningMinutes)||cleaningMinutes<0||cleaningMinutes>1440)
     return denial('Invalid cleaning fee or booking notice settings');
-  if(title.length<5||city.length<2||country.length<2||!acceptedCategories.has(category)||!Number.isFinite(rate)||rate<=0||rate>100000||
+  if(title.length<5||city.length<2||country.length<2||!acceptedCategories.has(category)||!Number.isFinite(rate)||rate<=0||rate>100000||!Number.isFinite(daily)||daily<1||daily>100000||
      !Number.isInteger(crew)||crew<1||crew>500||!Number.isInteger(minimum)||minimum<1||minimum>72)return denial('Invalid listing details');
   const uses=Array.isArray(payload.permitted_uses)?payload.permitted_uses.filter((v:any)=>acceptedUses.has(v)):[];
   if(!uses.length)return denial('Select permitted production uses');
@@ -458,7 +459,7 @@ Deno.serve(async req=>{
   const publicArea=await approvedAreaFor(db,city,safe(payload.state,100),country);
   const {data,error}=await db.from('properties').update({
    status:'draft',approved_at:null,approved_by:null,public_area_id:publicArea,
-   title,city,country,state:safe(payload.state,100),category,hourly_rate:rate,
+   title,city,country,state:safe(payload.state,100),category,hourly_rate:rate,daily_rate:daily,
    capacity:crew,minimum_hours:minimum,description:safe(payload.description,4000),rules:safe(payload.rules,3000),
    cleaning_fee_cents:cleaning,min_notice_hours:notice,preferred_cleaning_minutes:cleaningMinutes,
    permitted_uses:[...new Set(uses)],amenities:[...new Set(amenities)],updated_at:new Date().toISOString(),
