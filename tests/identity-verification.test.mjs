@@ -48,6 +48,23 @@ function harness({user={id:userId,email_confirmed_at:'2026-11-01'},adminRole=fal
  const handler=createHandler({admin:db,authenticate:async()=>user,assurance:async()=>assuranceLevel,clock:()=>new Date('2026-11-18T12:00:00Z'),fetchImpl:async()=>new Response(JSON.stringify(reportOverride||report),{status:200})});
  return {calls,handler,invoke:body=>handler(new Request('https://example.test/identity-verification',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}))};
 }
+test('a new verification session must match the registered account legal name, not a stage name',async()=>{
+ const bad=harness();
+ const mismatch=await bad.invoke({action:'start',consent:true,document_type:'drivers_license',issuing_country:'US',legal_name:'Someone Different',notice_version:'fixture'});
+ assert.equal(mismatch.status,409);
+ assert.equal(bad.calls.some(c=>c.args?.p_action==='start'),false);
+ const good=harness();
+ await good.invoke({action:'start',consent:true,document_type:'drivers_license',issuing_country:'US',legal_name:'Jane Anne Doe',notice_version:'fixture'});
+ const call=good.calls.find(c=>c.args?.p_action==='start');
+ assert.equal(call?.args?.p_data?.legal_name,'Jane Anne Doe');
+});
+test('atomic approval cannot replace an unverified registered legal name',()=>{
+ const migration=fs.readFileSync('supabase/migrations/20261120195550_account_name_verification_binding.sql','utf8');
+ assert.match(migration,/public\.member_profiles p/);
+ assert.match(migration,/p\.real_name is not null/);
+ assert.match(migration,/registered_legal_name_mismatch/);
+ assert.doesNotMatch(migration,/update public\.member_profiles set real_name=s\.extracted_name/);
+});
 test('anonymous requests cannot read verification state',async()=>{const h=harness({user:null});assert.equal((await h.invoke({action:'status'})).status,401);assert.equal(h.calls.length,0);});
 test('browser cannot post an approval action',async()=>{const h=harness();assert.equal((await h.invoke({action:'approve',age_verified:true})).status,400);assert.equal(h.calls.some(c=>c.rpc),false);});
 test('non-owner cannot submit another session',async()=>{const h=harness({sessionOverride:{user_id:'33333333-3333-4333-8333-333333333333'}});assert.equal((await h.invoke({action:'submit',session_id:sessionId})).status,404);});
