@@ -12,8 +12,9 @@ function VideoTile({stream,label,muted=false,onElement}){
 export default function GroupVideoCall({collaborationId,userId}){
  const [active,setActive]=useState(false),[joining,setJoining]=useState(false),[remote,setRemote]=useState({}),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [recording,setRecording]=useState(false),[uploads,setUploads]=useState(0),[records,setRecords]=useState([]);
+ const [remoteRecorders,setRemoteRecorders]=useState({});
  const [micEnabled,setMicEnabled]=useState(true),[cameraEnabled,setCameraEnabled]=useState(true);
- const local=useRef(null),peers=useRef(new Map()),seen=useRef(new Set()),pollTimer=useRef(null),pulseTimer=useRef(null);
+ const local=useRef(null),peers=useRef(new Map()),seen=useRef(new Set()),pollTimer=useRef(null),pulseTimer=useRef(null),recordingRef=useRef(false);
  const videos=useRef(new Map()),recorder=useRef([]),recStream=useRef(null),recordInterval=useRef(null),segmentInterval=useRef(null),audioContext=useRef(null),audioDest=useRef(null),sources=useRef(new Set()),pendingICE=useRef(new Map());
  const post=async(kind,recipient_id=null,payload={})=>suiteAction('call_signal',{collaboration_id:collaborationId,kind,recipient_id,payload});
  const closePeer=id=>{const pc=peers.current.get(id);if(pc){pc.close();peers.current.delete(id);}setRemote(prev=>{const next={...prev};delete next[id];return next;});videos.current.delete(id);};
@@ -46,7 +47,15 @@ export default function GroupVideoCall({collaborationId,userId}){
  };
  const handle=async signal=>{
   const peer=signal.sender_id;if(peer===userId)return;
-  if(signal.kind==='leave'){closePeer(peer);return;}
+  if(signal.kind==='leave'){
+   closePeer(peer);setRemoteRecorders(old=>{const next={...old};delete next[peer];return next;});return;
+  }
+  if(signal.kind==='recording_start'){
+   setRemoteRecorders(old=>({...old,[peer]:Date.now()}));return;
+  }
+  if(signal.kind==='recording_stop'){
+   setRemoteRecorders(old=>{const next={...old};delete next[peer];return next;});return;
+  }
   if(signal.kind==='join'){if(userId<peer)await offer(peer);return;}
   if(!local.current)return;
   const pc=createPeer(peer);
@@ -72,6 +81,7 @@ export default function GroupVideoCall({collaborationId,userId}){
     if(seen.current.size>2000)seen.current.clear();
     await handle(signal);
    }
+   setRemoteRecorders(old=>Object.fromEntries(Object.entries(old).filter(([,last])=>Date.now()-last<25000)));
   }catch(e){setError(e.message);}
  };
  const join=async()=>{
@@ -81,11 +91,21 @@ export default function GroupVideoCall({collaborationId,userId}){
    const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true},video:{width:{ideal:960},height:{ideal:540}}});
    local.current=stream;setActive(true);await post('join');
    pollTimer.current=setInterval(()=>void poll(),1500);
-   pulseTimer.current=setInterval(()=>void post('join').catch(()=>{}),8000);
+   pulseTimer.current=setInterval(()=>{
+    void post('join').catch(()=>{});
+    if(recordingRef.current){
+     void post('recording_start').catch(e=>{
+      setError('Recording stopped because recording consent or signaling could not be confirmed: '+e.message);
+      stopRecording();
+     });
+    }
+   },8000);
    await poll();
   }catch(e){local.current?.getTracks().forEach(t=>t.stop());local.current=null;setError(e.message);}finally{setJoining(false);}
  };
  const stopRecording=()=>{
+  const wasRecording=recordingRef.current;recordingRef.current=false;
+  if(wasRecording)void post('recording_stop').catch(()=>{});
   clearInterval(segmentInterval.current);segmentInterval.current=null;
   recorder.current.forEach(r=>{if(r.state!=='inactive')r.stop();});
   recorder.current=[];setRecording(false);clearInterval(recordInterval.current);recordInterval.current=null;
@@ -96,7 +116,7 @@ export default function GroupVideoCall({collaborationId,userId}){
   stopRecording();clearInterval(pollTimer.current);clearInterval(pulseTimer.current);pollTimer.current=null;pulseTimer.current=null;
   void post('leave').catch(()=>{});
   for(const id of peers.current.keys())closePeer(id);
-  local.current?.getTracks().forEach(track=>track.stop());local.current=null;seen.current.clear();setActive(false);setRemote({});
+  local.current?.getTracks().forEach(track=>track.stop());local.current=null;seen.current.clear();setActive(false);setRemote({});setRemoteRecorders({});
  };
  useEffect(()=>()=>{clearInterval(pollTimer.current);clearInterval(pulseTimer.current);clearInterval(recordInterval.current);clearInterval(segmentInterval.current);local.current?.getTracks().forEach(t=>t.stop());for(const pc of peers.current.values())pc.close();recorder.current.forEach(r=>r.state!=='inactive'&&r.stop());audioContext.current?.close().catch(()=>{});},[]);
  const loadRecordings=async()=>{try{const r=await suiteAction('recordings_list',{collaboration_id:collaborationId});setRecords(r.items||[]);}catch(e){setError(e.message);}};
@@ -154,6 +174,9 @@ export default function GroupVideoCall({collaborationId,userId}){
     const audioOnly=create(destination.stream,aType,{audioBitsPerSecond:48000});
     recorder.current=[video,audioOnly];
    };
+   // Notify the entire call before the first video/audio segment starts.
+   await post('recording_start');
+   recordingRef.current=true;
    recordSegment();
    segmentInterval.current=setInterval(()=>{
     recorder.current.forEach(item=>{if(item.state!=='inactive')item.stop();});
@@ -173,6 +196,9 @@ export default function GroupVideoCall({collaborationId,userId}){
  <button type="button" className={button} onClick={leave}><PhoneOff size={16} className="mr-1 inline"/>Leave</button>
  </>}</div></div>
  <p className="text-xs text-[var(--cc-text-secondary)]">Private peer-to-peer room for up to six participants. Recording requires every participant's collaboration recording consent. Only collaboration members can retrieve stored recordings.</p>
+ {(recording||Object.keys(remoteRecorders).length>0)&&<p role="status" aria-live="assertive" className="flex items-center gap-2 rounded-xl border border-red-400 bg-red-50 p-3 text-sm font-semibold text-red-800">
+  <Disc size={16}/> Recording active: {recording?'You':Object.keys(remoteRecorders).map(id=>'Member '+id.slice(0,8)).join(', ')}
+ </p>
  {active&&<div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3"><VideoTile label="You" stream={local.current} muted onElement={el=>{if(el)videos.current.set('self',el);else videos.current.delete('self');}}/>{Object.entries(remote).map(([id,stream])=><VideoTile key={id} label={'Member '+id.slice(0,8)} stream={stream} onElement={el=>{if(el)videos.current.set(id,el);else videos.current.delete(id);}}/>)}</div>}
  {uploads>0&&<p role="status" className="text-sm">Uploading {uploads} private recording segment(s)…</p>}
  {error&&<p role="alert" className="text-sm text-red-700">{error}</p>}{notice&&<p role="status" className="text-sm">{notice}</p>}
