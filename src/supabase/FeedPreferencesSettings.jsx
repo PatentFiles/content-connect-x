@@ -5,12 +5,12 @@ import React,{useEffect,useState} from 'react';
 import {SlidersHorizontal,Save} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
 import {
- DEFAULT_FEED_PREFERENCES,FEED_AUDIENCES,FEED_VIEWS,
+ FEED_AUDIENCES,FEED_VIEWS,
  loadFeedPreferences,saveFeedPreferences
 } from './feedDisplayPreferences.mjs';
 
 export default function FeedPreferencesSettings({userId}){
- const [value,setValue]=useState(DEFAULT_FEED_PREFERENCES);
+ const [value,setValue]=useState({default_audience:'verified',feed_view:'discover'});
  const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false);
  const [error,setError]=useState(''),[notice,setNotice]=useState('');
  useEffect(()=>{
