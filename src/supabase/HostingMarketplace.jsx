@@ -194,7 +194,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
 }
 
 export default function HostingMarketplace({paid=false,isAdmin=false,user,brand='content_connect',initialSection='explore',hostOnly=false}) {
-  const [section,setSection]=useState(initialSection);
+  const [section,setSection]=useState(()=>hostOnly?initialSection:['explore','favorites','bookings'].includes(initialSection)?initialSection:'explore');
   const [selected,setSelected]=useState('');
   const query='';
   const [country,setCountry]=useState('');
