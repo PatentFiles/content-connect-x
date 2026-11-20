@@ -57,3 +57,48 @@
 .ccx-trust-case form{display:grid;gap:16px;margin-top:24px}
 .ccx-trust-page :focus-visible,.ccx-trust-footer :focus-visible,.ccx-trust-header :focus-visible{outline:3px solid #7596c1;outline-offset:3px}
 @media(max-width:600px){.ccx-trust-footer-top,.ccx-trust-header{flex-direction:column;gap:16px}.ccx-trust-two{grid-template-columns:1fr}.ccx-trust-card{padding:19px}.ccx-trust-page{padding-top:34px}}
+
+/* One centered, responsive footer grid for signed-in web, mobile and legal pages. */
+.ccx-trust-footer {
+ text-align:center;
+}
+.ccx-trust-footer-top {
+ flex-direction:column;
+ justify-content:center;
+ align-items:center;
+ gap:16px;
+ margin-inline:auto;
+}
+.ccx-trust-footer-top > div { max-width:660px; }
+.ccx-trust-footer-top p { margin-inline:auto; }
+.ccx-trust-report-link { display:inline-flex;justify-content:center;align-items:center;text-align:center; }
+.ccx-trust-footer nav {
+ justify-content:center;
+ align-items:center;
+ margin-inline:auto;
+ max-width:1120px;
+ gap:10px 24px;
+}
+.ccx-trust-footer nav a {
+ display:inline-flex;
+ min-height:38px;
+ align-items:center;
+ justify-content:center;
+ text-align:center;
+}
+.ccx-trust-footer-bottom {
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ gap:10px;
+ margin-inline:auto;
+ text-align:center;
+ max-width:920px;
+}
+.ccx-trust-footer-bottom > * { margin-inline:auto; }
+@media(max-width:600px) {
+ .ccx-trust-footer{padding-inline:18px;}
+ .ccx-trust-footer-top{align-items:center;}
+ .ccx-trust-footer nav{justify-content:center;column-gap:18px;row-gap:9px;}
+ .ccx-trust-footer-bottom{align-items:center;}
+}
