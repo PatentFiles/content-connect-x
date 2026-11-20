@@ -48,3 +48,15 @@ See [SUPABASE_CONFIGURATION_INVENTORY.md](./SUPABASE_CONFIGURATION_INVENTORY.md)
 
 ## Remaining validation boundaries
 Real authenticated host/guest uploads, booking flows, provider sandbox acceptance, financial settlement, DocuSign completion and notification delivery have NOT been certified by fixture or anonymous gateway tests. Existing booking limits and provider activation requirements remain unchanged. Complete those checks and resolve the dependency audit before treating the application as production-approved.
+
+
+## Host Connect mobile search and map interaction increment (November 19, 2026)
+
+- Guest navigation: Explore spaces, Saved, My requests only; host controls remain under the separate host-only workspace.
+- Collapsible Find a space form with month-spanning two-tap check-in/checkout selection and 30-minute clock slots (e.g. 6:30, 7:00, 7:30). Search allows up to 31 days; actual rental quote still enforces independent 72-hour duration limits.
+- Map scroll is registered `passive:false` with `preventDefault()` so zoom does not scroll or zoom the page. Double-click and double-tap zoom into the pointer's location; pan/zoom searches currently approved public areas.
+- Minimal tile map: only zoom-in, zoom-out and north compass controls inside; OSM attribution is preserved just below. Individual property category icons include house, high-rise apartment, studio, production set and castle-like dungeon, with privacy-safe deterministically offset approved public-area pins.
+- Exact address remains private by default. Hosts can explicitly publish their street address and optionally trusted public lat/lon. Other listings use approved general areas; no private geocoding is performed automatically.
+- Light signed-in colors draw carefully from the unchanged public Host Connect brand (#09D3F7, #8D69FF and #F800B8). Logged-out hero and public landing styling remain untouched.
+
+**Operational gate:** Do not claim that listings are publicly mapped until real hosts have independently approved, published property records with assigned public areas. Keep OSM tile requests bounded to viewed tiles and use contracted tiles at commercial scale; no bulk tile prefetch or hidden attribution.
