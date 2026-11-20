@@ -12,7 +12,8 @@ Deno.serve(async(request)=>{
  const {data:{user},error:authError}=await caller.auth.getUser();
  if(authError||!user)return reply({error:'Sign in to use the bio generator'},401);
  const db=createClient(url,service);
- const configured=Deno.env.get('OPENAI_API_KEY')||(await db.rpc('ccx_secret_get',{p_name:'openai_api_key'})).data;
+ const {data:stored,error:storedError}=await db.rpc('ccx_secret_get',{p_name:'openai_api_key'});
+ const configured=!storedError&&typeof stored==='string'&&stored.trim()?stored:Deno.env.get('OPENAI_API_KEY');
  const apiKey=typeof configured==='string'?configured.trim():'';
  if(!apiKey)return reply({error:'Add your OpenAI API key in the administrator AI settings.'},503);
  const [account,admission]=await Promise.all([
