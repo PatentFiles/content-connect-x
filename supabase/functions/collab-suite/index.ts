@@ -161,6 +161,17 @@ Deno.serve(async req=>{
   const {data,error}=await db.from('ccx_testing_credentials').select('id,user_id,tested_at,expires_at,issuer,status,document_path,created_at').eq('status','pending_review').order('created_at',{ascending:true}).limit(100);
   if(error)throw error;return out({items:data||[]});
  }
+ case 'testing_admin_document':{
+  needAdmin();
+  if(!uuid(body.id))throw Error('Credential ID required');
+  const {data:credential,error}=await db.from('ccx_testing_credentials').select('user_id,document_path,status').eq('id',body.id).maybeSingle();
+  if(error||!credential||!credential.document_path)throw Error('Credential document unavailable');
+  if(credential.user_id===uid)throw Error('Review of your own evidence is not permitted');
+  if(!credential.document_path.startsWith(credential.user_id+'/testing/'))throw Error('Credential storage path invalid');
+  const {data:signed,error:signedError}=await db.storage.from('member-private').createSignedUrl(credential.document_path,120);
+  if(signedError||!signed?.signedUrl)throw Error('Unable to access private evidence');
+  return out({url:signed.signedUrl,expires_in:120});
+ }
  case 'testing_admin_review':{
   needAdmin();if(!uuid(body.id)||!['verified','rejected'].includes(body.status))throw Error('Invalid review');
   const {data:credential,error:fetchError}=await db.from('ccx_testing_credentials').select('id,user_id,document_path').eq('id',body.id).eq('status','pending_review').maybeSingle();
