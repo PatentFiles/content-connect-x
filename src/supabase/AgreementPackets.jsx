@@ -21,6 +21,7 @@ export default function AgreementPackets(){
   const [recipients,setRecipients]=useState([]);
   const [order,setOrder]=useState(true);
   const [inspect,setInspect]=useState('');
+  const [reviewData,setReviewData]=useState(null);
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   const [notice,setNotice]=useState('');
@@ -35,14 +36,25 @@ export default function AgreementPackets(){
   };
   useEffect(()=>{load();},[]);
   const choose=async(id)=>{
-    setSelected(id);setError('');setRecipients([]);
+    setSelected(id);setError('');setRecipients([]);setReviewData(null);
     if(!id)return;
     try{
       const contract=contracts.find(c=>c.id===id);
       const result=await call('member-workflows','list_collaboration_members',{collaboration_id:contract.collaboration_id});
       setPeople(result.items||[]);
+      const review=await call('agreement-packets','draft_review_status',{contract_id:id});
+      setReviewData(review);
       setRecipients((result.items||[]).map((m,i)=>({member_id:m.user_id,role:'signer',routing_order:i+1})));
     }catch(e){setError(e.message);}
+  };
+  const submitReview=async(decision)=>{
+   if(!selected)return;
+   setBusy(true);setError('');setNotice('');
+   try{
+    const review=await call('agreement-packets','draft_review',{contract_id:selected,decision});
+    setReviewData(review);
+    setNotice(decision==='approved'?'Your approval is recorded for this exact agreement draft.':'Changes requested. The organizer must revise and obtain approvals again.');
+   }catch(e){setError(e.message);}finally{setBusy(false);}
   };
   const createDraft=async()=>{
     if(!selected)return;setBusy(true);setError('');setNotice('');
@@ -84,6 +96,14 @@ export default function AgreementPackets(){
     <div className="grid md:grid-cols-2 gap-4">
       <div className={panel+' space-y-3'}><h3 className="font-semibold">Prepare signer routing</h3>
         <label className="block text-sm">Draft agreement<select className={input+' mt-1'} value={selected} onChange={e=>choose(e.target.value)}><option value="">Select a draft</option>{contracts.filter(x=>x.status==='draft').map(c=><option value={c.id} key={c.id}>{c.title}</option>)}</select></label>
+        {reviewData?.content&&(reviewData.content.ai_draft||reviewData.content.review_required)&&<div className="space-y-3 rounded-xl border border-[var(--cc-border)] p-3">
+         <h4 className="font-semibold">Review this contract before sending for signatures</h4>
+         <p className="text-xs text-[var(--cc-text-secondary)]">All signing participants approve the exact wording. Any revision invalidates earlier approvals.</p>
+         <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words text-xs">{reviewData.content.ai_draft||JSON.stringify(reviewData.content,null,2)}</pre>
+         <div className="space-y-1 text-xs">{(reviewData.reviews||[]).map(r=><p key={r.reviewer_id}>{r.reviewer_id.slice(0,8)} · {r.decision} {r.current?'(current draft)':'(outdated)'}</p>)}</div>
+         <div className="flex flex-wrap gap-2"><button type="button" className={button} disabled={busy} onClick={()=>void submitReview('approved')}>I reviewed and approve this draft</button>
+          <button type="button" className={button} disabled={busy} onClick={()=>void submitReview('changes_requested')}>Request changes</button></div>
+        </div>}
         <label className="block text-sm">Reviewed template<select className={input+' mt-1'} value={template} onChange={e=>setTemplate(e.target.value)}><option value="">Template not selected</option>{templates.map(t=><option key={t.id} value={t.id}>{t.title} · {t.document_type}</option>)}</select></label>
         <label className="flex gap-2 text-sm items-start"><input type="checkbox" checked={order} onChange={e=>setOrder(e.target.checked)}/>Require recipients to sign in the specified order</label>
         {recipients.map((r,index)=><div key={r.member_id} className="border-b border-[var(--cc-border)] pb-3 space-y-2"><p className="text-xs text-[var(--cc-text-secondary)] break-all">{r.member_id}</p>
