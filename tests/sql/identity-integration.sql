@@ -146,7 +146,7 @@ DO $$ DECLARE n integer; adult_sid uuid; held_sid uuid; BEGIN
  IF (SELECT count(*) FROM public.ccx_idv_sessions WHERE purged_at IS NOT NULL)<>4 THEN RAISE EXCEPTION 'FAIL purge completion';END IF;
  IF EXISTS(SELECT 1 FROM public.ccx_idv_sessions WHERE purged_at IS NOT NULL AND (legal_name<>'[deleted]' OR dob IS NOT NULL OR evidence<>'{}'::jsonb)) THEN RAISE EXCEPTION 'FAIL sensitive fields retained';END IF;
  IF EXISTS(SELECT 1 FROM public.age_verification_requests WHERE id=adult_sid AND (id_document_path IS NOT NULL OR selfie_document_path IS NOT NULL)) THEN RAISE EXCEPTION 'FAIL stale document paths';END IF;
- IF (SELECT count(*) FROM public.member_admissions)<>2 THEN RAISE EXCEPTION 'FAIL retention changed durable admission';END IF;
+ IF (SELECT count(*) FROM public.member_admissions)<>1 THEN RAISE EXCEPTION 'FAIL retention changed durable admission or admitted a mismatched legal identity';END IF;
  IF (SELECT count(*) FROM public.ccx_idv_events WHERE action='retention_deletion_finished')<>4 THEN RAISE EXCEPTION 'FAIL audit event missing';END IF;
  PERFORM public.ccx_idv_finish_purge();
  IF (SELECT count(*) FROM public.ccx_idv_events WHERE action='retention_deletion_finished')<>4 THEN RAISE EXCEPTION 'FAIL duplicate purge event';END IF;
