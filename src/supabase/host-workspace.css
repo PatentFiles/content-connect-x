@@ -138,3 +138,52 @@
 :where(html:not([data-ccx-appearance="public"])) .oh-new-tour-field legend{padding:0 8px;color:var(--cc-text-secondary)}
 @media(max-width:760px){:where(html:not([data-ccx-appearance="public"])) .oh-amenity-grid{grid-template-columns:repeat(2,minmax(0,1fr))}:where(html:not([data-ccx-appearance="public"])) .oh-dialog-fullscreen .oh-dialog-content{padding:16px}:where(html:not([data-ccx-appearance="public"])) .oh-tour-dialog .oh-dialog-content{padding:0}:where(html:not([data-ccx-appearance="public"])) .oh-add-amenity{flex-direction:column;align-items:stretch}:where(html:not([data-ccx-appearance="public"])) .oh-add-amenity label{width:100%}:where(html:not([data-ccx-appearance="public"])) .oh-profile-photo-row{gap:16px}:where(html:not([data-ccx-appearance="public"])) .oh-host-avatar{width:80px;height:80px}}
 @media(max-width:440px){:where(html:not([data-ccx-appearance="public"])) .oh-amenity-grid{grid-template-columns:1fr}:where(html:not([data-ccx-appearance="public"])) .oh-amenity-panel summary{padding:14px}:where(html:not([data-ccx-appearance="public"])) .oh-dialog-fullscreen .oh-dialog-heading{padding-inline:16px}}
+
+
+/* Host Connect signed-in accent treatment — sampled from the public brand:
+ * cyan #09D3F7, violet #8D69FF and fuchsia #F800B8.
+ * White surfaces and readable dark text remain the default. Public landing
+ * art, hero and its isolated theme are intentionally untouched.
+ */
+html:not([data-ccx-appearance="public"]) .host-connect-theme{
+ --oh-branded-cyan:#008bad;
+ --oh-branded-violet:#7554ce;
+ --oh-branded-pink:#b62292;
+ --oh-branded-wash:#f6f1fd;
+ --cc-focus:#7554ce;
+ --cc-link:#6942b2;
+}
+html:not([data-ccx-appearance="public"]) .host-connect-theme .ccx-action-primary,
+html:not([data-ccx-appearance="public"]) .host-connect-theme .oh-primary,
+html:not([data-ccx-appearance="public"]) .host-connect-theme .oh-gallery-primary{
+ background:#6942b2;background-image:none;
+ border:1px solid #7554ce;color:#fff;box-shadow:0 3px 12px rgba(107,65,179,.15);
+}
+html:not([data-ccx-appearance="public"]) .host-connect-theme .oh-gradient-text{
+ background:linear-gradient(100deg,#027fa6,#6942b2 55%,#b62292);
+ color:transparent;background-clip:text;-webkit-background-clip:text;
+}
+html:not([data-ccx-appearance="public"]) .host-connect-theme .oh-section-kicker{
+ color:#7554ce;
+}
+html:not([data-ccx-appearance="public"]) .host-connect-theme .oh-mark,
+html:not([data-ccx-appearance="public"]) .host-connect-theme .oh-category-icon{
+ background:#f3edfc;border-color:#dfcdec;color:#6942b2;
+}
+html:not([data-ccx-appearance="public"]) .host-connect-theme .oh-panel,
+html:not([data-ccx-appearance="public"]) .host-connect-theme .oh-market-explorer{
+ border-color:#e6ddec;box-shadow:0 4px 16px rgba(69,30,101,.045);
+}
+html:not([data-ccx-appearance="public"]) .host-connect-theme .professional-market-heading .ccx-monogram{
+ color:#fff;background:linear-gradient(135deg,#008bad,#7554ce);border:0;
+}
+html:not([data-ccx-appearance="public"]) .host-connect-theme .oh-area-map-canvas{
+ border-color:#d8cbed;box-shadow:0 4px 24px rgba(59,36,102,.09);
+}
+html:not([data-ccx-appearance="public"]) .host-connect-theme button:focus-visible,
+html:not([data-ccx-appearance="public"]) .host-connect-theme a:focus-visible{
+ outline:3px solid #09a6d2;outline-offset:2px;
+}
+@media (prefers-reduced-motion:reduce){
+ html:not([data-ccx-appearance="public"]) .host-connect-theme *{scroll-behavior:auto!important;transition-duration:0.01ms!important;}
+}

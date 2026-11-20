@@ -24,7 +24,7 @@ const subscribed=(record:any)=>['active','trial'].includes(record?.status)&&(!re
 const moment=(v:unknown)=>{const date=typeof v==='string'?new Date(v):new Date(NaN);return Number.isFinite(date.getTime())?date.toISOString():null;};
 const acceptedAmenities=new Set(['wifi','parking','private_entrance','makeup_room','dressing_room','shower','kitchen','restroom','soundproof','lighting','green_screen','power_220v','accessible','outdoor','security','air_conditioning','load_in','bedroom','pool']);
 const acceptedUses=new Set(['photography','filming','commercial','interviews','music_video','adult_production','nude_photography','explicit_adult_video','events','equipment_rental']);
-const acceptedCategories=new Set(['film_studio','photo_studio','house','villa','loft','set','outdoor','equipment','dungeon','other']);
+const acceptedCategories=new Set(['film_studio','photo_studio','house','villa','loft','apartment','set','outdoor','equipment','dungeon','other']);
 const safeDefaults=(source:any,amenityKeys: Set<string>=acceptedAmenities)=>{
  const v=source&&typeof source==='object'&&!Array.isArray(source)?source:{};
  const number=(key:string,min:number,max:number,fallback:number)=>{
@@ -45,6 +45,37 @@ const safeDefaults=(source:any,amenityKeys: Set<string>=acceptedAmenities)=>{
   amenities:Array.isArray(v.amenities)?[...new Set(v.amenities.filter((x:unknown)=>amenityKeys.has(String(x))))]:[],
   permitted_uses:Array.isArray(v.permitted_uses)?[...new Set(v.permitted_uses.filter((x:unknown)=>acceptedUses.has(x)))]:[],
  };
+};
+/** Exact public coordinates are optional. Never disclose private addresses
+ * unless that particular owner explicitly opted in and the listing passed review.
+ */
+const approvedAreaFor=async(db:any,city:string,state:string,country:string)=>{
+ const escape=(value:string)=>value.replace(/[\\%_]/g,(ch:string)=>'\\'+ch);
+ const {data,error}=await db.from('hosting_public_areas').select('id,region')
+  .eq('approved',true).ilike('city',escape(city)).ilike('country',escape(country)).limit(30);
+ if(error)throw error;
+ const choices=data||[];
+ const match=choices.find((x:any)=>String(x.region||'').toLowerCase()===state.toLowerCase())
+  ||(choices.length===1?choices[0]:null)
+  ||choices.find((x:any)=>!state||!x.region);
+ return match?.id||null;
+};
+const publicLocationFor=async(db:any,items:any[])=>{
+ if(!items.length)return items;
+ const {data,error}=await db.from('property_private')
+   .select('property_id,exact_address,latitude,longitude,public_address_visible')
+   .eq('public_address_visible',true).in('property_id',items.map(v=>v.id));
+ if(error)throw error;
+ const visible=new Map((data||[]).filter((row:any)=>row.public_address_visible===true&&typeof row.exact_address==='string'&&row.exact_address.length>=8)
+   .map((row:any)=>[row.property_id,row]));
+ return items.map(item=>{
+  const row:any=visible.get(item.id);
+  if(!row)return item;
+  const lat=Number(row.latitude),lon=Number(row.longitude);
+  return {...item,public_address_visible:true,public_address:row.exact_address,
+   ...(row.latitude!==null&&row.longitude!==null&&Number.isFinite(lat)&&Number.isFinite(lon)&&Math.abs(lat)<=85&&Math.abs(lon)<=180
+      ?{public_latitude:lat,public_longitude:lon}:{})};
+ });
 };
 const publicCols='id,owner_id,title,description,category,city,state,country,capacity,minimum_hours,hourly_rate,currency,amenities,permitted_uses,rules,setup_buffer_minutes,cleanup_buffer_minutes,cancellation_policy,deposit_percent,required_insurance,public_area_id,timezone,min_notice_hours,weekend_bps,holiday_bps,overtime_bps,cleaning_fee_cents,preferred_cleaning_minutes,status,created_at';
 const ownerCols=publicCols+',submitted_at,approved_at';
@@ -167,17 +198,23 @@ Deno.serve(async req=>{
  case 'browse':{
   const q=safe(payload.query,100),category=safe(payload.category,40),
    city=safe(payload.city,100),max=finite(payload.max_price),minCrew=finite(payload.crew_size);
-  let query=db.from('properties').select(publicCols).eq('status','active').not('approved_at','is',null).order('created_at',{ascending:false}).limit(80);
+  let query=db.from('properties').select(publicCols).eq('status','active').not('approved_at','is',null).order('created_at',{ascending:false}).limit(200);
   if(payload.bounds&&typeof payload.bounds==='object'){
    const v=payload.bounds;
    const west=Number(v.west),east=Number(v.east),south=Number(v.south),north=Number(v.north);
    if(![west,east,south,north].every(Number.isFinite)||west>east||south>north||
     west < -180||east>180||south< -85||north>85)return denial('Invalid map bounds');
-   const {data:areaRows,error:mapError}=await db.from('hosting_public_areas').select('id')
-    .gte('longitude',west).lte('longitude',east)
-    .gte('latitude',south).lte('latitude',north).eq('approved',true).limit(500);
+   // Match the APPROVED PUBLIC AREA footprint, not a private property coordinate.
+   // A pin in the edge of the area must not disappear when zoomed past its center.
+   const {data:areaRows,error:mapError}=await db.from('hosting_public_areas')
+    .select('id,latitude,longitude,radius_km').eq('approved',true).limit(500);
    if(mapError)throw mapError;
-   const allowed=(areaRows||[]).map(x=>x.id);
+   const allowed=(areaRows||[]).filter((area:any)=>{
+     const lat=Number(area.latitude),lon=Number(area.longitude);
+     const km=Math.max(1,Math.min(Number(area.radius_km)||5,25));
+     const deltaLat=km/111.3,deltaLon=km/(111.3*Math.max(.2,Math.cos(lat*Math.PI/180)));
+     return lat+deltaLat>=south&&lat-deltaLat<=north&&lon+deltaLon>=west&&lon-deltaLon<=east;
+   }).map((v:any)=>v.id);
    if(!allowed.length)return reply({items:[],count:0});
    query=query.in('public_area_id',allowed);
   }
@@ -212,7 +249,7 @@ Deno.serve(async req=>{
   // Date-filtered search is a convenience; the insert trigger remains authoritative.
   const from=moment(payload.from),to=moment(payload.to);
   if(from&&to){
-    if(Date.parse(to)<=Date.parse(from)||Date.parse(to)-Date.parse(from)>72*3600000)return denial('Date search window must be within 72 hours');
+    if(Date.parse(to)<=Date.parse(from)||Date.parse(to)-Date.parse(from)>31*24*3600000)return denial('Date search window must be within 31 days');
     const ids=visible.map((v:any)=>v.id);
     if(ids.length){
       const low=new Date(Date.parse(from)-86400000).toISOString(),high=new Date(Date.parse(to)+86400000).toISOString();
@@ -236,7 +273,7 @@ Deno.serve(async req=>{
   const {data:ratings,error:ratingError}=ids.length?await db.from('property_reviews')
     .select('property_id,rating').in('property_id',ids).eq('status','published').limit(2500):{data:[],error:null};
   if(ratingError)throw ratingError;
-  const items=await approvedPhotoLinks(visible);
+  const items=await publicLocationFor(db,await approvedPhotoLinks(visible));
   return reply({items:items.map((v:any)=>{
     const values=(ratings||[]).filter((review:any)=>review.property_id===v.id).map((review:any)=>review.rating);
     return {...v,rating_count:values.length,rating_average:values.length?
@@ -264,7 +301,7 @@ Deno.serve(async req=>{
   // Count at most one authenticated non-owner view per day; never expose viewer identities to hosts.
   if(data.owner_id!==uid)await db.from('hosting_listing_views')
     .upsert({property_id:data.id,viewer_id:uid},{onConflict:'property_id,viewer_id,viewed_on',ignoreDuplicates:true});
-  const [enriched]=await approvedPhotoLinks([data]);
+  const [enriched]=await publicLocationFor(db,await approvedPhotoLinks([data]));
   return reply({item:enriched,unavailable:[...(blocks||[]),...(booked||[])]});
  }
  case 'favorites':{
@@ -385,8 +422,9 @@ Deno.serve(async req=>{
   const permitted=Array.isArray(payload.permitted_uses)?payload.permitted_uses.filter((v:any)=>acceptedUses.has(v)):[];
   if(!permitted.length)return denial('Select permitted production uses');
   const amenities=Array.isArray(payload.amenities)?payload.amenities.filter((v:any)=>amenityKeys.has(v)):[];
+  const publicArea=await approvedAreaFor(db,city,safe(payload.state,100),country);
   const {data,error}=await db.from('properties').insert({
-   owner_id:uid,status:'draft',created_via_brand:payload.source_brand==='onlyhost'&&onlyHostEligible?'onlyhost':'content_connect',title,city,country,state:safe(payload.state,100),category,hourly_rate:rate,capacity:crew,
+   owner_id:uid,status:'draft',public_area_id:publicArea,created_via_brand:payload.source_brand==='onlyhost'&&onlyHostEligible?'onlyhost':'content_connect',title,city,country,state:safe(payload.state,100),category,hourly_rate:rate,capacity:crew,
    minimum_hours:minHours,description:safe(payload.description,4000),permitted_uses:[...new Set(permitted)],
    amenities:[...new Set(amenities)],rules:safe(payload.rules,3000),
    setup_buffer_minutes:30,cleanup_buffer_minutes:30,
@@ -417,8 +455,9 @@ Deno.serve(async req=>{
   const uses=Array.isArray(payload.permitted_uses)?payload.permitted_uses.filter((v:any)=>acceptedUses.has(v)):[];
   if(!uses.length)return denial('Select permitted production uses');
   const amenities=Array.isArray(payload.amenities)?payload.amenities.filter((v:any)=>amenityKeys.has(v)):[];
+  const publicArea=await approvedAreaFor(db,city,safe(payload.state,100),country);
   const {data,error}=await db.from('properties').update({
-   status:'draft',approved_at:null,approved_by:null,
+   status:'draft',approved_at:null,approved_by:null,public_area_id:publicArea,
    title,city,country,state:safe(payload.state,100),category,hourly_rate:rate,
    capacity:crew,minimum_hours:minimum,description:safe(payload.description,4000),rules:safe(payload.rules,3000),
    cleaning_fee_cents:cleaning,min_notice_hours:notice,preferred_cleaning_minutes:cleaningMinutes,
@@ -619,23 +658,45 @@ Deno.serve(async req=>{
  }
 
  case 'host_private_details':{
-  if(!uuid(payload.id)||!await ownProperty(payload.id))return denial('Not your property',403);
+  if(!uuid(payload.id))return denial('Not your property',403);
+  const owned=await ownProperty(payload.id);
+  if(!owned)return denial('Not your property',403);
   const address=safe(payload.exact_address,400),instructions=safe(payload.entry_instructions,1500),
     notes=safe(payload.internal_notes,1500);
   if(address.length<8)return denial('A usable street address is required');
+  if(payload.public_address_visible!==undefined&&typeof payload.public_address_visible!=='boolean')
+    return denial('Choose whether the street address is public or private',400);
+  const publicAddress=payload.public_address_visible===true;
+  // Coordinates are optional. They are never inferred from a private address.
+  const coordsGiven=payload.latitude!==undefined&&payload.latitude!==null&&payload.latitude!==''&&
+    payload.longitude!==undefined&&payload.longitude!==null&&payload.longitude!=='';
+  const lat=coordsGiven?Number(payload.latitude):null,lon=coordsGiven?Number(payload.longitude):null;
+  if(coordsGiven&&(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>85||Math.abs(lon)>180))
+    return denial('Invalid public map coordinates',400);
+  // Existing approved venues cannot silently relocate or publish a new pin:
+  // the owner must edit/resubmit the listing for independent approval first.
+  if(owned.status==='active'){
+    const {data:prior,error:priorError}=await db.from('property_private')
+      .select('exact_address,latitude,longitude').eq('property_id',payload.id).maybeSingle();
+    if(priorError)throw priorError;
+    if(prior?.exact_address?.trim()!==address||
+      (publicAddress&&coordsGiven&&(prior?.latitude==null||prior?.longitude==null||Number(prior.latitude)!==lat||Number(prior.longitude)!==lon)))
+      return denial('Address or public map pin change requires new listing review. Edit listing details first.',409);
+  }
   const {error}=await db.from('property_private').upsert({
    property_id:payload.id,exact_address:address,entry_instructions:instructions,
-   internal_notes:notes
+   internal_notes:notes,public_address_visible:publicAddress,
+   latitude:publicAddress?lat:null,longitude:publicAddress?lon:null
   },{onConflict:'property_id'});
   if(error)throw error;
   await audit('hosting_private_address_updated',payload.id);
-  return reply({ok:true,note:'Private entry information saved. It is not available in marketplace search.'});
+  return reply({ok:true,note:publicAddress?'Street address sharing is enabled only for your approved public listing. Entry instructions remain private.':'Street address is private and requires the protected accepted-booking workflow.'});
  }
  case 'host_private_get':{
   if(!uuid(payload.id)||!await ownProperty(payload.id))return denial('Not your property',403);
-  const {data,error}=await db.from('property_private').select('exact_address,entry_instructions,internal_notes').eq('property_id',payload.id).maybeSingle();
+  const {data,error}=await db.from('property_private').select('exact_address,entry_instructions,internal_notes,public_address_visible,latitude,longitude').eq('property_id',payload.id).maybeSingle();
   if(error)throw error;
-  return reply({item:data||{exact_address:'',entry_instructions:'',internal_notes:''}});
+  return reply({item:data||{exact_address:'',entry_instructions:'',internal_notes:'',public_address_visible:false,latitude:null,longitude:null}});
  }
  case 'guest_checkin_details':{
   if(!uuid(payload.booking_id))return denial('Booking ID required');

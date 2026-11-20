@@ -67,7 +67,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
  const [blockEnd,setBlockEnd]=useState('');
  const [turnovers,setTurnovers]=useState([]);
  const [turnoverDue,setTurnoverDue]=useState('');
- const [privateDetails,setPrivateDetails]=useState({exact_address:'',entry_instructions:'',internal_notes:''});
+ const [privateDetails,setPrivateDetails]=useState({exact_address:'',entry_instructions:'',internal_notes:'',public_address_visible:false,latitude:'',longitude:''});
  const [inspectionPhotos,setInspectionPhotos]=useState({});
  const [inspectionFile,setInspectionFile]=useState(null);
  const [inspectionPhase,setInspectionPhase]=useState('before');
@@ -105,12 +105,12 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
  useEffect(()=>{load();},[load]);
 
  const extra=useCallback(async(id)=>{
-  if(!id){setBlocks([]);setTurnovers([]);setPrivateDetails({exact_address:'',entry_instructions:'',internal_notes:''});return;}
+  if(!id){setBlocks([]);setTurnovers([]);setPrivateDetails({exact_address:'',entry_instructions:'',internal_notes:'',public_address_visible:false,latitude:'',longitude:''});return;}
   try{
    const [b,t,details]=await Promise.all([
     hostingAction('host_blocks',{id}),paid?hostingAction('turnover_list',{id}):Promise.resolve({items:[]}),hostingAction('host_private_get',{id}),
    ]);
-   setBlocks(b.items||[]);setTurnovers(t.items||[]);setPrivateDetails(details.item||{exact_address:'',entry_instructions:'',internal_notes:''});
+   setBlocks(b.items||[]);setTurnovers(t.items||[]);setPrivateDetails(details.item||{exact_address:'',entry_instructions:'',internal_notes:'',public_address_visible:false,latitude:'',longitude:''});
   }catch(e){setError(e.message);}
  },[paid]);
 
@@ -121,7 +121,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
    setForm(item?{...blank,...item,amenities:item.amenities||[],permitted_uses:item.permitted_uses||[]}:
      {...blank,...defaults,amenities:[...(defaults.amenities||[])],permitted_uses:[...(defaults.permitted_uses||[])]});
    setPhotoFiles([]);setUploadProgress('');setEditorTab('details');setVideo(null);setVideoCaption('');setApprovalChecked(false);
-   setPrivateDetails({exact_address:'',entry_instructions:'',internal_notes:''});
+   setPrivateDetails({exact_address:'',entry_instructions:'',internal_notes:'',public_address_visible:false,latitude:'',longitude:''});
    await extra(item?.id||'');
  };
  const closeEditor=()=>{if(saving||busy)return;setEditing(false);setSelected('');setPhotoFiles([]);setVideo(null);setError('');setNotice('');};
@@ -359,19 +359,32 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
           <button type="button" key={id} aria-current={editorTab===id?'page':undefined} onClick={()=>setEditorTab(id)} disabled={saving}>{label}</button>)}
       </nav>}
         {editorTab==='details'&&<form onSubmit={save} className={panel+' space-y-4 scroll-mt-24'}>
-          <div className="oh-form-section-heading"><span>01</span><div><h3>Tell us about your space</h3><p>Give your listing a name and add its location. Your street address stays private.</p></div></div>
+          <div className="oh-form-section-heading"><span>01</span><div><h3>Tell us about your space</h3><p>Give your listing a name and add its location. Your street address stays private unless you explicitly choose to publish it.</p></div></div>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="text-sm">Listing title<input required minLength={5} maxLength={140} className={input+' mt-1'} value={form.title} onChange={e=>field('title',e.target.value)}/></label>
             <label className="text-sm">Location type<select className={input+' mt-1'} value={form.category} onChange={e=>field('category',e.target.value)}>{rentalCategories.map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label>
             <label className="text-sm">City<input required className={input+' mt-1'} value={form.city} onChange={e=>field('city',e.target.value)}/></label>
             <label className="text-sm">State/region<input className={input+' mt-1'} value={form.state||''} onChange={e=>field('state',e.target.value)}/></label>
             <label className="text-sm">Country<input required className={input+' mt-1'} value={form.country} onChange={e=>field('country',e.target.value)}/></label>
-            <label className="text-sm sm:col-span-2">Full street address (private, required)
+            <label className="text-sm sm:col-span-2">Full street address (required, private by default)
               <input required minLength={8} maxLength={400} autoComplete="street-address"
                 className={input+' mt-1'} value={privateDetails.exact_address||''} onChange={e=>setPrivateDetails(v=>({...v,exact_address:e.target.value}))}
                 placeholder="Street number, street name, unit number"/>
-              <span className="mt-1 block text-xs text-[var(--cc-text-secondary)]">Only the host and authorized booking guests can access this address. Public cards show city and region only.</span>
+              <span className="mt-1 block text-xs text-[var(--cc-text-secondary)]">Private by default. The full address is only released through protected booking access unless you explicitly enable public display below.</span>
             </label>
+            <label className="sm:col-span-2 flex items-start gap-3 rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm">
+             <input type="checkbox" className="mt-1 h-5 w-5" checked={privateDetails.public_address_visible===true}
+              onChange={e=>setPrivateDetails(v=>({...v,public_address_visible:e.target.checked,latitude:e.target.checked?v.latitude:'',longitude:e.target.checked?v.longitude:''}))}/>
+             <span><strong>Show my street address publicly on this listing</strong><span className="mt-1 block text-xs text-[var(--cc-text-secondary)]">Optional for publicly listed studios or dungeons. Leave unchecked to show only the approved city/neighborhood marker. Even after opting in, private entry instructions stay confidential.</span></span>
+            </label>
+            {privateDetails.public_address_visible===true&&<div className="sm:col-span-2 space-y-2 rounded-xl border border-[var(--cc-border)] p-3 text-xs">
+              <strong>Optional exact public map pin</strong>
+              <p className="text-[var(--cc-text-secondary)]">Paste published coordinates only if this is an address you deliberately want visitors to find. Leave both blank to keep a general neighborhood pin even while showing the address text.</p>
+              <div className="grid gap-2 sm:grid-cols-2">
+               <label>Latitude<input type="number" step="any" min="-85" max="85" placeholder="e.g. 34.0522" className={input+' mt-1'} value={privateDetails.latitude??''} onChange={e=>setPrivateDetails(v=>({...v,latitude:e.target.value}))}/></label>
+               <label>Longitude<input type="number" step="any" min="-180" max="180" placeholder="e.g. -118.2437" className={input+' mt-1'} value={privateDetails.longitude??''} onChange={e=>setPrivateDetails(v=>({...v,longitude:e.target.value}))}/></label>
+              </div>
+            </div>}
           </div>
           <div className="oh-form-section-heading"><span>02</span><div><h3>Your pricing & house rules</h3><p>Pre-filled from your defaults. Change anything for this particular property.</p></div></div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -432,7 +445,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
         </section>}
         {selected&&editorTab==='details'&&<form onSubmit={saveAddress} className={panel+' space-y-3'}>
           <h3 className="font-semibold flex items-center gap-2"><ShieldCheck size={18}/>Private Entry Instructions</h3>
-          <p className={muted}>Never displayed in public search. Entry instructions require an accepted booking, a signed rental agreement, confirmed payment and an authorized attendee.</p>
+          <p className={muted}>The street address follows your public/private preference. Entry instructions always require an accepted booking, a signed rental agreement, confirmed payment and an authorized attendee.</p>
 
           <label className="text-sm block">Guest entry instructions<textarea rows={3} maxLength={1500} className={input+' mt-1'} value={privateDetails.entry_instructions||''} onChange={e=>setPrivateDetails(v=>({...v,entry_instructions:e.target.value}))}/></label>
           <label className="text-sm block">Private host notes<textarea rows={2} maxLength={1500} className={input+' mt-1'} value={privateDetails.internal_notes||''} onChange={e=>setPrivateDetails(v=>({...v,internal_notes:e.target.value}))}/></label>
