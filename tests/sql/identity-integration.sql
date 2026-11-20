@@ -53,13 +53,14 @@ GRANT SELECT,INSERT,UPDATE ON public.age_verification_requests TO service_role;
 \ir ../../supabase/sql/self_hosted_identity_retention_hardening.sql
 \ir ../../supabase/migrations/20261119212000_identity_selective_retake.sql
 \ir ../../supabase/migrations/20261119230000_identity_review_mfa_case_workflow.sql
+\ir ../../supabase/migrations/20261120195550_account_name_verification_binding.sql
 CREATE TRIGGER ccx_yoti_approval_only BEFORE INSERT OR UPDATE OF status ON public.age_verification_requests FOR EACH ROW EXECUTE FUNCTION ccx_internal.require_yoti_new_approval();
 
 CREATE TABLE public.ci_cases(kind text PRIMARY KEY,uid uuid,sid uuid);
 INSERT INTO public.ci_cases SELECT kind,gen_random_uuid(),gen_random_uuid() FROM unnest(ARRAY['adult','minor','birthday','failed','held']) kind;
 INSERT INTO auth.users SELECT uid FROM public.ci_cases;
 INSERT INTO public.account_security(user_id) SELECT uid FROM public.ci_cases;
-INSERT INTO public.member_profiles(id,real_name,display_name) SELECT uid,'Before Verification','Public Stage Name' FROM public.ci_cases;
+INSERT INTO public.member_profiles(id,real_name,display_name) SELECT uid,CASE WHEN kind='held' THEN 'Different Registered Name' ELSE 'Test Example' END,'Public Stage Name' FROM public.ci_cases;
 GRANT SELECT ON public.ci_cases TO service_role;
 INSERT INTO storage.objects(bucket_id,name) VALUES('ccx-identity-evidence','synthetic.jpg'),('other-bucket','visible.jpg');
 
@@ -116,6 +117,9 @@ BEGIN
    IF t.kind='birthday' AND (s->>'eligible_on')::date<>(now() AT TIME ZONE 'UTC')::date+1 THEN RAISE EXCEPTION 'FAIL birthday wait';END IF;
    s:=public.ccx_idv_transition(t.uid,gen_random_uuid(),'start','{}');
    IF s->>'status'<>'age_restricted' THEN RAISE EXCEPTION 'FAIL repeated attempt age bypass';END IF;
+  ELSIF t.kind='held' THEN
+   IF s->>'status'<>'name_mismatch' OR EXISTS(SELECT 1 FROM public.member_admissions WHERE user_id=t.uid) THEN RAISE EXCEPTION 'FAIL registered account-name mismatch granted admission';END IF;
+   IF (SELECT real_name FROM public.member_profiles WHERE id=t.uid)<>'Different Registered Name' THEN RAISE EXCEPTION 'FAIL account name overwritten';END IF;
   ELSIF t.kind='failed' THEN
    IF s->>'status'<>'review_required' OR EXISTS(SELECT 1 FROM public.member_admissions WHERE user_id=t.uid) THEN RAISE EXCEPTION 'FAIL incomplete check admitted';END IF;
   END IF;
