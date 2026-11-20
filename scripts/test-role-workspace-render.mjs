@@ -16,9 +16,13 @@ try{
  const base={id:user.id,display_name:'Role layout test',country:'United States',state:'AZ',city:'Phoenix',profile_complete:true};
  for(const role of Object.keys(ROLE_ROUTES)){
   const profile={...base,role_type:role};
-  const html=renderToStaticMarkup(React.createElement(Shell,{user,profile,approved:true,tab:'dashboard',featureFlags:flags,onNavigate:()=>{},onSignOut:()=>{}},React.createElement(Dashboard,{profile,verified:true,features:flags,onNavigate:()=>{}})));
+  const html=renderToStaticMarkup(React.createElement(Shell,{user,profile,approved:true,tab:'dashboard',featureFlags:flags,onNavigate:()=>{},onSignOut:()=>{}},React.createElement(Dashboard,{profile,verified:true,features:flags,paid:true,onNavigate:()=>{}})));
   for(const label of ['Discovery','Favorites','Properties'])assert.ok(html.includes(label),role+' must render '+label);
   assert.ok(html.includes('Mobile bottom navigation'));
+  // Every real professional role can compose updates with the same entitled
+  // member account. Role navigation/preview must not silently hide the form.
+  assert.ok(html.includes('data-feed-composer="true"'),role+' must show the Feed composer');
+  assert.ok(html.includes('aria-label="Share an update"'),role+' must be allowed to start an update');
   assert.ok(!html.includes('Host Dashboard'));
   if(['agent','studio'].includes(role))assert.ok(html.includes('Roster'));
   if(['photographer','videographer','video_editor'].includes(role))assert.ok(html.includes('Portfolio'));
@@ -34,6 +38,23 @@ try{
    checks++;
   }
  }
+ // The admin dashboard role switcher is a visual preview, not account
+ // impersonation. It must still let its authenticated owner post as themselves.
+ const adminProfile={...base,role_type:'creator'};
+ const previewHTML=renderToStaticMarkup(React.createElement(Shell,{
+  user,profile:adminProfile,approved:true,isAdmin:true,tab:'dashboard',
+  featureFlags:flags,onNavigate:()=>{},onSignOut:()=>{}
+ },React.createElement(Dashboard,{profile:adminProfile,roleOverride:'studio',
+  verified:true,features:flags,paid:true,onNavigate:()=>{}})));
+ assert.ok(previewHTML.includes('data-feed-composer="true"'),'Admin studio preview must keep the member’s Feed composer');
+ assert.ok(previewHTML.includes('not as another role'),'Admin previews must identify the real posting identity');
+ checks++;
+ const freeProfile={...base,role_type:'studio'};
+ const freeHTML=renderToStaticMarkup(React.createElement(Shell,{user,profile:freeProfile,
+  approved:true,tab:'dashboard',featureFlags:flags,onNavigate:()=>{},onSignOut:()=>{}},
+  React.createElement(Dashboard,{profile:freeProfile,verified:true,features:flags,paid:false,onNavigate:()=>{}})));
+ assert.ok(!freeHTML.includes('data-feed-composer="true"'),'Existing Premium publication entitlement stays enforced');
+ checks++;
  for(const role of ['agent','studio']){const html=renderToStaticMarkup(React.createElement(Roster,{user,role,preview:true}));assert.ok(html.includes('Roster')&&html.includes('Add creator'));checks++;}
  for(const role of ['photographer','videographer','video_editor']){const html=renderToStaticMarkup(React.createElement(Portfolio,{userId:user.id,role,preview:true}));assert.ok(html.includes('Portfolio')&&html.includes('Add work'));checks++;}
  const card=renderToStaticMarkup(React.createElement(Card,{person:{id:user.id,display_name:'Synthetic sample',role_type:'creator',city:'Phoenix',age_verified:true},saved:true,onClick:()=>{},onFavorite:()=>{}}));
