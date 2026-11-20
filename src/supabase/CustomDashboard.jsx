@@ -23,7 +23,7 @@ function Metric({widget,metric,onNavigate}){
   {Array.isArray(metric.items)&&<div className="mt-3 space-y-2">{metric.items.length===0?<p className="text-xs" style={{color:'var(--cc-text-muted)'}}>No entries yet.</p>:metric.items.map(item=><div key={item.id} className="border-t pt-2" style={{borderColor:'var(--cc-border)'}}><p className="text-sm break-words">{item.title}</p><time className="text-xs" style={{color:'var(--cc-text-muted)'}} dateTime={item.at}>{new Date(item.at).toLocaleString()}</time></div>)}</div>}
   <button type="button" onClick={()=>onNavigate(widget.tab)} className="mt-4 inline-flex items-center gap-1 text-xs text-[var(--cc-link)]">Open {widget.title.toLowerCase()}<ArrowRight size={13}/></button></>;
 }
-export default function CustomDashboard({profile,onNavigate,roleOverride}){
+export default function CustomDashboard({profile,onNavigate,roleOverride,paid=false}){
  const workspace=useRoleWorkspace();
  const role=roleOverride||workspace?.role||profile?.role_type||'creator';
  const preview=Boolean(workspace?.preview||role!==profile?.role_type);
@@ -74,7 +74,10 @@ export default function CustomDashboard({profile,onNavigate,roleOverride}){
  return <section className="ccx-personal-dashboard" data-dashboard-feed-layout="desktop-rail-mobile-feed">
  <div className="grid min-w-0 grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
   <main className="min-w-0" aria-label="Feed">
-   <ConnectFeed userId={userId} paid={data?.account?.tier==='premium'||data?.account?.admin===true} preview={preview} initialMode="discover" onNavigate={onNavigate}/>
+   {preview&&<p className="mb-3 rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm text-[var(--cc-text-secondary)]">
+    Viewing the {roleTitle(role)} dashboard layout. Updates are published from your own signed-in account, not as another role.
+   </p>}
+   <ConnectFeed userId={userId} paid={paid} preview={false} initialMode="discover" onNavigate={onNavigate}/>
   </main>
   <aside className="hidden min-w-0 space-y-4 xl:block" aria-label="Customizable dashboard cards and sponsored advertisements">
   <header className="ccx-dashboard-heading space-y-3"><div><p className="ccx-workspace-eyebrow">YOUR WORKSPACE</p><h1 className="text-2xl font-bold">{roleTitle(role)} Dashboard</h1><p className="mt-2 text-sm" style={{color:'var(--cc-text-secondary)'}}>Welcome{profile?.display_name?', '+profile.display_name:''}. Your optional dashboard tools.</p></div>
