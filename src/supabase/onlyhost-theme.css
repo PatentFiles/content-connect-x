@@ -163,3 +163,15 @@
  :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-header-actions{margin-left:0;width:100%;flex-wrap:wrap;justify-content:center;gap:7px}
  :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-logout-button{min-height:44px;padding:9px 12px;white-space:nowrap}
 }
+
+
+/* Signed-out Host Connect: compact features on mobile, expanded desktop grid. */
+@media(max-width:767px){
+ :where(html:not([data-ccx-appearance="public"])) .oh-landing-cards[data-host-desktop-features="true"]{display:none!important}
+ :where(html:not([data-ccx-appearance="public"])) .oh-landing-mobile-accordion[data-host-mobile-accordion="true"]{display:grid!important}
+}
+@media(min-width:768px){
+ :where(html:not([data-ccx-appearance="public"])) .oh-landing-cards[data-host-desktop-features="true"]{display:grid}
+ :where(html:not([data-ccx-appearance="public"])) .oh-landing-mobile-accordion[data-host-mobile-accordion="true"]{display:none!important}
+}
+:where(html:not([data-ccx-appearance="public"])) .oh-landing-mobile-accordion details[open] summary span[aria-hidden="true"]{transform:rotate(45deg)}
