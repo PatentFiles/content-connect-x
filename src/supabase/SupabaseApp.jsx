@@ -29,6 +29,7 @@ import OriginalShell,{tabFromLegacyPath,legacyPathForTab} from './OriginalShell'
 import OriginalRoleDashboard from './OriginalRoleDashboard';
 import CreatorProfileEditor from './CreatorProfileEditor';
 import MemberPublicProfile from './MemberPublicProfile';
+import MeetingStudio from './MeetingStudio';
 import CreatorDiscovery from './CreatorDiscovery';
 import YotiVerification from './YotiVerification';
 import PublicLandingSections from './PublicLandingSections';
@@ -431,8 +432,10 @@ export default function SupabaseApp() {
   const navigateInWorkspace=(destination,memberContext=null)=>{
     if(destination==='invitations')destination='notifications';
     setTab(destination);setError('');setNotice('');
-    const target=legacyPathForTab(destination);
-    if(window.location.pathname!==target)
+    const target=destination==='meeting'&&memberContext?.scope&&memberContext?.scopeId
+      ?'/Meeting?'+new URLSearchParams({scope:memberContext.scope,room:memberContext.scopeId}).toString()
+      :legacyPathForTab(destination);
+    if(window.location.pathname+window.location.search!==target)
       window.history.pushState({ccxTab:destination,memberContext},'',target);
   };
   const signOut=()=>{
@@ -489,12 +492,16 @@ export default function SupabaseApp() {
        initialSection={['messages','connections','collaborations','contracts','notifications'].includes(tab)?tab:'collaborations'}/>
     )}
     {tab==='notifications'&&approved&&<NotificationCenter user={user} onNavigate={navigateInWorkspace}/>}
+    {tab==='meeting'&&approved&&<MeetingStudio
+     scope={new URLSearchParams(window.location.search).get('scope')||window.history.state?.memberContext?.scope}
+     scopeId={new URLSearchParams(window.location.search).get('room')||window.history.state?.memberContext?.scopeId}
+     userId={user.id} onNavigate={navigateInWorkspace}/>}
     {tab==='trust' && paid && approved && <TrustCenter isAdmin={isAdmin}/> }
     {tab==='consent' && <ConsentCenter user={user} canGrant={Boolean(paid && approved)}/> }
     {tab==='account-security' && <SecurityCenter/>}
     {tab==='safety' && approved && <SafetyPanel/>}
     {tab==='community' && approved && <CommunityHub paid={paid} userId={user.id}/>}
-    {tab==='groups' && approved && <ConnectGroups userId={user.id} paid={paid} isAdmin={isAdmin}/>}
+    {tab==='groups' && approved && <ConnectGroups userId={user.id} paid={paid} isAdmin={isAdmin} onNavigate={navigateInWorkspace}/>}
     {tab==='feedback' && approved && <FeedbackHub admin={isAdmin}/>}
     {tab==='media' && approved && <MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
     {tab==='schedule' && approved && paid && <ScheduleHub paid={paid} userId={user.id} creatorBookingEnabled={Boolean(visibleFeatures?.creator_booking)}/>}
