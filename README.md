@@ -317,7 +317,7 @@ Mobile Discovery filters default collapsed, desktop defaults expanded. Footer co
 
 ### Legacy parity: travel dates, friend introductions, project notes and testing deadlines (November 19–20, 2026)
 
-The original Base44 `ScheduleEntry / TravelCalendar`, `FriendSettings / MESSAGE_FIRST`, `TestingRequirement`, and project notes concepts are being replaced with native React + Supabase components, not the old Base44 tables or runtime. The work is implemented in source under `ProfileTravelCalendar`, `FriendSettingsPanel`, `CollaborationNotesAndTesting`, the `creator-extensions` Edge gateway, and `20261120065000_creator_travel_intro_project_notes.sql`.
+The original legacy `ScheduleEntry / TravelCalendar`, `FriendSettings / MESSAGE_FIRST`, `TestingRequirement`, and project notes concepts are being replaced with native React + Supabase components, not the old legacy tables or runtime. The work is implemented in source under `ProfileTravelCalendar`, `FriendSettingsPanel`, `CollaborationNotesAndTesting`, the `creator-extensions` Edge gateway, and `20261120065000_creator_travel_intro_project_notes.sql`.
 
 - Travel plans store general city/country dates, never lodging addresses or location tracking. Each entry is explicitly Only Me, accepted Friends, or Verified Community. The authenticated gateway rechecks the viewer, both accounts and blocks before returning data. Private notes are not in another person's response.
 - Friend request default `message_first` requires a genuinely sent introduction and recipient response; recipients can opt out entirely or permit all verified members. Messages cannot be forged by entering another user ID. The existing accepted friendship, cooldown and anti-spam conditions are retained.
