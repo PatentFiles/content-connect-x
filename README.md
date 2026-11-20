@@ -6,12 +6,12 @@
 
 ## November 20, 2026 — AI bio generator implementation
 
-**Committed to GitHub, pending Supabase deployment and live test**: `supabase/functions/profile-ai/index.ts` is an authenticated Supabase Edge Function that drafts a professional profile bio from the requesting member's display name, role, city and existing draft. The existing `CreatorProfileEditorBase.jsx` exposes a **Generate bio with AI** control. The model response is an editable suggestion and is never saved without an explicit profile save. No ID, health documents or private creator preferences are submitted.
+**Committed to GitHub and deployed to Supabase as `profile-ai` version 1 with JWT verification enabled on November 20, 2026; live key-dependent generation and Bolt publication remain untested**: `supabase/functions/profile-ai/index.ts` is an authenticated Supabase Edge Function that drafts a professional profile bio from the requesting member's display name, role, city and existing draft. The existing `CreatorProfileEditorBase.jsx` exposes a **Generate bio with AI** control. The model response is an editable suggestion and is never saved without an explicit profile save. No ID, health documents or private creator preferences are submitted.
 
 **Operator setup (Supabase, not Bolt browser secrets):**
 1. Create an API key in your own OpenAI API project at https://platform.openai.com/api-keys. Never paste it in an issue, commit or frontend environment variable.
 2. Set Supabase Edge Function secret `OPENAI_API_KEY` to that API key. Optionally set `OPENAI_MODEL` to an available text model; the implementation defaults to `gpt-4.1-mini`.
-3. Deploy `profile-ai` to the existing Supabase project `yxuqbygykpfbioslljlf`, with JWT verification on. Keep Bolt as the website host and publish the updated GitHub code through the existing Bolt project.
+3. **Done:** deployed `profile-ai` to existing Supabase project `yxuqbygykpfbioslljlf`, JWT verification on. Keep Bolt as the website host and publish the updated GitHub frontend code through the existing Bolt project.
 4. Sign in as an admitted non-suspended creator, open Profile, enter a display name, click Generate bio with AI, check and save. Test no API key (503), anonymous (401), non-admitted (403), timeout and rate-limit errors, and verify the API key is not present in bundled JS.
 5. Production activation still requires cost controls, server-side invocation quotas and abuse testing before broad access. A source commit alone is **not** evidence of deployment or production acceptance.
 
