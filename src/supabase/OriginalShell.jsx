@@ -59,10 +59,30 @@ function NavigationSections({groups,tab,onNavigate,onClose=()=>{},mobile=false,g
  </section>)}</>;
 }
 
+function CategoryRail({groups,selectedGroup,onSelect,onDashboard,onSettings,mobile=false}){
+ return <nav className={'ccx-nav-rail'+(mobile?' ccx-nav-rail-mobile':'')} aria-label={mobile?'Mobile category shortcuts':'Navigation category shortcuts'}>
+  <button type="button" className="ccx-nav-rail-button ccx-nav-rail-home" onClick={onDashboard} title="Dashboard" aria-label="Go to dashboard">
+   <LayoutGrid size={21} aria-hidden="true"/>
+  </button>
+  <div className="ccx-nav-rail-groups">
+   {groups.map(group=>{
+    const Icon=railIcons[group.id]||MoreHorizontal,active=selectedGroup===group.id;
+    return <button type="button" key={group.id} className={'ccx-nav-rail-button'+(active?' is-active':'')}
+     title={group.label} aria-label={'Jump to '+group.label+' section'} aria-current={active?'location':undefined}
+     onClick={()=>onSelect(group.id)}><Icon size={20} aria-hidden="true"/></button>;
+   })}
+  </div>
+  <button type="button" className="ccx-nav-rail-button ccx-nav-rail-settings" onClick={onSettings} title="Account settings" aria-label="Open account settings">
+   <Settings size={20} aria-hidden="true"/>
+  </button>
+ </nav>;
+}
+
 export default function OriginalShell({children,tab,onNavigate,user,profile,isAdmin=false,approved=false,onSignOut,onRolePreviewChange,featureFlags=null,isPremiumMember=false}){
  const [mobileOpen,setMobileOpen]=useState(false),[adminRole,setAdminRole]=useState('admin');
  const [unread,setUnread]=useState(0);
  const groupRefs=React.useRef({});
+ const mobileGroupRefs=React.useRef({});
  const shellRef=React.useRef(null),headerRef=React.useRef(null);
  useEffect(()=>{
   const header=headerRef.current,shell=shellRef.current;
@@ -90,8 +110,8 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
  ],[isPremiumMember]);
  const navGroups=useMemo(()=>groupedWorkspaceNavigation(nav,adminRole==='admin'?adminNav:[],accountNav),[nav,adminRole,adminNav,accountNav]);
  const selectedGroup=currentNavigationGroup(navGroups,tab,keyFor);
- const jumpToSection=id=>{
-  const section=groupRefs.current[id];
+ const jumpToSection=(id,mobile=false)=>{
+  const section=(mobile?mobileGroupRefs:groupRefs).current[id];
   if(!section)return;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   section.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});
@@ -128,22 +148,8 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
   </header>
   <aside className="ccx-shell-sidebar fixed bottom-0 left-0 z-30 hidden md:flex"
    style={{top:'var(--cc-shell-header-height,calc(4rem + env(safe-area-inset-top,0px)))',borderColor:'var(--cc-border)'}}>
-   <nav className="ccx-nav-rail" aria-label="Navigation category shortcuts">
-    <button type="button" className="ccx-nav-rail-button ccx-nav-rail-home" onClick={()=>onNavigate('dashboard')} title="Dashboard" aria-label="Go to dashboard">
-     <LayoutGrid size={21} aria-hidden="true"/>
-    </button>
-    <div className="ccx-nav-rail-groups">
-     {navGroups.map(group=>{
-      const Icon=railIcons[group.id]||MoreHorizontal,active=selectedGroup===group.id;
-      return <button type="button" key={group.id} className={'ccx-nav-rail-button'+(active?' is-active':'')}
-       title={group.label} aria-label={'Jump to '+group.label+' section'} aria-current={active?'location':undefined}
-       onClick={()=>jumpToSection(group.id)}><Icon size={20} aria-hidden="true"/></button>;
-     })}
-    </div>
-    <button type="button" className="ccx-nav-rail-button ccx-nav-rail-settings" onClick={()=>onNavigate('settings')} title="Account settings" aria-label="Open account settings">
-     <Settings size={20} aria-hidden="true"/>
-    </button>
-   </nav>
+   <CategoryRail groups={navGroups} selectedGroup={selectedGroup} onSelect={id=>jumpToSection(id)}
+    onDashboard={()=>onNavigate('dashboard')} onSettings={()=>onNavigate('settings')}/>
    <div className="ccx-nav-panel flex min-w-0 flex-1 flex-col">
     <div className="ccx-nav-profile">
      <button type="button" className="flex w-full items-center gap-3 rounded-lg p-2 text-left" onClick={()=>onNavigate('profile')}>
@@ -167,21 +173,25 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
   </aside>
   {mobileOpen&&<div className="fixed inset-0 z-[70] md:hidden">
    <button type="button" className="absolute inset-0 bg-black/60" aria-label="Close navigation" onClick={()=>setMobileOpen(false)}/>
-   <div role="dialog" aria-modal="true" aria-label="Navigation" className="ccx-nav-mobile-panel absolute bottom-0 left-0 top-0 flex w-80 max-w-[88vw] flex-col overflow-hidden border-r">
-    <div className="ccx-nav-profile flex items-start justify-between gap-3">
-     <div className="min-w-0"><button type="button" className="text-left font-semibold" onClick={()=>{onNavigate('profile');setMobileOpen(false);}}>{profile?.display_name||'Member'}</button>
-      <p className="mt-1 text-xs capitalize" style={{color:'var(--cc-text-muted)'}}>{roleLabel[role]||role}</p>
-      <button type="button" className="ccx-nav-public-link mt-2 flex items-center gap-2 text-xs" onClick={()=>{onNavigate('public-profile');setMobileOpen(false);}}>
-       <ExternalLink size={13} aria-hidden="true"/>View Public Profile</button>
+   <div role="dialog" aria-modal="true" aria-label="Navigation" className="ccx-nav-mobile-panel absolute bottom-0 left-0 top-0 flex w-[min(22rem,94vw)] max-w-[94vw] overflow-hidden border-r">
+    <CategoryRail mobile groups={navGroups} selectedGroup={selectedGroup} onSelect={id=>jumpToSection(id,true)}
+     onDashboard={()=>{onNavigate('dashboard');setMobileOpen(false);}} onSettings={()=>{onNavigate('settings');setMobileOpen(false);}}/>
+    <div className="ccx-nav-mobile-content flex min-w-0 flex-1 flex-col">
+     <div className="ccx-nav-profile flex items-start justify-between gap-3">
+      <div className="min-w-0"><button type="button" className="text-left font-semibold" onClick={()=>{onNavigate('profile');setMobileOpen(false);}}>{profile?.display_name||'Member'}</button>
+       <p className="mt-1 text-xs capitalize" style={{color:'var(--cc-text-muted)'}}>{roleLabel[role]||role}</p>
+       <button type="button" className="ccx-nav-public-link mt-2 flex items-center gap-2 text-xs" onClick={()=>{onNavigate('public-profile');setMobileOpen(false);}}>
+        <ExternalLink size={13} aria-hidden="true"/>View Public Profile</button>
+      </div>
+      <button type="button" className="ccx-nav-close rounded-md p-2" onClick={()=>setMobileOpen(false)} aria-label="Close navigation"><X size={22}/></button>
      </div>
-     <button type="button" className="ccx-nav-close rounded-md p-2" onClick={()=>setMobileOpen(false)} aria-label="Close navigation"><X size={22}/></button>
+     <nav aria-label="Mobile grouped navigation" className="ccx-nav-menu flex-1 overflow-y-auto p-3">
+      <NavigationSections groups={navGroups} tab={tab} onNavigate={onNavigate} mobile groupRefs={mobileGroupRefs} unread={unread} onClose={()=>setMobileOpen(false)}/>
+     </nav>
+     {isAdmin&&<details className="ccx-nav-switcher"><summary>Switch dashboard</summary><RoleDashboardSwitcher mobile value={adminRole} onChange={switchDashboard}/></details>}
+     <div className="ccx-nav-exit"><button type="button" aria-label="Sign out" onClick={()=>{setMobileOpen(false);onSignOut();}} className="ccx-nav-link flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm">
+      <LogOut size={19} aria-hidden="true"/>Log Out</button></div>
     </div>
-    <nav aria-label="Mobile grouped navigation" className="ccx-nav-menu flex-1 overflow-y-auto p-4">
-     <NavigationSections groups={navGroups} tab={tab} onNavigate={onNavigate} mobile unread={unread} onClose={()=>setMobileOpen(false)}/>
-    </nav>
-    {isAdmin&&<details className="ccx-nav-switcher"><summary>Switch dashboard</summary><RoleDashboardSwitcher mobile value={adminRole} onChange={switchDashboard}/></details>}
-    <div className="ccx-nav-exit"><button type="button" aria-label="Sign out" onClick={()=>{setMobileOpen(false);onSignOut();}} className="ccx-nav-link flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm">
-     <LogOut size={19} aria-hidden="true"/>Log Out</button></div>
    </div>
   </div>}
   <main id="main-content" className="ccx-shell-main min-h-screen px-4 pb-24 pt-24 md:pr-6 md:pb-10" style={{paddingTop:'calc(var(--cc-shell-header-height,4rem) + 1.5rem)'}}><div className="mx-auto max-w-7xl"><ModuleAccessBoundary tab={tab} flags={featureFlags} onNavigate={onNavigate}>{children}</ModuleAccessBoundary></div></main>
