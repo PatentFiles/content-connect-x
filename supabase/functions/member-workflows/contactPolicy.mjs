@@ -1,6 +1,7 @@
 /** Local contact limits are based on public city centers, never home coordinates. */
 const freeActions=[
  'list_connection_requests','request_connection','respond_connection',
+ 'intro_list','intro_start','intro_reply','intro_decline',
  'list_conversations','create_conversation','list_messages','send_message',
  'mark_conversation_read','edit_message','delete_message','react_message',
  'list_notifications','mark_notification_read','mark_all_notifications_read'
