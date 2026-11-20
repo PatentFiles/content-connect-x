@@ -180,7 +180,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
      <NavigationSections groups={navGroups} tab={tab} onNavigate={onNavigate} mobile unread={unread} onClose={()=>setMobileOpen(false)}/>
     </nav>
     {isAdmin&&<details className="ccx-nav-switcher"><summary>Switch dashboard</summary><RoleDashboardSwitcher mobile value={adminRole} onChange={switchDashboard}/></details>}
-    <div className="ccx-nav-exit"><button type="button" onClick={()=>{setMobileOpen(false);onSignOut();}} className="ccx-nav-link flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm">
+    <div className="ccx-nav-exit"><button type="button" aria-label="Sign out" onClick={()=>{setMobileOpen(false);onSignOut();}} className="ccx-nav-link flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm">
      <LogOut size={19} aria-hidden="true"/>Log Out</button></div>
    </div>
   </div>}
