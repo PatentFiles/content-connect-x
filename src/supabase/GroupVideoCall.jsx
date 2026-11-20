@@ -198,7 +198,7 @@ export default function GroupVideoCall({collaborationId,userId}){
  <p className="text-xs text-[var(--cc-text-secondary)]">Private peer-to-peer room for up to six participants. Recording requires every participant's collaboration recording consent. Only collaboration members can retrieve stored recordings.</p>
  {(recording||Object.keys(remoteRecorders).length>0)&&<p role="status" aria-live="assertive" className="flex items-center gap-2 rounded-xl border border-red-400 bg-red-50 p-3 text-sm font-semibold text-red-800">
   <Disc size={16}/> Recording active: {recording?'You':Object.keys(remoteRecorders).map(id=>'Member '+id.slice(0,8)).join(', ')}
- </p>
+ </p>}
  {active&&<div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3"><VideoTile label="You" stream={local.current} muted onElement={el=>{if(el)videos.current.set('self',el);else videos.current.delete('self');}}/>{Object.entries(remote).map(([id,stream])=><VideoTile key={id} label={'Member '+id.slice(0,8)} stream={stream} onElement={el=>{if(el)videos.current.set(id,el);else videos.current.delete(id);}}/>)}</div>}
  {uploads>0&&<p role="status" className="text-sm">Uploading {uploads} private recording segment(s)…</p>}
  {error&&<p role="alert" className="text-sm text-red-700">{error}</p>}{notice&&<p role="status" className="text-sm">{notice}</p>}
