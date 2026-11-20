@@ -13,6 +13,13 @@ on:
       - 'scripts/test-collaboration-actuals.sql'
       - 'supabase/migrations/20261119234000_voluntary_collaboration_safety_checkins.sql'
       - 'supabase/functions/member-workflows/**'
+      - 'supabase/functions/creator-extensions/**'
+      - 'supabase/migrations/20261120065000_creator_travel_intro_project_notes.sql'
+      - 'src/supabase/ProfileTravelCalendar.jsx'
+      - 'src/supabase/CollaborationNotesAndTesting.jsx'
+      - 'src/supabase/FriendSettingsPanel.jsx'
+      - 'scripts/test-creator-extensions-database.sql'
+      - 'tests/creator-extensions.test.mjs'
       - 'src/supabase/CollaborationHub.jsx'
       - 'src/supabase/CollaborationSafetyCheckin.jsx'
       - 'src/supabase/RepresentationAgreements.jsx'
@@ -66,7 +73,7 @@ jobs:
           npm run lint
           npm run typecheck
       - name: Verify safety and actuals endpoint authorization
-        run: node --test tests/collaboration-safety.test.mjs tests/collaboration-actuals.test.mjs
+        run: node --test tests/collaboration-safety.test.mjs tests/collaboration-actuals.test.mjs tests/creator-extensions.test.mjs
       - name: Validate import graph
         run: npm run verify:edge-imports
       - name: Build app
