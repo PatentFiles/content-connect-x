@@ -52,7 +52,7 @@ function MenuLink({item,tab,onNavigate,onClose=()=>{},mobile=false,unread=0}){
 /** Mobile uses a conventional single-column hamburger drawer with all pages;
  * desktop is a one-section-at-a-time accordion controlled by the category rail.
  */
-function NavigationSections({groups,tab,onNavigate,onClose=()=>{},mobile=false,expandedGroup,onExpand,unread=0}){
+function NavigationSections({groups,tab,onNavigate,onClose=()=>{},mobile=false,expandedGroup=null,onExpand=()=>{},unread=0}){
  return <>{groups.map(group=>{
   const open=mobile||expandedGroup===group.id;
   const titleId='ccx-nav-heading-'+(mobile?'mobile-':'')+group.id;
