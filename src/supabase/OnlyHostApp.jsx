@@ -140,17 +140,17 @@ export default function OnlyHostApp(){
      <span className="oh-wordmark text-xl font-extrabold tracking-tight">Host<span className="oh-gradient-text">Connect</span></span>
     </button>
     <nav className="oh-header-actions ml-auto flex items-center justify-end gap-2" aria-label="Host Connect navigation">
-     <a href="/" className={'oh-ccx-link items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold '+(user?'hidden sm:inline-flex':'inline-flex')}><span className="oh-ccx-gradient">Content Connect X</span></a>
-     {!ready&&<button className={primary+' oh-list-space'+(user?' hidden sm:inline-flex':'')} onClick={openWorkspace}>List Your Space<ArrowUpRight size={16}/></button>}
-     {user&&<button className="oh-ccx-link hidden items-center gap-2 rounded-xl px-3 py-2.5 text-sm sm:inline-flex" onClick={()=>setShowSettings(true)} aria-label="Host settings"><Settings size={18}/><span className="hidden sm:inline">Settings</span></button>}
-     {user&&<button type="button" className="oh-logout-button hidden min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--cc-border)] px-3 py-2 text-sm font-semibold sm:inline-flex" onClick={()=>void signOut()} disabled={busy} aria-label="Log out of Host Connect"><LogOut size={18}/>Log out</button>}
+     <a href="/" className={'oh-ccx-link items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold '+(user?'hidden md:inline-flex':'inline-flex')}><span className="oh-ccx-gradient">Content Connect X</span></a>
+     {!ready&&<button className={primary+' oh-list-space'+(user?' hidden md:inline-flex':'')} onClick={openWorkspace}>List Your Space<ArrowUpRight size={16}/></button>}
+     {user&&<button className="oh-ccx-link hidden items-center gap-2 rounded-xl px-3 py-2.5 text-sm md:inline-flex" onClick={()=>setShowSettings(true)} aria-label="Host settings"><Settings size={18}/><span className="hidden sm:inline">Settings</span></button>}
+     {user&&<button type="button" className="oh-logout-button hidden min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--cc-border)] px-3 py-2 text-sm font-semibold md:inline-flex" onClick={()=>void signOut()} disabled={busy} aria-label="Log out of Host Connect"><LogOut size={18}/>Log out</button>}
      {user&&<button ref={hostMenuButtonRef} type="button" aria-label="Open Host Connect navigation menu" aria-expanded={hostMenuOpen}
-      className="oh-host-menu-trigger inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-[var(--cc-border)] sm:hidden"
+      className="oh-host-menu-trigger inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-[var(--cc-border)] md:hidden"
       onClick={()=>setHostMenuOpen(true)}><Menu size={22}/></button>}
     </nav>
    </div>
   </header>
-  {hostMenuOpen&&user&&<div className="oh-host-mobile-overlay fixed inset-0 z-[80] sm:hidden">
+  {hostMenuOpen&&user&&<div className="oh-host-mobile-overlay fixed inset-0 z-[80] md:hidden">
    <button type="button" tabIndex={-1} className="absolute inset-0 bg-black/50" aria-label="Close Host Connect navigation" onClick={()=>setHostMenuOpen(false)}/>
    <div ref={hostMenuDialogRef} role="dialog" aria-modal="true" aria-label="Host Connect mobile navigation"
     className="oh-host-mobile-drawer absolute bottom-0 right-0 top-0 flex w-[min(21rem,90vw)] flex-col overflow-hidden border-l border-[var(--cc-border)]">
