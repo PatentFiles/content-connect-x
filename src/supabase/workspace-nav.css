@@ -1,0 +1,232 @@
+/* Authenticated Content Connect X navigation. Inspired by a grouped icon-rail
+ * layout, while retaining existing role navigation, routes and permissions.
+ * Never apply to the signed-out marketing pages or the separate Host site.
+ */
+:root[data-ccx-appearance="workspace"] {
+  --ccx-workspace-nav-width:18rem;
+  --ccx-nav-rail-width:3.75rem;
+  --ccx-nav-rail-bg:#0d1422;
+  --ccx-nav-panel-bg:#182233;
+  --ccx-nav-panel-divider:#344157;
+  --ccx-nav-panel-text:#e2eaf4;
+  --ccx-nav-panel-muted:#9ba9be;
+  --ccx-nav-panel-active:#30445f;
+  --ccx-nav-panel-accent:#87d9d8;
+}
+@media (min-width:768px) {
+  :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-shell-sidebar {
+    width:var(--ccx-workspace-nav-width)!important;
+    min-width:var(--ccx-workspace-nav-width);
+    background:var(--ccx-nav-panel-bg)!important;
+    border-right:1px solid var(--ccx-nav-panel-divider);
+    box-shadow:3px 0 22px rgba(6,19,35,.12);
+  }
+  :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-shell-main {
+    margin-left:var(--ccx-workspace-nav-width);
+    padding-left:1.25rem;
+    min-width:0;
+  }
+  /* TrustFooter is a sibling of the workspace shell, not a child. Align its
+   * centered content with the new rail+panel instead of the legacy 256px. */
+  :root[data-ccx-appearance="workspace"] .ccx-trust-footer:not(.ccx-trust-footer-standalone) {
+    margin-left:var(--ccx-workspace-nav-width);
+  }
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-panel,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-mobile-panel {
+  --cc-bg:#182233;
+  --cc-surface:#182233;
+  --cc-surface-hover:#30445f;
+  --cc-surface-subtle:#223047;
+  --cc-border:#344157;
+  --cc-blue:#8be3e1;
+  --cc-link:#8be3e1;
+  --cc-text-primary:#e2eaf4;
+  --cc-text-secondary:#b6c4d6;
+  --cc-text-muted:#98a8c0;
+  background:var(--ccx-nav-panel-bg);
+  color:var(--ccx-nav-panel-text);
+  border-color:var(--ccx-nav-panel-divider);
+}
+.ccx-original-shell .ccx-nav-rail {
+  width:var(--ccx-nav-rail-width);
+  flex:0 0 var(--ccx-nav-rail-width);
+  min-height:0;
+  background:var(--ccx-nav-rail-bg);
+  color:#a6b5cb;
+  display:flex;
+  align-items:center;
+  flex-direction:column;
+  gap:10px;
+  padding:14px 7px 12px;
+  overflow-y:auto;
+  border-right:1px solid #26354c;
+  scrollbar-width:thin;
+}
+.ccx-original-shell .ccx-nav-rail-groups {
+  width:100%;
+  display:flex;
+  flex:1 0 auto;
+  flex-direction:column;
+  align-items:center;
+  gap:5px;
+  margin-top:12px;
+}
+.ccx-original-shell .ccx-nav-rail-button {
+  display:grid;
+  flex:0 0 auto;
+  place-items:center;
+  width:43px;
+  min-height:43px;
+  padding:0;
+  border:1px solid transparent;
+  border-radius:12px;
+  background:transparent;
+  color:#a6b5cb;
+  cursor:pointer;
+  transition:background-color .16s,color .16s,border-color .16s;
+}
+.ccx-original-shell .ccx-nav-rail-button:hover {
+  background:#29364a;
+  color:#eef8ff;
+}
+.ccx-original-shell .ccx-nav-rail-button.is-active,
+.ccx-original-shell .ccx-nav-rail-button[aria-pressed="true"] {
+  border-color:#3e6270;
+  background:#213d51;
+  color:#98e9df;
+  box-shadow:inset 3px 0 0 #7cddd5;
+}
+.ccx-original-shell .ccx-nav-rail-home {
+  background:#20334c;
+  border-color:#36506d;
+  color:#e2f8fa;
+}
+.ccx-original-shell .ccx-nav-rail-settings {
+  margin-top:auto;
+}
+.ccx-original-shell .ccx-nav-panel {
+  height:100%;
+  min-height:0;
+  overflow:hidden;
+}
+.ccx-original-shell .ccx-nav-profile {
+  padding:14px 12px 12px;
+  border-bottom:1px solid var(--ccx-nav-panel-divider);
+}
+.ccx-original-shell .ccx-nav-profile>button:first-child:hover,
+.ccx-original-shell .ccx-nav-close:hover {background:#26374c;}
+.ccx-original-shell .ccx-nav-public-link {
+  color:var(--ccx-nav-panel-accent);
+  border-radius:7px;
+  text-align:left;
+}
+.ccx-original-shell .ccx-nav-public-link:hover {text-decoration:underline;text-underline-offset:3px;}
+.ccx-original-shell .ccx-nav-menu {
+  min-height:0;
+  scroll-behavior:smooth;
+  scrollbar-width:thin;
+  scrollbar-color:#59647a transparent;
+}
+.ccx-original-shell .ccx-nav-section {
+  margin:0 0 18px;
+  scroll-margin-top:12px;
+}
+.ccx-original-shell .ccx-nav-heading {
+  margin:0 0 6px;
+  padding:0 12px;
+  color:var(--ccx-nav-panel-muted);
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:.085em;
+  line-height:1.7;
+  text-transform:uppercase;
+}
+.ccx-original-shell .ccx-nav-section-links {
+  display:grid;
+  gap:2px;
+}
+.ccx-original-shell .ccx-nav-link {
+  position:relative;
+  min-height:41px;
+  color:var(--ccx-nav-panel-text);
+  line-height:1.45;
+  overflow-wrap:anywhere;
+}
+.ccx-original-shell .ccx-nav-link:not(.is-active):hover {
+  background:#25364b!important;
+  color:#f2fcff!important;
+}
+.ccx-original-shell .ccx-nav-link.is-active {
+  background:var(--ccx-nav-panel-active)!important;
+  color:#a1f1ec!important;
+  font-weight:650;
+}
+.ccx-original-shell .ccx-nav-link.is-active::before {
+  position:absolute;
+  content:"";
+  left:0;
+  top:9px;
+  bottom:9px;
+  width:3px;
+  background:#77d7d0;
+  border-radius:0 4px 4px 0;
+}
+.ccx-original-shell .ccx-nav-count {
+  flex:0 0 auto;
+  padding:1px 7px;
+  border-radius:999px;
+  background:#355e6f;
+  color:#ecfffd;
+  font-size:10px;
+  font-variant-numeric:tabular-nums;
+}
+.ccx-original-shell .ccx-nav-exit {
+  padding:8px 12px 12px;
+  border-top:1px solid var(--ccx-nav-panel-divider);
+}
+.ccx-original-shell .ccx-nav-switcher {
+  min-height:0;
+  max-height:45vh;
+  overflow-y:auto;
+  border-top:1px solid var(--ccx-nav-panel-divider);
+}
+.ccx-original-shell .ccx-nav-switcher summary {
+  display:list-item;
+  cursor:pointer;
+  padding:12px 18px;
+  color:var(--ccx-nav-panel-text);
+  font-size:12px;
+  font-weight:600;
+}
+.ccx-original-shell .ccx-nav-switcher summary:hover {background:#25364b;}
+.ccx-original-shell .ccx-nav-switcher > section {
+  border-bottom:0;
+}
+.ccx-original-shell .ccx-nav-rail-button:focus-visible,
+.ccx-original-shell .ccx-nav-link:focus-visible,
+.ccx-original-shell .ccx-nav-public-link:focus-visible,
+.ccx-original-shell .ccx-nav-switcher summary:focus-visible,
+.ccx-original-shell .ccx-nav-close:focus-visible {
+  outline:2px solid #a6f6eb;
+  outline-offset:2px;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-mobile-panel {
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  box-shadow:12px 0 44px rgba(3,9,18,.4);
+}
+@media (max-width:767px) {
+  .ccx-original-shell .ccx-nav-menu {scroll-behavior:auto;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .ccx-original-shell .ccx-nav-rail-button {transition:none;}
+  .ccx-original-shell .ccx-nav-menu {scroll-behavior:auto;}
+}
+@media (forced-colors:active) {
+  .ccx-original-shell .ccx-nav-link.is-active,
+  .ccx-original-shell .ccx-nav-rail-button.is-active {
+    outline:2px solid Highlight;
+    color:Highlight!important;
+  }
+}
