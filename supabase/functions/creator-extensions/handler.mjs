@@ -38,11 +38,12 @@ export function createCreatorExtensionsHandler({authenticate,db}){
     const target=action==='travel_list'&&uuid(body.user_id)?body.user_id:actor;
     if(action==='travel_list'){
      if(target!==actor){
-      const [other,blocked]=await Promise.all([
+      const [other,blocked,otherSecurity]=await Promise.all([
        get(db.from('member_admissions').select('admitted_at').eq('user_id',target).not('admitted_at','is',null).limit(1)),
-       get(db.from('member_blocks').select('blocker_id').or('and(blocker_id.eq.'+actor+',blocked_id.eq.'+target+'),and(blocker_id.eq.'+target+',blocked_id.eq.'+actor+')').limit(1))
+       get(db.from('member_blocks').select('blocker_id').or('and(blocker_id.eq.'+actor+',blocked_id.eq.'+target+'),and(blocker_id.eq.'+target+',blocked_id.eq.'+actor+')').limit(1)),
+       get(db.from('account_security').select('banned,suspended').eq('user_id',target).maybeSingle())
       ]);
-      if(!other?.length||blocked?.length)return reply({items:[]});
+      if(!other?.length||blocked?.length||!otherSecurity||otherSecurity.banned||otherSecurity.suspended)return reply({items:[]});
      }
      const records=await get(db.from('ccx_profile_travel')
       .select('id,user_id,entry_type,city,state,country,starts_on,ends_on,visibility,note')
@@ -72,8 +73,9 @@ export function createCreatorExtensionsHandler({authenticate,db}){
      country:v.country.trim(),starts_on:v.starts_on,ends_on:v.ends_on,visibility:v.visibility,note:v.note.trim(),updated_at:new Date().toISOString()};
     if(v.id&&!uuid(v.id))return reply({error:'Invalid travel entry'},400);
     if(!v.id){
-     const count=await get(db.from('ccx_profile_travel').select('id',{count:'exact',head:true}).eq('user_id',actor));
-     if(count?.length>=100)return reply({error:'Travel entry limit reached'},429);
+     const {count,error:countError}=await db.from('ccx_profile_travel').select('id',{count:'exact',head:true}).eq('user_id',actor);
+     if(countError)return reply({error:'Travel entry limit unavailable'},503);
+     if((count||0)>=100)return reply({error:'Travel entry limit reached'},429);
     }
     const result=v.id
      ?await get(db.from('ccx_profile_travel').update(payload).eq('id',v.id).eq('user_id',actor).select('id').maybeSingle())
@@ -132,7 +134,7 @@ export function createCreatorExtensionsHandler({authenticate,db}){
     const opted=new Set((consents||[]).filter(v=>!v.revoked_at).map(v=>v.user_id));
     const ready=ids.every(id=>{const row=(clearances||[]).find(x=>x.user_id===id);
      return opted.has(id)&&row?.clearance_confirmed===true&&row.expires_at&&Date.parse(row.expires_at)>Date.now()
-       &&Date.parse(row.expires_at)>Date.now()+(policy?.freshness_days||14)*86400000;});
+ ;});
     return reply({required:true,ready,participants:ids.length,
       deadline:policy?.verification_deadline||null,
       deadline_passed:Boolean(policy?.verification_deadline&&Date.parse(policy.verification_deadline)<Date.now()&&!ready)});
