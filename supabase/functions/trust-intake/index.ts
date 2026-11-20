@@ -1,4 +1,4 @@
-/** Anonymous text-only safety intake. No read, lookup, login or disclosure actions exist.
+/** Anonymous text-only request intake and capability-scoped reporter follow-ups. No admin read, login or evidence disclosure actions exist.
  * The database independently enforces the operator activation switch and rate limits.
  * Admin case access uses a separate authenticated, MFA-gated RPC, never this endpoint.
  */
@@ -13,6 +13,7 @@ const key=await crypto.subtle.importKey('raw',encoder.encode(secret),{name:'HMAC
 Deno.serve(createTrustIntakeHandler({
  submit:(payload:unknown,rateKey:string,idempotency:string)=>db.rpc('ccx_trust_submit',{p_payload:payload,p_rate_key:rateKey,p_idempotency:idempotency}),
  status:(reference:string,accessCode:string,rateKey:string)=>db.rpc('ccx_trust_reporter_status',{p_reference:reference,p_access_code:accessCode,p_rate_key:rateKey}),
+ reply:(reference:string,accessCode:string,rateKey:string,message:string,idempotency:string)=>db.rpc('ccx_trust_reporter_reply',{p_reference:reference,p_access_code:accessCode,p_rate_key:rateKey,p_message:message,p_idempotency:idempotency}),
  rateKey:async(req:Request)=>{
   // An edge-provided network hint is a rate signal, never authentication or identity.
   // It is keyed and rotated by day; raw IPs are not added to request records or logs.
