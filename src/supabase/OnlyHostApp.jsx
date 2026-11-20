@@ -2,9 +2,9 @@
  * Uses exactly the same Supabase users, listings and booking
  * transactions as Content Connect X; no shadow reservation inventory exists.
  */
-import React,{useCallback,useEffect,useState} from 'react';
+import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
-import {Home,ArrowUpRight,ArrowRight,LogOut,CalendarDays,ShieldCheck,Clapperboard,UsersRound,FileSignature,Sparkles,CheckCircle2,Clock3,Wallet,MessageCircleMore,Eye,EyeOff,Brush,SlidersHorizontal,KeyRound,Settings} from 'lucide-react';
+import {Home,ArrowUpRight,ArrowRight,LogOut,CalendarDays,ShieldCheck,Clapperboard,UsersRound,FileSignature,Sparkles,CheckCircle2,Clock3,Wallet,MessageCircleMore,Eye,EyeOff,Brush,SlidersHorizontal,KeyRound,Settings,ChevronDown} from 'lucide-react';
 import HostingMarketplace from './HostingMarketplace';
 import ProfessionalLandingHero from './ProfessionalLandingHero';
 import {useAuthAppearance} from './authAppearance';
@@ -15,6 +15,26 @@ const input='w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-sur
 const primary='oh-primary inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold';
 const secondary='oh-secondary inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm';
 
+/** Host benefits are collapsed by default on mobile but stay open on desktop. */
+function HostFeature({Icon,title,tag,text}){
+ const ref=useRef(null);
+ useEffect(()=>{
+  const viewport=window.matchMedia('(max-width: 640px)');
+  const sync=()=>{if(ref.current)ref.current.open=!viewport.matches;};
+  sync();viewport.addEventListener('change',sync);
+  return()=>viewport.removeEventListener('change',sync);
+ },[]);
+ return <details ref={ref} className="oh-landing-card oh-feature-details" data-host-feature={title}>
+  <summary className="oh-feature-summary">
+   <span className="oh-landing-card-tag">{tag}</span>
+   <span className="oh-landing-card-icon"><Icon size={28} strokeWidth={1.65}/></span>
+   <span className="oh-feature-title">{title}</span>
+   <ChevronDown size={18} className="oh-feature-toggle" aria-hidden="true"/>
+  </summary>
+  <p className="oh-feature-description">{text}</p>
+  <span className="oh-landing-card-accent" aria-hidden="true"/>
+ </details>;
+}
 export default function OnlyHostApp(){
  const [session,setSession]=useState(null),[loading,setLoading]=useState(true);
  const [account,setAccount]=useState(null);
@@ -131,8 +151,8 @@ export default function OnlyHostApp(){
        <div className="oh-landing-cards">
         {[
          {Icon:Home,title:'List Your Property',tag:'YOUR PORTFOLIO',text:'Create multiple listings for houses, apartments you are authorized to offer, lofts, studios or private filming sets. Add photos, amenities and crew capacity.'},
-         {Icon:Wallet,title:'Set Your Own Rates',tag:'YOUR PRICING',text:'Choose your hourly price and minimum booking length, including 6, 12 or 24 hours. Configure weekend and seasonal pricing, overtime and discounts where available.'},
-         {Icon:Clock3,title:'Control Booking Durations',tag:'YOUR SCHEDULE',text:'Set minimum hours, notice periods, blocked dates and cleanup buffers. Overnight stays and hotel-style check-in/out windows require supported listing settings before activation.'},
+         {Icon:Wallet,title:'Set Your Own Rates',tag:'YOUR PRICING',text:'Choose a daily rate with a standard 24-hour booking from 3 p.m. until 3 p.m. the next day. Configure weekend and seasonal pricing, overtime and discounts where available.'},
+         {Icon:Clock3,title:'Control Booking Durations',tag:'YOUR SCHEDULE',text:'Set available days, advance notice, blocked dates and turnaround buffers. Guests reserve complete 24-hour days so overnight and early-morning shoots fit.'},
          {Icon:ShieldCheck,title:'Choose Adult Uses',tag:'YOUR BOUNDARIES',text:'Explicitly opt in to nude photography or adult video production, or restrict what is allowed. Guests know your rules before requesting a shoot.'},
          {Icon:Brush,title:'Set Cleaning Fees',tag:'YOUR TURNOVER',text:'Choose a cleaning fee suitable for your house size and setup. Arrange your own cleaners; optional local service partnerships may be introduced later.'},
          {Icon:SlidersHorizontal,title:'House Rules & Restrictions',tag:'YOUR CONTROL',text:'Define permitted rooms, sound levels, filming hours, crew limits, insurance requirements, deposits and cancellation preferences.'},
@@ -142,12 +162,7 @@ export default function OnlyHostApp(){
          {Icon:FileSignature,title:'Booking Agreements',tag:'YOUR PROTECTION',text:'Document permitted activities, access rules, property conditions and commercial terms. Approval and external provider activation may be required.'},
          {Icon:UsersRound,title:'Staff & Equipment',tag:'YOUR OPERATIONS',text:'Manage optional equipment, staff, cleaning tasks, turnover checklists, inventory and condition photos.'},
          {Icon:KeyRound,title:'Privacy & Property Authority',tag:'YOUR TRUST',text:'Your exact address stays private until authorized. Submit owner or written landlord permission before a listing can be approved for adult-production rentals.'}
-        ].map(({Icon,title,tag,text})=><article className="oh-landing-card" key={title}>
-         <span className="oh-landing-card-tag">{tag}</span>
-         <span className="oh-landing-card-icon"><Icon size={28} strokeWidth={1.65}/></span>
-         <h2>{title}</h2><p>{text}</p>
-         <span className="oh-landing-card-accent" aria-hidden="true"/>
-        </article>)}
+        ].map(({Icon,title,tag,text})=><HostFeature key={title} Icon={Icon} title={title} tag={tag} text={text}/>)}
        </div>
       </div>
      </section>
@@ -158,7 +173,7 @@ export default function OnlyHostApp(){
         <h2 id="oh-process-title">You own the space. <span className="oh-gradient-text">You make the rules.</span></h2>
        </div>
        <div className="oh-landing-steps">
-        {[{n:'01',title:'Join as a host',text:'Register and accept the property host agreement. Hosts are not required to complete performer verification.'},{n:'02',title:'Prove your authority',text:'Provide ownership evidence or written permission from the property owner for adult productions.'},{n:'03',title:'Set your rules & pricing',text:'Choose permitted uses, cleaning fees, minimum hours, pricing and availability.'},{n:'04',title:'Review booking requests',text:'Manage guest messages, booking activity and property operations in one dashboard.'}].map(step=><article className="oh-landing-step" key={step.n}>
+        {[{n:'01',title:'Join as a host',text:'Register and accept the property host agreement. Hosts are not required to complete performer verification.'},{n:'02',title:'Prove your authority',text:'Provide ownership evidence or written permission from the property owner for adult productions.'},{n:'03',title:'Set your rules & pricing',text:'Choose permitted uses, cleaning fees, daily pricing and availability.'},{n:'04',title:'Review booking requests',text:'Manage guest messages, booking activity and property operations in one dashboard.'}].map(step=><article className="oh-landing-step" key={step.n}>
          <span>{step.n}</span><h3>{step.title}</h3><p>{step.text}</p>
         </article>)}
        </div>
@@ -172,7 +187,6 @@ export default function OnlyHostApp(){
       </div>
       <div className="oh-landing-account-box">
 
-     <a href="/" className="text-sm text-[var(--cc-link)]">← Return to Content Connect X</a>
      <section className="oh-panel space-y-4 p-6 md:p-8">
       <h2 className="text-2xl font-bold">Your Host Connect account</h2>
       {!user?<><p className="text-[var(--cc-text-secondary)]">Sign in or create an account to list spaces for adult photography and filming—with clear authorization and house rules.</p>
@@ -200,7 +214,11 @@ export default function OnlyHostApp(){
      </section>
     </div>}
   </main>
-  <footer className="oh-footer"><div className="oh-landing-container oh-footer-inner"><p>© 2027 Host Connect. All rights reserved.</p><a href="/" className="oh-ccx-gradient">Content Connect X</a></div></footer>
+  <footer className="oh-footer"><div className="oh-landing-container oh-footer-inner">
+   <strong className="text-base font-bold">Host Connect</strong>
+   <a href="/" className="oh-ccx-gradient">Content Connect X</a>
+   <p>© 2027 Host Connect. All rights reserved.</p>
+  </div></footer>
   {showLogin&&<div className="oh-modal-backdrop" role="presentation" onClick={()=>setShowLogin(false)}>
    <section role="dialog" aria-modal="true" aria-label="Host Connect account" className="oh-modal max-w-md" onClick={e=>e.stopPropagation()}>
     <button className="absolute right-5 top-5" aria-label="Close" onClick={()=>setShowLogin(false)}>Close ×</button>

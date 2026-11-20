@@ -163,3 +163,24 @@
  :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-header-actions{margin-left:0;width:100%;flex-wrap:wrap;justify-content:center;gap:7px}
  :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-logout-button{min-height:44px;padding:9px 12px;white-space:nowrap}
 }
+
+
+/* Host Connect mobile accordion: collapsed default, expanded above 640px. */
+:where(html:not([data-ccx-appearance="public"])) .oh-app .oh-feature-details > .oh-feature-summary{display:flex;flex-direction:column;align-items:flex-start;width:100%;cursor:pointer;list-style:none;outline-offset:3px}
+:where(html:not([data-ccx-appearance="public"])) .oh-app .oh-feature-details > .oh-feature-summary::-webkit-details-marker{display:none}
+:where(html:not([data-ccx-appearance="public"])) .oh-app .oh-feature-details .oh-feature-title{display:block;font-size:20px;font-weight:780;line-height:1.35;margin-bottom:10px}
+:where(html:not([data-ccx-appearance="public"])) .oh-app .oh-feature-details .oh-feature-description{margin-bottom:0}
+:where(html:not([data-ccx-appearance="public"])) .oh-app .oh-feature-details .oh-feature-toggle{display:none}
+@media(max-width:640px){
+ :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-landing-card.oh-feature-details{min-height:0;padding:0}
+ :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-feature-details > .oh-feature-summary{flex-direction:row;align-items:center;flex-wrap:wrap;min-height:70px;padding:12px 15px;gap:9px}
+ :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-feature-details .oh-landing-card-tag{width:100%;font-size:9px;order:0}
+ :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-feature-details .oh-landing-card-icon{width:36px;height:36px;flex:none;margin:0;order:1}
+ :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-feature-details .oh-landing-card-icon svg{width:20px;height:20px}
+ :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-feature-details .oh-feature-title{flex:1;min-width:0;order:2;margin:0;font-size:15px}
+ :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-feature-details .oh-feature-toggle{display:block;order:3;flex:none;transition:transform .15s ease}
+ :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-feature-details[open] .oh-feature-toggle{transform:rotate(180deg)}
+ :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-feature-details .oh-feature-description{padding:0 15px 14px;line-height:1.6}
+ :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-feature-details .oh-landing-card-accent{display:none}
+}
+@media(prefers-reduced-motion:reduce){:where(html:not([data-ccx-appearance="public"])) .oh-app .oh-feature-details .oh-feature-toggle{transition:none}}
