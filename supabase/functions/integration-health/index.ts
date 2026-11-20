@@ -3,7 +3,7 @@
  */
 import {OPTIONAL_PROVIDER_SETTINGS,optionalProviderSetting} from './providerConfig.mjs';
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
-import {PROVIDERS,inspectProvider,trustedOrigin} from './providerChecks.mjs';
+import {PROVIDERS,inspectProvider} from './providerChecks.mjs';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type',
   'Access-Control-Allow-Methods':'POST, OPTIONS'};
 const reply=(body:unknown,status=200)=>Response.json(body,{status,headers:cors});
@@ -36,30 +36,26 @@ Deno.serve(async req=>{
     const values=Object.fromEntries(keys.map(key=>[key,Object.prototype.hasOwnProperty.call(OPTIONAL_PROVIDER_SETTINGS,key)?optionalProviderSetting(key):(Deno.env.get(key)||'')]));
     services[name]=inspectProvider(name,values);
   }
-  const [yotiSettings,yotiToken,yotiSdk,profiles,verifiedAdults,envelopes,
-    moderation,properties]=await Promise.all([
-    db.from('ccx_integrations').select('enabled,callback_origin,secondary_origin')
-      .eq('provider','yoti').maybeSingle(),
-    db.rpc('ccx_secret_get',{p_name:'yoti_token'}),
-    db.rpc('ccx_secret_get',{p_name:'yoti_sdk_id'}),
+  const [idvConfig,profiles,verifiedAdults,envelopes,moderation,properties]=await Promise.all([
+    db.from('ccx_idv_config').select('enabled,worker_origin,security_approved_at,privacy_approved_at,retention_days').eq('singleton',true).maybeSingle(),
     db.from('member_profiles').select('id',{head:true,count:'exact'}),
     db.from('age_verification_requests').select('id',{head:true,count:'exact'}).eq('status','approved'),
     db.from('signature_envelopes').select('id',{head:true,count:'exact'}),
     db.from('content_moderation_queue').select('id',{head:true,count:'exact'}).eq('status','pending'),
     db.from('properties').select('id',{head:true,count:'exact'}).eq('status','active')
   ]);
-  const setting=yotiSettings.data;
-  const yotiMissing=[
-    ...(!yotiToken.data?['Yoti API token in Vault']:[]),
-    ...(!yotiSdk.data?['Yoti SDK ID in Vault']:[]),
-    ...(!setting?.enabled?['Yoti provider activation']:[]),
-    ...(!trustedOrigin(setting?.callback_origin)?['Trusted Content Connect X callback origin']:[]),
-    ...(!trustedOrigin(setting?.secondary_origin)?['Trusted OnlyHost callback origin']:[])
+  const identity=idvConfig.data;
+  const missing=[
+    ...(!identity?.worker_origin?['Railway worker origin']:[]),
+    ...(!identity?.security_approved_at?['Security review']:[]),
+    ...(!identity?.privacy_approved_at?['Biometric privacy review']:[]),
+    ...(!identity?.retention_days?['Evidence retention schedule']:[]),
+    ...(!identity?.enabled?['Production identity verification activation']:[])
   ];
-  services.yoti={configured:yotiMissing.length===0,missing:yotiMissing,
-    acceptance_verified:false,note:'Age results require provider sandbox checks; independent performer identity approval is a separate process.'};
+  services.first_party_identity={configured:missing.length===0,missing,acceptance_verified:false,
+    note:'Railway-owned document OCR and independent barcode/MRZ cross-check with live-selfie facial comparison. Real-document and anti-spoof acceptance remain necessary.'};
   services.pass={configured:false,missing:['Approved partner API and agreement'],
-    acceptance_verified:false,note:'PASS partner API access has not been independently established; status-sharing currently uses private approval records.'};
+    acceptance_verified:false,note:'PASS status sharing needs actual approved partner access.'};
 
   const database={
     member_profiles:profiles.error?null:profiles.count,
