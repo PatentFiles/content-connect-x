@@ -159,7 +159,7 @@
 
 /* The host header keeps Log out visible and tappable on small screens. */
 @media (max-width:640px){
- .oh-app .oh-header-inner{flex-wrap:wrap;justify-content:center;gap:8px;padding-top:10px;padding-bottom:10px}
- .oh-app .oh-header-actions{margin-left:0;width:100%;flex-wrap:wrap;justify-content:center;gap:7px}
- .oh-app .oh-logout-button{min-height:44px;padding:9px 12px;white-space:nowrap}
+ :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-header-inner{flex-wrap:wrap;justify-content:center;gap:8px;padding-top:10px;padding-bottom:10px}
+ :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-header-actions{margin-left:0;width:100%;flex-wrap:wrap;justify-content:center;gap:7px}
+ :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-logout-button{min-height:44px;padding:9px 12px;white-space:nowrap}
 }
