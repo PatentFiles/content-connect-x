@@ -85,7 +85,7 @@ test('membership uses server price and real authenticated subject, not forged bo
 });
 test('unconfigured recurring membership fails closed and status does not expose credentials',async()=>{
  reset();delete environment.CCBILL_MEMBERSHIP_SALT;const r=await call('membership-billing','status');assert.equal(r.status,200);assert.equal(r.body.ready,false);
- assert.equal((await call('membership-billing','create_checkout',{plan_code:'creator_pro'})).status,503);assert.equal(rpcs.length,0);
+ assert.equal((await call('membership-billing','create_checkout',{plan_code:'creator_pro'})).status,503);assert.equal(rpcs.filter(r=>r.name==='ccx_start_membership_checkout').length,0,'No billable checkout may be created when a key is absent; encrypted Vault lookup is permitted');
 });
 test('real membership webhook handler rejects unsigned, mutated and cross-scope callbacks',async()=>{
  reset();const type='application/json',query='clientAccnum=900100&clientSubacc=0001&eventType=NewSaleSuccess';
