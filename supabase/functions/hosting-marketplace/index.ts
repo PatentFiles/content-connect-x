@@ -195,17 +195,23 @@ Deno.serve(async req=>{
  case 'browse':{
   const q=safe(payload.query,100),category=safe(payload.category,40),
    city=safe(payload.city,100),max=finite(payload.max_price),minCrew=finite(payload.crew_size);
-  let query=db.from('properties').select(publicCols).eq('status','active').not('approved_at','is',null).order('created_at',{ascending:false}).limit(80);
+  let query=db.from('properties').select(publicCols).eq('status','active').not('approved_at','is',null).order('created_at',{ascending:false}).limit(200);
   if(payload.bounds&&typeof payload.bounds==='object'){
    const v=payload.bounds;
    const west=Number(v.west),east=Number(v.east),south=Number(v.south),north=Number(v.north);
    if(![west,east,south,north].every(Number.isFinite)||west>east||south>north||
     west < -180||east>180||south< -85||north>85)return denial('Invalid map bounds');
-   const {data:areaRows,error:mapError}=await db.from('hosting_public_areas').select('id')
-    .gte('longitude',west).lte('longitude',east)
-    .gte('latitude',south).lte('latitude',north).eq('approved',true).limit(500);
+   // Match the APPROVED PUBLIC AREA footprint, not a private property coordinate.
+   // A pin in the edge of the area must not disappear when zoomed past its center.
+   const {data:areaRows,error:mapError}=await db.from('hosting_public_areas')
+    .select('id,latitude,longitude,radius_km').eq('approved',true).limit(500);
    if(mapError)throw mapError;
-   const allowed=(areaRows||[]).map(x=>x.id);
+   const allowed=(areaRows||[]).filter((area:any)=>{
+     const lat=Number(area.latitude),lon=Number(area.longitude);
+     const km=Math.max(1,Math.min(Number(area.radius_km)||5,25));
+     const deltaLat=km/111.3,deltaLon=km/(111.3*Math.max(.2,Math.cos(lat*Math.PI/180)));
+     return lat+deltaLat>=south&&lat-deltaLat<=north&&lon+deltaLon>=west&&lon-deltaLon<=east;
+   }).map((v:any)=>v.id);
    if(!allowed.length)return reply({items:[],count:0});
    query=query.in('public_area_id',allowed);
   }
