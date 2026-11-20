@@ -9,6 +9,7 @@ const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'au
 const reply=(data:unknown,status=200)=>Response.json(data,{status,headers:cors});
 const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
 const text=(v:unknown,n=140)=>typeof v==='string'?v.trim().slice(0,n):'';
+const hashContract=async(value:unknown)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(value||{}))))).map(x=>x.toString(16).padStart(2,'0')).join('');
 Deno.serve(async req=>{
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
  if(req.method!=='POST')return reply({error:'Method not allowed'},405);
@@ -58,6 +59,31 @@ Deno.serve(async req=>{
     .select('member_id,role,routing_order,status,signed_at').eq('envelope_id',envelope.id).order('routing_order');
    if(recipientsError)throw recipientsError;
    return reply({status:envelope.status,items:recipients||[]});
+  }
+  if(action==='draft_review_status'||action==='draft_review'){
+   if(!uuid(body.contract_id))return reply({error:'Contract ID required'},400);
+   const {data:contract,error:contractError}=await db.from('contracts')
+     .select('id,collaboration_id,title,status,content').eq('id',body.contract_id).maybeSingle();
+   if(contractError||!contract)return reply({error:'Agreement unavailable'},404);
+   const {data:participant,error:participantError}=await db.from('collaboration_members').select('user_id')
+     .eq('collaboration_id',contract.collaboration_id).eq('user_id',uid).maybeSingle();
+   if(participantError||!participant)return reply({error:'Only agreement participants can review'},403);
+   const currentHash=await hashContract(contract.content);
+   if(action==='draft_review'){
+    if(contract.status!=='draft')return reply({error:'Only draft agreements can be reviewed'},409);
+    if(!['approved','changes_requested'].includes(body.decision))return reply({error:'Review decision required'},400);
+    const {error}=await db.from('ccx_contract_draft_reviews').upsert({
+      contract_id:contract.id,reviewer_id:uid,content_sha256:currentHash,decision:body.decision,reviewed_at:new Date().toISOString()
+    },{onConflict:'contract_id,reviewer_id'});
+    if(error)throw error;
+   }
+   const {data:reviews,error:reviewError}=await db.from('ccx_contract_draft_reviews')
+     .select('reviewer_id,content_sha256,decision,reviewed_at').eq('contract_id',contract.id);
+   if(reviewError)throw reviewError;
+   return reply({contract_id:contract.id,title:contract.title,status:contract.status,
+    content:contract.content,content_hash:currentHash,
+    reviews:(reviews||[]).map(r=>({...r,current:r.content_sha256===currentHash})),
+    my_review:(reviews||[]).find(r=>r.reviewer_id===uid)||null});
   }
   if(action==='create_draft'){
    if(!uuid(body.contract_id))return reply({error:'Contract ID required'},400);
@@ -180,6 +206,15 @@ Deno.serve(async req=>{
    }
    const ids=recipients.map(r=>r.member_id);
    if(new Set(ids).size!==ids.length)return reply({error:'Duplicate signer in packet'},409);
+   if(contract.content?.review_required===true||contract.content?.ai_draft){
+    const fingerprint=await hashContract(contract.content);
+    const {data:reviews,error:reviewError}=await db.from('ccx_contract_draft_reviews')
+      .select('reviewer_id,content_sha256,decision').eq('contract_id',contract.id);
+    if(reviewError)return reply({error:'Review checklist unavailable'},503);
+    const signers=recipients.filter(r=>r.role!=='viewer').map(r=>r.member_id);
+    if(!signers.every(id=>(reviews||[]).some(r=>r.reviewer_id===id&&r.decision==='approved'&&r.content_sha256===fingerprint)))
+     return reply({error:'Every signer must approve the current AI contract draft before DocuSign signing invitations can be sent'},409);
+   }
    const {data:profiles,error:profileError}=await db.from('member_profiles').select('id,display_name,real_name').in('id',ids);
    if(profileError)return reply({error:'Signer names unavailable'},503);
    const parties=[];
