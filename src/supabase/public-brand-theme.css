@@ -794,7 +794,7 @@ html:where([data-ccx-appearance="public"]), :where(html[data-ccx-appearance="pub
 :where(html[data-ccx-appearance="public"]) .oh-landing-account-box>.oh-panel{margin-top:0}
 :where(html[data-ccx-appearance="public"]) .oh-landing-account-box .oh-panel{background:linear-gradient(145deg,rgba(27,36,68,.97),rgba(14,22,45,.99));border-color:rgba(125,175,248,.32);box-shadow:0 20px 60px rgba(0,0,0,.27)}
 :where(html[data-ccx-appearance="public"]) .oh-footer{border-top:1px solid rgba(118,147,223,.24);background:#070b18;padding:28px 0}
-:where(html[data-ccx-appearance="public"]) .oh-footer-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:15px;color:#adbcda;font-size:12px}
+:where(html[data-ccx-appearance="public"]) .oh-footer-inner{display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;flex-wrap:wrap;gap:9px;color:#adbcda;font-size:12px}
 :where(html[data-ccx-appearance="public"]) .oh-app .oh-list-space:focus-visible,:where(html[data-ccx-appearance="public"]) .oh-app .oh-ccx-link:focus-visible,:where(html[data-ccx-appearance="public"]) .oh-app .oh-brand:focus-visible{outline:3px solid #7ce6ff;outline-offset:4px}
 /* Properties and standalone Host Connect already share Host_Connect_Banner.png. */
 :where(html[data-ccx-appearance="public"]) .host-connect-theme .ccx-surface{border-radius:20px;transition:border-color .25s,box-shadow .25s}
@@ -1035,7 +1035,7 @@ html:where([data-ccx-appearance="public"]), :where(html[data-ccx-appearance="pub
 :where(html[data-ccx-appearance="public"]) .ccx-slim-button-secondary:hover{border-color:#1cc9fa}
 :where(html[data-ccx-appearance="public"]) .ccx-slim-cta>.ccx-slim-fineprint{font-size:11px!important;color:#999fbd!important;margin-top:22px!important}
 :where(html[data-ccx-appearance="public"]) .ccx-slim-footer{border-top:1px solid rgba(136,134,182,.18);padding:25px 0}
-:where(html[data-ccx-appearance="public"]) .ccx-slim-footer-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+:where(html[data-ccx-appearance="public"]) .ccx-slim-footer-inner{display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;flex-wrap:wrap;gap:9px}
 :where(html[data-ccx-appearance="public"]) .ccx-slim-footer-inner>span{font-size:16px;font-weight:760}
 :where(html[data-ccx-appearance="public"]) .ccx-slim-footer-inner strong{color:#ff2dba}
 :where(html[data-ccx-appearance="public"]) .ccx-slim-footer-inner p{font-size:12px;color:#a3abc7}
