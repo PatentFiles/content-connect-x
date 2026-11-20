@@ -6,14 +6,15 @@ const clean=(v:unknown,n=120)=>typeof v==='string'?v.trim().slice(0,n):'';
 Deno.serve(async(request)=>{
  if(request.method==='OPTIONS')return new Response(null,{status:204,headers});
  if(request.method!=='POST')return reply({error:'Method not allowed'},405);
- const apiKey=Deno.env.get('OPENAI_API_KEY');
- if(!apiKey)return reply({error:'AI bio generator is not configured. Set OPENAI_API_KEY on the Supabase Edge Functions server.'},503);
  const url=Deno.env.get('SUPABASE_URL'),anon=Deno.env.get('SUPABASE_ANON_KEY'),service=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
  if(!url||!anon||!service)return reply({error:'Service unavailable'},503);
  const caller=createClient(url,anon,{global:{headers:{Authorization:request.headers.get('Authorization')||''}}});
  const {data:{user},error:authError}=await caller.auth.getUser();
  if(authError||!user)return reply({error:'Sign in to use the bio generator'},401);
  const db=createClient(url,service);
+ const configured=Deno.env.get('OPENAI_API_KEY')||(await db.rpc('ccx_secret_get',{p_name:'openai_api_key'})).data;
+ const apiKey=typeof configured==='string'?configured.trim():'';
+ if(!apiKey)return reply({error:'Add your OpenAI API key in the administrator AI settings.'},503);
  const [account,admission]=await Promise.all([
   db.from('account_security').select('banned,suspended').eq('user_id',user.id).maybeSingle(),
   db.from('member_admissions').select('admitted_at').eq('user_id',user.id).not('admitted_at','is',null).limit(1)
