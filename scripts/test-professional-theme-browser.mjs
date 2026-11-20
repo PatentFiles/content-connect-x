@@ -101,7 +101,7 @@ try {
    const hero=await evaluate("(()=>{const img=document.querySelector('.ccx-hero-image img,.oh-landing-banner img');return img?{src:decodeURIComponent(new URL(img.currentSrc).pathname),loaded:img.complete&&img.naturalWidth>0,visible:img.getBoundingClientRect().height>0}:null;})()");
    if(['homepage','hostconnect','host-signed-out'].includes(label)){
     assert.ok(hero?.loaded&&hero.visible,label+' original hero decoded and visible');
-    assert.equal(hero.src,label==='homepage'?(width<=640?'/ContentConnectX__Create,_Collaborate,_Grow.png':'/content_conect_hero.png'):'/Host_Connect_Banner.png',label+' exact original asset');
+    assert.equal(hero.src,label==='homepage'?(width<=640?'/ContentConnectX__Create,_Collaborate,_Grow.png':'/content_conect_hero.png'):(width<=640?'/Host_Connect_Banner_Mobile.png':'/Host_Connect_Banner.png'),label+' expected responsive brand asset');
    }
   }else{
    assert.equal(state.background,'rgb(255, 255, 255)',label+' background');
