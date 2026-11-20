@@ -6,7 +6,7 @@ const panel='ccx-surface p-5';
 const input='w-full rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-2 text-sm';
 const button='rounded-lg ccx-action-primary text-[var(--cc-text-primary)] px-4 py-2 text-sm font-semibold disabled:opacity-50';
 const ghostBtn='rounded-lg border px-3 py-2 text-sm font-medium disabled:opacity-50';
-const reportMediaUrl=id=>'/trust?kind=privacy&locator='+encodeURIComponent('gallery-media:'+id);
+const reportMediaUrl=id=>'/trust/privacy?locator='+encodeURIComponent('gallery-media:'+id);
 async function mediaRequest(action,data={}){
   const {data:result,error}=await supabase.functions.invoke('media-gateway',{body:{action,...data}});
   if(error||result?.error)throw new Error(result?.error||error?.message||'Media service unavailable');
