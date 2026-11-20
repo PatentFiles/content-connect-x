@@ -1,0 +1,233 @@
+/* Content Connect X + Host Connect: authenticated enterprise workspace only.
+ * Design principles drawn from enterprise tools (Linear/Stripe): low-chroma
+ * surfaces, strong typography, predictable primary actions, quiet chrome.
+ * Entire file is scoped to the real authenticated appearance; marketing heroes
+ * and all logged-out branding remain untouched.
+ */
+:root[data-ccx-appearance="workspace"] .ccx-original-shell,
+:root[data-ccx-appearance="workspace"] .oh-app{
+ --cc-bg:#f7f8fa;
+ --cc-surface:#ffffff;
+ --cc-surface-subtle:#f8f9fb;
+ --cc-surface-hover:#eef1f5;
+ --cc-border:#e1e5eb;
+ --cc-border-hover:#bdc5d0;
+ --cc-input-border:#d5dce5;
+ --cc-text-primary:#1c2633;
+ --cc-text-secondary:#4b5a6c;
+ --cc-text-muted:#667385;
+ --cc-link:#334155;
+ --cc-blue:#334155;
+ --cc-pink:#334155;
+ --cc-action:#253244;
+ --cc-action-hover:#3a485b;
+ --cc-on-action:#ffffff;
+ --cc-focus:#72869e;
+ --cc-shadow:0 1px 3px rgba(17,24,39,.045);
+ --cc-shadow-raised:0 6px 18px rgba(17,24,39,.07);
+ background:var(--cc-bg);
+ color:var(--cc-text-primary);
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-shell-fixed-header,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-header{
+ background:#fff!important;
+ border-bottom:1px solid var(--cc-border)!important;
+ box-shadow:none!important;
+ backdrop-filter:none;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-surface,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-person-preview,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-panel,
+:root[data-ccx-appearance="workspace"] .oh-app .ccx-surface,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-portfolio-panel,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-listings-actions,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-market-explorer{
+ background:#ffffff!important;
+ border:1px solid var(--cc-border)!important;
+ border-radius:12px!important;
+ box-shadow:0 1px 3px rgba(17,24,39,.045)!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-dashboard-card::before{
+ display:none!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-primary,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-action-primary,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-solid-action,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-admin-host-link,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-primary,
+:root[data-ccx-appearance="workspace"] .oh-app .ccx-primary,
+:root[data-ccx-appearance="workspace"] .oh-app .ccx-action-primary,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-new-space-action{
+ background:#253244!important;
+ background-image:none!important;
+ border:1px solid #253244!important;
+ color:#ffffff!important;
+ border-radius:9px!important;
+ box-shadow:none!important;
+ text-shadow:none!important;
+ transition:background-color .16s ease,border-color .16s ease;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-primary:hover:not(:disabled),
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-action-primary:hover:not(:disabled),
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-admin-host-link:hover,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-primary:hover:not(:disabled),
+:root[data-ccx-appearance="workspace"] .oh-app .ccx-action-primary:hover:not(:disabled),
+:root[data-ccx-appearance="workspace"] .oh-app .oh-new-space-action:hover:not(:disabled){
+ background:#3a485b!important;
+ border-color:#3a485b!important;
+ box-shadow:none!important;
+ transform:none!important;
+ filter:none!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-secondary,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-secondary,
+:root[data-ccx-appearance="workspace"] .oh-app .ccx-secondary,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-ccx-link{
+ background:#ffffff!important;
+ border:1px solid var(--cc-border)!important;
+ color:#344256!important;
+ border-radius:9px!important;
+ box-shadow:none!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-secondary:hover:not(:disabled),
+:root[data-ccx-appearance="workspace"] .oh-app .oh-secondary:hover:not(:disabled),
+:root[data-ccx-appearance="workspace"] .oh-app .oh-ccx-link:hover{
+ background:#f5f7fa!important;
+ border-color:#bbc5d0!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-pill.is-active,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-option-selected{
+ background:#eef1f5!important;
+ border-color:#cbd3dc!important;
+ color:#253244!important;
+ box-shadow:none!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-monogram,
+:root[data-ccx-appearance="workspace"] .oh-app .ccx-monogram,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-mark{
+ background:#253244!important;
+ background-image:none!important;
+ color:white!important;
+ border-color:#253244!important;
+ box-shadow:none!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-workspace-eyebrow,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-dashboard-welcome-kicker{
+ color:#6d7887!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-catalog-option,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-person-preview{
+ background:#ffffff;
+ border-color:var(--cc-border);
+ box-shadow:none;
+ color:var(--cc-text-primary);
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-catalog-option:hover:not(:disabled),
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-person-preview:hover{
+ background:#f9fafb;
+ border-color:#c3cbd5;
+ transform:none;
+ box-shadow:none;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell [data-feed-composer="true"]{
+ background:#f9fafb!important;
+ border:1px solid #dce2e9!important;
+ border-radius:11px!important;
+ box-shadow:none!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell [data-feed-composer="true"] textarea{
+ color:#253244!important;
+ background:transparent!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell form[aria-label="Share an update"],
+:root[data-ccx-appearance="workspace"] .ccx-original-shell form[aria-label="Group post composer"]{
+ background:#ffffff!important;
+ border:1px solid var(--cc-border)!important;
+ box-shadow:0 1px 3px rgba(17,24,39,.045)!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-dashboard-welcome{
+ padding:9px 2px 7px;
+ border-bottom:1px solid var(--cc-border);
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-dashboard-welcome-kicker{
+ font-size:11px;
+ font-weight:700;
+ letter-spacing:.09em;
+ line-height:1.5;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-dashboard-welcome-title{
+ margin:6px 0 4px;
+ font-size:clamp(21px,2.3vw,29px);
+ line-height:1.25;
+ letter-spacing:-.035em;
+ font-weight:700;
+ color:#1c2633;
+ overflow-wrap:anywhere;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-dashboard-welcome-subtitle{
+ font-size:13px;line-height:1.65;color:#5a6779;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-dashboard-heading{
+ border-bottom:1px solid var(--cc-border);
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-panel,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-mobile-panel{
+ --cc-blue:#f2f4f7;
+ --cc-link:#e1e6ed;
+ --cc-text-secondary:#c1c7d0;
+ --cc-text-primary:#f2f4f7;
+ --cc-text-muted:#a8b0bc;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-link,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-heading,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-heading-button{
+ font-variant-ligatures:common-ligatures;
+}
+:root[data-ccx-appearance="workspace"] .oh-app .oh-workspace-action,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-amenity-panel,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-new-tour-field,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-feature-panel{
+ background:#ffffff!important;
+ border-color:var(--cc-border)!important;
+ box-shadow:none!important;
+}
+:root[data-ccx-appearance="workspace"] .oh-app .oh-host-menu-trigger{
+ background:#ffffff;
+ border-color:#dce2e9;
+ color:#253244;
+}
+:root[data-ccx-appearance="workspace"] .oh-app .oh-host-menu-trigger:hover{
+ background:#f5f7fa;
+}
+:root[data-ccx-appearance="workspace"] .oh-app .oh-host-mobile-drawer{
+ padding-top:env(safe-area-inset-top,0px);
+ padding-bottom:env(safe-area-inset-bottom,0px);
+ background:#ffffff;
+ color:#253244;
+ box-shadow:-10px 0 36px rgba(13,20,31,.16);
+}
+:root[data-ccx-appearance="workspace"] .oh-app .oh-host-mobile-link{
+ color:#334155;
+ text-decoration:none;
+}
+:root[data-ccx-appearance="workspace"] .oh-app .oh-host-mobile-link:hover,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-host-mobile-link.is-active{
+ background:#eef1f5;
+ color:#253244;
+}
+:root[data-ccx-appearance="workspace"] .oh-app .oh-host-mobile-link.is-active{
+ font-weight:650;
+ box-shadow:inset 3px 0 0 #64748b;
+}
+:root[data-ccx-appearance="workspace"] .oh-app .oh-host-menu-trigger:focus-visible,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-host-mobile-link:focus-visible,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-primary:focus-visible,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-heading-button:focus-visible{
+ outline:2px solid #64748b;
+ outline-offset:3px;
+}
+@media(prefers-reduced-motion:reduce){
+ :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-primary,
+ :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-action-primary,
+ :root[data-ccx-appearance="workspace"] .oh-app .oh-primary{transition:none!important;}
+}
