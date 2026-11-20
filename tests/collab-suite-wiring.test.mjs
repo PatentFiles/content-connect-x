@@ -24,7 +24,7 @@ test('message-first friendship and private introductions are server-side',()=>{
  const api=read('supabase/functions/collab-suite/index.ts');
  const notifications=read('src/supabase/NotificationCenter.jsx');
  assert.match(sql,/ccx_enforce_message_first_friendship/);
- assert.match(sql,/inbound and outbound/);
+ assert.match(sql,/outbound and inbound/);
  assert.match(api,/case 'intro_send'/);
  assert.match(api,/kind:'introduction'/);
  assert.match(notifications,/kind==='introduction'/);
