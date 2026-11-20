@@ -4,6 +4,7 @@
  * Connect callback. Never mint a completed signature locally.
  */
 import { createClient } from 'npm:@supabase/supabase-js@2.95.0';
+import {providerFetch,buildAgreementPdf} from './docuSignProvider.mjs';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const reply=(data:unknown,status=200)=>Response.json(data,{status,headers:cors});
 const uuid=(v:unknown):v is string=>typeof v==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(v);
@@ -148,8 +149,92 @@ Deno.serve(async req=>{
    return reply({signed_pdf:signed.data.signedUrl,certificate:certificate.data.signedUrl,expires_in:60});
   }
   if(action==='send_packet'){
-   // No unverified DocuSign completion, no unsigned browser-controlled signing.
-   return reply({error:'DocuSign OAuth, approved templates, sender authorization and Connect webhook must be connected before sending'},503);
+   if(!uuid(body.envelope_id))return reply({error:'Select a signing packet'},400);
+   const {data:packet,error:packetError}=await db.from('signature_envelopes')
+    .select('id,contract_id,collaboration_id,requested_by,status,signing_order_enabled')
+    .eq('id',body.envelope_id).maybeSingle();
+   if(packetError||!packet||packet.requested_by!==uid)return reply({error:'Only the packet organizer can send it'},403);
+   if(packet.status!=='draft')return reply({error:'This packet has already been submitted or requires reconciliation'},409);
+   const [contractResult,collabResult,recipientsResult,testingPolicy]=await Promise.all([
+    db.from('contracts').select('id,title,content,collaboration_id,status').eq('id',packet.contract_id).maybeSingle(),
+    db.from('collaborations').select('id,title,status').eq('id',packet.collaboration_id).maybeSingle(),
+    db.from('signature_packet_recipients').select('id,member_id,role,routing_order,status').eq('envelope_id',packet.id).order('routing_order'),
+    db.from('ccx_collab_testing_policies').select('*').eq('collaboration_id',packet.collaboration_id).maybeSingle()
+   ]);
+   const contract=contractResult.data,collab=collabResult.data,recipients=recipientsResult.data||[];
+   if(contractResult.error||collabResult.error||recipientsResult.error||testingPolicy.error||!contract||!collab)
+    return reply({error:'Signing packet data unavailable'},503);
+   if(contract.collaboration_id!==collab.id||collab.status==='cancelled'||!recipients.length||contract.status!=='draft')
+    return reply({error:'This agreement is not ready for signing'},409);
+   const policy=testingPolicy.data;
+   if(policy?.requires_testing){
+    if(policy.deadline_at&&Date.parse(policy.deadline_at)<Date.now())return reply({error:'Testing deadline has passed'},409);
+    const {data:participants,error:membersError}=await db.from('collaboration_members').select('user_id,membership_role').eq('collaboration_id',collab.id);
+    if(membersError)return reply({error:'Cannot verify testing requirements'},503);
+    for(const member of (participants||[]).filter(p=>p.membership_role==='creator')){
+     const {data:current,error:credError}=await db.from('ccx_testing_credentials').select('id').eq('user_id',member.user_id)
+      .eq('status','verified').gte('expires_at',new Date().toISOString())
+      .gte('tested_at',new Date(Date.now()-policy.tested_within_days*86400000).toISOString()).limit(1);
+     if(credError||!current?.length)return reply({error:'Every creator must have current verified testing before signing'},409);
+    }
+   }
+   const ids=recipients.map(r=>r.member_id);
+   if(new Set(ids).size!==ids.length)return reply({error:'Duplicate signer in packet'},409);
+   const {data:profiles,error:profileError}=await db.from('member_profiles').select('id,display_name,real_name').in('id',ids);
+   if(profileError)return reply({error:'Signer names unavailable'},503);
+   const parties=[];
+   for(const recipient of recipients){
+    const {data:authRow,error:emailError}=await db.auth.admin.getUserById(recipient.member_id);
+    if(emailError||!authRow?.user?.email)return reply({error:'A recipient is missing a verified email address'},409);
+    const profile=(profiles||[]).find(p=>p.id===recipient.member_id);
+    const name=text(profile?.real_name||profile?.display_name,100);
+    if(!name)return reply({error:'A recipient has no signing name'},409);
+    parties.push({member_id:recipient.member_id,name,email:authRow.user.email,role:recipient.role,
+     routing_order:recipient.routing_order});
+   }
+   const transaction=crypto.randomUUID();
+   const {data:claimed,error:claimError}=await db.from('signature_envelopes')
+    .update({status:'sending',provider_transaction_id:transaction}).eq('id',packet.id).eq('status','draft').select('id').maybeSingle();
+   if(claimError||!claimed)return reply({error:'The packet is already being sent'},409);
+   try{
+    const pdf=await buildAgreementPdf(contract,parties);
+    const signers=parties.filter(r=>r.role!=='viewer').map((r,i)=>({
+     email:r.email,name:r.name,recipientId:String(i+1),
+     routingOrder:packet.signing_order_enabled?String(r.routing_order):'1',
+     tabs:{signHereTabs:[{anchorString:'SIGN_HERE_'+r.member_id,anchorUnits:'pixels',anchorXOffset:'0',anchorYOffset:'12'}]}
+    }));
+    const carbonCopies=parties.filter(r=>r.role==='viewer').map((r,i)=>({
+     email:r.email,name:r.name,recipientId:String(i+1+signers.length),
+     routingOrder:packet.signing_order_enabled?String(r.routing_order):'1'
+    }));
+    const callback=(url||'').replace(/\/$/,'')+'/functions/v1/collaboration-docusign-webhook';
+    const requestBody={emailSubject:'Please review and sign: '+text(contract.title,80),
+     documents:[{documentBase64:pdf,name:text(contract.title,90)||'Collaboration agreement',fileExtension:'pdf',documentId:'1'}],
+     recipients:{signers,carbonCopies},status:'sent',transactionId:transaction,
+     eventNotification:{url:callback,requireAcknowledgment:'true',loggingEnabled:'true',
+      includeDocuments:'false',includeHMAC:'true',
+      envelopeEvents:[{envelopeEventStatusCode:'Completed'},{envelopeEventStatusCode:'Declined'},
+       {envelopeEventStatusCode:'Voided'},{envelopeEventStatusCode:'Delivered'}],
+      eventData:{version:'restv2.1',format:'json',includeData:['recipients']}}
+    };
+    const provider=await providerFetch(db,'/envelopes',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(requestBody)});
+    const created=await provider.json();
+    if(!uuid(created.envelopeId))throw Error('DocuSign did not return an envelope ID');
+    const {error:updateError}=await db.from('signature_envelopes').update({
+     status:'sent',provider_envelope_id:created.envelopeId,sent_at:new Date().toISOString()
+    }).eq('id',packet.id).eq('status','sending');
+    if(updateError)throw updateError;
+    await db.from('signature_packet_recipients').update({status:'sent'}).eq('envelope_id',packet.id).eq('status','pending');
+    await db.from('signature_packet_audit').insert({envelope_id:packet.id,actor_id:uid,
+     event_type:'docusign_sent',metadata:{provider_envelope_id:created.envelopeId,transaction_id:transaction,recipient_count:parties.length}});
+    return reply({sent:true,status:'sent',envelope_id:created.envelopeId,note:'DocuSign signing invitations sent to each participant.'});
+   }catch(error){
+    // Network failures after sending can be indeterminate; never auto-retry an envelope.
+    await db.from('signature_envelopes').update({status:'error'}).eq('id',packet.id).eq('status','sending');
+    await db.from('signature_packet_audit').insert({envelope_id:packet.id,actor_id:uid,
+     event_type:'docusign_send_uncertain',metadata:{transaction_id:transaction}});
+    return reply({error:'DocuSign could not confirm this send. Reconcile the transaction in DocuSign before another attempt.'},503);
+   }
   }
   return reply({error:'Unknown agreement action'},404);
  }catch(e){console.error('agreement-packets',action,e);return reply({error:'Agreement workflow unavailable'},500);}
