@@ -84,9 +84,6 @@ verify_jwt = true
 [functions.hosting-discovery]
 verify_jwt = true
 
-[functions.yoti-verification]
-verify_jwt = true
-
 [functions.membership-billing]
 verify_jwt = true
 
