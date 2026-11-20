@@ -1,5 +1,5 @@
 /** Actual Edge handlers with synthetic credentials and rolled-up database fixtures.
- * Does not call live Yoti, CCBill, Supabase or a real consumer payment form.
+ * Does not call live identity, CCBill, Supabase or a real consumer payment form.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -10,11 +10,11 @@ let handler,environment,state,authOK,rpcs,queryError,providerResult,providerCall
 function reset(){
  authOK=true;rpcs=[];queryError=null;providerCalls=[];allowRate=true;
  environment={SUPABASE_URL:'https://fixture.supabase.co',SUPABASE_ANON_KEY:'fixture-public',SUPABASE_SERVICE_ROLE_KEY:'fixture-service',
-  YOTI_API_KEY:'yoti-fixture-never-live',YOTI_SDK_ID:sid,CCBILL_CLIENT_ACCNUM:'900100',CCBILL_MEMBERSHIP_SUBACC:'0001',
+  CCBILL_CLIENT_ACCNUM:'900100',CCBILL_MEMBERSHIP_SUBACC:'0001',
   CCBILL_MEMBERSHIP_FLEX_ID:sid,CCBILL_MEMBERSHIP_SALT:'fixture-salt-123',CCBILL_WEBHOOK_RELAY_SECRET:'fixture-never-live-secret-'.repeat(3),
   CCBILL_EVENT_TIMEZONE:'UTC',CCBILL_MEMBERSHIP_APPROVED:'true',CCBILL_MEMBERSHIP_LIVE_APPROVED:'true'};
  state={account_security:[{user_id:uid,admin:true,banned:false,suspended:false}],member_admissions:[{user_id:uid,admitted_at:'2026-11-17'}],
- ccx_integrations:[{provider:'yoti',enabled:true,callback_origin:'https://contentconnectx.com'},{provider:'ccbill',enabled:true}],
+ ccx_integrations:[{provider:'ccbill',enabled:true}],
  member_subscriptions:[],ccx_age_provider_sessions:[],ccx_membership_payment_events:[]};
  providerResult={id:sid,expires_at:new Date(Date.now()+900000).toISOString()};
 }
@@ -32,8 +32,6 @@ class Query{
 }
 globalThis.__providerClient=(_url,key)=>key==='fixture-public'?{auth:{getUser:async()=>({data:{user:authOK?{id:uid}:null},error:null})}}:{
  from:t=>new Query(t),rpc:async(name,args)=>{rpcs.push({name,args});
-  if(name==='ccx_reserve_yoti_start')return {data:allowRate,error:null};
-  if(name==='ccx_finish_yoti_session')return {data:{status:args.p_status,age_verified:args.p_status==='age_confirmed'},error:null};
   if(name==='ccx_start_membership_checkout')return {data:{amount_cents:1999,checkout_nonce:sid,period_days:30,expires_at:new Date(Date.now()+1800000).toISOString()},error:null};
   if(name==='ccx_apply_membership_event')return {data:{ok:true,status:'applied'},error:null};
   throw Error('Unexpected RPC '+name);
@@ -41,7 +39,7 @@ globalThis.__providerClient=(_url,key)=>key==='fixture-public'?{auth:{getUser:as
 globalThis.__providerFetch=async(url,options)=>{providerCalls.push({url,options});return Response.json(providerResult);};
 globalThis.Deno={env:{get:k=>environment[k]},serve:fn=>{handler=fn;}};
 const handlers={};
-for(const name of ['yoti-verification','membership-billing','membership-ccbill-webhook','submit-age-verification']){
+for(const name of ['membership-billing','membership-ccbill-webhook','submit-age-verification']){
  let js=buildSync({entryPoints:[`supabase/functions/${name}/index.ts`],bundle:true,write:false,platform:'node',format:'esm',external:['npm:*'],logLevel:'silent'}).outputFiles[0].text;
  js=js.replace(/import\s*\{\s*createClient\s*\}\s*from\s*["']npm:@supabase\/supabase-js[^"']*["'];/,'const createClient=globalThis.__providerClient;');
  js='const fetch=(...args)=>globalThis.__providerFetch(...args);\n'+js;
@@ -51,29 +49,9 @@ async function call(name,action,extra={}){
  const response=await handlers[name](new Request('https://fixture.invalid',{method:'POST',headers:{authorization:'Bearer fixture-token','content-type':'application/json'},body:JSON.stringify({action,...extra})}));
  return {status:response.status,body:await response.json()};
 }
-test('unauthenticated enrollment and billing do not start provider sessions',async()=>{
- reset();authOK=false;assert.equal((await call('yoti-verification','yoti_start')).status,401);
- assert.equal((await call('membership-billing','create_checkout')).status,401);assert.equal(providerCalls.length,0);assert.equal(rpcs.length,0);
-});
-test('Yoti handler forces document/selfie and trusted redirect regardless of caller payload',async()=>{
- reset();const r=await call('yoti-verification','yoti_start',{mode:'age_estimation',callback_origin:'https://evil.invalid'});
- assert.equal(r.status,201);const p=JSON.parse(providerCalls[0].options.body);
- assert.equal(p.doc_scan.level,'PASSIVE');assert.equal(p.doc_scan.authenticity,'AUTO');assert.equal(p.age_estimation.allowed,false);
- assert.equal(p.callback.url,'https://contentconnectx.com/?age_verification=complete');
- assert.equal(state.ccx_age_provider_sessions[0].policy_version,'document_selfie_v1');
- assert.equal(state.ccx_age_provider_sessions[0].user_id,uid);assert.equal(rpcs[0].args.p_user,uid);
-});
-test('Yoti rate denial and disabled provider do not call a billable provider endpoint',async()=>{
- reset();allowRate=false;assert.equal((await call('yoti-verification','yoti_start')).status,429);assert.equal(providerCalls.length,0);
- reset();state.ccx_integrations[0].enabled=false;assert.equal((await call('yoti-verification','yoti_start')).status,503);assert.equal(providerCalls.length,0);
-});
-test('untrusted Yoti result cannot reach approval RPC; completed expired sessions can be checked',async()=>{
- reset();state.ccx_age_provider_sessions.push({id:uid,user_id:uid,mode:'age_gate',policy_version:'document_selfie_v1',provider_session_id:sid,reference_id:peer,status:'pending',expires_at:'2020-01-01'});
- providerResult={id:sid,sdk_id:sid,reference_id:'wrong',type:'OVER',status:'COMPLETE',method:'DOC_SCAN',age:18,evidence_id:'fixture'};
- assert.equal((await call('yoti-verification','yoti_status',{refresh:true})).status,503);assert.equal(rpcs.length,0);
- providerResult={...providerResult,reference_id:peer,doc_scan:{allowed:true,level:'PASSIVE',authenticity:'AUTO',threshold:18}};
- const r=await call('yoti-verification','yoti_status',{refresh:true});assert.equal(r.status,200);assert.equal(r.body.age_verified,true);
- assert.equal(rpcs[0].name,'ccx_finish_yoti_session');assert.equal(rpcs[0].args.p_user,uid);
+test('unauthenticated billing cannot initiate a payment',async()=>{
+ reset();authOK=false;assert.equal((await call('membership-billing','create_checkout')).status,401);
+ assert.equal(providerCalls.length,0);assert.equal(rpcs.length,0);
 });
 test('manual uploads endpoint is retired even for a signed-in account',async()=>{
  reset();assert.equal((await call('submit-age-verification','upload',{id_path:'fixture'})).status,410);assert.equal(rpcs.length,0);
@@ -100,7 +78,7 @@ test('real membership webhook handler rejects unsigned, mutated and cross-scope 
  assert.equal(rpcs[0].name,'ccx_apply_membership_event');assert.equal(rpcs[0].args.p_event.amount_cents,1999);
 });
 test('all browser handler preflights allow the actual Supabase client version headers',async()=>{
- for(const name of ['yoti-verification','membership-billing']){
+ for(const name of ['membership-billing']){
   const res=await handlers[name](new Request('https://fixture.invalid',{method:'OPTIONS'}));assert.equal(res.status,204);
   assert.match(res.headers.get('Access-Control-Allow-Headers'),/x-supabase-client-platform-version/);
  }
