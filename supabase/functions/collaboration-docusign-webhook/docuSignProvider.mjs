@@ -75,14 +75,25 @@ async function authToken(cfg){
  }
  throw Error('DocuSign JWT consent or credentials were not accepted. Approve impersonation consent for this integration user.');
 }
-export async function providerFetch(db,path,options={}){
- const cfg=await config(db),credentials=await authToken(cfg);
+// The regional account API address is stable across normal requests. DocuSign
+// recommends caching UserInfo; avoid hitting its per-user/key hourly rate limits.
+const docusignBaseCache=new Map();
+async function regionalBase(credentials,cfg){
+ const cacheKey=[credentials.oauthHost,cfg.integrationKey,cfg.userId,cfg.accountId].join(':');
+ const found=docusignBaseCache.get(cacheKey);
+ if(found&&found.expiresAt>Date.now())return found.base;
  const info=await fetch('https://'+credentials.oauthHost+'/oauth/userinfo',{
   headers:{Authorization:'Bearer '+credentials.token,Accept:'application/json'},
   redirect:'error',signal:AbortSignal.timeout(15000)
  });
  if(!info.ok)throw Error('DocuSign could not resolve the configured signer account');
  const base=resolveDocuSignRestBase(await info.json(),cfg.accountId);
+ docusignBaseCache.set(cacheKey,{base,expiresAt:Date.now()+6*60*60*1000});
+ return base;
+}
+export async function providerFetch(db,path,options={}){
+ const cfg=await config(db),credentials=await authToken(cfg);
+ const base=await regionalBase(credentials,cfg);
  if(typeof path!=='string'||!path.startsWith('/')||path.startsWith('//'))throw Error('Invalid DocuSign API path');
  const target=base+'/accounts/'+encodeURIComponent(cfg.accountId)+path;
  const res=await fetch(target,{...options,headers:{Authorization:'Bearer '+credentials.token,Accept:'application/json',...(options.headers||{})},
