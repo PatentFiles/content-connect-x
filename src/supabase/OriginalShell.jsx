@@ -13,12 +13,12 @@ const routeMap=Object.freeze({
  HostSettings:'host-settings',Profile:'profile',PublicProfile:'public-profile',Settings:'settings',Representations:'roster',Roster:'roster',RosterPortfolio:'roster',Portfolio:'portfolio',
  Invitations:'notifications',Notifications:'notifications',AccountSecurity:'account-security',Consent:'consent',ProductionManager:'production',AvailabilitySchedule:'schedule',TravelSchedule:'schedule',AdminDashboard:'controls',AgentManagement:'controls',
  DeveloperReadMe:'developer',CompliancePortal:'integrations',TestingReviews:'testing-reviews',Pricing:'membership',Membership:'membership',
- CreateCollaboration:'collaborations',CollaborationDetail:'collaborations',ViewProfile:'directory',ViewContract:'contracts',PropertyDetail:'hosting'
+ CreateCollaboration:'collaborations',CollaborationDetail:'collaborations',ViewProfile:'directory',ViewContract:'contracts',Meeting:'meeting',PropertyDetail:'hosting'
 });
 const keyFor=path=>routeMap[path]||'dashboard';
 const reverseRoutes={dashboard:'Dashboard',directory:'Discovery',favorites:'Favorites',connections:'Connections',groups:'Groups',messages:'Messages',collaborations:'Collaborations',
  contracts:'Contracts',testing:'Testing',verification:'Verification',hosting:'Properties',host:'HostDashboard',profile:'Profile','public-profile':'PublicProfile',settings:'Settings',portfolio:'Portfolio',
- invitations:'Notifications',notifications:'Notifications','account-security':'AccountSecurity',consent:'Consent',production:'ProductionManager',schedule:'AvailabilitySchedule',representations:'Roster',roster:'Roster','host-settings':'HostSettings',controls:'AdminDashboard',integrations:'CompliancePortal','testing-reviews':'TestingReviews',membership:'Pricing'};
+ invitations:'Notifications',notifications:'Notifications','account-security':'AccountSecurity',consent:'Consent',production:'ProductionManager',schedule:'AvailabilitySchedule',representations:'Roster',roster:'Roster','host-settings':'HostSettings',controls:'AdminDashboard',integrations:'CompliancePortal','testing-reviews':'TestingReviews',membership:'Pricing',meeting:'Meeting'};
 export const tabFromLegacyPath=pathname=>{const part=decodeURIComponent(String(pathname||'').split('/').filter(Boolean)[0]||'');const matched=Object.keys(routeMap).find(key=>key.toLowerCase()===part.toLowerCase());return matched?routeMap[matched]:'dashboard';};
 export const legacyPathForTab=tab=>'/'+(reverseRoutes[tab]||'Dashboard');
 const tabMatches=(tab,path)=>tab===keyFor(path);
