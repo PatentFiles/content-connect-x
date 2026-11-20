@@ -14,6 +14,7 @@ import './professional-theme.css';
 import './public-brand-theme.css';
 import './workspace-refinement.css';
 import './workspace-nav.css';
+import './workspace-visual-system.css';
 import {applyAuthAppearance} from './authAppearance';
 import {initializeOptionalIntegrations} from './integrations';
 import {initializeFormKeyboardHints} from './formKeyboard.mjs';
