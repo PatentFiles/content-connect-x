@@ -137,4 +137,32 @@ END $function$
 
 COMMENT ON FUNCTION public.ccx_hosting_price_quote(uuid,timestamptz,timestamptz,integer,text,jsonb,uuid,text) IS
  'Day-based venue-local 3 p.m.–3 p.m. booking quote, up to 365 days. Currency, bundles, cleaning and discounts calculated transactionally.';
+-- Defense-in-depth: no second Edge Function or direct service insert may
+-- create a minute/hour-based booking behind the daily quote handler.
+CREATE FUNCTION public.ccx_hosting_daily_booking_guard()
+RETURNS trigger LANGUAGE plpgsql SECURITY INVOKER SET search_path='' AS $guard$
+DECLARE
+  venue_timezone text;
+  daily numeric;
+  days integer;
+BEGIN
+ SELECT timezone,daily_rate INTO venue_timezone,daily
+ FROM public.properties WHERE id=NEW.property_id;
+ IF venue_timezone IS NULL OR daily IS NULL THEN
+  RAISE EXCEPTION 'Venue daily pricing has not been confirmed';
+ END IF;
+ days:=((NEW.ends_at AT TIME ZONE venue_timezone)::date-
+       (NEW.starts_at AT TIME ZONE venue_timezone)::date);
+ IF NEW.ends_at<=NEW.starts_at OR days<1 OR days>365
+  OR (NEW.starts_at AT TIME ZONE venue_timezone)::time<>time '15:00'
+  OR (NEW.ends_at AT TIME ZONE venue_timezone)::time<>time '15:00'
+ THEN RAISE EXCEPTION 'Book whole calendar days only, 3 p.m. to 3 p.m. venue-local time';
+ END IF;
+ NEW.daily_rate_snapshot:=daily;
+ RETURN NEW;
+END $guard$;
+REVOKE ALL ON FUNCTION public.ccx_hosting_daily_booking_guard() FROM PUBLIC,anon,authenticated;
+CREATE TRIGGER ccx_hosting_daily_booking_guard
+ BEFORE INSERT OR UPDATE OF starts_at,ends_at ON public.property_booking_requests
+ FOR EACH ROW EXECUTE FUNCTION public.ccx_hosting_daily_booking_guard();
 COMMIT;
