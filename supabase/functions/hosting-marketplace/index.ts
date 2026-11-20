@@ -655,7 +655,9 @@ Deno.serve(async req=>{
  }
 
  case 'host_private_details':{
-  if(!uuid(payload.id)||!await ownProperty(payload.id))return denial('Not your property',403);
+  if(!uuid(payload.id))return denial('Not your property',403);
+  const owned=await ownProperty(payload.id);
+  if(!owned)return denial('Not your property',403);
   const address=safe(payload.exact_address,400),instructions=safe(payload.entry_instructions,1500),
     notes=safe(payload.internal_notes,1500);
   if(address.length<8)return denial('A usable street address is required');
@@ -668,6 +670,16 @@ Deno.serve(async req=>{
   const lat=coordsGiven?Number(payload.latitude):null,lon=coordsGiven?Number(payload.longitude):null;
   if(coordsGiven&&(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>85||Math.abs(lon)>180))
     return denial('Invalid public map coordinates',400);
+  // Existing approved venues cannot silently relocate or publish a new pin:
+  // the owner must edit/resubmit the listing for independent approval first.
+  if(owned.status==='active'){
+    const {data:prior,error:priorError}=await db.from('property_private')
+      .select('exact_address,latitude,longitude').eq('property_id',payload.id).maybeSingle();
+    if(priorError)throw priorError;
+    if(prior?.exact_address?.trim()!==address||
+      (publicAddress&&coordsGiven&&(Number(prior?.latitude)!==lat||Number(prior?.longitude)!==lon)))
+      return denial('Address or public map pin change requires new listing review. Edit listing details first.',409);
+  }
   const {error}=await db.from('property_private').upsert({
    property_id:payload.id,exact_address:address,entry_instructions:instructions,
    internal_notes:notes,public_address_visible:publicAddress,
