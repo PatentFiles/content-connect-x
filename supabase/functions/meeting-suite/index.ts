@@ -149,6 +149,30 @@ Deno.serve(async req=>{
   },{onConflict:'scope,scope_id,user_id'});
   if(error)throw error;return out({ok:true,approved});
  }
+ if(action==='recording_state'){
+  const {data,error}=await db.from('ccx_meeting_recording_states').select('recorded_by,is_recording,heartbeat_at').eq('scope',scope).eq('scope_id',scopeId).maybeSingle();
+  if(error)throw error;
+  return out({is_recording:Boolean(data?.is_recording&&Date.now()-Date.parse(data.heartbeat_at)<20000),recorded_by:data?.recorded_by||null});
+ }
+ if(action==='recording_heartbeat'){
+  await validConsents(ids);
+  const {data:current,error:currentError}=await db.from('ccx_meeting_recording_states')
+   .select('recorded_by,is_recording,heartbeat_at').eq('scope',scope).eq('scope_id',scopeId).maybeSingle();
+  if(currentError)throw currentError;
+  if(current?.is_recording&&current.recorded_by!==uid&&Date.now()-Date.parse(current.heartbeat_at)<20000)
+   return out({error:'Another participant is recording this meeting'},409);
+  const {error}=await db.from('ccx_meeting_recording_states').upsert({
+   scope,scope_id:scopeId,recorded_by:uid,is_recording:true,heartbeat_at:utc()
+  },{onConflict:'scope,scope_id'});
+  if(error)throw error;
+  return out({is_recording:true,recorded_by:uid});
+ }
+ if(action==='recording_stop'){
+  const {error}=await db.from('ccx_meeting_recording_states').update({is_recording:false,heartbeat_at:utc()})
+   .eq('scope',scope).eq('scope_id',scopeId).eq('recorded_by',uid);
+  if(error)throw error;
+  return out({ok:true});
+ }
  if(action==='recording_check'){
   await validConsents(ids);
   return out({ready:true});
