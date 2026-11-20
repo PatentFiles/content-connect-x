@@ -3,8 +3,9 @@
  * can submit posts and reposts. No public media URLs or third-party ad scripts.
  */
 import React,{useCallback,useEffect,useRef,useState} from 'react';
-import {Heart,MessageCircle,Repeat2,Share2,Bookmark,ImagePlus,Send,Flag,RefreshCw} from 'lucide-react';
+import {Heart,MessageCircle,Repeat2,Share2,Bookmark,ImagePlus,Send,Flag,RefreshCw,X,Settings2} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
+import {loadFeedPreferences} from './feedDisplayPreferences.mjs';
 const secondary='ccx-secondary inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm disabled:opacity-50';
 const primary='ccx-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold disabled:opacity-50';
 const input='w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-2.5 text-sm text-[var(--cc-text-primary)]';
@@ -133,13 +134,32 @@ async function safePhotoBlob(file){
  }finally{bitmap.close();}
 }
 export default function ConnectFeed({userId,paid=false,preview=false,initialMode='discover',profileId=null,groupId=null,onNavigate=(_tab)=>{}}){
- const modeOptions=groupId?[['group','Group posts']]:profileId?[['profile','Posts']]:[['friends','Friends'],['following','Following'],['discover','Discover']];
  const [mode,setMode]=useState(groupId?'group':profileId?'profile':initialMode),[items,setItems]=useState([]),[cursor,setCursor]=useState(null);
+ const [preferencesReady,setPreferencesReady]=useState(Boolean(groupId||profileId));
  const [loading,setLoading]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [sharedPost,setSharedPost]=useState(null),[sharedError,setSharedError]=useState(''),[loadingShared,setLoadingShared]=useState(false);
  const [text,setText]=useState(''),[audience,setAudience]=useState('verified');
  const [uploadFile,setUploadFile]=useState(null),[rights,setRights]=useState(false),[adultNudity,setAdultNudity]=useState(false),[uploading,setUploading]=useState(false);
- const reqNo=useRef(0),posting=useRef(false);
+ const reqNo=useRef(0),posting=useRef(false),photoPicker=useRef(null);
+ useEffect(()=>{
+  if(groupId||profileId){setPreferencesReady(true);return;}
+  let live=true;setPreferencesReady(false);
+  void loadFeedPreferences(supabase,userId)
+   .then(saved=>{if(live){setMode(saved.feed_view);setAudience(saved.default_audience);}})
+   .catch(()=>{if(live){setMode(initialMode);setAudience('verified');}})
+   .finally(()=>{if(live)setPreferencesReady(true);});
+  return()=>{live=false;};
+ },[userId,groupId,profileId,initialMode]);
+ useEffect(()=>{
+  if(groupId||profileId)return;
+  const update=event=>{
+   if(event.detail?.user_id!==userId)return;
+   setMode(event.detail.feed_view);
+   setAudience(event.detail.default_audience);
+  };
+  window.addEventListener('ccx-feed-display-preferences-changed',update);
+  return()=>window.removeEventListener('ccx-feed-display-preferences-changed',update);
+ },[userId,groupId,profileId]);
  const load=useCallback(async(more=false)=>{
   if(more&&!cursor)return;const seq=++reqNo.current;setLoading(true);setError('');
   try{
@@ -151,13 +171,14 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
   }catch(e){if(seq===reqNo.current)setError(e.message);}finally{if(seq===reqNo.current)setLoading(false);}
  },[mode,profileId,groupId,cursor?.before,cursor?.before_id]);
  useEffect(()=>{
+  if(!preferencesReady)return;
   reqNo.current++;setCursor(null);setItems([]);
   let alive=true;setLoading(true);setError('');
   void action('feed',{mode:groupId?'group':profileId?'profile':mode,author_id:groupId||profileId||undefined})
    .then(data=>{if(alive){setItems(data.items||[]);setCursor(data.cursor||null);}},e=>{if(alive)setError(e.message);})
    .finally(()=>{if(alive)setLoading(false);});
   return()=>{alive=false;reqNo.current++;};
- },[mode,profileId,groupId,userId]);
+ },[mode,profileId,groupId,userId,preferencesReady]);
  useEffect(()=>{
   if(profileId||groupId)return;
   const value=new URLSearchParams(window.location.search).get('ccx_post');
@@ -204,44 +225,50 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
    const message=text.trim().length>=5?text:'Shared a photo';
    const result=await action('create',{text:message,audience,media_ids:mediaIds,group_id:groupId||undefined});
    setText('');setUploadFile(null);setRights(false);setAdultNudity(false);
+   if(photoPicker.current)photoPicker.current.value='';
    setNotice(result.item?.status==='published'?'Your update is live on the Feed. Reports may temporarily hide it for review.':result.note||'Update submitted.');
    if(result.item?.status==='published')void load(false);
   }catch(e){setError(e.message);}finally{posting.current=false;setLoading(false);}
  };
  return <section data-connect-feed="true" className="min-w-0 space-y-4" aria-label={groupId?'Private group posts':profileId?'Profile timeline':'Connect Feed'}>
-  {paid&&!preview&&!profileId?<form className="ccx-surface space-y-3 rounded-2xl p-4 sm:p-5" onSubmit={publish}>
-   <label className="block text-sm font-semibold">{groupId?'Share in this group':'Share an update'}
-    <textarea className={input+' mt-2'} value={text} rows={3} required={!uploadFile} minLength={uploadFile?0:5} maxLength={3000}
-     onChange={e=>setText(e.target.value)} placeholder="Share your projects, photos, collaborations or professional updates…"/>
-   </label>
-   <div className="flex flex-wrap items-center gap-2">
-    {!groupId&&<label className="text-xs">Audience
-     <select className="ml-2 min-h-11 rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-2" value={audience} onChange={e=>setAudience(e.target.value)}>
-      {Object.entries(audienceLabels).map(([v,label])=><option key={v} value={v}>{label}</option>)}
-     </select>
-    </label>}
-    <button className={primary} type="submit" disabled={loading||uploading||(!uploadFile&&text.trim().length<5)||Boolean(uploadFile&&!rights)}>{loading?'Publishing…':'Publish update'}</button>
+  {paid&&!preview&&!profileId&&<form className="ccx-surface space-y-2 rounded-2xl p-3 sm:p-4" onSubmit={publish} aria-label={groupId?'Group post composer':'Share an update'}>
+   <div className="relative rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)]" data-feed-composer="true">
+    <label htmlFor="ccx-feed-update" className="sr-only">{groupId?'Share in this group':'Share an update'}</label>
+    <textarea id="ccx-feed-update" className="block min-h-[110px] w-full resize-y rounded-xl bg-transparent px-3 pt-3 pb-14 text-sm text-[var(--cc-text-primary)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--cc-focus)]"
+     value={text} rows={3} required={!uploadFile} minLength={uploadFile?0:5} maxLength={3000}
+     onChange={e=>setText(e.target.value)} placeholder={groupId?'Write to your group…':'Share an update…'}/>
+    {!groupId&&<>
+     <input ref={photoPicker} type="file" className="sr-only" accept="image/jpeg,image/png,image/webp"
+      tabIndex={-1} aria-label="Choose a photo to attach" onChange={e=>{setUploadFile(e.target.files?.[0]||null);setRights(false);setAdultNudity(false);}}/>
+     <button type="button" title="Attach photo" aria-label="Attach a photo"
+      onClick={()=>photoPicker.current?.click()} disabled={uploading||loading}
+      className="absolute bottom-2 left-2 grid h-11 w-11 place-items-center rounded-lg text-[var(--cc-link)] hover:bg-[var(--cc-surface-hover)] disabled:opacity-50"><ImagePlus size={21}/></button>
+    </>}
+    <button type="submit" title={groupId?'Submit group post for moderation':'Publish update'}
+     aria-label={groupId?'Submit group post for moderation':'Publish update'}
+     className="ccx-primary absolute bottom-2 right-2 grid h-11 w-11 place-items-center rounded-xl p-0 disabled:opacity-50"
+     disabled={loading||uploading||(!uploadFile&&text.trim().length<5)||Boolean(uploadFile&&!rights)}>
+     <Send size={19} aria-hidden="true"/>
+    </button>
    </div>
-   {!groupId&&<div className="space-y-3 rounded-xl border border-[var(--cc-border)] p-3" aria-label="Attach a photo">
-    <label className="flex cursor-pointer items-center gap-2 text-sm font-medium"><ImagePlus size={17}/>Add a photo
-     <input type="file" accept="image/jpeg,image/png,image/webp" className="mt-1 block w-full text-xs" onChange={e=>{setUploadFile(e.target.files?.[0]||null);setRights(false);}}/>
-    </label>
-    {uploadFile&&<div className="space-y-2">
-     <p className="text-xs">{uploadFile.name} · The image will be resized and stripped of location metadata before upload.</p>
-     <label className="flex items-start gap-2 text-xs"><input type="checkbox" checked={adultNudity} onChange={e=>setAdultNudity(e.target.checked)}/><span>This photo contains adult nudity. Nudity itself is permitted for verified adults.</span></label>
-     <label className="flex items-start gap-2 text-xs"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/><span>I am 18 or older, I am the only person depicted, I have the right to publish this image, and it contains no sexual act. Other people or sexual activity need separate documented clearance.</span></label>
-    </div>}
-    <p className="text-xs text-[var(--cc-text-secondary)]">Verified Premium members can post their own photos without routine manual image approval. Reports can temporarily remove posts for review. No IDs or private testing records.</p>
+   {!groupId&&uploadFile&&<div className="space-y-2 rounded-xl border border-[var(--cc-border)] p-3 text-xs" data-feed-photo-details="true">
+    <div className="flex items-center justify-between gap-3">
+     <span className="min-w-0 truncate font-medium">{uploadFile.name}</span>
+     <button type="button" title="Remove photo" aria-label="Remove attached photo" className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[var(--cc-border)]"
+      onClick={()=>{setUploadFile(null);setRights(false);setAdultNudity(false);if(photoPicker.current)photoPicker.current.value='';}}><X size={16}/></button>
+    </div>
+    <label className="flex items-start gap-2"><input type="checkbox" checked={adultNudity} onChange={e=>setAdultNudity(e.target.checked)} className="mt-0.5"/><span>Contains adult nudity</span></label>
+    <label className="flex items-start gap-2"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)} className="mt-0.5"/><span>I am 18+, the only person depicted, have publishing rights, and this photo shows no sexual act.</span></label>
    </div>}
-   <p className="text-xs text-[var(--cc-text-secondary)]">Publishing requires Premium. Your Feed post appears after verified self-attestation; comments and group discussions still follow separate moderation. Group posts currently support text only.</p>
-  </form>:!profileId&&<div className="ccx-surface rounded-xl p-4 text-sm text-[var(--cc-text-secondary)]">Verified Free members can browse, like, save, share links and submit moderated comments. Premium is required to publish posts, upload photos or repost.</div>}
+  </form>}
   {!profileId&&!groupId&&<header className="flex flex-wrap items-center justify-between gap-2">
-   <div><h2 className="text-xl font-bold">Feed</h2><p className="mt-1 text-xs text-[var(--cc-text-secondary)]">Latest posts from your verified community, friends and following.</p></div>
-   <div className="flex flex-wrap gap-2"><button className={secondary} type="button" onClick={()=>onNavigate('groups')}><MessageCircle size={16}/>Groups</button><button className={secondary} disabled={loading} onClick={()=>void load(false)} aria-label="Refresh Connect Feed"><RefreshCw size={16}/>Refresh</button></div>
+   <h2 className="text-xl font-bold">Feed</h2>
+   <div className="flex gap-2">
+    <button className={secondary} type="button" title="Groups" aria-label="Groups" onClick={()=>onNavigate('groups')}><MessageCircle size={17}/></button>
+    <button className={secondary} type="button" title="Feed settings" aria-label="Feed settings" onClick={()=>onNavigate('settings')}><Settings2 size={17}/></button>
+    <button className={secondary} type="button" title="Refresh Feed" disabled={loading} onClick={()=>void load(false)} aria-label="Refresh Feed"><RefreshCw size={17}/></button>
+   </div>
   </header>}
-  {!profileId&&!groupId&&<div className="flex flex-wrap gap-2" role="tablist" aria-label="Connect Feed filter">
-   {modeOptions.map(([v,label])=><button key={v} type="button" role="tab" aria-selected={mode===v} className={mode===v?primary:secondary} onClick={()=>setMode(v)}>{label}</button>)}
-  </div>}
   {error&&<p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-900">{error}</p>}
   {notice&&<p role="status" className="rounded-xl bg-[var(--cc-surface-subtle)] p-3 text-sm">{notice}</p>}
   {!profileId&&!groupId&&(loadingShared||sharedPost||sharedError)&&<section className="space-y-3 rounded-xl border-2 border-[var(--cc-border)] p-3" aria-label="Shared post">

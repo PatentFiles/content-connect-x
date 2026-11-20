@@ -58,3 +58,11 @@ The previously mentioned uploaded ad-network list could not be verified from the
 - No real user posts, impersonated group activity, ad campaign or provider account is created by test fixtures. Preserve the production public-safety and identity approval flags.
 
 **Tracking:** Feed dashboard, photo/media, community groups and advertising provider activation are separate reviewable releases. Operational safety and production identity acceptance are not waived by a social UI feature.
+
+## Feed UX refinement (November 19, 2026)
+
+The Feed is a streamlined, social-style timeline. On the signed-in dashboard, the verified Premium member's **Share an update** composer has just a photo-attachment icon (lower-left) and send/paper-airplane icon (lower-right) inside the text field. Photo-specific sole-performer rights/nudity attestations appear **only when a photo is attached**. Free members can still read/reaction/comment where permitted; Premium-only publishing continues.
+
+Feed preferences, including the **default new-post audience** (Entire verified community / Friends only / Only me) and the **default timeline view** (Discover / Friends / Following), are not displayed as buttons/tabs on the dashboard. A member changes them in Settings. They are durable across sessions and devices in a protected `ccx_feed_display_preferences` table, with RLS restricting each row to its user. Changes take effect for subsequent posts and feed views only; existing post visibility is never rewritten.
+
+Mobile Discovery filters are collapsed by default, open with a single tap, and remain expanded initially on desktop. Both branded site footers are centered on mobile and desktop. The signed-out Host Connect landing hero uses its existing mobile artwork for screens at or below 640px, and its unchanged desktop artwork otherwise. Authenticated Host Connect shows a visible Log out action in all screen sizes.

@@ -48,7 +48,7 @@
 :where(html:not([data-ccx-appearance="public"])) .ccx-slim-button-secondary:hover{border-color:var(--cc-border)}
 :where(html:not([data-ccx-appearance="public"])) .ccx-slim-cta>.ccx-slim-fineprint{font-size:11px!important;color:var(--cc-text-secondary)!important;margin-top:22px!important}
 :where(html:not([data-ccx-appearance="public"])) .ccx-slim-footer{border-top:1px solid var(--cc-border);padding:25px 0}
-:where(html:not([data-ccx-appearance="public"])) .ccx-slim-footer-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+:where(html:not([data-ccx-appearance="public"])) .ccx-slim-footer-inner{display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;flex-wrap:wrap;gap:9px}
 :where(html:not([data-ccx-appearance="public"])) .ccx-slim-footer-inner>span{font-size:16px;font-weight:760}
 :where(html:not([data-ccx-appearance="public"])) .ccx-slim-footer-inner strong{color:var(--cc-text-primary)}
 :where(html:not([data-ccx-appearance="public"])) .ccx-slim-footer-inner p{font-size:12px;color:var(--cc-text-secondary)}

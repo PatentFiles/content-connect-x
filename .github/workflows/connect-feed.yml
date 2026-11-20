@@ -4,6 +4,7 @@ on:
     paths:
       - 'supabase/migrations/*connect_feed*'
       - 'supabase/migrations/*connect_groups*'
+      - 'supabase/migrations/*feed_member_display_preferences*'
       - 'supabase/migrations/*feed_verified_self_photo*'
       - 'supabase/functions/media-gateway/**'
       - 'scripts/test-feed-verified-self-photo.sql'
@@ -19,6 +20,12 @@ on:
       - 'scripts/test-connect-feed-database.sql'
       - 'scripts/test-connect-groups-database.sql'
       - 'tests/connect-feed.test.mjs'
+      - 'tests/feed-display-preferences.test.mjs'
+      - 'scripts/test-feed-display-preferences.sql'
+      - 'scripts/prepare-feed-preferences-fixture.sql'
+      - 'src/supabase/FeedPreferencesSettings.jsx'
+      - 'src/supabase/feedDisplayPreferences.mjs'
+      - 'src/supabase/MemberSettings.jsx'
       - 'tests/connect-groups.test.mjs'
       - 'tests/connect-feed-permalink.test.mjs'
       - 'src/supabase/CreatorDiscovery.jsx'
@@ -26,7 +33,7 @@ on:
       - 'ops/AD_NETWORK_ONBOARDING.md'
       - '.github/workflows/connect-feed.yml'
   push:
-    branches: [feat/connect-community-groups-20261119]
+    branches: [feat/compact-feed-preferences-mobile-hero-20261119]
 permissions:
   contents: read
 concurrency:
@@ -64,6 +71,9 @@ jobs:
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f supabase/migrations/20261120014500_feed_verified_self_photo.sql
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/test-connect-groups-database.sql
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/test-feed-verified-self-photo.sql
+          psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/prepare-feed-preferences-fixture.sql
+          psql --no-psqlrc -v ON_ERROR_STOP=1 -f supabase/migrations/20261120035500_feed_member_display_preferences.sql
+          psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/test-feed-display-preferences.sql
   frontend:
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -75,7 +85,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Feed and Groups auth, privacy, moderation and dashboard tests
-        run: node --test tests/connect-feed.test.mjs tests/connect-groups.test.mjs tests/connect-feed-permalink.test.mjs
+        run: node --test tests/connect-feed.test.mjs tests/connect-groups.test.mjs tests/connect-feed-permalink.test.mjs tests/feed-display-preferences.test.mjs
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run build

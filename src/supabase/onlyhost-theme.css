@@ -110,7 +110,7 @@
 :where(html:not([data-ccx-appearance="public"])) .oh-landing-account-box>.oh-panel{margin-top:0}
 :where(html:not([data-ccx-appearance="public"])) .oh-landing-account-box .oh-panel{background:var(--cc-surface);border-color:var(--cc-border);box-shadow:var(--cc-shadow)}
 :where(html:not([data-ccx-appearance="public"])) .oh-footer{border-top:1px solid var(--cc-border);background:var(--cc-surface);padding:28px 0}
-:where(html:not([data-ccx-appearance="public"])) .oh-footer-inner{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:15px;color:var(--cc-text-secondary);font-size:12px}
+:where(html:not([data-ccx-appearance="public"])) .oh-footer-inner{display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;flex-wrap:wrap;gap:9px;color:var(--cc-text-secondary);font-size:12px}
 :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-list-space:focus-visible,:where(html:not([data-ccx-appearance="public"])) .oh-app .oh-ccx-link:focus-visible,:where(html:not([data-ccx-appearance="public"])) .oh-app .oh-brand:focus-visible{outline:3px solid var(--cc-focus);outline-offset:4px}
 /* Properties and standalone Host Connect already share Host_Connect_Banner.png. */
 :where(html:not([data-ccx-appearance="public"])) .host-connect-theme .ccx-surface{border-radius:12px;transition:border-color .25s,box-shadow .25s}
@@ -156,3 +156,10 @@
 :where(html:not([data-ccx-appearance="public"])) .oh-host-listing-tile:hover{transform:none;border-color:var(--cc-border);box-shadow:var(--cc-shadow-raised)}
 :where(html:not([data-ccx-appearance="public"])) .oh-media-queue{padding:17px;border:1px solid var(--cc-border);border-radius:12px;background:var(--cc-surface)}
 @media(prefers-reduced-motion:reduce){:where(html:not([data-ccx-appearance="public"])) .oh-option-tile,:where(html:not([data-ccx-appearance="public"])) .oh-host-listing-tile{transition:none!important}:where(html:not([data-ccx-appearance="public"])) .oh-host-listing-tile:hover{transform:none}}
+
+/* The host header keeps Log out visible and tappable on small screens. */
+@media (max-width:640px){
+ :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-header-inner{flex-wrap:wrap;justify-content:center;gap:8px;padding-top:10px;padding-bottom:10px}
+ :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-header-actions{margin-left:0;width:100%;flex-wrap:wrap;justify-content:center;gap:7px}
+ :where(html:not([data-ccx-appearance="public"])) .oh-app .oh-logout-button{min-height:44px;padding:9px 12px;white-space:nowrap}
+}
