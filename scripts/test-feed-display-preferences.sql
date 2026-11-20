@@ -2,10 +2,6 @@
 -- synthetic auth.users, anon/authenticated roles, and the preferences migration.
 \set ON_ERROR_STOP on
 DO $$ BEGIN IF current_database()<>'ccx_feed_test' THEN RAISE EXCEPTION 'Disposable test database only'; END IF; END $$;
-create or replace function auth.uid() returns uuid language sql stable
- as $$ select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;
-grant usage on schema auth to authenticated;
-grant execute on function auth.uid() to authenticated;
 -- Service role can seed synthetic account B so RLS reads have real rows to deny.
 set role service_role;
 insert into public.ccx_feed_display_preferences(user_id,default_audience,feed_view)
