@@ -216,6 +216,19 @@
   padding-bottom:env(safe-area-inset-bottom,0px);
   box-shadow:12px 0 44px rgba(3,9,18,.4);
 }
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-mobile-content {
+  min-width:0;
+  min-height:0;
+  overflow:hidden;
+  background:var(--ccx-nav-panel-bg);
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-rail-mobile {
+  padding-top:16px;
+}
+@media (max-width:380px) {
+  .ccx-original-shell .ccx-nav-mobile-content .ccx-nav-profile {padding-inline:8px;}
+  .ccx-original-shell .ccx-nav-mobile-content .ccx-nav-menu {padding-inline:8px;}
+}
 @media (max-width:767px) {
   .ccx-original-shell .ccx-nav-menu {scroll-behavior:auto;}
 }
