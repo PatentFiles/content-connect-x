@@ -160,11 +160,11 @@ export default function OnlyHostApp(){
       aria-label="Close Host Connect menu" onClick={()=>setHostMenuOpen(false)}><X size={21}/></button>
     </div>
     <nav aria-label="Host Connect pages" className="oh-host-mobile-links flex-1 overflow-y-auto p-3">
-     {ready&&[
+     {ready&&/** @type {Array<[string,string,import('react').ElementType]>} */ ([
       ['host','Dashboard',Home],['review','Guest reviews',ClipboardList],
       ['alerts','Notifications',Bell],['crew','Crew inbox',UsersRound],
       ['cleaning','Cleaning assignments',Brush]
-     ].map(([key,label,Icon])=><button type="button" key={key}
+     ]).map(([key,label,Icon])=><button type="button" key={key}
       className={'oh-host-mobile-link flex min-h-12 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm'+(hostSection===key?' is-active':'')}
       aria-current={hostSection===key?'page':undefined} onClick={()=>openHostSection(key)}>
       <Icon size={19} aria-hidden="true"/>{label}</button>)}
