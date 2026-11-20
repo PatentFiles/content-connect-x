@@ -24,7 +24,7 @@ const statuses={
  pending_platform:'Awaiting platform review',rejected:'Not approved for public discovery',
  removed:'Membership removed',left:'Left group'
 };
-export default function ConnectGroups({userId,paid=false,isAdmin=false}){
+export default function ConnectGroups({userId,paid=false,isAdmin=false,onNavigate}){
  const [discover,setDiscover]=useState([]),[mine,setMine]=useState([]),[query,setQuery]=useState('');
  const [selectedId,setSelectedId]=useState(null),[detail,setDetail]=useState(null),[requests,setRequests]=useState([]),[members,setMembers]=useState([]);
  const [moderation,setModeration]=useState([]),[form,setForm]=useState(false),[name,setName]=useState(''),[description,setDescription]=useState(''),[rules,setRules]=useState(''),[visibility,setVisibility]=useState('public'),[agree,setAgree]=useState(false);
@@ -142,6 +142,7 @@ export default function ConnectGroups({userId,paid=false,isAdmin=false}){
     {selected.member_status==='invited'&&<div className="flex gap-2"><button className={primary} disabled={busy} onClick={()=>void run('accept',{group_id:selected.id},'Invitation accepted.')}>Accept invitation</button><button className={secondary} disabled={busy} onClick={()=>void run('decline',{group_id:selected.id},'Invitation declined.')}>Decline</button></div>}
     {selected.member_status==='active'&&selected.member_role!=='owner'&&<button className={secondary} disabled={busy} onClick={()=>{if(window.confirm('Leave this group? Your previous posts may remain in its moderated history.'))void run('leave',{group_id:selected.id},'You left the group.');}}>Leave group</button>}
    </div>
+   {selected.member_status==='active'&&<button type="button" className={primary} onClick={()=>onNavigate?.('meeting',{scope:'group',scopeId:selected.id})}>Start group video conference</button>}
    {selected.member_status==='active'&&['owner','admin'].includes(selected.member_role)&&<div className={surface+' space-y-4'} aria-label="Group administration">
     <header className="flex items-center gap-2"><ShieldCheck size={18}/><h3 className="font-semibold">Group administration</h3></header>
     <p className="text-xs">Invite a verified member; membership is voluntary. Group administrators cannot force someone into a group or access private identity details.</p>
