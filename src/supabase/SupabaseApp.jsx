@@ -529,6 +529,7 @@ export default function SupabaseApp() {
       The original developer documentation is preserved in the repository’s
       pre-migration reference branch.</div>}
     {tab==='reputation' && approved && paid && <ReputationHub isAdmin={isAdmin}/>}
+    {tab==='contracts' && approved && paid && <div className="mt-6"><AgreementPackets/></div>}
     {tab==='agreements' && approved && paid && <AgreementPackets/>}
     {['controls','integrations','testing-reviews'].includes(tab) && approved && isAdmin &&
       <AdminConsole key={tab} initialSection={tab==='integrations'?'integrations':tab==='testing-reviews'?'testing':'features'}
