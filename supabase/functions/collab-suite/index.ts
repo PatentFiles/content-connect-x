@@ -449,16 +449,18 @@ Deno.serve(async req=>{
   await limitAI('contract',600);
   const status=await verifyTesting(cid);
   if(!status.ready)throw Error('Complete the collaboration testing requirements before contract generation');
-  const [collab,plan,notes,members,transcripts]=await Promise.all([
+  const [collab,plan,notes,members,transcripts,meetingNotes,meetingTranscripts]=await Promise.all([
    db.from('collaborations').select('id,title,status').eq('id',cid).maybeSingle(),
    db.from('ccx_collaboration_plans').select('*').eq('collaboration_id',cid).maybeSingle(),
    db.from('ccx_collab_notes').select('body').eq('collaboration_id',cid).maybeSingle(),
    getMembers(cid),
-   db.from('ccx_collab_transcripts').select('transcript,created_at').eq('collaboration_id',cid).order('created_at',{ascending:false}).limit(8)
+   db.from('ccx_collab_transcripts').select('transcript,created_at').eq('collaboration_id',cid).order('created_at',{ascending:false}).limit(8),
+   db.from('ccx_meeting_notes').select('body,version').eq('scope','collaboration').eq('scope_id',cid).maybeSingle(),
+   db.from('ccx_meeting_recordings').select('transcript,created_at').eq('scope','collaboration').eq('scope_id',cid).eq('transcript_status','completed').order('created_at',{ascending:false}).limit(30)
   ]);
-  if(collab.error||plan.error||notes.error||transcripts.error||!collab.data)throw Error('Collaboration draft data unavailable');
+  if(collab.error||plan.error||notes.error||transcripts.error||meetingNotes.error||meetingTranscripts.error||!collab.data)throw Error('Collaboration draft data unavailable');
   const {data:profiles}=await db.from('member_profiles').select('id,display_name,role_type').in('id',members.map(x=>x.user_id));
-  const input={project_title:collab.data.title,plan:plan.data||{},shared_notes:notes.data?.body||'',meeting_transcript:(transcripts.data||[]).map(x=>x.transcript).join('\n').slice(0,18000),parties:members.map(x=>({user_id:x.user_id,role:x.membership_role,display_name:(profiles||[]).find(p=>p.id===x.user_id)?.display_name||'Participant'}))};
+  const input={project_title:collab.data.title,plan:plan.data||{},shared_notes:[notes.data?.body||'',meetingNotes.data?.body||''].filter(Boolean).join('\n--- Meeting Notes ---\n').slice(0,18000),meeting_transcript:[...(transcripts.data||[]),...(meetingTranscripts.data||[])].map(x=>x.transcript).filter(Boolean).join('\n--- Transcript segment ---\n').slice(0,18000),parties:members.map(x=>({user_id:x.user_id,role:x.membership_role,display_name:(profiles||[]).find(p=>p.id===x.user_id)?.display_name||'Participant'}))};
   const {data:run,error:runError}=await db.from('ccx_ai_agent_runs').insert({agent_type:'contract',triggered_by:uid,status:'running',scanned_count:1}).select('id').single();
   if(runError)throw runError;
   try{
