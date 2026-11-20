@@ -130,8 +130,17 @@ export function createHandler({admin,authenticate,assurance=async()=>null,fetchI
    if(!user.email_confirmed_at)return reply({error:'Confirm your email before uploading your ID.'},403);
    if(body.action==='start'){
     if(body.consent!==true)throw new RequestError('Review and accept the verification notice first.');
+    // The legal identity provided at signup is the account-bound comparison.
+    // The member may use a different stage/display name publicly, but cannot
+    // bypass name matching by typing a replacement identity in this form.
+    const registered=await run(admin.from('member_profiles').select('real_name').eq('id',user.id).maybeSingle());
+    if(!registered?.real_name)return reply({error:'Your registered legal account name is missing. Contact support for a verified correction.'},409);
+    let suppliedName;
+    try{suppliedName=legalName(body.legal_name);}catch{return reply({error:'Enter the legal name printed on your account and government ID.'},400);}
+    if(nameKey(registered.real_name)!==nameKey(suppliedName))
+      return reply({error:'Your verification name must match the legal name registered on your account. A stage name is separate. Contact support to correct your account identity.'},409);
     if(!TYPES.includes(body.document_type))throw new RequestError('Choose a supported document type.');
-    const s=await transition(user.id,crypto.randomUUID(),'start',{legal_name:legalName(body.legal_name),document_type:body.document_type,
+    const s=await transition(user.id,crypto.randomUUID(),'start',{legal_name:suppliedName,document_type:body.document_type,
      issuing_country:body.issuing_country,consent_version:body.notice_version,consent_hash:await digest(new TextEncoder().encode(cfg.notice_text||''))});
     return reply({session:publicSession(s)});
    }
