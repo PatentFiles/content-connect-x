@@ -57,6 +57,7 @@ export default function AffiliateShop({isAdmin=false}){
      :<p className="text-xs text-[var(--cc-text-secondary)]">Supplier details being verified; no purchase link published.</p>}
     {partner.tracked&&<p className="text-xs">Affiliate referral link active</p>}
     {isAdmin&&<div className="space-y-2 border-t border-[var(--cc-border)] pt-3"><h3 className="text-sm font-semibold">Administrator partner configuration</h3>
+    {partner.application_url&&<a href={partner.application_url} target="_blank" rel="noopener noreferrer" className="block text-sm text-[var(--cc-link)] underline">Apply to {partner.name} affiliate program</a>}
      <label className="block text-xs">Approved referral URL<input className={field+' mt-1'} type="url" value={drafts[partner.slug]?.affiliate_url||''} placeholder="https://..." onChange={e=>setDrafts(d=>({...d,[partner.slug]:{...d[partner.slug],affiliate_url:e.target.value}}))}/></label>
      <label className="block text-xs">Partner status<select className={field+' mt-1'} value={drafts[partner.slug]?.partner_status||'prospect'} onChange={e=>setDrafts(d=>({...d,[partner.slug]:{...d[partner.slug],partner_status:e.target.value}}))}><option value="prospect">Prospect (official link only)</option><option value="approved">Affiliate relationship approved</option><option value="paused">Paused (official link only)</option></select></label>
      <button type="button" className={btn} disabled={Boolean(busy)} onClick={()=>void save(partner)}>{busy===partner.slug?'Saving…':'Save partner'}</button>
