@@ -6,6 +6,7 @@ const panel='ccx-surface p-5';
 const input='w-full rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-2 text-sm';
 const button='rounded-lg ccx-action-primary text-[var(--cc-text-primary)] px-4 py-2 text-sm font-semibold disabled:opacity-50';
 const ghostBtn='rounded-lg border px-3 py-2 text-sm font-medium disabled:opacity-50';
+const reportMediaUrl=id=>'/trust?kind=privacy&locator='+encodeURIComponent('gallery-media:'+id);
 async function mediaRequest(action,data={}){
   const {data:result,error}=await supabase.functions.invoke('media-gateway',{body:{action,...data}});
   if(error||result?.error)throw new Error(result?.error||error?.message||'Media service unavailable');
@@ -144,12 +145,12 @@ export default function MediaGallery({userId,paid=false,admin=false}){
       <button className={button}><Search size={16} className="inline mr-1"/>Find</button>
     </form>
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-      {assets.map(asset=><article className={panel} key={asset.id}><div className="flex items-center gap-2"><Image size={17} className="text-[var(--cc-text-secondary)]"/><p className="font-semibold">Approved media</p></div><p className="text-xs mt-1 text-[var(--cc-text-secondary)]">{new Date(asset.created_at).toLocaleDateString()}</p>{asset.album_id&&<p className="text-xs text-[var(--cc-text-secondary)]">Album: {albumName(asset.album_id)}</p>}<p className="my-3 text-sm break-words">{asset.caption||'Creator gallery'}</p><button className={button} disabled={busy} onClick={()=>open(asset.id)}>View private media</button></article>)}
+      {assets.map(asset=><article className={panel} key={asset.id}><div className="flex items-center gap-2"><Image size={17} className="text-[var(--cc-text-secondary)]"/><p className="font-semibold">Approved media</p></div><p className="text-xs mt-1 text-[var(--cc-text-secondary)]">{new Date(asset.created_at).toLocaleDateString()}</p>{asset.album_id&&<p className="text-xs text-[var(--cc-text-secondary)]">Album: {albumName(asset.album_id)}</p>}<p className="my-3 text-sm break-words">{asset.caption||'Creator gallery'}</p><div className="flex flex-wrap gap-2"><button className={button} disabled={busy} onClick={()=>open(asset.id)}>View private media</button><a className={ghostBtn} href={reportMediaUrl(asset.id)}>Report media</a></div></article>)}
     </div>
     {!assets.length&&<div className={panel}><p className="text-[var(--cc-text-secondary)] text-sm">No approved media entries are available for this member.</p></div>}
     {image&&<div className={panel+' space-y-3'}><div className="flex gap-2 items-center text-sm text-[var(--cc-text-secondary)]">{image.mime_type.startsWith('video')?<Video size={17}/>:<Image size={17}/>}Temporary media preview (link expires in 60 seconds)</div>
       {image.mime_type.startsWith('video')?<video controls className="rounded-lg max-h-96 w-full" src={image.url}/>:<img className="rounded-lg max-h-96 w-full object-contain" src={image.url} alt="Approved creator media"/>}
-      <button className="text-[var(--cc-text-secondary)] text-sm" onClick={()=>setImage(null)}>Close preview</button>
+      <div className="flex flex-wrap gap-3"><button className="text-[var(--cc-text-secondary)] text-sm" onClick={()=>setImage(null)}>Close preview</button><a className="text-sm underline" href={reportMediaUrl(image.id)}>Report this image or video</a></div>
     </div>}
     {paid&&<form onSubmit={upload} className={panel+' space-y-3'}>
       <h3 className="font-semibold flex gap-2 items-center"><ShieldCheck size={17}/> Upload private media for review</h3>
