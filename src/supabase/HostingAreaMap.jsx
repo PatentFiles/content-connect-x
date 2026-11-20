@@ -26,7 +26,7 @@ function offsetFromArea(item,area){
  const longitude=Number(area.longitude)+Math.cos(angle)*km/(111.3*Math.max(.2,Math.cos(latitude*Math.PI/180)));
  return {latitude,longitude,approximate:true};
 }
-export default function HostingAreaMap({areas=[],listings=[],onSelect,onSearchBounds,focusAreaId='',highlightedIds=[]}){
+export default function HostingAreaMap({areas=[],listings=[],onSelect,onSearchBounds,focusAreaId='',highlightedIds=[],showTravel=true}){
  const element=useRef(null),drag=useRef(null),lastTap=useRef(null),interacted=useRef(false),viewRef=useRef(null),searchRef=useRef(onSearchBounds);
  const [size,setSize]=useState({width:700,height:450});
  const [view,setView]=useState({center:{longitude:-118.24368,latitude:34.05223},zoom:10});
@@ -133,7 +133,7 @@ export default function HostingAreaMap({areas=[],listings=[],onSelect,onSearchBo
   return out;
  },[center.longitude,center.latitude,zoom,size.width,size.height,template,validTiles]);
  const visiblePins=pins.filter(pin=>inside(bounds,{longitude:pin.longitude,latitude:pin.latitude}));
- return <section className="space-y-2" aria-label="Interactive map of approved filming spaces">
+ return <section className="space-y-2" aria-label={showTravel?"Interactive guest rental map":"Interactive host market map"}>
   <div ref={element} role="application" tabIndex={0} aria-label="Map: scroll over the map or double-click to zoom, drag to pan. Use plus, minus or north buttons."
    className="oh-area-map-canvas relative h-[430px] overflow-hidden rounded-2xl border border-[var(--cc-border)] bg-[var(--cc-surface)] touch-none select-none cursor-grab active:cursor-grabbing"
    style={{overscrollBehavior:'contain'}}
