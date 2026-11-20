@@ -136,7 +136,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
      {navGroups.map(group=>{
       const Icon=railIcons[group.id]||MoreHorizontal,active=selectedGroup===group.id;
       return <button type="button" key={group.id} className={'ccx-nav-rail-button'+(active?' is-active':'')}
-       title={group.label} aria-label={'Jump to '+group.label+' section'} aria-pressed={active}
+       title={group.label} aria-label={'Jump to '+group.label+' section'} aria-current={active?'location':undefined}
        onClick={()=>jumpToSection(group.id)}><Icon size={20} aria-hidden="true"/></button>;
      })}
     </div>
