@@ -6,7 +6,7 @@ const btn='ccx-secondary rounded-xl px-3 py-2 text-sm disabled:opacity-50';
 const input='w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm';
 const friendly={collaboration:'Collaboration',conversation:'Private conversation',group:'Community group'};
 
-export default function MeetingStudio({scope,scopeId,userId,onNavigate,inline=false}){
+export default function MeetingStudio({scope,scopeId,userId,onNavigate=(destination)=>{void destination;},inline=false}){
  const [members,setMembers]=useState([]),[notes,setNotes]=useState(''),[version,setVersion]=useState(0),[recordings,setRecordings]=useState([]);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [myConsent,setMyConsent]=useState(false),[ready,setReady]=useState(false);
