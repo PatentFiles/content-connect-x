@@ -38,7 +38,7 @@ test('desktop rail and mobile drawer share categorized page components and curre
  const shell=read('src/supabase/OriginalShell.jsx');
  assert.match(shell,/ccx-nav-rail/);
  assert.match(shell,/NavigationSections groups=\{navGroups\}/);
- assert.match(shell,/Mobile grouped navigation/);
+ assert.match(shell,/aria-label="Mobile navigation" data-nav-groups="true"/);
  assert.match(shell,/aria-current=\{isActive\?'page':undefined\}/);
  assert.match(shell,/aria-current=\{active\?'location':undefined\}/);
  assert.match(shell,/onNavigate\('public-profile'\)/);
