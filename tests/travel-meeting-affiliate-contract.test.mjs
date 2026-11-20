@@ -84,5 +84,9 @@ test('adult shop uses supplier checkout, no tracking until approved, private adm
  assert.match(ui,/Affiliate referral link active/);
  assert.match(sql,/shark-spot/);
  assert.match(sql,/null,array\['machines'\]/i);
+ const correction=read('supabase/migrations/20261120193000_verified_shockspot_manufacturer.sql');
+ assert.match(correction,/name='Shockspot'/);
+ assert.match(correction,/official_url='https:\/\/shockspot\.net\/'/);
+ assert.match(correction,/partner_status='prospect'/);
  assert.doesNotMatch(ui,/addToCart|paymentMethod|creditCardNumber/);
 });
