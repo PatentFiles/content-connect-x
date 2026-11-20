@@ -100,10 +100,14 @@ Deno.serve(async req=>{
  case 'travel_list':{
   const target=uuid(body.user_id)?body.user_id:uid;
   if(target!==uid)await safePeer(target);
-  const q=db.from('ccx_travel_dates').select('id,user_id,city,region,country,starts_at,ends_at,visible_to_members,note').eq('user_id',target).gte('ends_at',new Date(Date.now()-86400000).toISOString()).order('starts_at',{ascending:true}).limit(100);
+  const offset=Number.isInteger(body.offset)&&body.offset>=0?Math.min(100000,body.offset):0;
+  const q=db.from('ccx_travel_dates').select('id,user_id,city,region,country,starts_at,ends_at,visible_to_members,note')
+   .eq('user_id',target).gte('ends_at',new Date(Date.now()-86400000).toISOString())
+   .order('starts_at',{ascending:true}).order('id',{ascending:true}).range(offset,offset+99);
   if(target!==uid)q.eq('visible_to_members',true);
   const {data,error}=await q;if(error)throw error;
-  return out({items:(data||[]).map(e=>target===uid?e:{...e,note:''})});
+  const items=(data||[]).map(e=>target===uid?e:{...e,note:''});
+  return out({items,has_more:items.length===100,next_offset:offset+items.length});
  }
  case 'travel_save':{
   const city=txt(body.city,100),region=txt(body.region,100),country=txt(body.country,100),starts=Date.parse(body.starts_at),ends=Date.parse(body.ends_at);
