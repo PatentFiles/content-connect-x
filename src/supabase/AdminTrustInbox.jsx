@@ -130,6 +130,8 @@ export default function AdminTrustInbox({initialCaseId='',onNavigate=(destinatio
      {item.due_at&&<span className="mt-1 block text-xs text-[var(--cc-text-secondary)]">Triage target {fmt(item.due_at)}</span>}
      <span className="mt-1 block text-xs">{item.assigned_reviewer_id?'Assigned to staff':'Unassigned'}</span>
     </button>)}
+    {queueBusy&&<p role="status" className="p-3 text-sm text-[var(--cc-text-secondary)]">Loading requests…</p>}
+    {hasMore&&nextCursor&&<button type="button" className={btn+' w-full'} disabled={busy||queueBusy} onClick={()=>void load(nextCursor)}>Load older requests</button>}
    </section>
    <section className="ccx-surface min-w-0 space-y-4 rounded-xl p-4" aria-label="Selected support request">
     {!selected&&<p className="text-sm text-[var(--cc-text-secondary)]">Select a request to view details, claim ownership, send a private reply, and record an outcome.</p>}
