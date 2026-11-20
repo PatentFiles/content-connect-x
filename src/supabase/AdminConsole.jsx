@@ -7,6 +7,7 @@ import SecurityCenter from './SecurityCenter';
 import MembershipPlanAdmin from './MembershipPlanAdmin';
 import IdentityEvidenceAdmin from './IdentityEvidenceAdmin';
 import IdentityPilot from './IdentityPilot';
+import AIAgentAdmin from './AIAgentAdmin';
 const sections=[
  {key:'features',title:'Modules & rollouts'},
  {key:'pricing',title:'Membership pricing'},
@@ -14,6 +15,7 @@ const sections=[
  {key:'identity-test',title:'Test my ID'},
  {key:'identity',title:'Identity evidence'},
  {key:'testing',title:'Testing & PASS reviews'},
+ {key:'ai-safety',title:'AI agents & risk'},
  {key:'security',title:'Account security'}
 ];
 export default function AdminConsole({initialSection='features',onFeatureChange}){
@@ -35,6 +37,7 @@ export default function AdminConsole({initialSection='features',onFeatureChange}
    {section==='identity-test'&&<IdentityPilot/>}
    {section==='identity'&&<IdentityEvidenceAdmin/>}
    {section==='testing'&&<PassClearanceHub isAdmin/>}
+   {section==='ai-safety'&&<AIAgentAdmin/>}
    {section==='security'&&<SecurityCenter/>}
   </div>
  </div>;
