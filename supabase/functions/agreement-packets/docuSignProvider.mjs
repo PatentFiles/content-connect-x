@@ -5,7 +5,12 @@
 import {PDFDocument,StandardFonts,rgb} from 'npm:pdf-lib@1.17.1';
 import {createPrivateKey,sign as rsaSign} from 'node:crypto';
 const raw=(v)=>typeof v==='string'?v.trim():'';
-const b64=(data)=>btoa(String.fromCharCode(...data));
+const b64=(data)=>{
+ let binary='';
+ // Avoid exceeding JavaScript's function argument limit on multipage PDFs.
+ for(let i=0;i<data.length;i+=8192)binary+=String.fromCharCode(...data.subarray(i,i+8192));
+ return btoa(binary);
+};
 const url64=(s)=>b64(new TextEncoder().encode(s)).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
 async function config(db){
  const mapping={accountId:['DOCUSIGN_ACCOUNT_ID','docusign_account_id'],
