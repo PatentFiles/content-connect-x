@@ -101,7 +101,8 @@ test('Dashboard keeps widget strip and social timeline separate from sponsored s
  assert.match(src,/hidden min-w-0 space-y-4 xl:block/);
  assert.match(src,/initialMode="discover"/);
  assert.match(src,/ConnectFeed userId/);
- assert.match(feed,/Add a photo/);
+ assert.match(feed,/aria-label="Attach a photo"/);
+ assert.match(feed,/aria-label=\{groupId\?'Submit group post for moderation':'Publish update'\}/);
  assert.match(feed,/Friends.*Following.*Discover/s);
 });
 test('Existing community API is restricted to verified posts and validates interactions',()=>{
