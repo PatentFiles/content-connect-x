@@ -83,6 +83,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
  const [unread,setUnread]=useState(0);
  const groupRefs=React.useRef({});
  const mobileGroupRefs=React.useRef({});
+ const menuButtonRef=React.useRef(null),mobileCloseRef=React.useRef(null),mobileDialogRef=React.useRef(null);
  const shellRef=React.useRef(null),headerRef=React.useRef(null);
  useEffect(()=>{
   const header=headerRef.current,shell=shellRef.current;
@@ -128,7 +129,29 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
   const refresh=()=>void update();window.addEventListener('ccx-data-changed',refresh);window.addEventListener('focus',refresh);
   return()=>{live=false;window.clearInterval(timer);window.removeEventListener('ccx-data-changed',refresh);window.removeEventListener('focus',refresh);void supabase.removeChannel(channel);};
  },[user?.id,tab]);
- useEffect(()=>{const handler=e=>{if(e.key==='Escape')setMobileOpen(false);};window.addEventListener('keydown',handler);return()=>window.removeEventListener('keydown',handler);},[]);
+ useEffect(()=>{
+  if(!mobileOpen)return;
+  // Keep keyboard focus inside the mobile navigation dialog, restore focus
+  // to the menu trigger when it closes, and prevent scrolling behind it.
+  const before=document.body.style.overflow;
+  document.body.style.overflow='hidden';
+  mobileCloseRef.current?.focus();
+  const keydown=event=>{
+   if(event.key==='Escape'){event.preventDefault();setMobileOpen(false);return;}
+   if(event.key!=='Tab'||!mobileDialogRef.current)return;
+   const dialog=mobileDialogRef.current;
+   const links=[...dialog.querySelectorAll('button:not(:disabled),a[href],summary,[tabindex="0"]')]
+    .filter(node=>node.getClientRects().length>0);
+   if(!links.length)return;
+   const first=links[0],last=links[links.length-1];
+   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+   else if(!event.shiftKey&&(document.activeElement===last||!dialog.contains(document.activeElement))){
+    event.preventDefault();first.focus();
+   }
+  };
+  document.addEventListener('keydown',keydown);
+  return()=>{document.body.style.overflow=before;document.removeEventListener('keydown',keydown);menuButtonRef.current?.focus();};
+ },[mobileOpen]);
  return <RoleWorkspaceContext.Provider value={workspace}><div ref={shellRef} className="ccx-original-shell min-h-screen" style={{background:'var(--cc-bg)',color:'var(--cc-text-primary)'}}>
   <header ref={headerRef} className="ccx-shell-fixed-header fixed left-0 right-0 top-0 z-40 border-b backdrop-blur-xl" style={{paddingTop:'env(safe-area-inset-top,0px)',backgroundColor:'color-mix(in srgb,var(--cc-bg) 95%,transparent)',borderColor:'var(--cc-border)'}}>
    <div className="ccx-shell-toolbar">
@@ -142,7 +165,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
      </button>
      <button type="button" onClick={()=>onNavigate('notifications')} title="Notifications" className="relative flex h-10 w-10 items-center justify-center rounded-lg" aria-label="Notifications"><Bell size={20}/>{unread>0&&<span className="absolute -right-1 -top-1 rounded-full bg-red-600 px-1.5 text-[10px] text-white">{unread>9?'9+':unread}</span>}</button>
      <button type="button" onClick={()=>onNavigate('settings')} className="hidden h-10 w-10 items-center justify-center rounded-lg md:flex" aria-label="Settings"><Settings size={20}/></button>
-     <button type="button" className="flex h-11 w-11 items-center justify-center rounded-lg md:hidden" aria-label="Open navigation menu" aria-expanded={mobileOpen} onClick={()=>setMobileOpen(true)}><Menu size={24}/></button>
+     <button ref={menuButtonRef} type="button" className="flex h-11 w-11 items-center justify-center rounded-lg md:hidden" aria-label="Open navigation menu" aria-expanded={mobileOpen} onClick={()=>setMobileOpen(true)}><Menu size={24}/></button>
     </div>
    </div>
   </header>
@@ -172,8 +195,8 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
    </div>
   </aside>
   {mobileOpen&&<div className="fixed inset-0 z-[70] md:hidden">
-   <button type="button" className="absolute inset-0 bg-black/60" aria-label="Close navigation" onClick={()=>setMobileOpen(false)}/>
-   <div role="dialog" aria-modal="true" aria-label="Navigation" className="ccx-nav-mobile-panel absolute bottom-0 left-0 top-0 flex w-[min(22rem,94vw)] max-w-[94vw] overflow-hidden border-r">
+   <button type="button" tabIndex={-1} className="absolute inset-0 bg-black/60" aria-label="Close navigation" onClick={()=>setMobileOpen(false)}/>
+   <div ref={mobileDialogRef} role="dialog" aria-modal="true" aria-label="Navigation" className="ccx-nav-mobile-panel absolute bottom-0 left-0 top-0 flex w-[min(22rem,94vw)] max-w-[94vw] overflow-hidden border-r">
     <CategoryRail mobile groups={navGroups} selectedGroup={selectedGroup} onSelect={id=>jumpToSection(id,true)}
      onDashboard={()=>{onNavigate('dashboard');setMobileOpen(false);}} onSettings={()=>{onNavigate('settings');setMobileOpen(false);}}/>
     <div className="ccx-nav-mobile-content flex min-w-0 flex-1 flex-col">
@@ -183,7 +206,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
        <button type="button" className="ccx-nav-public-link mt-2 flex items-center gap-2 text-xs" onClick={()=>{onNavigate('public-profile');setMobileOpen(false);}}>
         <ExternalLink size={13} aria-hidden="true"/>View Public Profile</button>
       </div>
-      <button type="button" className="ccx-nav-close rounded-md p-2" onClick={()=>setMobileOpen(false)} aria-label="Close navigation"><X size={22}/></button>
+      <button ref={mobileCloseRef} type="button" className="ccx-nav-close rounded-md p-2" onClick={()=>setMobileOpen(false)} aria-label="Close navigation"><X size={22}/></button>
      </div>
      <nav aria-label="Mobile grouped navigation" className="ccx-nav-menu flex-1 overflow-y-auto p-3">
       <NavigationSections groups={navGroups} tab={tab} onNavigate={onNavigate} mobile groupRefs={mobileGroupRefs} unread={unread} onClose={()=>setMobileOpen(false)}/>
