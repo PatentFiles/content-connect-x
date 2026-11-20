@@ -1,7 +1,7 @@
 /** Original role navigation retained; page labels follow the requested restoration. */
-import {Home,Search,Compass,MessageCircle,Briefcase,FileText,Heart,Shield,Users,Camera,Video,User,Settings,UserPlus,Cross,Film,Building2} from 'lucide-react';
+import {Home,Search,Compass,MessageCircle,Briefcase,FileText,Heart,Shield,Users,Camera,Video,User,Settings,UserPlus,Cross,Film,Building2,ShoppingBag} from 'lucide-react';
 import {navigationForRole,ROLE_ROUTES} from './roleNavigationData.mjs';
-const icons={Home,Search,Compass,MessageCircle,Briefcase,FileText,Heart,Shield,Users,Camera,Video,User,Settings,UserPlus,Cross,Film,Building2};
+const icons={Home,Search,Compass,MessageCircle,Briefcase,FileText,Heart,Shield,Users,Camera,Video,User,Settings,UserPlus,Cross,Film,Building2,ShoppingBag};
 export function getNavigationForRole(roleType){return navigationForRole(roleType).map(({iconName,...item})=>({...item,icon:icons[iconName]}));}
 export const roleNavigation=Object.fromEntries(Object.keys(ROLE_ROUTES).map(role=>[role,getNavigationForRole(role).filter(item=>!['Profile','Settings'].includes(item.path))]));
 export const hostingNavItem={path:'Properties',label:'Properties',icon:Building2};
