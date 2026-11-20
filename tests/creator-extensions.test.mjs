@@ -11,8 +11,8 @@ const req=body=>new Request('https://example.test/functions/v1/creator-extension
 function harness({user={id:actor},blocked=false,friend=false,member=true}={}){
  const calls=[];
  const records={
-  account_security:[{banned:false,suspended:false}],
-  member_admissions:[{admitted_at:'2026-11-19T00:00:00Z'}],
+  account_security:[{user_id:actor,banned:false,suspended:false},{user_id:other,banned:false,suspended:false}],
+  member_admissions:[{user_id:actor,admitted_at:'2026-11-19T00:00:00Z'},{user_id:other,admitted_at:'2026-11-19T00:00:00Z'}],
   member_blocks:blocked?[{blocker_id:actor}]:[],
   member_connection_requests:friend?[{id:cid}]:[],
   ccx_profile_travel:[
@@ -20,7 +20,7 @@ function harness({user={id:actor},blocked=false,friend=false,member=true}={}){
    {id:other,user_id:other,entry_type:'travel',city:'Phoenix',country:'United States',starts_on:'2026-12-02',ends_on:'2026-12-05',visibility:'friends',note:'SECRET'},
    {id:actor,user_id:other,entry_type:'available',city:'Vegas',country:'United States',starts_on:'2026-12-06',ends_on:'2026-12-08',visibility:'only_me',note:'SECRET'}
   ],
-  collaboration_members:member?[{user_id:actor}]:[],
+  collaboration_members:member?[{collaboration_id:cid,user_id:actor}]:[],
   ccx_collaboration_notes:[],
   collaborations:[{id:cid,creator_id:actor,status:'active',requires_work_clearance:true}],
   ccx_collaboration_testing_policy:[],
