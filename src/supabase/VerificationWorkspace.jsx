@@ -2,7 +2,7 @@
 import React,{useCallback,useEffect,useState} from 'react';
 import {RefreshCw,ShieldCheck} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
-import YotiVerification from './YotiVerification';
+import IdentityVerification from './IdentityVerification';
 import {useRoleWorkspace} from './RoleWorkspaceContext';
 export default function VerificationWorkspace({user}){
  const workspace=useRoleWorkspace();
@@ -23,11 +23,11 @@ export default function VerificationWorkspace({user}){
  return <section className="max-w-2xl space-y-5">
   <header><h1 className="text-2xl font-bold">Age verification</h1><p className="mt-2 text-sm text-[var(--cc-text-secondary)]">Your actual verification status is checked independently of administrator access and role previews.</p></header>
   {error&&<p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}
-  <div className="ccx-surface space-y-3 p-5"><p className="flex items-center gap-2 font-semibold"><ShieldCheck size={18}/>{!loaded?'Checking status…':approved?'Independently age verified':pending?'Previous review pending · continue with Yoti':admitted?'Account access active · independent age evidence not recorded':'Complete signup verification'}</p>
-   <p className="text-sm text-[var(--cc-text-secondary)]">{admitted?'Your site-entry step is already complete. This page displays evidence status; it does not lock individual features.':'Complete the Yoti ID and selfie check to enter the site.'}</p>
+  <div className="ccx-surface space-y-3 p-5"><p className="flex items-center gap-2 font-semibold"><ShieldCheck size={18}/>{!loaded?'Checking status…':approved?'Independently age verified':pending?'Previous review pending · continue verification':admitted?'Account access active · independent age evidence not recorded':'Complete signup verification'}</p>
+   <p className="text-sm text-[var(--cc-text-secondary)]">{admitted?'Your site-entry step is already complete. This page displays evidence status; it does not lock individual features.':'Complete your government ID and live-selfie check to enter the site.'}</p>
    <button type="button" className="ccx-secondary inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm" onClick={()=>void reload().then(()=>window.dispatchEvent(new Event('focus'))).catch(e=>setError(e.message))}><RefreshCw size={16}/>Refresh verification status</button>
   </div>
-  {!approved&&<YotiVerification onApproval={()=>void reload().then(()=>window.dispatchEvent(new Event('focus'))).catch(e=>setError(e.message))}/>}
+  {!approved&&<IdentityVerification onApproval={()=>void reload().then(()=>window.dispatchEvent(new Event('focus'))).catch(e=>setError(e.message))}/>}
 
  </section>;
 }
