@@ -103,7 +103,8 @@ test('Dashboard keeps widget strip and social timeline separate from sponsored s
  assert.match(src,/ConnectFeed userId/);
  assert.match(feed,/aria-label="Attach a photo"/);
  assert.match(feed,/aria-label=\{groupId\?'Submit group post for moderation':'Publish update'\}/);
- assert.match(feed,/Friends.*Following.*Discover/s);
+ assert.doesNotMatch(feed,/role="tablist" aria-label="Connect Feed filter"/);
+ assert.match(fs.readFileSync('src/supabase/FeedPreferencesSettings.jsx','utf8'),/FEED_VIEWS/);
 });
 test('Existing community API is restricted to verified posts and validates interactions',()=>{
  const legacy=fs.readFileSync('supabase/functions/platform-extras/index.ts','utf8');
