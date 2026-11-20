@@ -1,7 +1,8 @@
 /** Original header, sidebar, mobile drawer and bottom navigation. Supabase only. */
 import React,{useEffect,useMemo,useState} from 'react';
-import {Bell,ChevronRight,ExternalLink,LogOut,Menu,Settings,Shield,X,CreditCard} from 'lucide-react';
+import {Bell,ChevronRight,ExternalLink,LogOut,Menu,Settings,Shield,X,CreditCard,LayoutGrid,Compass,Users,Briefcase,ShieldCheck,UserRound,Plug,MoreHorizontal} from 'lucide-react';
 import {getNavigationForRole} from './originalRoleNav';
+import {groupedWorkspaceNavigation,currentNavigationGroup} from './workspaceNavigationGroups.mjs';
 import {isModuleVisible} from './featureModules.mjs';
 import {RoleWorkspaceContext} from './RoleWorkspaceContext';
 import {effectiveWorkspaceRole} from './roleWorkspacePolicy.mjs';
@@ -25,6 +26,8 @@ const tabMatches=(tab,path)=>tab===keyFor(path);
 const roleLabel={creator:'Creator',agent:'Agent',studio:'Studio',photographer:'Photographer',videographer:'Videographer',video_editor:'Video Editor'};
 const navBackground='var(--cc-surface-hover)';
 const sideText='var(--cc-text-secondary)';
+const railIcons={overview:LayoutGrid,explore:Compass,community:Users,collaborate:Briefcase,safety:ShieldCheck,personal:UserRound,account:Settings,admin:Shield,integrations:Plug,other:MoreHorizontal};
+
 function RoleDashboardSwitcher({value,onChange,mobile=false}){
  return <section aria-label="Admin dashboard switcher" className={'border-b p-4 '+(mobile?'space-y-3':'space-y-2')} style={{borderColor:'var(--cc-border)'}}>
   <p className="text-xs font-semibold uppercase tracking-wider" style={{color:'var(--cc-text-muted)'}}>Switch dashboard</p>
@@ -35,18 +38,31 @@ function RoleDashboardSwitcher({value,onChange,mobile=false}){
   </div>
  </section>;
 }
-function MenuLink({item,tab,onNavigate,onClose=()=>{},mobile=false}){
- const Icon=item.icon,isActive=tabMatches(tab,item.path);
- return <button type="button" onClick={()=>{onNavigate(keyFor(item.path));onClose?.();}}
-  className={'relative flex w-full items-center gap-3 rounded-lg text-left transition-colors duration-200 '+(mobile?'px-4 py-3':'px-3 py-2.5')}
-  aria-current={isActive?'page':undefined} style={{backgroundColor:isActive?navBackground:'transparent',color:isActive?'var(--cc-blue)':sideText}}>
-  {isActive&&<span className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full" style={{backgroundColor:'var(--cc-blue)'}}/>}
-  <Icon className="h-5 w-5 shrink-0" aria-hidden="true"/><span className="text-sm font-medium">{item.label}</span>
+function MenuLink({item,tab,onNavigate,onClose=()=>{},mobile=false,unread=0}){
+ const Icon=item.icon||MoreHorizontal,isActive=tabMatches(tab,item.path);
+ return <button type="button" onClick={()=>{onNavigate(keyFor(item.path));onClose();}}
+  className={'ccx-nav-link flex w-full items-center gap-3 rounded-lg text-left transition-colors '+(mobile?'px-3 py-3':'px-3 py-2.5')+(isActive?' is-active':'')}
+  aria-current={isActive?'page':undefined}
+  style={{backgroundColor:isActive?navBackground:'transparent',color:isActive?'var(--cc-blue)':sideText}}>
+  <Icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true"/>
+  <span className="min-w-0 flex-1 text-sm font-medium">{item.label}</span>
+  {item.path==='Notifications'&&unread>0&&<span className="ccx-nav-count" aria-label={unread+' unread notifications'}>{unread>99?'99+':unread}</span>}
  </button>;
 }
+function NavigationSections({groups,tab,onNavigate,onClose=()=>{},mobile=false,groupRefs=null,unread=0}){
+ return <>{groups.map(group=><section key={group.id} className="ccx-nav-section" aria-labelledby={'ccx-nav-heading-'+(mobile?'mobile-':'')+group.id}
+  ref={node=>{if(groupRefs)groupRefs.current[group.id]=node;}}>
+  <h2 id={'ccx-nav-heading-'+(mobile?'mobile-':'')+group.id} className="ccx-nav-heading">{group.label}</h2>
+  <div className="ccx-nav-section-links">
+   {group.items.map(item=><MenuLink key={item.path} item={item} tab={tab} onNavigate={onNavigate} onClose={onClose} mobile={mobile} unread={unread}/>)}
+  </div>
+ </section>)}</>;
+}
+
 export default function OriginalShell({children,tab,onNavigate,user,profile,isAdmin=false,approved=false,onSignOut,onRolePreviewChange,featureFlags=null,isPremiumMember=false}){
  const [mobileOpen,setMobileOpen]=useState(false),[adminRole,setAdminRole]=useState('admin');
  const [unread,setUnread]=useState(0);
+ const groupRefs=React.useRef({});
  const shellRef=React.useRef(null),headerRef=React.useRef(null);
  useEffect(()=>{
   const header=headerRef.current,shell=shellRef.current;
@@ -67,6 +83,20 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
  const adminNav=useMemo(()=>isAdmin?[
   {path:'AdminDashboard',label:'Platform Controls',icon:Shield},{path:'CompliancePortal',label:'API & Integrations',icon:Settings},{path:'TestingReviews',label:'Testing Reviews',icon:Shield}
  ]:[],[isAdmin]);
+ const accountNav=useMemo(()=>[
+  {path:'PublicProfile',label:'View Public Profile',icon:ExternalLink},
+  {path:'Notifications',label:'Notifications',icon:Bell},
+  {path:'Membership',label:isPremiumMember?'Membership & billing':'Membership · Free',icon:CreditCard}
+ ],[isPremiumMember]);
+ const navGroups=useMemo(()=>groupedWorkspaceNavigation(nav,adminRole==='admin'?adminNav:[],accountNav),[nav,adminRole,adminNav,accountNav]);
+ const selectedGroup=currentNavigationGroup(navGroups,tab,keyFor);
+ const jumpToSection=id=>{
+  const section=groupRefs.current[id];
+  if(!section)return;
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  section.scrollIntoView({behavior:reduced?'auto':'smooth',block:'start'});
+ };
+
  const workspace=useMemo(()=>({role:effectiveRole,actualRole:role,preview:isAdmin&&effectiveRole!==role,tab,profile,user,isAdmin,onNavigate,account:featureFlags?.__ccxAccount,featureAccess:featureFlags?.__ccxAccess}),[effectiveRole,role,isAdmin,tab,profile,user,onNavigate,featureFlags]);
  useEffect(()=>{setMobileOpen(false);},[tab]);
  useEffect(()=>{
@@ -96,34 +126,65 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
     </div>
    </div>
   </header>
-  <aside className="ccx-shell-sidebar fixed bottom-0 left-0 hidden w-64 flex-col border-r md:flex" style={{top:'var(--cc-shell-header-height,calc(4rem + env(safe-area-inset-top,0px)))',backgroundColor:'var(--cc-surface)',borderColor:'var(--cc-border)'}}>
-   <div className="border-b p-4" style={{borderColor:'var(--cc-border)'}}>
-    <button className="flex w-full items-center gap-3 rounded-lg p-2 text-left" onClick={()=>onNavigate('profile')}>
-     <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full" style={{background:'var(--cc-surface-hover)',color:'var(--cc-blue)'}}>{profile?.avatar_path?<img src={profile.avatar_path} alt="" className="h-full w-full object-cover"/>:(profile?.display_name||'U').slice(0,1).toUpperCase()}</span>
-     <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{profile?.display_name||'Set up profile'}</span><span className="mt-1 inline-flex rounded-full border px-2 py-0.5 text-xs capitalize" style={{borderColor:'var(--cc-border)',color:'var(--cc-text-secondary)'}}>{roleLabel[role]||role}</span></span><ChevronRight size={16} style={{color:'var(--cc-text-muted)'}}/>
+  <aside className="ccx-shell-sidebar fixed bottom-0 left-0 z-30 hidden md:flex"
+   style={{top:'var(--cc-shell-header-height,calc(4rem + env(safe-area-inset-top,0px)))',borderColor:'var(--cc-border)'}}>
+   <nav className="ccx-nav-rail" aria-label="Navigation category shortcuts">
+    <button type="button" className="ccx-nav-rail-button ccx-nav-rail-home" onClick={()=>onNavigate('dashboard')} title="Dashboard" aria-label="Go to dashboard">
+     <LayoutGrid size={21} aria-hidden="true"/>
     </button>
-    <button type="button" className="mt-2 flex items-center gap-2 px-2 text-xs" onClick={()=>onNavigate('public-profile')} style={{color:'var(--cc-blue)'}}><ExternalLink size={12}/> View Public Profile</button>
-   </div>
-   {isAdmin&&<RoleDashboardSwitcher value={adminRole} onChange={switchDashboard}/>}
-   <nav aria-label="Role navigation" className="flex-1 space-y-1 overflow-y-auto p-4">
-    {isAdmin&&adminRole==='admin'&&<><div className="mb-2 px-3 text-xs font-medium uppercase tracking-wider" style={{color:'var(--cc-text-muted)'}}>Admin</div>{adminNav.map(item=><MenuLink key={item.path} item={item} tab={tab} onNavigate={onNavigate}/>)}<div className="my-2 border-b" style={{borderColor:'var(--cc-border)'}}/></>}
-    {nav.map(item=><MenuLink key={item.path} item={item} tab={tab} onNavigate={onNavigate}/>)}
+    <div className="ccx-nav-rail-groups">
+     {navGroups.map(group=>{
+      const Icon=railIcons[group.id]||MoreHorizontal,active=selectedGroup===group.id;
+      return <button type="button" key={group.id} className={'ccx-nav-rail-button'+(active?' is-active':'')}
+       title={group.label} aria-label={'Jump to '+group.label+' section'} aria-pressed={active}
+       onClick={()=>jumpToSection(group.id)}><Icon size={20} aria-hidden="true"/></button>;
+     })}
+    </div>
+    <button type="button" className="ccx-nav-rail-button ccx-nav-rail-settings" onClick={()=>onNavigate('settings')} title="Account settings" aria-label="Open account settings">
+     <Settings size={20} aria-hidden="true"/>
+    </button>
    </nav>
-   <div className="border-t p-4" style={{borderColor:'var(--cc-border)'}}><button type="button" onClick={onSignOut} className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm" style={{color:'var(--cc-text-secondary)'}}><LogOut size={20}/>Log Out</button></div>
+   <div className="ccx-nav-panel flex min-w-0 flex-1 flex-col">
+    <div className="ccx-nav-profile">
+     <button type="button" className="flex w-full items-center gap-3 rounded-lg p-2 text-left" onClick={()=>onNavigate('profile')}>
+      <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full"
+       style={{background:'var(--cc-surface-hover)',color:'var(--cc-blue)'}}>{profile?.avatar_path?<img src={profile.avatar_path} alt="" className="h-full w-full object-cover"/>:(profile?.display_name||'U').slice(0,1).toUpperCase()}</span>
+      <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{profile?.display_name||'Set up profile'}</span>
+       <span className="mt-1 inline-flex rounded-full border px-2 py-0.5 text-xs capitalize"
+        style={{borderColor:'var(--cc-border)',color:'var(--cc-text-secondary)'}}>{roleLabel[role]||role}</span></span>
+      <ChevronRight size={16} aria-hidden="true" style={{color:'var(--cc-text-muted)'}}/>
+     </button>
+     <button type="button" className="ccx-nav-public-link mt-1 flex items-center gap-2 px-2 py-1.5 text-xs"
+      onClick={()=>onNavigate('public-profile')}><ExternalLink size={13} aria-hidden="true"/> View Public Profile</button>
+    </div>
+    <nav aria-label="Grouped role navigation" className="ccx-nav-menu flex-1 overflow-y-auto p-3">
+     <NavigationSections groups={navGroups} tab={tab} onNavigate={onNavigate} groupRefs={groupRefs} unread={unread}/>
+    </nav>
+    {isAdmin&&<details className="ccx-nav-switcher"><summary>Switch dashboard</summary><RoleDashboardSwitcher value={adminRole} onChange={switchDashboard}/></details>}
+    <div className="ccx-nav-exit"><button type="button" onClick={onSignOut} className="ccx-nav-link flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm">
+     <LogOut size={19} aria-hidden="true"/>Log Out</button></div>
+   </div>
   </aside>
   {mobileOpen&&<div className="fixed inset-0 z-[70] md:hidden">
-   <button className="absolute inset-0 bg-black/60 text-white" aria-label="Close navigation" onClick={()=>setMobileOpen(false)}/>
-   <div role="dialog" aria-modal="true" aria-label="Navigation" className="absolute bottom-0 left-0 top-0 w-80 max-w-[85vw] overflow-y-auto border-r" style={{backgroundColor:'var(--cc-bg)',borderColor:'var(--cc-border)'}}>
-    <div className="flex items-center justify-between border-b p-4" style={{borderColor:'var(--cc-border)'}}><div><button type="button" className="text-left font-medium" onClick={()=>{onNavigate('profile');setMobileOpen(false);}}>{profile?.display_name||'Member'}</button><div className="text-xs capitalize" style={{color:'var(--cc-text-muted)'}}>{roleLabel[role]||role}</div><button type="button" className="mt-2 flex items-center gap-2 text-xs" onClick={()=>{onNavigate('public-profile');setMobileOpen(false);}} style={{color:'var(--cc-blue)'}}><ExternalLink size={12}/>View Public Profile</button></div><button className="p-2" onClick={()=>setMobileOpen(false)} aria-label="Close navigation"><X size={22}/></button></div>
-    {isAdmin&&<RoleDashboardSwitcher mobile value={adminRole} onChange={switchDashboard}/>}
-    <nav aria-label="Mobile navigation" className="space-y-1 p-4">
-     {isAdmin&&adminRole==='admin'&&<><div className="mb-2 px-3 text-xs font-medium uppercase tracking-wider" style={{color:'var(--cc-text-muted)'}}>Admin</div>{adminNav.map(item=><MenuLink key={item.path} item={item} tab={tab} onNavigate={onNavigate} onClose={()=>setMobileOpen(false)} mobile/>)}<div className="my-2 border-b" style={{borderColor:'var(--cc-border)'}}/></>}
-     {nav.map(item=><MenuLink key={item.path} item={item} tab={tab} onNavigate={onNavigate} onClose={()=>setMobileOpen(false)} mobile/>)}
-     <div className="mt-4 border-t pt-3" style={{borderColor:'var(--cc-border)'}}><button type="button" aria-label="Sign out" className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-sm font-semibold" onClick={()=>{setMobileOpen(false);onSignOut();}}><LogOut size={20}/> Sign Out</button></div>
+   <button type="button" className="absolute inset-0 bg-black/60" aria-label="Close navigation" onClick={()=>setMobileOpen(false)}/>
+   <div role="dialog" aria-modal="true" aria-label="Navigation" className="ccx-nav-mobile-panel absolute bottom-0 left-0 top-0 flex w-80 max-w-[88vw] flex-col overflow-hidden border-r">
+    <div className="ccx-nav-profile flex items-start justify-between gap-3">
+     <div className="min-w-0"><button type="button" className="text-left font-semibold" onClick={()=>{onNavigate('profile');setMobileOpen(false);}}>{profile?.display_name||'Member'}</button>
+      <p className="mt-1 text-xs capitalize" style={{color:'var(--cc-text-muted)'}}>{roleLabel[role]||role}</p>
+      <button type="button" className="ccx-nav-public-link mt-2 flex items-center gap-2 text-xs" onClick={()=>{onNavigate('public-profile');setMobileOpen(false);}}>
+       <ExternalLink size={13} aria-hidden="true"/>View Public Profile</button>
+     </div>
+     <button type="button" className="ccx-nav-close rounded-md p-2" onClick={()=>setMobileOpen(false)} aria-label="Close navigation"><X size={22}/></button>
+    </div>
+    <nav aria-label="Mobile grouped navigation" className="ccx-nav-menu flex-1 overflow-y-auto p-4">
+     <NavigationSections groups={navGroups} tab={tab} onNavigate={onNavigate} mobile unread={unread} onClose={()=>setMobileOpen(false)}/>
     </nav>
+    {isAdmin&&<details className="ccx-nav-switcher"><summary>Switch dashboard</summary><RoleDashboardSwitcher mobile value={adminRole} onChange={switchDashboard}/></details>}
+    <div className="ccx-nav-exit"><button type="button" onClick={()=>{setMobileOpen(false);onSignOut();}} className="ccx-nav-link flex w-full items-center gap-3 rounded-lg px-3 py-3 text-sm">
+     <LogOut size={19} aria-hidden="true"/>Log Out</button></div>
    </div>
   </div>}
-  <main id="main-content" className="ccx-shell-main min-h-screen px-4 pb-24 pt-24 md:pl-[calc(16rem+1.5rem)] md:pr-6 md:pb-10" style={{paddingTop:'calc(var(--cc-shell-header-height,4rem) + 1.5rem)'}}><div className="mx-auto max-w-7xl"><ModuleAccessBoundary tab={tab} flags={featureFlags} onNavigate={onNavigate}>{children}</ModuleAccessBoundary></div></main>
+  <main id="main-content" className="ccx-shell-main min-h-screen px-4 pb-24 pt-24 md:pr-6 md:pb-10" style={{paddingTop:'calc(var(--cc-shell-header-height,4rem) + 1.5rem)'}}><div className="mx-auto max-w-7xl"><ModuleAccessBoundary tab={tab} flags={featureFlags} onNavigate={onNavigate}>{children}</ModuleAccessBoundary></div></main>
   <nav aria-label="Mobile bottom navigation" className="fixed bottom-0 left-0 right-0 z-50 flex border-t backdrop-blur-xl md:hidden" style={{backgroundColor:'color-mix(in srgb,var(--cc-bg) 95%,transparent)',borderColor:'var(--cc-border)',paddingBottom:'env(safe-area-inset-bottom,0px)'}}>
    {['Dashboard','Testing','Discovery','Collaborations','Properties'].map(path=>nav.find(item=>item.path===path)).filter(Boolean).map(item=>{const Icon=item.icon,active=tabMatches(tab,item.path);return <button key={item.path} onClick={()=>onNavigate(keyFor(item.path))} className="flex min-h-14 flex-1 flex-col items-center justify-center gap-1 px-1 py-2" aria-current={active?'page':undefined} style={{color:active?'var(--cc-blue)':'var(--cc-text-muted)'}}><Icon size={20}/><span className="max-w-full truncate text-[10px] font-medium">{item.label}</span></button>;})}
   </nav>
