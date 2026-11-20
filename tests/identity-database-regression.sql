@@ -38,6 +38,12 @@ begin
   raise exception 'TEST_FAILURE: wrong name accepted';
  exception when others then if SQLERRM<>'NAME_DOES_NOT_MATCH' then raise;end if;end;
  s:=public.ccx_idv_transition(adult,(s->>'id')::uuid,'confirm_name','{"legal_name":"Synthetic Adult"}');
+ if s->>'status'<>'name_mismatch' or exists(select 1 from public.member_admissions where user_id=adult)
+ then raise exception 'TEST_FAILURE: account-name mismatch bypassed finalizer';end if;
+ -- Fixture-only independent correction to the registered account legal name.
+ -- Ordinary site users cannot change a verified identity through the browser.
+ update public.member_profiles set real_name='Synthetic Adult' where id=adult;
+ s:=public.ccx_idv_transition(adult,(s->>'id')::uuid,'confirm_name','{"legal_name":"Synthetic Adult"}');
  if s->>'status'<>'approved' or not exists(select 1 from public.member_admissions where user_id=adult) then raise exception 'TEST_FAILURE: trusted approval did not admit';end if;
  if (select real_name from public.member_profiles where id=adult)<>'Synthetic Adult' then raise exception 'TEST_FAILURE: legal name not updated';end if;
  if (select display_name from public.member_profiles where id=adult)<>'Public Stage Name' then raise exception 'TEST_FAILURE: public display name changed';end if;
