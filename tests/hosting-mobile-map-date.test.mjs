@@ -47,7 +47,9 @@ test('guest marketplace shows only three guest navigation tabs; host workspace r
  assert.match(page,/\[\['explore','Explore spaces',Search\],\['favorites','Saved',Heart\],\['bookings','My requests',CalendarDays\]\]/);
  assert.doesNotMatch(page,/\['cleaning','My cleaning jobs'/);
  assert.doesNotMatch(page,/\['review','Listing approvals'/);
- assert.match(host,/initialSection="host" hostOnly/);
+ assert.match(host,/initialSection="host" requestedSection=\{hostSection\} hostOnly/);
+  assert.match(host,/aria-label="Host Connect mobile navigation"/);
+  assert.match(host,/aria-label="Open Host Connect navigation menu"/);
  assert.match(page,/data-host-space-filters/);
  assert.match(page,/HostingDateRange label="Rental check-in and checkout"/);
  assert.match(page,/HostingDateRange label="Search check-in and checkout"/);
