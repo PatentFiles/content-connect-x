@@ -201,4 +201,7 @@ GRANT SELECT,INSERT,UPDATE ON public.ccx_collaboration_testing_policy TO service
 -- No medical result or document ever enters this policy table.
 COMMENT ON TABLE public.ccx_collaboration_testing_policy IS
  'Collaboration requirement and deadline metadata only. Medical results remain in separate private provider-reviewed records.';
+-- All travel and project-note API access goes through authenticated, role-scoped
+-- Edge handlers; direct browser privileges are withdrawn despite RLS defense-in-depth.
+REVOKE ALL ON public.ccx_profile_travel,public.ccx_collaboration_notes FROM authenticated;
 COMMIT;
