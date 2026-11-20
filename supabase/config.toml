@@ -118,3 +118,10 @@ verify_jwt = false
 # DocuSign Connect delivers HMAC-signed callbacks without a user JWT.
 [functions.collaboration-docusign-webhook]
 verify_jwt = false
+
+# Server-authorized LiveKit rooms and curated, merchant-fulfilled affiliate directory.
+[functions.meeting-suite]
+verify_jwt = true
+
+[functions.shop-directory]
+verify_jwt = true
