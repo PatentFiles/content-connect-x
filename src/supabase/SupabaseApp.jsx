@@ -28,6 +28,7 @@ import AgreementPackets from './AgreementPackets';
 import OriginalShell,{tabFromLegacyPath,legacyPathForTab} from './OriginalShell';
 import OriginalRoleDashboard from './OriginalRoleDashboard';
 import CreatorProfileEditor from './CreatorProfileEditor';
+import MemberPublicProfile from './MemberPublicProfile';
 import CreatorDiscovery from './CreatorDiscovery';
 import YotiVerification from './YotiVerification';
 import PublicLandingSections from './PublicLandingSections';
@@ -470,6 +471,7 @@ export default function SupabaseApp() {
        <ConnectFeed key={user.id} userId={user.id} profileId={user.id}/>
       </section>
     </>}
+    {tab==='public-profile'&&approved&&<MemberPublicProfile onNavigate={navigateInWorkspace}/>}
     {tab==='verification'&&<div className="mx-auto max-w-md"><YotiVerification onApproval={()=>refresh(session)}/></div>}
     {['directory','favorites'].includes(tab)&&
       <CreatorDiscovery key={tab} user={user} approved={approved} paid={paid}
