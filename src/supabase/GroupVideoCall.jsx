@@ -14,7 +14,7 @@ export default function GroupVideoCall({collaborationId,userId}){
  const [recording,setRecording]=useState(false),[uploads,setUploads]=useState(0),[records,setRecords]=useState([]);
  const [micEnabled,setMicEnabled]=useState(true),[cameraEnabled,setCameraEnabled]=useState(true);
  const local=useRef(null),peers=useRef(new Map()),seen=useRef(new Set()),pollTimer=useRef(null),pulseTimer=useRef(null);
- const videos=useRef(new Map()),recorder=useRef([]),recStream=useRef(null),recordInterval=useRef(null),audioContext=useRef(null),audioDest=useRef(null),sources=useRef(new Set()),pendingICE=useRef(new Map());
+ const videos=useRef(new Map()),recorder=useRef([]),recStream=useRef(null),recordInterval=useRef(null),segmentInterval=useRef(null),audioContext=useRef(null),audioDest=useRef(null),sources=useRef(new Set()),pendingICE=useRef(new Map());
  const post=async(kind,recipient_id=null,payload={})=>suiteAction('call_signal',{collaboration_id:collaborationId,kind,recipient_id,payload});
  const closePeer=id=>{const pc=peers.current.get(id);if(pc){pc.close();peers.current.delete(id);}setRemote(prev=>{const next={...prev};delete next[id];return next;});videos.current.delete(id);};
  const attachAudio=stream=>{
@@ -86,6 +86,7 @@ export default function GroupVideoCall({collaborationId,userId}){
   }catch(e){local.current?.getTracks().forEach(t=>t.stop());local.current=null;setError(e.message);}finally{setJoining(false);}
  };
  const stopRecording=()=>{
+  clearInterval(segmentInterval.current);segmentInterval.current=null;
   recorder.current.forEach(r=>{if(r.state!=='inactive')r.stop();});
   recorder.current=[];setRecording(false);clearInterval(recordInterval.current);recordInterval.current=null;
   recStream.current?.getTracks().forEach(track=>track.stop());recStream.current=null;
@@ -97,7 +98,7 @@ export default function GroupVideoCall({collaborationId,userId}){
   for(const id of peers.current.keys())closePeer(id);
   local.current?.getTracks().forEach(track=>track.stop());local.current=null;seen.current.clear();setActive(false);setRemote({});
  };
- useEffect(()=>()=>{clearInterval(pollTimer.current);clearInterval(pulseTimer.current);clearInterval(recordInterval.current);local.current?.getTracks().forEach(t=>t.stop());for(const pc of peers.current.values())pc.close();recorder.current.forEach(r=>r.state!=='inactive'&&r.stop());audioContext.current?.close().catch(()=>{});},[]);
+ useEffect(()=>()=>{clearInterval(pollTimer.current);clearInterval(pulseTimer.current);clearInterval(recordInterval.current);clearInterval(segmentInterval.current);local.current?.getTracks().forEach(t=>t.stop());for(const pc of peers.current.values())pc.close();recorder.current.forEach(r=>r.state!=='inactive'&&r.stop());audioContext.current?.close().catch(()=>{});},[]);
  const loadRecordings=async()=>{try{const r=await suiteAction('recordings_list',{collaboration_id:collaborationId});setRecords(r.items||[]);}catch(e){setError(e.message);}};
  useEffect(()=>{void loadRecordings();},[collaborationId]);
  const upload=async(blob,content_type)=>{
@@ -133,11 +134,31 @@ export default function GroupVideoCall({collaborationId,userId}){
    const vType=MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')?'video/webm;codecs=vp8,opus':'video/webm';
    const aType=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';
    if(!MediaRecorder.isTypeSupported(vType)||!MediaRecorder.isTypeSupported(aType))throw Error('WebM recording is not supported by this browser');
-   const vr=new MediaRecorder(recStream.current,{mimeType:vType,videoBitsPerSecond:650000,audioBitsPerSecond:64000});
-   const ar=new MediaRecorder(destination.stream,{mimeType:aType,audioBitsPerSecond:48000});
-   vr.ondataavailable=e=>{if(e.data.size)void upload(e.data,'video/webm');};
-   ar.ondataavailable=e=>{if(e.data.size)void upload(e.data,'audio/webm');};
-   recorder.current=[vr,ar];vr.start(30000);ar.start(30000);
+   // A MediaRecorder timeslice is not necessarily a standalone playable WebM file.
+   // Stop and create each pair of recorders every 30s so each uploaded segment
+   // carries its own container headers and can be played or transcribed alone.
+   const recordSegment=()=>{
+    if(!recStream.current)return;
+    const create=(stream,mime,options)=>{
+     const pieces=[];
+     const instance=new MediaRecorder(stream,{mimeType:mime,...options});
+     instance.ondataavailable=event=>{if(event.data.size)pieces.push(event.data);};
+     instance.onstop=()=>{
+      const file=new Blob(pieces,{type:mime.split(';')[0]});
+      if(file.size)void upload(file,mime.split(';')[0]);
+     };
+     instance.start();
+     return instance;
+    };
+    const video=create(recStream.current,vType,{videoBitsPerSecond:650000,audioBitsPerSecond:64000});
+    const audioOnly=create(destination.stream,aType,{audioBitsPerSecond:48000});
+    recorder.current=[video,audioOnly];
+   };
+   recordSegment();
+   segmentInterval.current=setInterval(()=>{
+    recorder.current.forEach(item=>{if(item.state!=='inactive')item.stop();});
+    recordSegment();
+   },30000);
    recordInterval.current=setInterval(draw,100);draw();setRecording(true);setNotice('Recording in 30-second private segments. Both video and audio are stored for this collaboration.');
   }catch(e){setError(e.message);stopRecording();}
  };
