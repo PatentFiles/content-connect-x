@@ -208,7 +208,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
       </div>
       <button ref={mobileCloseRef} type="button" className="ccx-nav-close rounded-md p-2" onClick={()=>setMobileOpen(false)} aria-label="Close navigation"><X size={22}/></button>
      </div>
-     <nav aria-label="Mobile navigation" data-nav-groups="true" className="ccx-nav-menu" flex-1 overflow-y-auto p-3">
+     <nav aria-label="Mobile navigation" data-nav-groups="true" className="ccx-nav-menu flex-1 overflow-y-auto p-3">
       <NavigationSections groups={navGroups} tab={tab} onNavigate={onNavigate} mobile groupRefs={mobileGroupRefs} unread={unread} onClose={()=>setMobileOpen(false)}/>
      </nav>
      {isAdmin&&<details className="ccx-nav-switcher"><summary>Switch dashboard</summary><RoleDashboardSwitcher mobile value={adminRole} onChange={switchDashboard}/></details>}
