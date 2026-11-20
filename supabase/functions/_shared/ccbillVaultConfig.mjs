@@ -18,9 +18,12 @@ export async function membershipVaultConfig(db){
  const stored={};
  for(const [envName,vaultName] of Object.entries(names)){
   if(Deno.env.get(envName))continue;
-  const {data,error:secretError}=await db.rpc('ccx_secret_get',{p_name:vaultName});
-  if(secretError)throw Error('CCBill encrypted configuration unavailable');
-  stored[envName]=typeof data==='string'?data:'';
+  // Missing optional configuration is a normal 'not ready' state, not a 503.
+  // If Vault is unreachable or not seeded, retain the fail-closed status.
+  try{
+   const {data,error:secretError}=await db.rpc('ccx_secret_get',{p_name:vaultName});
+   stored[envName]=!secretError&&typeof data==='string'?data:'';
+  }catch{stored[envName]='';}
  }
  const enabled=provider?.enabled===true;
  return membershipConfig(name=>{
