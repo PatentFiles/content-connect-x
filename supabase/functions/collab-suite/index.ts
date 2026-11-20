@@ -8,11 +8,11 @@ const list=v=>Array.isArray(v)?v.map(x=>txt(x,100).toLowerCase()).filter(Boolean
 const now=()=>new Date().toISOString();
 const model=()=>Deno.env.get('OPENAI_MODEL')||'gpt-4.1-mini';
 async function sharedAIKey(db){
- const supplied=Deno.env.get('OPENAI_API_KEY');
- if(supplied)return supplied;
+ // A key entered from the administrator UI takes effect immediately, even when
+ // an older OPENAI_API_KEY environment value is also configured.
  const {data,error}=await db.rpc('ccx_secret_get',{p_name:'openai_api_key'});
- if(error)throw Error('AI secret configuration unavailable');
- return typeof data==='string'?data.trim():'';
+ if(!error&&typeof data==='string'&&data.trim())return data.trim();
+ return (Deno.env.get('OPENAI_API_KEY')||'').trim();
 }
 const extract=r=>(r?.output||[]).flatMap(x=>x.content||[]).filter(x=>x.type==='output_text').map(x=>x.text||'').join('\n').trim();
 async function openai(db,instructions,payload,max=800){
@@ -69,7 +69,7 @@ Deno.serve(async req=>{
  const needAdmin=()=>{if(!admin)throw Error('Administrator permissions required');};
  const limitAI=async(kind,seconds)=>{
   const after=new Date(Date.now()-seconds*1000).toISOString();
-  const {count,error}=await db.from('ccx_ai_agent_runs').select('id',{head:true,count:'exact'}).eq('triggered_by',uid).eq('agent_type',kind).gte('started_at',after);
+  const {count,error}=await db.from('ccx_ai_agent_runs').select('id',{head:true,count:'exact'}).eq('triggered_by',uid).eq('agent_type',kind).in('status',['running','completed']).gte('started_at',after);
   if(error)throw error;
   if(count)throw Error('This AI task has already been started recently. Try again later.');
  };
@@ -318,6 +318,7 @@ Deno.serve(async req=>{
   if(error)throw error;return out({ok:true});
  }
  case 'matches_generate':{
+  if(!await sharedAIKey(db))throw Error('Add your OpenAI key in the administrator AI settings.');
   await limitAI('matching',3600);
   const {data:own,error:ownError}=await db.from('creator_production_preferences').select('*').eq('user_id',uid).maybeSingle();
   if(ownError)throw ownError;
@@ -366,7 +367,8 @@ Deno.serve(async req=>{
  case 'ai_key_status':{
   needAdmin();
   const key=await sharedAIKey(db);
-  return out({configured:Boolean(key),source:Deno.env.get('OPENAI_API_KEY')?'server':'encrypted_vault'});
+  const {data:stored}=await db.rpc('ccx_secret_get',{p_name:'openai_api_key'});
+  return out({configured:Boolean(key),source:typeof stored==='string'&&stored.trim()?'encrypted_vault':'server'});
  }
  case 'ai_key_save':{
   needAdmin();
@@ -377,7 +379,9 @@ Deno.serve(async req=>{
   return out({saved:true});
  }
  case 'agent_scan':{
-  needAdmin();await limitAI('safety',600);
+  needAdmin();
+  if(!await sharedAIKey(db))throw Error('Add your OpenAI key in the administrator AI settings.');
+  await limitAI('safety',600);
   const [profiles,collabs]=await Promise.all([
    db.from('member_profiles').select('id,role_type,bio').eq('profile_complete',true).limit(25),
    db.from('collaborations').select('id,title,description,status').limit(25)
@@ -421,7 +425,9 @@ Deno.serve(async req=>{
   if(error)throw error;return out({ok:true});
  }
  case 'ai_contract':{
-  const cid=body.collaboration_id;await needMember(cid);await limitAI('contract',600);
+  const cid=body.collaboration_id;await needMember(cid);
+  if(!await sharedAIKey(db))throw Error('Add your OpenAI key in the administrator AI settings.');
+  await limitAI('contract',600);
   const status=await verifyTesting(cid);
   if(!status.ready)throw Error('Complete the collaboration testing requirements before contract generation');
   const [collab,plan,notes,members,transcripts]=await Promise.all([
