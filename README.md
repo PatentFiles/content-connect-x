@@ -36,6 +36,14 @@
 - Next verification: publish GitHub in the existing Bolt project; test with real admitted participants and browsers; test a real authorized DocuSign envelope and signed callback; test CCBill provider-approved checkout and callback; verify staff actually receive and handle safety alerts. Status labels must reflect observed provider responses rather than installed code alone.
 - Historical observations in the November 19 snapshot and subsequent dated release notes remain preserved for audit. Do not interpret them as the newer November 20 state.
 
+### November 20 continuation — automatic safety scans and in-call recording visibility
+
+- **Automated safety agent:** `ai-agent-worker` Edge Function is deployed with its own randomly generated, encrypted, single-purpose Cron credential. `ccx_ai_safety_weekly` is active every Sunday at **03:15 UTC**. The worker reads the existing `OPENAI_API_KEY` or encrypted `openai_api_key` automatically. It pages through batches of profiles and collaborations, persists `ccx_ai_agent_runs` and `ccx_ai_risk_predictions`, raises non-duplicate review flags in `ccx_ai_agent_flags`, and alerts administrators. Its custom header is authenticated server-side and user JWT verification is disabled only for this protected service-to-service endpoint. A manual authenticated cron dispatch returned HTTP 200 with `skipped:true` while the OpenAI key was absent, confirming the schedule's route and private authentication path.
+- **Introductions:** new `ccx_intro_messages` records notify the recipient in `member_notifications` (message body not copied into the notification); the Notifications page sends people to Connections. Pending friend requests appear on the Connections page alongside accepted friends.
+- **Meeting recording:** the room sends `recording_start` and `recording_stop` signals with consent validation and shows a visible recording indicator to everyone present. The recording stops if consent or its heartbeat cannot be confirmed. Complete, separately playable 30-second WebM segments are saved privately. New audio segments automatically request OpenAI transcription, and pending segments remain available to retry if the API is unavailable.
+- **Media reports:** each creator gallery media item and preview links to `/trust/privacy` with its media reference prefilled; Feed reports retain their existing workflow.
+- **Frontend publishing:** source is committed to GitHub. The owner publishes it through the **existing Bolt project**, not Railway.
+
 ## 1. Product boundary
 
 **Content Connect X:** a professional networking and collaboration-management marketplace for verified adults: creators, videographers, photographers, video editors, agents, studios and production teams.  
