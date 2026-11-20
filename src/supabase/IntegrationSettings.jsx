@@ -3,8 +3,8 @@ import React,{useEffect,useState} from 'react';
 import {ShieldCheck,KeyRound,Eye,EyeOff,RefreshCw,PlugZap,AlertTriangle} from 'lucide-react';
 import {integrationAction} from './integrationApi';
 const styles={panel:'ccx-surface p-5',input:'w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm text-[var(--cc-text-primary)] focus:ring-2 focus:ring-fuchsia-500',button:'ccx-action-primary rounded-xl px-4 py-2.5 text-sm'};
-const names={yoti:'Yoti — ID, age and liveness',pass:'PASS — Performer work clearance',ccbill:'CCBill — Payments',docusign:'DocuSign — Releases',email:'Transactional email',webpush:'Browser notifications',maps:'Location maps',openmoderate:'Media moderation',sentry:'Error monitoring',flagsmith:'Feature flags'};
-const help={yoti:'Yoti AVS uses your Yoti API key and SDK ID. Hosted checks work only after setting the return origin and completing provider onboarding.',pass:'PASS maintains 14-day yes/no work clearance. Store an approved partner credential here once PASS grants access; automatic status and production-hold checks remain disabled until the official API contract is received, mapped and tested. Never expose clinical results.',
+const names={pass:'PASS — Performer work clearance',ccbill:'CCBill — Payments',docusign:'DocuSign — Releases',email:'Transactional email',webpush:'Browser notifications',maps:'Location maps',openmoderate:'Media moderation',sentry:'Error monitoring',flagsmith:'Feature flags'};
+const help={pass:'PASS maintains 14-day yes/no work clearance. Store an approved partner credential here once PASS grants access; automatic status and production-hold checks remain disabled until the official API contract is received, mapped and tested. Never expose clinical results.',
 ccbill:'Keys are encrypted, but financial captures stay blocked until the approved merchant integration and callback contract are verified.',
 docusign:'Credentials here are saved securely; the current signing integration still requires its service account and approved template setup.',
 email:'Connect an approved neutral transactional email relay before enabling delivery.',
@@ -15,11 +15,10 @@ sentry:'DSN can be configured for production release monitoring.',
 flagsmith:'Remote flags require environment and rollout verification.'};
 export default function IntegrationSettings(){
  const [providers,setProviders]=useState([]),[values,setValues]=useState({}),[visible,setVisible]=useState({}),[agreements,setAgreements]=useState({});
- const [origins,setOrigins]=useState({ccx_origin:'',onlyhost_origin:''});
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const load=async()=>{
   setBusy(true);setError('');
-  try{const r=await integrationAction('admin_list');setProviders(r.providers||[]);const y=r.providers?.find(p=>p.provider==='yoti');if(y)setOrigins({ccx_origin:y.callback_origin||'',onlyhost_origin:y.secondary_origin||''});}catch(e){setError(e.message);}
+  try{const r=await integrationAction('admin_list');setProviders((r.providers||[]).filter(p=>p.provider!=='yoti'));}catch(e){setError(e.message);}
   finally{setBusy(false);}
  };
  useEffect(()=>{void load();},[]);
@@ -43,29 +42,15 @@ export default function IntegrationSettings(){
  };
  return <div className="space-y-5">
   <header className="flex items-start justify-between gap-3"><div><h2 className="text-2xl font-bold">API & integration settings</h2>
-   <p className="mt-2 text-sm text-[var(--cc-text-secondary)]">Enter your provider keys once. Secret values are encrypted in Supabase Vault and are never displayed again. Changing credentials requires an authenticated administrator. Two-factor authentication is optional.</p></div>
+   <p className="mt-2 text-sm text-[var(--cc-text-secondary)]">Enter your provider keys once. Secret values are encrypted in Supabase Vault and are never displayed again. Changing credentials requires an authenticated administrator. Sensitive administrative actions require a fresh two-factor-authenticated session.</p></div>
    <button onClick={load} disabled={busy} className="ccx-secondary rounded-xl p-3" aria-label="Refresh provider status"><RefreshCw size={19}/></button>
   </header>
   <div className="ccx-surface flex items-start gap-3 p-4">
    <ShieldCheck className="mt-0.5 shrink-0 text-[var(--cc-link)]" size={21}/>
-   <p className="text-sm text-[var(--cc-text-secondary)]">Credentials present does not mean an integration is approved or live. Yoti needs its return-origin setting. PASS partner API access must be confirmed directly with PASS. Payment and health workflows remain protected by server-side release gates.</p>
+   <p className="text-sm text-[var(--cc-text-secondary)]">Credentials present does not mean a provider is approved or live. Government ID and live-selfie processing use our first-party Railway worker. PASS work clearance requires a separate approved partner agreement. Payment and health workflows remain protected by server-side release gates.</p>
   </div>
   {error&&<p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}
   {notice&&<p role="status" className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
-  <section className="ccx-surface space-y-3 p-5">
-    <h3 className="font-semibold">Yoti return domains for both brands</h3>
-    <p className="text-xs text-[var(--cc-text-secondary)]">These are HTTPS public website origins, not secret keys. Configure them in your Yoti provider account as approved callback destinations before starting live sessions.</p>
-    <div className="grid gap-3 sm:grid-cols-2">
-      <label className="text-xs">Content Connect X website origin<input className={styles.input+' mt-1'} type="url" placeholder="https://contentconnectx.com" value={origins.ccx_origin}
-        onChange={e=>setOrigins(v=>({...v,ccx_origin:e.target.value}))}/></label>
-      <label className="text-xs">Host Connect website origin<input className={styles.input+' mt-1'} type="url" placeholder="https://your-host-connect-domain.example" value={origins.onlyhost_origin}
-        onChange={e=>setOrigins(v=>({...v,onlyhost_origin:e.target.value}))}/></label>
-    </div>
-    <button className={styles.button} disabled={busy||!origins.ccx_origin} onClick={async()=>{setBusy(true);setError('');setNotice('');
-      try{const r=await integrationAction('admin_yoti_origins',origins);setNotice(r.note||'Saved.');await load();}
-      catch(e){setError(e.message);}finally{setBusy(false);}
-    }}>Save Yoti callback URLs</button>
-  </section>
   <div className="grid gap-4 lg:grid-cols-2">
    {providers.map(p=><article key={p.provider} className={styles.panel+' space-y-3'}>
     <div className="flex flex-wrap items-start justify-between gap-3">
