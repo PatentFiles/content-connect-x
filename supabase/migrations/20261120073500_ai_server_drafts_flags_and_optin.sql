@@ -10,6 +10,13 @@ CREATE TABLE public.ccx_ai_match_preferences(
  CHECK(coalesce(array_length(shared_interests,1),0)<=20)
 );
 CREATE INDEX ccx_ai_match_opted ON public.ccx_ai_match_preferences(opt_in) WHERE opt_in;
+CREATE TABLE public.ccx_ai_collaboration_consents(
+ collaboration_id uuid NOT NULL REFERENCES public.collaborations(id) ON DELETE RESTRICT,
+ user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+ ai_scope_processing boolean NOT NULL DEFAULT false,
+ updated_at timestamptz NOT NULL DEFAULT now(),
+ PRIMARY KEY(collaboration_id,user_id)
+);
 CREATE TABLE public.ccx_ai_agent_runs(
  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
  actor_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE RESTRICT,
@@ -44,12 +51,14 @@ CREATE TABLE public.ccx_ai_scope_drafts(
 );
 CREATE INDEX ccx_ai_scope_project ON public.ccx_ai_scope_drafts(collaboration_id,created_at DESC);
 ALTER TABLE public.ccx_ai_match_preferences ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.ccx_ai_collaboration_consents ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ccx_ai_agent_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ccx_ai_review_flags ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.ccx_ai_scope_drafts ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON public.ccx_ai_match_preferences,public.ccx_ai_agent_runs,
+REVOKE ALL ON public.ccx_ai_match_preferences,public.ccx_ai_collaboration_consents,public.ccx_ai_agent_runs,
  public.ccx_ai_review_flags,public.ccx_ai_scope_drafts FROM PUBLIC,anon,authenticated,service_role;
 GRANT SELECT,INSERT,UPDATE ON public.ccx_ai_match_preferences TO service_role;
+GRANT SELECT,INSERT,UPDATE ON public.ccx_ai_collaboration_consents TO service_role;
 GRANT SELECT,INSERT,UPDATE ON public.ccx_ai_agent_runs TO service_role;
 GRANT SELECT,INSERT,UPDATE ON public.ccx_ai_review_flags TO service_role;
 GRANT SELECT,INSERT ON public.ccx_ai_scope_drafts TO service_role;
