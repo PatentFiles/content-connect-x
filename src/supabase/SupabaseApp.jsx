@@ -20,6 +20,7 @@ import ProductionManager from './ProductionManager';
 import ReputationHub from './ReputationHub';
 import SecurityCenter from './SecurityCenter';
 import MemberSettings from './MemberSettings';
+import FeedPreferencesSettings from './FeedPreferencesSettings';
 import RepresentationAgreements from './RepresentationAgreements';
 import MfaChallenge from './MfaChallenge';
 import {hasAdmission,needsOptedInMfa} from './accountEntryPolicy.mjs';
@@ -507,8 +508,11 @@ export default function SupabaseApp() {
        </div>)}
     {tab==='portfolio'&&approved&&<MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
     {tab==='testing'&&approved&&<PassClearanceHub isAdmin={isAdmin}/>}
-    {tab==='settings'&&(isAdmin&&!rolePreview?<AdminConsole key={tab} initialSection="features"
-       onFeatureChange={()=>refreshFeatureFlags().catch(()=>setVisibleFeatures({}))}/>:<MemberSettings user={user} onNavigate={navigateInWorkspace}/>)}
+    {tab==='settings'&&(isAdmin&&!rolePreview?<div className="space-y-5">
+        <FeedPreferencesSettings userId={user.id}/>
+        <AdminConsole key={tab} initialSection="features"
+         onFeatureChange={()=>refreshFeatureFlags().catch(()=>setVisibleFeatures({}))}/>
+       </div>:<MemberSettings user={user} onNavigate={navigateInWorkspace}/>)}
     {tab==='roster'&&approved&&<ProductionManager user={user} paid={paid} isAdmin={isAdmin}/>}
     {tab==='representations'&&<RepresentationAgreements role={profile?.role_type||'creator'}/>}
     {tab==='developer'&&isAdmin&&<div className={panel}>
