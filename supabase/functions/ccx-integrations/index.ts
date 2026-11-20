@@ -1,20 +1,19 @@
 /**
  * CCX integration control plane:
  * - staff-only server-side Supabase Vault secrets (never returned);
- * - Yoti hosted Age Verification Service (not DIY face recognition);
+ * - first-party Railway identity verification handled by an isolated server;
  * - PASS linking + privacy-preserving, explicit per-collaboration status sharing;
  * - OnlyHost independent access identity for same Supabase property database.
  * No unsupported PASS API protocol is invented. No lab reports are returned here.
  */
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
-import {isYotiConfigured} from './yotiPolicy.mjs';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version','Access-Control-Allow-Methods':'POST,OPTIONS'};
 const out=(v:unknown,s=200)=>Response.json(v,{status:s,headers:{...cors,'Cache-Control':'no-store'}});
 const bad=(msg:string,s=400)=>out({error:msg},s);
 const id=(x:unknown):x is string=>typeof x==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(x);
 const txt=(v:unknown,n=300)=>typeof v==='string'?v.trim().slice(0,n):'';
 const secretFields:Record<string,string[]>={
- yoti:['yoti_token','yoti_sdk_id'],pass:['pass_partner_token'],ccbill:['ccbill_client_account','ccbill_subaccount','ccbill_flex_id','ccbill_salt','ccbill_relay_secret','ccbill_event_timezone'],
+ pass:['pass_partner_token'],ccbill:['ccbill_client_account','ccbill_subaccount','ccbill_flex_id','ccbill_salt','ccbill_relay_secret','ccbill_event_timezone'],
  docusign:['docusign_account_id','docusign_integration_key','docusign_user_id','docusign_private_key','docusign_hmac'],
  email:['email_api_token','email_sender'],webpush:['webpush_vapid_private'],maps:['maps_server_key'],
  openmoderate:['openmoderate_api_key'],sentry:['sentry_dsn'],flagsmith:['flagsmith_environment']
@@ -95,47 +94,18 @@ Deno.serve(async req=>{
   const {data,error}=await db.rpc('ccx_secret_get',{p_name:name});
   if(error)throw error;return typeof data==='string'?data:null;
  };
- const yotiReady=async()=>{
-  // Supabase Edge secrets are the primary deployment path. Older encrypted
-  // Vault configuration remains compatible; only presence is exposed to clients.
-  const [token,sdk,setting]=await Promise.all([
-   Promise.resolve(Deno.env.get('YOTI_API_KEY')||'').then(v=>v||getSecret('yoti_token')),
-   Promise.resolve(Deno.env.get('YOTI_SDK_ID')||'').then(v=>v||getSecret('yoti_sdk_id')),
-   conf('yoti')]);
-  return {token,sdk,setting,ready:Boolean(token&&sdk&&setting?.enabled)};
- };
 
  try{
  switch(action){
  case 'admin_list':{
   const {data,error}=await db.from('ccx_integrations')
-   .select('provider,enabled,setup_status,notes,callback_origin,secondary_origin,updated_at').order('provider');
+   .select('provider,enabled,setup_status,notes,callback_origin,secondary_origin,updated_at').neq('provider','yoti').order('provider');
   if(error)throw error;
   return out({providers:await Promise.all((data||[]).map(async p=>({
     ...p,fields:await Promise.all((secretFields[p.provider]||[]).map(async name=>({
      name,configured:Boolean(await getSecret(name))
     })))
    })))});
- }
- case 'admin_yoti_origins':{
-  const validate=(value:unknown)=>{
-   if(value===null||value==='')return null;
-   if(typeof value!=='string'||value.length>240)throw Error('Origin too long');
-   const u=new URL(value);
-   if(u.protocol!=='https:'||u.username||u.password||u.search||u.hash||
-      u.port&&u.port!=='443'||u.pathname!=='/'||
-      !u.hostname.includes('.')||u.hostname==='localhost')throw Error('Use an HTTPS production origin without paths or credentials');
-   return u.origin;
-  };
-  let ccx:string|null=null,onlyhost:string|null=null;
-  try{ccx=validate(body.ccx_origin);onlyhost=validate(body.onlyhost_origin);}
-  catch{return bad('Provide valid HTTPS origins for both brands',400);}
-  if(!ccx)return bad('Content Connect X return origin is required');
-  const {data,error}=await db.from('ccx_integrations').update({
-   callback_origin:ccx,secondary_origin:onlyhost,updated_by:uid,updated_at:new Date().toISOString()
-  }).eq('provider','yoti').select('callback_origin,secondary_origin').single();
-  if(error)throw error;await audit('ccx_yoti_return_origins_saved');
-  return out({item:data,note:'Yoti return origins saved. Your provider must also allow these URLs.'});
  }
  case 'admin_set_secret':{
   const provider=txt(body.provider,32),name=txt(body.name,70),value=body.secret;
@@ -154,12 +124,6 @@ Deno.serve(async req=>{
   if(!secretFields[provider])return bad('Unsupported provider');
   if(on&&body.provider_contract_reviewed!==true)return bad('Confirm the provider contract and supported use before activation',409);
   if(on&&provider==='pass')return bad('PASS API requires approved partner access and documented protocol; no public API has been verified',409);
-  if(on&&provider==='yoti'){
-   const cfg=await yotiReady();
-   if(!isYotiConfigured({
-     enabled:true,token:cfg.token,sdk:cfg.sdk,callback_origin:cfg.setting?.callback_origin
-   })) return bad('Yoti activation requires API token, SDK ID and the trusted Content Connect X HTTPS return origin',409);
-  }
   const {data,error}=await db.from('ccx_integrations').update({
    enabled:on,notes:txt(body.notes,400),updated_by:uid,updated_at:new Date().toISOString()
   }).eq('provider',provider).select('provider,enabled,setup_status,notes').maybeSingle();
@@ -168,25 +132,9 @@ Deno.serve(async req=>{
   return out({item:data,note:'The configuration is saved. Provider readiness still needs live acceptance tests.'});
  }
  case 'status':{
-  const [yoti,pass]=await Promise.all([yotiReady(),conf('pass')]);
-  const available=isYotiConfigured({
-    enabled:yoti.setting?.enabled,token:yoti.token,sdk:yoti.sdk,
-    callback_origin:yoti.setting?.callback_origin
-  });
-  return out({yoti_configured:available,pass_partner_connected:pass?.enabled===true,
-   yoti_note:'Yoti securely checks a government ID and a live selfie. No ID upload or manual approval is available on this site.',
+  const pass=await conf('pass');
+  return out({identity_provider:'first_party_railway',pass_partner_connected:pass?.enabled===true,
    pass_note:'PASS partner access remains unverified. Only approved clearance status, never laboratory results, may be shared.'});
- }
- case 'yoti_start':
- case 'yoti_status':{
-  // Existing clients route through the same Yoti-only service. Never maintain a
-  // second approval path, manual fallback, weaker method or non-atomic write.
-  const response=await fetch(url+'/functions/v1/yoti-verification',{
-   method:'POST',headers:{'Content-Type':'application/json',apikey:key,
-    Authorization:req.headers.get('Authorization')||''},
-   body:JSON.stringify({action,brand:body.brand,refresh:body.refresh}),
-   redirect:'error',signal:AbortSignal.timeout(25000)});
-  return out(await response.json(),response.status);
  }
  case 'onlyhost_register':{
   // Host-only registrations do NOT grant creator or performer privileges.
