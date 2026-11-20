@@ -107,11 +107,26 @@ Deno.serve(async req=>{
  }
  case 'travel_save':{
   const city=txt(body.city,100),region=txt(body.region,100),country=txt(body.country,100),starts=Date.parse(body.starts_at),ends=Date.parse(body.ends_at);
-  if(!city||!country||!Number.isFinite(starts)||!Number.isFinite(ends)||ends<=starts||ends-starts>120*86400000)throw Error('Enter a valid destination and date range (maximum 120 days)');
-  const item={user_id:uid,city,region,country,starts_at:new Date(starts).toISOString(),ends_at:new Date(ends).toISOString(),note:txt(body.note,300),visible_to_members:body.visible_to_members!==false};
+  if(!city||!country||!Number.isFinite(starts)||!Number.isFinite(ends)||ends<=starts||ends-starts>365*86400000)
+   throw Error('Enter a destination and valid travel dates (maximum one year per trip)');
+  // Describe conflicting destination in UI before attempting a write; the GiST
+  // exclusion constraint is authoritative even for simultaneous requests.
+  let conflicts=db.from('ccx_travel_dates')
+   .select('id,city,region,country,starts_at,ends_at')
+   .eq('user_id',uid).lte('starts_at',new Date(ends).toISOString())
+   .gte('ends_at',new Date(starts).toISOString()).limit(1);
+  if(uuid(body.id))conflicts=conflicts.neq('id',body.id);
+  const {data:overlap,error:overlapError}=await conflicts;
+  if(overlapError)throw overlapError;
+  if(overlap?.length)return out({error:'These dates overlap your trip to '+overlap[0].city+
+   ' ('+String(overlap[0].starts_at).slice(0,10)+' to '+String(overlap[0].ends_at).slice(0,10)+
+   '). Choose travel dates that do not overlap.',conflict:overlap[0]},409);
+  const item={user_id:uid,city,region,country,starts_at:new Date(starts).toISOString(),ends_at:new Date(ends).toISOString(),
+   note:txt(body.note,300),visible_to_members:body.visible_to_members!==false};
   let result;
   if(uuid(body.id))result=await db.from('ccx_travel_dates').update(item).eq('id',body.id).eq('user_id',uid).select('id').single();
   else result=await db.from('ccx_travel_dates').insert(item).select('id').single();
+  if(result.error?.code==='23P01')return out({error:'These travel dates overlap another trip. Choose a different range.'},409);
   if(result.error)throw result.error;
   return out({item:result.data});
  }
