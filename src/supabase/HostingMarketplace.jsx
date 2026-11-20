@@ -18,6 +18,8 @@ import HostingHost from './HostingHost';
 import {PropertyPreviewCard} from './HostPortfolio';
 import PropertyPhotoGallery from './PropertyPhotoGallery';
 import HostingAreaMap from './HostingAreaMap';
+import HostingDateRange from './HostingDateRange';
+import {validRange} from './hostingDateRange.mjs';
 import {hostingAdvanced} from './hostingBusinessApi';
 import HostingBookingOperations from './HostingBookingOperations';
 import {hostingBusiness} from './hostingBusinessApi';
@@ -69,7 +71,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
     }).catch(e=>{if(alive)setError(e.message);}).finally(()=>{if(alive)setBusy(false);});
     return()=>{alive=false;};
   },[id]);
-  const hours=starts&&ends?(new Date(ends).getTime()-new Date(starts).getTime())/3600000:0;
+  const hours=validRange(starts,ends)?(new Date(ends).getTime()-new Date(starts).getTime())/3600000:0;
 
   const bookingParams=()=>({
     property_id:item.id,starts_at:new Date(starts).toISOString(),ends_at:new Date(ends).toISOString(),
@@ -155,8 +157,8 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
         <h3 className="text-2xl font-semibold">{usd(item.hourly_rate)} <span className="text-sm font-normal text-[var(--cc-text-secondary)]">/ hour</span></h3>
         {error&&<p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{error}</p>}
         {notice&&<p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800" role="status">{notice}</p>}
-        <label className="block text-sm">Start date & time<input className={input+' mt-1'} type="datetime-local" value={starts} onChange={e=>setStarts(e.target.value)} required/></label>
-        <label className="block text-sm">End date & time<input className={input+' mt-1'} type="datetime-local" value={ends} onChange={e=>setEnds(e.target.value)} required/></label>
+        <HostingDateRange label="Rental check-in and checkout" start={starts} end={ends}
+         onChange={({start,end})=>{setStarts(start);setEnds(end);setSecureQuote(null);}} defaultOpen/>
         <label className="block text-sm">Crew size<input type="number" min={1} max={item.capacity} className={input+' mt-1'} value={crew} onChange={e=>setCrew(Number(e.target.value))}/></label>
         <label className="block text-sm">Requested production use<select className={input+' mt-1'} value={purpose} onChange={e=>setPurpose(e.target.value)}>{(item.permitted_uses||[]).map(v=><option key={v} value={v}>{usageLabels[v]||v}</option>)}</select></label>
         {assetItems.length>0&&<div className="space-y-3 rounded-xl border border-[var(--cc-border)] p-3"><h4 className="font-semibold text-sm">Production equipment and add-ons</h4>
@@ -279,8 +281,8 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
       <span className="ccx-monogram" aria-hidden="true"><Home size={20}/></span>
       <div><h2>Host Connect</h2><p>{hostOnly?'Your spaces, availability, and booking requests.':'Find the right space for your next production.'}</p></div>
     </header>
-    {(!hostOnly||isAdmin)&&<nav className="flex flex-wrap gap-2">
-      {/** @type {Array<[string, string, import('react').ElementType]>} */ ((hostOnly?[['host','Property dashboard',Home],...(isAdmin?[['review','Listing approvals',ShieldCheck]]:[])]:[['explore','Explore spaces',Search],['favorites','Saved',Heart],['bookings','My requests',CalendarDays],...(paid?[['host','Host dashboard',Home]]:[]),...(isAdmin?[['review','Listing approvals',ShieldCheck]]:[]),['alerts','Notifications',CalendarDays],['crew','Crew invitations',Users],['cleaning','My cleaning jobs',Home]]))
+    {!hostOnly&&<nav aria-label="Guest Host Connect navigation" className="flex flex-wrap gap-2">
+      {/** @type {Array<[string, string, import('react').ElementType]>} */ ([['explore','Explore spaces',Search],['favorites','Saved',Heart],['bookings','My requests',CalendarDays]])
       .map(([key,label,Icon])=><button key={key} className={'flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm '+(section===key?'ccx-action-primary text-[var(--cc-text-primary)]':'border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] text-[var(--cc-text-secondary)]')} onClick={()=>{setSection(key);setSelected('');setError('');}}><Icon size={16}/>{label}</button>)}
     </nav>}
     {error&&<p className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800" role="alert">{error}</p>}
@@ -289,7 +291,13 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
     {(section==='explore'||section==='favorites')&&<>
       {selected?<ListingDetail brand={brand} id={selected} paid={paid} favorites={favorites} toggle={toggle} back={()=>setSelected('')} onBooked={()=>search()}/>:
       <div className="space-y-5">
-        <form onSubmit={e=>{e.preventDefault();search();}} className={panel+' grid gap-3 p-4 md:grid-cols-3 xl:grid-cols-4'}>
+        <details className={panel+' group overflow-hidden'} data-host-space-filters="true">
+         <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold">
+          <span className="flex items-center gap-2"><SlidersHorizontal size={18}/>Find a space · Filter location, dates and amenities</span>
+          <span className="text-xs text-[var(--cc-text-secondary)] group-open:hidden">Expand</span>
+          <span className="hidden text-xs text-[var(--cc-text-secondary)] group-open:block">Collapse</span>
+         </summary>
+         <form onSubmit={e=>{e.preventDefault();search();}} className="grid gap-3 border-t border-[var(--cc-border)] p-4 md:grid-cols-3 xl:grid-cols-4">
           <label className="block text-xs text-[var(--cc-text-secondary)]">Find a space<select aria-label="Find a space" value={category} onChange={e=>setCategory(e.target.value)} className={input+' mt-1'}><option value="">All space types</option>{rentalCategories.map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label>
           <label className="block text-xs text-[var(--cc-text-secondary)]">Country<select aria-label="Country" className={input+' mt-1'} value={country} onChange={e=>{setCountry(e.target.value);setRegion('');setCity('');}}><option value="">All countries</option>{countries.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
           <label className="block text-xs text-[var(--cc-text-secondary)]">State / region<select aria-label="State / region" className={input+' mt-1'} value={region} onChange={e=>{setRegion(e.target.value);setCity('');}}><option value="">All states / regions</option>{regions.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
@@ -297,10 +305,11 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
           <label className="block text-xs text-[var(--cc-text-secondary)]">Max $/hr<input className={input+' mt-1'} type="number" min={1} value={maxPrice} onChange={e=>setMaxPrice(e.target.value)} placeholder="Any"/></label>
           <label className="block text-xs text-[var(--cc-text-secondary)]">Crew size<input className={input+' mt-1'} type="number" min={1} value={crew} onChange={e=>setCrew(e.target.value)} placeholder="Any"/></label>
           <div className="md:col-span-3 xl:col-span-4"><PropertyAmenities values={selectedAmenities} onChange={setSelectedAmenities}/></div>
-          <label className="block text-xs text-[var(--cc-text-secondary)]">Available from<input className={input+' mt-1'} type="datetime-local" value={from} onChange={e=>setFrom(e.target.value)}/></label>
-          <label className="block text-xs text-[var(--cc-text-secondary)]">Available until<input className={input+' mt-1'} type="datetime-local" value={to} onChange={e=>setTo(e.target.value)}/></label>
-          <button type="submit" disabled={busy} className={button+' mt-4 self-end'}><SlidersHorizontal size={16} className="inline mr-2"/>Search spaces</button>
-        </form>
+          <div className="md:col-span-3 xl:col-span-4"><HostingDateRange label="Search check-in and checkout" compact optional start={from} end={to}
+            onChange={({start,end})=>{setFrom(start);setTo(end);}}/></div>
+          <button type="submit" disabled={busy||(Boolean(from||to)&&!validRange(from,to))} className={button+' mt-4 self-end'}><SlidersHorizontal size={16} className="inline mr-2"/>Search spaces</button>
+         </form>
+        </details>
         <div className="flex flex-wrap gap-2 items-center">
           <button className={showMap?button: 'rounded-lg border border-[var(--cc-border)] px-4 py-2 text-sm'} onClick={()=>setShowMap(!showMap)}>
             {showMap?'Hide interactive map':'Show interactive map'}
@@ -308,7 +317,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
           {mapBounds&&<button className="text-xs text-[var(--cc-text-secondary)]" onClick={()=>{setMapBounds(null);search(false);}}>Clear map-area search</button>}
         </div>
         {showMap&&<HostingAreaMap areas={areas} listings={listings} onSelect={setSelected}
-           onSearchBounds={bounds=>{setMapBounds(bounds);search(bounds);}}/>}
+           onSearchBounds={bounds=>{setMapBounds(bounds);}}/>}
         <div className="flex items-center justify-between gap-3">
           <div><h2 className="text-xl font-semibold">{section==='favorites'?'Your saved locations':brand==='host_connect'||brand==='onlyhost'?'Browse Host Connect spaces':'Explore professional spaces'}</h2><p className="mt-1 text-xs text-[var(--cc-text-secondary)]">{visible.length} approved {visible.length===1?'listing':'listings'} · Search returns only general location information</p></div>
           <button className="flex items-center gap-2 text-sm text-[var(--cc-text-secondary)]" onClick={search} disabled={busy}><RefreshCw size={15}/>Refresh</button>
@@ -339,9 +348,9 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
       </div>)}
     </div>}
 
-    {section==='alerts'&&<HostingNotificationSettings/>}
-    {section==='crew'&&<HostingCrewInbox/>}
-    {section==='cleaning'&&<HostingWorkforceManager worker/>}
-    {(section==='host'||section==='review')&&<HostingHost paid={paid} isAdmin={isAdmin} reviewMode={section==='review'} user={user} brand={brand}/>}
+    {hostOnly&&section==='alerts'&&<HostingNotificationSettings/>}
+    {hostOnly&&section==='crew'&&<HostingCrewInbox/>}
+    {hostOnly&&section==='cleaning'&&<HostingWorkforceManager worker/>}
+    {hostOnly&&(section==='host'||section==='review')&&<HostingHost paid={paid} isAdmin={isAdmin} reviewMode={section==='review'} user={user} brand={brand}/>}
   </div>;
 }
