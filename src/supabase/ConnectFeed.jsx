@@ -3,7 +3,7 @@
  * can submit posts and reposts. No public media URLs or third-party ad scripts.
  */
 import React,{useCallback,useEffect,useRef,useState} from 'react';
-import {Heart,MessageCircle,Repeat2,Share2,Bookmark,ImagePlus,Send,Flag,RefreshCw,X} from 'lucide-react';
+import {Heart,MessageCircle,Repeat2,Share2,Bookmark,ImagePlus,Send,Flag,RefreshCw,X,Settings2} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
 import {loadFeedPreferences} from './feedDisplayPreferences.mjs';
 const secondary='ccx-secondary inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm disabled:opacity-50';
@@ -225,6 +225,7 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
    const message=text.trim().length>=5?text:'Shared a photo';
    const result=await action('create',{text:message,audience,media_ids:mediaIds,group_id:groupId||undefined});
    setText('');setUploadFile(null);setRights(false);setAdultNudity(false);
+   if(photoPicker.current)photoPicker.current.value='';
    setNotice(result.item?.status==='published'?'Your update is live on the Feed. Reports may temporarily hide it for review.':result.note||'Update submitted.');
    if(result.item?.status==='published')void load(false);
   }catch(e){setError(e.message);}finally{posting.current=false;setLoading(false);}
@@ -264,6 +265,7 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
    <h2 className="text-xl font-bold">Feed</h2>
    <div className="flex gap-2">
     <button className={secondary} type="button" title="Groups" aria-label="Groups" onClick={()=>onNavigate('groups')}><MessageCircle size={17}/></button>
+    <button className={secondary} type="button" title="Feed settings" aria-label="Feed settings" onClick={()=>onNavigate('settings')}><Settings2 size={17}/></button>
     <button className={secondary} type="button" title="Refresh Feed" disabled={loading} onClick={()=>void load(false)} aria-label="Refresh Feed"><RefreshCw size={17}/></button>
    </div>
   </header>}
