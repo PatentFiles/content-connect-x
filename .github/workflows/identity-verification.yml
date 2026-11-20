@@ -87,6 +87,8 @@ jobs:
           psql -v ON_ERROR_STOP=1 -f supabase/sql/self_hosted_identity_retention_hardening.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261119212000_identity_selective_retake.sql
           psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261119230000_identity_review_mfa_case_workflow.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261120195550_account_name_verification_binding.sql
+          psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261120204000_first_party_age_approval_guard.sql
           psql -v ON_ERROR_STOP=1 -f tests/identity-database-regression.sql | tee identity-database-results.txt
       - uses: actions/upload-artifact@v4
         if: always()
