@@ -1048,3 +1048,15 @@ html:where([data-ccx-appearance="public"]), :where(html[data-ccx-appearance="pub
 
 
 :root:where([data-ccx-appearance="public"]) { --cc-surface-subtle: #11182B; --cc-input-border: var(--cc-border); --cc-link: #FF87D8; --cc-focus: #09D3F7; --cc-action: #E900C5; --cc-action-hover: #C4008D; --cc-on-action: #FFFFFF; }
+
+
+/* Signed-out Host Connect: compact features on mobile, expanded desktop grid. */
+@media(max-width:767px){
+ :where(html[data-ccx-appearance="public"]) .oh-landing-cards[data-host-desktop-features="true"]{display:none!important}
+ :where(html[data-ccx-appearance="public"]) .oh-landing-mobile-accordion[data-host-mobile-accordion="true"]{display:grid!important}
+}
+@media(min-width:768px){
+ :where(html[data-ccx-appearance="public"]) .oh-landing-cards[data-host-desktop-features="true"]{display:grid}
+ :where(html[data-ccx-appearance="public"]) .oh-landing-mobile-accordion[data-host-mobile-accordion="true"]{display:none!important}
+}
+:where(html[data-ccx-appearance="public"]) .oh-landing-mobile-accordion details[open] summary span[aria-hidden="true"]{transform:rotate(45deg)}
