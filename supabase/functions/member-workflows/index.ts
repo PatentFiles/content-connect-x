@@ -56,6 +56,7 @@ Deno.serve(async req=>{
   const actionFeatures:Record<string,string>={
     request_connection:'connections',respond_connection:'connections',
     list_connection_requests:'connections',
+    intro_list:'messages',intro_start:'messages',intro_reply:'messages',intro_decline:'messages',
     start_conversation:'messages',create_conversation:'messages',
     list_conversations:'messages',list_messages:'messages',send_message:'messages',
     mark_conversation_read:'messages',create_group_conversation:'messages',
@@ -211,6 +212,40 @@ Deno.serve(async req=>{
         if(error)throw error;
         return respond({items:data||[]});
       }
+      case 'intro_list':
+      case 'intro_start':
+      case 'intro_reply':
+      case 'intro_decline':{
+        const operation=action==='intro_list'?'list':action==='intro_start'?'start':action==='intro_reply'?'reply':'decline';
+        if(operation==='start'){
+          if(!isId(body.target_user_id)||body.target_user_id===uid||typeof body.message!=='string')
+            return fail('Choose a verified professional and include a short introduction',400);
+          const localBlock=await enforceFreeContact(body.target_user_id);
+          if(localBlock)return fail(localBlock,403);
+        }
+        if(['reply','decline'].includes(operation)&&!isId(body.introduction_id))
+          return fail('Choose an introduction',400);
+        const {data,error}=await admin.rpc('ccx_friend_intro',{
+          p_actor:uid,p_action:operation,
+          p_target:operation==='start'?body.target_user_id:null,
+          p_introduction:['reply','decline'].includes(operation)?body.introduction_id:null,
+          p_text:['start','reply'].includes(operation)?String(body.message||'').slice(0,1000):null
+        });
+        if(error){
+          const permitted=['INTRO_NOT_VERIFIED','INTRO_INVALID','INTRO_UNAVAILABLE','INTRO_RATE_LIMIT','INTRO_EXISTS'];
+          const key=permitted.find(e=>String(error.message||'').includes(e));
+          return fail(key==='INTRO_RATE_LIMIT'?'Weekly introduction limit reached':key==='INTRO_EXISTS'?
+            'An introduction already exists with this member':key==='INTRO_INVALID'?
+            'Please enter a valid introduction':'Introduction is unavailable or does not allow contact',key==='INTRO_RATE_LIMIT'?429:403);
+        }
+        if(operation==='start')await notification(body.target_user_id,'message','New professional introduction',{introduction_id:data?.id});
+        if(operation==='reply'){
+          const {data:row}=await admin.from('ccx_friend_introductions').select('requester_id')
+            .eq('id',body.introduction_id).eq('recipient_id',uid).maybeSingle();
+          if(row)await notification(row.requester_id,'message','Introduction answered',{introduction_id:body.introduction_id});
+        }
+        return respond(operation==='list'?{items:data?.items||[]}:{item:data},operation==='start'?201:200);
+      }
       case 'request_connection':{
         const target=body.target_user_id;
         if(!isId(target)||target===uid)return fail('A valid recipient is required');
@@ -231,6 +266,27 @@ Deno.serve(async req=>{
           .eq('requester_id',target).eq('recipient_id',uid).maybeSingle();
         if(priorError)throw priorError;
         if(prior&&['pending','accepted'].includes(prior.status))return fail('Respond to the existing request instead',409);
+        const [recipientPolicy,actorPolicy]=await Promise.all([
+          admin.from('ccx_friend_preferences').select('request_policy').eq('user_id',target).maybeSingle(),
+          admin.from('ccx_friend_preferences').select('friend_request_daily_limit').eq('user_id',uid).maybeSingle()
+        ]);
+        if(recipientPolicy.error||actorPolicy.error)return fail('Friendship policy unavailable',503);
+        const policy=recipientPolicy.data?.request_policy||'message_first';
+        if(policy==='no_one')return fail('This member is not accepting friend requests',403);
+        if(policy==='message_first'){
+          const {data:intros,error:introError}=await admin.from('ccx_friend_introductions').select('id')
+            .eq('status','completed')
+            .or('and(requester_id.eq.'+uid+',recipient_id.eq.'+target+'),and(requester_id.eq.'+target+',recipient_id.eq.'+uid+')')
+            .limit(1);
+          if(introError)return fail('Friendship introduction status unavailable',503);
+          if(!intros?.length)return fail('Exchange a professional introduction with this member before sending a friend request',403);
+        }
+        const dailyLimit=actorPolicy.data?.friend_request_daily_limit||10;
+        const since=new Date(Date.now()-86400000).toISOString();
+        const {count,error:limitError}=await admin.from('member_connection_requests').select('id',{count:'exact',head:true})
+          .eq('requester_id',uid).gte('requested_at',since);
+        if(limitError)return fail('Friendship request limit temporarily unavailable',503);
+        if((count||0)>=dailyLimit)return fail('Daily friend request limit reached',429);
         const localBlock=await enforceFreeContact(target);
         if(localBlock)return fail(localBlock,403);
         const {data,error}=await admin.rpc('ccx_request_connection',{p_actor:uid,p_target:target});
