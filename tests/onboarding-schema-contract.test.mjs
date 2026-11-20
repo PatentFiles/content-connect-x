@@ -15,10 +15,10 @@ test('the repair declares each identity and profile-media column idempotently',(
  assert.match(migration,/NOTIFY pgrst, 'reload schema'/);
  assert.doesNotMatch(migration,/DROP\s+(TABLE|COLUMN)|DISABLE ROW LEVEL SECURITY/i);
 });
-test('signup proceeds to a Yoti-only age step without a second profile form',()=>{
+test('signup proceeds to a first-party Railway ID and live-selfie step without a second profile form',()=>{
  assert.doesNotMatch(gate,/from\('member_profiles'\)\.upsert|profile_complete|saveProfile/);
- assert.match(gate,/<YotiVerification/);
- assert.doesNotMatch(gate,/type="file"|submit-age-verification|uploadToSignedUrl/);
+ assert.match(gate,/<IdentityVerification/);
+ assert.doesNotMatch(gate,/submit-age-verification|uploadToSignedUrl|member_admissions/);
  assert.match(app,/full_name:fullName/);
  const entry=read('supabase/migrations/20261117232051_one_time_signup_admission_optional_mfa.sql');
  assert.match(entry,/bootstrap_signup_account/);
