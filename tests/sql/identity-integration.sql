@@ -54,7 +54,8 @@ GRANT SELECT,INSERT,UPDATE ON public.age_verification_requests TO service_role;
 \ir ../../supabase/migrations/20261119212000_identity_selective_retake.sql
 \ir ../../supabase/migrations/20261119230000_identity_review_mfa_case_workflow.sql
 \ir ../../supabase/migrations/20261120195550_account_name_verification_binding.sql
-CREATE TRIGGER ccx_yoti_approval_only BEFORE INSERT OR UPDATE OF status ON public.age_verification_requests FOR EACH ROW EXECUTE FUNCTION ccx_internal.require_yoti_new_approval();
+\ir ../../supabase/migrations/20261120195550_account_name_verification_binding.sql
+\ir ../../supabase/migrations/20261120204000_first_party_age_approval_guard.sql
 
 CREATE TABLE public.ci_cases(kind text PRIMARY KEY,uid uuid,sid uuid);
 INSERT INTO public.ci_cases SELECT kind,gen_random_uuid(),gen_random_uuid() FROM unnest(ARRAY['adult','minor','birthday','failed','held']) kind;
