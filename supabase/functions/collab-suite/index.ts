@@ -295,7 +295,7 @@ Deno.serve(async req=>{
   const {data:blob,error:fileError}=await db.storage.from('ccx-collab-recordings').download(rec.storage_path);
   if(fileError||!blob)throw Error('Recording could not be loaded');
   if(blob.size>24*1024*1024)throw Error('Recording exceeds the audio transcription file limit');
-  const form=new FormData();form.append('model','gpt-4o-mini-transcribe');form.append('file',new File([blob],'meeting.webm',{type:rec.content_type}));
+  const form=new FormData();form.append('model','gpt-4o-mini-transcribe');form.append('file',new File([blob],rec.content_type==='audio/mp4'?'meeting.mp4':'meeting.webm',{type:rec.content_type}));
   const response=await fetch('https://api.openai.com/v1/audio/transcriptions',{method:'POST',headers:{Authorization:'Bearer '+key},body:form,signal:AbortSignal.timeout(50000)});
   if(!response.ok)throw Error('OpenAI transcription failed ('+response.status+')');
   const result=await response.json(),transcript=txt(result.text,30000);
