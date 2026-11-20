@@ -141,7 +141,7 @@ export default function OnlyHostApp(){
     </button>
     <nav className="oh-header-actions ml-auto flex items-center justify-end gap-2" aria-label="Host Connect navigation">
      <a href="/" className={'oh-ccx-link items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold '+(user?'hidden sm:inline-flex':'inline-flex')}><span className="oh-ccx-gradient">Content Connect X</span></a>
-     {!ready&&<button className={primary+' oh-list-space'} onClick={openWorkspace}>List Your Space<ArrowUpRight size={16}/></button>}
+     {!ready&&<button className={primary+' oh-list-space'+(user?' hidden sm:inline-flex':'')} onClick={openWorkspace}>List Your Space<ArrowUpRight size={16}/></button>}
      {user&&<button className="oh-ccx-link hidden items-center gap-2 rounded-xl px-3 py-2.5 text-sm sm:inline-flex" onClick={()=>setShowSettings(true)} aria-label="Host settings"><Settings size={18}/><span className="hidden sm:inline">Settings</span></button>}
      {user&&<button type="button" className="oh-logout-button hidden min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--cc-border)] px-3 py-2 text-sm font-semibold sm:inline-flex" onClick={()=>void signOut()} disabled={busy} aria-label="Log out of Host Connect"><LogOut size={18}/>Log out</button>}
      {user&&<button ref={hostMenuButtonRef} type="button" aria-label="Open Host Connect navigation menu" aria-expanded={hostMenuOpen}
