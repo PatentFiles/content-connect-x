@@ -58,7 +58,7 @@ Deno.serve(async req=>{
     list_connection_requests:'connections',
     start_conversation:'messages',create_conversation:'messages',
     list_conversations:'messages',list_messages:'messages',send_message:'messages',
-    mark_conversation_read:'messages',create_group_conversation:'messages',
+    mark_conversation_read:'messages',create_group_conversation:'messages',add_group_conversation_member:'messages',
     edit_message:'messages',delete_message:'messages',react_message:'messages',
     create_collaboration:'collaborations',invite_collaborator:'collaborations',
     respond_invitation:'collaborations',list_collaborations:'collaborations',list_invitations:'collaborations',
@@ -332,6 +332,40 @@ Deno.serve(async req=>{
         if(joinError){await admin.from('conversations').delete().eq('id',data.id);throw joinError;}
         await audit('group_conversation_created',data.id,{members:members.length});
         return respond({item:data},201);
+      }
+      case 'add_group_conversation_member':{
+        if(!paid)return fail('Group conversation invites require active Premium membership',403);
+        const cid=body.conversation_id,target=body.target_user_id;
+        if(!isId(cid)||!isId(target)||target===uid)return fail('Select a group and an eligible friend',400);
+        const {data:group,error:groupError}=await admin.from('conversations').select('id,created_by,kind,title')
+          .eq('id',cid).maybeSingle();
+        if(groupError||!group||group.kind!=='group'||group.created_by!==uid)
+          return fail('Only the group creator can add new people',403);
+        const {data:members,error:memberError}=await admin.from('conversation_members').select('user_id')
+          .eq('conversation_id',cid).limit(12);
+        if(memberError||!members?.some(m=>m.user_id===uid))return fail('Group membership unavailable',403);
+        if(members.some(m=>m.user_id===target))return fail('This friend is already in the group',409);
+        if(members.length>=10)return fail('Group conversations support a maximum of 10 members',409);
+        const [a,s,security,connections,blocks]=await Promise.all([
+          admin.from('member_admissions').select('id,user_id,admitted_at,source,created_at').eq('user_id',target).order('created_at',{ascending:false}).limit(1),
+          admin.from('member_subscriptions').select('status,period_end').eq('user_id',target).maybeSingle(),
+          admin.from('account_security').select('banned,suspended').eq('user_id',target).maybeSingle(),
+          admin.from('member_connection_requests').select('id').eq('status','accepted')
+           .or(`and(requester_id.eq.${uid},recipient_id.eq.${target}),and(requester_id.eq.${target},recipient_id.eq.${uid})`).limit(1),
+          admin.from('member_blocks').select('blocker_id,blocked_id').or(
+           [...members.map(m=>`and(blocker_id.eq.${m.user_id},blocked_id.eq.${target})`),
+             ...members.map(m=>`and(blocker_id.eq.${target},blocked_id.eq.${m.user_id})`)].join(',')
+          ).limit(10)
+        ]);
+        if(a.error||s.error||security.error||connections.error||blocks.error||
+          !isAdmitted(a.data||[])||!isActive(s.data)||!security.data||security.data.banned||security.data.suspended||
+          !connections.data?.length||blocks.data?.length)
+          return fail('The new member must be verified, subscribed, mutually connected and unblocked',403);
+        const {error:insertError}=await admin.from('conversation_members').insert({conversation_id:cid,user_id:target});
+        if(insertError)return fail('Could not add this member; the group may be full',409);
+        await notification(target,'group_member_added','Added to a group conversation',{conversation_id:cid});
+        await audit('group_conversation_member_added',cid,{member:target});
+        return respond({added:true,member_id:target});
       }
       case 'list_messages':{
         const cid=body.conversation_id;
