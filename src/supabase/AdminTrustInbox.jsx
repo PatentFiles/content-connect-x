@@ -19,15 +19,26 @@ export default function AdminTrustInbox({initialCaseId='',onNavigate=(destinatio
  const [cases,setCases]=useState([]),[viewer,setViewer]=useState(null),[selected,setSelected]=useState(null),[thread,setThread]=useState([]);
  const [filter,setFilter]=useState('open'),[status,setStatus]=useState('reviewing'),[note,setNote]=useState(''),[reply,setReply]=useState('');
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
+ const [queueBusy,setQueueBusy]=useState(false),[hasMore,setHasMore]=useState(false),[nextCursor,setNextCursor]=useState(null);
+ const [counts,setCounts]=useState({unresolved:0,mine:0,urgent:0});
  const generation=useRef(0),replyToken=useRef(null),activeId=useRef(''),openedInitial=useRef('');
- const load=useCallback(async()=>{
-  const n=++generation.current;setError('');
+ const load=useCallback(async(cursor=null)=>{
+  const n=++generation.current;setError('');setQueueBusy(true);
   try{
-   const result=await call('ccx_trust_triage',{p_action:'list'});
+   const result=await call('ccx_trust_inbox_page',{
+    p_filter:filter,p_before_created:cursor?.created_at||null,
+    p_before_id:cursor?.id||null,p_limit:50
+   });
    if(n!==generation.current)return;
-   setCases(result.items||[]);setViewer(result.reviewer_id||null);
-  }catch(e){if(n===generation.current){setError(e.message);setCases([]);}}
- },[]);
+   const newItems=result.items||[];
+   setCases(previous=>cursor?[...previous,...newItems.filter(item=>!previous.some(existing=>existing.id===item.id))]:newItems);
+   setViewer(result.reviewer_id||null);
+   setCounts(result.counts||{unresolved:0,mine:0,urgent:0});
+   setNextCursor(result.next_cursor||null);
+   setHasMore(result.has_more===true);
+  }catch(e){if(n===generation.current){setError(e.message);if(!cursor){setCases([]);setHasMore(false);}}}
+  finally{if(n===generation.current)setQueueBusy(false);}
+ },[filter]);
  const open=useCallback(async id=>{
   if(!isID(id))return;
   setBusy(true);setError('');
@@ -84,22 +95,15 @@ export default function AdminTrustInbox({initialCaseId='',onNavigate=(destinatio
    setNotice('Your response is saved. The reporter can read it securely using their receipt reference and access code.');
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
- const visible=cases.filter(item=>{
-  if(filter==='open')return item.status!=='resolved';
-  if(filter==='mine')return item.assigned_reviewer_id===viewer&&item.status!=='resolved';
-  if(filter==='urgent')return item.status!=='resolved'&&(item.priority==='critical'||item.priority==='high'||item.overdue);
-  if(filter==='unassigned')return item.status!=='resolved'&&!item.assigned_reviewer_id;
-  if(filter==='resolved')return item.status==='resolved';
-  return true;
- });
- const unresolved=cases.filter(x=>x.status!=='resolved').length;
- const mine=cases.filter(x=>x.assigned_reviewer_id===viewer&&x.status!=='resolved').length;
- const pending=cases.filter(x=>x.status!=='resolved'&&(x.priority==='critical'||x.priority==='high'||x.overdue)).length;
+ const visible=cases;
+ const unresolved=counts.unresolved;
+ const mine=counts.mine;
+ const pending=counts.urgent;
  return <section className="space-y-4" data-admin-trust-inbox="true" aria-label="Administrator support and safety request inbox">
   <div className="flex flex-wrap items-center justify-between gap-3"><div>
    <h2 className="flex items-center gap-2 text-lg font-semibold"><Inbox size={20}/>Support, affiliates and safety requests</h2>
    <p className="mt-1 text-xs text-[var(--cc-text-secondary)]">Confidential requests from every footer contact form are routed here for all administrators. Access and replies are audited.</p>
-  </div><button type="button" className={btn} disabled={busy} onClick={()=>void load()}><RefreshCw size={16} className="mr-1 inline"/>Refresh inbox</button></div>
+  </div><button type="button" className={btn} disabled={busy||queueBusy} onClick={()=>void load()}><RefreshCw size={16} className="mr-1 inline"/>Refresh inbox</button></div>
   <div className="grid gap-2 sm:grid-cols-3" aria-label="Request counts">
    <div className="rounded-xl border border-[var(--cc-border)] p-3"><p className="text-xs text-[var(--cc-text-secondary)]">Unresolved in queue</p><p className="text-xl font-semibold">{unresolved}</p></div>
    <div className="rounded-xl border border-[var(--cc-border)] p-3"><p className="text-xs text-[var(--cc-text-secondary)]">Assigned to me</p><p className="text-xl font-semibold">{mine}</p></div>
