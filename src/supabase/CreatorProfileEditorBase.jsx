@@ -45,9 +45,23 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
  const [loading,setLoading]=useState(true),[saving,setSaving]=useState(false);
  const [error,setError]=useState(''),[notice,setNotice]=useState('');
  const [uploading,setUploading]=useState('');
+ const [generatingBio,setGeneratingBio]=useState(false);
  const [assetPreview,setAssetPreview]=useState({avatar:profile?.avatar_path?.startsWith('https://')?profile.avatar_path:'',cover:profile?.cover_url?.startsWith('https://')?profile.cover_url:''});
  const update=(key,value)=>setForm(old=>({...old,[key]:value}));
  const preference=(key,value)=>setPrefs(old=>({...old,[key]:value}));
+ const generateBio=async()=>{
+  setGeneratingBio(true);setError('');setNotice('');
+  try{
+   const {data,error:failure}=await supabase.functions.invoke('profile-ai',{body:{
+    action:'generate_bio',display_name:form.display_name,role_type:form.role_type,city:form.city,bio:form.bio
+   }});
+   if(failure||data?.error)throw new Error(data?.error||failure?.message||'Could not generate bio');
+   const warning=bioSafetyMessage(data.bio);
+   if(warning)throw new Error('Please review and edit the generated draft before saving.');
+   setForm(old=>({...old,bio:data.bio}));
+   setNotice('AI draft inserted. Review the wording and click Save to publish. Nothing was saved automatically.');
+  }catch(e){setError(e.message||'Bio generator unavailable');}finally{setGeneratingBio(false);}
+ };
  const uploadProfileAsset=async(kind,event)=>{
   const file=event.target.files?.[0];if(!file)return;
   setUploading(kind);setError('');setNotice('');
@@ -214,6 +228,9 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
          <label className="block text-sm">About you<textarea className={input+' mt-2'} rows={5} maxLength={2000}
           value={form.bio} onChange={e=>update('bio',e.target.value)}
           placeholder="Introduce your work, experience and what you're looking to create."/></label>
+          <button type="button" className="ccx-secondary rounded-xl px-4 py-2 text-sm" disabled={generatingBio||saving||!form.display_name.trim()}
+           onClick={generateBio}>{generatingBio?'Generating draft…':'Generate bio with AI'}</button>
+          <p className="text-xs text-[var(--cc-text-secondary)]">Generates an editable professional bio using your display name, role, city and current draft. Review before saving. No health or identity documents are sent.</p>
         </section>
         <section className={panel}><h3 className="text-lg font-semibold">Location</h3>
          <p className="text-xs text-[var(--cc-text-secondary)]">Only city, state or region, and country are shared in discovery. Never enter your exact address here.</p>
