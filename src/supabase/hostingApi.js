@@ -81,7 +81,7 @@ export async function uploadHostingVideo(propertyId, file, caption = '') {
 
 export const rentalCategories = [
   ['film_studio','Film studio'],['photo_studio','Photography studio'],
-  ['house','House'],['villa','Villa'],['loft','Loft'],
+  ['house','House'],['villa','Villa'],['loft','Loft'],['apartment','Apartment / high-rise'],
   ['set','Production set'],['outdoor','Outdoor location'],
   ['equipment','Equipment'],['dungeon','Dungeon / specialty studio'],['other','Other space'],
 ];
