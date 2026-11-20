@@ -51,7 +51,7 @@ function CookiePreferences(){
  </section>;
 }
 function RequestForm({initialKind,config,configError}){
- const [fields,setFields]=useState({kind:initialKind,name:'',email:'',locator:'',details:'',signature:'',authorized:false,good_faith:false,agency:'',jurisdiction:'',case_reference:'',legal_basis:'',scope:''});
+ const [fields,setFields]=useState({kind:initialKind,name:'',email:'',locator:(new URLSearchParams(window.location.search).get('locator')||'').slice(0,3000),details:'',signature:'',authorized:false,good_faith:false,agency:'',jurisdiction:'',case_reference:'',legal_basis:'',scope:''});
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[receipt,setReceipt]=useState(null);
  const key=useRef(null),lock=useRef(false);
  const change=(name,value)=>{key.current=null;setFields(old=>({...old,[name]:value}));};
