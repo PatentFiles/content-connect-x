@@ -4,7 +4,7 @@
  */
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
-import {Home,ArrowUpRight,ArrowRight,LogOut,CalendarDays,ShieldCheck,Clapperboard,UsersRound,FileSignature,Sparkles,CheckCircle2,Clock3,Wallet,MessageCircleMore,Eye,EyeOff,Brush,SlidersHorizontal,KeyRound,Settings,ChevronDown} from 'lucide-react';
+import {Home,ArrowUpRight,ArrowRight,LogOut,CalendarDays,ShieldCheck,Clapperboard,UsersRound,FileSignature,Sparkles,CheckCircle2,Clock3,Wallet,MessageCircleMore,Eye,EyeOff,Brush,SlidersHorizontal,KeyRound,Settings,ChevronDown,Menu,X,ClipboardList,Bell,Briefcase,ArrowLeft} from 'lucide-react';
 import HostingMarketplace from './HostingMarketplace';
 import ProfessionalLandingHero from './ProfessionalLandingHero';
 import {useAuthAppearance} from './authAppearance';
@@ -39,11 +39,31 @@ export default function OnlyHostApp(){
  const [session,setSession]=useState(null),[loading,setLoading]=useState(true);
  const [account,setAccount]=useState(null);
  const [showSettings,setShowSettings]=useState(false);
+ const [hostMenuOpen,setHostMenuOpen]=useState(false),[hostSection,setHostSection]=useState('host');
+ const hostMenuButtonRef=useRef(null),hostMenuCloseRef=useRef(null),hostMenuDialogRef=useRef(null);
  const [view,setView]=useState('account'),[showLogin,setShowLogin]=useState(false),[signUp,setSignUp]=useState(false);
  const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[showPassword,setShowPassword]=useState(false);
  const [terms,setTerms]=useState(false),[capacityOK,setCapacityOK]=useState(false),[authorityOK,setAuthorityOK]=useState(false),[adultUseOK,setAdultUseOK]=useState(false);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const user=session?.user;
+ useEffect(()=>{
+  if(!hostMenuOpen)return;
+  const prior=document.body.style.overflow;document.body.style.overflow='hidden';
+  hostMenuCloseRef.current?.focus();
+  const keydown=event=>{
+   if(event.key==='Escape'){event.preventDefault();setHostMenuOpen(false);return;}
+   if(event.key!=='Tab'||!hostMenuDialogRef.current)return;
+   const targets=[...hostMenuDialogRef.current.querySelectorAll('button:not(:disabled),a[href]')].filter(node=>node.getClientRects().length>0);
+   if(!targets.length)return;
+   const first=targets[0],last=targets[targets.length-1];
+   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+   else if(!event.shiftKey&&(document.activeElement===last||!hostMenuDialogRef.current.contains(document.activeElement))){
+    event.preventDefault();first.focus();
+   }
+  };
+  document.addEventListener('keydown',keydown);
+  return()=>{document.body.style.overflow=prior;document.removeEventListener('keydown',keydown);hostMenuButtonRef.current?.focus();};
+ },[hostMenuOpen]);
  useAuthAppearance(user);
  useEffect(()=>{
   const params=new URLSearchParams(window.location.search);
@@ -83,6 +103,7 @@ export default function OnlyHostApp(){
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
  const signOut=async()=>{
+  setHostMenuOpen(false);
   if(busy)return;
   setBusy(true);setError('');
   try{
@@ -99,6 +120,11 @@ export default function OnlyHostApp(){
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
  const ready=Boolean(user&&account?.registered&&account?.host_terms_current);
+ const openHostSection=next=>{
+  if(!ready){setView('account');setHostMenuOpen(false);return;}
+  setHostSection(next);setView('workspace');setHostMenuOpen(false);
+  window.scrollTo({top:0,behavior:'auto'});
+ };
  const openWorkspace=()=>{
   if(!user){setShowLogin(true);return;}
   if(!ready){setView('account');return;}
@@ -114,13 +140,46 @@ export default function OnlyHostApp(){
      <span className="oh-wordmark text-xl font-extrabold tracking-tight">Host<span className="oh-gradient-text">Connect</span></span>
     </button>
     <nav className="oh-header-actions ml-auto flex items-center justify-end gap-2" aria-label="Host Connect navigation">
-     <a href="/" className="oh-ccx-link inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold"><span className="oh-ccx-gradient">Content Connect X</span></a>
+     <a href="/" className={'oh-ccx-link items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold '+(user?'hidden sm:inline-flex':'inline-flex')}><span className="oh-ccx-gradient">Content Connect X</span></a>
      {!ready&&<button className={primary+' oh-list-space'} onClick={openWorkspace}>List Your Space<ArrowUpRight size={16}/></button>}
-     {user&&<button className="oh-ccx-link inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm" onClick={()=>setShowSettings(true)} aria-label="Host settings"><Settings size={18}/><span className="hidden sm:inline">Settings</span></button>}
-     {user&&<button type="button" className="oh-logout-button inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--cc-border)] px-3 py-2 text-sm font-semibold" onClick={()=>void signOut()} disabled={busy} aria-label="Log out of Host Connect"><LogOut size={18}/>Log out</button>}
+     {user&&<button className="oh-ccx-link hidden items-center gap-2 rounded-xl px-3 py-2.5 text-sm sm:inline-flex" onClick={()=>setShowSettings(true)} aria-label="Host settings"><Settings size={18}/><span className="hidden sm:inline">Settings</span></button>}
+     {user&&<button type="button" className="oh-logout-button hidden min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--cc-border)] px-3 py-2 text-sm font-semibold sm:inline-flex" onClick={()=>void signOut()} disabled={busy} aria-label="Log out of Host Connect"><LogOut size={18}/>Log out</button>}
+     {user&&<button ref={hostMenuButtonRef} type="button" aria-label="Open Host Connect navigation menu" aria-expanded={hostMenuOpen}
+      className="oh-host-menu-trigger inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-[var(--cc-border)] sm:hidden"
+      onClick={()=>setHostMenuOpen(true)}><Menu size={22}/></button>}
     </nav>
    </div>
   </header>
+  {hostMenuOpen&&user&&<div className="oh-host-mobile-overlay fixed inset-0 z-[80] sm:hidden">
+   <button type="button" tabIndex={-1} className="absolute inset-0 bg-black/50" aria-label="Close Host Connect navigation" onClick={()=>setHostMenuOpen(false)}/>
+   <div ref={hostMenuDialogRef} role="dialog" aria-modal="true" aria-label="Host Connect mobile navigation"
+    className="oh-host-mobile-drawer absolute bottom-0 right-0 top-0 flex w-[min(21rem,90vw)] flex-col overflow-hidden border-l border-[var(--cc-border)]">
+    <div className="flex items-center justify-between gap-3 border-b border-[var(--cc-border)] p-4">
+     <h2 className="text-base font-semibold">Host Connect</h2>
+     <button ref={hostMenuCloseRef} type="button" className="grid h-11 w-11 place-items-center rounded-lg"
+      aria-label="Close Host Connect menu" onClick={()=>setHostMenuOpen(false)}><X size={21}/></button>
+    </div>
+    <nav aria-label="Host Connect pages" className="oh-host-mobile-links flex-1 overflow-y-auto p-3">
+     {ready&&[
+      ['host','Dashboard',Home],['review','Guest reviews',ClipboardList],
+      ['alerts','Notifications',Bell],['crew','Crew inbox',UsersRound],
+      ['cleaning','Cleaning assignments',Brush]
+     ].map(([key,label,Icon])=><button type="button" key={key}
+      className={'oh-host-mobile-link flex min-h-12 w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-sm'+(hostSection===key?' is-active':'')}
+      aria-current={hostSection===key?'page':undefined} onClick={()=>openHostSection(key)}>
+      <Icon size={19} aria-hidden="true"/>{label}</button>)}
+     {!ready&&<button type="button" className="oh-host-mobile-link flex min-h-12 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm"
+      onClick={()=>{setHostMenuOpen(false);setView('account');}}><Briefcase size={19}/>Complete host account setup</button>}
+     <button type="button" className="oh-host-mobile-link flex min-h-12 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm"
+      onClick={()=>{setShowSettings(true);setHostMenuOpen(false);}}><Settings size={19}/>Account settings</button>
+     <a href="/" className="oh-host-mobile-link flex min-h-12 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm"><ArrowLeft size={19}/>Content Connect X</a>
+    </nav>
+    <div className="border-t border-[var(--cc-border)] p-3">
+     <button type="button" className="oh-host-mobile-link flex min-h-12 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm"
+      disabled={busy} onClick={()=>void signOut()}><LogOut size={19}/>Log out</button>
+    </div>
+   </div>
+  </div>}
   {showSettings&&user&&<HostProfileSettings user={user} onClose={()=>setShowSettings(false)}/>}
   <main id="main-content">
    {loading?<div className="mx-auto max-w-7xl px-6 py-24 text-center">Loading…</div>:view==='workspace'&&ready?
@@ -129,7 +188,7 @@ export default function OnlyHostApp(){
       <div><h1 className="text-2xl font-bold">Host Connect property dashboard</h1><p className="mt-1 text-sm text-[var(--cc-text-secondary)]">Manage your locations, rules, equipment, availability, staff, and booking requests in one place.</p></div>
       <a href="/" className={secondary}>Back to Content Connect X</a>
      </div>
-     <HostingMarketplace paid={true} isAdmin={false} user={user} brand="host_connect" initialSection="host" hostOnly/>
+     <HostingMarketplace paid={true} isAdmin={false} user={user} brand="host_connect" initialSection="host" requestedSection={hostSection} hostOnly/>
     </div>
    :<div className="oh-marketing">
      {user?<ProfessionalLandingHero host onStart={openWorkspace}/>:<>
