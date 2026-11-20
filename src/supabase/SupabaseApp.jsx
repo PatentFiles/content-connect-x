@@ -30,6 +30,7 @@ import OriginalRoleDashboard from './OriginalRoleDashboard';
 import CreatorProfileEditor from './CreatorProfileEditor';
 import MemberPublicProfile from './MemberPublicProfile';
 import MeetingStudio from './MeetingStudio';
+import AffiliateShop from './AffiliateShop';
 import CreatorDiscovery from './CreatorDiscovery';
 import YotiVerification from './YotiVerification';
 import PublicLandingSections from './PublicLandingSections';
@@ -532,6 +533,7 @@ export default function SupabaseApp() {
     {['controls','integrations','testing-reviews'].includes(tab) && approved && isAdmin &&
       <AdminConsole key={tab} initialSection={tab==='integrations'?'integrations':tab==='testing-reviews'?'testing':'features'}
        onFeatureChange={()=>refreshFeatureFlags().catch(()=>setVisibleFeatures({}))}/>}
+    {tab==='shop'&&approved&&<AffiliateShop isAdmin={isAdmin}/>}
     {tab==='membership'&&<PublicPricing signedIn onNavigate={navigateInWorkspace} initialRole={profile?.role_type||'creator'}/>}
 
   </>}</OriginalShell>;
