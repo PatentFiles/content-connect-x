@@ -148,9 +148,16 @@ Deno.serve(async req=>{
   const {count,error:countError}=await db.from('ccx_intro_messages').select('id',{head:true,count:'exact'}).eq('sender_id',uid).gte('created_at',new Date(Date.now()-86400000).toISOString());
   if(countError)throw countError;
   if(count>=40)throw Error('Daily introduction limit reached');
-  const {error}=await db.from('ccx_intro_messages').insert({sender_id:uid,recipient_id:peer,body:message});
+  const {data:saved,error}=await db.from('ccx_intro_messages')
+   .insert({sender_id:uid,recipient_id:peer,body:message}).select('id').single();
   if(error)throw error;
-  return out({ok:true});
+  // Notify the recipient without exposing the private message text to previews.
+  const {error:notificationError}=await db.from('member_notifications').insert({
+   recipient_id:peer,kind:'introduction',title:'New introductory message',
+   details:{sender_id:uid,message_id:saved.id}
+  });
+  if(notificationError)console.warn('Introduction saved; recipient notification could not be inserted');
+  return out({ok:true,message_id:saved.id});
  }
  case 'testing_list':{
   const {data,error}=await db.from('ccx_testing_credentials').select('id,tested_at,expires_at,issuer,document_path,status,created_at').eq('user_id',uid).order('created_at',{ascending:false}).limit(30);
