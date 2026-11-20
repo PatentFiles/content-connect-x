@@ -2,7 +2,7 @@
 import React,{useEffect,useState} from 'react';
 import {ShieldCheck,KeyRound,Eye,EyeOff,RefreshCw,PlugZap,AlertTriangle} from 'lucide-react';
 import {integrationAction} from './integrationApi';
-const styles={panel:'ccx-surface p-5',input:'w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm text-[var(--cc-text-primary)] focus:ring-2 focus:ring-fuchsia-500',button:'ccx-action-primary rounded-xl px-4 py-2.5 text-sm'};
+const styles={panel:'ccx-surface p-5',input:'w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm text-[var(--cc-text-primary)] focus:ring-2 focus:ring-[var(--cc-focus)]',button:'ccx-action-primary rounded-xl px-4 py-2.5 text-sm'};
 const names={pass:'PASS — Performer work clearance',ccbill:'CCBill — Payments',docusign:'DocuSign — Releases',email:'Transactional email',webpush:'Browser notifications',maps:'Location maps',openmoderate:'Media moderation',sentry:'Error monitoring',flagsmith:'Feature flags'};
 const help={pass:'PASS maintains 14-day yes/no work clearance. Store an approved partner credential here once PASS grants access; automatic status and production-hold checks remain disabled until the official API contract is received, mapped and tested. Never expose clinical results.',
 ccbill:'Keys are encrypted, but financial captures stay blocked until the approved merchant integration and callback contract are verified.',
