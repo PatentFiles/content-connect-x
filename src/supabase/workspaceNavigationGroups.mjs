@@ -34,8 +34,8 @@ export function groupedWorkspaceNavigation(roleLinks=[],adminLinks=[],accountLin
   });
   return {...section,items};
  }).filter(group=>group.items.length>0);
- const other=all.filter(item=>item&&typeof item.path==='string'&&!used.has(item.path));
- if(other.length)groups.push({id:'other',label:'More',items:other});
+ const other=[...byPath.values()].filter(item=>!used.has(item.path));
+ if(other.length)groups.push({id:'other',label:'More',paths:[],items:other});
  return groups;
 }
 
