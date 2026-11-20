@@ -47,7 +47,7 @@ Deno.serve(async req=>{
  if(!constantTime(expected,req.headers.get('x-ccx-cron-key')||''))return respond({error:'Unauthorized'},401);
  const body=await req.json().catch(()=>null);
  if(body?.action!=='safety_scan')return respond({error:'Unknown job'},400);
- const openaiKey=Deno.env.get('OPENAI_API_KEY')||await keyFromVault(db,'openai_api_key');
+ const openaiKey=(await keyFromVault(db,'openai_api_key'))||Deno.env.get('OPENAI_API_KEY');
  if(!openaiKey)return respond({skipped:true,reason:'OpenAI credential is not configured'});
  const {data:recent,error:recentError}=await db.from('ccx_ai_agent_runs')
   .select('id').eq('agent_type','safety').is('triggered_by',null)
