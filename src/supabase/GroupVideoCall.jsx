@@ -161,9 +161,14 @@ export default function GroupVideoCall({collaborationId,userId}){
    };
    const videoStream=canvas.captureStream(16);
    recStream.current=new MediaStream([...videoStream.getVideoTracks(),...destination.stream.getAudioTracks()]);
-   const vType=MediaRecorder.isTypeSupported('video/webm;codecs=vp8,opus')?'video/webm;codecs=vp8,opus':'video/webm';
-   const aType=MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm';
-   if(!MediaRecorder.isTypeSupported(vType)||!MediaRecorder.isTypeSupported(aType))throw Error('WebM recording is not supported by this browser');
+   // Chrome/Firefox typically record WebM; Safari/iOS commonly require MP4.
+   // Use the MIME type actually supported by this device and preserve it in storage.
+   const firstSupported=types=>types.find(type=>MediaRecorder.isTypeSupported(type));
+   const vType=firstSupported(['video/webm;codecs=vp8,opus','video/webm',
+    'video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4']);
+   const aType=firstSupported(['audio/webm;codecs=opus','audio/webm',
+    'audio/mp4;codecs=mp4a.40.2','audio/mp4']);
+   if(!vType||!aType)throw Error('This browser cannot record both meeting video and audio. Try a current Safari, Chrome or Firefox version.');
    // A MediaRecorder timeslice is not necessarily a standalone playable WebM file.
    // Stop and create each pair of recorders every 30s so each uploaded segment
    // carries its own container headers and can be played or transcribed alone.
