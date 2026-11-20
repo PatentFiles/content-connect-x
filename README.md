@@ -79,6 +79,14 @@
 - **Visual consistency:** The signed-in design uses a restrained neutral style inspired by enterprise platform patterns such as Linear's March 2026 interface refresh: charcoal navigation and primary actions, slate text, off-white page canvas, white cards and inputs, thin neutral borders, low elevation and uniform focus states. Replaced purple button overrides and green-tinted cards/composer backgrounds. Green remains meaningful for status/success, not decorative panel backgrounds.
 - **LiveKit continuity:** Checked the already integrated, pinned `livekit-client@2.24.1` browser UMD path against current LiveKit SDK documentation; the meeting integration remains within existing Bolt/Supabase architecture. Actual provider calls and recordings must still be verified with configured credentials and participating devices.
 
+### November 20, 2026 — Vendor exit and first-party identity verification
+
+Content Connect X and Host Connect do **not** use the retired vendor age-verification API. The new account capture uses `IdentityVerification.jsx` and the authenticated `identity-verification` Supabase Edge Function. The worker runs in the separate Railway Identity project and verifies document OCR, independent PDF417/MRZ fields, expiry, date of birth, registered legal-name match, the ID portrait against a live selfie, and bound head-turn liveness. Decisions and evidence manifests stay private in Supabase. A genuine verified and qualifying result is necessary for admission; failed, inconclusive, mismatched, and underage attempts do not grant entry. Only a server-owned admission record unlocks the site.
+
+Yoti has been removed from active frontend, admin settings, integrations and API paths. Historical migrations and prior audit entries remain archived for reproducible database history; they are **not** a live provider option. Railway hosts the worker only; Bolt remains the website host. Production verification remains behind the independent document/liveness acceptance and retention/review controls recorded in the Identity operations runbook.
+
+CCBill and DocuSign have independent encrypted provider settings. Adding API credentials does not generate a live provider response by itself; use the existing provider workflows with real sandbox accounts to verify subscription state and signed documents.
+
 ## 1. Product boundary
 
 **Content Connect X:** a professional networking and collaboration-management marketplace for verified adults: creators, videographers, photographers, video editors, agents, studios and production teams.  
