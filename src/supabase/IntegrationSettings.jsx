@@ -51,6 +51,12 @@ export default function IntegrationSettings(){
   </div>
   {error&&<p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}
   {notice&&<p role="status" className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
+  <section className="ccx-surface space-y-2 p-5" aria-label="First-party age and identity verification">
+   <h3 className="font-semibold">First-party age and identity verification · Railway</h3>
+   <p className="text-sm text-[var(--cc-text-secondary)]">The built-in system uses government ID capture, independently checked document fields, an ID portrait-to-live-selfie match, age eligibility, and a guided liveness challenge. Records are private in Supabase; the dedicated Railway service processes them.</p>
+   <p className="text-xs text-[var(--cc-text-secondary)]">This does not require Yoti, another paid age-verification vendor, or a new provider API key. Production activation is controlled independently by the verified identity configuration and evidence-handling requirements.</p>
+   <a className="inline-flex items-center rounded-lg border border-[var(--cc-border)] px-3 py-2 text-sm" href="/Verification">Open first-party verification</a>
+  </section>
   <div className="grid gap-4 lg:grid-cols-2">
    {providers.map(p=><article key={p.provider} className={styles.panel+' space-y-3'}>
     <div className="flex flex-wrap items-start justify-between gap-3">
