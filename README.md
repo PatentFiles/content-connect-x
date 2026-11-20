@@ -1,21 +1,40 @@
 # Content Connect X / Host Connect — Developer ReadMe
 
-**Canonical operational reference · updated November 19, 2026**  
+**Canonical operational reference · updated November 20, 2026**  
 **Source of truth:** deployed server configuration and schema, current GitHub `main`, and verified release checks. Do not mistake a code module, enabled UI flag, mocked integration, or archived design for a production capability.
 
 
-## November 20, 2026 — AI bio generator implementation
+## November 20, 2026 — Connected collaboration capabilities and provider integrations
 
-**Committed to GitHub and deployed to Supabase as `profile-ai` version 1 with JWT verification enabled on November 20, 2026; live key-dependent generation and Bolt publication remain untested**: `supabase/functions/profile-ai/index.ts` is an authenticated Supabase Edge Function that drafts a professional profile bio from the requesting member's display name, role, city and existing draft. The existing `CreatorProfileEditorBase.jsx` exposes a **Generate bio with AI** control. The model response is an editable suggestion and is never saved without an explicit profile save. No ID, health documents or private creator preferences are submitted.
+**Implementation location:** current GitHub \`main\`, existing Bolt frontend, Supabase project \`yxuqbygykpfbioslljlf\`. New migrations and the Edge Functions listed below were applied and deployed on November 20, 2026. GitHub commits do not independently publish the frontend in Bolt. The original signed-out homepages, hero artwork and existing website host have not been changed.
 
-**Operator setup (Supabase, not Bolt browser secrets):**
-1. Create an API key in your own OpenAI API project at https://platform.openai.com/api-keys. Never paste it in an issue, commit or frontend environment variable.
-2. Set Supabase Edge Function secret `OPENAI_API_KEY` to that API key. Optionally set `OPENAI_MODEL` to an available text model; the implementation defaults to `gpt-4.1-mini`.
-3. **Done:** deployed `profile-ai` to existing Supabase project `yxuqbygykpfbioslljlf`, JWT verification on. Keep Bolt as the website host and publish the updated GitHub frontend code through the existing Bolt project.
-4. Sign in as an admitted non-suspended creator, open Profile, enter a display name, click Generate bio with AI, check and save. Test no API key (503), anonymous (401), non-admitted (403), timeout and rate-limit errors, and verify the API key is not present in bundled JS.
-5. Production activation still requires cost controls, server-side invocation quotas and abuse testing before broad access. A source commit alone is **not** evidence of deployment or production acceptance.
+**Shared OpenAI key:** Open the signed-in **Admin → AI agents & risk** page, paste your OpenAI API key in **Shared OpenAI API credential**, and click **Save OpenAI key**. This writes encrypted \`openai_api_key\` to Supabase Vault (the actual full token is never exposed back to the browser). For installations that set an environment secret, \`OPENAI_API_KEY\` is read first; otherwise the same server-side Vault credential powers all AI tools. \`OPENAI_MODEL\` optionally selects the text model (default \`gpt-4.1-mini\`). The same key is used by AI safety analysis, risk predictions/flags, explainable match recommendations, editable profile bios, audio transcription and AI contract drafting. \`profile-ai\` and \`collab-suite\` Edge Functions are deployed with JWT verification.
 
-**Not yet implemented / not to be marked completed:** profile-integrated travel calendar editing and overlap matching; friend message-first semantics reconciled with current accept-before-message rule; independently verified testing credentials and configurable project deadlines; persisted auditable AI AgentRun/AgentFlag/AIRiskPrediction/AIMatchSuggestion pipelines; group video with authorized room tokens, opt-in recording, transcription, shared notes and durable storage/retention; scope-to-contract review and individual signer routing; certified provider-based DocuSign signing; live CCBill charges; staffed public report intake and response. These are separate features with independent operational prerequisites, not unlocked by one OpenAI credential. Keep already implemented historical documentation instead of deleting it until production checks prove replacement.
+### Newly integrated capabilities
+
+| Feature | Implementation | Boundaries |
+|---|---|---|
+| **Profile travel calendar** | \`TravelCalendar.jsx\` from Profile and Discovery; \`ccx_travel_dates\` with owner CRUD and explicit member sharing | Month navigation, destination/date ranges; exact addresses never shared |
+| **Message before friendship** | \`FriendMessaging.jsx\` from Connections/Discovery/Settings; \`ccx_friend_settings\`, \`ccx_intro_messages\`; DB trigger on \`member_connection_requests\` | Default message-first requires reciprocal introductions; optional everyone/no-one |
+| **Private testing credentials** | \`CollaborationTesting.jsx\`, protected upload, staff evidence review, \`ccx_testing_credentials\` | Only credential validity is shared; medical document remains private |
+| **Collaboration testing deadlines** | Per-collaboration policy \`ccx_collab_testing_policies\`; DB triggers on \`contracts\` and \`signature_envelopes\`; \`ccx_testing_daily_expiry\` Cron | Expired/unverified required credentials block signing preparation; owners get expiry notices |
+| **AI safety agent and flags** | \`AIAgentAdmin.jsx\`; \`collab-suite\` actions \`agent_scan\`, \`agent_dashboard\`, \`agent_flag_review\` | AI runs, private risk predictions and human review flags are persisted and accessible only to staff; no automatic ban |
+| **Interest-based AI matches** | \`AIMatchSuggestions.jsx\` on Discovery; \`matches_generate\`, \`matches_list\`, \`match_dismiss\` | No candidate without shared saved scene/standard/fetish/kink-edge preference is recommended; no clinical or identity details sent to AI |
+| **Professional AI bio** | \`CreatorProfileEditorBase.jsx\`, \`profile-ai\` | Editable generated text, requires deliberate Save; never sends ID or medical files |
+| **Multiparty video** | \`GroupVideoCall.jsx\`; authenticated \`call_signal\`/\`call_poll\`, peer-to-peer WebRTC mesh for up to 6 | HTTPS camera permission; mesh/STUN may require TURN for restricted networks; recording consent separately enforced |
+| **Recording and transcripts** | Private \`ccx-collab-recordings\` bucket, \`ccx_collab_recordings\`, \`ccx_collab_transcripts\`, OpenAI speech transcription | Members only, signed upload URLs, recording consent confirmed for all collaboration participants |
+| **Shared collaboration notes** | \`CollaborationWorkshop.jsx\`, \`ccx_collab_notes\` and append-only \`ccx_collab_note_events\` | Optimistic concurrency and version history |
+| **AI contract drafting** | \`collab-suite\` \`ai_contract\` uses plan + shared notes + meeting transcripts | Draft saved to \`contracts\` for review; no unsigned conversation automatically becomes consent |
+| **Individual DocuSign signatures** | \`agreement-packets\` sender, generated agreement PDFs with individual signer fields, \`collaboration-docusign-webhook\` authenticates signed callback, archives PDF/certificate | DocuSign account credentials, signing authority and genuine provider completion are separate from OpenAI key |
+| **Public safety reports** | Existing \`TrustSite.jsx\` form + \`trust-intake\` Edge; new case alerts and hourly overdue Cron; \`ccx_trust_public_config().ready=true\` verified in database | Reports now accepted without subscription, unique receipts/status codes, staff claim/response actions logged. Real human handling is separate from accepting cases |
+| **CCBill membership processing** | Existing \`membership-billing\` and \`membership-ccbill-webhook\` use Vault credentials from Admin Integrations as well as server environment; authenticated relay and ledger remain | Payment status is set only by cryptographically authenticated and reconciled provider events; merchant and relay configuration are distinct from OpenAI |
+
+**Deployment and release notes:**
+- Supabase migrations applied: travel/friend/testing/AI/calls/notes/recordings; database friend-request enforcement; testing contract locks and daily expiry; DocuSign sending atomicity/events; Vault allowlist extensions; public intake and alert Cron.
+- Edge Functions deployed: \`collab-suite\`, \`profile-ai\`, \`agreement-packets\`, \`collaboration-docusign-webhook\`, \`ccx-integrations\`, \`membership-billing\`, \`membership-ccbill-webhook\`. The existing hosting payment functions and other services remain separate.
+- Sensitive provider secrets never enter the public Vite bundle. DocuSign requires account ID, integration key, service user ID, JWT private key and Connect HMAC key in the existing admin integrations (or environment secrets). CCBill has separate approved merchant form and signed callback-relay credentials. These services do not share the OpenAI key.
+- Next verification: publish GitHub in the existing Bolt project; test with real admitted participants and browsers; test a real authorized DocuSign envelope and signed callback; test CCBill provider-approved checkout and callback; verify staff actually receive and handle safety alerts. Status labels must reflect observed provider responses rather than installed code alone.
+- Historical observations in the November 19 snapshot and subsequent dated release notes remain preserved for audit. Do not interpret them as the newer November 20 state.
 
 ## 1. Product boundary
 
@@ -34,9 +53,9 @@ The product journey: **identity eligibility → professional profile → Discove
 | **GitHub** | Versioned React/Vite code, SQL, Edge Function sources, CI | `PatentFiles/content-connect-x`; merging does not publish Bolt |
 | **Supabase** | Auth, admission decisions, Postgres/RLS, Storage, Edge Functions, audit and Cron | Established project `yxuqbygykpfbioslljlf` |
 | **Railway** | Identity document OCR, face/liveness processing, dedicated retention worker | Separate `Content Connect X - Identity` project only, never website hosting |
-| **DocuSign** | Authorized electronic signatures and completed evidence | Integration source exists; not certified for actual collaboration signing |
+| **DocuSign** | Individual electronic signatures and completed evidence | Server-side packet sender and authenticated Connect webhook deployed; merchant sandbox/live signing validation separate |
 | **CCBill** | Authorized member subscription and approved rental checkout | Integration source exists; live merchant flows require provider approval, secrets and transaction testing |
-| **Voice/video provider** | Future authorized private calls | **Not enabled**; never issue a room token from the browser |
+| **Group video** | Private collaboration calls | Authenticated six-person WebRTC signaling and local recording UI implemented; TURN optional for restrictive networks |
 
 **Do not place** Supabase service keys, biometric bytes, health documents, processor credentials, private file URLs, or signing secrets in Bolt browser assets, GitHub, ordinary logs, or public storage.
 
@@ -61,7 +80,7 @@ This is a **point-in-time audit**, not an invariant or a claim of end-to-end acc
 |---|---|---|
 | Public production self-hosted ID verification | **Disabled**; security and privacy approvals absent | Validate real documents/camera behavior, recovery, consent, retention and reviewed release |
 | Private administrator ID pilot | **Enabled and time-limited**; private bucket and frequent cleanup | Never grant admission from a test run |
-| Public trust/safety report intake | **Disabled**; policy/reviewer-coverage approvals absent | Establish actual staffed response, timely handling and escalation before opening |
+| Public trust/safety report intake (Nov 19 snapshot) | **Was disabled Nov 19**; opened for receipt/case routing Nov 20 | Actual staffed review and escalation still need operator coverage |
 | Collaboration and contracts UI/backend | Enabled in premium feature registry | Signed-envelope provider and multi-user acceptance not yet established |
 | Representation agreements | Backend tables/RPC, expiry job active; zero existing representation records at snapshot | Real two-party flows and legal templates still require acceptance |
 | Host property bookings | `property_bookings` **disabled** | Merchant, availability, booking, cancellation and host acceptance |
@@ -125,7 +144,7 @@ CCBill provider adapters are separate for membership versus approved marketplace
 
 Content Connect and Host Connect are professional marketplaces, not content distributors. This does **not** eliminate duties arising from hosting profiles, messages, private records or user-uploaded material.
 
-The public reporting interface must work without a paid account once a monitored staffed response is operational. Reports require a reference, real case routing, severity triage, deadline tracking, evidence access and deletion/hold policy, reporter updates, qualified human moderation and appeals. The server-side trust intake is currently deployed **but disabled** for new public submissions. Its new private follow-up allows a reporter to check a *previously accepted* report only with both its random receipt reference and a separate private access code (not saved in browser storage). MFA-approved staff must explicitly claim a case before changing its outcome; case queue age and internal due dates are visible only to authorized reviewers. These features do not create staffing, emails, automatic removal, law-enforcement access or legal compliance on their own. Reporting suspected crime is distinct from a publicly visible rating or unreviewed allegation.
+The public reporting interface must work without a paid account once a monitored staffed response is operational. Reports require a reference, real case routing, severity triage, deadline tracking, evidence access and deletion/hold policy, reporter updates, qualified human moderation and appeals. As of November 20, the server-side trust intake is **enabled for public case submissions**, with private staff alerts and hourly overdue notifications. Its new private follow-up allows a reporter to check a *previously accepted* report only with both its random receipt reference and a separate private access code (not saved in browser storage). MFA-approved staff must explicitly claim a case before changing its outcome; case queue age and internal due dates are visible only to authorized reviewers. These features do not create staffing, emails, automatic removal, law-enforcement access or legal compliance on their own. Reporting suspected crime is distinct from a publicly visible rating or unreviewed allegation.
 
 **Voluntary on-location safety records (backend deployed November 19, 2026; Bolt frontend publication outstanding):** The private `collaboration-safety` Edge Function and `ccx_collaboration_safety_action` procedure allow accepted, admitted participants to self-report arrival, departure, safe check-out, or a concern. A server-side schedule window limits arrival claims; leaving and recording a concern remain available independently. Actions are private per participant, idempotent where appropriate, and recorded in append-only `ccx_collaboration_safety_events`. No GPS, contact names, phone numbers, emergency dispatch or third-party notifications are collected or claimed. Members may optionally state that they personally informed a trusted contact; this is not validated or sent by the platform. A recorded concern is **not** a staffed safety case. The UI links to safety-reporting options, clearly says emergency response is not monitored, and preserves independent consent withdrawal. See `ops/COLLABORATION_SAFETY_CHECKIN.md`; full staffed escalation is still blocked by issue #25.
 
@@ -201,36 +220,27 @@ The following capabilities were described by the historical Developer ReadMe. Th
 | Automated agent/studio revenue split and EarningsRecord settlement | No settlement until separately approved processor/accounting mandate | RETIRE for initial marketplace |
 | Creator booking requests that automatically create collaborations | Explicit accepted booking/invitation and separate agreement lifecycle | REPLACE |
 | Studio room availability and package rates | Host property availability, role-specific service offerings | REBUILD selectively |
-| Travel calendar / ScheduleEntry | Timezone-correct schedules and consented travel-availability sharing | REBUILD |
 | Automatic recurrence, Google Calendar/Outlook sync | Provider-backed synchronization with recurrence acceptance tests | REBUILD later |
 | Social media link verification | Owner-opted-in premium professional link visibility; validation remains | REBUILD selectively |
-| FriendSettings / MESSAGE_FIRST / NO_ONE | Current mutual connection + two-way invite guard; expand privacy settings | REBUILD |
 | FriendActivityLog and decline warnings | Audited anti-spam cooldown, appeal and fair recipient limits | REBUILD |
 | IdentityFingerprint and consistency agent | Privacy-reviewed duplicate-account detection with human appeal | REEVALUATE |
 | SafetyCheckInWidget and SafetyCheckIn history | Replaced by private, voluntary event-timestamp workflow without GPS or false emergency coverage claims; staffed escalation remains pending | REPLACE |
 | ConsentRevocation automated takedown | Real consent withdrawal, scope changes and case handling | REBUILD |
-| TestingCredential, TestingRequirement, TestingDeadline jobs | Provider-confirmed, explicit opt-in binary work clearance if legally appropriate | REPLACE |
 | Work-health document sharing | Do not expose private medical records to collaborators | RETIRE raw sharing |
 | ComplianceRecord and compliance-score events | Audited case outcomes and documented control checks | REPLACE |
 | CompliancePortalAccess | Narrow lawful case-specific disclosure with logged authorization | REBUILD |
-| AI safety agent, AgentRun, AgentFlag | Human-review-first prohibited-solicitation/abuse detection | REPLACE |
-| AIRiskPrediction | No opaque automated permanent restriction or public criminal risk score | RETIRE |
-| AIMatchSuggestion / `generateMatches` | Explainable skill/availability/location matching, no sensitive-data ads | REPLACE |
 | ReputationScore calculation | Moderated verified completed-work feedback, appeals and clear provenance | REPLACE |
 | Background screening scanner | Separate lawful vendor-supported service with human review if justified | DEFER |
 | `autoCreateEarnings` and `updateEarningsSettlement` | No automatic payment/earnings promise in initial marketplace | RETIRE |
 | Gallery, GalleryPermission, media albums | Non-explicit professional portfolios, separate access-controlled document vault | REBUILD selectively |
 | Full raw video/file delivery features | Non-explicit artifacts and permitted external delivery receipts only | RETIRE explicit hosting |
-| Profile AI bio generator | Optional professional writing assistance subject to moderation | DEFER |
 | Custom tags, city submissions and catalog moderation | Controlled professional taxonomies/region catalog | REBUILD selectively |
 | QuickTask / creator action widget | Contextual readiness tasks inside collaboration, not a global task farm | REPLACE |
 | Provider-to-Drive contract export | Optional later authorized document connector | DEFER |
 | Google calendar automatic event creation | Optional later synchronized events after OAuth approval | DEFER |
-| Platform-specific admin agent console | Real safety/financial/provider operations dashboard with least privilege | REPLACE |
 | Legal hold / compliance evidence exports | Case-scoped audit exports, retention and verified lawful requests | REBUILD |
 | Coupon / CouponRedemption | Processor-approved membership promotions, not self-created payment grants | DEFER |
 | Automated affiliate networks and payout attribution | Reviewed contextual professional sponsorship/affiliate attribution | DEFER pending partner approval |
-| One-click voice/video rooms | Authorized participants, provider tokens and recording-off default | REBUILD |
 | Miscellaneous retired backend shortcuts and stale UI modules | Remove only after owner decides and parity/usage evidence is recorded | REEVALUATE |
 
 **Decision instructions:** Mark each item REBUILD, REPLACE or RETIRE after reviewing the current implementation. Do not remove unknown legal records or re-enable retired services as a side effect of the documentation cleanup.
