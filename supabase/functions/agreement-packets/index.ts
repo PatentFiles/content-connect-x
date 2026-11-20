@@ -224,7 +224,17 @@ Deno.serve(async req=>{
      status:'sent',provider_envelope_id:created.envelopeId,sent_at:new Date().toISOString()
     }).eq('id',packet.id).eq('status','sending');
     if(updateError)throw updateError;
-    await db.from('signature_packet_recipients').update({status:'sent'}).eq('envelope_id',packet.id).eq('status','pending');
+    // Record immutable provider recipient IDs so callbacks map each DocuSign signer
+    // to the right verified collaboration member, rather than trusting display names.
+    const signerParties=parties.filter(r=>r.role!=='viewer'),viewerParties=parties.filter(r=>r.role==='viewer');
+    for(let i=0;i<signerParties.length;i++){
+     await db.from('signature_packet_recipients').update({status:'sent',provider_recipient_id:String(i+1)})
+      .eq('envelope_id',packet.id).eq('member_id',signerParties[i].member_id);
+    }
+    for(let i=0;i<viewerParties.length;i++){
+     await db.from('signature_packet_recipients').update({status:'sent',provider_recipient_id:String(signerParties.length+i+1)})
+      .eq('envelope_id',packet.id).eq('member_id',viewerParties[i].member_id);
+    }
     await db.from('signature_packet_audit').insert({envelope_id:packet.id,actor_id:uid,
      event_type:'docusign_sent',metadata:{provider_envelope_id:created.envelopeId,transaction_id:transaction,recipient_count:parties.length}});
     return reply({sent:true,status:'sent',envelope_id:created.envelopeId,note:'DocuSign signing invitations sent to each participant.'});
