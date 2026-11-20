@@ -22,6 +22,7 @@ on:
       - 'tests/connect-feed.test.mjs'
       - 'tests/feed-display-preferences.test.mjs'
       - 'scripts/test-feed-display-preferences.sql'
+      - 'scripts/prepare-feed-preferences-fixture.sql'
       - 'src/supabase/FeedPreferencesSettings.jsx'
       - 'src/supabase/feedDisplayPreferences.mjs'
       - 'src/supabase/MemberSettings.jsx'
@@ -70,6 +71,7 @@ jobs:
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f supabase/migrations/20261120014500_feed_verified_self_photo.sql
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/test-connect-groups-database.sql
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/test-feed-verified-self-photo.sql
+          psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/prepare-feed-preferences-fixture.sql
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f supabase/migrations/20261120035500_feed_member_display_preferences.sql
           psql --no-psqlrc -v ON_ERROR_STOP=1 -f scripts/test-feed-display-preferences.sql
   frontend:
