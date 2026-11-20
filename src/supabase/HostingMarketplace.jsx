@@ -162,7 +162,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
         <label className="block text-sm">Crew size<input type="number" min={1} max={item.capacity} className={input+' mt-1'} value={crew} onChange={e=>setCrew(Number(e.target.value))}/></label>
         <label className="block text-sm">Requested production use<select className={input+' mt-1'} value={purpose} onChange={e=>setPurpose(e.target.value)}>{(item.permitted_uses||[]).map(v=><option key={v} value={v}>{usageLabels[v]||v}</option>)}</select></label>
         {assetItems.length>0&&<div className="space-y-3 rounded-xl border border-[var(--cc-border)] p-3"><h4 className="font-semibold text-sm">Production equipment and add-ons</h4>
-          {assetItems.map(asset=><label key={asset.id} className="flex flex-wrap items-center justify-between gap-2 text-xs"><span>{asset.label} · {usd(asset.hourly_cents/100)}/hr · {asset.quantity} available</span>
+          {assetItems.map(asset=><label key={asset.id} className="flex flex-wrap items-center justify-between gap-2 text-xs"><span>{asset.label} · {usd((asset.daily_cents??asset.hourly_cents*24)/100)}/day · {asset.quantity} available</span>
             <input className={input+' max-w-[90px]'} type="number" min={0} max={asset.quantity} value={addonCounts[asset.id]||0}
              onChange={e=>{setAddonCounts(p=>({...p,[asset.id]:Number(e.target.value)}));setSecureQuote(null);}}/>
           </label>)}
