@@ -30,33 +30,64 @@ async function config(db){
  return out;
 }
 export async function providerSettings(db){return await config(db);}
+/** Resolve DocuSign's OAuth environment and regional REST API from the
+ * service user's actual authorized account. Sandbox and production differ:
+ * hard-coding demo.docusign.net breaks production merchants.
+ */
+export function resolveDocuSignRestBase(profile,accountId){
+ if(typeof accountId!=='string'||!accountId.trim())throw Error('DocuSign account ID is required');
+ const row=(Array.isArray(profile?.accounts)?profile.accounts:[]).find(x=>String(x.account_id||'')===accountId);
+ if(!row)throw Error('The configured DocuSign account is not authorized for this integration user');
+ let parsed;try{parsed=new URL(row.base_uri);}catch{throw Error('DocuSign returned an invalid account API URL');}
+ if(parsed.protocol!=='https:'||parsed.username||parsed.password||parsed.port||parsed.search||parsed.hash||
+   parsed.pathname!=='/'&&!['','/'].includes(parsed.pathname)||
+   !/^(?:[a-z0-9-]+\\.)+docusign\\.net$/.test(parsed.hostname))
+  throw Error('DocuSign returned an untrusted API host');
+ return parsed.origin+'/restapi/v2.1';
+}
 async function authToken(cfg){
  if(!cfg.accountId||!cfg.integrationKey||!cfg.userId||!cfg.privateKey)
-  throw Error('DocuSign credentials are incomplete. Add your DocuSign account, integration key, user ID, and private key.');
- const domain=raw(Deno.env.get('DOCUSIGN_OAUTH_HOST'))||'account-d.docusign.com';
- if(!['account-d.docusign.com','account.docusign.com'].includes(domain))throw Error('Unapproved DocuSign OAuth domain');
- // Node's RSA key loader accepts DocuSign-issued PKCS#1 and PKCS#8 PEM keys.
- const pem=cfg.privateKey.replace(/\\n/g,'\n');
- const epoch=Math.floor(Date.now()/1000);
- const header=url64(JSON.stringify({alg:'RS256',typ:'JWT'}));
- const payload=url64(JSON.stringify({iss:cfg.integrationKey,sub:cfg.userId,aud:domain,iat:epoch,exp:epoch+3500,scope:'signature impersonation'}));
- const unsigned=header+'.'+payload;
- const signature=rsaSign('RSA-SHA256',Buffer.from(unsigned),createPrivateKey(pem)).toString('base64url');
- const form=new URLSearchParams({grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer',assertion:unsigned+'.'+signature});
- const res=await fetch('https://'+domain+'/oauth/token',{method:'POST',body:form,signal:AbortSignal.timeout(15000)});
- if(!res.ok)throw Error('DocuSign OAuth failed HTTP '+res.status);
- const value=await res.json();
- if(!value.access_token)throw Error('DocuSign returned no access token');
- return value.access_token;
+  throw Error('DocuSign credentials are incomplete. Add the account, integration key, user ID, and RSA private key');
+ const explicit=raw(Deno.env.get('DOCUSIGN_OAUTH_HOST'));
+ const allowed=['account-d.docusign.com','account.docusign.com'];
+ if(explicit&&!allowed.includes(explicit))throw Error('Unapproved DocuSign OAuth domain');
+ const hosts=explicit?[explicit]:allowed;
+ const pem=cfg.privateKey.replace(/\\\\n/g,'\\n');
+ const signatureKey=createPrivateKey(pem);
+ for(const host of hosts){
+  const now=Math.floor(Date.now()/1000);
+  const unsigned=url64(JSON.stringify({typ:'JWT',alg:'RS256'}))+'.'+url64(JSON.stringify({
+   iss:cfg.integrationKey,sub:cfg.userId,aud:host,iat:now,exp:now+3500,scope:'signature impersonation'
+  }));
+  const signature=rsaSign('RSA-SHA256',Buffer.from(unsigned),signatureKey).toString('base64url');
+  const form=new URLSearchParams({grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer',
+   assertion:unsigned+'.'+signature});
+  const res=await fetch('https://'+host+'/oauth/token',{method:'POST',body:form,
+   redirect:'error',signal:AbortSignal.timeout(15000)});
+  if(res.ok){
+   const response=await res.json();
+   if(typeof response.access_token!=='string'||!response.access_token)throw Error('DocuSign did not return an access token');
+   return {token:response.access_token,oauthHost:host};
+  }
+  // A test account may live in demo while an approved integration lives in
+  // production. Only try the other official hostname when the token is rejected.
+  if(![400,401,403].includes(res.status))throw Error('DocuSign OAuth temporarily unavailable (HTTP '+res.status+')');
+ }
+ throw Error('DocuSign JWT consent or credentials were not accepted. Approve impersonation consent for this integration user.');
 }
 export async function providerFetch(db,path,options={}){
- const cfg=await config(db),token=await authToken(cfg);
- const base=raw(Deno.env.get('DOCUSIGN_API_BASE'))||'https://demo.docusign.net/restapi/v2.1';
- const parsed=new URL(base);
- if(parsed.protocol!=='https:'||!parsed.hostname.endsWith('.docusign.net')||parsed.pathname!=='/restapi/v2.1')throw Error('DocuSign API host is not authorized');
+ const cfg=await config(db),credentials=await authToken(cfg);
+ const info=await fetch('https://'+credentials.oauthHost+'/oauth/userinfo',{
+  headers:{Authorization:'Bearer '+credentials.token,Accept:'application/json'},
+  redirect:'error',signal:AbortSignal.timeout(15000)
+ });
+ if(!info.ok)throw Error('DocuSign could not resolve the configured signer account');
+ const base=resolveDocuSignRestBase(await info.json(),cfg.accountId);
+ if(typeof path!=='string'||!path.startsWith('/')||path.startsWith('//'))throw Error('Invalid DocuSign API path');
  const target=base+'/accounts/'+encodeURIComponent(cfg.accountId)+path;
- const res=await fetch(target,{...options,headers:{Authorization:'Bearer '+token,Accept:'application/json',...(options.headers||{})},signal:AbortSignal.timeout(25000)});
- if(!res.ok)throw Error('DocuSign API HTTP '+res.status);
+ const res=await fetch(target,{...options,headers:{Authorization:'Bearer '+credentials.token,Accept:'application/json',...(options.headers||{})},
+  redirect:'error',signal:AbortSignal.timeout(25000)});
+ if(!res.ok)throw Error('DocuSign API request returned HTTP '+res.status);
  return res;
 }
 /** Build a readable PDF for every participant. Reviewer changes occur before sending. */
