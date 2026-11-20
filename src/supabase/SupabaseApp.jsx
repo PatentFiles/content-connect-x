@@ -32,7 +32,7 @@ import MemberPublicProfile from './MemberPublicProfile';
 import MeetingStudio from './MeetingStudio';
 import AffiliateShop from './AffiliateShop';
 import CreatorDiscovery from './CreatorDiscovery';
-import YotiVerification from './YotiVerification';
+import IdentityVerification from './IdentityVerification';
 import PublicLandingSections from './PublicLandingSections';
 import {useAuthAppearance} from './authAppearance';
 import PublicPricing from './PublicPricing';
@@ -83,22 +83,6 @@ export default function SupabaseApp() {
   const refreshFeatureFlags=useCallback(async()=>{
     const result=await platformAction('get_feature_flags');
     setVisibleFeatures(result.flags||{});
-  },[]);
-  // Yoti redirects are treated only as navigation hints, never proof of verification.
-  useEffect(()=>{
-    const params=new URLSearchParams(window.location.search);
-    if(params.has('age_verification')){
-      setTab('verification');
-      params.delete('age_verification');
-      params.delete('sessionId');params.delete('sdkId');
-      const remainder=params.toString();
-      // Only a navigation hint: this does not grant age or identity verification.
-      // The Yoti view will retrieve the real outcome from our protected backend.
-      window.history.replaceState({
-        ...(window.history.state||{}),
-        ccxYotiReturned:true
-      },'',window.location.pathname+(remainder?'?'+remainder:'')+window.location.hash);
-    }
   },[]);
   const sessionRef=React.useRef(null);
   const user = session?.user;
@@ -370,7 +354,7 @@ export default function SupabaseApp() {
           </button>}
         </>}
         <div className="mt-5"><ErrorMessage message={error}/>{notice&&<p className="mt-3 text-sm text-emerald-800" role="status">{notice}</p>}</div>
-        <p className="mt-5 text-center text-xs text-[var(--cc-text-secondary)]">Next: verify your government ID and live selfie with Yoti. New accounts must complete this step before entering the site.</p>
+        <p className="mt-5 text-center text-xs text-[var(--cc-text-secondary)]">Next: verify your government-issued ID and complete a private live-selfie check. New professional accounts must finish identity and age verification before entering the site.</p>
         <a href="/" className="mt-4 block text-center text-sm text-[var(--cc-link)] underline underline-offset-4">Back to home page</a>
         <a href="/pricing" className="mt-2 block text-center text-sm text-[var(--cc-text-secondary)] underline underline-offset-4">View membership pricing</a>
       </section>
@@ -476,7 +460,7 @@ export default function SupabaseApp() {
       </section>
     </>}
     {tab==='public-profile'&&approved&&<MemberPublicProfile onNavigate={navigateInWorkspace}/>}
-    {tab==='verification'&&<div className="mx-auto max-w-md"><YotiVerification onApproval={()=>refresh(session)}/></div>}
+    {tab==='verification'&&<div className="mx-auto max-w-md"><IdentityVerification onApproval={()=>refresh(session)}/></div>}
     {['directory','favorites'].includes(tab)&&
       <CreatorDiscovery key={tab} user={user} approved={approved} paid={paid}
        mode={tab==='directory'?'discovery':tab} onNavigate={navigateInWorkspace}/>}
