@@ -8,6 +8,7 @@ import React,{useEffect,useState} from 'react';
 import {supabase} from '@/api/supabaseClient';
 import {Image,Activity,User,Edit2,ShieldCheck,Upload,Heart,Users,Clapperboard,Stethoscope,Lock,ChevronDown} from 'lucide-react';
 import MediaGallery from './MediaGallery';
+import ProfileTravelCalendar from './ProfileTravelCalendar';
 import MemberSocialLinks from './MemberSocialLinks';
 import ProfileAnalytics from './ProfileAnalytics';
 import OriginalCreatorPreferences,{initialCreatorPreferences} from './OriginalCreatorPreferences';
@@ -307,7 +308,7 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
   </form>}
    {activeTab==='galleries'&&<MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
    {activeTab==='analytics'&&<ProfileAnalytics/>}
-   {activeTab==='profile'&&<div className="mt-5"><MemberSocialLinks userId={user.id}/></div>}
+   {activeTab==='profile'&&<div className="mt-5 space-y-5"><MemberSocialLinks userId={user.id}/><ProfileTravelCalendar userId={user.id} currentUserId={user.id}/></div>}
   </div>
  </div>;
 }
