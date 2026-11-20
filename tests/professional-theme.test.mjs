@@ -40,6 +40,7 @@ test('original public artwork and both session-driven appearance boundaries are 
  assert.match(app,/content_conect_hero\.png/);
  assert.match(app,/ContentConnectX__Create,_Collaborate,_Grow\.png/);
  assert.match(host,/Host_Connect_Banner\.png/);
+ assert.match(host,/Host_Connect_Banner_Mobile\.png/);
  assert.match(app,/useAuthAppearance\(user\)/);assert.match(host,/useAuthAppearance\(user\)/);
  assert.match(read('src/supabase/public-brand-theme.css'),/data-ccx-appearance="public"/);
  assert.match(theme,/:not\(\[data-ccx-appearance="public"\]\)/);
