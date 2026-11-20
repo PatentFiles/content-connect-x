@@ -37,9 +37,9 @@ To enable collaboration signing: use an approved account/integration key, consen
 
 Embedded signing URLs are short-lived; generate them only for the currently authorized signer. After live go-live, recreate/test relevant Connect webhook configuration in the production DocuSign environment.
 
-## Self-hosted identity / Yoti fallback
+## First-party Railway identity verification
 
-Public production self-hosted ID verification is currently disabled pending genuine-document tests, security/privacy approval, policy and retention setup. The diagnostic pilot is separate and must never grant account admission. Do not treat a private test pass as proof of real-world fraud resistance.
+Public first-party Railway identity verification requires documented genuine-document tests, independent security/privacy approval, policy and tested evidence retention. The diagnostic pilot is separate and must never grant account admission. Do not treat a private test pass as proof of real-world fraud resistance.
 
 The server must evaluate OCR/barcode or MRZ agreement, expiration, DOB, legal-name consistency, matched live face, liveness and evidence integrity. Any failed/inconclusive gate returns clear recovery/review, never automatic bypass. Retain only legitimate evidence under reviewed schedules and legal holds. Verify the provider's model licences before commercial deployment.
 
@@ -65,7 +65,7 @@ The staff triage queue is gated by a verified administrator account and MFA AAL2
 
 ## Calls and notifications
 
-Voice/video are not implemented. Before choosing a calling service, verify data region, retention, accessibility, role-based room tokens, block/report integration and recording-off default. Video room/recipient tokens come from an authenticated server endpoint only. Recording requires separate explicit, applicable consent.
+LiveKit voice/video implementation exists with private scope-bound meeting tickets and consent-aware recording; real device and provider acceptance remain pending. Before choosing a calling service, verify data region, retention, accessibility, role-based room tokens, block/report integration and recording-off default. Video room/recipient tokens come from an authenticated server endpoint only. Recording requires separate explicit, applicable consent.
 
 Push/email delivery requires sender and VAPID/provider configuration, delivery acknowledgement, retries, dead-letter handling and real-device acceptance. A database notification is not proof it reached a member.
 
