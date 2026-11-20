@@ -27,6 +27,38 @@ Deno.serve(async req=>{
  const subscription=subscriptionResult.data;
  const premium=Boolean(securityResult.data.admin||subscription&&['active','trial'].includes(subscription.status)&&(!subscription.period_end||Date.parse(subscription.period_end)>Date.now()));
  const body=await req.json().catch(()=>({}));
+ // Authenticated owner-only read-only preview: uses precisely the safe fields
+ // and opt-in filters shown to other verified members in public Discovery.
+ // Unlike directory search, the signed-in member can preview their own profile.
+ if(body?.action==='my_public_profile'){
+  const [own,choices,verification]=await Promise.all([
+   db.from('member_profiles').select('id,display_name,role_type,bio,avatar_path,cover_path,city,state,country,profile_complete').eq('id',user.id).maybeSingle(),
+   db.from('member_profile_preferences').select('gender_identity,sexual_orientation,content_categories,show_gender_in_discovery,show_orientation_in_discovery,show_categories_in_discovery').eq('user_id',user.id).maybeSingle(),
+   db.from('age_verification_requests').select('status,expires_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(1)
+  ]);
+  if(own.error||choices.error||verification.error)return json({error:'Your public profile preview is unavailable'},503);
+  if(!own.data)return json({error:'Your profile has not been created'},404);
+  const p=own.data,c=choices.data||{},badge=verification.data?.[0];
+  const paths={avatar:safeProfileAvatarPath(user.id,p.avatar_path),
+   cover:typeof p.cover_path==='string'&&p.cover_path.startsWith(user.id+'/profile/cover-')&&!p.cover_path.includes('..')&&/\\.(jpg|jpeg|png|webp)$/i.test(p.cover_path)?p.cover_path:null};
+  const signed={};
+  for(const [kind,path] of Object.entries(paths)){
+   if(!path)continue;
+   const {data:link,error}=await db.storage.from('member-private').createSignedUrl(path,600);
+   if(!error)signed[kind]=link?.signedUrl||null;
+  }
+  const publicProfile={
+   id:p.id,display_name:p.display_name,role_type:p.role_type,bio:p.bio,
+   city:p.city,state:p.state,country:p.country,
+   avatar_url:signed.avatar||null,cover_url:signed.cover||null,
+   profile_complete:p.profile_complete===true,
+   age_verified:badge?.status==='approved'&&(!badge.expires_at||Date.parse(badge.expires_at)>Date.now()),
+   gender_identity:c.show_gender_in_discovery?c.gender_identity:null,
+   sexual_orientation:c.show_orientation_in_discovery?c.sexual_orientation:null,
+   content_categories:c.show_categories_in_discovery?c.content_categories||[]:[]
+  };
+  return json({item:publicProfile,owner_preview:true});
+ }
  const featureKey=directoryFeatureForMode(body?.mode);
  const {data:flag,error:flagError}=await db.from('product_feature_flags').select('enabled,allowed_tiers,rollout_percent').eq('key',featureKey).maybeSingle();
  if(flagError||!flag?.enabled||!flag.allowed_tiers?.includes(premium?'premium':'free'))return json({error:'This directory module is currently unavailable'},403);
