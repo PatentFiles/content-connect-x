@@ -1,6 +1,8 @@
-/** Calendar-day-only range helpers. The browser's local checkout time is kept
- * separate from the listing's authoritative server-side booking timezone.
+/** Host Connect day-only bookings. The venue's IANA timezone is authoritative.
+ * Every stay starts at 3 p.m. and ends at 3 p.m. on a later local calendar day;
+ * DST changes never produce a fractional night or an hourly booking.
  */
+export const DAILY_CHECKIN_TIME='15:00';
 export const HALF_HOUR_SLOTS=Object.freeze(Array.from({length:48},(_,i)=>{
  const h=String(Math.floor(i/2)).padStart(2,'0'),m=i%2?'30':'00';
  return {value:h+':'+m,label:new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'UTC'}).format(new Date('2026-01-01T'+h+':'+m+':00Z'))};
@@ -13,15 +15,45 @@ export const timeFor=(day,value,defaultTime)=>mergeLocal(day,timePortion(value,d
 export function selectionForDay(day,start,end){
  if(!/^\d{4}-\d{2}-\d{2}$/.test(day))return {start,end};
  const first=datePortion(start),last=datePortion(end);
- // Two taps: first is check-in, second is checkout, regardless of month.
- if(!first||last)return {start:mergeLocal(day,timePortion(start,'09:00')),end:''};
- if(day<first)return {start:mergeLocal(day,timePortion(start,'09:00')),end:mergeLocal(first,timePortion(end,'17:00'))};
- if(day===first)return {start:mergeLocal(day,timePortion(start,'09:00')),end:mergeLocal(day,'17:00')};
- return {start,end:mergeLocal(day,timePortion(end,'11:00'))};
+ if(!first||last)return {start:mergeLocal(day,DAILY_CHECKIN_TIME),end:''};
+ // A same-day checkout is not a full-day booking; prompt for another date.
+ if(day===first)return {start:mergeLocal(first,DAILY_CHECKIN_TIME),end:''};
+ if(day<first)return {start:mergeLocal(day,DAILY_CHECKIN_TIME),end:mergeLocal(first,DAILY_CHECKIN_TIME)};
+ return {start:mergeLocal(first,DAILY_CHECKIN_TIME),end:mergeLocal(day,DAILY_CHECKIN_TIME)};
+}
+export function nightsBetween(start,end){
+ const a=datePortion(start),b=datePortion(end);
+ if(!a||!b)return 0;
+ const days=Math.round((Date.parse(b+'T00:00:00Z')-Date.parse(a+'T00:00:00Z'))/86400000);
+ return Number.isSafeInteger(days)&&days>=1&&days<=365?days:0;
 }
 export function validRange(start,end){
- if(!isHalfHour(start)||!isHalfHour(end))return false;
- return new Date(end).getTime()>new Date(start).getTime();
+ return start===mergeLocal(datePortion(start),DAILY_CHECKIN_TIME)&&
+   end===mergeLocal(datePortion(end),DAILY_CHECKIN_TIME)&&nightsBetween(start,end)>0;
+}
+/** Calculate a 3 p.m. local civil date in the venue's IANA timezone.
+ * The engine stores UTC instants, but charges one full local calendar day even
+ * across 23/25-hour DST transitions. Never use the visitor's timezone.
+ */
+export function venueDateToIso(day,timeZone='America/Los_Angeles'){
+ if(!/^\d{4}-\d{2}-\d{2}$/.test(day))throw Error('Select a booking calendar date.');
+ const [year,month,date]=day.split('-').map(Number);
+ const target=Date.UTC(year,month-1,date,15,0,0);
+ const formatter=new Intl.DateTimeFormat('en-US',{
+  timeZone,year:'numeric',month:'2-digit',day:'2-digit',
+  hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+ });
+ let moment=target;
+ for(let step=0;step<3;step++){
+  const p=Object.fromEntries(formatter.formatToParts(new Date(moment)).filter(x=>x.type!=='literal').map(x=>[x.type,Number(x.value)]));
+  const observed=Date.UTC(p.year,p.month-1,p.day,p.hour,p.minute,0);
+  moment+=target-observed;
+  if(observed===target)break;
+ }
+ const final=Object.fromEntries(formatter.formatToParts(new Date(moment)).filter(x=>x.type!=='literal').map(x=>[x.type,Number(x.value)]));
+ if(final.year!==year||final.month!==month||final.day!==date||final.hour!==15||final.minute!==0)
+   throw Error('Booking local time could not be calculated. Check the venue timezone.');
+ return new Date(moment).toISOString();
 }
 export function monthLabel(year,month){return new Intl.DateTimeFormat('en-US',{month:'long',year:'numeric',timeZone:'UTC'}).format(new Date(Date.UTC(year,month,1)));}
 export function calendarDays(year,month){
