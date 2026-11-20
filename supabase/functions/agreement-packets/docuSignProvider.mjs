@@ -3,6 +3,7 @@
  * Only this server module sees the credentials or handles contract bytes.
  */
 import {PDFDocument,StandardFonts,rgb} from 'npm:pdf-lib@1.17.1';
+import {createPrivateKey,sign as rsaSign} from 'node:crypto';
 const raw=(v)=>typeof v==='string'?v.trim():'';
 const b64=(data)=>btoa(String.fromCharCode(...data));
 const url64=(s)=>b64(new TextEncoder().encode(s)).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
@@ -29,15 +30,14 @@ async function authToken(cfg){
   throw Error('DocuSign credentials are incomplete. Add your DocuSign account, integration key, user ID, and private key.');
  const domain=raw(Deno.env.get('DOCUSIGN_OAUTH_HOST'))||'account-d.docusign.com';
  if(!['account-d.docusign.com','account.docusign.com'].includes(domain))throw Error('Unapproved DocuSign OAuth domain');
- const pem=cfg.privateKey.replace(/\\n/g,'\n').replace(/-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s/g,'');
- const der=Uint8Array.from(atob(pem),c=>c.charCodeAt(0));
- const key=await crypto.subtle.importKey('pkcs8',der,{name:'RSASSA-PKCS1-v1_5',hash:'SHA-256'},false,['sign']);
+ // Node's RSA key loader accepts DocuSign-issued PKCS#1 and PKCS#8 PEM keys.
+ const pem=cfg.privateKey.replace(/\\n/g,'\n');
  const epoch=Math.floor(Date.now()/1000);
  const header=url64(JSON.stringify({alg:'RS256',typ:'JWT'}));
  const payload=url64(JSON.stringify({iss:cfg.integrationKey,sub:cfg.userId,aud:domain,iat:epoch,exp:epoch+3500,scope:'signature impersonation'}));
  const unsigned=header+'.'+payload;
- const signature=new Uint8Array(await crypto.subtle.sign('RSASSA-PKCS1-v1_5',key,new TextEncoder().encode(unsigned)));
- const form=new URLSearchParams({grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer',assertion:unsigned+'.'+b64(signature).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_')});
+ const signature=rsaSign('RSA-SHA256',Buffer.from(unsigned),createPrivateKey(pem)).toString('base64url');
+ const form=new URLSearchParams({grant_type:'urn:ietf:params:oauth:grant-type:jwt-bearer',assertion:unsigned+'.'+signature});
  const res=await fetch('https://'+domain+'/oauth/token',{method:'POST',body:form,signal:AbortSignal.timeout(15000)});
  if(!res.ok)throw Error('DocuSign OAuth failed HTTP '+res.status);
  const value=await res.json();
