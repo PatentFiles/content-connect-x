@@ -15,7 +15,7 @@ const id=(x:unknown):x is string=>typeof x==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}
 const txt=(v:unknown,n=300)=>typeof v==='string'?v.trim().slice(0,n):'';
 const secretFields:Record<string,string[]>={
  yoti:['yoti_token','yoti_sdk_id'],pass:['pass_partner_token'],ccbill:['ccbill_client_account','ccbill_subaccount','ccbill_flex_id','ccbill_salt'],
- docusign:['docusign_account_id','docusign_integration_key','docusign_private_key','docusign_hmac'],
+ docusign:['docusign_account_id','docusign_integration_key','docusign_user_id','docusign_private_key','docusign_hmac'],
  email:['email_api_token','email_sender'],webpush:['webpush_vapid_private'],maps:['maps_server_key'],
  openmoderate:['openmoderate_api_key'],sentry:['sentry_dsn'],flagsmith:['flagsmith_environment']
 };
