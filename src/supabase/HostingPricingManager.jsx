@@ -65,7 +65,7 @@ export default function HostingPricingManager({property}){
    'Approximate public map area updated. No exact address was exposed.');
  };
  return <section className="space-y-4 text-[var(--cc-text-primary)]">
-  <div><h3 className="text-lg font-semibold">Advanced hosting prices</h3><p className="mt-1 text-xs text-[var(--cc-text-secondary)]">Prices use venue-local dates and 15-minute booking increments. Final quotes are always calculated by Supabase.</p></div>
+  <div><h3 className="text-lg font-semibold">Advanced hosting prices</h3><p className="mt-1 text-xs text-[var(--cc-text-secondary)]">Full-day stays run from 3 p.m. to 3 p.m. venue-local time. Weekend and seasonal adjustments apply per calendar day; final quotes come from Supabase.</p></div>
   {error&&<p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</p>}
   {notice&&<p role="status" className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
   <form onSubmit={save} className={panel+' space-y-3'}>
