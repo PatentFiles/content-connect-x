@@ -15,7 +15,7 @@ async function call(name,args){
  if(error)throw Error(error.message||'Restricted support service unavailable');
  return data;
 }
-export default function AdminTrustInbox({initialCaseId='',onNavigate}){
+export default function AdminTrustInbox({initialCaseId='',onNavigate=()=>{}}){
  const [cases,setCases]=useState([]),[viewer,setViewer]=useState(null),[selected,setSelected]=useState(null),[thread,setThread]=useState([]);
  const [filter,setFilter]=useState('open'),[status,setStatus]=useState('reviewing'),[note,setNote]=useState(''),[reply,setReply]=useState('');
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
