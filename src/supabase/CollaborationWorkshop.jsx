@@ -1,6 +1,6 @@
 import React,{useEffect,useState} from 'react';
 import {FileText,Save,Sparkles,RefreshCw} from 'lucide-react';
-import GroupVideoCall from './GroupVideoCall';
+import MeetingStudio from './MeetingStudio';
 import {suiteAction} from './collabSuiteApi';
 const btn='ccx-secondary rounded-xl px-3 py-2 text-sm disabled:opacity-50';
 const input='w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm';
@@ -14,7 +14,7 @@ export default function CollaborationWorkshop({collaborationId,userId,onDraftCre
  <p className="text-xs text-[var(--cc-text-secondary)]">Every member can add and edit these notes. Each save creates a new version; conflicting edits require refresh. Notes and transcripts are context for contract drafts, not signatures or consent.</p>
  <textarea className={input} value={note} maxLength={20000} rows={6} onChange={e=>setNote(e.target.value)} placeholder="Discussion notes, assigned roles, equipment, deadlines, questions…"/>
  <div className="flex flex-wrap items-center gap-3"><button type="button" className={btn} disabled={busy} onClick={()=>void save()}><Save size={15} className="mr-1 inline"/>Save shared notes</button><span className="text-xs text-[var(--cc-text-secondary)]">Version {version}</span></div></section>
- <GroupVideoCall key={collaborationId} collaborationId={collaborationId} userId={userId}/>
+ <MeetingStudio key={collaborationId} scope="collaboration" scopeId={collaborationId} userId={userId} inline/>
  <section className="space-y-3 rounded-xl border border-[var(--cc-border)] p-4"><h3 className="flex gap-2 font-semibold"><Sparkles size={18}/>AI contract drafting</h3><p className="text-xs text-[var(--cc-text-secondary)]">Uses the collaboration plan, saved notes and transcripts. The generated agreement records roles, scope, deliverables and unresolved terms separately for party review. It must be approved and signed through the agreement workflow.</p>
  <button type="button" className="ccx-primary rounded-xl px-4 py-2 text-sm disabled:opacity-60" disabled={busy} onClick={()=>void generate()}>{busy?'Drafting…':'Generate contract from scope, notes and transcript'}</button>
  {draft&&<details open><summary className="cursor-pointer font-semibold">Generated contract draft</summary><pre className="mt-3 max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-xl bg-[var(--cc-surface-subtle)] p-3 text-sm">{draft}</pre></details>}</section>
