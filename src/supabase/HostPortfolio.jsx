@@ -24,7 +24,7 @@ export function PropertyPreviewCard({listing,onOpen,host=false,favorite=false,on
   </div>
   <button type="button" className="oh-property-preview-info" onClick={()=>onOpen(listing.id)}>
    <span className="oh-property-title-line"><strong>{listing.title}</strong>{listing.rating_count>0&&<span><Star size={13}/>{listing.rating_average}</span>}</span>
-   <span className="oh-property-location">{[listing.city,listing.state,listing.country].filter(Boolean).join(', ')||'Location not added'}</span>
+   <span className="oh-property-location">{listing.public_address||[listing.city,listing.state,listing.country].filter(Boolean).join(', ')||'Location not added'}</span>
    <span className="oh-property-facts">{listing.capacity||0} people · {listing.minimum_hours||1}-hour minimum</span>
    <span className="oh-property-price"><strong>{usd(listing.hourly_rate)}</strong> / hour <ArrowUpRight size={16}/></span>
   </button>
