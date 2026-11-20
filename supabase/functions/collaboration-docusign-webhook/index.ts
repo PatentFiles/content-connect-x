@@ -2,7 +2,7 @@
  * checks the DocuSign envelope before archiving signed PDF, certificate, and individual signatures.
  */
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
-import {providerFetch,providerSettings} from '../agreement-packets/docuSignProvider.mjs';
+import {providerFetch,providerSettings} from './docuSignProvider.mjs';
 const reply=(data,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
 const guid=x=>typeof x==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(x);
 const hex=b=>Array.from(b,n=>n.toString(16).padStart(2,'0')).join('');
