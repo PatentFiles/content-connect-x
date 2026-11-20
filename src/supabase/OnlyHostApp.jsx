@@ -62,6 +62,16 @@ export default function OnlyHostApp(){
    else{setSession(data.session);await refreshAccount(data.session);setShowLogin(false);}
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
+ const signOut=async()=>{
+  if(busy)return;
+  setBusy(true);setError('');
+  try{
+   const {error:failure}=await supabase.auth.signOut();
+   if(failure)throw failure;
+   setSession(null);setAccount(null);setView('account');setShowSettings(false);
+  }catch(e){setError(e.message||'Could not sign out. Try again.');}
+  finally{setBusy(false);}
+ };
  const register=async()=>{
   setBusy(true);setError('');setNotice('');
   try{const r=await integrationAction('onlyhost_register',{accept_terms:terms,terms_version:HOST_TERMS_VERSION,legal_capacity_confirmed:capacityOK,property_authority_confirmed:authorityOK,adult_production_understood:adultUseOK});
@@ -87,7 +97,7 @@ export default function OnlyHostApp(){
      <a href="/" className="oh-ccx-link inline-flex items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold"><span className="oh-ccx-gradient">Content Connect X</span></a>
      {!ready&&<button className={primary+' oh-list-space'} onClick={openWorkspace}>List Your Space<ArrowUpRight size={16}/></button>}
      {user&&<button className="oh-ccx-link inline-flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm" onClick={()=>setShowSettings(true)} aria-label="Host settings"><Settings size={18}/><span className="hidden sm:inline">Settings</span></button>}
-     {user&&<button className="oh-icon-button" onClick={()=>supabase.auth.signOut()} aria-label="Sign out"><LogOut size={18}/></button>}
+     {user&&<button type="button" className="oh-logout-button inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--cc-border)] px-3 py-2 text-sm font-semibold" onClick={()=>void signOut()} disabled={busy} aria-label="Log out of Host Connect"><LogOut size={18}/>Log out</button>}
     </nav>
    </div>
   </header>
@@ -105,7 +115,10 @@ export default function OnlyHostApp(){
      {user?<ProfessionalLandingHero host onStart={openWorkspace}/>:<>
       <h1 className="sr-only">Host Connect — studios, locations and sets for professional productions</h1>
       <section className="oh-landing-banner" aria-label="Host Connect studios and locations">
-      <img src="/Host_Connect_Banner.png" alt="Host Connect — studios, locations and sets for professional productions" className="oh-landing-banner-image"/>
+      <picture className="block w-full" data-host-responsive-hero="true">
+        <source media="(max-width: 640px)" srcSet="/Host_Connect_Banner_Mobile.png"/>
+        <img src="/Host_Connect_Banner.png" alt="Host Connect — studios, locations and sets for professional productions" className="oh-landing-banner-image"/>
+       </picture>
      </section>
      </>}
      <section className="oh-landing-section oh-landing-intro" aria-labelledby="oh-features-title">
