@@ -128,11 +128,11 @@ export default function OnlyHostApp(){
         <h2 id="oh-features-title">Your space has potential. <span className="oh-gradient-text">You set the terms.</span></h2>
         <p>List houses, lofts, studios and private locations for professional adult-content production. Welcome nude photography or explicit adult filming on your own terms—with informed permission, custom rules, and a host dashboard built for you.</p>
        </div>
-       <div className="oh-landing-cards">
-        {[
+       <div className="oh-landing-cards hidden md:grid" data-host-desktop-features="true">
+[
          {Icon:Home,title:'List Your Property',tag:'YOUR PORTFOLIO',text:'Create multiple listings for houses, apartments you are authorized to offer, lofts, studios or private filming sets. Add photos, amenities and crew capacity.'},
-         {Icon:Wallet,title:'Set Your Own Rates',tag:'YOUR PRICING',text:'Choose your hourly price and minimum booking length, including 6, 12 or 24 hours. Configure weekend and seasonal pricing, overtime and discounts where available.'},
-         {Icon:Clock3,title:'Control Booking Durations',tag:'YOUR SCHEDULE',text:'Set minimum hours, notice periods, blocked dates and cleanup buffers. Overnight stays and hotel-style check-in/out windows require supported listing settings before activation.'},
+         {Icon:Wallet,title:'Set Your Own Rates',tag:'YOUR PRICING',text:'Set your own full-day rental rate, from 3 p.m. check-in to 3 p.m. checkout. Offer single-day or multi-day stays, with weekend/seasonal pricing and cleaning fees.'},
+         {Icon:Clock3,title:'Control Booking Durations',tag:'YOUR SCHEDULE',text:'Offer whole-day or multi-day reservations with continuous 24-hour access beginning at 3 p.m. Set notice periods, blocked calendar dates and cleaning buffers.'},
          {Icon:ShieldCheck,title:'Choose Adult Uses',tag:'YOUR BOUNDARIES',text:'Explicitly opt in to nude photography or adult video production, or restrict what is allowed. Guests know your rules before requesting a shoot.'},
          {Icon:Brush,title:'Set Cleaning Fees',tag:'YOUR TURNOVER',text:'Choose a cleaning fee suitable for your house size and setup. Arrange your own cleaners; optional local service partnerships may be introduced later.'},
          {Icon:SlidersHorizontal,title:'House Rules & Restrictions',tag:'YOUR CONTROL',text:'Define permitted rooms, sound levels, filming hours, crew limits, insurance requirements, deposits and cancellation preferences.'},
@@ -149,6 +149,30 @@ export default function OnlyHostApp(){
          <span className="oh-landing-card-accent" aria-hidden="true"/>
         </article>)}
        </div>
+
+       <div className="oh-landing-mobile-accordion grid gap-3 md:hidden" data-host-mobile-accordion="true" aria-label="Host Connect features">
+        {[
+         {Icon:Home,title:'List Your Property',tag:'YOUR PORTFOLIO',text:'Create multiple listings for houses, apartments you are authorized to offer, lofts, studios or private filming sets. Add photos, amenities and crew capacity.'},
+         {Icon:Wallet,title:'Set Your Own Rates',tag:'YOUR PRICING',text:'Set your own full-day rental rate, from 3 p.m. check-in to 3 p.m. checkout. Offer single-day or multi-day stays, with weekend/seasonal pricing and cleaning fees.'},
+         {Icon:Clock3,title:'Control Booking Durations',tag:'YOUR SCHEDULE',text:'Offer whole-day or multi-day reservations with continuous 24-hour access beginning at 3 p.m. Set notice periods, blocked calendar dates and cleaning buffers.'},
+         {Icon:ShieldCheck,title:'Choose Adult Uses',tag:'YOUR BOUNDARIES',text:'Explicitly opt in to nude photography or adult video production, or restrict what is allowed. Guests know your rules before requesting a shoot.'},
+         {Icon:Brush,title:'Set Cleaning Fees',tag:'YOUR TURNOVER',text:'Choose a cleaning fee suitable for your house size and setup. Arrange your own cleaners; optional local service partnerships may be introduced later.'},
+         {Icon:SlidersHorizontal,title:'House Rules & Restrictions',tag:'YOUR CONTROL',text:'Define permitted rooms, sound levels, filming hours, crew limits, insurance requirements, deposits and cancellation preferences.'},
+         {Icon:CalendarDays,title:'Manage Your Calendar',tag:'YOUR AVAILABILITY',text:'Block dates, review reservations and use calendar import/export to coordinate your availability with other bookings.'},
+         {Icon:Eye,title:'Views & Activity Dashboard',tag:'YOUR INSIGHTS',text:'See property impressions, listing statuses, booking requests and upcoming shoots from one host dashboard.'},
+         {Icon:MessageCircleMore,title:'Messages & Requests',tag:'YOUR GUESTS',text:'Track booking conversations and respond to production questions and requests through your private host workspace.'},
+         {Icon:FileSignature,title:'Booking Agreements',tag:'YOUR PROTECTION',text:'Document permitted activities, access rules, property conditions and commercial terms. Approval and external provider activation may be required.'},
+         {Icon:UsersRound,title:'Staff & Equipment',tag:'YOUR OPERATIONS',text:'Manage optional equipment, staff, cleaning tasks, turnover checklists, inventory and condition photos.'},
+         {Icon:KeyRound,title:'Privacy & Property Authority',tag:'YOUR TRUST',text:'Your exact address stays private until authorized. Submit owner or written landlord permission before a listing can be approved for adult-production rentals.'}
+        ].map(({Icon,title,tag,text})=><details key={title}
+          className="overflow-hidden rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface)]" data-host-feature-details="true">
+         <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold">
+          <span className="flex items-center gap-3"><Icon size={20} className="text-[var(--cc-link)]"/><span><span className="block text-[10px] font-bold tracking-widest text-[var(--cc-text-secondary)]">{tag}</span>{title}</span></span>
+          <span className="shrink-0 text-lg text-[var(--cc-link)]" aria-hidden="true">+</span>
+         </summary>
+         <p className="border-t border-[var(--cc-border)] px-4 py-3 text-sm leading-6 text-[var(--cc-text-secondary)]">{text}</p>
+        </details>)}
+       </div>
       </div>
      </section>
      <section className="oh-landing-section oh-landing-process" aria-labelledby="oh-process-title">
@@ -158,7 +182,7 @@ export default function OnlyHostApp(){
         <h2 id="oh-process-title">You own the space. <span className="oh-gradient-text">You make the rules.</span></h2>
        </div>
        <div className="oh-landing-steps">
-        {[{n:'01',title:'Join as a host',text:'Register and accept the property host agreement. Hosts are not required to complete performer verification.'},{n:'02',title:'Prove your authority',text:'Provide ownership evidence or written permission from the property owner for adult productions.'},{n:'03',title:'Set your rules & pricing',text:'Choose permitted uses, cleaning fees, minimum hours, pricing and availability.'},{n:'04',title:'Review booking requests',text:'Manage guest messages, booking activity and property operations in one dashboard.'}].map(step=><article className="oh-landing-step" key={step.n}>
+        {[{n:'01',title:'Join as a host',text:'Register and accept the property host agreement. Hosts are not required to complete performer verification.'},{n:'02',title:'Prove your authority',text:'Provide ownership evidence or written permission from the property owner for adult productions.'},{n:'03',title:'Set your rules & pricing',text:'Choose permitted uses, daily rates, cleaning fees and calendar availability.'},{n:'04',title:'Review booking requests',text:'Manage guest messages, booking activity and property operations in one dashboard.'}].map(step=><article className="oh-landing-step" key={step.n}>
          <span>{step.n}</span><h3>{step.title}</h3><p>{step.text}</p>
         </article>)}
        </div>
@@ -172,7 +196,6 @@ export default function OnlyHostApp(){
       </div>
       <div className="oh-landing-account-box">
 
-     <a href="/" className="text-sm text-[var(--cc-link)]">← Return to Content Connect X</a>
      <section className="oh-panel space-y-4 p-6 md:p-8">
       <h2 className="text-2xl font-bold">Your Host Connect account</h2>
       {!user?<><p className="text-[var(--cc-text-secondary)]">Sign in or create an account to list spaces for adult photography and filming—with clear authorization and house rules.</p>
@@ -200,7 +223,11 @@ export default function OnlyHostApp(){
      </section>
     </div>}
   </main>
-  <footer className="oh-footer"><div className="oh-landing-container oh-footer-inner"><p>© 2027 Host Connect. All rights reserved.</p><a href="/" className="oh-ccx-gradient">Content Connect X</a></div></footer>
+  <footer className="oh-footer"><div className="oh-landing-container oh-footer-inner">
+   <strong className="text-base font-semibold">Host Connect</strong>
+   <a href="/" className="oh-ccx-gradient">Content Connect X</a>
+   <p>© 2027 Host Connect. All rights reserved.</p>
+  </div></footer>
   {showLogin&&<div className="oh-modal-backdrop" role="presentation" onClick={()=>setShowLogin(false)}>
    <section role="dialog" aria-modal="true" aria-label="Host Connect account" className="oh-modal max-w-md" onClick={e=>e.stopPropagation()}>
     <button className="absolute right-5 top-5" aria-label="Close" onClick={()=>setShowLogin(false)}>Close ×</button>
