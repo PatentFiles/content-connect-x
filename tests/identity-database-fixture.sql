@@ -31,4 +31,4 @@ grant select,update on public.member_profiles to service_role;
 grant select,insert,update on public.age_verification_requests to service_role;
 insert into auth.users values('11111111-1111-4111-8111-111111111111'),('22222222-2222-4222-8222-222222222222'),('33333333-3333-4333-8333-333333333333');
 insert into public.account_security(user_id) select id from auth.users;
-insert into public.member_profiles select id,'Synthetic Account','Public Stage Name' from auth.users;
+insert into public.member_profiles select id,'Synthetic Claim','Public Stage Name' from auth.users;
