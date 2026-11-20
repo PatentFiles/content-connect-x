@@ -14,7 +14,7 @@ async function action(name,payload={}){
 }
 const destination=notification=>{
  const kind=String(notification.kind||'');
- if(kind.includes('connection')||kind.includes('friend'))return 'connections';
+ if(kind.includes('connection')||kind.includes('friend')||kind==='introduction')return 'connections';
  if(kind.includes('message'))return 'messages';
  if(kind.includes('contract'))return 'contracts';
  if(kind.includes('collaboration'))return 'collaborations';
