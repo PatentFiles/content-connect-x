@@ -6,6 +6,7 @@ import {Bell,LockKeyhole,ShieldCheck,UserRound,SlidersHorizontal,CreditCard,Life
 import {supabase} from '@/api/supabaseClient';
 import {productionAction} from './productionApi';
 import SecurityCenter from './SecurityCenter';
+import FeedPreferencesSettings from './FeedPreferencesSettings';
 const panel='ccx-surface min-w-0 rounded-2xl p-5';
 const primary='ccx-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm disabled:opacity-50';
 const secondary='ccx-secondary inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm';
@@ -22,6 +23,7 @@ export default function MemberSettings({user,onNavigate=tab=>{void tab;}}){
   {error&&<p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}
   {notice&&<p role="status" className="rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
   <div className="grid min-w-0 gap-4 lg:grid-cols-2">
+   <FeedPreferencesSettings userId={user?.id}/>
    <section className={panel+' space-y-4'}><div className="flex items-center gap-2"><UserRound size={20} className="text-[var(--cc-link)]"/><h2 className="font-semibold">Profile and discoverability</h2></div><p className="text-sm text-[var(--cc-text-secondary)]">Edit your display name, photo, city and voluntary professional preferences. Private legal identity evidence is never a public profile field.</p>{go('Edit my profile','profile')}{go('Discovery and visibility','directory')}</section>
    <section className={panel+' space-y-4'}><div className="flex items-center gap-2"><Bell size={20} className="text-[var(--cc-link)]"/><h2 className="font-semibold">Notifications</h2></div>{[['email_digest','Email summaries'],['booking_reminders','Booking reminders'],['message_alerts','Message alerts']].map(([key,label])=><label key={key} className="flex min-h-11 items-center justify-between gap-3 rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-4 text-sm"><span>{label}</span><input type="checkbox" checked={prefs[key]===true} disabled={busy||loading} onChange={e=>setPrefs(prev=>({...prev,[key]:e.target.checked}))}/></label>)}<button type="button" className={primary} onClick={()=>void savePrefs()} disabled={loading||busy}><Save size={16}/>Save notification preferences</button></section>
    <section className={panel+' space-y-4'}><div className="flex items-center gap-2"><LockKeyhole size={20} className="text-[var(--cc-link)]"/><h2 className="font-semibold">Sign-in security</h2></div><p className="text-sm text-[var(--cc-text-secondary)]">Protect your account with an authenticator and a unique password.</p><p className="break-all text-xs text-[var(--cc-text-secondary)]">Signed in as {user?.email||'Member'}</p><button type="button" className={secondary} aria-expanded={securityOpen} onClick={()=>setSecurityOpen(v=>!v)}>{securityOpen?'Hide authenticator settings':'Manage authenticator (2FA)'}</button>{securityOpen&&<div className="rounded-xl border border-[var(--cc-border)] p-3"><SecurityCenter/></div>}
