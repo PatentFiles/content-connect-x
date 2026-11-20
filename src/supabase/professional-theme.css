@@ -186,3 +186,33 @@ html:where(:not([data-ccx-appearance="public"])), :where(html:not([data-ccx-appe
 :where(html:not([data-ccx-appearance="public"])) .oh-inline-error { background:#FEF2F2; border:1px solid #FCA5A5; color:var(--cc-danger); }
 :where(html:not([data-ccx-appearance="public"])) .oh-inline-success { background:#F0FDF4; border:1px solid #86EFAC; color:var(--cc-success); }
 :where(html:not([data-ccx-appearance="public"])) .oh-dialog-content { scrollbar-color:var(--cc-border-hover) var(--cc-surface-subtle); }
+
+
+/* Restrained authenticated brand signature: white marketplace foundation with
+ * public-homepage cyan/violet/fuchsia accents. The logged-out page is excluded.
+ * No global background recoloring, neon cards, or decorative gradients on text.
+ */
+:where(html:not([data-ccx-appearance="public"])) .ccx-original-shell .ccx-monogram,
+:where(html:not([data-ccx-appearance="public"])) .ccx-app .ccx-monogram{
+ background:linear-gradient(125deg,#008bad,#7554ce);
+ color:#fff;border:1px solid #7554ce;
+}
+:where(html:not([data-ccx-appearance="public"])) .ccx-original-shell .ccx-nav-pill.is-active{
+ background:#f6effc;border-color:#decbec;color:#54318c;
+}
+:where(html:not([data-ccx-appearance="public"])) .ccx-original-shell .ccx-nav-pill.is-active svg{
+ color:#7554ce;
+}
+:where(html:not([data-ccx-appearance="public"])) .ccx-original-shell .ccx-primary,
+:where(html:not([data-ccx-appearance="public"])) .ccx-original-shell .ccx-action-primary{
+ background:linear-gradient(110deg,#6942b2 0%,#7858cc 68%,#aa258e 100%);
+ border-color:#7554ce;color:#fff;box-shadow:0 3px 12px rgba(92,58,135,.11);
+}
+:where(html:not([data-ccx-appearance="public"])) .ccx-original-shell .ccx-primary:hover:not(:disabled),
+:where(html:not([data-ccx-appearance="public"])) .ccx-original-shell .ccx-action-primary:hover:not(:disabled){
+ background:linear-gradient(110deg,#5c36a1 0%,#6944b8 68%,#962078 100%);
+ border-color:#6b3bab;color:#fff;
+}
+:where(html:not([data-ccx-appearance="public"])) .ccx-original-shell .ccx-workspace-eyebrow{
+ color:#7554ce;
+}
