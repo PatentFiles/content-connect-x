@@ -8,6 +8,9 @@ import {localDiscoveryFilters,validateWorkLink} from './roleWorkspacePolicy.mjs'
 import {useRoleWorkspace} from './RoleWorkspaceContext';
 import MemberDiscoveryCard from './MemberDiscoveryCard';
 import SponsorshipSlot from './SponsorshipSlot';
+import TravelCalendar from './TravelCalendar';
+import AIMatchSuggestions from './AIMatchSuggestions';
+import {IntroThread} from './FriendMessaging';
 const input='w-full min-w-0 rounded-xl bg-[var(--cc-surface-subtle)] border border-[var(--cc-border)] px-3 py-2.5 text-[var(--cc-text-primary)] focus:outline-none focus:ring-2 focus:ring-fuchsia-500';
 const panel='ccx-surface p-5';
 const emptyFilters={query:'',role:'',country:'',state:'',city:'',category:'',gender:''};
@@ -63,7 +66,7 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
   // Only an actual opened profile counts; listing/searching does not record views.
   if(person.id!==user.id)void supabase.functions.invoke('profile-analytics',{body:{action:'record',profile_owner_id:person.id}}).catch(()=>{});
  };
- const connect=async()=>{if(!selected)return;setContactBusy(true);setContactNotice('');try{const {data,error:failure}=await supabase.functions.invoke('member-workflows',{body:{action:'request_connection',target_user_id:selected.id}});if(failure||data?.error)throw new Error(data?.error||failure?.message||'Connection unavailable');setContactNotice('Request sent. You can message when your connection is accepted.');}catch(e){setContactNotice(e.message);}finally{setContactBusy(false);}};
+ const connect=async()=>{if(!selected)return;setContactBusy(true);setContactNotice('');try{const {data,error:failure}=await supabase.functions.invoke('member-workflows',{body:{action:'request_connection',target_user_id:selected.id}});if(failure||data?.error)throw new Error(data?.error||failure?.message||'Connection unavailable');setContactNotice('Friend request sent. You can also continue the introduction conversation.');}catch(e){setContactNotice(e.message);}finally{setContactBusy(false);}};
  const change=(key,value)=>setFilters(old=>({...old,[key]:value}));
  const region=regionOptions[countries.find(c=>c.name===filters.country)?.code];
  const reset=()=>{const next=mode==='discovery'?local:emptyFilters;setFilters(next);void search(next);};
@@ -89,6 +92,7 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
    {working&&<p role="status" className="text-sm text-[var(--cc-text-secondary)]">Loading profiles…</p>}
    {searched&&!results.length&&!working&&!error&&<div className={panel+' text-sm text-[var(--cc-text-secondary)]'}>{mode==='favorites'?'No saved profiles are available. Use the heart on a Discovery card.':'No matching profiles found. Try a different city or broader filters.'}</div>}
    <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 xl:grid-cols-3">{results.map(p=><MemberDiscoveryCard key={p.id} person={p} saved={saved.includes(p.id)} busy={favoriteBusy.includes(p.id)} canFavorite={p.id!==user.id} onFavorite={()=>void toggle(p.id)} onClick={()=>openProfile(p)}/>)}</div>
+   {mode==='discovery'&&paid&&<AIMatchSuggestions/>}
    <SponsorshipSlot placement="feed"/>
    {more&&<button type="button" className="ccx-primary rounded-xl px-5 py-3" disabled={working} onClick={()=>void search(applied,true)}>Load more</button>}
    {selected&&<div role="dialog" aria-modal="true" aria-label="Public professional profile" className="fixed inset-0 z-[100] grid place-items-center bg-black/80 p-4" onClick={()=>setSelected(null)}><section className="ccx-surface max-h-[85dvh] w-full max-w-lg space-y-4 overflow-y-auto p-6" onClick={e=>e.stopPropagation()}>
@@ -96,6 +100,8 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
     <p className="text-sm text-[var(--cc-text-secondary)]">{[selected.city,selected.state,selected.country].filter(Boolean).join(', ')}</p>{selected.sexual_orientation&&<p className="text-sm capitalize text-[var(--cc-text-secondary)]">Orientation: {selected.sexual_orientation}</p>}{selected.bio&&<p className="whitespace-pre-wrap text-sm">{selected.bio}</p>}
     {representativeProfiles.length>0&&<section className="rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3"><h4 className="mb-2 text-sm font-semibold">Active professional representation</h4><ul className="space-y-1">{representativeProfiles.map(person=><li key={person.id} className="text-sm">{person.display_name} <span className="text-xs capitalize text-[var(--cc-text-secondary)]">· {person.role_type.replaceAll('_',' ')}</span></li>)}</ul><p className="mt-2 text-xs text-[var(--cc-text-secondary)]">Only mutually accepted current agreements appear here. Private contract terms are not shared.</p></section>}
     {paid?<div className="space-y-2"><h4 className="text-sm font-semibold">Shared professional links</h4>{Object.entries(socials).filter(([,url])=>validateWorkLink(url)).map(([provider,url])=><a key={provider} href={String(url)} target="_blank" rel="noopener noreferrer" className="ccx-secondary mr-2 inline-flex rounded-lg px-3 py-2 text-sm capitalize">{provider==='twitter'?'X / Twitter':provider}</a>)}{!Object.keys(socials).length&&<p className="text-xs text-[var(--cc-text-secondary)]">No links have been shared with premium members.</p>}</div>:<p className="text-xs text-[var(--cc-text-secondary)]">Social-link visibility follows the existing owner permissions and membership rules.</p>}
+    {selected.id!==user.id&&<IntroThread peerId={selected.id} userId={user.id}/>}
+    {selected.id!==user.id&&<TravelCalendar userId={selected.id} viewerId={user.id}/>}
     {contactNotice&&<p role="status" className="rounded-lg border border-[var(--cc-border)] p-3 text-sm">{contactNotice}</p>}
     <button type="button" disabled={contactBusy||selected.id===user.id} className="ccx-secondary w-full rounded-xl px-4 py-2.5" onClick={connect}>{contactBusy?'Checking eligibility…':paid?'Request connection':'Request local connection'}</button>
     {paid&&selected.id!==user.id&&<div className="space-y-2">
