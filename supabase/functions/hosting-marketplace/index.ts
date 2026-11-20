@@ -54,7 +54,10 @@ const approvedAreaFor=async(db:any,city:string,state:string,country:string)=>{
  const {data,error}=await db.from('hosting_public_areas').select('id,region')
   .eq('approved',true).ilike('city',escape(city)).ilike('country',escape(country)).limit(30);
  if(error)throw error;
- const match=(data||[]).find((x:any)=>String(x.region||'').toLowerCase()===state.toLowerCase())||(data||[]).find((x:any)=>!state||!x.region);
+ const choices=data||[];
+ const match=choices.find((x:any)=>String(x.region||'').toLowerCase()===state.toLowerCase())
+  ||(choices.length===1?choices[0]:null)
+  ||choices.find((x:any)=>!state||!x.region);
  return match?.id||null;
 };
 const publicLocationFor=async(db:any,items:any[])=>{
@@ -677,7 +680,7 @@ Deno.serve(async req=>{
       .select('exact_address,latitude,longitude').eq('property_id',payload.id).maybeSingle();
     if(priorError)throw priorError;
     if(prior?.exact_address?.trim()!==address||
-      (publicAddress&&coordsGiven&&(Number(prior?.latitude)!==lat||Number(prior?.longitude)!==lon)))
+      (publicAddress&&coordsGiven&&(prior?.latitude==null||prior?.longitude==null||Number(prior.latitude)!==lat||Number(prior.longitude)!==lon)))
       return denial('Address or public map pin change requires new listing review. Edit listing details first.',409);
   }
   const {error}=await db.from('property_private').upsert({
