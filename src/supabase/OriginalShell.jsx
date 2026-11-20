@@ -10,14 +10,14 @@ import {supabase} from '@/api/supabaseClient';
 const routeMap=Object.freeze({
  Dashboard:'dashboard',Discovery:'directory',Search:'directory',Favorites:'favorites',Connections:'connections',Groups:'groups',Messages:'messages',Collaborations:'collaborations',
  Contracts:'contracts',Testing:'testing',Verification:'verification',Properties:'hosting',HostingMarketplace:'hosting',HostDashboard:'host',HostProfile:'profile',
- HostSettings:'host-settings',Profile:'profile',Settings:'settings',Representations:'roster',Roster:'roster',RosterPortfolio:'roster',Portfolio:'portfolio',
+ HostSettings:'host-settings',Profile:'profile',PublicProfile:'public-profile',Settings:'settings',Representations:'roster',Roster:'roster',RosterPortfolio:'roster',Portfolio:'portfolio',
  Invitations:'notifications',Notifications:'notifications',AccountSecurity:'account-security',Consent:'consent',ProductionManager:'production',AvailabilitySchedule:'schedule',TravelSchedule:'schedule',AdminDashboard:'controls',AgentManagement:'controls',
  DeveloperReadMe:'developer',CompliancePortal:'integrations',TestingReviews:'testing-reviews',Pricing:'membership',Membership:'membership',
  CreateCollaboration:'collaborations',CollaborationDetail:'collaborations',ViewProfile:'directory',ViewContract:'contracts',PropertyDetail:'hosting'
 });
 const keyFor=path=>routeMap[path]||'dashboard';
 const reverseRoutes={dashboard:'Dashboard',directory:'Discovery',favorites:'Favorites',connections:'Connections',groups:'Groups',messages:'Messages',collaborations:'Collaborations',
- contracts:'Contracts',testing:'Testing',verification:'Verification',hosting:'Properties',host:'HostDashboard',profile:'Profile',settings:'Settings',portfolio:'Portfolio',
+ contracts:'Contracts',testing:'Testing',verification:'Verification',hosting:'Properties',host:'HostDashboard',profile:'Profile','public-profile':'PublicProfile',settings:'Settings',portfolio:'Portfolio',
  invitations:'Notifications',notifications:'Notifications','account-security':'AccountSecurity',consent:'Consent',production:'ProductionManager',schedule:'AvailabilitySchedule',representations:'Roster',roster:'Roster','host-settings':'HostSettings',controls:'AdminDashboard',integrations:'CompliancePortal','testing-reviews':'TestingReviews',membership:'Pricing'};
 export const tabFromLegacyPath=pathname=>{const part=decodeURIComponent(String(pathname||'').split('/').filter(Boolean)[0]||'');const matched=Object.keys(routeMap).find(key=>key.toLowerCase()===part.toLowerCase());return matched?routeMap[matched]:'dashboard';};
 export const legacyPathForTab=tab=>'/'+(reverseRoutes[tab]||'Dashboard');
@@ -102,7 +102,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
      <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full" style={{background:'var(--cc-surface-hover)',color:'var(--cc-blue)'}}>{profile?.avatar_path?<img src={profile.avatar_path} alt="" className="h-full w-full object-cover"/>:(profile?.display_name||'U').slice(0,1).toUpperCase()}</span>
      <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{profile?.display_name||'Set up profile'}</span><span className="mt-1 inline-flex rounded-full border px-2 py-0.5 text-xs capitalize" style={{borderColor:'var(--cc-border)',color:'var(--cc-text-secondary)'}}>{roleLabel[role]||role}</span></span><ChevronRight size={16} style={{color:'var(--cc-text-muted)'}}/>
     </button>
-    <button type="button" className="mt-2 flex items-center gap-2 px-2 text-xs" onClick={()=>onNavigate('directory')} style={{color:'var(--cc-blue)'}}><ExternalLink size={12}/> View Public Profile</button>
+    <button type="button" className="mt-2 flex items-center gap-2 px-2 text-xs" onClick={()=>onNavigate('public-profile')} style={{color:'var(--cc-blue)'}}><ExternalLink size={12}/> View Public Profile</button>
    </div>
    {isAdmin&&<RoleDashboardSwitcher value={adminRole} onChange={switchDashboard}/>}
    <nav aria-label="Role navigation" className="flex-1 space-y-1 overflow-y-auto p-4">
@@ -114,7 +114,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
   {mobileOpen&&<div className="fixed inset-0 z-[70] md:hidden">
    <button className="absolute inset-0 bg-black/60 text-white" aria-label="Close navigation" onClick={()=>setMobileOpen(false)}/>
    <div role="dialog" aria-modal="true" aria-label="Navigation" className="absolute bottom-0 left-0 top-0 w-80 max-w-[85vw] overflow-y-auto border-r" style={{backgroundColor:'var(--cc-bg)',borderColor:'var(--cc-border)'}}>
-    <div className="flex items-center justify-between border-b p-4" style={{borderColor:'var(--cc-border)'}}><div><div className="font-medium">{profile?.display_name||'Member'}</div><div className="text-xs capitalize" style={{color:'var(--cc-text-muted)'}}>{roleLabel[role]||role}</div></div><button className="p-2" onClick={()=>setMobileOpen(false)} aria-label="Close navigation"><X size={22}/></button></div>
+    <div className="flex items-center justify-between border-b p-4" style={{borderColor:'var(--cc-border)'}}><div><button type="button" className="text-left font-medium" onClick={()=>{onNavigate('profile');setMobileOpen(false);}}>{profile?.display_name||'Member'}</button><div className="text-xs capitalize" style={{color:'var(--cc-text-muted)'}}>{roleLabel[role]||role}</div><button type="button" className="mt-2 flex items-center gap-2 text-xs" onClick={()=>{onNavigate('public-profile');setMobileOpen(false);}} style={{color:'var(--cc-blue)'}}><ExternalLink size={12}/>View Public Profile</button></div><button className="p-2" onClick={()=>setMobileOpen(false)} aria-label="Close navigation"><X size={22}/></button></div>
     {isAdmin&&<RoleDashboardSwitcher mobile value={adminRole} onChange={switchDashboard}/>}
     <nav aria-label="Mobile navigation" className="space-y-1 p-4">
      {isAdmin&&adminRole==='admin'&&<><div className="mb-2 px-3 text-xs font-medium uppercase tracking-wider" style={{color:'var(--cc-text-muted)'}}>Admin</div>{adminNav.map(item=><MenuLink key={item.path} item={item} tab={tab} onNavigate={onNavigate} onClose={()=>setMobileOpen(false)} mobile/>)}<div className="my-2 border-b" style={{borderColor:'var(--cc-border)'}}/></>}
