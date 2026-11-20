@@ -7,12 +7,12 @@ const style='ccx-secondary min-h-10 rounded-xl px-3 py-2 text-sm disabled:opacit
 const SDK_URL='https://cdn.jsdelivr.net/npm/livekit-client@2.24.1/dist/livekit-client.umd.min.js';
 let sdkPromise=null;
 async function loadLiveKit(){
- if(window.LivekitClient?.Room)return window.LivekitClient;
+ if(Reflect.get(window,'LivekitClient')?.Room)return Reflect.get(window,'LivekitClient');
  if(sdkPromise)return sdkPromise;
  sdkPromise=new Promise((resolve,reject)=>{
   const script=document.createElement('script');
   script.src=SDK_URL;script.crossOrigin='anonymous';script.async=true;
-  script.onload=()=>window.LivekitClient?.Room?resolve(window.LivekitClient):reject(Error('LiveKit SDK did not load'));
+  script.onload=()=>Reflect.get(window,'LivekitClient')?.Room?resolve(Reflect.get(window,'LivekitClient')):reject(Error('LiveKit SDK did not load'));
   script.onerror=()=>reject(Error('Could not load the LiveKit browser SDK; check your network or content-security policy'));
   document.head.appendChild(script);
  }).catch(error=>{sdkPromise=null;throw error;});
