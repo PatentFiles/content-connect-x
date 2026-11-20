@@ -223,8 +223,7 @@ export default function LiveMeeting({scope,scopeId,userId,onNewRecordings}){
     </>}
    </div></div>
   {(recordingBy||recording)&&<p role="status" aria-live="assertive" className="flex gap-2 rounded-lg border border-red-500 p-3 text-sm font-semibold text-red-700"><Disc size={17}/>This meeting is being recorded{recordingBy===userId?' by you':''}.</p>}
-  {connected&&<div ref={root} className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3"/>}
-  {!connected&&<div ref={root} className="hidden" aria-hidden="true"/>}
+  <div ref={root} className={connected?'grid gap-2 sm:grid-cols-2 lg:grid-cols-3':'hidden'} aria-hidden={!connected?'true':undefined}/>
   <p className="text-xs text-[var(--cc-text-secondary)]">Powered by LiveKit. Room access is limited to current members. Any recording requires the recorded consent of all invited participants. Each clip is stored privately.</p>
   {uploads>0&&<p role="status" className="text-sm">Uploading {uploads} recording clips…</p>}
   {error&&<p role="alert" className="text-sm text-red-700">{error}</p>}
