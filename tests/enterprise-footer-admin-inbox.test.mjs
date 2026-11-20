@@ -63,6 +63,20 @@ test('admin messages and bell notifications deep-link to private case inbox',()=
  assert.match(shell,/header-notifications-/);
 });
 
+test('private support inbox pages cases with stable database cursors and server-side filters',()=>{
+ const sql=read('supabase/migrations/20261120143000_trust_staff_keyset_paginated_inbox.sql');
+ const ui=read('src/supabase/AdminTrustInbox.jsx');
+ assert.match(sql,/ccx_trust_inbox_page/);
+ assert.match(sql,/auth\.jwt\(\)->>'aal'/);
+ assert.match(sql,/\(created_at,id\)<\(p_before_created,p_before_id\)/);
+ assert.match(sql,/limit lim\+1/);
+ assert.match(sql,/revoke all on function public\.ccx_trust_inbox_page/);
+ assert.match(ui,/ccx_trust_inbox_page/);
+ assert.match(ui,/p_filter:filter/);
+ assert.match(ui,/p_before_created:cursor\?\.created_at/);
+ assert.match(ui,/Load older requests/);
+});
+
 test('private staff and reporter messages use MFA, private capability, dedupe and notifications',()=>{
  const sql=read('supabase/migrations/20261120141000_trust_request_conversations_and_admin_replies.sql');
  assert.match(sql,/ccx_trust_messages.*row level security/i);
