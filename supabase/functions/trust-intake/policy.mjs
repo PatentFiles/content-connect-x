@@ -30,3 +30,16 @@ export function validateTrustStatus(raw){
   throw Error('Enter both the receipt reference and private access code.');
  return {reference:raw.reference.toLowerCase(),accessCode:raw.access_code.toLowerCase()};
 }
+
+/** A reporter may continue only their own confidential case using both private
+ * UUID capability fields. The idempotency ID keeps retries from duplicating text.
+ */
+export function validateTrustReply(raw){
+ if(!raw||raw.action!=='reply')throw Error('Invalid case message.');
+ const capability=validateTrustStatus({...raw,action:'status'});
+ if(typeof raw.idempotency_key!=='string'||!/^\w{8}-\w{4}-4\w{3}-[89ab]\w{3}-\w{12}$/i.test(raw.idempotency_key)||!/^[a-f0-9-]+$/i.test(raw.idempotency_key))
+  throw Error('Refresh this form and try again.');
+ if(typeof raw.message!=='string'||raw.message.includes('\u0000')||raw.message.trim().length<2||raw.message.length>4000)
+  throw Error('Enter a reply of 2–4000 characters.');
+ return {...capability,message:raw.message.trim(),idempotency:raw.idempotency_key.toLowerCase()};
+}
