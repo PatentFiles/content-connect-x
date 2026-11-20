@@ -40,6 +40,7 @@ CREATE TABLE public.contracts(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),coll
 \i supabase/migrations/20261119182000_mutual_professional_representation_agreements.sql
 \i supabase/migrations/20261119234000_voluntary_collaboration_safety_checkins.sql
 \i supabase/migrations/20261120001000_collaboration_actual_statements.sql
+\i supabase/migrations/20261120065000_creator_travel_intro_project_notes.sql
 
 DO $test$
 DECLARE owner uuid:='10000000-0000-4000-8000-000000000001';
@@ -137,3 +138,4 @@ END $test$;
 SELECT 'PASS: private collaboration archives, cooldowns, mutual representation, notice and safety exit' AS verified;
 \i scripts/test-collaboration-safety.sql
 \i scripts/test-collaboration-actuals.sql
+\i scripts/test-creator-extensions-database.sql
