@@ -313,3 +313,15 @@ The frontend changes are source-controlled through GitHub and require republishi
 Mobile Discovery filters default collapsed, desktop defaults expanded. Footer content in both branded properties is centered at every width. The signed-out Host Connect homepage uses the **existing** `Host_Connect_Banner_Mobile.png` at 640px and below and retains the original desktop banner above it. Host Connect's authenticated header has a clearly labeled Log out button on desktop and mobile. The public hero files themselves, Bolt hosting, production identity acceptance, payment and public safety approval gates were not altered.
 
 **Publication boundary:** The latest GitHub `main` contains the frontend changes, but publishing them from the existing Bolt project is still the owner's separate action. The database release alone does not update the website's appearance.
+
+
+### Legacy parity: travel dates, friend introductions, project notes and testing deadlines (November 19–20, 2026)
+
+The original Base44 `ScheduleEntry / TravelCalendar`, `FriendSettings / MESSAGE_FIRST`, `TestingRequirement`, and project notes concepts are being replaced with native React + Supabase components, not the old Base44 tables or runtime. The work is implemented in source under `ProfileTravelCalendar`, `FriendSettingsPanel`, `CollaborationNotesAndTesting`, the `creator-extensions` Edge gateway, and `20261120065000_creator_travel_intro_project_notes.sql`.
+
+- Travel plans store general city/country dates, never lodging addresses or location tracking. Each entry is explicitly Only Me, accepted Friends, or Verified Community. The authenticated gateway rechecks the viewer, both accounts and blocks before returning data. Private notes are not in another person's response.
+- Friend request default `message_first` requires a genuinely sent introduction and recipient response; recipients can opt out entirely or permit all verified members. Messages cannot be forged by entering another user ID. The existing accepted friendship, cooldown and anti-spam conditions are retained.
+- Every collaboration participant can append durable project notes; earlier notes cannot be overwritten. Changing a signed contract or consent still requires separate agreement procedures.
+- Organizers specify whether an independently verified work-clearance status is required, a verification deadline, and a policy freshness interval. Individual medical results stay in the private PASS/provider-reviewed flow. The existing server contract eligibility is kept as the actual authorization boundary; a deadline alone cannot fabricate confirmation.
+
+**Release boundary:** Source-control implementation is not proof of current deployment. Run the disposable PostgreSQL and JWT tests, confirm role grants and production migrations, then deploy the matching Edge Function before Bolt publication. Do not mark these parity items as operational until those checks succeed. Video recording, provider signing, and AI-generated contract drafts remain separate reviewed workstreams.
