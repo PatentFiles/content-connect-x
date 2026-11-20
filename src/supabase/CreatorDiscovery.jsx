@@ -1,7 +1,7 @@
 /** Local discovery and independent city search share the same profile card/favorites. */
 import ConnectFeed from './ConnectFeed';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
-import {Search,SlidersHorizontal,RefreshCw,X} from 'lucide-react';
+import {Search,SlidersHorizontal,RefreshCw,X,ChevronDown,ChevronUp} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
 import {countries,countryName,regionOptions,contentCategories,genderOptions,roleOptions} from './profileOptions';
 import {localDiscoveryFilters,validateWorkLink} from './roleWorkspacePolicy.mjs';
@@ -18,6 +18,14 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
  const local=localDiscoveryFilters(workspace.profile||{});
  if(local.country)local.country=countryName(local.country);
  const [filters,setFilters]=useState(()=>mode==='discovery'?local:emptyFilters);
+ const [filtersOpen,setFiltersOpen]=useState(()=>typeof window!=='undefined'&&window.matchMedia('(min-width: 768px)').matches);
+ useEffect(()=>{
+  const media=window.matchMedia('(min-width: 768px)');
+  const update=event=>setFiltersOpen(event.matches);
+  update(media);
+  media.addEventListener('change',update);
+  return()=>media.removeEventListener('change',update);
+ },[]);
  const [applied,setApplied]=useState(()=>mode==='discovery'?local:emptyFilters);
  const [results,setResults]=useState([]),[saved,setSaved]=useState([]),[favoriteBusy,setFavoriteBusy]=useState([]);
  const [inviteEligibility,setInviteEligibility]=useState(null),[representativeProfiles,setRepresentativeProfiles]=useState([]);
@@ -62,7 +70,12 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
  return <section className="space-y-5">
   <header className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-2xl font-semibold">{mode==='discovery'?'Discovery':mode==='search'?'Search':'Favorites'}</h2><p className="mt-1 text-sm text-[var(--cc-text-secondary)]">{mode==='favorites'?'People you saved from Discovery.':mode==='search'?'Find people in any city and filter by professional role.':local.city?'Discover people in '+local.city+' and change the filters to explore elsewhere.':'Set your city in My Profile to start locally, or choose a city below.'}</p></div>{approved&&<button type="button" className="ccx-secondary rounded-lg p-3" disabled={working} aria-label="Refresh profiles" onClick={()=>void search(applied)}><RefreshCw size={17}/></button>}</header>
   {!approved?<div className={panel}>Independent age verification is required before viewing profiles.</div>:<>
-   {mode!=='favorites'&&<form className={panel+' space-y-4'} onSubmit={e=>{e.preventDefault();void search(filters);}}><div className="flex items-center gap-2"><SlidersHorizontal size={17}/><h3 className="font-semibold">{'Discovery filters'}</h3></div><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+   {mode!=='favorites'&&<form className={panel+' space-y-4'} data-discovery-filters="true" onSubmit={e=>{e.preventDefault();void search(filters);if(window.matchMedia('(max-width: 767px)').matches)setFiltersOpen(false);}}>
+    <button type="button" className="flex min-h-11 w-full items-center justify-between gap-3 text-left" aria-controls="ccx-discovery-filter-fields" aria-expanded={filtersOpen} onClick={()=>setFiltersOpen(v=>!v)}>
+     <span className="flex items-center gap-2"><SlidersHorizontal size={17}/><span className="font-semibold">Discovery filters</span></span>
+     {filtersOpen?<ChevronUp size={18}/>:<ChevronDown size={18}/>}
+    </button>
+    {filtersOpen&&<div id="ccx-discovery-filter-fields" className="space-y-4"><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
     <label className="text-sm">Name<input className={input+' mt-2'} value={filters.query} onChange={e=>change('query',e.target.value)} placeholder="Display name"/></label>
     <label className="text-sm">Professional role<select className={input+' mt-2'} value={filters.role} onChange={e=>change('role',e.target.value)}><option value="">All roles</option>{roleOptions.filter(([key])=>key!=='host').map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
     <label className="text-sm">Country<select className={input+' mt-2'} value={filters.country} onChange={e=>setFilters(old=>({...old,country:e.target.value,state:'',city:''}))}><option value="">All countries</option>{countries.map(country=><option key={country.code} value={country.name}>{country.name}</option>)}</select></label>
@@ -70,7 +83,7 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
     <label className="text-sm">City<input className={input+' mt-2'} value={filters.city} onChange={e=>change('city',e.target.value)} placeholder="Search another city"/></label>
     <label className="text-sm">Content type (opt-in profiles)<select className={input+' mt-2'} value={filters.category} onChange={e=>change('category',e.target.value)}><option value="">All categories</option>{contentCategories.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
     {mode!=='favorites'&&<label className="text-sm">Gender identity (opt-in profiles)<select className={input+' mt-2'} value={filters.gender} onChange={e=>change('gender',e.target.value)}><option value="">All / not specified</option>{genderOptions.filter(([key])=>key&&key!=='self_describe').map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>}
-   </div><div className="flex flex-wrap gap-2"><button className="ccx-primary inline-flex items-center gap-2 rounded-lg px-4 py-2.5" disabled={working}><Search size={17}/>{working?'Searching…':'Search people'}</button><button type="button" className="ccx-secondary rounded-lg px-4 py-2.5" onClick={reset} disabled={working}>{mode==='discovery'?'Reset to my city':'Reset filters'}</button></div></form>}
+   </div><div className="flex flex-wrap gap-2"><button className="ccx-primary inline-flex items-center gap-2 rounded-lg px-4 py-2.5" disabled={working}><Search size={17}/>{working?'Searching…':'Search people'}</button><button type="button" className="ccx-secondary rounded-lg px-4 py-2.5" onClick={reset} disabled={working}>{mode==='discovery'?'Reset to my city':'Reset filters'}</button></div></div>}</form>}
    {!paid&&mode!=='favorites'&&<p className="text-sm text-[var(--cc-text-secondary)]">Free members can browse and save profiles worldwide. Existing local contact limits and membership requirements still apply.</p>}
    {error&&<p role="alert" className={panel+' text-red-800'}>{error}</p>}{favoriteError&&<p role="alert" className={panel+' text-red-800'}>Favorites could not be updated: {favoriteError}</p>}
    {working&&<p role="status" className="text-sm text-[var(--cc-text-secondary)]">Loading profiles…</p>}
