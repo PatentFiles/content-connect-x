@@ -3,7 +3,7 @@ import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {ArrowUp,ArrowDown,ArrowRight,Plus,RefreshCw,Settings2,Trash2,Save,X} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
 import {useRoleWorkspace} from './RoleWorkspaceContext';
-import {roleTitle} from './roleWorkspacePolicy.mjs';
+import {roleTitle,dashboardGreetingName} from './roleWorkspacePolicy.mjs';
 import {widgetsForRole,defaultDashboardLayout,normalizeDashboardLayout,moveDashboardWidget} from './dashboardWidgets.mjs';
 import {accessCopy} from './moduleAccessPolicy.mjs';
 import DashboardPeople from './DashboardPeople';
@@ -74,13 +74,18 @@ export default function CustomDashboard({profile,onNavigate,roleOverride,paid=fa
  return <section className="ccx-personal-dashboard" data-dashboard-feed-layout="desktop-rail-mobile-feed">
  <div className="grid min-w-0 grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
   <main className="min-w-0" aria-label="Feed">
+   <header className="ccx-dashboard-welcome mb-4" aria-label="Welcome to your dashboard">
+    <p className="ccx-dashboard-welcome-kicker">YOUR WORKSPACE</p>
+    <h1 className="ccx-dashboard-welcome-title">Welcome back, {dashboardGreetingName(profile)}</h1>
+    <p className="ccx-dashboard-welcome-subtitle">{roleTitle(role)} workspace · Share an update and stay connected with your community.</p>
+   </header>
    {preview&&<p className="mb-3 rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm text-[var(--cc-text-secondary)]">
     Viewing the {roleTitle(role)} dashboard layout. Updates are published from your own signed-in account, not as another role.
    </p>}
    <ConnectFeed userId={userId} paid={paid} preview={false} initialMode="discover" onNavigate={onNavigate}/>
   </main>
   <aside className="hidden min-w-0 space-y-4 xl:block" aria-label="Customizable dashboard cards and sponsored advertisements">
-  <header className="ccx-dashboard-heading space-y-3"><div><p className="ccx-workspace-eyebrow">YOUR WORKSPACE</p><h1 className="text-2xl font-bold">{roleTitle(role)} Dashboard</h1><p className="mt-2 text-sm" style={{color:'var(--cc-text-secondary)'}}>Welcome{profile?.display_name?', '+profile.display_name:''}. Your optional dashboard tools.</p></div>
+  <header className="ccx-dashboard-heading space-y-3"><div><p className="ccx-workspace-eyebrow">YOUR WORKSPACE</p><h1 className="text-2xl font-bold">{roleTitle(role)} Dashboard</h1><p className="mt-2 text-sm" style={{color:'var(--cc-text-secondary)'}}>Your optional dashboard tools and account overview.</p></div>
    <div className="flex flex-wrap gap-2">{editing?<><button type="button" className={primary} onClick={save} disabled={saving}><Save size={16}/>{saving?'Saving…':'Save dashboard'}</button><button type="button" className={secondary} disabled={saving} onClick={()=>{setEditing(false);setError('');void load();}}><X size={16}/>Cancel</button></>:<><button type="button" className={secondary} onClick={()=>void load()} disabled={loading} aria-label="Refresh dashboard"><RefreshCw size={16}/></button><button type="button" className={primary} onClick={customize} disabled={preview||loading||!data}><Settings2 size={16}/>Customize Dashboard</button></>}</div>
   </header>
   {preview&&<p className="ccx-surface p-4 text-sm">This is a role preview, not another member’s dashboard. Return to My dashboard to customize your own layout.</p>}
