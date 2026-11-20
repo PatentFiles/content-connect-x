@@ -65,13 +65,7 @@ export default function OnlyHostApp(){
   return()=>{document.body.style.overflow=prior;document.removeEventListener('keydown',keydown);hostMenuButtonRef.current?.focus();};
  },[hostMenuOpen]);
  useAuthAppearance(user);
- useEffect(()=>{
-  const params=new URLSearchParams(window.location.search);
-  if(params.has('age_verification')){
-   setView('account');params.delete('age_verification');
-   window.history.replaceState(null,'',window.location.pathname+(params.toString()?'?'+params.toString():'')+window.location.hash);
-  }
- },[]);
+
  const refreshAccount=useCallback(async(current)=>{
   if(!current?.user){setAccount(null);return;}
   const registration=await integrationAction('onlyhost_status');
