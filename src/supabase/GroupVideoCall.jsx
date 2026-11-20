@@ -128,7 +128,17 @@ export default function GroupVideoCall({collaborationId,userId}){
    const ticket=await suiteAction('recording_ticket',{collaboration_id:collaborationId,content_type});
    const {error}=await supabase.storage.from(ticket.bucket).uploadToSignedUrl(ticket.path,ticket.token,blob,{contentType:content_type});
    if(error)throw error;
-   await suiteAction('recording_finish',{collaboration_id:collaborationId,path:ticket.path,content_type,duration_seconds:60});
+   const saved=await suiteAction('recording_finish',{collaboration_id:collaborationId,path:ticket.path,content_type,duration_seconds:30});
+   // The audio track automatically becomes a searchable text transcript when
+   // the shared OpenAI key is configured. Video chunks remain playable copies.
+   if(content_type.startsWith('audio/')&&saved.item?.id){
+    try{
+     await suiteAction('transcribe_recording',{recording_id:saved.item.id});
+     setNotice('Meeting audio saved and transcribed into the collaboration record.');
+    }catch(error){
+     setNotice('Meeting audio saved. Transcription can be retried from the recording list: '+error.message);
+    }
+   }
    await loadRecordings();
   }catch(e){setError('Recording upload: '+e.message);}finally{setUploads(v=>v-1);}
  };
