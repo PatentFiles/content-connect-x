@@ -11,7 +11,8 @@ test('canonical developer README describes current Bolt, Supabase and Railway au
 });
 test('no unvalidated provider claims or explicit-media distribution promise in canonical doc',()=>{
  assert.match(readme,/production self-hosted ID verification[^\n]*\*\*Disabled\*\*/i);
- assert.match(readme,/Public trust\/safety report intake[^\n]*\*\*Disabled\*\*/i);
+ assert.match(readme,/Public trust\/safety report intake[^\n]*\*\*Was disabled Nov 19\*\*/i);
+ assert.match(readme,/Public safety reports[\s\S]*ccx_trust_public_config\(\)\.ready=true/i);
  assert.match(readme,/not sell, host for public distribution, publish, distribute, or monetize explicit audiovisual content/i);
  assert.match(readme,/Adding a key alone is insufficient/i);
 });
