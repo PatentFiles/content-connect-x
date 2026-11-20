@@ -19,6 +19,7 @@ try{
   const html=renderToStaticMarkup(React.createElement(Shell,{user,profile,approved:true,tab:'dashboard',featureFlags:flags,onNavigate:()=>{},onSignOut:()=>{}},React.createElement(Dashboard,{profile,verified:true,features:flags,paid:true,onNavigate:()=>{}})));
   for(const label of ['Discovery','Favorites','Properties'])assert.ok(html.includes(label),role+' must render '+label);
   assert.ok(html.includes('Mobile bottom navigation'));
+  assert.ok(html.includes('Welcome back, Role layout test'),role+' must show personalized welcome above Feed');
   // Every real professional role can compose updates with the same entitled
   // member account. Role navigation/preview must not silently hide the form.
   assert.ok(html.includes('data-feed-composer="true"'),role+' must show the Feed composer');
