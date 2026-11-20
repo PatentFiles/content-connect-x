@@ -27,7 +27,7 @@ Deno.serve(async req=>{
   return out({error:'Verified active member required'},403);
  const admin=security.data.admin===true,body=await req.json().catch(()=>({}));
  if(body.action==='list'){
-  const {data,error}=await db.from('ccx_shop_partners').select('slug,name,official_url,affiliate_url,categories,description,partner_status,shipping_by_partner')
+  const {data,error}=await db.from('ccx_shop_partners').select('slug,name,official_url,affiliate_url,application_url,categories,description,partner_status,shipping_by_partner')
    .order('name',{ascending:true}).limit(100);
   if(error)return out({error:'Shop directory unavailable'},503);
   // No invented tracking links; public listings link to the verified official
@@ -35,6 +35,7 @@ Deno.serve(async req=>{
   return out({items:(data||[]).filter(x=>admin||Boolean(x.official_url))
    .map(x=>({...x,
     affiliate_url:admin?x.affiliate_url:undefined,
+    application_url:admin?x.application_url:undefined,
     purchase_url:x.partner_status==='approved'&&x.affiliate_url?x.affiliate_url:x.official_url,
     tracked:x.partner_status==='approved'&&Boolean(x.affiliate_url)
    }))});
