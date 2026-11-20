@@ -29,7 +29,7 @@
   /* TrustFooter is a sibling of the workspace shell, not a child. Align its
    * centered content with the new rail+panel instead of the legacy 256px. */
   :root[data-ccx-appearance="workspace"] .ccx-trust-footer:not(.ccx-trust-footer-standalone) {
-    margin-left:var(--ccx-workspace-nav-width);
+    margin-left:var(--ccx-workspace-nav-width)!important;
   }
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-panel,
@@ -91,7 +91,7 @@
   color:#eef8ff;
 }
 .ccx-original-shell .ccx-nav-rail-button.is-active,
-.ccx-original-shell .ccx-nav-rail-button[aria-pressed="true"] {
+.ccx-original-shell .ccx-nav-rail-button[aria-current] {
   border-color:#3e6270;
   background:#213d51;
   color:#98e9df;
