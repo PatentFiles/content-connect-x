@@ -20,3 +20,4 @@ export default function CollaborationWorkshop({collaborationId,userId,onDraftCre
  {draft&&<details open><summary className="cursor-pointer font-semibold">Generated contract draft</summary><pre className="mt-3 max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-xl bg-[var(--cc-surface-subtle)] p-3 text-sm">{draft}</pre></details>}</section>
  {error&&<p role="alert" className="text-sm text-red-700">{error}</p>}{notice&&<p role="status" className="text-sm">{notice}</p>}
  </div>;
+}
