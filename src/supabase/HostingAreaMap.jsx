@@ -176,7 +176,7 @@ export default function HostingAreaMap({areas=[],listings=[],onSelect,onSearchBo
   {visiblePins.length>0&&<div className="flex flex-wrap gap-2" aria-label="Spaces visible in this map view">
    {visiblePins.slice(0,50).map(({item,approximate})=><button key={item.id} type="button"
     className="min-h-10 rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface)] px-3 py-2 text-xs hover:border-cyan-400"
-    onClick={()=>onSelect?.(item.id)}>{item.title} · {money(item.hourly_rate)}/hr {approximate?'· approximate':''}</button>)}
+    onClick={()=>onSelect?.(item.id)}>{item.title} · {item.daily_rate!=null?money(item.daily_rate):'Daily rate pending'}/day {approximate?'· approximate':''}</button>)}
   </div>}
  </section>;
 }
