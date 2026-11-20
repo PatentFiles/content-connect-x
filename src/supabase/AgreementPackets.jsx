@@ -53,6 +53,14 @@ export default function AgreementPackets(){
       setNotice(result.note||'Draft packet prepared.');await load();
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
+  const sendPacket=async(id)=>{
+    setBusy(true);setError('');setNotice('');
+    try{
+      const result=await call('agreement-packets','send_packet',{envelope_id:id});
+      setNotice(result.note||'Signing invitations sent to participants.');
+      await load();
+    }catch(e){setError(e.message);}finally{setBusy(false);}
+  };
   const inspectPacket=async(id)=>{
     setInspect(id);setError('');
     try{const result=await call('agreement-packets','packet_recipients',{envelope_id:id});setPeople(result.items||[]);}
@@ -72,7 +80,7 @@ export default function AgreementPackets(){
     <div className="flex justify-between items-center gap-3"><div><h2 className="text-2xl font-semibold flex items-center gap-2"><FileSignature size={23}/> DocuSign Agreement Center</h2><p className="text-sm text-[var(--cc-text-secondary)] mt-1">Prepare signers, signing order and completed-document evidence. No internal prototype signing.</p></div><button className={button} onClick={load} disabled={busy}><RefreshCw size={16}/></button></div>
     {error&&<p role="alert" className="rounded-lg bg-red-50 text-red-800 p-3">{error}</p>}
     {notice&&<p role="status" className="rounded-lg bg-emerald-50 text-emerald-800 p-3">{notice}</p>}
-    <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800"><ShieldCheck size={17} className="inline mr-2"/>Formal signatures are disabled until DocuSign account authorization, attorney-approved templates, authenticated provider webhooks and the certificate archive are connected. Draft packets are not signed agreements.</p>
+    <p className="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800"><ShieldCheck size={17} className="inline mr-2"/>Choose all signers and prepare a draft, then send individual invitations through DocuSign. Completed signed documents and certificates are archived privately and available to collaboration participants.</p>
     <div className="grid md:grid-cols-2 gap-4">
       <div className={panel+' space-y-3'}><h3 className="font-semibold">Prepare signer routing</h3>
         <label className="block text-sm">Draft agreement<select className={input+' mt-1'} value={selected} onChange={e=>choose(e.target.value)}><option value="">Select a draft</option>{contracts.filter(x=>x.status==='draft').map(c=><option value={c.id} key={c.id}>{c.title}</option>)}</select></label>
@@ -86,7 +94,7 @@ export default function AgreementPackets(){
       <div className={panel+' space-y-3'}><h3 className="font-semibold">Contract evidence tracking</h3>
         {!packets.length&&<p className="text-sm text-[var(--cc-text-secondary)]">No formal signing packets have been prepared yet.</p>}
         {packets.map(p=><div key={p.id} className="border-b border-[var(--cc-border)] pb-3 space-y-2"><p className="text-sm font-semibold">Envelope: {p.status} · {p.provider}</p><p className="text-xs break-all text-[var(--cc-text-secondary)]">{p.id}</p><p className="text-xs text-[var(--cc-text-secondary)]">Created {new Date(p.created_at).toLocaleString()}</p>
-          <div className="flex flex-wrap gap-2"><button className={button} onClick={()=>inspectPacket(p.id)} disabled={busy}>Recipients</button>{p.status==='completed'&&<button className={button} disabled={busy} onClick={()=>evidence(p.id)}><ExternalLink size={14} className="inline mr-1"/>Signed PDF and certificate</button>}</div>
+          <div className="flex flex-wrap gap-2"><button className={button} onClick={()=>inspectPacket(p.id)} disabled={busy}>Recipients</button>{p.status==='draft'&&<button className={button} onClick={()=>void sendPacket(p.id)} disabled={busy}><FileSignature size={14} className="mr-1 inline"/>Send for individual signatures</button>}{p.status==='completed'&&<button className={button} disabled={busy} onClick={()=>evidence(p.id)}><ExternalLink size={14} className="inline mr-1"/>Signed PDF and certificate</button>}</div>
           {inspect===p.id&&<div className="p-3 bg-[var(--cc-surface-subtle)] space-y-2 rounded-lg">{people.map(r=><p key={r.member_id} className="text-xs break-all">{r.role||r.membership_role}: {r.member_id} · {r.status||'member'} · {r.routing_order??''}</p>)}</div>}
         </div>)}
       </div>
