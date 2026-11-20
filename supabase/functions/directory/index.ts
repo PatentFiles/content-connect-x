@@ -40,7 +40,7 @@ Deno.serve(async req=>{
   if(!own.data)return json({error:'Your profile has not been created'},404);
   const p=own.data,c=choices.data||{},badge=verification.data?.[0];
   const paths={avatar:safeProfileAvatarPath(user.id,p.avatar_path),
-   cover:typeof p.cover_path==='string'&&p.cover_path.startsWith(user.id+'/profile/cover-')&&!p.cover_path.includes('..')&&/\\.(jpg|jpeg|png|webp)$/i.test(p.cover_path)?p.cover_path:null};
+   cover:typeof p.cover_path==='string'&&p.cover_path.startsWith(user.id+'/profile/cover-')&&!p.cover_path.includes('..')&&/\.(jpg|jpeg|png|webp)$/i.test(p.cover_path)?p.cover_path:null};
   const signed={};
   for(const [kind,path] of Object.entries(paths)){
    if(!path)continue;
