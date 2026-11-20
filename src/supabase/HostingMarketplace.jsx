@@ -194,9 +194,18 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
   </div>;
 }
 
-export default function HostingMarketplace({paid=false,isAdmin=false,user,brand='content_connect',initialSection='explore',hostOnly=false}) {
+export default function HostingMarketplace({paid=false,isAdmin=false,user,brand='content_connect',initialSection='explore',hostOnly=false,requestedSection=null}) {
   const [section,setSection]=useState(()=>hostOnly?initialSection:['explore','favorites','bookings'].includes(initialSection)?initialSection:'explore');
   const [selected,setSelected]=useState('');
+  // The mobile Host hamburger may change the visible workspace module without
+  // remounting the booking/listing editor or losing its draft state.
+  useEffect(()=>{
+    if(hostOnly&&requestedSection&&['host','review','alerts','crew','cleaning'].includes(requestedSection)){
+      setSection(requestedSection);
+      setSelected('');
+      setError('');
+    }
+  },[hostOnly,requestedSection]);
   const query='';
   const [country,setCountry]=useState('');
   const [region,setRegion]=useState('');
