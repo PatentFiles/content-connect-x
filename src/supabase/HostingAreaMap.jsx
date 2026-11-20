@@ -15,7 +15,7 @@ const iconFor=category=>({
 const money=n=>Number(n).toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
 function offsetFromArea(item,area){
  const publicLat=Number(item.public_latitude),publicLon=Number(item.public_longitude);
- if(item.public_address_visible===true&&Number.isFinite(publicLat)&&Number.isFinite(publicLon)
+ if(item.public_address_visible===true&&item.public_latitude!==null&&item.public_latitude!==undefined&&item.public_longitude!==null&&item.public_longitude!==undefined&&Number.isFinite(publicLat)&&Number.isFinite(publicLon)
    &&Math.abs(publicLat)<=85&&Math.abs(publicLon)<=180)
   return {latitude:publicLat,longitude:publicLon,approximate:false};
  const id=String(item.id||'');
@@ -26,7 +26,7 @@ function offsetFromArea(item,area){
  const longitude=Number(area.longitude)+Math.cos(angle)*km/(111.3*Math.max(.2,Math.cos(latitude*Math.PI/180)));
  return {latitude,longitude,approximate:true};
 }
-export default function HostingAreaMap({areas=[],listings=[],onSelect,onSearchBounds,focusAreaId='',highlightedIds=[],showTravel=true}){
+export default function HostingAreaMap({areas=[],listings=[],onSelect,onSearchBounds,focusAreaId='',highlightedIds=[]}){
  const element=useRef(null),drag=useRef(null),lastTap=useRef(null),interacted=useRef(false),viewRef=useRef(null),searchRef=useRef(onSearchBounds);
  const [size,setSize]=useState({width:700,height:450});
  const [view,setView]=useState({center:{longitude:-118.24368,latitude:34.05223},zoom:10});
