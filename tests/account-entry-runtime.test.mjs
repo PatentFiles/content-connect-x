@@ -18,7 +18,7 @@ function reset({admitted=true,admin=true}={}){
 class Query{
  constructor(name){this.name=name;this.filters=[];this.one=false;this.max=Infinity;this.insertion=null;}
  select(){return this;}eq(k,v){this.filters.push(row=>row[k]===v);return this;}
- in(k,v){this.filters.push(row=>v.includes(row[k]));return this;}
+ in(k,v){this.filters.push(row=>v.includes(row[k]));return this;}neq(k,v){this.filters.push(row=>row[k]!==v);return this;}
  or(){return this;}order(){return this;}limit(n){this.max=n;return this;}
  maybeSingle(){this.one=true;return this;}single(){this.one=true;return this;}
  insert(row){this.insertion=row;return this;}update(){return this;}upsert(){return this;}
