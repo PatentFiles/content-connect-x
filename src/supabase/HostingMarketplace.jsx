@@ -176,6 +176,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
         <label className="block text-sm">Message to host<textarea className={input+' mt-1'} rows={3} maxLength={1000} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Describe your shoot, equipment and special requests."/></label>
         <div className="rounded-xl border-y border-[var(--cc-border)] py-3 text-sm space-y-2">
           <p className="text-[var(--cc-text-secondary)]">{hours>0?hours.toFixed(2)+' hours':'Select booking dates'} · Minimum notice: {item.min_notice_hours||24}h</p>
+          {hours>72&&<p role="alert" className="rounded-lg bg-amber-50 p-2 text-xs text-amber-900">You can select these dates to explore availability, but this location's current booking engine can quote a maximum of 72 hours (3 days). Please shorten the stay or contact the host about multi-day arrangements.</p>}
           {secureQuote?<div className="space-y-2">
             <div className="flex justify-between"><span>Rental</span><strong>{usd(secureQuote.rental_cents/100)}</strong></div>
             <div className="flex justify-between"><span>Equipment</span><span>{usd(secureQuote.addon_cents/100)}</span></div>
@@ -185,7 +186,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
             <p className="text-xs text-[var(--cc-text-secondary)]">Proposed deposit ceiling: {usd(secureQuote.deposit_cents/100)} · Overtime: {usd(secureQuote.overtime_hour_cents/100)}/h</p>
           </div>:<p className="text-xs text-[var(--cc-text-secondary)]">Calculate the authoritative server quote before requesting. Rates may vary by date, bundle or promotion.</p>}
         </div>
-        <button type="button" className={button+' w-full bg-[var(--cc-surface)]'} onClick={calculate} disabled={!paid||busy||hours<item.minimum_hours||crew<1||!purpose}>Calculate secure price</button>
+        <button type="button" className={button+' w-full bg-[var(--cc-surface)]'} onClick={calculate} disabled={!paid||busy||hours<=0||hours>72||hours<item.minimum_hours||crew<1||!purpose}>Calculate secure price</button>
         <button type="submit" className={button+' w-full'} disabled={!paid||busy||!secureQuote}>{paid?'Request space with this quote':'Premium booking required'}</button>
         <p className="text-center text-xs leading-5 text-[var(--cc-text-secondary)]">No payment is collected here. The host must approve your request. The exact address is shared only through a trusted post-approval process, not through search results.</p>
       </form>
