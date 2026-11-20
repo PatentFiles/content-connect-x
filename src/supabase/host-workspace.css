@@ -156,7 +156,7 @@ html:not([data-ccx-appearance="public"]) .host-connect-theme{
 html:not([data-ccx-appearance="public"]) .host-connect-theme .ccx-action-primary,
 html:not([data-ccx-appearance="public"]) .host-connect-theme .oh-primary,
 html:not([data-ccx-appearance="public"]) .host-connect-theme .oh-gallery-primary{
- background:linear-gradient(105deg,#6942b2 0%,#8163da 65%,#b62292 100%);
+ background:#6942b2;background-image:none;
  border:1px solid #7554ce;color:#fff;box-shadow:0 3px 12px rgba(107,65,179,.15);
 }
 html:not([data-ccx-appearance="public"]) .host-connect-theme .oh-gradient-text{
