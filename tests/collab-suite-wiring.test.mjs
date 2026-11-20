@@ -61,7 +61,7 @@ test('automatic safety scan requires a private job key and stores human-review f
  let handler=null;
  globalThis.Deno={env:{get:name=>({SUPABASE_URL:'https://fixture.supabase.co',
   SUPABASE_SERVICE_ROLE_KEY:'fake-but-private'}[name]||'')},serve:fn=>{handler=fn;}};
- globalThis.__aiWorkerClient=()=>({rpc:async()=>({data:'a'.repeat(64),error:null})});
+ globalThis.__aiWorkerClient=()=>({rpc:async(_name,args)=>({data:args?.p_name==='ai_agent_cron_key'?'a'.repeat(64):null,error:null})});
  await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64')+'#ai-worker-auth-fixture');
  assert.equal(typeof handler,'function');
  const send=async key=>{
