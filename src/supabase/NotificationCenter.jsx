@@ -15,6 +15,7 @@ async function action(name,payload={}){
 const destination=notification=>{
  const kind=String(notification.kind||'');
  if(kind.includes('connection')||kind.includes('friend')||kind==='introduction')return 'connections';
+ if(kind==='meeting_invitation')return 'meeting';
  if(kind==='trust_case'||kind==='trust_case_followup')return 'messages';
  if(kind.includes('message'))return 'messages';
  if(kind.includes('contract'))return 'contracts';
@@ -78,7 +79,9 @@ export default function NotificationCenter({user,onNavigate}){
   </section>
   <section className="space-y-3" aria-labelledby="notification-updates"><h2 id="notification-updates" className="text-lg font-semibold">Latest updates</h2>
    {notifications.map(item=><article key={item.id} className={panel+' flex flex-wrap items-start justify-between gap-3 '+(!item.read_at?'border-l-4 border-l-[#D64BCB]':'')}><div><h3 className="font-semibold">{item.title}</h3><p className="mt-1 text-xs text-[var(--cc-text-secondary)]">{new Date(item.created_at).toLocaleString()}</p></div>
-    <div className="flex gap-3"><button type="button" className="inline-flex items-center gap-1 text-sm text-[var(--cc-link)]" onClick={()=>onNavigate(destination(item),item.details?.case_id?{supportCaseId:item.details.case_id}:undefined)}>Open<ArrowUpRight size={14}/></button>{!item.read_at&&<button type="button" className="text-sm underline" disabled={!!saving} onClick={()=>markRead(item.id)}>Mark read</button>}</div></article>)}
+    <div className="flex gap-3"><button type="button" className="inline-flex items-center gap-1 text-sm text-[var(--cc-link)]" onClick={()=>onNavigate(destination(item),
+      item.kind==='meeting_invitation'?{scope:item.details?.scope,scopeId:item.details?.scope_id}
+      :item.details?.case_id?{supportCaseId:item.details.case_id}:undefined)}>Open<ArrowUpRight size={14}/></button>{!item.read_at&&<button type="button" className="text-sm underline" disabled={!!saving} onClick={()=>markRead(item.id)}>Mark read</button>}</div></article>)}
    {!busy&&!notifications.length&&<div className={panel+' text-sm text-[var(--cc-text-secondary)]'}>No updates yet. Your activity will appear here.</div>}
   </section>
  </section>;
