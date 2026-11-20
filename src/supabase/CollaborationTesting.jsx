@@ -51,11 +51,20 @@ export function TestingReviewQueue(){
  const [items,setItems]=useState([]),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const load=async()=>{try{setItems((await suiteAction('testing_admin_queue')).items||[]);}catch(e){setError(e.message);}};
  useEffect(()=>{void load();},[]);
+ const viewDocument=async id=>{
+  setBusy(true);setError('');
+  try{
+   const result=await suiteAction('testing_admin_document',{id});
+   const safe=new URL(result.url);
+   if(safe.protocol!=='https:')throw Error('Private document URL invalid');
+   window.open(safe.toString(),'_blank','noopener,noreferrer');
+  }catch(e){setError(e.message);}finally{setBusy(false);}
+ };
  const review=async(id,status)=>{setBusy(true);setError('');try{await suiteAction('testing_admin_review',{id,status});setNotice('Credential review saved.');await load();}catch(e){setError(e.message);}finally{setBusy(false);}};
  return <section className="ccx-surface space-y-3 p-5"><h3 className="font-semibold">Pending credential reviews</h3>
  <p className="text-xs text-[var(--cc-text-secondary)]">Confirm evidence privately before marking verified; these dates are not clinical results.</p>
  {error&&<p role="alert" className="text-sm text-red-700">{error}</p>}{notice&&<p role="status">{notice}</p>}
- {items.map(x=><div className="space-y-2 border-b border-[var(--cc-border)] py-3" key={x.id}><p className="text-sm">Member {x.user_id.slice(0,8)} · {x.issuer} · {String(x.tested_at).slice(0,10)} to {String(x.expires_at).slice(0,10)}</p><div className="flex gap-2"><button type="button" disabled={busy} onClick={()=>void review(x.id,'verified')} className={button}>Verify</button><button type="button" disabled={busy} onClick={()=>void review(x.id,'rejected')} className={button}>Reject</button></div></div>)}
+ {items.map(x=><div className="space-y-2 border-b border-[var(--cc-border)] py-3" key={x.id}><p className="text-sm">Member {x.user_id.slice(0,8)} · {x.issuer} · {String(x.tested_at).slice(0,10)} to {String(x.expires_at).slice(0,10)}</p><div className="flex gap-2"><button type="button" disabled={busy} onClick={()=>void viewDocument(x.id)} className={button}>Review private document</button><button type="button" disabled={busy} onClick={()=>void review(x.id,'verified')} className={button}>Verify</button><button type="button" disabled={busy} onClick={()=>void review(x.id,'rejected')} className={button}>Reject</button></div></div>)}
  {!items.length&&<p className="text-sm">No pending credentials.</p>}
  </section>;
 }
