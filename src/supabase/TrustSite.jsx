@@ -10,7 +10,7 @@ const emailLink=value=>typeof value==='string'&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.tes
 export function TrustFooter({legalPage=false}){
  const [active,setActive]=useState(null),[config,setConfig]=useState(null),[configError,setConfigError]=useState(false);
  const modal=useRef(null);
- const formKind={'content-removal':'ncii',support:'support',privacy:'privacy',accessibility:'accessibility',affiliates:'affiliate','law-enforcement':'law_enforcement'}[active];
+ const formKind={'content-removal':'ncii',support:'support',privacy:'privacy',accessibility:'accessibility',affiliates:'affiliate','law-enforcement':'law_enforcement'}[active]||(active&&TRUST_PAGES[active]&&!['cookies','review'].includes(active)?'support':null);
  useEffect(()=>{if(active&&modal.current&&!modal.current.open)modal.current.showModal();},[active]);
  useEffect(()=>{
   if(!active||!formKind)return;
@@ -32,7 +32,7 @@ export function TrustFooter({legalPage=false}){
    {page&&<article className="ccx-trust-copy"><p className="ccx-trust-intro">{page.intro}</p>{page.sections.map(([heading,body])=><section key={heading}><h3 className="text-base font-semibold">{heading}</h3><p>{body}</p></section>)}</article>}
    {!config?.policies_approved&&page&&<p className="text-xs font-semibold text-amber-800">Pre-launch draft: legal and operator review required.</p>}
    {active==='cookies'&&<CookiePreferences/>}
-   {formKind&&<RequestForm key={active} initialKind={formKind} config={config} configError={configError}/>}
+   {formKind&&<RequestForm key={active} initialKind={formKind} originSlug={active} config={config} configError={configError}/>}
    <a className="inline-flex min-h-11 items-center text-sm font-semibold text-[var(--cc-link)] underline" href={'/trust/'+active}>Open dedicated page</a>
   </div>
  </dialog>}
@@ -50,8 +50,8 @@ function CookiePreferences(){
   {error&&<p role="alert" className="ccx-trust-error">{error}</p>}
  </section>;
 }
-function RequestForm({initialKind,config,configError}){
- const [fields,setFields]=useState({kind:initialKind,name:'',email:'',locator:(new URLSearchParams(window.location.search).get('locator')||'').slice(0,3000),details:'',signature:'',authorized:false,good_faith:false,agency:'',jurisdiction:'',case_reference:'',legal_basis:'',scope:''});
+function RequestForm({initialKind,config,configError,originSlug=''}){
+ const [fields,setFields]=useState({kind:initialKind,name:'',email:'',locator:(new URLSearchParams(window.location.search).get('locator')||(originSlug&&originSlug!=='support'?'/trust/'+originSlug:'')).slice(0,3000),details:'',signature:'',authorized:false,good_faith:false,agency:'',jurisdiction:'',case_reference:'',legal_basis:'',scope:''});
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[receipt,setReceipt]=useState(null);
  const key=useRef(null),lock=useRef(false);
  const change=(name,value)=>{key.current=null;setFields(old=>({...old,[name]:value}));};
@@ -109,13 +109,13 @@ export default function TrustSite({children}){
  },[legalPage]);
  useEffect(()=>{if(legalPage)document.title=(page?.title|| (slug==='cookies'?'Cookie preferences':slug==='review'?'Staff review':'Trust & safety'))+' | Content Connect X';},[legalPage,page,slug]);
  if(!legalPage)return <>{children}<TrustFooter/></>;
- const formKind={'content-removal':'ncii',support:'support',privacy:'privacy',accessibility:'accessibility',affiliates:'affiliate','law-enforcement':'law_enforcement'}[slug];
+ const formKind={'content-removal':'ncii',support:'support',privacy:'privacy',accessibility:'accessibility',affiliates:'affiliate','law-enforcement':'law_enforcement'}[slug]||(page&&!['cookies','review'].includes(slug)?'support':null);
  return <div className="ccx-trust-layout"><header className="ccx-trust-header"><a className="ccx-trust-brand" href="/">CONTENT CONNECT <span>X</span></a><a href="/Dashboard">Return to workspace</a></header>
   <main className="ccx-trust-page"><p className="ccx-trust-eyebrow">TRUST · PRIVACY · SUPPORT</p><h1>{page?.title||(slug==='cookies'?'Cookie preferences':slug==='review'?'Staff review':'Page not found')}</h1>
    {!config?.policies_approved&&!['cookies','review'].includes(slug)&&<aside className="ccx-trust-draft"><strong>Pre-launch policy draft — operator and legal review required.</strong><p>This page is not a certification of worldwide compliance or a substitute for final terms. Public reporting is not active until the intake notice below confirms availability.</p></aside>}
    {config?.legal_entity&&<p className="ccx-trust-operator">Operator: {config.legal_entity}{config.postal_address?' · '+config.postal_address:''}{emailLink(config.contact_email)&&<> · <a href={emailLink(config.contact_email)}>{config.contact_email}</a></>}</p>}
    {page&&<article className="ccx-trust-copy"><p className="ccx-trust-intro">{page.intro}</p>{page.sections.map(([heading,body])=><section key={heading}><h2>{heading}</h2><p>{body}</p></section>)}{slug==='anti-trafficking'&&<a className="ccx-trust-inline" href="/trust/content-removal">Go to Content removal & safety reports</a>}{slug==='content-removal'&&<p className="ccx-trust-small">Source: <a href="https://www.ftc.gov/business-guidance/resources/complying-take-it-down-act" target="_blank" rel="noopener noreferrer">FTC guidance on the TAKE IT DOWN Act</a>.</p>}</article>}
-   {slug==='cookies'&&<CookiePreferences/>}{slug==='review'&&<StaffReview/>}{formKind&&<RequestForm initialKind={formKind} config={config} configError={configError}/>}
+   {slug==='cookies'&&<CookiePreferences/>}{slug==='review'&&<StaffReview/>}{formKind&&<RequestForm initialKind={formKind} originSlug={slug} config={config} configError={configError}/>}
    {!page&&!['cookies','review'].includes(slug)&&<p>Choose a page from the footer below.</p>}
   </main><TrustFooter legalPage/>
  </div>;
