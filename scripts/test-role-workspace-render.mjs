@@ -17,7 +17,10 @@ try{
  for(const role of Object.keys(ROLE_ROUTES)){
   const profile={...base,role_type:role};
   const html=renderToStaticMarkup(React.createElement(Shell,{user,profile,approved:true,tab:'dashboard',featureFlags:flags,onNavigate:()=>{},onSignOut:()=>{}},React.createElement(Dashboard,{profile,verified:true,features:flags,paid:true,onNavigate:()=>{}})));
-  for(const label of ['Discovery','Favorites','Properties'])assert.ok(html.includes(label),role+' must render '+label);
+  // Desktop accordion intentionally renders only its active group's pages.
+  // Check retained routes in the role catalog and the visible Explore icon rail.
+  for(const label of ['Discovery','Favorites','Properties'])assert.ok(ROLE_ROUTES[role].includes(label),role+' must keep '+label);
+  assert.ok(html.includes('Jump to Explore section'),role+' must expose its Explore group');
   assert.ok(html.includes('Mobile bottom navigation'));
   assert.ok(html.includes('Welcome back, Role layout test'),role+' must show personalized welcome above Feed');
   // Every real professional role can compose updates with the same entitled
@@ -25,8 +28,8 @@ try{
   assert.ok(html.includes('data-feed-composer="true"'),role+' must show the Feed composer');
   assert.ok(html.includes('aria-label="Share an update"'),role+' must be allowed to start an update');
   assert.ok(!html.includes('Host Dashboard'));
-  if(['agent','studio'].includes(role))assert.ok(html.includes('Roster'));
-  if(['photographer','videographer','video_editor'].includes(role))assert.ok(html.includes('Portfolio'));
+  if(['agent','studio'].includes(role))assert.ok(ROLE_ROUTES[role].includes('Roster'));
+  if(['photographer','videographer','video_editor'].includes(role))assert.ok(ROLE_ROUTES[role].includes('Portfolio'));
   checks++;
   // Fresh layouts deliberately have no preset metric cards. The browser suite
   // covers the post-load empty state and adding/saving a real optional module.
