@@ -231,7 +231,13 @@ Deno.serve(async req=>{
  case 'call_signal':{
   const cid=body.collaboration_id;await needMember(cid);
   const kind=txt(body.kind,20),peer=body.recipient_id||null,payload=body.payload||{};
-  if(!['join','leave','offer','answer','ice'].includes(kind)||peer&&!uuid(peer)||JSON.stringify(payload).length>24000)throw Error('Invalid call signal');
+  if(!['join','leave','offer','answer','ice','recording_start','recording_stop'].includes(kind)||peer&&!uuid(peer)||JSON.stringify(payload).length>24000)throw Error('Invalid call signal');
+  // The server validates the entire collaboration's recording permissions on
+  // every start/heartbeat signal; a participant cannot forge recording consent.
+  if(kind==='recording_start'){
+   if(peer)throw Error('Recording state must be announced to everyone in the call');
+   await checkRecordingConsent(cid);
+  }
   if(peer){const people=await getMembers(cid);if(!people.some(x=>x.user_id===peer))throw Error('Recipient is not a participant');}
   const {count,error:countError}=await db.from('ccx_collab_call_signals').select('id',{head:true,count:'exact'}).eq('sender_id',uid).gte('created_at',new Date(Date.now()-60000).toISOString());
   if(countError)throw countError;if(count>240)throw Error('Call signaling rate limit reached');
