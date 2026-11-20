@@ -41,7 +41,7 @@ export function resolveDocuSignRestBase(profile,accountId){
  let parsed;try{parsed=new URL(row.base_uri);}catch{throw Error('DocuSign returned an invalid account API URL');}
  if(parsed.protocol!=='https:'||parsed.username||parsed.password||parsed.port||parsed.search||parsed.hash||
    parsed.pathname!=='/'&&!['','/'].includes(parsed.pathname)||
-   !/^(?:[a-z0-9-]+\\.)+docusign\\.net$/.test(parsed.hostname))
+   !/^(?:[a-z0-9-]+\.)+docusign\.net$/.test(parsed.hostname))
   throw Error('DocuSign returned an untrusted API host');
  return parsed.origin+'/restapi/v2.1';
 }
@@ -52,7 +52,7 @@ async function authToken(cfg){
  const allowed=['account-d.docusign.com','account.docusign.com'];
  if(explicit&&!allowed.includes(explicit))throw Error('Unapproved DocuSign OAuth domain');
  const hosts=explicit?[explicit]:allowed;
- const pem=cfg.privateKey.replace(/\\\\n/g,'\\n');
+ const pem=cfg.privateKey.replace(/\\n/g,'\n');
  const signatureKey=createPrivateKey(pem);
  for(const host of hosts){
   const now=Math.floor(Date.now()/1000);
