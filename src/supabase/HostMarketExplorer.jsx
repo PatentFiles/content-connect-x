@@ -36,7 +36,7 @@ export default function HostMarketExplorer({onEdit,ownedListings=[]}){
   }
   return [...merged.values()];
  },[data,searchedCity]);
- const rates=data.items.filter(v=>!v.owned).map(v=>Number(v.hourly_rate)).filter(v=>Number.isFinite(v)&&v>0).sort((a,b)=>a-b);
+ const rates=data.items.filter(v=>!v.owned).map(v=>Number(v.daily_rate)).filter(v=>Number.isFinite(v)&&v>0).sort((a,b)=>a-b);
  const median=rates.length?(rates[Math.floor((rates.length-1)/2)]+rates[Math.floor(rates.length/2)])/2:null;
  const choose=id=>{
   const property=items.find(item=>item.id===id);if(!property)return;
@@ -65,7 +65,7 @@ export default function HostMarketExplorer({onEdit,ownedListings=[]}){
    <button type="button" className="oh-gallery-secondary" disabled={busy||!data.areas.length} onClick={local}><Navigation size={16}/>Near me</button>
   </form>
   {error&&<p role="alert" className="oh-inline-error">{error}</p>}
-  <div className="oh-market-summary"><p><strong>{data.items.length}</strong> {searchedCity?'matching listings':'approved listings loaded'}{median!==null?<> · Median asking rate <strong>{usd(median)}/hr</strong></>:null}</p>
+  <div className="oh-market-summary"><p><strong>{data.items.length}</strong> {searchedCity?'matching listings':'approved listings loaded'}{median!==null?<> · Median asking rate <strong>{usd(median)}/day</strong></>:null}</p>
    <label><Home size={16}/>Your locations <select value="" onChange={event=>{const item=data.owned_items.find(p=>p.id===event.target.value);if(item){setCity(item.city);void search(item.city);}}}>
     <option value="">Choose your property’s city</option>{data.owned_items.map(item=><option key={item.id} value={item.id}>{item.title} · {item.city}</option>)}</select></label></div>
   <HostingAreaMap areas={data.areas} listings={items} onSelect={choose} focusAreaId={focusArea}
@@ -77,7 +77,7 @@ export default function HostMarketExplorer({onEdit,ownedListings=[]}){
   {!busy&&!items.length&&<p className="oh-market-empty">No approved listings in this city yet. Try another city or publish your first approved property.</p>}
   {data.has_more&&<button type="button" className="oh-gallery-secondary" disabled={busy} onClick={()=>search(searchedCity,offset,searchBounds)}>Load more locations</button>}
   {preview&&<HostDialog title={preview.title} subtitle={[preview.city,preview.state,preview.country].filter(Boolean).join(', ')} onClose={()=>setPreview(null)}>
-   <div className="oh-market-preview"><PropertyPreviewCard listing={preview} onOpen={()=>{}}/><div><h3>Comparable listing</h3><p><strong>{usd(preview.hourly_rate)}</strong> per hour · {preview.minimum_hours} hour minimum</p><p>Capacity: {preview.capacity} people.</p><p>This host workspace shows approved property details for market comparison. Creator bookings keep their separate verification and subscription requirements.</p></div></div>
+   <div className="oh-market-preview"><PropertyPreviewCard listing={preview} onOpen={()=>{}}/><div><h3>Comparable listing</h3><p><strong>{usd(preview.daily_rate)}</strong> per calendar day · 3 p.m. check-in</p><p>Capacity: {preview.capacity} people.</p><p>This host workspace shows approved property details for market comparison. Creator bookings keep their separate verification and subscription requirements.</p></div></div>
   </HostDialog>}
  </section>;
 }
