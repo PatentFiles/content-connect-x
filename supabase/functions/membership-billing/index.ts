@@ -1,6 +1,6 @@
 /** Monthly membership hosted checkout. Price and role originate in the database. */
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
-import {membershipConfig} from '../_shared/membershipBillingConfig.mjs';
+import {membershipVaultConfig} from '../_shared/ccbillVaultConfig.mjs';
 import {recurringCheckout} from '../_shared/ccbillPolicy.mjs';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info,x-supabase-client-platform,x-supabase-client-platform-version,x-supabase-client-runtime,x-supabase-client-runtime-version','Access-Control-Allow-Methods':'POST,OPTIONS','Cache-Control':'no-store'};
 const out=(v:unknown,status=200)=>Response.json(v,{status,headers:cors});
@@ -22,7 +22,7 @@ Deno.serve(async req=>{
   ]);
   if([security,admission,provider,subscription].some(x=>x.error))return out({error:'Billing status unavailable'},503);
   if(!security.data||security.data.banned||security.data.suspended||!admission.data?.admitted_at)return out({error:'Complete account onboarding first'},403);
-  const cfg=membershipConfig(name=>Deno.env.get(name)),ready=cfg.ready&&provider.data?.enabled===true;
+  const cfg=await membershipVaultConfig(db),ready=cfg.ready&&provider.data?.enabled===true;
   if(body.action==='status'){
    let cancelAtEnd=false;
    if(subscription.data?.provider_subscription_id){
