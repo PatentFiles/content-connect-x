@@ -134,3 +134,7 @@ verify_jwt = true
 # Server-to-server only; independent one-purpose Vault secret checked in handler.
 [functions.ccx-transcription-worker]
 verify_jwt = false
+
+# Agency role and case-granted data access; JWT checked before MFA and service-role reads.
+[functions.ccx-law-portal]
+verify_jwt = true
