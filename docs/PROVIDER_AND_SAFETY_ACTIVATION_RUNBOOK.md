@@ -86,3 +86,22 @@ Supported countries must be explicitly permitted for identity, payment, property
 7. Record exact versions, responsible operator, incidents/rollback paths, and signed-off provider readiness in the canonical README/operations log.
 
 This is a checklist. The lack of provider keys, licenses or staffing cannot be simulated as operational success.
+
+## Enterprise reliability activation (November 20, 2026)
+
+The following modules are deployed to Supabase and versioned in GitHub main, but **provider activation is not a substitute for end-to-end acceptance**:
+
+| System | Implemented | Required before claiming live acceptance |
+|---|---|---|
+| Email notices | `pgmq` durable `ccx_member_email` queue, private delivery ledger, idempotent Resend worker, hourly audit, two-minute dispatch, user-level `transactional_email` opt-in | Verify domain/sender, enter Resend API token + verified sender in Admin integrations, enable provider with MFA, opt in a real test member, verify delivery + webhook failures, unsubscribe and duplicate behavior |
+| Observability | Sentry client SDK; strict allowlisted error reports with browser diagnostics consent; public DSN only returned from protected server integration | Create a real Sentry project, verify organization ownership, enter hosted ingestion DSN into Vault, activate with MFA, opt in a test member, inspect a deliberately generated redacted test event and prove no identity/medical content is sent |
+| Meeting transcription | Private `ccx_audio_transcripts` queue, current all-member consent checks, 5-minute worker, 8-attempt backoff and failure ledger, OpenAI transcription response stored in private meeting record | Add shared OpenAI key, test active call recording across two devices, verify audio/transcript privacy, revoke consent during recording, test sleep/offline/resume, and verify retention/erasure obligations |
+| Safety operations | **Admin → Operational readiness** aggregates and **Admin → Safety operator & policies** explicitly records legal contact, reviewed published policies, and staff on-call coverage with MFA and an audit event | Enter the actual legal operator, monitored contact and postal address, obtain appropriate legal/privacy review and staff rota, manually acknowledge only approvals truly completed, submit a real anonymous report, verify staff receive and close it |
+| Identity | Railway-first-party document OCR + liveness + account-name binding and private evidence; production feature stays disabled | Test genuine ID and photo, underage, mismatch, spoof, malformed image, document expiry, deletion/retention. Complete security/privacy approval and activate retention Cron before production enabling |
+| CC Bill / DocuSign | Existing server-only Vault secrets and signed webhook/reconciled event path | Obtain accounts and real approved API/merchant setups, add credentials via MFA admin settings, prove sandbox webhook and complete transaction/e-signature results. No artificial completion can count as live acceptance |
+
+**Security remediation checked:** The public representation-agreement router is no longer a public `SECURITY DEFINER`; its private implementation checks the verified user and enforces permissions. Anonymous/public `ccx_trust_public_config()` remains accessible because the site must show public operator and safety-policy metadata before login. Review its field allowlist during security audits. The `pg_net` public extension and Supabase Auth leaked-password-protection warnings are separate settings/DB operations and are not assumed corrected by CI.
+
+**Server-side LiveKit recording:** live room capture is currently browser-segment based. LiveKit Egress `StartEgress` can provide server-side MP4 recording, but it needs an approved LiveKit Egress service/plan, protected S3 upload credentials (S3 keys can bypass bucket RLS), webhook confirmation and independent consent enforcement. Do not treat installing an SDK as enabling compliant server-side recording. Configure the storage integration and rehearse consent-revocation stop before switching capture mode.
+
+**Cross-browser release drill:** In addition to existing GitHub Chromium/CDP checks, run a reproducible Playwright or equivalent WebKit + Firefox acceptance matrix for logged-out signup, verified/unverified roles, guest and host permissions, recordings/consent, repeated report submissions, expired credentials, refunds/chargebacks and account deletion. Current CI cannot substitute for a signed-off payment, legal or biometric review.
