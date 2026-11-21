@@ -20,7 +20,7 @@ async function request(action,params={}){
 }
 export default function LawEnforcementPortal(){
  const [user,setUser]=useState(null),[status,setStatus]=useState(null),[cases,setCases]=useState([]);
- const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[otpCode,setOtpCode]=useState(false);
+ const [email,setEmail]=useState(''),[password,setPassword]=useState('');
  const [busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [caseNumber,setCaseNumber]=useState(''),[subject,setSubject]=useState(''),[basis,setBasis]=useState(''),[reference,setReference]=useState('');
  const [processType,setProcessType]=useState('subpoena'),[selectedScopes,setSelectedScopes]=useState(['profile','admission']),[report,setReport]=useState(null);
@@ -111,7 +111,8 @@ export default function LawEnforcementPortal(){
     <h2 className="flex gap-2 font-semibold"><LockKeyhole size={19}/>Two-factor authentication required</h2>
     <p className="text-sm">Enroll an authenticator for your agency account, then complete the challenge. No case information is accessible at AAL1.</p>
     <SecurityCenter/>
-    <MfaChallenge onVerified={()=>setReset(n=>n+1)}/>
+    <button type="button" className={btn} onClick={()=>setReset(n=>n+1)}>Refresh after authenticator enrollment</button>
+    <MfaChallenge key={reset} onVerified={()=>setReset(n=>n+1)}/>
    </section>}
    {!loading&&status?.officer&&!status.requires_mfa&&<>
     <section className="rounded-xl border bg-white p-5">
