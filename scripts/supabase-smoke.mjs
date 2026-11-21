@@ -9,7 +9,7 @@ const project=process.env.SUPABASE_URL||'https://yxuqbygykpfbioslljlf.supabase.c
 const functions=[
   'submit-age-verification','directory','admin-age-review','member-workflows',
   'collaboration-consent','performer-readiness','create-checkout',
-  'platform-extras','media-gateway','hosting-marketplace','integration-health',
+  'platform-extras','media-gateway','annual-recap','hosting-marketplace','integration-health',
   'production-manager','agreement-packets',
   'hosting-operations','hosting-docusign','hosting-ccbill',
   'hosting-advanced','hosting-production','hosting-calendar','hosting-discovery','hosting-notification-worker'
