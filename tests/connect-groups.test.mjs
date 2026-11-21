@@ -91,7 +91,8 @@ test('group posts are routed through the existing moderated feed with no group p
  assert.match(src,/ccx_feed_create_group/);
  assert.match(src,/Group posts currently support moderated text only/);
  const ui=fs.readFileSync('src/supabase/ConnectFeed.jsx','utf8');
- assert.match(ui,/feedMode=groupId\?'group'/);\n assert.match(ui,/action\('feed',\{mode:feedMode/);
+ assert.match(ui,/feedMode=groupId\?'group'/);
+ assert.match(ui,/action\('feed',\{mode:feedMode/);
  assert.match(ui,/aria-label="Attach a photo"/);
  assert.match(ui,/!groupId&&uploadFile&&<div/);
 });
