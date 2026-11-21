@@ -11,6 +11,7 @@ import AIAgentAdmin from './AIAgentAdmin';
 import VideoProviderSettings from './VideoProviderSettings';
 import AdminTrustInbox from './AdminTrustInbox';
 import AdminOperations from './AdminOperations';
+import AdminSafetyOperations from './AdminSafetyOperations';
 const sections=[
  {key:'operations',title:'Operational readiness'},
  {key:'features',title:'Modules & rollouts'},
@@ -20,6 +21,7 @@ const sections=[
  {key:'identity',title:'Identity evidence'},
  {key:'testing',title:'Testing & PASS reviews'},
  {key:'support-inbox',title:'Support & requests'},
+ {key:'safety-settings',title:'Safety operator & policies'},
  {key:'video-provider',title:'Video meetings'},
  {key:'ai-safety',title:'AI agents & risk'},
  {key:'security',title:'Account security'}
@@ -45,6 +47,7 @@ export default function AdminConsole({initialSection='features',onFeatureChange}
    {section==='identity'&&<IdentityEvidenceAdmin/>}
    {section==='testing'&&<PassClearanceHub isAdmin/>}
    {section==='support-inbox'&&<AdminTrustInbox/>}
+   {section==='safety-settings'&&<AdminSafetyOperations/>}
    {section==='video-provider'&&<VideoProviderSettings/>}
    {section==='ai-safety'&&<AIAgentAdmin/>}
    {section==='security'&&<SecurityCenter/>}
