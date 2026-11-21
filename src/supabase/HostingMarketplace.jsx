@@ -9,7 +9,7 @@ import {supabase} from '@/api/supabaseClient';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Search, SlidersHorizontal, MapPin, Heart, CalendarDays, Users, Star,
-  Camera, Home, ArrowLeft, ShieldCheck, Clock, CheckCircle2, RefreshCw, Building2, Trees, Warehouse, Clapperboard, Layers,
+  Camera, Home, ArrowLeft, ShieldCheck, Clock, CheckCircle2, RefreshCw, Building2, Trees, Warehouse, Clapperboard, Layers, Package,
 } from 'lucide-react';
 import {
   hostingAction, rentalCategories, rentalAmenities, rentalUses, usd, dateTime,
@@ -326,6 +326,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
            {id:'film_studio',label:'Production studios',Icon:Clapperboard},
            {id:'photo_studio',label:'Photo studios',Icon:Camera},
            {id:'set',label:'Production sets',Icon:Warehouse},
+           {id:'equipment',label:'Equipment rentals',Icon:Package},
            {id:'outdoor',label:'Outdoor spaces',Icon:Trees}
           ].map(({id,label,Icon})=><button key={label} type="button" disabled={busy} aria-pressed={category===id}
            onClick={()=>{setCategory(id);setMapBounds(null);}}
