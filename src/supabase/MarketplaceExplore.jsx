@@ -226,7 +226,7 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
    <div><p className="text-xs font-bold uppercase tracking-[.15em] text-[#12698f]">Host Connect X</p>
     <h2 className="mt-1 text-2xl font-bold">Find your next production location</h2>
     <p className="mt-1 text-sm text-[#61778a]">Browse approved spaces without signing in. Booking requires a verified account.</p></div>
-   <button type="button" className={secondary} onClick={onBecomeHost}><Home size={16}/> Become a host</button>
+   {site==='host'&&<button type="button" className={secondary} onClick={onBecomeHost}><Home size={16}/> Become a host</button>}
   </div>
   <nav className="flex flex-wrap gap-2" aria-label="Explore marketplace categories">
    {([{id:'spaces',label:'Spaces',Icon:Home},{id:'studios',label:'Studios',Icon:Clapperboard},
