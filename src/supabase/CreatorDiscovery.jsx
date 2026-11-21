@@ -111,7 +111,7 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
     </div>}
     <button type="button" className="ccx-primary w-full rounded-xl px-4 py-2.5" disabled={favoriteBusy.includes(selected.id)} onClick={()=>void toggle(selected.id)}>{saved.includes(selected.id)?'Remove from favorites':'Add to favorites'}</button>
     <button type="button" className="text-sm text-[var(--cc-link)] underline" onClick={()=>onNavigate?.('connections')}>View connection requests</button>
-    <section className="mt-4 space-y-3" aria-label="Member's shared posts"><h4 className="font-semibold">Profile posts</h4><ConnectFeed key={selected.id} profileId={selected.id} userId={user.id}/></section>
+    <section className="mt-4 space-y-3" aria-label="Member's shared posts"><h4 className="font-semibold">Profile posts</h4><ConnectFeed key={selected.id} profileId={selected.id} userId={user.id} paid={paid}/></section>
    </section></div>}
   </>}
  </section>;
