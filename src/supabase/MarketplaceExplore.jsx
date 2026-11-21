@@ -130,7 +130,7 @@ function FilterModal({value,onChange,onClose,onApply,matching}){
    <div className="space-y-6 overflow-y-auto p-6">
     <section className="space-y-3"><h3 className="font-semibold">Type of production space</h3>
      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{kinds.map(({id,label,Icon})=><button type="button" key={id} aria-pressed={local.types.includes(id)}
-      onClick={()=>toggle('types',id)} className={'flex min-h-18 items-center gap-3 rounded-xl border px-3 py-3 text-left text-sm '+(local.types.includes(id)?'border-[#12698f] bg-[#e9f5fc]':'border-[#dbe6ec]')}>
+      onClick={()=>toggle('types',id)} className={'flex min-h-[72px] items-center gap-3 rounded-xl border px-3 py-3 text-left text-sm '+(local.types.includes(id)?'border-[#12698f] bg-[#e9f5fc]':'border-[#dbe6ec]')}>
       <Icon size={18} className="shrink-0 text-[#12698f]"/>{label}</button>)}</div>
     </section>
     <section className="border-t border-[#e2e8ed] pt-5"><h3 className="font-semibold">Price range</h3>
@@ -227,7 +227,9 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
    <button type="button" className={secondary} onClick={onBecomeHost}><Home size={16}/> Become a host</button>
   </div>
   <nav className="flex flex-wrap gap-2" aria-label="Explore marketplace categories">
-   {[['spaces','Spaces',Home],['studios','Studios',Clapperboard],['services','Services',Brush],['equipment','Equipment',Package]].map(([id,label,Icon])=>
+   {([{id:'spaces',label:'Spaces',Icon:Home},{id:'studios',label:'Studios',Icon:Clapperboard},
+    {id:'services',label:'Services',Icon:Brush},{id:'equipment',label:'Equipment',Icon:Package}]
+    ).map(({id,label,Icon})=>
     <button key={id} type="button" aria-current={tab===id?'page':undefined}
      onClick={()=>setTab(id)}
      className={(tab===id?'bg-[#12698f] text-white':'bg-[#f0f6f9] text-[#32556a] hover:bg-[#e1eff6]')+' inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold'}>
