@@ -43,9 +43,9 @@ const services=[
  {title:'Lighting & grip',Icon:Lightbulb,subtitle:'Studio lighting and modifiers'}
 ];
 const panel='rounded-2xl border border-[#e1e9ef] bg-white shadow-sm';
-const input='w-full min-h-11 rounded-xl border border-[#d5e2e9] bg-white px-3 py-2.5 text-sm text-[#193246]';
-const secondary='inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#d5e2e9] bg-white px-4 py-2 text-sm font-semibold text-[#1a3c50] hover:border-[#12698f]';
-const primary='inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#12698f] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#0c5272] disabled:opacity-40';
+const input='w-full min-h-[44px] rounded-xl border border-[#d5e2e9] bg-white px-3 py-2.5 text-sm text-[#193246]';
+const secondary='inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-[#d5e2e9] bg-white px-4 py-2 text-sm font-semibold text-[#1a3c50] hover:border-[#12698f]';
+const primary='inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-[#12698f] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#0c5272] disabled:opacity-40';
 const money=cents=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format((Number(cents)||0)/100);
 const DEFAULT_FILTERS={types:[],minPrice:'',maxPrice:'',bedrooms:0,beds:0,bathrooms:0,amenities:[],
  access:[],language:'',use:'',pets:false,smoking:false};
@@ -151,12 +151,12 @@ function FilterModal({value,onChange,onClose,onApply,matching}){
     </section>
     {amenityGroups.map(group=><section key={group.title} className="border-t border-[#e2e8ed] pt-5">
      <h3 className="mb-3 font-semibold">{group.title}</h3>
-     <div className="grid gap-3 sm:grid-cols-2">{group.items.map(([id,label])=><label key={id} className="flex min-h-11 items-center gap-3 text-sm">
+     <div className="grid gap-3 sm:grid-cols-2">{group.items.map(([id,label])=><label key={id} className="flex min-h-[44px] items-center gap-3 text-sm">
       <input type="checkbox" className="h-4 w-4 accent-[#12698f]" checked={local.amenities.includes(id)} onChange={()=>toggle('amenities',id)}/>{label}
      </label>)}</div>
     </section>)}
     <section className="border-t border-[#e2e8ed] pt-5"><h3 className="mb-3 font-semibold">Accessibility</h3>
-     <div className="grid gap-3 sm:grid-cols-2">{accessibility.map(([id,label])=><label key={id} className="flex min-h-11 items-center gap-3 text-sm">
+     <div className="grid gap-3 sm:grid-cols-2">{accessibility.map(([id,label])=><label key={id} className="flex min-h-[44px] items-center gap-3 text-sm">
       <input type="checkbox" className="h-4 w-4 accent-[#12698f]" checked={local.access.includes(id)} onChange={()=>toggle('access',id)}/>{label}</label>)}</div>
     </section>
     <section className="grid gap-4 border-t border-[#e2e8ed] pt-5 sm:grid-cols-2">
@@ -232,7 +232,7 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
     ).map(({id,label,Icon})=>
     <button key={id} type="button" aria-current={tab===id?'page':undefined}
      onClick={()=>setTab(id)}
-     className={(tab===id?'bg-[#12698f] text-white':'bg-[#f0f6f9] text-[#32556a] hover:bg-[#e1eff6]')+' inline-flex min-h-11 items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold'}>
+     className={(tab===id?'bg-[#12698f] text-white':'bg-[#f0f6f9] text-[#32556a] hover:bg-[#e1eff6]')+' inline-flex min-h-[44px] items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold'}>
      <Icon size={17}/>{label}</button>)}
   </nav>
   {(tab==='services'||tab==='equipment')?<div className="space-y-4">
