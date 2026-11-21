@@ -4,8 +4,9 @@
  * No exact private addresses are fetched or sent to the map.
  */
 import React,{useEffect,useMemo,useRef,useState} from 'react';
-import {Search,SlidersHorizontal,Map,MapPin,Users,Home,Building2,Warehouse,Camera,Clapperboard,TreePine,Hotel,Landmark,Package,ChevronRight,X,Tag,Video,Scissors,Brush,Mic,Lightbulb,ExternalLink} from 'lucide-react';
+import {Search,SlidersHorizontal,Map,MapPin,Users,Home,Building2,Warehouse,Camera,Clapperboard,TreePine,Hotel,Landmark,ChevronRight,X,Tag} from 'lucide-react';
 import GeoLocationSelect,{EMPTY_GEO} from './GeoLocationSelect';
+import HostVenueCategoryRail from './HostVenueCategoryRail';
 const kinds=[
  {id:'house',label:'Home',Icon:Home},{id:'condo',label:'Owned condo',Icon:Building2},
  {id:'warehouse',label:'Warehouse',Icon:Warehouse},{id:'film_studio',label:'Film studio',Icon:Clapperboard},
@@ -32,15 +33,6 @@ export const accessibility=[
 const crewRoles=[
  ['creators','Creators / performers'],['videographers','Videographers'],['photographers','Photographers'],
  ['agents','Agents / managers'],['production_staff','Production crew'],['makeup','Makeup & hair'],['other','Other guests']
-];
-const services=[
- {title:'Photography',Icon:Camera,subtitle:'Portraits, campaigns and shoots'},
- {title:'Videography',Icon:Video,subtitle:'Multi-camera and film production'},
- {title:'Makeup & styling',Icon:Brush,subtitle:'Professional makeup artists'},
- {title:'Hair',Icon:Scissors,subtitle:'Hair stylists and hair teams'},
- {title:'Equipment rental',Icon:Package,subtitle:'Cameras, lenses and monitors'},
- {title:'Audio & microphones',Icon:Mic,subtitle:'Recording, lavalier and boom'},
- {title:'Lighting & grip',Icon:Lightbulb,subtitle:'Studio lighting and modifiers'}
 ];
 const panel='rounded-2xl border border-[#e1e9ef] bg-white shadow-sm';
 const input='w-full min-h-[44px] rounded-xl border border-[#d5e2e9] bg-white px-3 py-2.5 text-sm text-[#193246]';
@@ -186,7 +178,7 @@ function FilterModal({value,onChange,onClose,onApply,matching}){
  </div>;
 }
 export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filters)=>{void _filters;},onOpen=(_id)=>{void _id;},onBecomeHost=()=>{},site='host'}){
- const [tab,setTab]=useState('spaces'),[geo,setGeo]=useState({...EMPTY_GEO});
+ const [selectedCategory,setSelectedCategory]=useState(''),[geo,setGeo]=useState({...EMPTY_GEO});
  const [keyword,setKeyword]=useState(''),[from,setFrom]=useState(''),[to,setTo]=useState('');
  const [crew,setCrew]=useState(Object.fromEntries(crewRoles.map(([key])=>[key,0])));
  const [crewOpen,setCrewOpen]=useState(false),[filterOpen,setFilterOpen]=useState(false),[filters,setFilters]=useState({...DEFAULT_FILTERS});
@@ -210,6 +202,7 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
  }),[items,filters,count]);
  const apply=(nextFilters=filters)=>onSearch({
   query:keyword,country:geo.country,state:geo.state,city:geo.city,
+  ...(nextFilters.types.length===1?{category:nextFilters.types[0]}:{}),
   ...(from&&to?{start_date:from,end_date:to}:{}),
   ...(count>0?{crew_size:count}:{}),
   ...(nextFilters.amenities.length?{amenities:nextFilters.amenities}:{}),
@@ -228,29 +221,10 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
     <p className="mt-1 text-sm text-[#61778a]">Browse approved spaces without signing in. Booking requires a verified account.</p></div>
    {site==='host'&&<button type="button" className={secondary} onClick={onBecomeHost}><Home size={16}/> Become a host</button>}
   </div>
-  <nav className="flex flex-wrap gap-2" aria-label="Explore marketplace categories">
-   {([{id:'spaces',label:'Spaces',Icon:Home},{id:'studios',label:'Studios',Icon:Clapperboard},
-    {id:'services',label:'Services',Icon:Brush},{id:'equipment',label:'Equipment',Icon:Package}]
-    ).map(({id,label,Icon})=>
-    <button key={id} type="button" aria-current={tab===id?'page':undefined}
-     onClick={()=>setTab(id)}
-     className={(tab===id?'bg-[#12698f] text-white':'bg-[#f0f6f9] text-[#32556a] hover:bg-[#e1eff6]')+' inline-flex min-h-[44px] items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold'}>
-     <Icon size={17}/>{label}</button>)}
-  </nav>
-  {(tab==='services'||tab==='equipment')?<div className="space-y-4">
-   <h3 className="text-lg font-bold">{tab==='services'?'Professional services':'Production equipment and rentals'}</h3>
-   <p className="text-sm text-[#627789]">Professionals are discovered on Content Connect X. Equipment offered by venue hosts is shown in each approved listing. These are category links, not invented local providers.</p>
-   <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-    {(tab==='services'?services.filter(s=>!s.title.toLowerCase().includes('equipment')):
-      services.filter(s=>/equipment|audio|lighting/.test(s.title.toLowerCase()))).map(({title,Icon,subtitle})=>
-     <a href="https://contentconnectx.com/Discovery" key={title} target="_blank" rel="noopener noreferrer"
-      className="group rounded-2xl border border-[#e0e8ef] bg-white p-4 transition hover:border-[#9bc4dc]">
-      <div className="grid aspect-[5/4] place-items-center rounded-xl bg-[#eff6fa] text-[#12698f]"><Icon size={45} strokeWidth={1.4}/></div>
-      <strong className="mt-3 flex items-center gap-2 text-sm">{title}<ExternalLink size={13}/></strong>
-      <span className="mt-1 block text-xs text-[#627789]">{subtitle}</span>
-     </a>)}
-   </div>
-  </div>:<>
+  <HostVenueCategoryRail selected={selectedCategory} onSelect={id=>{
+   const next={...filters,types:id?[id]:[]};
+   setSelectedCategory(id);setFilters(next);apply(next);
+  }}/>
    <form className={panel+' relative grid gap-3 p-4 lg:grid-cols-[2.4fr_1fr_1fr_1.2fr_auto] lg:items-end'} onSubmit={e=>{e.preventDefault();apply();}}>
     <div className="space-y-2">
      <label className="text-xs font-bold">Where</label>
@@ -289,14 +263,14 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
    </p>}
    <div className={'grid min-w-0 gap-5 '+(showMap?'lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]':'')}>
     <section className="min-w-0 space-y-4" aria-label="Venue search results">
-     <h3 className="font-bold">{data.length} {tab==='studios'?'production studios':'approved spaces'}{geo.city?' in '+geo.city:''}</h3>
+     <h3 className="font-bold">{data.length} approved spaces{geo.city?' in '+geo.city:''}</h3>
      {data.length===0?<div className={panel+' p-8 text-center'}>
       <Search className="mx-auto mb-3 text-[#12698f]" size={35}/>
       <h4 className="font-bold">No approved venues match those filters yet</h4>
       <p className="mt-2 text-sm text-[#627789]">Try a different city, crew size or venue type. New verified properties appear here automatically.</p>
      </div>:
       <div className={'grid gap-4 '+(showMap?'sm:grid-cols-2 xl:grid-cols-2':'sm:grid-cols-2 xl:grid-cols-4')}>
-       {data.filter(p=>tab!=='studios'||['film_studio','photo_studio','set','dungeon'].includes(p.category)).map(p=>
+       {data.map(p=>
         <button type="button" key={p.id} className="group overflow-hidden rounded-2xl bg-white text-left transition hover:-translate-y-0.5 hover:shadow-md"
          onClick={()=>onOpen(p.id)}>
          <div className="relative aspect-[5/4] overflow-hidden rounded-2xl bg-[#eff5f8]">
@@ -318,16 +292,6 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
      <ApproximateRoadMap properties={data} onOpen={onOpen}/>
     </aside>}
    </div>
-   <section className="space-y-3 border-t border-[#e1e8ef] pt-6" aria-label="Professional services from Content Connect X">
-    <div className="flex justify-between gap-3"><div><h3 className="font-bold">Production services</h3><p className="mt-1 text-xs text-[#627789]">Find collaborators and service providers through Content Connect X.</p></div>
-     <a href="https://contentconnectx.com/Discovery" target="_blank" rel="noopener noreferrer" className="text-xs font-semibold text-[#12698f]">Explore services</a></div>
-    <div className="flex gap-3 overflow-x-auto pb-3">{services.map(({title,Icon})=>
-     <a key={title} href="https://contentconnectx.com/Discovery" target="_blank" rel="noopener noreferrer" className="min-w-32 flex-none text-center">
-      <div className="grid aspect-square place-items-center rounded-2xl bg-[#f0f5f8] text-[#12698f]"><Icon size={34} strokeWidth={1.5}/></div>
-      <span className="mt-2 block text-xs font-semibold">{title}</span>
-     </a>)}</div>
-   </section>
-  </>}
-  {filterOpen&&<FilterModal value={filters} onChange={setFilters} onClose={()=>setFilterOpen(false)} onApply={apply} matching={displayed.length}/>}
+  {filterOpen&&<FilterModal value={filters} onChange={next=>{setFilters(next);setSelectedCategory(next.types.length===1?next.types[0]:'');}} onClose={()=>setFilterOpen(false)} onApply={apply} matching={displayed.length}/>}
  </div>;
 }
