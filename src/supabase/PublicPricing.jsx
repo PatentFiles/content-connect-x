@@ -111,7 +111,7 @@ export default function PublicPricing({signedIn=false,onNavigate=(destination)=>
     price={price+(selected?' / 30 days':'')} subtitle={role==='agent'
      ?selected?.label+' · Cancel according to the published subscription terms.'
      :'Recurring membership billed every 30 days. No Content Connect X percentage taken from your project earnings.'}
-    features={premium.items} disabled={signedIn?(!billing?.ready||paying||currentlyPaid):false} href="/signup" onClick={signedIn?checkout:null} action={!signedIn?'Create an account to subscribe':currentlyPaid?'Your membership is active':paying?'Opening secure checkout…':billing?.ready?'Subscribe securely with CCBill':'Membership checkout opens after approved billing is connected'}/>
+    features={premium.items} disabled={signedIn?(!selected||!billing?.ready||paying||currentlyPaid):false} href="/signup" onClick={signedIn?checkout:null} action={!signedIn?'Create an account to subscribe':currentlyPaid?'Your membership is active':!selected?'Premium plan not yet configured for this role':paying?'Opening secure checkout…':billing?.ready?'Subscribe securely with CCBill':'Membership checkout opens after approved billing is connected'}/>
   </section>
   <p className="mx-auto mt-4 max-w-5xl text-center text-xs leading-6 text-[var(--cc-text-secondary)]">
    Recurring subscriptions renew every 30 days unless cancelled. Cancellation stops the next renewal and preserves paid access through the existing paid period. No prorated refunds are provided, except where required by applicable law.
