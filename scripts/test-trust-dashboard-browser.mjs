@@ -128,7 +128,7 @@ try{
   assert.equal(await run(()=>document.querySelectorAll('dialog.ccx-trust-modal').length),0,'No modal navigation crash '+slug);
   await noErrors();
  }
- await visit('/trust/content-removal');await hasText('Request intake is not open yet');await hasText('Check an existing report');assert.equal(await run(()=>document.querySelectorAll('form').length),1);assert.equal(await run(()=>!!document.querySelector('[data-private-trust-status] form')),true);
+ await visit('/trust/content-removal');await hasText('Request intake is not open yet');await hasText('Check an existing request');assert.equal(await run(()=>document.querySelectorAll('form').length),1);assert.equal(await run(()=>!!document.querySelector('[data-private-trust-status] form')),true);
  await visit('/trust/cookies');await wait(()=>document.querySelectorAll('input[type=checkbox]').length===2);
  assert.equal(await run(()=>[...document.querySelectorAll('input[type=checkbox]')].every(e=>!e.checked)),true);
  await selectClick('input[type=checkbox]');await reloadClick('Save preferences and reload');await wait(()=>document.querySelector('input[type=checkbox]')?.checked===true);
