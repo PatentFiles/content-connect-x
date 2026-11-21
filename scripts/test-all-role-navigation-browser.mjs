@@ -14,7 +14,7 @@ assert.ok(chrome,'Chromium required for all-role navigation audit');
 const folder=fs.mkdtempSync(path.join(os.tmpdir(),'ccx-role-clicks-'));
 let browser,socket;
 const mock=[
- "const q={select(){return this},eq(){return this},is(){return this},then(resolve){return Promise.resolve({data:[],count:0,error:null}).then(resolve)}};",
+ "const q={select(){return this},eq(){return this},is(){return this},order(){return this},limit(){return this},maybeSingle(){return this},then(resolve){return Promise.resolve({data:[],count:0,error:null}).then(resolve)}};",
  "export const supabase={from:()=>({...q}),channel:()=>({on(){return this},subscribe(){return this}}),removeChannel:async()=>{}};",
  "export const supabaseConfiguration={ready:true};",
  "export const requireSupabase=()=>supabase;"
@@ -110,8 +110,11 @@ try{
      if(!button)throw Error('Missing desktop button '+role+' / '+label);
      const before=window.__navigations.length;button.click();await pause();
      if(window.__navigations.length!==before+1)throw Error('Inert desktop click '+role+' / '+label);
-     if(document.querySelector('[data-route-marker]')?.dataset.routeMarker!==window.__navigations.at(-1))
-      throw Error('Desktop route did not render '+role+' / '+label);
+     const destination=window.__navigations.at(-1);
+     const rendered=destination==='verification'
+      ?[...document.querySelectorAll('h1')].some(el=>el.textContent.includes('Age verification'))
+      :document.querySelector('[data-route-marker]')?.dataset.routeMarker===destination;
+     if(!rendered)throw Error('Desktop route did not render '+role+' / '+label+' / '+destination);
      clicked.push(label);
     }
    }
@@ -151,8 +154,11 @@ try{
     if(!button)throw Error('Mobile item disappeared '+role+' / '+label);
     const before=window.__navigations.length;button.click();await pause();
     if(window.__navigations.length!==before+1||dialog())throw Error('Mobile route or close failed '+role+' / '+label);
-    if(document.querySelector('[data-route-marker]')?.dataset.routeMarker!==window.__navigations.at(-1))
-     throw Error('Mobile route not rendered '+role+' / '+label);
+    const destination=window.__navigations.at(-1);
+    const rendered=destination==='verification'
+     ?[...document.querySelectorAll('h1')].some(el=>el.textContent.includes('Age verification'))
+     :document.querySelector('[data-route-marker]')?.dataset.routeMarker===destination;
+    if(!rendered)throw Error('Mobile route not rendered '+role+' / '+label+' / '+destination);
    }
    await open();
    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));await pause();
