@@ -1069,3 +1069,7 @@ html:where([data-ccx-appearance="public"]), :where(html[data-ccx-appearance="pub
  :where(html[data-ccx-appearance="public"]) .oh-app .oh-feature-details .oh-landing-card-accent{display:none}
 }
 @media(prefers-reduced-motion:reduce){:where(html[data-ccx-appearance="public"]) .oh-app .oh-feature-details .oh-feature-toggle{transition:none}}
+
+/* Independent Host Connect X brand link in CCX signed-out footer. */
+:where(html[data-ccx-appearance="public"]) .ccx-host-footer-link{color:#12698f;font-weight:800;text-decoration:none}
+:where(html[data-ccx-appearance="public"]) .ccx-host-footer-link:hover,:where(html[data-ccx-appearance="public"]) .ccx-host-footer-link:focus-visible{color:#0c5272;text-decoration:underline;text-underline-offset:3px}
