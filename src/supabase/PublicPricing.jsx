@@ -27,6 +27,7 @@ export default function PublicPricing({signedIn=false,onNavigate=(destination)=>
  const [plans,setPlans]=useState(DEFAULT_PREMIUM_PLANS);
  const [agentPlan,setAgentPlan]=useState('agent_10');
  const [billing,setBilling]=useState(null),[billingError,setBillingError]=useState(''),[paying,setPaying]=useState(false);
+ const [confirmCancellation,setConfirmCancellation]=useState(false),[cancelling,setCancelling]=useState(false),[cancelNotice,setCancelNotice]=useState('');
  useEffect(()=>{
   if(!signedIn)return;
   let active=true;
@@ -44,6 +45,17 @@ export default function PublicPricing({signedIn=false,onNavigate=(destination)=>
    if(target.origin!=='https://api.ccbill.com'||!target.pathname.startsWith('/wap-frontflex/flexforms/'))throw Error('Invalid hosted checkout URL');
    window.location.assign(target.href);
   }catch(e){setBillingError(e.message);setPaying(false);}
+ };
+ const cancelRenewal=async()=>{
+  if(cancelling)return;
+  setCancelling(true);setBillingError('');setCancelNotice('');
+  try{
+   const result=await membershipCall('cancel_at_period_end');
+   const fresh=await membershipCall('status');
+   setBilling(fresh);setConfirmCancellation(false);
+   setCancelNotice(result.note||'Renewal cancelled. Your existing access remains active through the paid-through date.');
+  }catch(e){setBillingError(e.message||'Cancellation could not be confirmed. No change was reported.');}
+  finally{setCancelling(false);}
  };
  const currentlyPaid=['active','trial'].includes(billing?.subscription?.status)&&(!billing.subscription.period_end||Date.parse(billing.subscription.period_end)>Date.now());
 
@@ -112,7 +124,22 @@ export default function PublicPricing({signedIn=false,onNavigate=(destination)=>
   <div className="mx-auto mt-7 max-w-5xl rounded-2xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-5 text-sm leading-7 text-[var(--cc-text-secondary)]">
    <div className="flex items-center gap-2 font-semibold text-[var(--cc-text-primary)]"><LockKeyhole size={19}/> Billing status</div>
    <p className="mt-2">{billing?.ready?'Secure card entry is hosted by CCBill. Membership renews every 30 days at the accepted checkout price. Cancellation stops future renewals; paid access continues through the recorded paid period.':'Checkout opens after the approved recurring merchant account, hosted form and authenticated callback service are connected. No payment is needed to create a free account.'}</p>
-   {billing?.subscription?.billing_provider==='ccbill'&&<p className="mt-3"><a className="font-semibold underline" href="https://support.ccbill.com" target="_blank" rel="noopener noreferrer">Manage or cancel your CCBill subscription</a>{billing.cancel_at_period_end&&' · Renewal cancelled.'}{billing.subscription.period_end&&' Paid-through date: '+new Date(billing.subscription.period_end).toLocaleDateString()}</p>}
+   {billing?.subscription?.billing_provider==='ccbill'&&<section className="mt-4 space-y-3 rounded-xl border border-[var(--cc-border)] p-4" aria-label="Manage premium subscription">
+    <h3 className="font-semibold text-[var(--cc-text-primary)]">Manage your premium membership</h3>
+    <p>Next renewal / paid-through date: {billing.subscription.period_end?new Date(billing.subscription.period_end).toLocaleDateString():'See CCBill receipt'}. Cancel any time before renewal. Premium access remains available through the already-paid period. Cancellation does not issue a refund.</p>
+    {billing.cancel_at_period_end?<p role="status" className="font-semibold text-[var(--cc-text-primary)]">Renewal cancelled — no additional recurring charge is scheduled.</p>:
+     <button type="button" className="ccx-secondary min-h-11 rounded-xl px-4 py-2 font-semibold" onClick={()=>setConfirmCancellation(true)}>Cancel subscription</button>}
+    {confirmCancellation&&!billing.cancel_at_period_end&&<div className="space-y-3 rounded-xl border border-[var(--cc-border)] p-4">
+     <p className="font-semibold text-[var(--cc-text-primary)]">Confirm cancellation of future renewals?</p>
+     <p>Your current paid period is not refunded. Your membership will remain premium until the paid-through date, after which it will not renew.</p>
+     <div className="flex flex-wrap gap-2">
+      <button type="button" disabled={cancelling} className="ccx-primary min-h-11 rounded-xl px-4 py-2" onClick={()=>void cancelRenewal()}>{cancelling?'Contacting billing provider…':'Confirm cancellation'}</button>
+      <button type="button" disabled={cancelling} className="ccx-secondary min-h-11 rounded-xl px-4 py-2" onClick={()=>setConfirmCancellation(false)}>Keep my membership</button>
+     </div>
+    </div>}
+    <a className="inline-block font-semibold underline" href="https://support.ccbill.com" target="_blank" rel="noopener noreferrer">CCBill billing support</a>
+   </section>}
+   {cancelNotice&&<p role="status" className="mt-3 font-semibold text-[var(--cc-text-primary)]">{cancelNotice}</p>}
    {billing?.reconciliation_required&&<p role="status" className="mt-3 text-amber-800">A payment needs merchant reconciliation. Do not submit a second payment; contact support with your CCBill receipt.</p>}
    {billingError&&<p role="alert" className="mt-3 text-red-800">{billingError}</p>}
   </div>
