@@ -64,8 +64,9 @@ test('officer portal is mounted before member age gate, separate from admin and 
  const boot=read('src/supabase/bootstrap.jsx');
  const admin=read('src/supabase/AdminConsole.jsx');
  const portal=read('src/supabase/LawEnforcementPortal.jsx');
- assert.match(boot,/showLawPortal/);
- assert.match(boot,/\/law-enforcement-portal/);
+ assert.doesNotMatch(boot,/showLawPortal/);
+ assert.doesNotMatch(boot,/LawEnforcementPortal/);
+ assert.match(boot,/<OnlyHostApp\/>/);
  assert.match(admin,/LawEnforcementAdmin/);
  assert.match(portal,/SecurityCenter/);
  assert.match(portal,/MfaChallenge/);
