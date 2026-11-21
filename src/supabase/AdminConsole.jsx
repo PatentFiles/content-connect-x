@@ -12,6 +12,7 @@ import VideoProviderSettings from './VideoProviderSettings';
 import AdminTrustInbox from './AdminTrustInbox';
 import AdminOperations from './AdminOperations';
 import AdminSafetyOperations from './AdminSafetyOperations';
+import LawEnforcementAdmin from './LawEnforcementAdmin';
 const sections=[
  {key:'operations',title:'Operational readiness'},
  {key:'features',title:'Modules & rollouts'},
@@ -22,6 +23,7 @@ const sections=[
  {key:'testing',title:'Testing & PASS reviews'},
  {key:'support-inbox',title:'Support & requests'},
  {key:'safety-settings',title:'Safety operator & policies'},
+ {key:'law-enforcement',title:'Law enforcement access'},
  {key:'video-provider',title:'Video meetings'},
  {key:'ai-safety',title:'AI agents & risk'},
  {key:'security',title:'Account security'}
@@ -48,6 +50,7 @@ export default function AdminConsole({initialSection='features',onFeatureChange}
    {section==='testing'&&<PassClearanceHub isAdmin/>}
    {section==='support-inbox'&&<AdminTrustInbox/>}
    {section==='safety-settings'&&<AdminSafetyOperations/>}
+   {section==='law-enforcement'&&<LawEnforcementAdmin/>}
    {section==='video-provider'&&<VideoProviderSettings/>}
    {section==='ai-safety'&&<AIAgentAdmin/>}
    {section==='security'&&<SecurityCenter/>}
