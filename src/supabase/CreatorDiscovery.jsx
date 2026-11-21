@@ -1,5 +1,6 @@
 /** Local discovery and independent city search share the same profile card/favorites. */
 import ConnectFeed from './ConnectFeed';
+import {CategoryStrip,DISCOVERY_CATEGORIES} from './CategoryArtwork';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {Search,SlidersHorizontal,RefreshCw,X,ChevronDown,ChevronUp,Camera,Video,Users,UserRound,Clapperboard,Scissors} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
@@ -73,27 +74,9 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
  return <section className="space-y-5">
   <header className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-2xl font-semibold">{mode==='discovery'?'Discovery':mode==='search'?'Search':'Favorites'}</h2><p className="mt-1 text-sm text-[var(--cc-text-secondary)]">{mode==='favorites'?'People you saved from Discovery.':mode==='search'?'Find people in any city and filter by professional role.':local.city?'Discover people in '+local.city+' and change the filters to explore elsewhere.':'Set your city in My Profile to start locally, or choose a city below.'}</p></div>{approved&&<button type="button" className="ccx-secondary rounded-lg p-3" disabled={working} aria-label="Refresh profiles" onClick={()=>void search(applied)}><RefreshCw size={17}/></button>}</header>
   {!approved?<div className={panel}>Independent age verification is required before viewing profiles.</div>:<>
-   {mode!=='favorites'&&<nav aria-label="Discover by profession" className="rounded-2xl border border-[var(--cc-border)] bg-[var(--cc-surface)] px-3 py-4">
-    <div className="flex gap-3 overflow-x-auto pb-1" data-discovery-categories="true">
-     {[
-      {role:'',label:'Everyone',Icon:Users},
-      {role:'videographer',label:'Videographers',Icon:Video},
-      {role:'photographer',label:'Photographers',Icon:Camera},
-      {role:'creator',gender:'woman',label:'Female creators',Icon:UserRound},
-      {role:'creator',gender:'man',label:'Male creators',Icon:UserRound},
-      {role:'agent',label:'Agents',Icon:Users},
-      {role:'studio',label:'Production studios',Icon:Clapperboard},
-      {role:'video_editor',label:'Video editors',Icon:Scissors}
-     ].map(({role,gender='',label,Icon})=>{
-      const active=applied.role===role&&(role==='creator'?applied.gender===gender:!applied.gender);
-      return <button type="button" key={label} aria-pressed={active} disabled={working}
-       className={'flex min-w-[94px] shrink-0 flex-col items-center justify-center gap-2 rounded-xl border-b-[3px] px-3 py-2 text-center text-xs font-semibold transition hover:bg-[var(--cc-surface-subtle)] '+(active?'border-[var(--cc-link)] text-[var(--cc-text-primary)]':'border-transparent text-[var(--cc-text-secondary)]')}
-       onClick={()=>{const next={...applied,role,gender};setFilters(next);void search(next);}}>
-       <Icon aria-hidden="true" size={30} strokeWidth={1.6}/><span>{label}</span>
-      </button>;
-     })}
-    </div>
-   </nav>}
+   {mode!=='favorites'&&<CategoryStrip items={DISCOVERY_CATEGORIES}
+    value={DISCOVERY_CATEGORIES.find(item=>item.role===applied.role&&(!item.gender||item.gender===applied.gender))?.key||'all'}
+    onSelect={item=>{const next={...applied,role:item.role,gender:item.gender||''};setFilters(next);void search(next);}}/>}
    {mode!=='favorites'&&<form className={panel+' space-y-4'} data-discovery-filters="true" onSubmit={e=>{e.preventDefault();void search(filters);if(window.matchMedia('(max-width: 767px)').matches)setFiltersOpen(false);}}>
     <button type="button" className="flex min-h-11 w-full items-center justify-between gap-3 text-left" aria-controls="ccx-discovery-filter-fields" aria-expanded={filtersOpen} onClick={()=>setFiltersOpen(v=>!v)}>
      <span className="flex items-center gap-2"><SlidersHorizontal size={17}/><span className="font-semibold">Discovery filters</span></span>
