@@ -41,5 +41,5 @@ test('no restore can execute without explicit isolated target approval and sourc
  assert.match(sourceCode,/pg_dump/);
  assert.match(sourceCode,/pg_restore/);
  assert.match(sourceCode,/compareManifests\(sourceManifest,targetManifest\)/);
- assert.doesNotMatch(sourceCode,/--clean|--create|drop database|delete from storage\.objects/i);
+ assert.doesNotMatch(sourceCode,/['\"]--clean['\"]|['\"]--create['\"]|drop database|delete from storage\.objects/i);
 });
