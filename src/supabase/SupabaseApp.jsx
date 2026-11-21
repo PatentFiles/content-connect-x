@@ -38,7 +38,7 @@ import PublicLandingSections from './PublicLandingSections';
 import {useAuthAppearance} from './authAppearance';
 import PublicPricing from './PublicPricing';
 import AgeGateOnboarding from './AgeGateOnboarding';
-const HostingMarketplace = React.lazy(() => import('./HostingMarketplace'));
+const HostCrossMarketplace = React.lazy(() => import('./HostCrossMarketplace'));
 import {   AlertTriangle, Loader2, RefreshCw, Eye, EyeOff } from 'lucide-react';
 
 const shell = 'ccx-app min-h-screen text-[var(--cc-text-primary)]';
@@ -278,7 +278,7 @@ export default function SupabaseApp() {
         <a href="/login" className="ccx-public-nav-button ccx-secondary">Log in</a>
         <a href="/signup" className="ccx-public-nav-button ccx-primary">Sign up</a>
         <a href="/pricing" className="ccx-public-nav-button ccx-secondary">Pricing</a>
-        <a href="/hostconnect" className="ccx-public-nav-button ccx-host-connect-header">Host Connect</a>
+        <a href="https://hostconnectx.com" className="ccx-public-nav-button ccx-host-connect-header">Host Connect X</a>
       </nav>
     </header>
     <main id="main-content">
@@ -497,9 +497,7 @@ export default function SupabaseApp() {
        !approved?<div className={panel}>Complete account onboarding to enter the marketplace.</div>:
        <div className="host-connect-theme">
        <React.Suspense fallback={<div className={panel}>Loading hosting marketplace…</div>}>
-        <HostingMarketplace key={tab} user={user} paid={paid} isAdmin={isAdmin}
-         initialSection={tab==='host'?(paid?'host':'explore'):
-          tab==='host-settings'?'alerts':'explore'}/>
+        <HostCrossMarketplace key={tab} user={user} paid={paid}/>
        </React.Suspense>
        </div>)}
     {tab==='portfolio'&&approved&&<MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
