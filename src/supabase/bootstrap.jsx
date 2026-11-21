@@ -1,7 +1,7 @@
 /** Startup keeps public trust/support pages accessible without granting member access. */
 import React from 'react';
 import {createRoot} from 'react-dom/client';
-import {supabase,supabaseConfiguration} from '../api/supabaseClient';
+import {supabase} from '../api/supabaseClient';
 import OnlyHostApp from './OnlyHostApp';
 import TrustSite from './TrustSite';
 import SessionPrivacyBoundary from './SessionPrivacyBoundary';
@@ -34,5 +34,5 @@ initializeFormKeyboardHints(mount);
 // the EXISTING Host Connect website. This build cannot route to the CCX
 // creator dashboard or law-enforcement portal.
 const isTrustRoute=/^\/trust(?:\/|$)/i.test(window.location.pathname);
-const configuredApp=supabase?(isTrustRoute?<TrustSite><OnlyHostApp/></TrustSite>:<OnlyHostApp/>):<main className="min-h-screen bg-[var(--cc-surface-subtle)] px-6 py-24 text-[var(--cc-text-primary)]"><div role="alert" className="mx-auto max-w-xl rounded-2xl border border-[var(--cc-border)] bg-[var(--cc-surface)] p-8"><h1 className="text-2xl font-semibold">Host Connect X setup required</h1><p className="mt-4 text-sm text-[var(--cc-text-secondary)]">{supabaseConfiguration.error||'Configure the Host Connect X Supabase project before publishing.'}</p></div></main>;
+// Public Host Connect landing continues to render for Bolt previews even while\n// the independent host Supabase project is unconfigured. Auth fails closed.\nconst configuredApp=isTrustRoute?<TrustSite><OnlyHostApp/></TrustSite>:<OnlyHostApp/>;
 createRoot(mount).render(<StartupErrorBoundary><SessionPrivacyBoundary>{configuredApp}</SessionPrivacyBoundary></StartupErrorBoundary>);
