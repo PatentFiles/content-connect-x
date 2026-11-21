@@ -3,7 +3,7 @@
  * signed, private Storage path during the first 48 hours after check-in.
  */
 import React,{useEffect,useState} from 'react';
-import {Camera,ShieldCheck,ArrowLeft,CheckCircle2} from 'lucide-react';
+import {Camera,ShieldCheck,ArrowLeft} from 'lucide-react';
 const panel='rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface)] p-5';
 const field='mt-1 w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm';
 const primary='oh-primary inline-flex min-h-11 items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold disabled:opacity-50';
