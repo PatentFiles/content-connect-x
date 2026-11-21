@@ -3,7 +3,7 @@
  * can submit posts and reposts. No public media URLs or third-party ad scripts.
  */
 import React,{useCallback,useEffect,useRef,useState} from 'react';
-import {Heart,MessageCircle,Repeat2,Share2,Bookmark,ImagePlus,Send,Flag,RefreshCw,X,Settings2} from 'lucide-react';
+import {Heart,MessageCircle,Repeat2,Bookmark,ImagePlus,Send,Flag,RefreshCw,X,Settings2} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
 import {loadFeedPreferences} from './feedDisplayPreferences.mjs';
 const secondary='ccx-secondary inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm disabled:opacity-50';
@@ -21,7 +21,7 @@ async function action(name,payload={}){
 }
 function FeedPost({post,paid,userId,onChanged,onError}){
  const [comments,setComments]=useState(null),[commentText,setCommentText]=useState('');
- const [busy,setBusy]=useState(false),[repostText,setRepostText]=useState(''),[reposting,setReposting]=useState(false);
+ const [busy,setBusy]=useState(false);
  const [revealedPhotos,setRevealedPhotos]=useState([]);
  const [reporting,setReporting]=useState(false),[reportReason,setReportReason]=useState('unsafe');
  const [local,setLocal]=useState(post),[notice,setNotice]=useState('');
@@ -33,7 +33,7 @@ function FeedPost({post,paid,userId,onChanged,onError}){
    if(name==='like'||name==='unlike')setLocal(previous=>({...previous,liked:result.liked,likes:Math.max(0,previous.likes+(result.liked?1:-1))}));
    if(name==='save'||name==='unsave')setLocal(previous=>({...previous,saved:result.saved}));
    if(name==='comment'){setCommentText('');setNotice('Comment submitted for moderation; it will appear after approval.');}
-   if(name==='repost'){setReposting(false);setRepostText('');setNotice('Repost submitted for review.');}
+   if(name==='repost'){setNotice(result?.item?.status==='published'?'Added to your Reposts.':'Repost submitted for review.');onChanged?.();}
    if(name==='report'){setReporting(false);setNotice(result.note||'Post report recorded.');}
    if(name==='hide'){onChanged();}
   }catch(error){onError(error.message);}finally{setBusy(false);}
@@ -44,24 +44,20 @@ function FeedPost({post,paid,userId,onChanged,onError}){
   setBusy(true);
   try{const result=await action('comments',{post_id:post.id});setComments(result.items||[]);}catch(e){onError(e.message);}finally{setBusy(false);}
  };
- const share=()=>{
-  const url=new URL('/Dashboard',window.location.origin);
-  url.searchParams.set('ccx_post',post.id);
-  const text=url.toString();
-  if(navigator.clipboard?.writeText){
-   void navigator.clipboard.writeText(text).then(()=>setNotice('Link copied. Recipients must have permission to view this post.'),()=>setNotice('Copy the link from your address bar after opening this post.'));
-  }else setNotice('Sharing requires browser clipboard permission.');
- };
+ const isRepost=Boolean(local.repost_of&&local.original);
+ const repostNote=isRepost&&!['Sharing this professional update.','Reposted this update.'].includes(String(local.body||'').trim())?local.body:null;
  return <article className="ccx-surface min-w-0 space-y-3 rounded-2xl p-4 sm:p-5" data-connect-post={local.id}>
   <header className="flex items-start justify-between gap-3">
-   <div className="min-w-0"><p className="font-semibold break-words">{local.author?.display_name||'Member'}</p>
-    <p className="text-xs text-[var(--cc-text-secondary)]">{local.author?.role_type||'Professional member'} · {audienceLabels[local.audience]||'Verified community'} · {local.published_at?new Date(local.published_at).toLocaleString():''}</p>
+   <div className="min-w-0">
+    {isRepost?<p className="flex flex-wrap items-center gap-2 text-sm font-semibold" data-repost-attribution="true"><span className="grid h-7 w-7 place-items-center rounded-full border border-[var(--cc-border)]"><Repeat2 size={16}/></span>{local.author?.display_name||'Member'} reposted</p>:<p className="font-semibold break-words">{local.author?.display_name||'Member'}</p>}
+    <p className="mt-1 text-xs text-[var(--cc-text-secondary)]">{local.author?.role_type||'Professional member'} · {audienceLabels[local.audience]||'Verified community'} · {local.published_at?new Date(local.published_at).toLocaleString():''}</p>
    </div>
    {local.author_id===userId&&<button type="button" className="text-xs underline min-h-11" disabled={busy} onClick={()=>{if(window.confirm('Hide this post and its shared access?'))void mutate('hide');}}>Remove</button>}
   </header>
-  <p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{local.body}</p>
+  {!isRepost&&<p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{local.body}</p>}
+  {repostNote&&<p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{repostNote}</p>}
   {local.original&&<div className="rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm">
-   <p className="text-xs font-semibold">Reposted from {local.original.author_name}</p>
+   <p className="text-xs font-semibold">{local.original.author_name||'Member'}</p>
    <p className="mt-2 whitespace-pre-wrap break-words">{local.original.body}</p>
   </div>}
   {local.photos?.length>0&&<div className={'grid gap-2 '+(local.photos.length>1?'grid-cols-2':'grid-cols-1')}>
@@ -83,17 +79,10 @@ function FeedPost({post,paid,userId,onChanged,onError}){
     <Heart size={17} fill={local.liked?'currentColor':'none'}/><span>{local.likes}</span>
    </button>
    <button type="button" className={secondary} disabled={busy} onClick={()=>void loadComments()}><MessageCircle size={17}/>{local.comments} Comments</button>
-   {paid&&local.audience==='verified'&&local.allow_repost&&<button type="button" className={secondary} disabled={busy} onClick={()=>setReposting(v=>!v)}><Repeat2 size={17}/>Repost</button>}
-   <button type="button" className={secondary} onClick={share}><Share2 size={17}/>Share</button>
+   {paid&&!local.repost_of&&local.audience==='verified'&&local.allow_repost&&<button type="button" className={secondary} disabled={busy} aria-label="Repost to your profile" onClick={()=>void mutate('repost',{text:'Reposted this update.',audience:'verified'})}><span className="grid h-7 w-7 place-items-center rounded-full border border-[var(--cc-border)]"><Repeat2 size={17}/></span>Repost</button>
    <button type="button" className={secondary} disabled={busy} aria-label={local.saved?'Remove saved post':'Save post'} onClick={()=>void mutate(local.saved?'unsave':'save')}><Bookmark size={17} fill={local.saved?'currentColor':'none'}/></button>
    <button type="button" className={secondary} disabled={busy} onClick={()=>setReporting(v=>!v)}><Flag size={17}/>Report</button>
   </div>
-  {reposting&&<form onSubmit={e=>{e.preventDefault();void mutate('repost',{text:repostText||'Sharing this professional update.',audience:'verified'});}} className="space-y-2">
-   <label className="block text-xs">Your repost note (requires Premium)
-    <textarea className={input+' mt-1'} rows={2} maxLength={3000} value={repostText} onChange={e=>setRepostText(e.target.value)} placeholder="Add context to this repost"/>
-   </label>
-   <button type="submit" className={primary} disabled={busy}>Submit repost for review</button>
-  </form>}
   {reporting&&<form onSubmit={e=>{e.preventDefault();void mutate('report',{reason:reportReason});}} className="space-y-2">
    <p className="text-xs">Post reporting does not dispatch emergency services.</p>
    <label className="block text-xs">Reason
