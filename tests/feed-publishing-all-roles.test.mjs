@@ -15,7 +15,7 @@ test('Feed publishing uses one entitlement source for every actual professional 
  assert.match(wrapper,/roleOverride,paid=false/);
  assert.match(wrapper,/roleOverride=\{roleOverride\} paid=\{paid\}/);
  assert.match(dashboard,/roleOverride,paid=false/);
- assert.match(dashboard,/ConnectFeed userId=\{userId\} paid=\{paid\} preview=\{false\}/);
+ assert.match(dashboard,/ConnectFeed userId=\{userId\} paid=\{paid\} preview=\{preview\}/);
  assert.match(dashboard,/not as another role/);
  assert.doesNotMatch(dashboard,/paid=\{data\?\.account\?\.tier/);
  assert.match(feed,/paid&&!preview&&!profileId/);
