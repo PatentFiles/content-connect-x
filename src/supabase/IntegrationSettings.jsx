@@ -7,11 +7,11 @@ const names={pass:'PASS — Performer work clearance',ccbill:'CCBill — Payment
 const help={pass:'PASS maintains 14-day yes/no work clearance. Store an approved partner credential here once PASS grants access; automatic status and production-hold checks remain disabled until the official API contract is received, mapped and tested. Never expose clinical results.',
 ccbill:'Keys are encrypted, but financial captures stay blocked until the approved merchant integration and callback contract are verified.',
 docusign:'Credentials here are saved securely; the current signing integration still requires its service account and approved template setup.',
-email:'Connect an approved neutral transactional email relay before enabling delivery.',
+email:'Use a verified sender domain with Resend. Individual account emails require member opt-in; generic notifications are delivered through a durable private queue with retries.',
 webpush:'Browser VAPID public keys also need public client configuration; private keys remain server-side.',
 maps:'Map tiles can use a public browser token; routing keys belong on the server.',
 openmoderate:'Scanning workers still need verified provider deployment and human review.',
-sentry:'DSN can be configured for production release monitoring.',
+sentry:'Hosted Sentry DSN enables redacted React errors only for members who opt into diagnostics. No replay, traces, or sensitive user content is collected.',
 flagsmith:'Remote flags require environment and rollout verification.'};
 export default function IntegrationSettings(){
  const [providers,setProviders]=useState([]),[values,setValues]=useState({}),[visible,setVisible]=useState({}),[agreements,setAgreements]=useState({});
@@ -42,7 +42,7 @@ export default function IntegrationSettings(){
  };
  return <div className="space-y-5">
   <header className="flex items-start justify-between gap-3"><div><h2 className="text-2xl font-bold">API & integration settings</h2>
-   <p className="mt-2 text-sm text-[var(--cc-text-secondary)]">Enter your provider keys once. Secret values are encrypted in Supabase Vault and are never displayed again. Changing credentials requires an authenticated administrator. Sensitive administrative actions require a fresh two-factor-authenticated session.</p></div>
+   <p className="mt-2 text-sm text-[var(--cc-text-secondary)]">Enter your provider keys once. Secret values are encrypted in Supabase Vault and are never displayed again. Changing provider credentials and enabling integrations require an administrator with two-factor authentication enabled.</p></div>
    <button onClick={load} disabled={busy} className="ccx-secondary rounded-xl p-3" aria-label="Refresh provider status"><RefreshCw size={19}/></button>
   </header>
   <div className="ccx-surface flex items-start gap-3 p-4">
