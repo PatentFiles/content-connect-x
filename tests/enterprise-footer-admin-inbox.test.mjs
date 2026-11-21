@@ -41,7 +41,8 @@ test('every informational footer page has an actual support request intake path'
  const paths=new Set(TRUST_LINKS.map(([slug])=>slug));
  assert.ok(paths.has('affiliates')&&paths.has('content-removal')&&paths.has('billing'));
  for(const [slug] of TRUST_LINKS)if(!['cookies'].includes(slug))assert.ok(TRUST_PAGES[slug],slug);
- assert.match(trust,/TRUST_PAGES\[active\].*\?['"]support['"]/);
+ assert.match(trust,/href=\{'\/trust\/'\+slug\}/);
+ assert.doesNotMatch(trust,/modal\.current\.showModal/);
  assert.match(trust,/page&&!\['cookies','review'\]\.includes\(slug\)\?['"]support['"]/);
  assert.match(trust,/originSlug=\{slug\}/);
  assert.match(trust,/functions\.invoke\('trust-intake'/);
