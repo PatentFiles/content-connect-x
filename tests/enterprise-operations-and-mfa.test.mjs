@@ -42,3 +42,19 @@ test('sensitive provider changes require the same verified admin AAL2 session',(
  assert.match(api,/verifiedSentryDsn/);
  assert.match(api,/Save a valid Resend API key and verified sender address/);
 });
+
+test('public safety operator settings require signed administrator MFA and explicit approval acknowledgements',()=>{
+ const edge=read('supabase/functions/ccx-operations/index.ts');
+ const ui=read('src/supabase/AdminSafetyOperations.jsx');
+ const admin=read('src/supabase/AdminConsole.jsx');
+ assert.match(edge,/body\?\.action==='trust_settings_get'/);
+ assert.match(edge,/body\?\.action==='trust_settings_save'/);
+ assert.match(edge,/I_REVIEWED_CURRENT_POLICIES/);
+ assert.match(edge,/STAFF_COVERAGE_CONFIRMED/);
+ assert.match(edge,/platform_action_audit/);
+ assert.match(edge,/verifiedAal2/);
+ assert.match(ui,/policy_acknowledgement/);
+ assert.match(ui,/reviewer_acknowledgement/);
+ assert.match(ui,/Do not check any approval unless you have completed it/);
+ assert.match(admin,/section==='safety-settings'&&<AdminSafetyOperations/);
+});
