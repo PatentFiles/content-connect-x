@@ -14,6 +14,7 @@ async function action(name,payload={}){
 }
 const destination=notification=>{
  const kind=String(notification.kind||'');
+ if(kind==='annual_recap')return 'annual-recap';
  if(kind.includes('connection')||kind.includes('friend')||kind==='introduction')return 'connections';
  if(kind==='meeting_invitation')return 'meeting';
  if(kind==='trust_case'||kind==='trust_case_followup')return 'messages';
