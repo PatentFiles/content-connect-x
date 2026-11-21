@@ -73,6 +73,7 @@ export default function OnlyHostApp(){
   setView(registration?.registered&&registration?.host_terms_current?'workspace':'account');
  },[]);
  useEffect(()=>{
+  if(!supabase){setLoading(false);return;}
   let active=true;
   supabase.auth.getSession().then(async({data,error:sessionError})=>{
    if(sessionError)throw sessionError;
@@ -88,6 +89,7 @@ export default function OnlyHostApp(){
  const auth=async(e)=>{
   e.preventDefault();setBusy(true);setError('');setNotice('');
   try{
+   if(!supabase)throw Error(supabaseConfiguration.error||'Host Connect X account registration is not yet configured.');
    const {data,error:authError}=signUp?
     await supabase.auth.signUp({email,password,options:{emailRedirectTo:window.location.origin}}):
     await supabase.auth.signInWithPassword({email,password});
