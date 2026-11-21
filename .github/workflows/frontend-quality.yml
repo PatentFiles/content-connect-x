@@ -51,6 +51,15 @@ jobs:
         run: npm run verify:frontend-contract
       - name: All Edge Functions must have resolved local imports
         run: npm run verify:edge-imports
+      - name: Check all literal Edge database table and field contracts
+        run: npm run audit:db-contract
+      - name: Upload backend schema contract inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ccx-backend-schema-contract
+          path: artifacts/backend-schema-contract.json
+          if-no-files-found: ignore
       - name: Build Supabase application
         run: npm run build
       - name: Build staging container and verify health and security headers
