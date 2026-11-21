@@ -195,8 +195,9 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
  const displayed=useMemo(()=>items.filter(p=>{
   if(filters.types.length&&!filters.types.includes(p.category))return false;
   const one=(Number(p.one_day_including_cleaning_cents)||Number(p.daily_rate_cents)+Number(p.cleaning_fee_cents))/100;
-  if(filters.minPrice!==''&&one<Number(filters.minPrice))return false;
-  if(filters.maxPrice!==''&&one>Number(filters.maxPrice))return false;
+  const quoted=Number.isFinite(p.stay_total_cents)?p.stay_total_cents/100:one;
+  if(filters.minPrice!==''&&quoted<Number(filters.minPrice))return false;
+  if(filters.maxPrice!==''&&quoted>Number(filters.maxPrice))return false;
   if(filters.bedrooms&&(p.bedrooms||0)<filters.bedrooms)return false;
   if(filters.beds&&(p.beds||0)<filters.beds)return false;
   if(filters.bathrooms&&(p.bathrooms||0)<filters.bathrooms)return false;
@@ -209,6 +210,7 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
  }),[items,filters,count]);
  const apply=(nextFilters=filters)=>onSearch({
   query:keyword,country:geo.country,state:geo.state,city:geo.city,
+  ...(from&&to?{start_date:from,end_date:to}:{}),
   ...(count>0?{crew_size:count}:{}),
   ...(nextFilters.amenities.length?{amenities:nextFilters.amenities}:{}),
   ...(nextFilters.access.length?{accessibility:nextFilters.access}:{}),
@@ -283,7 +285,7 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
     <p className="flex items-center gap-2 text-xs text-[#627789]"><Tag size={16} className="text-[#12698f]"/> One-day price estimates include listed cleaning fees</p>
    </div>
    {(from||to)&&<p className="rounded-lg bg-[#f0f6fa] px-4 py-2 text-xs text-[#315267]">
-    Selected dates {from||'—'} to {to||'—'}. Confirm venue-local daily availability and the exact total in each listing before booking.
+    Selected dates {from||'—'} to {to||'—'}. Search verifies property-local blocked/held dates; submit a booking request to recheck the exact live quote.
    </p>}
    <div className={'grid min-w-0 gap-5 '+(showMap?'lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]':'')}>
     <section className="min-w-0 space-y-4" aria-label="Venue search results">
@@ -306,7 +308,8 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
           <h4 className="truncate text-sm font-bold">{p.title}</h4>
           <p className="truncate text-xs text-[#627789]">{[p.city,p.state,p.country].filter(Boolean).join(', ')}</p>
           <p className="text-xs text-[#627789]">Up to {p.capacity||'—'} crew · {p.bedrooms||0} bedrooms · {p.bathrooms||0} bathrooms</p>
-          <p className="mt-2 text-sm font-bold">{money(p.one_day_including_cleaning_cents??p.daily_rate_cents+p.cleaning_fee_cents)} <span className="text-xs font-normal text-[#627789]">one day incl. cleaning</span></p>
+          <p className="mt-2 text-sm font-bold">{money(p.stay_total_cents??p.one_day_including_cleaning_cents??p.daily_rate_cents+p.cleaning_fee_cents)}
+           <span className="text-xs font-normal text-[#627789]">{p.date_availability_checked?p.stay_days+' days incl. cleaning':'one day incl. cleaning'}</span></p>
          </div>
         </button>)}
       </div>}
