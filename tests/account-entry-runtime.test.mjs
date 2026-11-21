@@ -92,6 +92,6 @@ test('active server entrypoints do not parse MFA levels or use browser metadata 
  }
  const app=readFileSync('src/supabase/SupabaseApp.jsx','utf8');assert.match(app,/if\(user&&!approved\)return <AgeGateOnboarding/);assert.match(app,/from\('member_admissions'\)/);
  assert.doesNotMatch(app,/const approved\s*=\s*.*(?:isAdmin|ageGateEnabled)/);
- const header=readFileSync('src/supabase/OriginalShell.jsx','utf8');assert.match(header,/isAdmin&&<a href="\/hostconnect"/);
+ const header=readFileSync('src/supabase/OriginalShell.jsx','utf8');assert.match(header,/isAdmin&&<a href="https:\/\/hostconnectx\.com"/);
  assert.ok(header.indexOf('ccx-admin-host-link')<header.indexOf("onNavigate('membership')"));
 });
