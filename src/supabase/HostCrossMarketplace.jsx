@@ -7,6 +7,7 @@ import {Search,CalendarDays,MapPin,Home,ArrowLeft,RefreshCw,ExternalLink,ShieldC
 import {hostConnectAction} from './hostConnectApi';
 import {venueDateToIso,nightsBetween} from './hostingDateRange.mjs';
 import HostDialog from './HostDialog';
+import GeoLocationSelect from './GeoLocationSelect';
 import HostGuestInspection from './HostGuestInspection';
 import {uploadHostGuestEvidence} from './hostGuestEvidenceStorage';
 const panel='ccx-surface rounded-2xl p-5';
@@ -19,7 +20,7 @@ const localDate=value=>value?new Date(value).toLocaleString(undefined,{dateStyle
 export default function HostCrossMarketplace({paid=false,user=null}){
  const [items,setItems]=useState([]),[bookings,setBookings]=useState([]),[view,setView]=useState('explore');
  const [selected,setSelected]=useState(null),[unavailable,setUnavailable]=useState([]);
- const [query,setQuery]=useState(''),[city,setCity]=useState(''),[starts,setStarts]=useState(''),[ends,setEnds]=useState('');
+ const [query,setQuery]=useState(''),[where,setWhere]=useState({country:'',state:'',city:''}),[starts,setStarts]=useState(''),[ends,setEnds]=useState('');
  const [crew,setCrew]=useState(1),[purpose,setPurpose]=useState(''),[quote,setQuote]=useState(null),[modal,setModal]=useState(false),[ack,setAck]=useState(false);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [inspectionBooking,setInspectionBooking]=useState(null);
@@ -47,7 +48,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
   return()=>{active=false;window.clearInterval(timer);window.removeEventListener('focus',sync);};
  },[refresh,selected?.id]);
  const run=async fn=>{setBusy(true);setError('');setNotice('');try{await fn();}catch(e){setError(e.message||'Host Connect X unavailable');}finally{setBusy(false);}};
- const search=()=>run(async()=>{const r=await hostConnectAction('browse',{query,city});setItems(r.items||[]);});
+ const search=()=>run(async()=>{const r=await hostConnectAction('browse',{query,country:where.country,state:where.state,city:where.city});setItems(r.items||[]);});
  const open=id=>run(async()=>{const r=await hostConnectAction('listing',{id});setSelected(r.item);setUnavailable(r.unavailable||[]);setStarts('');setEnds('');setPurpose(r.item?.permitted_uses?.[0]||'');setCrew(1);setQuote(null);});
  const calculate=()=>run(async()=>{
   if(!selected||nightsBetween(starts,ends)<1)throw Error('Choose a valid daily rental period.');
@@ -82,7 +83,8 @@ export default function HostCrossMarketplace({paid=false,user=null}){
   {view==='explore'&&!selected&&<div className="space-y-5">
    <form onSubmit={e=>{e.preventDefault();void search();}} className={panel+' grid gap-3 md:grid-cols-[1fr_1fr_auto]'}>
     <label className="text-sm">Find a location<input className={input} type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Studio, house, venue name"/></label>
-    <label className="text-sm">City<input className={input} value={city} onChange={e=>setCity(e.target.value)} placeholder="Phoenix, Las Vegas…"/></label>
+    <div className="text-sm"><GeoLocationSelect compact allowAny idPrefix="ccx-venue-search" value={where}
+      onChange={location=>setWhere({country:location.country,state:location.state,city:location.city})}/></div>
     <button className={primary+' self-end'} disabled={busy}><Search size={17}/> Search</button>
    </form>
    {!items.length?<p className={panel+' text-sm text-[var(--cc-text-secondary)]'}>There are no independently approved Host Connect X locations matching this search yet. New listings appear after property verification.</p>:
