@@ -436,3 +436,11 @@
 .ccx-host-footer-link:hover,.ccx-host-footer-link:focus-visible{color:#0c5272;text-decoration:underline;text-underline-offset:3px}
 @media(min-width:768px){.ccx-sister-brand-footer{padding-bottom:24px}}
 @media(prefers-color-scheme:dark){.ccx-host-footer-link{color:#5db7df}.ccx-host-footer-link:hover{color:#9cdbf4}}
+
+/* Production discovery: white road map with tappable branded price pins.
+ * All map positions supplied by Host X are city-level, never exact addresses. */
+.host-map-price-pin{border:1px solid #bdd8e7;background:#fff;color:#153d54;box-shadow:0 3px 12px rgba(18,41,54,.18);
+ padding:8px 11px;border-radius:999px;font-size:12px;line-height:1.2;font-weight:850;cursor:pointer;white-space:nowrap;transition:transform .14s,border-color .14s,background .14s}
+.host-map-price-pin:hover,.host-map-price-pin:focus-visible{border-color:#12698f;background:#eaf6fc;transform:translateY(-2px);outline:2px solid #12698f;outline-offset:2px}
+.maplibregl-map{font-family:inherit}.maplibregl-control-container{font-family:inherit}
+@media(prefers-reduced-motion:reduce){.host-map-price-pin{transition:none}}
