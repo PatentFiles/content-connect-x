@@ -1,35 +1,24 @@
-/** Two-click check-in/checkout picker with half-hour booking times only.
- * UI convenience, not a substitute for server quote/calendar constraints.
+/** Two-tap whole-calendar-day booking picker: always 3 p.m. venue local.
+ * Never offers hourly or partial-day reservations. Server enforces the same.
  */
 import React,{useState} from 'react';
 import {CalendarDays,ChevronLeft,ChevronRight,ChevronDown,ChevronUp} from 'lucide-react';
-import {HALF_HOUR_SLOTS,datePortion,mergeLocal,timePortion,selectionForDay,validRange,monthLabel,calendarDays} from './hostingDateRange.mjs';
-const classes='min-h-11 w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface)] px-3 py-2.5 text-sm text-[var(--cc-text-primary)]';
+import {datePortion,selectionForDay,validRange,monthLabel,calendarDays,DAILY_CHECKIN_TIME,nightsBetween} from './hostingDateRange.mjs';
 export default function HostingDateRange({start='',end='',onChange,compact=false,optional=false,defaultOpen=false,label='Check-in and checkout'}){
  const today=new Date(),startDay=datePortion(start);
  const [yearMonth,setYearMonth]=useState(()=>{
   const day=startDay?new Date(startDay+'T12:00:00'):today;
   return {year:day.getFullYear(),month:day.getMonth()};
  });
- const [open,setOpen]=useState(defaultOpen),[focus,setFocus]=useState('start');
+ const [open,setOpen]=useState(defaultOpen);
  const changeMonth=delta=>setYearMonth(({year,month})=>{
   const day=new Date(year,month+delta,1);
   return {year:day.getFullYear(),month:day.getMonth()};
  });
  const choose=day=>{
-  const next=focus==='end'&&datePortion(start)&&!datePortion(end)
-   ?selectionForDay(day,start,end)
-   :selectionForDay(day,start,end);
+  const next=selectionForDay(day,start,end);
   onChange(next);
-  if(!datePortion(start)||datePortion(end)){setFocus('end');}
-  else {setFocus('start');}
-  if(datePortion(next.end))setOpen(false);
- };
- const setTime=(which,time)=>{
-  const date=datePortion(which==='start'?start:end);
-  if(!date)return;
-  const next={start,end,[which]:mergeLocal(date,time)};
-  onChange(next);
+  if(next.end)setOpen(false);
  };
  const {days,offset}=calendarDays(yearMonth.year,yearMonth.month);
  const todayISO=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
@@ -47,7 +36,7 @@ export default function HostingDateRange({start='',end='',onChange,compact=false
     <strong className="text-sm">{monthLabel(yearMonth.year,yearMonth.month)}</strong>
     <button type="button" aria-label="Next month" className="flex min-h-10 min-w-10 items-center justify-center rounded-lg border" onClick={()=>changeMonth(1)}><ChevronRight size={18}/></button>
    </div>
-   <p className="text-xs text-[var(--cc-text-secondary)]">{datePortion(start)&&!datePortion(end)?'Select checkout date (second click).':'Select check-in date first, then checkout date. Two clicks set your dates automatically.'}</p>
+   <p className="text-xs text-[var(--cc-text-secondary)]">{datePortion(start)&&!datePortion(end)?'Select checkout date (second click).':'Choose arrival date, then a later departure date. Every stay is billed by the day.'}</p>
    <div className="grid grid-cols-7 gap-1 text-center text-xs">{['Su','Mo','Tu','We','Th','Fr','Sa'].map(x=><span key={x} className="py-1 font-semibold">{x}</span>)}
     {Array.from({length:offset},(_,i)=><span key={'pad-'+i}/>)}
     {days.map(day=><button key={day} type="button" onClick={()=>choose(day)} disabled={day<todayISO}
@@ -58,19 +47,10 @@ export default function HostingDateRange({start='',end='',onChange,compact=false
       )}>{Number(day.slice(8))}</button>)}
    </div>
   </div>}
-  <div className="grid gap-2 sm:grid-cols-2">
-   <label className="text-xs font-medium">Check-in time
-    <select className={classes+' mt-1'} value={timePortion(start,'09:00')} disabled={!datePortion(start)} onChange={e=>setTime('start',e.target.value)}>
-     {HALF_HOUR_SLOTS.map(t=><option key={t.value} value={t.value}>{t.label}</option>)}
-    </select>
-   </label>
-   <label className="text-xs font-medium">Checkout time
-    <select className={classes+' mt-1'} value={timePortion(end,'17:00')} disabled={!datePortion(end)} onChange={e=>setTime('end',e.target.value)}>
-     {HALF_HOUR_SLOTS.map(t=><option key={t.value} value={t.value}>{t.label}</option>)}
-    </select>
-   </label>
-  </div>
-  {start&&end&&!ready&&<p role="alert" className="text-xs text-red-700">Checkout must be after check-in.</p>}
-  {optional&&(start||end)&&<button type="button" className="min-h-10 text-xs underline" onClick={()=>{onChange({start:'',end:''});setFocus('start');}}>Clear dates</button>}
+  <p className="rounded-xl bg-[var(--cc-surface-subtle)] px-3 py-2 text-xs text-[var(--cc-text-secondary)]">
+   Check-in <strong>3:00 p.m.</strong> · Checkout <strong>3:00 p.m.</strong> ({DAILY_CHECKIN_TIME} venue local time) · {ready?nightsBetween(start,end)+' day'+(nightsBetween(start,end)>1?'s':''):'Choose consecutive or later checkout day'}.
+  </p>
+  {start&&end&&!ready&&<p role="alert" className="text-xs text-red-700">Checkout must be on a later calendar date.</p>}
+  {optional&&(start||end)&&<button type="button" className="min-h-10 text-xs underline" onClick={()=>{onChange({start:'',end:''});}}>Clear dates</button>}
  </section>;
 }
