@@ -6,7 +6,7 @@ import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
 import {optedIn,retryAfter,resendRequest,safeSender,uuid} from './deliveryPolicy.mjs';
 const reply=(data,status=200)=>Response.json(data,{status,headers:{'Cache-Control':'no-store'}});
 const same=(a,b)=>{
- if(typeof a!=='string'||typeof b!=='string'||a.length!==64||b.length!==64||!/^[a-f0-9]{64}$/i.test(a+b))return false;
+ if(typeof a!=='string'||typeof b!=='string'||a.length!==64||b.length!==64||!/^[a-f0-9]{128}$/i.test(a+b))return false;
  let diff=0;for(let i=0;i<64;i++)diff|=a.charCodeAt(i)^b.charCodeAt(i);return diff===0;
 };
 Deno.serve(async req=>{
