@@ -7,6 +7,7 @@
  * No unsupported PASS API protocol is invented. No lab reports are returned here.
  */
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
+import {verifiedSentryDsn} from './sentryDsnPolicy.mjs';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version','Access-Control-Allow-Methods':'POST,OPTIONS'};
 const out=(v:unknown,s=200)=>Response.json(v,{status:s,headers:{...cors,'Cache-Control':'no-store'}});
 const bad=(msg:string,s=400)=>out({error:msg},s);
@@ -43,6 +44,10 @@ Deno.serve(async req=>{
  }
  const adminAction=action.startsWith('admin_');
  if(adminAction&&(!admin||!admission.data?.admitted_at))return bad('Administrator access required',403);
+ if(['admin_set_secret','admin_provider_settings'].includes(action)){
+  const {data:assurance,error:aalError}=await client.auth.mfa.getAuthenticatorAssuranceLevel();
+  if(aalError||assurance?.currentLevel!=='aal2')return bad('Two-factor verification is required to change provider credentials or enable a service',403);
+ }
  // New sensitive operations respect the Testing module flag. Existing documents,
  // medical data access, withdrawal of consent and admin review remain available.
  if(['clearance_upload_token','clearance_submit','pass_link','pass_share'].includes(action)){
@@ -97,6 +102,16 @@ Deno.serve(async req=>{
 
  try{
  switch(action){
+ case 'monitoring_config':{
+  // Browser receives only a public DSN, after the signed-in member explicitly
+  // opted into diagnostics. No provider token, arbitrary URL or private secret
+  // is exposed to clients.
+  if(!admission.data?.admitted_at||sec.data?.banned||sec.data?.suspended)return out({enabled:false});
+  const provider=await conf('sentry');
+  if(provider?.enabled!==true)return out({enabled:false});
+  const dsn=verifiedSentryDsn(await getSecret('sentry_dsn'));
+  return out(dsn?{enabled:true,dsn}:{enabled:false});
+ }
  case 'admin_list':{
   const {data,error}=await db.from('ccx_integrations')
    .select('provider,enabled,setup_status,notes,callback_origin,secondary_origin,updated_at').neq('provider','yoti').order('provider');
@@ -124,6 +139,13 @@ Deno.serve(async req=>{
   if(!secretFields[provider])return bad('Unsupported provider');
   if(on&&body.provider_contract_reviewed!==true)return bad('Confirm the provider contract and supported use before activation',409);
   if(on&&provider==='pass')return bad('PASS API requires approved partner access and documented protocol; no public API has been verified',409);
+  if(on&&provider==='email'){
+   const token=await getSecret('email_api_token'),sender=await getSecret('email_sender');
+   if(!token||token.length<12||!sender||!/^([^\r\n<>]+<)?[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}>?$/.test(sender.trim()))
+    return bad('Save a valid Resend API key and verified sender address before enabling transactional email',409);
+  }
+  if(on&&provider==='sentry'&&!verifiedSentryDsn(await getSecret('sentry_dsn')))
+   return bad('Save a valid hosted Sentry HTTPS ingestion DSN before enabling monitoring',409);
   const {data,error}=await db.from('ccx_integrations').update({
    enabled:on,notes:txt(body.notes,400),updated_by:uid,updated_at:new Date().toISOString()
   }).eq('provider',provider).select('provider,enabled,setup_status,notes').maybeSingle();
