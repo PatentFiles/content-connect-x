@@ -28,6 +28,7 @@ class Query{
  constructor(table){this.table=table;this.filters=[];this.max=Infinity;this.one=false;this.columnString='*';this.insertValue=null;}
  select(names='*'){this.columnString=names;return this;}
  eq(k,v){this.filters.push(row=>row[k]===v);return this;}
+ gte(k,value){this.filters.push(row=>row[k]>=value);return this;}
  not(k,operator,value){if(operator==='is')this.filters.push(row=>row[k]!==value);return this;}
  order(){return this;}
  limit(n){this.max=n;return this;}
@@ -43,7 +44,7 @@ class Query{
   const rows=(records[this.table]||[]).filter(row=>this.filters.every(f=>f(row))).slice(0,this.max);
   const results=rows.map(row=>this.columnString==='*'?row:
    Object.fromEntries(this.columnString.split(',').map(key=>key.trim()).filter(key=>key in row).map(key=>[key,row[key]])));
-  resolve({error:null,data:this.one?results[0]||null:results});
+  resolve({error:null,data:this.one?results[0]||null:results,count:results.length});
  }
 }
 globalThis.__annualFixtureClient=(url,key,options={})=>{
