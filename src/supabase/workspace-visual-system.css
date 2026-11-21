@@ -12,7 +12,7 @@
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell {
  --cc-bg:#faf8fc;
- --cc-surface:var(--cc-surface);
+ --cc-surface:#ffffff;
  --cc-surface-subtle:#fbf7fc;
  --cc-surface-hover:#f7eaf5;
  --cc-border:#e8dce8;
@@ -26,7 +26,7 @@
  --cc-pink:#b41883;
  --cc-action:#971466;
  --cc-action-hover:#791151;
- --cc-on-action:var(--cc-surface);
+ --cc-on-action:#ffffff;
  --cc-focus:#a21b79;
  --cc-accent-surface:#f8e8f3;
  --cc-accent-border:#e8bddb;
@@ -41,7 +41,7 @@
 :root[data-ccx-appearance="workspace"] .oh-app,
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .host-connect-theme {
  --cc-bg:#f7fafd;
- --cc-surface:var(--cc-surface);
+ --cc-surface:#ffffff;
  --cc-surface-subtle:#f4f9fc;
  --cc-surface-hover:#e8f3fa;
  --cc-border:#dce8f0;
@@ -55,7 +55,7 @@
  --cc-pink:#5962b7;
  --cc-action:#12698f;
  --cc-action-hover:#0c5272;
- --cc-on-action:var(--cc-surface);
+ --cc-on-action:#ffffff;
  --cc-focus:#1584ac;
  --cc-accent-surface:#e9f5fb;
  --cc-accent-border:#b6dce9;
