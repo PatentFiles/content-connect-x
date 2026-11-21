@@ -23,7 +23,7 @@ function reset(){
   ccx_law_officers:[officer,secondOfficer].map(user_id=>({user_id,agency:'Verified fixture agency',jurisdiction:'Test',enabled:true,disabled_at:null})),
   ccx_law_cases:[],ccx_law_disclosure_audit:[],ccx_law_holds:[],
   member_profiles:[{id:subject,display_name:'=HYPERLINK("https://fixture.invalid")',stage_name:'Professional',
-   role_type:'creator',real_name:'DO-NOT-DISCLOSE',created_at:'2026-11-20T12:00:00Z'}],
+   role_type:'creator',real_name:'LEGAL-NAME-ALLOWED',document_path:'DO-NOT-DISCLOSE',created_at:'2026-11-20T12:00:00Z'}],
   member_admissions:[{id:caseId,user_id:subject,admitted_at:'2026-11-20T12:00:00Z',source:'verified',created_at:'2026-11-20T12:00:00Z'}],
   platform_action_audit:[],ccx_trust_requests:[],collaboration_members:[],collaborations:[]
  };
