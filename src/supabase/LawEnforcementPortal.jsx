@@ -24,7 +24,7 @@ export default function LawEnforcementPortal(){
  const [busy,setBusy]=useState(false),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [caseNumber,setCaseNumber]=useState(''),[subject,setSubject]=useState(''),[basis,setBasis]=useState(''),[reference,setReference]=useState('');
  const [processType,setProcessType]=useState('subpoena'),[selectedScopes,setSelectedScopes]=useState(['profile','admission']),[report,setReport]=useState(null);
- const [selected,setSelected]=useState(null),[reset,setReset]=useState(0);
+ const [selected,setSelected]=useState(null),[reset,setReset]=useState(0),[caseAudit,setCaseAudit]=useState([]);
  const load=async()=>{
   setLoading(true);setError('');
   try{
@@ -57,7 +57,7 @@ export default function LawEnforcementPortal(){
  const signOut=async()=>{setReport(null);setCases([]);setStatus(null);await supabase.auth.signOut();};
  const openCase=async id=>{
   setBusy(true);setError('');setReport(null);
-  try{const r=await request('view',{case_id:id});setSelected(id);setReport(r);}
+  try{const r=await request('view',{case_id:id});setSelected(id);setReport(r);setCaseAudit((await request('case_audit',{case_id:id})).items||[]);}
   catch(e){setError(e.message);}finally{setBusy(false);}
  };
  const download=async kind=>{
@@ -155,6 +155,14 @@ export default function LawEnforcementPortal(){
       <div className="mt-3 space-y-3">{records.map((record,i)=><pre className="overflow-x-auto whitespace-pre-wrap break-words rounded-lg bg-slate-50 p-3 text-xs" key={i}>{JSON.stringify(record,null,2)}</pre>)}</div>
      </details>)}
      <p className="text-xs text-slate-600">{report.disclaimer}</p>
+     <details className="rounded-xl border border-slate-200 p-3">
+      <summary className="cursor-pointer font-semibold">Case disclosure and export audit ({caseAudit.length})</summary>
+      <div className="mt-3 max-h-80 space-y-2 overflow-y-auto">
+       {caseAudit.map(entry=><p key={entry.id} className="border-b border-slate-100 py-2 text-xs">
+        <strong>{entry.action.replaceAll('_',' ')}</strong> · {new Date(entry.created_at).toLocaleString()} · {entry.result_status}
+       </p>)}
+      </div>
+     </details>
     </section>}
    </>}
   </div>
