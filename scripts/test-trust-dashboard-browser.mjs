@@ -7,6 +7,7 @@ import http from 'node:http';
 import {spawn} from 'node:child_process';
 import {build} from 'esbuild';
 import {createControlFixture} from './control-layout-audit.mjs';
+import {TRUST_LINKS} from '../src/supabase/trustContent.mjs';
 const chrome=[process.env.CHROME_BIN,'/usr/bin/chromium','/usr/bin/google-chrome'].filter(Boolean).find(fs.existsSync);
 assert.ok(chrome,'Chromium is required');
 const folder=fs.mkdtempSync(path.join(os.tmpdir(),'ccx-trust-dashboard-'));
@@ -109,6 +110,24 @@ try{
  await visit('/dashboard?failLoad=1');await hasText('Synthetic load unavailable');
  assert.equal(await run(()=>[...document.querySelectorAll('button')].find(b=>b.textContent.trim()==='Customize Dashboard').disabled),true);
  await run(()=>{window.__db.failLoad=false;});await click('Retry dashboard');await hasText('Feed');
+ // Visit each production footer URL through its *actual anchor click*, not
+ // only by navigating programmatically. This reproduces the former modal crash.
+ await visit('/dashboard');await wait(()=>document.querySelectorAll('.ccx-trust-footer nav a').length===TRUST_LINKS.length);
+ for(const [slug,title] of TRUST_LINKS){
+  const route='/trust/'+slug;
+  const before=await run(()=>performance.timeOrigin);
+  const clicked=await run(slug=>{
+   const link=document.querySelector('.ccx-trust-footer nav a[href="/trust/'+slug+'"]');
+   if(!link)return false;link.click();return true;
+  },slug);
+  assert.equal(clicked,true,'Footer link exists: '+slug);
+  await wait((route,before)=>window.__fixtureRoute===route&&performance.timeOrigin!==before,route,before);
+  if(slug==='cookies')await hasText('Cookie and optional-service preferences');
+  else await hasText(title==='Law enforcement'?'Law-enforcement requests':title==='Content removal'?'Content removal':title.split(' ')[0]);
+  assert.equal(await run(()=>!!document.querySelector('.ccx-trust-footer')),true,'Footer survives navigation '+slug);
+  assert.equal(await run(()=>document.querySelectorAll('dialog.ccx-trust-modal').length),0,'No modal navigation crash '+slug);
+  await noErrors();
+ }
  await visit('/trust/content-removal');await hasText('Request intake is not open yet');await hasText('Check an existing report');assert.equal(await run(()=>document.querySelectorAll('form').length),1);assert.equal(await run(()=>!!document.querySelector('[data-private-trust-status] form')),true);
  await visit('/trust/cookies');await wait(()=>document.querySelectorAll('input[type=checkbox]').length===2);
  assert.equal(await run(()=>[...document.querySelectorAll('input[type=checkbox]')].every(e=>!e.checked)),true);
