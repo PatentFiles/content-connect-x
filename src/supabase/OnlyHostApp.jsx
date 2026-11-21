@@ -3,7 +3,7 @@
  * transactions as Content Connect X; no shadow reservation inventory exists.
  */
 import React,{useCallback,useEffect,useRef,useState} from 'react';
-import {supabase} from '@/api/supabaseClient';
+import {supabase,supabaseConfiguration} from '@/api/supabaseClient';
 import {Home,ArrowUpRight,ArrowRight,LogOut,CalendarDays,ShieldCheck,Clapperboard,UsersRound,FileSignature,Sparkles,CheckCircle2,Clock3,Wallet,MessageCircleMore,Eye,EyeOff,Brush,SlidersHorizontal,KeyRound,Settings,ChevronDown,Menu,X,ClipboardList,Bell,Briefcase,ArrowLeft} from 'lucide-react';
 import HostingMarketplace from './HostingMarketplace';
 import ProfessionalLandingHero from './ProfessionalLandingHero';
