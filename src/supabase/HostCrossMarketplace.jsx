@@ -9,6 +9,8 @@ import {venueDateToIso,nightsBetween} from './hostingDateRange.mjs';
 import HostDialog from './HostDialog';
 import MarketplaceExplore from './MarketplaceExplore';
 import HostGuestInspection from './HostGuestInspection';
+import HostBookingMessages from './HostBookingMessages';
+import {supabase} from '@/api/supabaseClient';
 import {uploadHostGuestEvidence} from './hostGuestEvidenceStorage';
 const panel='ccx-surface rounded-2xl p-5';
 const input='mt-1 min-h-11 w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-2.5 text-sm text-[var(--cc-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--cc-focus)]';
@@ -23,7 +25,8 @@ export default function HostCrossMarketplace({paid=false,user=null}){
  const [starts,setStarts]=useState(''),[ends,setEnds]=useState('');
  const [crew,setCrew]=useState(1),[purpose,setPurpose]=useState(''),[quote,setQuote]=useState(null),[modal,setModal]=useState(false),[ack,setAck]=useState(false);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
- const [inspectionBooking,setInspectionBooking]=useState(null);
+ const [inspectionBooking,setInspectionBooking]=useState(null),[chatBooking,setChatBooking]=useState(null);
+ const [collaborations,setCollaborations]=useState([]),[linkedCollab,setLinkedCollab]=useState('');
  const refresh=useCallback(async()=>{
   const [browse,history]=await Promise.all([hostConnectAction('browse'),
    user?hostConnectAction('my_bookings'):Promise.resolve({items:[]})]);
@@ -49,7 +52,16 @@ export default function HostCrossMarketplace({paid=false,user=null}){
  },[refresh,selected?.id]);
  const run=async fn=>{setBusy(true);setError('');setNotice('');try{await fn();}catch(e){setError(e.message||'Host Connect X unavailable');}finally{setBusy(false);}};
  const search=params=>run(async()=>{const r=await hostConnectAction('browse',params);setItems(r.items||[]);});
- const open=id=>run(async()=>{const r=await hostConnectAction('listing',{id});setSelected(r.item);setUnavailable(r.unavailable||[]);setStarts('');setEnds('');setPurpose(r.item?.permitted_uses?.[0]||'');setCrew(1);setQuote(null);});
+ const open=id=>run(async()=>{const r=await hostConnectAction('listing',{id});setSelected(r.item);setUnavailable(r.unavailable||[]);setStarts('');setEnds('');setPurpose(r.item?.permitted_uses?.[0]||'');setCrew(1);setQuote(null);setLinkedCollab('');});
+ useEffect(()=>{
+  if(!user){setCollaborations([]);return;}
+  let active=true;
+  void supabase.functions.invoke('collaboration-workspace',{body:{action:'list'}})
+   .then(({data,error})=>{if(active&&!error)setCollaborations((data?.items||[]).filter(
+    c=>c.creator_id===user.id&&c.plan?.property_id));})
+   .catch(()=>{if(active)setCollaborations([]);});
+  return()=>{active=false;};
+ },[user?.id]);
  const calculate=()=>run(async()=>{
   if(!selected||nightsBetween(starts,ends)<1)throw Error('Choose a valid daily rental period.');
   const r=await hostConnectAction('quote',{property_id:selected.id,starts_at:venueDateToIso(starts,selected.timezone),
@@ -60,7 +72,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
   if(!ack||!selected||!quote||!paid)return;
   const r=await hostConnectAction('reserve',{property_id:selected.id,starts_at:venueDateToIso(starts,selected.timezone),
    ends_at:venueDateToIso(ends,selected.timezone),requested_use:purpose,crew_size:crew,
-   idempotency_key:crypto.randomUUID()});
+   idempotency_key:crypto.randomUUID(),...(linkedCollab?{collaboration_id:linkedCollab}:{})});
   setModal(false);setAck(false);setSelected(null);setQuote(null);setNotice(r.note||'Venue request submitted.');
   await refresh();setView('bookings');
  });
@@ -104,6 +116,15 @@ export default function HostCrossMarketplace({paid=false,user=null}){
     </div>
     <label className="text-xs">Crew size<input className={input} type="number" min={1} max={selected.capacity} value={crew} onChange={e=>{setCrew(Number(e.target.value));setQuote(null);}}/></label>
     <label className="text-xs">Proposed use<select className={input} value={purpose} onChange={e=>{setPurpose(e.target.value);setQuote(null);}}>{selected.permitted_uses.map(u=><option key={u} value={u}>{u.replaceAll('_',' ')}</option>)}</select></label>
+    <label className="block text-xs">Related Content Connect X collaboration (optional)
+     <select className={input} value={linkedCollab} onChange={e=>setLinkedCollab(e.target.value)}>
+      <option value="">Independent venue rental</option>
+      {collaborations.filter(c=>c.plan?.property_id===selected.id).map(c=>
+       <option key={c.id} value={c.id}>{c.title} — share messages with verified participants</option>)}
+     </select>
+     <span className="mt-1 block text-[11px] text-[var(--cc-text-secondary)]">Only a collaboration you organize whose saved venue matches this property can be linked. Group members are verified server-side.</span>
+    </label>
+
     {quote&&<div className="space-y-2 border-t border-[var(--cc-border)] pt-3 text-sm">
      <div className="flex justify-between"><span>Rental</span><span>{money(quote.rental_cents)}</span></div>
      <div className="flex justify-between"><span>Cleaning</span><span>{money(quote.cleaning_cents)}</span></div>
@@ -116,9 +137,12 @@ export default function HostCrossMarketplace({paid=false,user=null}){
     <p className="text-xs text-[var(--cc-text-secondary)]">The quote may change until the transaction reserves the requested period. A pending request does not guarantee a paid booking.</p>
    </section>
   </div>}
+  {view==='bookings'&&chatBooking&&<HostBookingMessages bookingId={chatBooking.id}
+    title={chatBooking.title||'Host Connect X booking'} userId={user?.id} action={hostConnectAction}
+    onBack={()=>setChatBooking(null)}/>}
   {view==='bookings'&&inspectionBooking&&<HostGuestInspection booking={inspectionBooking} action={hostConnectAction}
     upload={uploadHostGuestEvidence} onClose={()=>setInspectionBooking(null)}/>}
-  {view==='bookings'&&!inspectionBooking&&<section className={panel+' space-y-3'}>
+  {view==='bookings'&&!inspectionBooking&&!chatBooking&&<section className={panel+' space-y-3'}>
    <h2 className="text-lg font-semibold">My Host Connect X requests</h2>
    {!bookings.length?<p className="text-sm text-[var(--cc-text-secondary)]">No requests yet. Both websites share the same live calendar when you reserve.</p>:bookings.map(b=>
     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--cc-border)] py-3" key={b.id}>
@@ -126,6 +150,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
       <p className="text-xs text-[var(--cc-text-secondary)]">{b.status} · {money(b.total_cents)} · Agreement: {b.legal_status} · Payment: {b.payment_status}</p></div>
      {b.status==='confirmed'&&b.legal_status==='signed'&&b.payment_status==='captured'&&
       <button className={primary} type="button" onClick={()=>setInspectionBooking(b)}>Report check-in condition</button>}
+     <button type="button" className={secondary} onClick={()=>{setChatBooking(b);setInspectionBooking(null);}}>Message the host / production group</button>
      {['requested','accepted'].includes(b.status)&&<button className={secondary} disabled={busy} onClick={()=>void cancel(b)}>Cancel pending request</button>}
     </div>)}
   </section>}
