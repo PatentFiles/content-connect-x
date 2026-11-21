@@ -3,6 +3,7 @@ import React from 'react';
 import {createRoot} from 'react-dom/client';
 import {supabase,supabaseConfiguration} from '../api/supabaseClient';
 import OnlyHostApp from './OnlyHostApp';
+import TrustSite from './TrustSite';
 import SessionPrivacyBoundary from './SessionPrivacyBoundary';
 import './brand-theme.css';
 import './onlyhost-theme.css';
@@ -32,5 +33,6 @@ initializeFormKeyboardHints(mount);
 // Host Connect X standalone entrypoint. Every path, including /, renders
 // the EXISTING Host Connect website. This build cannot route to the CCX
 // creator dashboard or law-enforcement portal.
-const configuredApp=supabase?<OnlyHostApp/>:<main className="min-h-screen bg-[var(--cc-surface-subtle)] px-6 py-24 text-[var(--cc-text-primary)]"><div role="alert" className="mx-auto max-w-xl rounded-2xl border border-[var(--cc-border)] bg-[var(--cc-surface)] p-8"><h1 className="text-2xl font-semibold">Host Connect X setup required</h1><p className="mt-4 text-sm text-[var(--cc-text-secondary)]">{supabaseConfiguration.error||'Configure the Host Connect X Supabase project before publishing.'}</p></div></main>;
+const isTrustRoute=/^\/trust(?:\/|$)/i.test(window.location.pathname);
+const configuredApp=supabase?(isTrustRoute?<TrustSite><OnlyHostApp/></TrustSite>:<OnlyHostApp/>):<main className="min-h-screen bg-[var(--cc-surface-subtle)] px-6 py-24 text-[var(--cc-text-primary)]"><div role="alert" className="mx-auto max-w-xl rounded-2xl border border-[var(--cc-border)] bg-[var(--cc-surface)] p-8"><h1 className="text-2xl font-semibold">Host Connect X setup required</h1><p className="mt-4 text-sm text-[var(--cc-text-secondary)]">{supabaseConfiguration.error||'Configure the Host Connect X Supabase project before publishing.'}</p></div></main>;
 createRoot(mount).render(<StartupErrorBoundary><SessionPrivacyBoundary>{configuredApp}</SessionPrivacyBoundary></StartupErrorBoundary>);
