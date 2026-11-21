@@ -84,7 +84,7 @@ test('feed UI uses original and repost tabs, clear attribution, no post share co
  assert.match(ui,/local\.original\.author_name/);
  assert.match(ui,/repostNote/);
  assert.doesNotMatch(ui,/<Share2|>Share<\/button>|const share=|onClick=\{share\}|setReposting/);
- assert.doesNotMatch(ui,/Sharing this professional update\.', 'Legacy caption must remain only in suppressed-text compatibility logic');
+ assert.match(ui,/\['Sharing this professional update\.', 'Reposted this update\.'\]/,'Old boilerplate is suppressed for existing historical reposts');
  assert.match(backend,/profile_reposts/);
  assert.match(backend,/my_reposts/);
 });
