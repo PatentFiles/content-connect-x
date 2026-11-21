@@ -8,6 +8,7 @@
  */
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
 import {verifiedSentryDsn} from './sentryDsnPolicy.mjs';
+import {verifiedAal2} from '../_shared/verifiedAdminAal.mjs';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type, x-client-info, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version','Access-Control-Allow-Methods':'POST,OPTIONS'};
 const out=(v:unknown,s=200)=>Response.json(v,{status:s,headers:{...cors,'Cache-Control':'no-store'}});
 const bad=(msg:string,s=400)=>out({error:msg},s);
@@ -45,8 +46,7 @@ Deno.serve(async req=>{
  const adminAction=action.startsWith('admin_');
  if(adminAction&&(!admin||!admission.data?.admitted_at))return bad('Administrator access required',403);
  if(['admin_set_secret','admin_provider_settings'].includes(action)){
-  const {data:assurance,error:aalError}=await client.auth.mfa.getAuthenticatorAssuranceLevel();
-  if(aalError||assurance?.currentLevel!=='aal2')return bad('Two-factor verification is required to change provider credentials or enable a service',403);
+  if(!verifiedAal2(header,uid))return bad('Two-factor verification is required to change provider credentials or enable a service',403);
  }
  // New sensitive operations respect the Testing module flag. Existing documents,
  // medical data access, withdrawal of consent and admin review remain available.
