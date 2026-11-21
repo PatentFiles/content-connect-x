@@ -4,7 +4,7 @@
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {buildSync} from 'esbuild';
+import {build} from 'esbuild';
 
 const officer='10000000-0000-4000-8000-000000000001';
 const secondOfficer='10000000-0000-4000-8000-000000000002';
@@ -71,7 +71,7 @@ globalThis.__lawClient=(_url,key,options={})=>key==='fixture-public'?{
 globalThis.Deno={env:{get:key=>({
  SUPABASE_URL:'https://fixture.invalid',SUPABASE_ANON_KEY:'fixture-public',SUPABASE_SERVICE_ROLE_KEY:'fixture-private'
 })[key]},serve:fn=>{handler=fn;}};
-const js=buildSync({
+const js=(await build({
  entryPoints:['supabase/functions/ccx-law-portal/index.ts'],bundle:true,write:false,
  platform:'node',format:'esm',logLevel:'silent',
  plugins:[{name:'law-runtime-fixtures',setup(build){
@@ -83,7 +83,7 @@ const js=buildSync({
    loader:'js'
   }));
  }}]
-}).outputFiles[0].text;
+})).outputFiles[0].text;
 reset();await import('data:text/javascript;base64,'+Buffer.from(js).toString('base64')+'#law-runtime');
 async function call(as,action,other={},aal='aal2'){
  const token=as?claims(as,aal):'';
