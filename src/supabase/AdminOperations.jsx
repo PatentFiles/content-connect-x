@@ -30,7 +30,7 @@ const groups=[
   metric:s=>Object.values(s?.integrations||{}).filter(x=>x?.enabled).length,
   summary:s=>`${Object.entries(s?.integrations||{}).filter(([,x])=>x.enabled).map(([name])=>name).join(', ')||'No optional providers enabled'}`}
 ];
-export default function AdminOperations({onSelect=()=>{}}){
+export default function AdminOperations({onSelect=(target)=>{void target;}}){
  const [snapshot,setSnapshot]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState('');
  const refresh=useCallback(async()=>{
   setLoading(true);setError('');
