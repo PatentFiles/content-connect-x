@@ -142,11 +142,32 @@ Deno.serve(async req=>{
  if(filters.ids)eligible=eligible.filter(id=>filters.ids.includes(id));
  if(!eligible.length)return json({results:[],preview:!premium,limit:filters.limit,has_more:false});
  // Opt-in matching only. Never use private orientation, clinical or identity data.
- if(filters.gender||filters.category){
+ if(filters.gender||filters.category||filters.orientation){
   let query=db.from('member_profile_preferences').select('user_id').in('user_id',eligible);
   if(filters.gender)query=query.eq('show_gender_in_discovery',true).eq('gender_identity',filters.gender);
   if(filters.category)query=query.eq('show_categories_in_discovery',true).contains('content_categories',[filters.category]);
+  if(filters.orientation)query=query.eq('show_orientation_in_discovery',true).eq('sexual_orientation',filters.orientation);
   const {data,error}=await query;if(error)return json({error:'Unable to load directory'},503);
+  eligible=(data||[]).map(row=>row.user_id);
+  if(!eligible.length)return json({results:[],preview:!premium,limit:filters.limit,has_more:false});
+ }
+ // Only owner-opted-in, self-reported characteristics can be searched.
+ // We retrieve *user IDs only*: neither the browser nor directory response ever
+ // receives raw age, ethnicity or anatomy values for another member.
+ const hasAttributes=Boolean(filters.ethnicity||filters.circumcision||filters.breast_size||
+  ['min_age','max_age','min_height_cm','max_height_cm','min_weight_kg','max_weight_kg','min_penis_inches','max_penis_inches'].some(key=>filters[key]!==null));
+ if(hasAttributes){
+  let attrs=db.from('member_discovery_attributes').select('user_id').in('user_id',eligible).eq('visible_in_discovery',true);
+  if(filters.ethnicity)attrs=attrs.eq('ethnicity',filters.ethnicity);
+  if(filters.circumcision)attrs=attrs.eq('circumcision',filters.circumcision);
+  if(filters.breast_size)attrs=attrs.eq('breast_size',filters.breast_size);
+  for(const [key,column] of Object.entries({min_age:'age_years',max_age:'age_years',
+   min_height_cm:'height_cm',max_height_cm:'height_cm',min_weight_kg:'weight_kg',
+   max_weight_kg:'weight_kg',min_penis_inches:'penis_inches',max_penis_inches:'penis_inches'})){
+   if(filters[key]!==null)attrs=key.startsWith('min_')?attrs.gte(column,filters[key]):attrs.lte(column,filters[key]);
+  }
+  const {data,error}=await attrs;
+  if(error)return json({error:'Advanced directory search is unavailable'},503);
   eligible=(data||[]).map(row=>row.user_id);
   if(!eligible.length)return json({results:[],preview:!premium,limit:filters.limit,has_more:false});
  }
