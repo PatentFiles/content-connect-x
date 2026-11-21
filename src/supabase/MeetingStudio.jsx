@@ -93,7 +93,7 @@ export default function MeetingStudio({scope,scopeId,userId,onNavigate=(destinat
    <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-semibold"><FileAudio size={18} className="mr-2 inline"/>Recordings and transcripts</h3><button type="button" className={btn} onClick={()=>void reloadRecordings()}>Refresh</button></div>
    {!recordings.length&&<p className="text-sm text-[var(--cc-text-secondary)]">No meeting recordings yet.</p>}
    <div className="max-h-96 space-y-2 overflow-y-auto">{recordings.map(r=><article key={r.id} className="rounded-xl border border-[var(--cc-border)] p-3">
-    <div className="flex flex-wrap items-center gap-3 text-sm"><span>{r.content_type} · {new Date(r.created_at).toLocaleString()}</span>{r.url&&<a href={r.url} target="_blank" rel="noreferrer" className="underline">Open private recording</a>}
+    <div className="flex flex-wrap items-center gap-3 text-sm"><span>{r.content_type} · {new Date(r.created_at).toLocaleString()}</span>{r.url&&<a href={r.url} target="_blank" rel="noopener noreferrer" className="underline">Open private recording</a>}
      {r.content_type.startsWith('audio/')&&!r.transcript&&<button className={btn} type="button" disabled={busy} onClick={()=>void transcribe(r)}>Transcribe</button>}</div>
     {r.transcript&&<details className="mt-2"><summary className="cursor-pointer text-sm font-semibold">Text transcript</summary><p className="mt-2 whitespace-pre-wrap break-words text-sm">{r.transcript}</p></details>}
    </article>)}</div>
