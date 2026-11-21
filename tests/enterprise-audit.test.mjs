@@ -105,7 +105,7 @@ test('role previews cannot publish feed posts and repost media keeps its full-wi
  const feed=read('src/supabase/ConnectFeed.jsx');
  assert.match(dashboard,/<ConnectFeed[^>]*preview=\{preview\}/);
  assert.doesNotMatch(dashboard,/<ConnectFeed[^>]*preview=\{false\}/);
- assert.match(feed,/if\(posting\.current\|\|!paid\|\|preview\)return/);
+ assert.match(feed,/if\(posting\.current\|\|!paid\|\|preview\)return/);\n assert.match(feed,/if\(busy\|\|preview\)return/);\n assert.match(feed,/paid=\{paid&&!preview\} preview=\{preview\}/);
  assert.match(feed,/data-original-repost-media="true"/);
  assert.match(feed,/className="pb-0" data-original-repost-media/);
 });
