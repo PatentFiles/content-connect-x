@@ -5,6 +5,7 @@
 import React,{useCallback,useEffect,useMemo,useState} from 'react';
 import {ArrowLeft,MapPin,ShieldCheck,RefreshCw,UserRound,ExternalLink,CalendarDays,ChevronLeft,ChevronRight,Image as ImageIcon} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
+import ConnectFeed from './ConnectFeed';
 const roleTitle=value=>String(value||'professional').replaceAll('_',' ');
 const prettyDate=value=>value?new Date(value).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'}):'';
 const titleCase=value=>String(value||'').replaceAll('_',' ').replace(/\b\w/g,ch=>ch.toUpperCase());
