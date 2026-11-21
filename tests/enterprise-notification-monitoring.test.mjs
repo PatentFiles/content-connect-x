@@ -77,7 +77,7 @@ test('notification opt-in is editable in both member and host preferences',()=>{
  const backend=read('supabase/functions/production-manager/index.ts');
  assert.match(backend,/typeof body\.transactional_email!=='boolean'/);
  const admin=read('supabase/functions/ccx-integrations/index.ts');
- assert.match(admin,/getAuthenticatorAssuranceLevel/);
+ assert.match(admin,/verifiedAal2\(header,uid\)/);
  assert.match(admin,/admin_provider_settings/);
  assert.match(admin,/monitoring_config/);
 });
