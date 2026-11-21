@@ -13,7 +13,7 @@ function VenueArtwork({item}){
    onError={()=>setMissing(true)} className="h-[66px] w-[78px] object-contain"/>}
  </span>;
 }
-export default function HostVenueCategoryRail({selected='',onSelect=()=>{}}){
+export default function HostVenueCategoryRail({selected='',onSelect=(_id)=>{void _id;}}){
  return <nav aria-label="Property categories" data-ccx-property-category-rail="true" className="w-full overflow-x-auto overscroll-x-contain">
   <div className="mx-auto flex w-max min-w-full items-start justify-center gap-1 px-2 py-3 sm:gap-3 lg:max-w-[1550px] lg:flex-wrap">
    {HOST_VENUE_CATEGORIES.map(item=>{
