@@ -79,3 +79,10 @@ test('law disclosure approval cannot renew an active case or undo revocation',()
  assert.match(edge,/item\.status==='approved'&&decision!=='revoke'/);
  assert.match(edge,/Submit a new case for renewed access/);
 });
+
+test('law portal downloads CSV text or PDF Blob without rejecting valid CSV responses',()=>{
+ const portal=read('src/supabase/LawEnforcementPortal.jsx');
+ assert.match(portal,/data instanceof Blob\?data:/);
+ assert.match(portal,/kind==='csv'&&typeof data==='string'/);
+ assert.match(portal,/URL\.createObjectURL\(file\)/);
+});
