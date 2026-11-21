@@ -1,0 +1,1983 @@
+{
+  "schema": "public",
+  "captured_utc": "2026-11-21",
+  "notes": "Schema names only (no user data). Regenerate after approved, deployed migrations. Not a live database check.",
+  "tables": {
+    "account_security": [
+      "user_id",
+      "admin",
+      "banned",
+      "suspended",
+      "created_at"
+    ],
+    "age_verification_requests": [
+      "id",
+      "user_id",
+      "status",
+      "provider",
+      "id_document_path",
+      "selfie_document_path",
+      "reviewer_id",
+      "verified_at",
+      "expires_at",
+      "reviewed_at",
+      "created_at",
+      "provider_session_id",
+      "verification_method",
+      "evidence_reference"
+    ],
+    "approved_agreement_templates": [
+      "id",
+      "title",
+      "document_type",
+      "provider_template_id",
+      "approved_at",
+      "approved_by",
+      "active",
+      "created_at"
+    ],
+    "background_screening_requests": [
+      "id",
+      "user_id",
+      "request_status",
+      "consent_at",
+      "consent_scope",
+      "provider",
+      "provider_case_reference",
+      "completed_at",
+      "created_at"
+    ],
+    "billing_webhook_events": [
+      "provider_event_id",
+      "event_type",
+      "processing_status",
+      "last_error",
+      "processed_at",
+      "created_at"
+    ],
+    "booking_agreements": [
+      "id",
+      "booking_id",
+      "template_id",
+      "provider",
+      "provider_envelope_id",
+      "status",
+      "signer_host_id",
+      "signer_guest_id",
+      "signed_pdf_path",
+      "certificate_path",
+      "signed_pdf_sha256",
+      "certificate_sha256",
+      "completed_at",
+      "created_at"
+    ],
+    "booking_damage_claims": [
+      "id",
+      "booking_id",
+      "host_id",
+      "claimed_cents",
+      "description",
+      "evidence_path",
+      "status",
+      "reviewed_by",
+      "created_at"
+    ],
+    "booking_docusign_events": [
+      "id",
+      "provider_event_hash",
+      "envelope_id",
+      "booking_id",
+      "event_status",
+      "received_at",
+      "processed_at"
+    ],
+    "booking_payment_events": [
+      "id",
+      "provider",
+      "provider_event_id",
+      "event_type",
+      "payload_sha256",
+      "verified_at",
+      "processed_at",
+      "booking_id",
+      "processing_status",
+      "reconciliation_note"
+    ],
+    "booking_payment_intents": [
+      "id",
+      "booking_id",
+      "provider",
+      "provider_intent_id",
+      "amount_cents",
+      "currency",
+      "status",
+      "kind",
+      "created_at",
+      "updated_at"
+    ],
+    "booking_payouts": [
+      "id",
+      "booking_id",
+      "host_id",
+      "payout_cents",
+      "currency",
+      "status",
+      "provider_payout_id",
+      "created_at",
+      "paid_at"
+    ],
+    "booking_policy_snapshots": [
+      "booking_id",
+      "cancellation_policy",
+      "deposit_cents",
+      "rental_cents",
+      "currency",
+      "policy_version",
+      "created_at"
+    ],
+    "booking_refund_requests": [
+      "id",
+      "booking_id",
+      "requested_by",
+      "amount_cents",
+      "reason",
+      "status",
+      "provider_refund_id",
+      "decided_by",
+      "created_at",
+      "decided_at"
+    ],
+    "booking_reschedule_requests": [
+      "id",
+      "booking_id",
+      "requested_by",
+      "proposed_start",
+      "proposed_end",
+      "status",
+      "responded_by",
+      "created_at"
+    ],
+    "ccx_age_provider_sessions": [
+      "id",
+      "user_id",
+      "provider",
+      "provider_session_id",
+      "reference_id",
+      "mode",
+      "status",
+      "method",
+      "expires_at",
+      "confirmed_at",
+      "created_at",
+      "evidence_id",
+      "age_threshold_passed",
+      "provider_response_hash",
+      "verification_request_id",
+      "policy_version"
+    ],
+    "ccx_ai_agent_flags": [
+      "id",
+      "run_id",
+      "entity_type",
+      "entity_id",
+      "category",
+      "severity",
+      "reason",
+      "reviewed_at",
+      "reviewed_by",
+      "review_note",
+      "created_at"
+    ],
+    "ccx_ai_agent_runs": [
+      "id",
+      "agent_type",
+      "triggered_by",
+      "status",
+      "scanned_count",
+      "flags_created",
+      "details",
+      "error_message",
+      "started_at",
+      "finished_at"
+    ],
+    "ccx_ai_match_suggestions": [
+      "user_id",
+      "suggested_user_id",
+      "score",
+      "reasons",
+      "updated_at",
+      "dismissed_at"
+    ],
+    "ccx_ai_risk_predictions": [
+      "id",
+      "run_id",
+      "entity_type",
+      "entity_id",
+      "score",
+      "reasons",
+      "model",
+      "created_at"
+    ],
+    "ccx_annual_recap_events": [
+      "id",
+      "recap_id",
+      "actor_id",
+      "action",
+      "occurred_at",
+      "metadata"
+    ],
+    "ccx_annual_recaps": [
+      "id",
+      "user_id",
+      "report_year",
+      "role_type",
+      "metrics",
+      "snapshot_version",
+      "generated_at",
+      "notified_at",
+      "feed_post_id",
+      "shared_at",
+      "feed_hidden_at"
+    ],
+    "ccx_brand_domains": [
+      "brand",
+      "host_name",
+      "active",
+      "verified_at",
+      "created_at"
+    ],
+    "ccx_clearance_document_submissions": [
+      "id",
+      "user_id",
+      "storage_path",
+      "status",
+      "reviewed_by",
+      "reviewed_at",
+      "review_note",
+      "created_at"
+    ],
+    "ccx_clearance_events": [
+      "id",
+      "user_id",
+      "source",
+      "clearance_confirmed",
+      "expires_at",
+      "provider_reference_hash",
+      "created_at",
+      "provider_reference"
+    ],
+    "ccx_clearance_share_consents": [
+      "collaboration_id",
+      "user_id",
+      "consented_at",
+      "revoked_at",
+      "terms_version"
+    ],
+    "ccx_collab_call_signals": [
+      "id",
+      "collaboration_id",
+      "sender_id",
+      "recipient_id",
+      "kind",
+      "payload",
+      "created_at"
+    ],
+    "ccx_collab_note_events": [
+      "id",
+      "collaboration_id",
+      "version",
+      "actor_id",
+      "body",
+      "recorded_at"
+    ],
+    "ccx_collab_notes": [
+      "collaboration_id",
+      "body",
+      "version",
+      "updated_by",
+      "updated_at"
+    ],
+    "ccx_collab_recordings": [
+      "id",
+      "collaboration_id",
+      "recorded_by",
+      "storage_path",
+      "content_type",
+      "duration_seconds",
+      "created_at",
+      "transcript_status"
+    ],
+    "ccx_collab_testing_policies": [
+      "collaboration_id",
+      "requires_testing",
+      "tested_within_days",
+      "deadline_at",
+      "updated_by",
+      "updated_at"
+    ],
+    "ccx_collab_transcripts": [
+      "id",
+      "recording_id",
+      "collaboration_id",
+      "transcript",
+      "model",
+      "created_at"
+    ],
+    "ccx_collaboration_actual_statements": [
+      "id",
+      "collaboration_id",
+      "actor_id",
+      "revision",
+      "plan_version",
+      "idempotency_key",
+      "work_completed",
+      "deliverables_completed",
+      "differences_or_concerns",
+      "recorded_at"
+    ],
+    "ccx_collaboration_hidden": [
+      "user_id",
+      "collaboration_id",
+      "hidden_at"
+    ],
+    "ccx_collaboration_invitation_cooldowns": [
+      "actor_id",
+      "until_at",
+      "triggered_at"
+    ],
+    "ccx_collaboration_plan_history": [
+      "id",
+      "collaboration_id",
+      "version",
+      "actor_id",
+      "snapshot",
+      "recorded_at"
+    ],
+    "ccx_collaboration_plans": [
+      "collaboration_id",
+      "starts_at",
+      "ends_at",
+      "timezone",
+      "city",
+      "venue_label",
+      "property_id",
+      "scope_of_work",
+      "agreed_activities",
+      "deliverables",
+      "usage_rights",
+      "version",
+      "updated_by",
+      "updated_at"
+    ],
+    "ccx_collaboration_safety_checkins": [
+      "collaboration_id",
+      "user_id",
+      "status",
+      "contact_informed_by_member",
+      "checked_in_at",
+      "marked_safe_at",
+      "left_at",
+      "concern_recorded_at",
+      "updated_at"
+    ],
+    "ccx_collaboration_safety_events": [
+      "id",
+      "collaboration_id",
+      "actor_id",
+      "event_type",
+      "recorded_at"
+    ],
+    "ccx_contract_draft_reviews": [
+      "contract_id",
+      "reviewer_id",
+      "content_sha256",
+      "decision",
+      "reviewed_at"
+    ],
+    "ccx_email_delivery": [
+      "notification_id",
+      "queue_msg_id",
+      "status",
+      "attempts",
+      "remote_message_id",
+      "last_error",
+      "created_at",
+      "completed_at"
+    ],
+    "ccx_feed_display_preferences": [
+      "user_id",
+      "default_audience",
+      "feed_view",
+      "updated_at"
+    ],
+    "ccx_feed_flags": [
+      "id",
+      "post_id",
+      "reporter_id",
+      "reason",
+      "status",
+      "created_at"
+    ],
+    "ccx_feed_post_media": [
+      "post_id",
+      "media_id",
+      "ordinal"
+    ],
+    "ccx_free_contact_targets": [
+      "actor_id",
+      "target_id",
+      "contacted_at"
+    ],
+    "ccx_friend_settings": [
+      "user_id",
+      "request_policy",
+      "allow_intro_messages",
+      "updated_at"
+    ],
+    "ccx_idv_accounts": [
+      "user_id",
+      "legal_name",
+      "verified_name",
+      "verified_at",
+      "eligible_on",
+      "updated_at"
+    ],
+    "ccx_idv_config": [
+      "singleton",
+      "enabled",
+      "worker_origin",
+      "policy_version",
+      "security_approved_at",
+      "privacy_approved_at",
+      "notice_version",
+      "notice_text",
+      "retention_days",
+      "rejected_retention_days",
+      "supported_countries"
+    ],
+    "ccx_idv_document_blocks": [
+      "fingerprint",
+      "eligible_on",
+      "source_session",
+      "created_at"
+    ],
+    "ccx_idv_events": [
+      "id",
+      "session_id",
+      "actor_id",
+      "action",
+      "reason",
+      "created_at"
+    ],
+    "ccx_idv_pilot_config": [
+      "singleton",
+      "enabled",
+      "expires_at",
+      "worker_origin",
+      "last_cleanup_at",
+      "last_probe_at"
+    ],
+    "ccx_idv_pilot_sessions": [
+      "id",
+      "user_id",
+      "legal_name",
+      "document_type",
+      "issuing_country",
+      "status",
+      "reason",
+      "expected_name",
+      "eligible_on",
+      "diagnostics",
+      "evidence",
+      "challenge_id",
+      "directions",
+      "consent_version",
+      "consent_hash",
+      "consent_notice",
+      "job_hash",
+      "job_expires_at",
+      "claimed_at",
+      "attempts",
+      "created_at",
+      "expires_at",
+      "purge_after",
+      "deletion_started_at",
+      "purged_at"
+    ],
+    "ccx_idv_pilot_uploads": [
+      "path",
+      "session_id",
+      "kind",
+      "sha256",
+      "bytes",
+      "content_type",
+      "reserved_at",
+      "saved_at"
+    ],
+    "ccx_idv_review_cases": [
+      "session_id",
+      "requester_id",
+      "status",
+      "assigned_reviewer_id",
+      "assigned_at",
+      "disposition",
+      "opened_at",
+      "updated_at",
+      "closed_at"
+    ],
+    "ccx_idv_review_events": [
+      "id",
+      "session_id",
+      "actor_id",
+      "action",
+      "from_status",
+      "to_status",
+      "reason_code",
+      "recorded_at"
+    ],
+    "ccx_idv_sessions": [
+      "id",
+      "user_id",
+      "status",
+      "reason",
+      "document_type",
+      "issuing_country",
+      "legal_name",
+      "extracted_name",
+      "dob",
+      "eligible_on",
+      "document_fingerprint",
+      "checks_passed",
+      "document_expiry",
+      "evidence",
+      "challenge_id",
+      "directions",
+      "consent_version",
+      "consent_hash",
+      "consent_at",
+      "policy_version",
+      "engine_revision",
+      "report_hash",
+      "model_manifest",
+      "job_hash",
+      "job_expires_at",
+      "claimed_at",
+      "process_attempts",
+      "review_requested_at",
+      "legal_hold",
+      "created_at",
+      "updated_at",
+      "expires_at",
+      "purge_after",
+      "purged_at",
+      "purge_started_at",
+      "evidence_revision"
+    ],
+    "ccx_idv_uploads": [
+      "path",
+      "session_id",
+      "created_at"
+    ],
+    "ccx_integrations": [
+      "provider",
+      "enabled",
+      "setup_status",
+      "notes",
+      "updated_by",
+      "updated_at",
+      "callback_origin",
+      "secondary_origin"
+    ],
+    "ccx_intro_messages": [
+      "id",
+      "sender_id",
+      "recipient_id",
+      "body",
+      "created_at",
+      "read_at"
+    ],
+    "ccx_law_cases": [
+      "id",
+      "officer_id",
+      "subject_user_id",
+      "agency_case_number",
+      "legal_process_type",
+      "legal_basis",
+      "evidence_reference",
+      "requested_scopes",
+      "approved_scopes",
+      "status",
+      "requested_at",
+      "reviewed_by",
+      "reviewed_at",
+      "review_note",
+      "expires_at",
+      "preservation_hold"
+    ],
+    "ccx_law_disclosure_audit": [
+      "id",
+      "officer_id",
+      "case_id",
+      "action",
+      "subject_user_id",
+      "result_status",
+      "details",
+      "created_at"
+    ],
+    "ccx_law_holds": [
+      "id",
+      "case_id",
+      "subject_user_id",
+      "effective_at",
+      "expires_at",
+      "released_at",
+      "authorized_by",
+      "reason"
+    ],
+    "ccx_law_idv_baseline": [
+      "session_id",
+      "originally_held",
+      "recorded_at"
+    ],
+    "ccx_law_officers": [
+      "user_id",
+      "agency",
+      "official_email",
+      "jurisdiction",
+      "enabled",
+      "verified_by",
+      "verified_at",
+      "disabled_at",
+      "created_at"
+    ],
+    "ccx_meeting_invites": [
+      "id",
+      "scope",
+      "scope_id",
+      "invited_by",
+      "created_at"
+    ],
+    "ccx_meeting_note_events": [
+      "id",
+      "scope",
+      "scope_id",
+      "version",
+      "actor_id",
+      "body",
+      "created_at"
+    ],
+    "ccx_meeting_notes": [
+      "scope",
+      "scope_id",
+      "body",
+      "version",
+      "updated_by",
+      "updated_at"
+    ],
+    "ccx_meeting_recording_consents": [
+      "scope",
+      "scope_id",
+      "user_id",
+      "approved",
+      "updated_at"
+    ],
+    "ccx_meeting_recording_states": [
+      "scope",
+      "scope_id",
+      "recorded_by",
+      "is_recording",
+      "heartbeat_at"
+    ],
+    "ccx_meeting_recordings": [
+      "id",
+      "scope",
+      "scope_id",
+      "recorded_by",
+      "storage_path",
+      "content_type",
+      "transcript_status",
+      "transcript",
+      "created_at"
+    ],
+    "ccx_membership_checkout_attempts": [
+      "id",
+      "checkout_nonce",
+      "user_id",
+      "plan_code",
+      "amount_cents",
+      "currency",
+      "period_days",
+      "account",
+      "subaccount",
+      "status",
+      "created_at",
+      "expires_at"
+    ],
+    "ccx_membership_contracts": [
+      "subscription_id",
+      "user_id",
+      "attempt_id",
+      "plan_code",
+      "amount_cents",
+      "account",
+      "subaccount",
+      "period_end",
+      "status",
+      "cancel_at_period_end",
+      "latest_transaction_id",
+      "last_event_at",
+      "created_at",
+      "updated_at"
+    ],
+    "ccx_membership_payment_events": [
+      "event_id",
+      "payload_hash",
+      "subscription_id",
+      "user_id",
+      "event_type",
+      "occurred_at",
+      "received_at",
+      "status",
+      "reason",
+      "normalized"
+    ],
+    "ccx_pass_links": [
+      "user_id",
+      "requested_at",
+      "status",
+      "consented_at",
+      "consent_version",
+      "last_sync_at",
+      "connected_at"
+    ],
+    "ccx_representation_events": [
+      "id",
+      "representation_id",
+      "actor_id",
+      "event_type",
+      "agreement_hash",
+      "metadata",
+      "created_at"
+    ],
+    "ccx_shop_partners": [
+      "slug",
+      "name",
+      "official_url",
+      "affiliate_url",
+      "categories",
+      "description",
+      "partner_status",
+      "shipping_by_partner",
+      "updated_by",
+      "updated_at",
+      "application_url"
+    ],
+    "ccx_signature_provider_events": [
+      "id",
+      "envelope_id",
+      "event_hash",
+      "event_type",
+      "created_at",
+      "processed_at"
+    ],
+    "ccx_social_group_events": [
+      "id",
+      "group_id",
+      "actor_id",
+      "target_id",
+      "action",
+      "recorded_at"
+    ],
+    "ccx_social_group_members": [
+      "group_id",
+      "user_id",
+      "role",
+      "status",
+      "invited_by",
+      "requested_at",
+      "updated_at"
+    ],
+    "ccx_social_groups": [
+      "id",
+      "owner_id",
+      "name",
+      "description",
+      "rules",
+      "visibility",
+      "state",
+      "created_at",
+      "updated_at",
+      "reviewed_at",
+      "reviewed_by"
+    ],
+    "ccx_sponsorship_campaigns": [
+      "id",
+      "placement",
+      "sponsor_name",
+      "headline",
+      "link_url",
+      "disclosure",
+      "approved",
+      "starts_at",
+      "ends_at",
+      "created_at"
+    ],
+    "ccx_testing_credentials": [
+      "id",
+      "user_id",
+      "tested_at",
+      "expires_at",
+      "issuer",
+      "document_path",
+      "status",
+      "reviewed_by",
+      "reviewed_at",
+      "created_at"
+    ],
+    "ccx_testing_expiry_alerts": [
+      "credential_id",
+      "alert_type",
+      "created_at"
+    ],
+    "ccx_transcription_delivery": [
+      "recording_id",
+      "queue_msg_id",
+      "status",
+      "attempts",
+      "last_error",
+      "created_at",
+      "completed_at"
+    ],
+    "ccx_travel_dates": [
+      "id",
+      "user_id",
+      "city",
+      "region",
+      "country",
+      "starts_at",
+      "ends_at",
+      "visible_to_members",
+      "note",
+      "created_at"
+    ],
+    "ccx_trust_alert_deliveries": [
+      "request_id",
+      "admin_user_id",
+      "alert_type",
+      "delivered_at"
+    ],
+    "ccx_trust_messages": [
+      "id",
+      "request_id",
+      "author",
+      "body",
+      "staff_id",
+      "idempotency_key",
+      "created_at"
+    ],
+    "ccx_trust_rate_limits": [
+      "bucket_key",
+      "window_start",
+      "hits"
+    ],
+    "ccx_trust_request_events": [
+      "id",
+      "request_id",
+      "actor_id",
+      "action",
+      "from_status",
+      "to_status",
+      "created_at"
+    ],
+    "ccx_trust_requests": [
+      "id",
+      "idempotency_key",
+      "kind",
+      "status",
+      "priority",
+      "payload",
+      "created_at",
+      "due_at",
+      "reviewed_at",
+      "resolution_note",
+      "assigned_reviewer_id",
+      "assigned_at"
+    ],
+    "ccx_trust_settings": [
+      "singleton",
+      "legal_entity",
+      "postal_address",
+      "contact_email",
+      "policies_approved",
+      "reviewer_coverage_confirmed",
+      "intake_enabled",
+      "updated_at"
+    ],
+    "ccx_yoti_start_limits": [
+      "user_id",
+      "window_started_at",
+      "attempts"
+    ],
+    "collaboration_completion_votes": [
+      "collaboration_id",
+      "user_id",
+      "acknowledged_at"
+    ],
+    "collaboration_consent_events": [
+      "id",
+      "collaboration_id",
+      "user_id",
+      "action",
+      "scope_snapshot",
+      "created_at"
+    ],
+    "collaboration_consents": [
+      "collaboration_id",
+      "user_id",
+      "participation_consent",
+      "recording_consent",
+      "distribution_consent",
+      "download_consent",
+      "recorded_at",
+      "revoked_at"
+    ],
+    "collaboration_invitations": [
+      "id",
+      "collaboration_id",
+      "invited_by",
+      "invitee_id",
+      "status",
+      "created_at",
+      "responded_at",
+      "proposed_role"
+    ],
+    "collaboration_members": [
+      "collaboration_id",
+      "user_id",
+      "membership_role"
+    ],
+    "collaborations": [
+      "id",
+      "creator_id",
+      "title",
+      "description",
+      "status",
+      "created_at",
+      "requires_work_clearance"
+    ],
+    "community_comments": [
+      "id",
+      "post_id",
+      "author_id",
+      "body",
+      "status",
+      "created_at"
+    ],
+    "community_posts": [
+      "id",
+      "author_id",
+      "body",
+      "status",
+      "created_at",
+      "published_at",
+      "audience",
+      "repost_of",
+      "allow_repost",
+      "hidden_at",
+      "group_id"
+    ],
+    "community_reactions": [
+      "post_id",
+      "user_id",
+      "created_at"
+    ],
+    "completed_collaboration_reviews": [
+      "id",
+      "collaboration_id",
+      "reviewer_id",
+      "reviewee_id",
+      "rating",
+      "comment",
+      "status",
+      "created_at"
+    ],
+    "content_moderation_queue": [
+      "id",
+      "content_type",
+      "content_id",
+      "submitter_id",
+      "status",
+      "reason",
+      "reviewer_id",
+      "reviewed_at",
+      "created_at"
+    ],
+    "contract_signatures": [
+      "id",
+      "contract_id",
+      "signer_id",
+      "signed_content_hash",
+      "accepted_at"
+    ],
+    "contracts": [
+      "id",
+      "collaboration_id",
+      "created_by",
+      "title",
+      "status",
+      "content",
+      "locked_at",
+      "created_at"
+    ],
+    "conversation_members": [
+      "conversation_id",
+      "user_id",
+      "last_read_at"
+    ],
+    "conversations": [
+      "id",
+      "created_at",
+      "title",
+      "kind",
+      "created_by"
+    ],
+    "creator_booking_requests": [
+      "id",
+      "host_id",
+      "requester_id",
+      "starts_at",
+      "ends_at",
+      "status",
+      "notes",
+      "created_at",
+      "updated_at"
+    ],
+    "creator_favorites": [
+      "user_id",
+      "creator_id",
+      "created_at"
+    ],
+    "creator_production_preferences": [
+      "user_id",
+      "scene_pairings",
+      "scene_pairings_other",
+      "compensation_preferences",
+      "standard_acts",
+      "standard_acts_other",
+      "fetish_acts",
+      "fetish_acts_other",
+      "kink_edge_acts",
+      "kink_edge_acts_other",
+      "performance_positioning",
+      "looking_for_genders",
+      "physical_details",
+      "availability_type",
+      "travel_regions",
+      "rates_text",
+      "socials",
+      "stats",
+      "updated_at",
+      "show_socials_to_premium"
+    ],
+    "feature_feedback": [
+      "id",
+      "creator_id",
+      "title",
+      "description",
+      "status",
+      "created_at"
+    ],
+    "feature_feedback_votes": [
+      "feedback_id",
+      "user_id",
+      "created_at"
+    ],
+    "host_listing_defaults": [
+      "user_id",
+      "settings",
+      "updated_at"
+    ],
+    "host_payout_accounts": [
+      "owner_id",
+      "provider",
+      "provider_account_id",
+      "verification_status",
+      "created_at"
+    ],
+    "host_profiles": [
+      "user_id",
+      "display_name",
+      "legal_name",
+      "company_name",
+      "contact_email",
+      "phone",
+      "city",
+      "region",
+      "country",
+      "postal_address",
+      "postal_code",
+      "bio",
+      "languages",
+      "timezone",
+      "emergency_contact_name",
+      "emergency_contact_phone",
+      "avatar_path",
+      "updated_at"
+    ],
+    "host_verification_requests": [
+      "id",
+      "owner_id",
+      "property_id",
+      "business_name",
+      "authority_type",
+      "authority_document_path",
+      "insurance_document_path",
+      "status",
+      "reviewer_id",
+      "reviewer_note",
+      "verified_at",
+      "expires_at",
+      "created_at"
+    ],
+    "hosting_addon_bundles": [
+      "id",
+      "property_id",
+      "title",
+      "discount_bps",
+      "active"
+    ],
+    "hosting_addons": [
+      "id",
+      "property_id",
+      "label",
+      "category",
+      "description",
+      "quantity",
+      "hourly_cents",
+      "daily_cents",
+      "condition",
+      "active",
+      "created_at"
+    ],
+    "hosting_booking_access": [
+      "booking_id",
+      "user_id",
+      "invited_by",
+      "role",
+      "status",
+      "can_view_entry",
+      "created_at",
+      "accepted_at"
+    ],
+    "hosting_booking_addons": [
+      "booking_id",
+      "addon_id",
+      "quantity",
+      "hourly_cents_snapshot",
+      "total_cents",
+      "created_at"
+    ],
+    "hosting_booking_conversations": [
+      "booking_id",
+      "conversation_id",
+      "created_by",
+      "created_at"
+    ],
+    "hosting_booking_insurance": [
+      "booking_id",
+      "submitted_by",
+      "document_path",
+      "status",
+      "policy_holder",
+      "expiry_date",
+      "reviewed_by",
+      "reviewed_at",
+      "created_at"
+    ],
+    "hosting_bundle_items": [
+      "bundle_id",
+      "addon_id",
+      "quantity"
+    ],
+    "hosting_calendar_connections": [
+      "id",
+      "property_id",
+      "provider",
+      "import_url",
+      "sync_enabled",
+      "last_synced_at",
+      "last_error",
+      "next_sync_at",
+      "created_at",
+      "last_feed_hash",
+      "last_successful_count",
+      "status",
+      "sync_interval_minutes"
+    ],
+    "hosting_calendar_export_tokens": [
+      "id",
+      "property_id",
+      "token_hash",
+      "revoked_at",
+      "created_at"
+    ],
+    "hosting_calendar_job_audit": [
+      "id",
+      "connection_id",
+      "status",
+      "added_count",
+      "removed_count",
+      "error_kind",
+      "created_at"
+    ],
+    "hosting_check_events": [
+      "id",
+      "booking_id",
+      "actor_id",
+      "event_type",
+      "actual_at",
+      "note",
+      "created_at"
+    ],
+    "hosting_discount_codes": [
+      "id",
+      "property_id",
+      "code_sha256",
+      "discount_bps",
+      "max_redemptions",
+      "redemptions",
+      "expires_at",
+      "active",
+      "created_at"
+    ],
+    "hosting_equipment_inspections": [
+      "id",
+      "booking_id",
+      "addon_id",
+      "condition_before",
+      "condition_after",
+      "notes",
+      "recorded_by",
+      "created_at"
+    ],
+    "hosting_incidents": [
+      "id",
+      "booking_id",
+      "reporter_id",
+      "category",
+      "description",
+      "evidence_path",
+      "status",
+      "resolved_by",
+      "created_at"
+    ],
+    "hosting_listing_views": [
+      "property_id",
+      "viewer_id",
+      "viewed_on",
+      "created_at"
+    ],
+    "hosting_notification_delivery_log": [
+      "id",
+      "outbox_id",
+      "delivery_provider",
+      "remote_message_id",
+      "response_code",
+      "delivered_at"
+    ],
+    "hosting_notification_outbox": [
+      "id",
+      "event_key",
+      "recipient_id",
+      "channel",
+      "template",
+      "payload",
+      "status",
+      "attempts",
+      "next_attempt_at",
+      "last_error",
+      "created_at",
+      "sent_at",
+      "lease_token",
+      "lease_expires_at"
+    ],
+    "hosting_overtime_quotes": [
+      "booking_id",
+      "minutes_late",
+      "proposed_cents",
+      "status",
+      "created_at"
+    ],
+    "hosting_payment_attempts": [
+      "id",
+      "booking_id",
+      "intent_id",
+      "provider",
+      "checkout_nonce",
+      "status",
+      "expires_at",
+      "created_at"
+    ],
+    "hosting_provider_reconciliation": [
+      "id",
+      "provider",
+      "entity_id",
+      "issue",
+      "status",
+      "created_at",
+      "reviewed_at"
+    ],
+    "hosting_public_areas": [
+      "id",
+      "city",
+      "region",
+      "country",
+      "latitude",
+      "longitude",
+      "radius_km",
+      "approved"
+    ],
+    "hosting_push_subscriptions": [
+      "id",
+      "user_id",
+      "endpoint",
+      "p256dh",
+      "auth_secret",
+      "created_at",
+      "last_success_at"
+    ],
+    "hosting_quote_snapshots": [
+      "booking_id",
+      "breakdown",
+      "created_at"
+    ],
+    "hosting_seasonal_rates": [
+      "id",
+      "property_id",
+      "label",
+      "starts_on",
+      "ends_on",
+      "multiplier_bps",
+      "kind",
+      "created_at"
+    ],
+    "hosting_staff": [
+      "property_id",
+      "member_id",
+      "invited_by",
+      "role",
+      "status",
+      "created_at",
+      "accepted_at"
+    ],
+    "hosting_suitability": [
+      "property_id",
+      "adult_production_permitted",
+      "noise_restrictions",
+      "privacy_level",
+      "soundproof_confirmed",
+      "parking_spaces",
+      "separate_dressing_rooms",
+      "permits_verified",
+      "reviewer_id",
+      "reviewed_at",
+      "updated_at"
+    ],
+    "hosting_supplies": [
+      "id",
+      "property_id",
+      "label",
+      "unit",
+      "quantity",
+      "reorder_at",
+      "notes",
+      "updated_at"
+    ],
+    "hosting_supply_movements": [
+      "id",
+      "supply_id",
+      "actor_id",
+      "change_quantity",
+      "reason",
+      "created_at"
+    ],
+    "hosting_verified_signer_names": [
+      "user_id",
+      "legal_name",
+      "verified_by",
+      "verified_at",
+      "method"
+    ],
+    "member_admissions": [
+      "id",
+      "user_id",
+      "admitted_at",
+      "source",
+      "verification_id",
+      "created_at"
+    ],
+    "member_availability": [
+      "id",
+      "user_id",
+      "kind",
+      "city",
+      "region",
+      "country",
+      "timezone",
+      "starts_at",
+      "ends_at",
+      "note",
+      "visibility",
+      "created_at"
+    ],
+    "member_blocks": [
+      "blocker_id",
+      "blocked_id",
+      "created_at"
+    ],
+    "member_connection_requests": [
+      "id",
+      "requester_id",
+      "recipient_id",
+      "status",
+      "requested_at",
+      "responded_at"
+    ],
+    "member_dashboard_preferences": [
+      "user_id",
+      "role_type",
+      "layout",
+      "revision",
+      "updated_at"
+    ],
+    "member_follows": [
+      "follower_id",
+      "followed_id",
+      "created_at"
+    ],
+    "member_media_albums": [
+      "id",
+      "owner_id",
+      "title",
+      "created_at",
+      "updated_at"
+    ],
+    "member_media_assets": [
+      "id",
+      "owner_id",
+      "storage_path",
+      "mime_type",
+      "caption",
+      "status",
+      "visibility",
+      "reviewed_by",
+      "reviewed_at",
+      "created_at",
+      "uploader_rights_attested",
+      "rights_attested_at",
+      "approval_origin",
+      "content_label",
+      "self_only_attested",
+      "album_id"
+    ],
+    "member_notification_preferences": [
+      "user_id",
+      "email_digest",
+      "booking_reminders",
+      "message_alerts",
+      "updated_at",
+      "transactional_email"
+    ],
+    "member_notifications": [
+      "id",
+      "recipient_id",
+      "kind",
+      "title",
+      "details",
+      "read_at",
+      "created_at"
+    ],
+    "member_portfolio_items": [
+      "id",
+      "user_id",
+      "kind",
+      "title",
+      "description",
+      "storage_path",
+      "external_url",
+      "featured",
+      "created_at"
+    ],
+    "member_professional_details": [
+      "user_id",
+      "specialties",
+      "services",
+      "equipment",
+      "software",
+      "website",
+      "hourly_rate",
+      "day_rate",
+      "currency",
+      "commission_percent",
+      "accepting_talent",
+      "available_to_travel",
+      "turnaround_days",
+      "updated_at"
+    ],
+    "member_profile_preferences": [
+      "user_id",
+      "gender_identity",
+      "sexual_orientation",
+      "pronouns",
+      "gender_self_description",
+      "orientation_self_description",
+      "preferred_collaborators",
+      "content_categories",
+      "scene_pairings",
+      "specialties",
+      "available_to_travel",
+      "show_gender_in_discovery",
+      "show_categories_in_discovery",
+      "updated_at",
+      "show_orientation_in_discovery"
+    ],
+    "member_profile_view_events": [
+      "profile_owner_id",
+      "viewer_id",
+      "viewed_day",
+      "first_viewed_at"
+    ],
+    "member_profiles": [
+      "id",
+      "display_name",
+      "role_type",
+      "bio",
+      "avatar_path",
+      "city",
+      "country",
+      "profile_complete",
+      "created_at",
+      "updated_at",
+      "state",
+      "real_name",
+      "stage_name",
+      "company_name",
+      "representative_name",
+      "cover_path"
+    ],
+    "member_reports": [
+      "id",
+      "reporter_id",
+      "reported_id",
+      "reason",
+      "details",
+      "status",
+      "created_at"
+    ],
+    "member_representations": [
+      "id",
+      "representative_id",
+      "creator_id",
+      "representative_role",
+      "relationship_type",
+      "status",
+      "created_at",
+      "responded_at",
+      "ended_at",
+      "agreement_terms",
+      "agreement_hash",
+      "offered_by",
+      "agreed_by_representative_at",
+      "agreed_by_professional_at",
+      "starts_at",
+      "expires_at",
+      "notice_days",
+      "termination_notice_at",
+      "termination_effective_at",
+      "reminder_sent_at",
+      "agreement_version",
+      "pending_renewal_terms",
+      "pending_renewal_hash",
+      "pending_renewal_by"
+    ],
+    "member_saved_posts": [
+      "user_id",
+      "post_id",
+      "created_at"
+    ],
+    "member_social_links": [
+      "user_id",
+      "links",
+      "share_with_premium",
+      "updated_at"
+    ],
+    "member_subscriptions": [
+      "user_id",
+      "billing_provider",
+      "provider_customer_id",
+      "provider_subscription_id",
+      "plan_id",
+      "status",
+      "period_end",
+      "updated_at"
+    ],
+    "membership_plan_catalog": [
+      "plan_code",
+      "role_type",
+      "tier",
+      "monthly_cents",
+      "currency",
+      "roster_seats",
+      "label",
+      "active",
+      "display_order",
+      "updated_at"
+    ],
+    "message_reactions": [
+      "message_id",
+      "reactor_id",
+      "reaction",
+      "created_at"
+    ],
+    "message_revision_audit": [
+      "id",
+      "message_id",
+      "actor_id",
+      "event_type",
+      "content_hash",
+      "created_at"
+    ],
+    "messages": [
+      "id",
+      "conversation_id",
+      "sender_id",
+      "body",
+      "created_at",
+      "edited_at",
+      "deleted_at"
+    ],
+    "onlyhost_accounts": [
+      "user_id",
+      "status",
+      "agreed_to_hosting_terms_at",
+      "created_at",
+      "terms_version",
+      "legal_capacity_confirmed",
+      "property_authority_confirmed",
+      "adult_production_understood",
+      "terms_accepted_at"
+    ],
+    "performer_work_clearances": [
+      "user_id",
+      "clearance_confirmed",
+      "provider",
+      "provider_reference",
+      "confirmed_at",
+      "expires_at",
+      "reviewed_by",
+      "updated_at"
+    ],
+    "platform_action_audit": [
+      "id",
+      "actor_id",
+      "action",
+      "target_type",
+      "target_id",
+      "metadata",
+      "created_at"
+    ],
+    "platform_settings": [
+      "key",
+      "value",
+      "updated_at",
+      "updated_by"
+    ],
+    "product_feature_flags": [
+      "key",
+      "enabled",
+      "allowed_tiers",
+      "rollout_percent",
+      "description",
+      "updated_at"
+    ],
+    "production_case_events": [
+      "id",
+      "case_id",
+      "actor_id",
+      "kind",
+      "note",
+      "created_at"
+    ],
+    "production_cases": [
+      "id",
+      "reporter_id",
+      "assigned_moderator_id",
+      "collaboration_id",
+      "booking_id",
+      "category",
+      "description",
+      "status",
+      "resolution",
+      "created_at",
+      "updated_at"
+    ],
+    "production_event_reminder_deliveries": [
+      "event_id",
+      "user_id",
+      "reminder_type",
+      "delivered_at"
+    ],
+    "production_event_rsvps": [
+      "event_id",
+      "user_id",
+      "status",
+      "responded_at"
+    ],
+    "production_events": [
+      "id",
+      "organizer_id",
+      "team_id",
+      "collaboration_id",
+      "title",
+      "description",
+      "city",
+      "timezone",
+      "starts_at",
+      "ends_at",
+      "capacity",
+      "visibility",
+      "status",
+      "created_at"
+    ],
+    "production_team_members": [
+      "team_id",
+      "member_id",
+      "role",
+      "status",
+      "invited_by",
+      "joined_at"
+    ],
+    "production_teams": [
+      "id",
+      "owner_id",
+      "name",
+      "description",
+      "visibility",
+      "created_at"
+    ],
+    "properties": [
+      "id",
+      "owner_id",
+      "title",
+      "description",
+      "city",
+      "state",
+      "country",
+      "status",
+      "hourly_rate",
+      "created_at",
+      "category",
+      "capacity",
+      "minimum_hours",
+      "setup_buffer_minutes",
+      "cleanup_buffer_minutes",
+      "amenities",
+      "permitted_uses",
+      "rules",
+      "currency",
+      "submitted_at",
+      "approved_at",
+      "approved_by",
+      "updated_at",
+      "cancellation_policy",
+      "deposit_percent",
+      "required_insurance",
+      "public_area_id",
+      "timezone",
+      "min_notice_hours",
+      "weekend_bps",
+      "holiday_bps",
+      "overtime_bps",
+      "cleaning_fee_cents",
+      "preferred_cleaning_minutes",
+      "created_via_brand",
+      "daily_rate"
+    ],
+    "property_amenity_catalog": [
+      "key",
+      "label",
+      "category",
+      "active",
+      "created_by",
+      "created_at"
+    ],
+    "property_booking_requests": [
+      "id",
+      "property_id",
+      "requester_id",
+      "owner_id",
+      "starts_at",
+      "ends_at",
+      "status",
+      "notes",
+      "created_at",
+      "hourly_rate_snapshot",
+      "estimated_total",
+      "crew_size",
+      "requested_use",
+      "updated_at",
+      "blocked_window",
+      "legal_status",
+      "payment_status",
+      "operational_status",
+      "finalized_at",
+      "source_brand",
+      "daily_rate_snapshot"
+    ],
+    "property_favorites": [
+      "user_id",
+      "property_id",
+      "created_at"
+    ],
+    "property_images": [
+      "id",
+      "property_id",
+      "uploader_id",
+      "storage_path",
+      "mime_type",
+      "position",
+      "caption",
+      "status",
+      "reviewed_by",
+      "created_at"
+    ],
+    "property_private": [
+      "property_id",
+      "exact_address",
+      "latitude",
+      "longitude",
+      "entry_instructions",
+      "smart_lock_config",
+      "internal_notes",
+      "public_address_visible"
+    ],
+    "property_reviews": [
+      "id",
+      "booking_id",
+      "property_id",
+      "author_id",
+      "rating",
+      "description",
+      "status",
+      "reviewed_by",
+      "created_at"
+    ],
+    "property_tour_sources": [
+      "id",
+      "property_id",
+      "user_id",
+      "storage_path",
+      "original_name",
+      "created_at"
+    ],
+    "property_turnover_photos": [
+      "id",
+      "turnover_id",
+      "uploaded_by",
+      "storage_path",
+      "phase",
+      "created_at"
+    ],
+    "property_turnover_tasks": [
+      "id",
+      "turnover_id",
+      "label",
+      "done",
+      "done_at",
+      "position"
+    ],
+    "property_turnovers": [
+      "id",
+      "property_id",
+      "booking_id",
+      "created_by",
+      "assigned_to",
+      "status",
+      "due_at",
+      "completed_at",
+      "created_at",
+      "booking_triggered",
+      "started_at",
+      "quality_rating",
+      "owner_feedback",
+      "assigned_by"
+    ],
+    "property_unavailable": [
+      "id",
+      "property_id",
+      "blocked_by",
+      "starts_at",
+      "ends_at",
+      "reason",
+      "created_at",
+      "source",
+      "source_uid_hash",
+      "connection_id"
+    ],
+    "property_videos": [
+      "id",
+      "property_id",
+      "uploader_id",
+      "storage_path",
+      "mime_type",
+      "caption",
+      "position",
+      "status",
+      "reviewed_by",
+      "created_at"
+    ],
+    "property_virtual_tours": [
+      "property_id",
+      "matterport_url",
+      "updated_at"
+    ],
+    "signature_envelopes": [
+      "id",
+      "contract_id",
+      "collaboration_id",
+      "provider",
+      "provider_envelope_id",
+      "status",
+      "sent_at",
+      "completed_at",
+      "completed_document_path",
+      "certificate_path",
+      "completed_document_sha256",
+      "certificate_sha256",
+      "last_provider_event_at",
+      "created_at",
+      "requested_by",
+      "signing_order_enabled",
+      "revision",
+      "provider_transaction_id"
+    ],
+    "signature_packet_audit": [
+      "id",
+      "envelope_id",
+      "actor_id",
+      "event_type",
+      "metadata",
+      "created_at"
+    ],
+    "signature_packet_recipients": [
+      "id",
+      "envelope_id",
+      "member_id",
+      "role",
+      "routing_order",
+      "provider_recipient_id",
+      "status",
+      "signed_at"
+    ]
+  }
+}
