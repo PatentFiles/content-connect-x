@@ -39,9 +39,9 @@ Deno.serve(async req=>{
    return respond({error:'Confirm you personally reviewed the published policies before marking approved'},409);
   if(reviewers&&body.reviewer_acknowledgement!=='STAFF_COVERAGE_CONFIRMED')
    return respond({error:'Confirm that named staff can actually handle incoming reports before marking covered'},409);
-  const {data:active,error:staffError}=await db.from('account_security')
+  const {count:activeAdmins,error:staffError}=await db.from('account_security')
    .select('user_id',{head:true,count:'exact'}).eq('admin',true).eq('banned',false).eq('suspended',false);
-  if(staffError||reviewers&&!active?.length)return respond({error:'At least one active administrator is required to confirm reviewer coverage'},409);
+  if(staffError||reviewers&&!(activeAdmins>0))return respond({error:'At least one active administrator is required to confirm reviewer coverage'},409);
   const {data,error}=await db.from('ccx_trust_settings').update({
    legal_entity:legal,postal_address:postal,contact_email:email,
    policies_approved:policy,reviewer_coverage_confirmed:reviewers,updated_at:now
