@@ -54,7 +54,7 @@ function FeedPhotos({photos=[],revealed,onReveal,embedded=false}){
   })}
  </div>;
 }
-function FeedPost({post,paid,userId,onChanged,onError}){
+function FeedPost({post,paid,userId,onChanged,onError,preview=false}){
  const [comments,setComments]=useState(null),[commentText,setCommentText]=useState('');
  const [busy,setBusy]=useState(false),[revealedPhotos,setRevealedPhotos]=useState([]);
  const [reporting,setReporting]=useState(false),[reportReason,setReportReason]=useState('unsafe');
@@ -96,7 +96,7 @@ function FeedPost({post,paid,userId,onChanged,onError}){
    </div>
    <div className="flex shrink-0 flex-col items-end gap-1 text-right">
     {postTime(local.published_at)&&<time dateTime={local.published_at} className="text-xs leading-5 text-[var(--cc-text-secondary)]" data-feed-post-time="true">{postTime(local.published_at)}</time>}
-    {local.author_id===userId&&<button type="button" className="min-h-9 text-xs text-[var(--cc-text-secondary)] underline underline-offset-2" disabled={busy} onClick={()=>{if(window.confirm('Remove this post from the feed?'))void mutate('hide');}}>Remove</button>}
+    {local.author_id===userId&&<button type="button" className="min-h-9 text-xs text-[var(--cc-text-secondary)] underline underline-offset-2" disabled={busy||preview} onClick={()=>{if(window.confirm('Remove this post from the feed?'))void mutate('hide');}}>Remove</button>}
    </div>
   </header>
   {!isRepost&&local.body&&<p className="whitespace-pre-wrap break-words text-[15px] leading-6">{local.body}</p>}
@@ -116,20 +116,20 @@ function FeedPost({post,paid,userId,onChanged,onError}){
   </div>}
   {local.photos?.length>0&&<FeedPhotos photos={local.photos} revealed={revealedPhotos} onReveal={reveal}/>}
   <div className="flex flex-wrap items-center justify-between gap-1 border-t border-[var(--cc-border)] pt-3" data-feed-post-actions="true">
-   <button type="button" className={secondary} disabled={busy} aria-label={local.liked?'Unlike post':'Like post'} aria-pressed={Boolean(local.liked)} onClick={()=>void mutate(local.liked?'unlike':'like')}>
+   <button type="button" className={secondary} disabled={busy||preview} aria-label={local.liked?'Unlike post':'Like post'} aria-pressed={Boolean(local.liked)} onClick={()=>void mutate(local.liked?'unlike':'like')}>
     <Heart size={17} fill={local.liked?'currentColor':'none'}/><span>Like</span>{local.likes>0&&<span className="tabular-nums">{local.likes}</span>}
    </button>
-   <button type="button" className={secondary} disabled={busy} onClick={()=>void loadComments()}><MessageCircle size={17}/><span>Comments</span>{local.comments>0&&<span className="tabular-nums">{local.comments}</span>}</button>
-   {paid&&!local.repost_of&&local.audience==='verified'&&local.allow_repost&&<button type="button" className={secondary} disabled={busy} aria-label="Repost to your profile" onClick={()=>void mutate('repost',{text:'Reposted this update.',audience:'verified'})}><span className="grid h-7 w-7 place-items-center rounded-full border border-[var(--cc-border)]"><Repeat2 size={17}/></span>Repost</button>}
-   <button type="button" className={secondary} disabled={busy} aria-label={local.saved?'Remove saved post':'Save post'} aria-pressed={Boolean(local.saved)} onClick={()=>void mutate(local.saved?'unsave':'save')}><Bookmark size={17} fill={local.saved?'currentColor':'none'}/>{local.saved?'Saved':'Save'}</button>
-   <button type="button" className={secondary} disabled={busy} onClick={()=>setReporting(v=>!v)}><Flag size={17}/>Report</button>
+   <button type="button" className={secondary} disabled={busy||preview} onClick={()=>void loadComments()}><MessageCircle size={17}/><span>Comments</span>{local.comments>0&&<span className="tabular-nums">{local.comments}</span>}</button>
+   {paid&&!local.repost_of&&local.audience==='verified'&&local.allow_repost&&<button type="button" className={secondary} disabled={busy||preview} aria-label="Repost to your profile" onClick={()=>void mutate('repost',{text:'Reposted this update.',audience:'verified'})}><span className="grid h-7 w-7 place-items-center rounded-full border border-[var(--cc-border)]"><Repeat2 size={17}/></span>Repost</button>}
+   <button type="button" className={secondary} disabled={busy||preview} aria-label={local.saved?'Remove saved post':'Save post'} aria-pressed={Boolean(local.saved)} onClick={()=>void mutate(local.saved?'unsave':'save')}><Bookmark size={17} fill={local.saved?'currentColor':'none'}/>{local.saved?'Saved':'Save'}</button>
+   <button type="button" className={secondary} disabled={busy||preview} onClick={()=>setReporting(v=>!v)}><Flag size={17}/>Report</button>
   </div>
   {reporting&&<form onSubmit={e=>{e.preventDefault();void mutate('report',{reason:reportReason});}} className="space-y-2">
    <label className="block text-xs">Reason
     <select className={input+' mt-1'} value={reportReason} onChange={e=>setReportReason(e.target.value)}>
      {[['unsafe','Safety concern'],['rights','Image or content rights'],['privacy','Privacy concern'],['harassment','Harassment'],['other','Other']].map(([v,label])=><option value={v} key={v}>{label}</option>)}
     </select>
-   </label><button className={primary} type="submit" disabled={busy}>Submit report</button>
+   </label><button className={primary} type="submit" disabled={busy||preview}>Submit report</button>
   </form>}
   {comments&&<section className="space-y-3" aria-label="Approved comments">
    {comments.length?comments.map(c=><div key={c.id} className="rounded-xl bg-[var(--cc-surface-subtle)] p-3 text-sm">
@@ -137,7 +137,7 @@ function FeedPost({post,paid,userId,onChanged,onError}){
    </div>):<p className="text-sm text-[var(--cc-text-secondary)]">No approved comments yet.</p>}
    <form onSubmit={e=>{e.preventDefault();void mutate('comment',{text:commentText});}} className="flex flex-wrap gap-2">
     <input value={commentText} minLength={2} maxLength={2000} required onChange={e=>setCommentText(e.target.value)} placeholder="Write a respectful comment…" className={input+' flex-1 min-w-40'}/>
-    <button type="submit" className={primary} disabled={busy||commentText.trim().length<2}><Send size={16}/>Comment</button>
+    <button type="submit" className={primary} disabled={busy||preview||commentText.trim().length<2}><Send size={16}/>Comment</button>
    </form>
   </section>}
   {notice&&<p role="status" className="rounded-lg bg-[var(--cc-surface-subtle)] p-2 text-xs">{notice}</p>}
@@ -310,9 +310,9 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
    <div className="flex items-center justify-between gap-3"><h3 className="font-semibold">Shared post</h3><button type="button" className={secondary} onClick={clearShared}>Close shared post</button></div>
    {loadingShared&&<p role="status" className="text-sm">Checking your permission to view this post…</p>}
    {sharedError&&<p role="alert" className="text-sm">This post is not available to your account. It may be private, removed, or shared with a different audience.</p>}
-   {sharedPost&&<FeedPost post={sharedPost} paid={paid} userId={userId} onError={setError} onChanged={clearShared}/>}
+   {sharedPost&&<FeedPost post={sharedPost} paid={paid&&!preview} preview={preview} userId={userId} onError={setError} onChanged={clearShared}/>}
   </section>}
-  <div className="space-y-4">{items.map(post=><FeedPost key={post.id} post={post} paid={paid} userId={userId} onError={setError} onChanged={()=>void load(false)}/>)}</div>
+  <div className="space-y-4">{items.map(post=><FeedPost key={post.id} post={post} paid={paid&&!preview} preview={preview} userId={userId} onError={setError} onChanged={()=>void load(false)}/>)}</div>
   {!loading&&items.length===0&&<div className="ccx-surface rounded-xl p-6 text-center text-sm text-[var(--cc-text-secondary)]">
    {activityTab==='reposts'?'No approved reposts to display yet.':profileId?'No original posts shared with your account yet.':mode==='friends'?'Your friends’ approved posts will appear here. Connect with members to build your feed.':mode==='following'?'Follow verified members to see their posts here.':'No approved posts have been published here yet.'}
   </div>}
