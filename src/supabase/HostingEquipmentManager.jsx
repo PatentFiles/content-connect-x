@@ -54,7 +54,7 @@ export default function HostingEquipmentManager({propertyId}){
    <h4 className="flex gap-2 font-semibold"><Boxes size={18}/>Inventory ({assets.length})</h4>
    {assets.map(a=><button type="button" className="flex w-full justify-between border-t border-[var(--cc-border)] py-2 text-left text-xs hover:text-[var(--cc-text-secondary)]" key={a.id} onClick={()=>setItem({...a,daily_cents:a.daily_cents??null})}>
     <span><strong>{a.label}</strong> · {a.category} · {a.quantity} units · {a.condition} · {a.active?'active':'inactive'}</span>
-    <span>{'$'+(a.hourly_cents/100).toFixed(2)}/hr</span>
+    <span>{'$'+((a.daily_cents??a.hourly_cents*24)/100).toFixed(2)}/day</span>
    </button>)}
    {!assets.length&&<p className="text-xs text-[var(--cc-text-secondary)]">No equipment registered yet.</p>}
   </div>

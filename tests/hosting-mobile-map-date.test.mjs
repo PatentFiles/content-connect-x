@@ -1,39 +1,44 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {HALF_HOUR_SLOTS,selectionForDay,validRange,calendarDays,timeFor,mergeLocal,isHalfHour} from '../src/supabase/hostingDateRange.mjs';
+import {DAILY_CHECKIN_TIME,selectionForDay,validRange,calendarDays,nightsBetween,mergeLocal,venueDateToIso} from '../src/supabase/hostingDateRange.mjs';
 const read=p=>fs.readFileSync(p,'utf8');
 
 test('one tap sets check-in; tapping a day in another month sets checkout automatically',()=>{
  const first=selectionForDay('2026-11-19','','');
- assert.equal(first.start,'2026-11-19T09:00');
+ assert.equal(first.start,'2026-11-19T15:00');
  assert.equal(first.end,'');
  const second=selectionForDay('2026-12-03',first.start,first.end);
- assert.equal(second.start,'2026-11-19T09:00');
- assert.equal(second.end,'2026-12-03T11:00');
+ assert.equal(second.start,'2026-11-19T15:00');
+ assert.equal(second.end,'2026-12-03T15:00');
  assert.equal(validRange(second.start,second.end),true);
  const restarted=selectionForDay('2026-12-20',second.start,second.end);
- assert.equal(restarted.start,'2026-12-20T09:00');assert.equal(restarted.end,'');
+ assert.equal(restarted.start,'2026-12-20T15:00');assert.equal(restarted.end,'');
 });
-test('checkout earlier than first day swaps dates and same-day selection offers an afternoon end',()=>{
+test('checkout earlier than first day swaps dates and same-day selection does not create a partial rental',()=>{
  const f=selectionForDay('2026-11-19','','');
  const swapped=selectionForDay('2026-11-18',f.start,f.end);
- assert.equal(swapped.start,'2026-11-18T09:00');
- assert.equal(swapped.end,'2026-11-19T17:00');
+ assert.equal(swapped.start,'2026-11-18T15:00');
+ assert.equal(swapped.end,'2026-11-19T15:00');
  const same=selectionForDay('2026-11-19',f.start,f.end);
- assert.equal(same.end,'2026-11-19T17:00');
+ assert.equal(same.end,'');
 });
-test('times are exactly 48 hourly/half-hour selections, never arbitrary minutes',()=>{
- assert.equal(HALF_HOUR_SLOTS.length,48);
- assert.equal(HALF_HOUR_SLOTS[0].value,'00:00');
- assert.equal(HALF_HOUR_SLOTS[13].value,'06:30');
- assert.equal(HALF_HOUR_SLOTS[14].value,'07:00');
- assert.equal(HALF_HOUR_SLOTS[47].value,'23:30');
- assert.ok(HALF_HOUR_SLOTS.every(({value})=>/:(00|30)$/.test(value)));
- assert.equal(isHalfHour('2026-11-19T07:30'),true);
- assert.equal(isHalfHour('2026-11-19T07:13'),false);
- assert.equal(validRange('2026-11-19T07:30','2026-11-19T07:00'),false);
- assert.equal(timeFor('2026-12-03','2026-12-03T06:30','11:00'),'2026-12-03T06:30');
+test('day-only rental dates use venue 3 p.m. and reject partial days',()=>{
+ assert.equal(DAILY_CHECKIN_TIME,'15:00');
+ assert.equal(nightsBetween('2026-11-19T15:00','2026-12-03T15:00'),14);
+ assert.equal(nightsBetween('2026-11-19T15:00','2026-11-19T15:00'),0);
+ assert.equal(validRange('2026-11-19T09:00','2026-11-20T17:00'),false);
+ assert.equal(validRange('2026-11-19T15:00','2026-11-20T15:00'),true);
+ assert.equal(venueDateToIso('2026-11-19','America/Phoenix'),'2026-11-19T22:00:00.000Z');
+});
+test('DST transitions use one local calendar day, not 24 fixed hours',()=>{
+ const zone='America/Los_Angeles';
+ const startSpring=venueDateToIso('2026-03-07',zone);
+ const endSpring=venueDateToIso('2026-03-08',zone);
+ assert.equal((Date.parse(endSpring)-Date.parse(startSpring))/3600000,23);
+ const startFall=venueDateToIso('2026-10-31',zone);
+ const endFall=venueDateToIso('2026-11-01',zone);
+ assert.equal((Date.parse(endFall)-Date.parse(startFall))/3600000,25);
 });
 test('month grids include correct leap dates and weekday offset',()=>{
  const feb=calendarDays(2028,1);

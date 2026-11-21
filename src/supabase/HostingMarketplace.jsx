@@ -19,7 +19,7 @@ import {PropertyPreviewCard} from './HostPortfolio';
 import PropertyPhotoGallery from './PropertyPhotoGallery';
 import HostingAreaMap from './HostingAreaMap';
 import HostingDateRange from './HostingDateRange';
-import {validRange} from './hostingDateRange.mjs';
+import {validRange,nightsBetween,datePortion,venueDateToIso} from './hostingDateRange.mjs';
 import {hostingAdvanced} from './hostingBusinessApi';
 import HostingBookingOperations from './HostingBookingOperations';
 import {hostingBusiness} from './hostingBusinessApi';
@@ -71,10 +71,10 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
     }).catch(e=>{if(alive)setError(e.message);}).finally(()=>{if(alive)setBusy(false);});
     return()=>{alive=false;};
   },[id]);
-  const hours=validRange(starts,ends)?(new Date(ends).getTime()-new Date(starts).getTime())/3600000:0;
+  const days=validRange(starts,ends)?nightsBetween(starts,ends):0;
 
   const bookingParams=()=>({
-    property_id:item.id,starts_at:new Date(starts).toISOString(),ends_at:new Date(ends).toISOString(),
+    property_id:item.id,starts_at:venueDateToIso(datePortion(starts),item.timezone),ends_at:venueDateToIso(datePortion(ends),item.timezone),
     crew_size:crew,requested_use:purpose,notes,source_brand:brand,
     addons:Object.entries(addonCounts).filter(([,qty])=>qty>0).map(([id,quantity])=>({id,quantity})),
     bundle_id:selectedBundle||null,discount_code:discountCode.trim()||null
@@ -121,7 +121,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
           <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-[var(--cc-text-secondary)]">{item.description||'This host has not added a description.'}</p>
           <div className="mt-5 grid gap-2 sm:grid-cols-3">
             <span className={pill}><Users size={14} className="inline mr-2"/>{item.capacity} people</span>
-            <span className={pill}><Clock size={14} className="inline mr-2"/>{item.minimum_hours} hour minimum</span>
+            <span className={pill}><Clock size={14} className="inline mr-2"/>Daily rentals · 3 p.m. check-in</span>
             <span className={pill}><ShieldCheck size={14} className="inline mr-2"/>Verified host listing</span>
           </div>
         </section>
@@ -154,7 +154,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
         </section>
       </div>
       <form className={panel+' h-fit p-6 space-y-4 lg:sticky lg:top-5'} onSubmit={submit}>
-        <h3 className="text-2xl font-semibold">{usd(item.hourly_rate)} <span className="text-sm font-normal text-[var(--cc-text-secondary)]">/ hour</span></h3>
+        <h3 className="text-2xl font-semibold">{item.daily_rate!=null?usd(item.daily_rate):'Daily rate required'} <span className="text-sm font-normal text-[var(--cc-text-secondary)]">/ day</span></h3>
         {error&&<p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{error}</p>}
         {notice&&<p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800" role="status">{notice}</p>}
         <HostingDateRange label="Rental check-in and checkout" start={starts} end={ends}
@@ -162,7 +162,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
         <label className="block text-sm">Crew size<input type="number" min={1} max={item.capacity} className={input+' mt-1'} value={crew} onChange={e=>setCrew(Number(e.target.value))}/></label>
         <label className="block text-sm">Requested production use<select className={input+' mt-1'} value={purpose} onChange={e=>setPurpose(e.target.value)}>{(item.permitted_uses||[]).map(v=><option key={v} value={v}>{usageLabels[v]||v}</option>)}</select></label>
         {assetItems.length>0&&<div className="space-y-3 rounded-xl border border-[var(--cc-border)] p-3"><h4 className="font-semibold text-sm">Production equipment and add-ons</h4>
-          {assetItems.map(asset=><label key={asset.id} className="flex flex-wrap items-center justify-between gap-2 text-xs"><span>{asset.label} · {usd(asset.hourly_cents/100)}/hr · {asset.quantity} available</span>
+          {assetItems.map(asset=><label key={asset.id} className="flex flex-wrap items-center justify-between gap-2 text-xs"><span>{asset.label} · {usd((asset.daily_cents??asset.hourly_cents*24)/100)}/day · {asset.quantity} available</span>
             <input className={input+' max-w-[90px]'} type="number" min={0} max={asset.quantity} value={addonCounts[asset.id]||0}
              onChange={e=>{setAddonCounts(p=>({...p,[asset.id]:Number(e.target.value)}));setSecureQuote(null);}}/>
           </label>)}
@@ -175,8 +175,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
           onChange={e=>{setDiscountCode(e.target.value);setSecureQuote(null);}} placeholder="Enter code"/></label>
         <label className="block text-sm">Message to host<textarea className={input+' mt-1'} rows={3} maxLength={1000} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Describe your shoot, equipment and special requests."/></label>
         <div className="rounded-xl border-y border-[var(--cc-border)] py-3 text-sm space-y-2">
-          <p className="text-[var(--cc-text-secondary)]">{hours>0?hours.toFixed(2)+' hours':'Select booking dates'} · Minimum notice: {item.min_notice_hours||24}h</p>
-          {hours>72&&<p role="alert" className="rounded-lg bg-amber-50 p-2 text-xs text-amber-900">You can select these dates to explore availability, but this location's current booking engine can quote a maximum of 72 hours (3 days). Please shorten the stay or contact the host about multi-day arrangements.</p>}
+          <p className="text-[var(--cc-text-secondary)]">{days>0?days+' day'+(days===1?'':'s'):'Select calendar days'} · Check-in and checkout at 3 p.m. venue time · Minimum notice: {item.min_notice_hours||24}h</p>
           {secureQuote?<div className="space-y-2">
             <div className="flex justify-between"><span>Rental</span><strong>{usd(secureQuote.rental_cents/100)}</strong></div>
             <div className="flex justify-between"><span>Equipment</span><span>{usd(secureQuote.addon_cents/100)}</span></div>
@@ -186,9 +185,9 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
             <p className="text-xs text-[var(--cc-text-secondary)]">Proposed deposit ceiling: {usd(secureQuote.deposit_cents/100)} · Overtime: {usd(secureQuote.overtime_hour_cents/100)}/h</p>
           </div>:<p className="text-xs text-[var(--cc-text-secondary)]">Calculate the authoritative server quote before requesting. Rates may vary by date, bundle or promotion.</p>}
         </div>
-        <button type="button" className={button+' w-full bg-[var(--cc-surface)]'} onClick={calculate} disabled={!paid||busy||hours<=0||hours>72||hours<item.minimum_hours||crew<1||!purpose}>Calculate secure price</button>
+        <button type="button" className={button+' w-full bg-[var(--cc-surface)]'} onClick={calculate} disabled={!paid||busy||days<1||crew<1||!purpose||item.daily_rate==null}>Calculate daily rental quote</button>
         <button type="submit" className={button+' w-full'} disabled={!paid||busy||!secureQuote}>{paid?'Request space with this quote':'Premium booking required'}</button>
-        <p className="text-center text-xs leading-5 text-[var(--cc-text-secondary)]">No payment is collected here. The host must approve your request. The exact address is shared only through a trusted post-approval process, not through search results.</p>
+        <p className="text-center text-xs leading-5 text-[var(--cc-text-secondary)]">No payment is collected here. The host must approve your request. Private street addresses are released only through authorized post-booking access; any host-published public address is visible before booking.</p>
       </form>
     </div>
   </div>;
@@ -312,7 +311,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
           <label className="block text-xs text-[var(--cc-text-secondary)]">Country<select aria-label="Country" className={input+' mt-1'} value={country} onChange={e=>{setCountry(e.target.value);setRegion('');setCity('');}}><option value="">All countries</option>{countries.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
           <label className="block text-xs text-[var(--cc-text-secondary)]">State / region<select aria-label="State / region" className={input+' mt-1'} value={region} onChange={e=>{setRegion(e.target.value);setCity('');}}><option value="">All states / regions</option>{regions.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
           <label className="block text-xs text-[var(--cc-text-secondary)]">City<select aria-label="City" className={input+' mt-1'} value={city} onChange={e=>setCity(e.target.value)}><option value="">All cities</option>{cities.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
-          <label className="block text-xs text-[var(--cc-text-secondary)]">Max $/hr<input className={input+' mt-1'} type="number" min={1} value={maxPrice} onChange={e=>setMaxPrice(e.target.value)} placeholder="Any"/></label>
+          <label className="block text-xs text-[var(--cc-text-secondary)]">Max $/day<input className={input+' mt-1'} type="number" min={1} value={maxPrice} onChange={e=>setMaxPrice(e.target.value)} placeholder="Any"/></label>
           <label className="block text-xs text-[var(--cc-text-secondary)]">Crew size<input className={input+' mt-1'} type="number" min={1} value={crew} onChange={e=>setCrew(e.target.value)} placeholder="Any"/></label>
           <div className="md:col-span-3 xl:col-span-4"><PropertyAmenities values={selectedAmenities} onChange={setSelectedAmenities}/></div>
           <div className="md:col-span-3 xl:col-span-4"><HostingDateRange label="Search check-in and checkout" compact optional start={from} end={to}
