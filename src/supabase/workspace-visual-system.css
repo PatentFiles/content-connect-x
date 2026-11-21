@@ -325,3 +325,48 @@
  :root[data-ccx-appearance="workspace"] .ccx-original-shell *,
  :root[data-ccx-appearance="workspace"] .oh-app * {scroll-behavior:auto!important;}
 }
+
+/* Sidebar palette stays with the central brand system, not per-page CSS. */
+:root[data-ccx-appearance="workspace"] {
+ --ccx-nav-rail-bg:#201729;
+ --ccx-nav-panel-bg:#292033;
+ --ccx-nav-panel-divider:#46384c;
+ --ccx-nav-panel-text:#f9f2fb;
+ --ccx-nav-panel-muted:#c9b8cc;
+ --ccx-nav-panel-active:#44304d;
+ --ccx-nav-panel-accent:#e9a3d1;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-panel,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-mobile-panel {
+ --cc-bg:var(--ccx-nav-panel-bg);
+ --cc-surface:var(--ccx-nav-panel-bg);
+ --cc-surface-subtle:#362940;
+ --cc-surface-hover:var(--ccx-nav-panel-active);
+ --cc-border:var(--ccx-nav-panel-divider);
+ --cc-blue:var(--ccx-nav-panel-accent);
+ --cc-link:var(--ccx-nav-panel-accent);
+ --cc-text-primary:var(--ccx-nav-panel-text);
+ --cc-text-secondary:#dfd1e0;
+ --cc-text-muted:var(--ccx-nav-panel-muted);
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-rail-button.is-active,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-rail-button[aria-current],
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-link.is-active {
+ background:var(--ccx-nav-panel-active)!important;
+ color:var(--ccx-nav-panel-text)!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-link.is-active::before {
+ background:var(--ccx-nav-panel-accent)!important;
+ box-shadow:none!important;
+}
+:root[data-ccx-appearance="workspace"] .oh-app .oh-host-mobile-link.is-active {
+ background:var(--cc-accent-surface)!important;
+ color:var(--cc-action)!important;
+ box-shadow:inset 3px 0 0 var(--cc-action)!important;
+}
+:root[data-ccx-appearance="workspace"] .oh-app .oh-mark,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-new-space-action {
+ background:var(--cc-action)!important;
+ border-color:var(--cc-action)!important;
+ color:var(--cc-on-action)!important;
+}
