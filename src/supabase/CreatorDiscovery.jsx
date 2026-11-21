@@ -3,7 +3,8 @@ import ConnectFeed from './ConnectFeed';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {Search,SlidersHorizontal,RefreshCw,X,ChevronDown,ChevronUp} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
-import {countries,countryName,regionOptions,contentCategories,genderOptions,roleOptions} from './profileOptions';
+import {countryName,contentCategories,genderOptions,roleOptions} from './profileOptions';
+import GeoLocationSelect,{EMPTY_GEO} from './GeoLocationSelect';
 import {localDiscoveryFilters,validateWorkLink} from './roleWorkspacePolicy.mjs';
 import {useRoleWorkspace} from './RoleWorkspaceContext';
 import MemberDiscoveryCard from './MemberDiscoveryCard';
@@ -68,7 +69,6 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
  };
  const connect=async()=>{if(!selected)return;setContactBusy(true);setContactNotice('');try{const {data,error:failure}=await supabase.functions.invoke('member-workflows',{body:{action:'request_connection',target_user_id:selected.id}});if(failure||data?.error)throw new Error(data?.error||failure?.message||'Connection unavailable');setContactNotice('Friend request sent. You can also continue the introduction conversation.');}catch(e){setContactNotice(e.message);}finally{setContactBusy(false);}};
  const change=(key,value)=>setFilters(old=>({...old,[key]:value}));
- const region=regionOptions[countries.find(c=>c.name===filters.country)?.code];
  const reset=()=>{const next=mode==='discovery'?local:emptyFilters;setFilters(next);void search(next);};
  return <section className="space-y-5">
   <header className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-2xl font-semibold">{mode==='discovery'?'Discovery':mode==='search'?'Search':'Favorites'}</h2><p className="mt-1 text-sm text-[var(--cc-text-secondary)]">{mode==='favorites'?'People you saved from Discovery.':mode==='search'?'Find people in any city and filter by professional role.':local.city?'Discover people in '+local.city+' and change the filters to explore elsewhere.':'Set your city in My Profile to start locally, or choose a city below.'}</p></div>{approved&&<button type="button" className="ccx-secondary rounded-lg p-3" disabled={working} aria-label="Refresh profiles" onClick={()=>void search(applied)}><RefreshCw size={17}/></button>}</header>
@@ -81,9 +81,12 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
     {filtersOpen&&<div id="ccx-discovery-filter-fields" className="space-y-4"><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
     <label className="text-sm">Name<input className={input+' mt-2'} value={filters.query} onChange={e=>change('query',e.target.value)} placeholder="Display name"/></label>
     <label className="text-sm">Professional role<select className={input+' mt-2'} value={filters.role} onChange={e=>change('role',e.target.value)}><option value="">All roles</option>{roleOptions.filter(([key])=>key!=='host').map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
-    <label className="text-sm">Country<select className={input+' mt-2'} value={filters.country} onChange={e=>setFilters(old=>({...old,country:e.target.value,state:'',city:''}))}><option value="">All countries</option>{countries.map(country=><option key={country.code} value={country.name}>{country.name}</option>)}</select></label>
-    <label className="text-sm">State / region{region?<select className={input+' mt-2'} value={filters.state} onChange={e=>change('state',e.target.value)}><option value="">All regions</option>{region.map(name=><option key={name}>{name}</option>)}</select>:<input className={input+' mt-2'} value={filters.state} onChange={e=>change('state',e.target.value)} placeholder="Any region"/>}</label>
-    <label className="text-sm">City<input className={input+' mt-2'} value={filters.city} onChange={e=>change('city',e.target.value)} placeholder="Search another city"/></label>
+    <div className="md:col-span-3">
+     <GeoLocationSelect idPrefix="ccx-professional-discovery" allowAny compact value={{
+      ...EMPTY_GEO,country:filters.country,state:filters.state,city:filters.city
+     }} onChange={location=>setFilters(old=>({...old,country:location.country,
+      state:location.state,city:location.city}))}/>
+    </div>
     <label className="text-sm">Content type (opt-in profiles)<select className={input+' mt-2'} value={filters.category} onChange={e=>change('category',e.target.value)}><option value="">All categories</option>{contentCategories.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
     {mode!=='favorites'&&<label className="text-sm">Gender identity (opt-in profiles)<select className={input+' mt-2'} value={filters.gender} onChange={e=>change('gender',e.target.value)}><option value="">All / not specified</option>{genderOptions.filter(([key])=>key&&key!=='self_describe').map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>}
    </div><div className="flex flex-wrap gap-2"><button className="ccx-primary inline-flex items-center gap-2 rounded-lg px-4 py-2.5" disabled={working}><Search size={17}/>{working?'Searching…':'Search people'}</button><button type="button" className="ccx-secondary rounded-lg px-4 py-2.5" onClick={reset} disabled={working}>{mode==='discovery'?'Reset to my city':'Reset filters'}</button></div></div>}</form>}
