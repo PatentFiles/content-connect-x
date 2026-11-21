@@ -48,6 +48,17 @@ export function createConnectFeedHandler({authenticate,db,storage}){
   const {data,error}=await storage.from('member-private').createSignedUrl(path,180);
   return error?null:data?.signedUrl||null;
  };
+ // Profile avatars stay in the member-private bucket. Only an author whose
+ // post passed the existing viewer-access predicate can have an avatar signed.
+ const signedAvatar=async(owner,path)=>{
+  if(!uuid(owner)||typeof path!=='string'||!path.startsWith(owner+'/profile/avatar-')||
+     path.includes('..')||path.slice(owner.length+'/profile/avatar-'.length).includes('/')||
+     !/\.(jpe?g|png|webp)$/i.test(path))return null;
+  try{
+   const {data,error}=await storage.from('member-private').createSignedUrl(path,600);
+   return error?null:data?.signedUrl||null;
+  }catch{return null;}
+ };
  const decoratePhotos=async media=>{
   const rows=await Promise.all((Array.isArray(media)?media:[]).slice(0,4).map(async photo=>{
    const url=await mediaUrl(photo.path);
@@ -56,11 +67,15 @@ export function createConnectFeedHandler({authenticate,db,storage}){
   return rows.filter(Boolean);
  };
  const decorate=async items=>Promise.all(items.map(async post=>{
-  const photos=await decoratePhotos(post.media);
+  const [photos,avatarUrl,originalAvatarUrl]=await Promise.all([
+   decoratePhotos(post.media),
+   signedAvatar(post.author_id,post.author_avatar_path),
+   post.original?signedAvatar(post.original.author_id,post.original.author_avatar_path):Promise.resolve(null)
+  ]);
   const original=post.original?{id:post.original.id,body:post.original.body,author_id:post.original.author_id,
-   author_name:post.original.author_name||'Member',created_at:post.original.created_at,
-   photos:await decoratePhotos(post.original.media)}:null;
-  return {id:post.id,author_id:post.author_id,author:{display_name:post.display_name||'Member',role_type:post.role_type||''},
+   author_name:post.original.author_name||'Member',author_avatar_url:originalAvatarUrl,
+   created_at:post.original.created_at,photos:await decoratePhotos(post.original.media)}:null;
+  return {id:post.id,author_id:post.author_id,author:{display_name:post.display_name||'Member',role_type:post.role_type||'',avatar_url:avatarUrl},
    body:post.body,audience:post.audience,group_id:post.group_id||null,repost_of:post.repost_of||null,allow_repost:post.allow_repost===true,
    published_at:post.published_at,photos,likes:Number(post.likes)||0,liked:post.liked===true,
    comments:Number(post.comments)||0,saved:post.saved===true,reposts:Number(post.reposts)||0,original};
