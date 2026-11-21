@@ -26,6 +26,23 @@ export default function HostCrossMarketplace({paid=false,user=null}){
   setItems(browse.items||[]);setBookings(history.items||[]);
  },[user?.id]);
  useEffect(()=>{let live=true;refresh().catch(e=>{if(live)setError(e.message);});return()=>{live=false;};},[refresh]);
+ // Host Connect X is the calendar authority. Keep background-open CCX tabs
+ // current without ever duplicating or writing a local property inventory.
+ useEffect(()=>{
+  let active=true;
+  const sync=()=>{
+   if(document.visibilityState!=='visible')return;
+   void refresh().catch(()=>{});
+   if(selected?.id){
+    void hostConnectAction('availability',{property_id:selected.id}).then(result=>{
+     if(active)setUnavailable(result.unavailable||[]);
+    }).catch(()=>{});
+   }
+  };
+  const timer=window.setInterval(sync,30000);
+  window.addEventListener('focus',sync);
+  return()=>{active=false;window.clearInterval(timer);window.removeEventListener('focus',sync);};
+ },[refresh,selected?.id]);
  const run=async fn=>{setBusy(true);setError('');setNotice('');try{await fn();}catch(e){setError(e.message||'Host Connect X unavailable');}finally{setBusy(false);}};
  const search=()=>run(async()=>{const r=await hostConnectAction('browse',{query,city});setItems(r.items||[]);});
  const open=id=>run(async()=>{const r=await hostConnectAction('listing',{id});setSelected(r.item);setUnavailable(r.unavailable||[]);setStarts('');setEnds('');setPurpose(r.item?.permitted_uses?.[0]||'');setCrew(1);setQuote(null);});
