@@ -4,8 +4,8 @@
  * not a substitute for authenticated browser acceptance.
  */
 import ts from 'typescript';
-import {existsSync,mkdirSync,readdirSync,readFileSync,writeFileSync} from 'node:fs';
-import {join,relative,dirname} from 'node:path';
+import {mkdirSync,readdirSync,readFileSync,writeFileSync} from 'node:fs';
+import {join,relative} from 'node:path';
 
 const root='src';
 const extensions=new Set(['.jsx','.tsx','.js']);
@@ -72,7 +72,7 @@ for(const file of sourceFiles){
     kindCounts.anchor++;
     const href=value(node,'href');
     if(!has(node,'href')&&!has(node,'onClick'))issues.push(where+' anchor has no href or click handler');
-    if(href!==null&&/^(?:\s*|#|javascript:|about:blank)$/i.test(href))
+    if(href!==null&&/^(?:\s*|#|javascript:.*|about:blank)$/i.test(href))
      issues.push(where+' anchor has a placeholder or dangerous URL');
     if(value(node,'target')==='_blank'){
      const rel=value(node,'rel')||'';
