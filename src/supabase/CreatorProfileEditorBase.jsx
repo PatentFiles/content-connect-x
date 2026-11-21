@@ -12,7 +12,7 @@ import TravelCalendar from './TravelCalendar';
 import {TestingCredentials} from './CollaborationTesting';
 import MemberSocialLinks from './MemberSocialLinks';
 import ProfileAnalytics from './ProfileAnalytics';
-import GeoLocationSelect from './GeoLocationSelect';
+import GeoLocationSelect,{EMPTY_GEO} from './GeoLocationSelect';
 import OriginalCreatorPreferences,{initialCreatorPreferences} from './OriginalCreatorPreferences';
 import {countryCode,countryName,roleOptions,
  genderOptions,orientationOptions,contentCategories,scenePairings,specialties} from './profileOptions';
@@ -236,7 +236,7 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
         </section>
         <section className={panel}><h3 className="text-lg font-semibold">Location</h3>
          <p className="text-xs text-[var(--cc-text-secondary)]">Only city, state or region, and country are shared in discovery. Never enter your exact address here.</p>
-         <GeoLocationSelect idPrefix="ccx-profile" value={{
+         <GeoLocationSelect idPrefix="ccx-profile" value={{...EMPTY_GEO,
           country:countryName(form.country),countryCode:form.country,state:form.state,city:form.city
          }} onChange={location=>setForm(old=>({...old,
           country:location.countryCode||old.country,state:location.state,city:location.city}))}/>
