@@ -126,3 +126,7 @@ verify_jwt = true
 # Private scheduled queue consumer. Its one-purpose Vault token is checked in-handler.
 [functions.ccx-email-worker]
 verify_jwt = false
+
+# Read-only admin readiness metrics. Signed-in JWT and AAL2 verified by function.
+[functions.ccx-operations]
+verify_jwt = true
