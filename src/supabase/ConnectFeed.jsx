@@ -79,7 +79,7 @@ function FeedPost({post,paid,userId,onChanged,onError}){
     <Heart size={17} fill={local.liked?'currentColor':'none'}/><span>{local.likes}</span>
    </button>
    <button type="button" className={secondary} disabled={busy} onClick={()=>void loadComments()}><MessageCircle size={17}/>{local.comments} Comments</button>
-   {paid&&!local.repost_of&&local.audience==='verified'&&local.allow_repost&&<button type="button" className={secondary} disabled={busy} aria-label="Repost to your profile" onClick={()=>void mutate('repost',{text:'Reposted this update.',audience:'verified'})}><span className="grid h-7 w-7 place-items-center rounded-full border border-[var(--cc-border)]"><Repeat2 size={17}/></span>Repost</button>
+   {paid&&!local.repost_of&&local.audience==='verified'&&local.allow_repost&&<button type="button" className={secondary} disabled={busy} aria-label="Repost to your profile" onClick={()=>void mutate('repost',{text:'Reposted this update.',audience:'verified'})}><span className="grid h-7 w-7 place-items-center rounded-full border border-[var(--cc-border)]"><Repeat2 size={17}/></span>Repost</button>}
    <button type="button" className={secondary} disabled={busy} aria-label={local.saved?'Remove saved post':'Save post'} onClick={()=>void mutate(local.saved?'unsave':'save')}><Bookmark size={17} fill={local.saved?'currentColor':'none'}/></button>
    <button type="button" className={secondary} disabled={busy} onClick={()=>setReporting(v=>!v)}><Flag size={17}/>Report</button>
   </div>
