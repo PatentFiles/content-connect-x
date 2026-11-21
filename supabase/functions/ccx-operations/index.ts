@@ -20,6 +20,40 @@ Deno.serve(async req=>{
  if(secError||admissionError||!sec?.admin||sec.banned||sec.suspended||!admission?.admitted_at)
   return respond({error:'Active verified administrator required'},403);
  const body=await req.json().catch(()=>null);
+ if(body?.action==='trust_settings_get'){
+  const {data,error}=await db.from('ccx_trust_settings')
+   .select('legal_entity,postal_address,contact_email,policies_approved,reviewer_coverage_confirmed,intake_enabled,updated_at')
+   .eq('singleton',true).maybeSingle();
+  if(error)return respond({error:'Safety configuration unavailable'},503);
+  return respond({item:data||null});
+ }
+ if(body?.action==='trust_settings_save'){
+  const legal=typeof body.legal_entity==='string'?body.legal_entity.trim():'',
+   postal=typeof body.postal_address==='string'?body.postal_address.trim():'',
+   email=typeof body.contact_email==='string'?body.contact_email.trim():'';
+  const policy=body.policies_approved===true,reviewers=body.reviewer_coverage_confirmed===true;
+  if(legal.length<3||legal.length>160||postal.length<8||postal.length>360||
+   !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)||email.length>254)
+   return respond({error:'Enter an identified legal operator, postal contact address and valid safety email'},400);
+  if(policy&&body.policy_acknowledgement!=='I_REVIEWED_CURRENT_POLICIES')
+   return respond({error:'Confirm you personally reviewed the published policies before marking approved'},409);
+  if(reviewers&&body.reviewer_acknowledgement!=='STAFF_COVERAGE_CONFIRMED')
+   return respond({error:'Confirm that named staff can actually handle incoming reports before marking covered'},409);
+  const {data:active,error:staffError}=await db.from('account_security')
+   .select('user_id',{head:true,count:'exact'}).eq('admin',true).eq('banned',false).eq('suspended',false);
+  if(staffError||reviewers&&!active?.length)return respond({error:'At least one active administrator is required to confirm reviewer coverage'},409);
+  const {data,error}=await db.from('ccx_trust_settings').update({
+   legal_entity:legal,postal_address:postal,contact_email:email,
+   policies_approved:policy,reviewer_coverage_confirmed:reviewers,updated_at:now
+  }).eq('singleton',true).select('legal_entity,postal_address,contact_email,policies_approved,reviewer_coverage_confirmed,intake_enabled,updated_at').single();
+  if(error)return respond({error:'Safety configuration could not be saved'},503);
+  const {error:auditError}=await db.from('platform_action_audit').insert({
+   actor_id:user.id,action:'trust_operator_settings_reviewed',target_type:'trust_settings',
+   metadata:{policies_approved:policy,reviewer_coverage_confirmed:reviewers}
+  });
+  if(auditError)return respond({error:'Safety settings saved, but audit logging failed. Verify manually.'},503);
+  return respond({item:data,saved:true});
+ }
  if(body?.action!=='summary')return respond({error:'Unknown action'},400);
  const count=async(table,filter=fn=>fn)=>{
   const q=filter(db.from(table).select('id',{head:true,count:'exact'}));
