@@ -72,3 +72,10 @@ test('officer portal is mounted before member age gate, separate from admin and 
  assert.match(portal,/export_pdf/);
  assert.match(portal,/export_csv/);
 });
+
+test('law disclosure approval cannot renew an active case or undo revocation',()=>{
+ const edge=read('supabase/functions/ccx-law-portal/index.ts');
+ assert.match(edge,/item\.status==='pending'&&!\['approve','deny'\]\.includes\(decision\)/);
+ assert.match(edge,/item\.status==='approved'&&decision!=='revoke'/);
+ assert.match(edge,/Submit a new case for renewed access/);
+});
