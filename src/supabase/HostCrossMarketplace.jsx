@@ -7,7 +7,7 @@ import {Search,CalendarDays,MapPin,Home,ArrowLeft,RefreshCw,ExternalLink,ShieldC
 import {hostConnectAction} from './hostConnectApi';
 import {venueDateToIso,nightsBetween} from './hostingDateRange.mjs';
 import HostDialog from './HostDialog';
-import GeoLocationSelect from './GeoLocationSelect';
+import GeoLocationSelect,{EMPTY_GEO} from './GeoLocationSelect';
 import HostGuestInspection from './HostGuestInspection';
 import {uploadHostGuestEvidence} from './hostGuestEvidenceStorage';
 const panel='ccx-surface rounded-2xl p-5';
@@ -20,7 +20,7 @@ const localDate=value=>value?new Date(value).toLocaleString(undefined,{dateStyle
 export default function HostCrossMarketplace({paid=false,user=null}){
  const [items,setItems]=useState([]),[bookings,setBookings]=useState([]),[view,setView]=useState('explore');
  const [selected,setSelected]=useState(null),[unavailable,setUnavailable]=useState([]);
- const [query,setQuery]=useState(''),[where,setWhere]=useState({country:'',state:'',city:''}),[starts,setStarts]=useState(''),[ends,setEnds]=useState('');
+ const [query,setQuery]=useState(''),[where,setWhere]=useState({...EMPTY_GEO}),[starts,setStarts]=useState(''),[ends,setEnds]=useState('');
  const [crew,setCrew]=useState(1),[purpose,setPurpose]=useState(''),[quote,setQuote]=useState(null),[modal,setModal]=useState(false),[ack,setAck]=useState(false);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [inspectionBooking,setInspectionBooking]=useState(null);
@@ -84,7 +84,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
    <form onSubmit={e=>{e.preventDefault();void search();}} className={panel+' grid gap-3 md:grid-cols-[1fr_1fr_auto]'}>
     <label className="text-sm">Find a location<input className={input} type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Studio, house, venue name"/></label>
     <div className="text-sm"><GeoLocationSelect compact allowAny idPrefix="ccx-venue-search" value={where}
-      onChange={location=>setWhere({country:location.country,state:location.state,city:location.city})}/></div>
+      onChange={location=>setWhere(location)}/></div>
     <button className={primary+' self-end'} disabled={busy}><Search size={17}/> Search</button>
    </form>
    {!items.length?<p className={panel+' text-sm text-[var(--cc-text-secondary)]'}>There are no independently approved Host Connect X locations matching this search yet. New listings appear after property verification.</p>:
