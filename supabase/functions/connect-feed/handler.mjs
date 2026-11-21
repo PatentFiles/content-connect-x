@@ -5,7 +5,7 @@
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info','Access-Control-Allow-Methods':'POST,OPTIONS'};
 const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:{...cors,'content-type':'application/json','cache-control':'no-store','x-content-type-options':'nosniff'}});
 const uuid=x=>typeof x==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(x);
-const modes=new Set(['friends','following','discover','profile','group']);
+const modes=new Set(['friends','following','discover','profile','profile_posts','profile_reposts','my_reposts','group']);
 const flags=new Set(['unsafe','rights','privacy','harassment','other']);
 const actions=new Set(['feed','post','create','repost','like','unlike','comment','comments','save','unsave','report','hide','my_photos']);
 const clientErrorCodes={
@@ -72,8 +72,8 @@ export function createConnectFeedHandler({authenticate,db,storage}){
    const who=user.id,action=body.action;
    if(action==='feed'){
     const mode=modes.has(body.mode)?body.mode:'friends';
-    const author=['profile','group'].includes(mode)&&uuid(body.author_id)?body.author_id:null;
-    if(['profile','group'].includes(mode)&&!author)return reply({error:'Select a valid profile or group.'},400);
+    const author=['profile','profile_posts','profile_reposts','group'].includes(mode)&&uuid(body.author_id)?body.author_id:null;
+    if(['profile','profile_posts','profile_reposts','group'].includes(mode)&&!author)return reply({error:'Select a valid profile or group.'},400);
     const before=typeof body.before==='string'&&Number.isFinite(Date.parse(body.before))?body.before:null;
     const beforeId=uuid(body.before_id)?body.before_id:null;
     const limit=16;
