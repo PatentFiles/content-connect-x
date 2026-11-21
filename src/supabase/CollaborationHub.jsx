@@ -10,6 +10,8 @@ import CollaborationCreationWizard from './CollaborationCreationWizard';
 import CollaborationSafetyCheckin from './CollaborationSafetyCheckin';
 import CollaborationActualStatements from './CollaborationActualStatements';
 import CollaborationWorkshop from './CollaborationWorkshop';
+import HostBookingMessages from './HostBookingMessages';
+import {hostConnectAction} from './hostConnectApi';
 import {CollaborationTesting} from './CollaborationTesting';
 import ProductionReadinessChecklist from './ProductionReadinessChecklist';
 import {localDateTimeToUtc} from './productionWizardPolicy.mjs';
@@ -32,6 +34,8 @@ async function call(fn,action,extra={}){
 export default function CollaborationHub({user,onNavigate=(destination,context)=>{void destination;void context;},initialTargetId=''}) {
  const [items,setItems]=useState([]),[hidden,setHidden]=useState([]),[invitations,setInvitations]=useState([]);
  const [filter,setFilter]=useState('current'),[editing,setEditing]=useState(false),[selected,setSelected]=useState(''),[detail,setDetail]=useState(null);
+ const [linkedHostBookings,setLinkedHostBookings]=useState([]),[hostMessageBooking,setHostMessageBooking]=useState(null);
+ const [hostMessageError,setHostMessageError]=useState('');
  const [properties,setProperties]=useState([]),[target,setTarget]=useState(initialTargetId),[role,setRole]=useState('creator');
  const [title,setTitle]=useState(''),[description,setDescription]=useState(''),[requiresClearance,setRequiresClearance]=useState(false);
  const [plan,setPlan]=useState({starts_at:'',ends_at:'',timezone:Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC',city:'',venue_label:'',property_id:'',scope_of_work:'',activities:'',deliverables:'',usage_rights:''});
@@ -104,6 +108,14 @@ export default function CollaborationHub({user,onNavigate=(destination,context)=
   setNotice('Agreement draft created. Formal signatures and individual consent are still required.');
   await openDetails(selected);
  });
+ useEffect(()=>{
+  if(!selected||!detail?.plan?.property_id){setLinkedHostBookings([]);return;}
+  let alive=true;
+  void hostConnectAction('collaboration_bookings',{collaboration_id:selected})
+   .then(result=>{if(alive){setLinkedHostBookings(result.items||[]);setHostMessageError('');}})
+   .catch(e=>{if(alive){setHostMessageError(e.message);setLinkedHostBookings([]);}});
+  return()=>{alive=false;};
+ },[selected,detail?.plan?.property_id]);
  const visible=items.filter(item=>filter==='archived'?hidden.includes(item.id):!hidden.includes(item.id)&&(filter==='completed'?item.status==='completed':filter==='current'?item.status!=='completed':true));
  const planFields=[['scope_of_work','Production scope','textarea'],['activities','Proposed activities (comma separated)','textarea'],['deliverables','Deliverables and deadlines','textarea'],['usage_rights','Usage / publishing rights','textarea']];
  return <div className="space-y-5" data-collaboration-hub="true">
@@ -119,6 +131,16 @@ export default function CollaborationHub({user,onNavigate=(destination,context)=
   {!busy&&!visible.length&&<p className={panel+' text-sm text-[var(--cc-text-secondary)]'}>{filter==='archived'?'No archived collaborations.':'No collaborations here yet. Select Create collaboration to organize your next production.'}</p>}
   <div className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-3">{visible.map(item=><article key={item.id} className={panel+' flex min-w-0 flex-col justify-between gap-4'}><div className="space-y-2"><span className="inline-block rounded-full bg-[var(--cc-surface-hover)] px-3 py-1 text-xs font-semibold capitalize">{item.status||'Draft'}</span><h2 className="break-words text-lg font-semibold">{item.title}</h2><p className="line-clamp-3 text-sm text-[var(--cc-text-secondary)]">{item.description||'Private production plan'}</p><p className="flex items-center gap-2 text-xs"><CalendarDays size={15}/>{date(item.plan?.starts_at||item.created_at)}</p>{item.plan?.city&&<p className="flex items-center gap-2 text-xs"><MapPin size={15}/>{item.plan.city}</p>}</div><div className="flex flex-wrap gap-2"><button type="button" className={primary} disabled={busy} onClick={()=>void open(item.id)}><FileText size={16}/>View complete record</button><button type="button" className={secondary} disabled={busy} onClick={()=>void toggleArchive(item.id,hidden.includes(item.id))}>{hidden.includes(item.id)?<RotateCcw size={16}/>:<Archive size={16}/>} {hidden.includes(item.id)?'Restore':'Delete / archive'}</button></div></article>)}</div>
   {detail&&selected&&<section className={panel+' space-y-5'} aria-label="Complete collaboration record"><div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-xl font-bold">{detail.collaboration.title}</h2><p className="text-xs text-[var(--cc-text-secondary)]">Private record · {detail.collaboration.status} · created {date(detail.collaboration.created_at)}</p></div><button type="button" onClick={()=>{setSelected('');setDetail(null);}} className={secondary}>Close</button></div>
+   {detail.plan?.property_id&&<section className={panel+' space-y-3'} aria-label="Cross-platform host conversation">
+    <h3 className="flex items-center gap-2 text-lg font-semibold"><MapPin size={19}/> Host Connect X — venue conversation</h3>
+    <p className="text-xs text-[var(--cc-text-secondary)]">Messages here travel between the host's independent Host Connect X account and verified members of this collaboration. Venue requests and signed contracts remain separate.</p>
+    {hostMessageError&&<p role="alert" className="text-xs text-[var(--cc-text-secondary)]">{hostMessageError}</p>}
+    {hostMessageBooking?<HostBookingMessages bookingId={hostMessageBooking.id} userId={user.id} action={hostConnectAction}
+      onBack={()=>setHostMessageBooking(null)} title="Collaboration venue message thread"/>:
+      linkedHostBookings.length?linkedHostBookings.map(b=><button key={b.id} type="button" className={secondary+' w-full justify-between'} onClick={()=>setHostMessageBooking(b)}>
+       {new Date(b.starts_at).toLocaleDateString()} · {b.status} venue request · Message the host
+      </button>):<p className="text-xs text-[var(--cc-text-muted)]">No Host Connect X reservation is linked. The organizer can select this collaboration when requesting its saved venue from the Properties tab.</p>}
+   </section>}
    <ProductionReadinessChecklist detail={detail}/>
    <CollaborationTesting collaborationId={selected} organizer={detail.collaboration.creator_id===user.id}/>
    <CollaborationWorkshop key={'workshop-'+selected} collaborationId={selected} userId={user.id} onDraftCreated={()=>void openDetails(selected)}/>
