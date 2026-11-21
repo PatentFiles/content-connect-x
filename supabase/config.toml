@@ -138,3 +138,6 @@ verify_jwt = false
 # Agency role and case-granted data access; JWT checked before MFA and service-role reads.
 [functions.ccx-law-portal]
 verify_jwt = true
+
+[functions.annual-recap]
+verify_jwt = true
