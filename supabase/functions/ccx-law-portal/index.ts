@@ -114,6 +114,37 @@ Deno.serve(async req=>{
    await log('case_requested',data.id,subject,{requested_scopes:body.requested_scopes,process:type});
    return out({item:data},201);
   }
+  if(action==='admin_hold'||action==='admin_release_hold'){
+   assertAdmin();
+   const item=await getCase(body.case_id);
+   const reason=txt(body.review_note,800);
+   if(action==='admin_hold'){
+    if(item.status!=='approved'||Date.parse(item.expires_at)<=Date.now()||
+     !['warrant','court_order','subpoena','preservation_request'].includes(item.legal_process_type)||
+     body.legal_preservation_confirmed!==true||reason.length<25)
+     return out({error:'Verified, active legal-process approval and a specific evidence-preservation justification are required'},409);
+    const days=Number(body.days);
+    if(!Number.isInteger(days)||days<1||days>90)return out({error:'Preservation must have a specified 1-90 day expiration'},400);
+    const {data,error}=await db.rpc('ccx_law_apply_hold',{p_case_id:item.id,p_admin:uid,p_days:days,p_reason:reason});
+    if(error)throw Error('Preservation could not be applied');
+    return out({preservation:data});
+   }
+   if(reason.length<15||body.release_confirmed!==true)return out({error:'Confirm the release of preserved evidence and provide the reason'},409);
+   const {data,error}=await db.rpc('ccx_law_release_hold',{p_case_id:item.id,p_admin:uid,p_reason:reason});
+   if(error)throw Error('Preservation could not be released');
+   return out({preservation:data});
+  }
+  if(action==='case_audit'){
+   assertOfficer();
+   const item=await getCase(body.case_id);
+   if(item.officer_id!==uid)return out({error:'Case unavailable'},404);
+   const {data,error}=await db.from('ccx_law_disclosure_audit')
+    .select('id,action,result_status,created_at,details').eq('case_id',item.id)
+    .order('created_at',{ascending:false}).limit(300);
+   if(error)throw Error('Case audit unavailable');
+   await log('viewed',item.id,item.subject_user_id,{audit_log_only:true});
+   return out({items:data||[]});
+  }
   if(action==='admin_cases'){
    assertAdmin();
    const {data,error}=await db.from('ccx_law_cases')
