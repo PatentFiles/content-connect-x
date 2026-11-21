@@ -2,67 +2,47 @@
  * Uses original transparent PNG/WebP artwork when deployed under /public.
  * No remote third-party artwork is loaded. Missing files degrade accessibly.
  */
-import React,{useState} from 'react';
+import React from 'react';
 import {Home,Building2,Warehouse,Clapperboard,Camera,Landmark,Trees,Waves,LifeBuoy,Package,Users,Video,UserRound,Scissors,Palette,Shirt,Film,Briefcase,Layers} from 'lucide-react';
 
 export const PROPERTY_CATEGORIES=[
- {key:'all',label:'All properties',category:'',icon:'all',Icon:Layers},
- {key:'house',label:'Houses',category:'house',icon:'house',Icon:Home},
- {key:'condo',label:'Condos',category:'condo',icon:'condo',Icon:Building2},
- {key:'warehouse',label:'Warehouses',category:'warehouse',icon:'commercial_warehouse',Icon:Warehouse},
- {key:'dungeon',label:'BDSM dungeons',category:'dungeon',icon:'bdsm_dungeon',Icon:Landmark},
- {key:'film_studio',label:'Production studios',category:'film_studio',icon:'production_studio',Icon:Clapperboard},
- {key:'photo_studio',label:'Photo studios',category:'photo_studio',icon:'photo_studio',Icon:Camera},
- {key:'private_beach',label:'Private beaches',category:'private_beach',icon:'private_beach',Icon:Waves},
- {key:'pool',label:'Outdoor pools',category:'',amenity:'pool',icon:'outdoor_pool',Icon:LifeBuoy},
- {key:'grass',label:'Grassy areas',category:'outdoor',icon:'outdoor_grassy_area',Icon:Trees},
- {key:'outdoor',label:'Outdoor areas',category:'outdoor',icon:'outdoor',Icon:Trees},
- {key:'set',label:'Production sets',category:'set',icon:'production_set',Icon:Film},
- {key:'equipment',label:'Equipment rentals',category:'equipment',icon:'equipment_rental',Icon:Package}
+ {key:'all',label:'All properties',category:'',Icon:Layers},
+ {key:'house',label:'Houses',category:'house',image:'/house.png',Icon:Home},
+ {key:'condo',label:'Condos',category:'condo',image:'/condo.png',Icon:Building2},
+ {key:'warehouse',label:'Commercial warehouses',category:'warehouse',image:'/commercial_warehouse.png',Icon:Warehouse},
+ {key:'dungeon',label:'BDSM dungeons',category:'dungeon',image:'/bdsm_dungeon.png',Icon:Landmark},
+ {key:'film_studio',label:'Production studios',category:'film_studio',image:'/production_studio.png',Icon:Clapperboard},
+ {key:'photo_studio',label:'Photo studios',category:'photo_studio',image:'/Studio.png',Icon:Camera},
+ {key:'private_beach',label:'Private beaches',category:'private_beach',image:'/private_beach.png',Icon:Waves},
+ {key:'pool',label:'Outdoor pools',category:'',amenity:'pool',image:'/outdoor_pool.png',Icon:LifeBuoy},
+ {key:'grass',label:'Grassy areas',category:'outdoor',image:'/outdoor_grassy_area.png',Icon:Trees},
 ];
 export const DISCOVERY_CATEGORIES=[
- {key:'all',label:'Everyone',role:'',icon:'all',Icon:Users},
- {key:'videographer',label:'Videographers',role:'videographer',icon:'videographer',Icon:Video},
- {key:'photographer',label:'Photographers',role:'photographer',icon:'photographer',Icon:Camera},
- {key:'female_creator',label:'Female creators',role:'creator',gender:'woman',icon:'creator_female',Icon:UserRound},
- {key:'male_creator',label:'Male creators',role:'creator',gender:'man',icon:'creator_male',Icon:UserRound},
- {key:'agent',label:'Agents',role:'agent',icon:'agent',Icon:Briefcase},
- {key:'studio',label:'Studios',role:'studio',icon:'studio',Icon:Clapperboard},
- {key:'director',label:'Directors / producers',role:'director_producer',icon:'director_producer',Icon:Film},
- {key:'hair',label:'Hair services',role:'hair_stylist',icon:'hair_service',Icon:Scissors},
- {key:'makeup',label:'Makeup services',role:'makeup_artist',icon:'makeup_service',Icon:Palette},
- {key:'wardrobe',label:'Wardrobe stylists',role:'wardrobe_stylist',icon:'wardrobe_stylist',Icon:Shirt},
- {key:'editor',label:'Video editors',role:'video_editor',icon:'video_editor',Icon:Film}
+ {key:'all',label:'Everyone',role:'',Icon:Users},
+ {key:'videographer',label:'Videographers',role:'videographer',image:'/Videographer.png',Icon:Video},
+ {key:'photographer',label:'Photographers',role:'photographer',image:'/Photographer.png',Icon:Camera},
+ {key:'female_creator',label:'Female creators',role:'creator',gender:'woman',image:'/Creator%20female.png',Icon:UserRound},
+ {key:'male_creator',label:'Male creators',role:'creator',gender:'man',image:'/Creator%20Male.png',Icon:UserRound},
+ {key:'agent',label:'Agents',role:'agent',image:'/Agent.png',Icon:Briefcase},
+ {key:'studio',label:'Studios',role:'studio',image:'/Studio.png',Icon:Clapperboard},
+ {key:'director',label:'Directors / producers',role:'director_producer',image:'/Director.png',Icon:Film},
+ {key:'hair',label:'Hair services',role:'hair_stylist',image:'/hair_services.png',Icon:Scissors},
+ {key:'makeup',label:'Makeup services',role:'makeup_artist',image:'/makeup_services.png',Icon:Palette},
+ {key:'wardrobe',label:'Wardrobe stylists',role:'wardrobe_stylist',image:'/Wardrobe.png',Icon:Shirt},
+ {key:'editor',label:'Video editors',role:'video_editor',image:'/Video%20Editor.png',Icon:Film},
+ {key:'equipment',label:'Equipment rentals',role:'equipment_rental',image:'/Equipment_Rental.png',Icon:Package},
+ {key:'chef',label:'Chef services',role:'chef',image:'/chef_services.png',Icon:Users},
+ {key:'spa',label:'Spa treatments',role:'spa_provider',image:'/spa_treatments.png',Icon:Palette},
+ {key:'verified',label:'Verified creators',role:'creator',image:'/Verified%20Creator.png',Icon:UserRound}
 ];
-// Explicit naming aliases support the original artwork labels and common export names.
-// Real images must exist under the deployed public directory.
-const ALIASES={
- all:['globe','all_categories'],house:['home','houses'],condo:['condominium','condos'],
- commercial_warehouse:['warehouse'],bdsm_dungeon:['dungeon'],production_studio:['studio_production','film_studio','studio'],
- photo_studio:['photography_studio'],private_beach:['beach'],outdoor_pool:['pool'],outdoor_grassy_area:['grassy_area','grass_area','grass','outdoor_grass'],
- creator_female:['female_creator','creator_woman'],creator_male:['male_creator','creator_man'],
- hair_service:['hair','hair_stylist'],makeup_service:['makeup','makeup_artist'],
- wardrobe_stylist:['wardrobe','stylist'],director_producer:['director','producer'],equipment_rental:['equipment']
-};
-const candidates=key=>{
- // Keep retries bounded: missing artwork must not generate hundreds of 404s.
- const alias=(ALIASES[key]||[])[0];
- const names=[key,alias].filter(Boolean);
- return names.flatMap(name=>[
-  '/'+encodeURIComponent(name)+'.png',
-  '/'+encodeURIComponent(name)+'.webp',
-  '/icons/'+encodeURIComponent(name)+'.png',
-  '/category-icons/'+encodeURIComponent(name)+'.png'
- ]);
-};
-export function CategoryArtwork({item,size=48}){
- const paths=candidates(item.icon||item.key);
- const [index,setIndex]=useState(0);
+/** Exact case-sensitive filenames from both repositories' public/ directories.
+ * Asset URLs are rooted at / and spaces are percent encoded.
+ * Fallback icons are reserved for the two generic All categories without artwork.
+ */
+export function CategoryArtwork({item,size=54}){
  const Icon=item.Icon||Layers;
  return <span className="grid shrink-0 place-items-center" style={{width:size,height:size}} aria-hidden="true">
-  {index<paths.length?
-   <img key={item.icon+'-'+index} src={paths[index]} alt="" loading="lazy" decoding="async"
-    onError={()=>setIndex(i=>i+1)} className="h-full w-full object-contain"/>:
+  {item.image?<img src={item.image} alt="" loading="lazy" decoding="async" className="h-full w-full object-contain"/>:
    <Icon size={Math.round(size*.69)} strokeWidth={1.5}/>}
  </span>;
 }
