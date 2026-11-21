@@ -171,7 +171,6 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
      <span className="ccx-monogram" aria-hidden="true">CX</span><span className="hidden text-lg font-semibold sm:block">Content Connect X</span>
     </button>
     <div className="ccx-shell-header-actions">
-     {isAdmin&&<a href="https://hostconnectx.com" className="ccx-admin-host-link" aria-label="Open Host Connect">Host Connect</a>}
      <button type="button" onClick={()=>onNavigate('membership')} aria-label={'Membership: '+(isPremiumMember?'Premium Account':'Free Account')+'; view plans'} className="inline-flex min-h-10 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-semibold sm:px-3" style={{borderColor:'var(--cc-border)',background:'var(--cc-surface)',color:'var(--cc-text-primary)'}}>
       <CreditCard size={15} className="text-[var(--cc-link)]"/><span className="hidden sm:inline">Membership</span><span>{isPremiumMember?'Premium':'Free'}</span>
      </button>
@@ -236,6 +235,10 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
    </div>
   </div>}
   <main id="main-content" className="ccx-shell-main min-h-screen px-4 pb-24 pt-24 md:pr-6 md:pb-10" style={{paddingTop:'calc(var(--cc-shell-header-height,4rem) + 1.5rem)'}}><div className="mx-auto max-w-7xl"><ModuleAccessBoundary tab={tab} flags={featureFlags} onNavigate={onNavigate}>{children}</ModuleAccessBoundary></div></main>
+  <footer className="ccx-sister-brand-footer" aria-label="Connected marketplaces">
+    <span>Production locations and daily rentals:</span>
+    <a href="https://hostconnectx.com" target="_blank" rel="noopener noreferrer" className="ccx-host-footer-link">Host Connect X</a>
+  </footer>
   <nav aria-label="Mobile bottom navigation" className="fixed bottom-0 left-0 right-0 z-50 flex border-t backdrop-blur-xl md:hidden" style={{backgroundColor:'color-mix(in srgb,var(--cc-bg) 95%,transparent)',borderColor:'var(--cc-border)',paddingBottom:'env(safe-area-inset-bottom,0px)'}}>
    {['Dashboard','Testing','Discovery','Collaborations','Properties'].map(path=>nav.find(item=>item.path===path)).filter(Boolean).map(item=>{const Icon=item.icon,active=tabMatches(tab,item.path);return <button key={item.path} onClick={()=>onNavigate(keyFor(item.path))} className="flex min-h-14 flex-1 flex-col items-center justify-center gap-1 px-1 py-2" aria-current={active?'page':undefined} style={{color:active?'var(--cc-blue)':'var(--cc-text-muted)'}}><Icon size={20}/><span className="max-w-full truncate text-[10px] font-medium">{item.label}</span></button>;})}
   </nav>
