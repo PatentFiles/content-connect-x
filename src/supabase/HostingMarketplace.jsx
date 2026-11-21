@@ -22,6 +22,7 @@ import HostingDateRange from './HostingDateRange';
 import {validRange,nightsBetween,datePortion,venueDateToIso} from './hostingDateRange.mjs';
 import {hostingAdvanced} from './hostingBusinessApi';
 import HostingBookingOperations from './HostingBookingOperations';
+import HostDialog from './HostDialog';
 import {hostingBusiness} from './hostingBusinessApi';
 import HostingNotificationSettings from './HostingNotificationSettings';
 import HostingCrewInbox from './HostingCrewInbox';
@@ -60,6 +61,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
   const [addonCounts,setAddonCounts]=useState({});
   const [discountCode,setDiscountCode]=useState('');
   const [secureQuote,setSecureQuote]=useState(null);
+  const [reviewOpen,setReviewOpen]=useState(false),[acknowledged,setAcknowledged]=useState(false);
   const [busy,setBusy]=useState(true);
   const [error,setError]=useState('');
   const [notice,setNotice]=useState('');
@@ -86,8 +88,9 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
       setSecureQuote(result.quote);
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
-  const submit=async(e)=>{
-    e.preventDefault();setBusy(true);setError('');setNotice('');
+  const submit=async()=>{
+    if(!secureQuote||!acknowledged||busy)return;
+    setReviewOpen(false);setAcknowledged(false);setBusy(true);setError('');setNotice('');
     try{
       const result=await hostingAdvanced('reserve',bookingParams());
       setNotice(result.note||'Booking request submitted. No payment collected.');
@@ -153,7 +156,7 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
           <div className="mt-3 flex flex-wrap gap-2">{dates.length?dates.slice(0,14).map((d,i)=><span key={i} className="rounded-lg bg-[var(--cc-surface)] px-3 py-2 text-xs text-[var(--cc-text-secondary)]">{dateTime(d.starts_at)} – {dateTime(d.ends_at)}</span>):<p className={empty}>No upcoming blocked dates</p>}</div>
         </section>
       </div>
-      <form className={panel+' h-fit p-6 space-y-4 lg:sticky lg:top-5'} onSubmit={submit}>
+      <form className={panel+' h-fit p-6 space-y-4 lg:sticky lg:top-5'} onSubmit={e=>{e.preventDefault();if(secureQuote&&!busy&&paid){setAcknowledged(false);setReviewOpen(true);}}}>
         <h3 className="text-2xl font-semibold">{item.daily_rate!=null?usd(item.daily_rate):'Daily rate required'} <span className="text-sm font-normal text-[var(--cc-text-secondary)]">/ day</span></h3>
         {error&&<p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{error}</p>}
         {notice&&<p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800" role="status">{notice}</p>}
@@ -186,9 +189,22 @@ function ListingDetail({id,paid,favorites,toggle,back,onBooked,brand='content_co
           </div>:<p className="text-xs text-[var(--cc-text-secondary)]">Calculate the authoritative server quote before requesting. Rates may vary by date, bundle or promotion.</p>}
         </div>
         <button type="button" className={button+' w-full bg-[var(--cc-surface)]'} onClick={calculate} disabled={!paid||busy||days<1||crew<1||!purpose||item.daily_rate==null}>Calculate daily rental quote</button>
-        <button type="submit" className={button+' w-full'} disabled={!paid||busy||!secureQuote}>{paid?'Request space with this quote':'Premium booking required'}</button>
+        <button type="submit" className={button+' w-full'} disabled={!paid||busy||!secureQuote}>{paid?'Review reservation request':'Premium booking required'}</button>
         <p className="text-center text-xs leading-5 text-[var(--cc-text-secondary)]">No payment is collected here. The host must approve your request. Private street addresses are released only through authorized post-booking access; any host-published public address is visible before booking.</p>
       </form>
+      {reviewOpen&&<HostDialog title="Review your reservation request" subtitle="Confirm your dates, payment expectations and property before submitting." onClose={()=>{if(!busy){setReviewOpen(false);setAcknowledged(false);}}} busy={busy}>
+       <div className="space-y-4 text-sm text-[var(--cc-text-primary)]">
+        <p className="font-semibold">{item.title}</p>
+        <p className="rounded-xl bg-[var(--cc-surface-subtle)] p-3">{datePortion(starts)} — {datePortion(ends)} · {days} {days===1?'day':'days'} · 3 p.m. check-in and checkout (property local time)</p>
+        <div className="flex items-center justify-between border-b border-[var(--cc-border)] pb-3"><span>Estimated reservation total</span><strong>{usd((secureQuote?.total_cents||0)/100)}</strong></div>
+        <p className="leading-6 text-[var(--cc-text-secondary)]">Submitting reserves a pending request for host review, not a completed payment or final booking. No deposit is charged at this stage. After the host accepts, the applicable signed terms determine deposit refundability and whether date changes are permitted. Do not rely on property access until all required approvals and payment confirmations are complete.</p>
+        <label className="flex min-h-11 items-start gap-3 rounded-xl border border-[var(--cc-border)] p-3"><input type="checkbox" checked={acknowledged} onChange={e=>setAcknowledged(e.target.checked)} className="mt-1 h-5 w-5"/><span>I reviewed the venue, dates, 3 p.m. daily rental window and the distinction between a request and a confirmed booking.</span></label>
+        <div className="flex flex-wrap justify-end gap-3">
+         <button type="button" className="oh-secondary min-h-11 rounded-xl px-5" disabled={busy} onClick={()=>setReviewOpen(false)}>Back</button>
+         <button type="button" className="oh-primary min-h-11 rounded-xl px-5 font-semibold disabled:opacity-50" disabled={busy||!acknowledged} onClick={()=>void submit()}>{busy?'Submitting…':'Submit booking request'}</button>
+        </div>
+       </div>
+      </HostDialog>}
     </div>
   </div>;
 }
