@@ -156,8 +156,13 @@ Deno.serve(async req=>{
   if(action==='admin_decide'){
    assertAdmin();
    const item=await getCase(body.case_id);
-   if(item.status!=='pending'&&item.status!=='approved')return out({error:'Case is no longer awaiting review'},409);
    const decision=body.decision,scopes=body.approved_scopes,note=txt(body.review_note,2000);
+   // Approval/denial are single-use decisions. An approved case can only be
+   // revoked; extending access requires a newly reviewed legal-process case.
+   if((item.status==='pending'&&!['approve','deny'].includes(decision))||
+      (item.status==='approved'&&decision!=='revoke')||
+      !['pending','approved'].includes(item.status))
+    return out({error:'Invalid case status transition. Submit a new case for renewed access'},409);
    if(!['approve','deny','revoke'].includes(decision)||note.length<15)return out({error:'Choose a decision and give the case-specific reason'},400);
    if(decision==='approve'&&(!validScopes(scopes)||!scopes.every(s=>item.requested_scopes.includes(s))))return out({error:'Approval may only include specifically requested permitted record categories'},400);
    const hours=Math.min(168,Math.max(1,Number(body.hours)||24));
