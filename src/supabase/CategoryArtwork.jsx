@@ -43,13 +43,13 @@ export function CategoryArtwork({item,size=54}){
    <Icon size={Math.round(size*.69)} strokeWidth={1.5}/>}
  </span>;
 }
-export function CategoryStrip({items,value,onSelect,activeColor='var(--cc-link)'}) {
+export function CategoryStrip({items,value,onSelect,activeColor='var(--cc-link)',large=false}) {
  return <nav aria-label="Browse categories" className="w-full overflow-x-auto overscroll-x-contain">
   <div className="mx-auto flex w-max min-w-max items-start justify-center gap-2 px-3 py-3 sm:gap-4">
    {items.map(item=><button type="button" key={item.key} aria-pressed={value===item.key}
     onClick={()=>onSelect(item)} style={{borderBottomColor:value===item.key?activeColor:'transparent'}}
-    className="flex min-h-[122px] w-[116px] shrink-0 snap-start flex-col items-center justify-start gap-2 border-b-[3px] px-1 py-2 text-center text-xs font-semibold text-[var(--cc-text-primary)] transition hover:opacity-75 focus-visible:outline-2 focus-visible:outline-offset-2 sm:w-[130px]">
-    <CategoryArtwork item={item} size={72}/><span className="leading-4">{item.label}</span>
+    className={"flex shrink-0 snap-start flex-col items-center justify-start gap-2 border-b-[3px] px-1 py-2 text-center text-xs font-semibold text-[var(--cc-text-primary)] transition hover:opacity-75 focus-visible:outline-2 focus-visible:outline-offset-2 "+(large?"min-h-[122px] w-[116px] sm:w-[130px]":"min-h-[104px] w-[94px] sm:w-[102px]")}>
+    <CategoryArtwork item={item} size={large?72:54}/><span className="leading-4">{item.label}</span>
    </button>)}
   </div>
  </nav>;
