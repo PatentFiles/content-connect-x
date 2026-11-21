@@ -101,6 +101,19 @@ export default function HostCrossMarketplace({paid=false,user=null}){
      <h2 className="text-2xl font-semibold">{selected.title}</h2>
      <p className="flex items-center gap-1 text-sm text-[var(--cc-text-secondary)]"><MapPin size={16}/>{[selected.city,selected.state,selected.country].filter(Boolean).join(', ')}</p>
      <p className="whitespace-pre-wrap text-sm">{selected.description}</p>
+     {(selected.equipment||[]).length>0&&<div className="space-y-3 border-t border-[var(--cc-border)] pt-4" aria-label="Available studio equipment">
+      <h3 className="font-semibold">On-site cameras, lighting and equipment</h3>
+      <p className="text-xs text-[var(--cc-text-secondary)]">Host-declared equipment. Add-on prices are estimates; no separate equipment charge can be collected until the approved processor is configured.</p>
+      <div className="grid gap-2 sm:grid-cols-2">{selected.equipment.map(e=><article key={e.id}
+       className="rounded-xl border border-[var(--cc-border)] p-3">
+       <h4 className="text-sm font-semibold">{e.name}</h4>
+       <p className="mt-1 text-xs text-[var(--cc-text-secondary)]">{e.description||e.category.replaceAll('_',' ')} · {e.quantity} available</p>
+       <p className="mt-1 text-xs">{e.included_in_rental?'Included in venue rental':'Optional add-on'}
+        {e.add_on_fee_cents>0?' · '+money(e.add_on_fee_cents)+' quoted':''}
+        {e.consumable?' · Consumable stock':''}</p>
+       {e.equipment_rules&&<p className="mt-1 text-xs text-[var(--cc-text-secondary)]">{e.equipment_rules}</p>}
+      </article>)}</div>
+     </div>}
      <p className="flex items-start gap-2 text-xs text-[var(--cc-text-secondary)]"><ShieldCheck size={15}/>The host controls permitted production uses. Exact address and access instructions are restricted until a booking is signed and paid.</p>
      <h3 className="font-semibold">Unavailable dates</h3>
      {!unavailable.length?<p className="text-sm text-[var(--cc-text-secondary)]">No booking or property blocks in the current calendar.</p>:
