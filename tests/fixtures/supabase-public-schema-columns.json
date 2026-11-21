@@ -1451,6 +1451,18 @@
       "revision",
       "updated_at"
     ],
+    "member_discovery_attributes": [
+      "user_id",
+      "age_years",
+      "height_cm",
+      "weight_kg",
+      "ethnicity",
+      "penis_inches",
+      "circumcision",
+      "breast_size",
+      "visible_in_discovery",
+      "updated_at"
+    ],
     "member_follows": [
       "follower_id",
       "followed_id",
