@@ -82,7 +82,7 @@ export default function CustomDashboard({profile,onNavigate,roleOverride,paid=fa
    {preview&&<p className="mb-3 rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm text-[var(--cc-text-secondary)]">
     Viewing the {roleTitle(role)} dashboard layout. Updates are published from your own signed-in account, not as another role.
    </p>}
-   <ConnectFeed userId={userId} paid={paid} preview={false} initialMode="discover" onNavigate={onNavigate}/>
+   <ConnectFeed userId={userId} paid={paid} preview={preview} initialMode="discover" onNavigate={onNavigate}/>
   </main>
   <aside className="hidden min-w-0 space-y-4 xl:block" aria-label="Customizable dashboard cards and sponsored advertisements">
   <header className="ccx-dashboard-heading space-y-3"><div><p className="ccx-workspace-eyebrow">YOUR WORKSPACE</p><h1 className="text-2xl font-bold">{roleTitle(role)} Dashboard</h1><p className="mt-2 text-sm" style={{color:'var(--cc-text-secondary)'}}>Your optional dashboard tools and account overview.</p></div>
