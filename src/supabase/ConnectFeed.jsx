@@ -90,7 +90,7 @@ function FeedPost({post,paid,userId,onChanged,onError}){
    <div className="flex min-w-0 items-center gap-3">
     <FeedAvatar url={local.author?.avatar_url} name={authorName}/>
     <div className="min-w-0">
-     {isRepost?<p className="flex flex-wrap items-center gap-1.5 text-sm font-semibold" data-repost-attribution="true"><span className="truncate">{authorName}</span><Repeat2 size={15} aria-hidden="true"/><span className="font-normal text-[var(--cc-text-secondary)]">reposted</span></p>
+     {isRepost?<p className="flex flex-wrap items-center gap-1.5 text-sm font-semibold" data-repost-attribution="true"><Repeat2 size={15} aria-hidden="true"/><span className="min-w-0 truncate">{authorName} reposted</span></p>
       :<p className="truncate text-sm font-semibold sm:text-base">{authorName}</p>}
      <p className="mt-0.5 text-xs capitalize text-[var(--cc-text-secondary)]">{String(local.author?.role_type||'Professional member').replaceAll('_',' ')}</p>
     </div>
