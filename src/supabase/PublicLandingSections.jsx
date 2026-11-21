@@ -7,7 +7,7 @@ const features = [
   {number:'02', title:'Collaborations', sub:'Create together', text:'Coordinate multi-participant projects, negotiate expectations, and keep contracts and consent records connected.', Icon:UsersRound, tone:'pink'},
   {number:'03', title:'Health Testing', sub:'Work-readiness checks', text:'Privacy-conscious testing credential workflows, with clearance requirements before applicable collaborations.', Icon:HeartPulse, tone:'violet'},
   {number:'04', title:'Digital Contracts', sub:'Clarity from the start', text:'Prepare, sign, and retain agreements with documented consent and a traceable history.', Icon:FileSignature, tone:'cyan'},
-  {number:'05', title:'Hosting & Location Booking', sub:'Powered by Host Connect', text:'Discover production spaces, request bookings, and coordinate a location with the rest of your project.', Icon:MapPinned, tone:'pink', href:'/hostconnect'}
+  {number:'05', title:'Hosting & Location Booking', sub:'Powered by Host Connect', text:'Discover production spaces, request bookings, and coordinate a location with the rest of your project.', Icon:MapPinned, tone:'pink', href:'https://hostconnectx.com'}
 ];
 const steps = [
   {label:'Verify',desc:'Complete your independent identity and age verification.',Icon:Fingerprint},
@@ -72,7 +72,7 @@ export default function PublicLandingSections(){
    </div>
   </section>
   <footer className="ccx-slim-footer">
-   <div className="ccx-slim-container ccx-slim-footer-inner"><span>Content Connect <strong>X</strong></span><p>Professional collaborations · Locations by <a href="/hostconnect">Host Connect</a></p></div>
+   <div className="ccx-slim-container ccx-slim-footer-inner"><span>Content Connect <strong>X</strong></span><p>Professional collaborations · Locations by <a href="https://hostconnectx.com" className="ccx-host-footer-link" target="_blank" rel="noopener noreferrer">Host Connect X</a></p></div>
   </footer>
  </div>;
 }
