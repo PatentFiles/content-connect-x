@@ -17,7 +17,11 @@ export const countryCode=value=>countries.find(c=>c.code===value||c.name.toLower
 export const roleOptions=[
  ['creator','Creator / performer'],['photographer','Photographer'],
  ['videographer','Videographer'],['video_editor','Video editor'],
- ['agent','Agent / manager'],['studio','Studio / production team'],['host','Host / property owner']
+ ['agent','Agent / manager'],['studio','Studio / production team'],
+ ['director_producer','Director / producer'],['hair_stylist','Hair stylist'],
+ ['makeup_artist','Makeup artist'],['wardrobe_stylist','Wardrobe stylist'],
+ ['equipment_rental','Equipment rental provider'],['chef','Chef / catering services'],
+ ['spa_provider','Spa / wellness services'],['host','Host / property owner']
 ];
 export const genderOptions=[
  ['','Prefer not to say'],['man','Man'],['woman','Woman'],
