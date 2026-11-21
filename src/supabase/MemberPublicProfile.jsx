@@ -147,12 +147,9 @@ export default function MemberPublicProfile({onNavigate}){
       {item.url&&<a href={item.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-sm text-[var(--cc-link)] underline"><ExternalLink size={14}/>View portfolio link</a>}
      </article>):<p className="text-sm text-[var(--cc-text-secondary)]">No featured portfolio items shared.</p>}
     </section>
-    <section className={panel} aria-label="Profile posts"><h3 className="font-semibold">Profile posts</h3>
-     {profile.posts?.length?profile.posts.map(post=><article key={post.id} className="space-y-2 rounded-xl border border-[var(--cc-border)] p-3">
-      <p className="text-xs text-[var(--cc-text-secondary)]">{prettyDate(post.published_at||post.created_at)}</p>
-      <p className="whitespace-pre-wrap break-words text-sm">{post.body}</p>
-      <a className="text-sm text-[var(--cc-link)] underline" href={'/Dashboard?ccx_post='+encodeURIComponent(post.id)}>View on Connect Feed</a>
-     </article>):<p className="text-sm text-[var(--cc-text-secondary)]">No posts shared with the verified community.</p>}
+    <section className={panel+' lg:col-span-2'} aria-label="Profile posts">
+     <h3 className="font-semibold">Profile posts and reposts</h3>
+     <ConnectFeed key={profile.id} userId={profile.id} profileId={profile.id} paid={false} preview/>
     </section>
    </div>
    <ApprovedGallery ownerId={profile.id}/>
