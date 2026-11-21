@@ -428,3 +428,11 @@
  border-color:var(--cc-border)!important;
  color:var(--cc-text-primary)!important;
 }
+
+/* Cross-brand footer link: Host identity is deliberately separate from the
+ * Content Connect X fuchsia accent. No header-level cross-site promotion. */
+.ccx-sister-brand-footer{margin-left:var(--cc-sidebar-width,0);display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:10px;padding:22px 18px 86px;color:var(--cc-text-secondary);font-size:13px;border-top:1px solid var(--cc-border);background:var(--cc-surface);}
+.ccx-host-footer-link{font-weight:800;letter-spacing:-.01em;color:#12698f;text-decoration:none;}
+.ccx-host-footer-link:hover,.ccx-host-footer-link:focus-visible{color:#0c5272;text-decoration:underline;text-underline-offset:3px}
+@media(min-width:768px){.ccx-sister-brand-footer{padding-bottom:24px}}
+@media(prefers-color-scheme:dark){.ccx-host-footer-link{color:#5db7df}.ccx-host-footer-link:hover{color:#9cdbf4}}
