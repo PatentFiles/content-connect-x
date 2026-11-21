@@ -9,7 +9,6 @@ import {loadFeedPreferences} from './feedDisplayPreferences.mjs';
 const secondary='ccx-secondary inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm disabled:opacity-50';
 const primary='ccx-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold disabled:opacity-50';
 const input='w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-2.5 text-sm text-[var(--cc-text-primary)]';
-const audienceLabels={verified:'Entire community',friends:'Friends only',only_me:'Only me'};
 async function action(name,payload={}){
  const {data,error}=await supabase.functions.invoke('connect-feed',{body:{action:name,...payload}});
  if(error||data?.error){
