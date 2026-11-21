@@ -34,6 +34,40 @@ Deno.serve(async req=>{
    return out({ready,subscription:subscription.data,cancel_at_period_end:cancelAtEnd,reconciliation_required:Boolean(review?.length),
     manage_url:'https://support.ccbill.com',note:ready?'Checkout is handled securely by CCBill.':'Membership billing awaits provider configuration and approval.'});
   }
+  if(body.action==='cancel_at_period_end'){
+   // Do not mark a subscription cancelled locally until the processor confirms
+   // recurring rebills have been stopped. Existing paid-through access remains.
+   const sub=subscription.data;
+   if(sub?.billing_provider!=='ccbill'||!sub.provider_subscription_id)return out({error:'No CCBill subscription to cancel'},409);
+   const {data:contract,error:contractError}=await db.from('ccx_membership_contracts')
+    .select('subscription_id,account,subaccount,user_id,status,cancel_at_period_end,period_end')
+    .eq('user_id',uid).eq('subscription_id',sub.provider_subscription_id).maybeSingle();
+   if(contractError||!contract)return out({error:'Active subscription contract could not be verified'},409);
+   if(contract.cancel_at_period_end)return out({cancel_at_period_end:true,period_end:contract.period_end,already_cancelled:true});
+   if(!['active','past_due'].includes(contract.status))return out({error:'Subscription is no longer renewable'},409);
+   const dataLinkUser=Deno.env.get('CCBILL_DATALINK_USERNAME');
+   const dataLinkPassword=Deno.env.get('CCBILL_DATALINK_PASSWORD');
+   if(!dataLinkUser||!dataLinkPassword)return out({error:'In-app cancellation is not configured. Use CCBill subscription support to stop renewal.',manage_url:'https://support.ccbill.com'},503);
+   if(!/^\\d{6}$/.test(contract.account)||!/^\\d{4}$/.test(contract.subaccount)||!/^[a-zA-Z0-9-]{1,80}$/.test(contract.subscription_id))
+    return out({error:'Stored processor subscription details are invalid'},409);
+   // CCBill Data Link credentials must remain exclusively server-side.
+   const endpoint=new URL('https://datalink.ccbill.com/utils/subscriptionManagement.cgi');
+   for(const [name,value] of Object.entries({clientAccnum:contract.account,clientSubacc:contract.subaccount,
+     subscriptionId:contract.subscription_id,username:dataLinkUser,password:dataLinkPassword,
+     action:'cancelSubscription',returnXML:'1'}))endpoint.searchParams.set(name,value);
+   let providerResponse:Response;
+   try{providerResponse=await fetch(endpoint.toString(),{method:'GET',redirect:'error',signal:AbortSignal.timeout(12000),headers:{'Accept':'application/xml'}});}
+   catch{return out({error:'Processor cancellation could not be confirmed. Verify the subscription with CCBill before retrying.',manage_url:'https://support.ccbill.com'},502);}
+   const result=await providerResponse.text();
+   if(!providerResponse.ok||result.length>2000||!/<results>\\s*1\\s*<\\/results>/.test(result))
+    return out({error:'CCBill did not confirm cancellation. Please use CCBill subscription support.',manage_url:'https://support.ccbill.com'},502);
+   const {data:updated,error:updateError}=await db.from('ccx_membership_contracts')
+    .update({cancel_at_period_end:true,updated_at:new Date().toISOString()})
+    .eq('subscription_id',contract.subscription_id).eq('user_id',uid).select('period_end,cancel_at_period_end').single();
+   if(updateError||!updated)return out({error:'CCBill accepted cancellation but account synchronization requires support review. Future rebilling has been stopped at the processor.',manage_url:'https://support.ccbill.com'},503);
+   return out({cancel_at_period_end:true,period_end:updated.period_end,
+    note:'Renewal has been stopped at CCBill. Premium access continues through the existing paid-through date. No prorated refund is issued.'});
+  }
   if(body.action!=='create_checkout'||typeof body.plan_code!=='string')return out({error:'Invalid billing action'},400);
   if(!ready)return out({error:'CCBill recurring membership approval, hosted form and signed webhooks must be configured first'},503);
   const {data:attempt,error}=await db.rpc('ccx_start_membership_checkout',{p_user:uid,p_plan:body.plan_code,p_account:cfg.account,p_subaccount:cfg.subaccount});
