@@ -116,7 +116,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
   {path:'AdminDashboard',label:'Platform Controls',icon:Shield},{path:'CompliancePortal',label:'API & Integrations',icon:Settings},{path:'TestingReviews',label:'Testing Reviews',icon:Shield}
  ]:[],[isAdmin]);
  const accountNav=useMemo(()=>[
-  {path:'PublicProfile',label:'View Public Profile',icon:ExternalLink},
+  {path:'PublicProfile',label:'View Profile',icon:ExternalLink},
   {path:'Notifications',label:'Notifications',icon:Bell},
   {path:'Membership',label:isPremiumMember?'Membership & billing':'Membership · Free',icon:CreditCard}
  ],[isPremiumMember]);
@@ -195,7 +195,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
       <ChevronRight size={16} aria-hidden="true" style={{color:'var(--cc-text-muted)'}}/>
      </button>
      <button type="button" className="ccx-nav-public-link mt-1 flex items-center gap-2 px-2 py-1.5 text-xs"
-      onClick={()=>onNavigate('public-profile')}><ExternalLink size={13} aria-hidden="true"/> View Public Profile</button>
+      onClick={()=>onNavigate('public-profile')}><ExternalLink size={13} aria-hidden="true"/> View Profile</button>
     </div>
     <nav aria-label="Grouped role navigation" className="ccx-nav-menu flex-1 overflow-y-auto p-3">
      <NavigationSections groups={navGroups} tab={tab} onNavigate={onNavigate} expandedGroup={visibleGroup} onExpand={toggleGroup} unread={unread}/>
@@ -216,7 +216,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
       <p className="mt-1 text-xs capitalize" style={{color:'var(--cc-text-muted)'}}>{roleLabel[role]||role}</p>
       <button type="button" className="ccx-nav-public-link mt-2 flex items-center gap-2 text-xs"
        onClick={()=>{onNavigate('public-profile');setMobileOpen(false);}}>
-       <ExternalLink size={13} aria-hidden="true"/>View Public Profile
+       <ExternalLink size={13} aria-hidden="true"/>View Profile
       </button>
      </div>
      <button ref={mobileCloseRef} type="button" className="ccx-nav-close rounded-md p-2"
