@@ -2,7 +2,14 @@
 export const PROFESSIONAL_ROLES=Object.freeze([
  {id:'creator',label:'Creator'},{id:'photographer',label:'Photographer'},
  {id:'videographer',label:'Videographer'},{id:'video_editor',label:'Video Editor'},
- {id:'agent',label:'Agent'},{id:'studio',label:'Studio'}
+ {id:'agent',label:'Agent'},{id:'studio',label:'Studio'},
+ {id:'director_producer',label:'Director / Producer'},
+ {id:'hair_stylist',label:'Hair Stylist'},
+ {id:'makeup_artist',label:'Makeup Artist'},
+ {id:'wardrobe_stylist',label:'Wardrobe Stylist'},
+ {id:'equipment_rental',label:'Equipment Rental'},
+ {id:'chef',label:'Chef / Catering'},
+ {id:'spa_provider',label:'Spa / Wellness'}
 ]);
 export const FREE_BENEFITS=Object.freeze([
  'Create a professional profile after mandatory 18+ verification',
@@ -50,6 +57,14 @@ export const ROLE_BENEFITS=Object.freeze({
   'Production rooms, shoot calendars and resource scheduling',
   'Multiple collaborators, contracts and consent workflows',
   'Equipment, location coordination and integrated OnlyHost discovery']}
+,
+ director_producer:{description:'Build productions and coordinate verified crews.',items:['Professional profile and discovery','Production project coordination subject to the current membership gates']},
+ hair_stylist:{description:'Offer hair styling for productions.',items:['Professional styling portfolio and services','Verified-member discovery and project enquiries']},
+ makeup_artist:{description:'Provide makeup services for shoots.',items:['Professional makeup portfolio and services','Verified-member discovery and project enquiries']},
+ wardrobe_stylist:{description:'Style production wardrobes.',items:['Professional wardrobe portfolio and services','Verified-member discovery and project enquiries']},
+ equipment_rental:{description:'List production equipment and rental services.',items:['Equipment provider portfolio','Verified-member discovery and project enquiries']},
+ chef:{description:'Offer catering or chef services to production teams.',items:['Service provider portfolio','Verified-member discovery and enquiries']},
+ spa_provider:{description:'Offer professional spa and wellness services.',items:['Service provider portfolio','Verified-member discovery and enquiries']}
 });
 export const DEFAULT_PREMIUM_PLANS=Object.freeze([
  {plan_code:'creator_pro',role_type:'creator',monthly_cents:1999,label:'Creator Premium',roster_seats:null},
