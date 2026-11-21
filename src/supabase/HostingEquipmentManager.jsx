@@ -55,6 +55,89 @@ export default function HostingEquipmentManager({propertyId}){
    {assets.map(a=><button type="button" className="flex w-full justify-between border-t border-[var(--cc-border)] py-2 text-left text-xs hover:text-[var(--cc-text-secondary)]" key={a.id} onClick={()=>setItem({...a,daily_cents:a.daily_cents??null})}>
     <span><strong>{a.label}</strong> · {a.category} · {a.quantity} units · {a.condition} · {a.active?'active':'inactive'}</span>
     <span>{'
+   {!assets.length&&<p className="text-xs text-[var(--cc-text-secondary)]">No equipment registered yet.</p>}
+  </div>
+  <form className={panel+' space-y-3'} onSubmit={saveBundle}>
+   <h4 className="font-semibold">Production bundles</h4>
+   <div className="grid grid-cols-2 gap-2">
+    <label className="text-xs">Name<input className={input+' mt-1'} required minLength={3} value={bundle.title} onChange={e=>setBundle(v=>({...v,title:e.target.value}))}/></label>
+    <label className="text-xs">Bundle discount %<input className={input+' mt-1'} type="number" min={0} max={80} step={0.01} value={bundle.discount_bps/100} onChange={e=>setBundle(v=>({...v,discount_bps:Math.round(Number(e.target.value)*100)}))}/></label>
+   </div>
+   {assets.filter(a=>a.active&&!['maintenance','retired'].includes(a.condition)).map(a=>{
+    const selected=bundle.items.find(x=>x.id===a.id);
+    return <div className="flex gap-2 items-center text-xs" key={a.id}><label className="flex flex-1 gap-2"><input type="checkbox" checked={!!selected} onChange={e=>toggle(a.id,e.target.checked)}/>{a.label}</label>
+     {selected&&<input className={input+' max-w-[100px]'} type="number" min={1} max={a.quantity} value={selected.quantity} onChange={e=>setBundle(v=>({...v,items:v.items.map(x=>x.id===a.id?{...x,quantity:Number(e.target.value)}:x)}))}/>}
+    </div>;
+   })}
+   <button disabled={busy||!bundle.items.length} className={button}>Create bundle</button>
+   {bundles.map(v=><p className="border-t border-[var(--cc-border)] pt-2 text-xs text-[var(--cc-text-secondary)]" key={v.id}>{v.title} · {v.discount_bps/100}% off · {v.items?.length||0} items</p>)}
+  </form>
+ </section>;
+}
++((a.daily_cents??a.hourly_cents*24)/100).toFixed(2)}/day</span>
+   </button>)}
+   {!assets.length&&<p className="text-xs text-[var(--cc-text-secondary)]">No equipment registered yet.</p>}
+  </div>
+  <form className={panel+' space-y-3'} onSubmit={saveBundle}>
+   <h4 className="font-semibold">Production bundles</h4>
+   <div className="grid grid-cols-2 gap-2">
+    <label className="text-xs">Name<input className={input+' mt-1'} required minLength={3} value={bundle.title} onChange={e=>setBundle(v=>({...v,title:e.target.value}))}/></label>
+    <label className="text-xs">Bundle discount %<input className={input+' mt-1'} type="number" min={0} max={80} step={0.01} value={bundle.discount_bps/100} onChange={e=>setBundle(v=>({...v,discount_bps:Math.round(Number(e.target.value)*100)}))}/></label>
+   </div>
+   {assets.filter(a=>a.active&&!['maintenance','retired'].includes(a.condition)).map(a=>{
+    const selected=bundle.items.find(x=>x.id===a.id);
+    return <div className="flex gap-2 items-center text-xs" key={a.id}><label className="flex flex-1 gap-2"><input type="checkbox" checked={!!selected} onChange={e=>toggle(a.id,e.target.checked)}/>{a.label}</label>
+     {selected&&<input className={input+' max-w-[100px]'} type="number" min={1} max={a.quantity} value={selected.quantity} onChange={e=>setBundle(v=>({...v,items:v.items.map(x=>x.id===a.id?{...x,quantity:Number(e.target.value)}:x)}))}/>}
+    </div>;
+   })}
+   <button disabled={busy||!bundle.items.length} className={button}>Create bundle</button>
+   {bundles.map(v=><p className="border-t border-[var(--cc-border)] pt-2 text-xs text-[var(--cc-text-secondary)]" key={v.id}>{v.title} · {v.discount_bps/100}% off · {v.items?.length||0} items</p>)}
+  </form>
+ </section>;
+}
++((a.daily_cents??a.hourly_cents*24)/100).toFixed(2)}/day</span>
+   </button>)}
+   {!assets.length&&<p className="text-xs text-[var(--cc-text-secondary)]">No equipment registered yet.</p>}
+  </div>
+  <form className={panel+' space-y-3'} onSubmit={saveBundle}>
+   <h4 className="font-semibold">Production bundles</h4>
+   <div className="grid grid-cols-2 gap-2">
+    <label className="text-xs">Name<input className={input+' mt-1'} required minLength={3} value={bundle.title} onChange={e=>setBundle(v=>({...v,title:e.target.value}))}/></label>
+    <label className="text-xs">Bundle discount %<input className={input+' mt-1'} type="number" min={0} max={80} step={0.01} value={bundle.discount_bps/100} onChange={e=>setBundle(v=>({...v,discount_bps:Math.round(Number(e.target.value)*100)}))}/></label>
+   </div>
+   {assets.filter(a=>a.active&&!['maintenance','retired'].includes(a.condition)).map(a=>{
+    const selected=bundle.items.find(x=>x.id===a.id);
+    return <div className="flex gap-2 items-center text-xs" key={a.id}><label className="flex flex-1 gap-2"><input type="checkbox" checked={!!selected} onChange={e=>toggle(a.id,e.target.checked)}/>{a.label}</label>
+     {selected&&<input className={input+' max-w-[100px]'} type="number" min={1} max={a.quantity} value={selected.quantity} onChange={e=>setBundle(v=>({...v,items:v.items.map(x=>x.id===a.id?{...x,quantity:Number(e.target.value)}:x)}))}/>}
+    </div>;
+   })}
+   <button disabled={busy||!bundle.items.length} className={button}>Create bundle</button>
+   {bundles.map(v=><p className="border-t border-[var(--cc-border)] pt-2 text-xs text-[var(--cc-text-secondary)]" key={v.id}>{v.title} · {v.discount_bps/100}% off · {v.items?.length||0} items</p>)}
+  </form>
+ </section>;
+}
++((a.daily_cents??a.hourly_cents*24)/100).toFixed(2)}/day</span>
+   </button>)}
+   {!assets.length&&<p className="text-xs text-[var(--cc-text-secondary)]">No equipment registered yet.</p>}
+  </div>
+  <form className={panel+' space-y-3'} onSubmit={saveBundle}>
+   <h4 className="font-semibold">Production bundles</h4>
+   <div className="grid grid-cols-2 gap-2">
+    <label className="text-xs">Name<input className={input+' mt-1'} required minLength={3} value={bundle.title} onChange={e=>setBundle(v=>({...v,title:e.target.value}))}/></label>
+    <label className="text-xs">Bundle discount %<input className={input+' mt-1'} type="number" min={0} max={80} step={0.01} value={bundle.discount_bps/100} onChange={e=>setBundle(v=>({...v,discount_bps:Math.round(Number(e.target.value)*100)}))}/></label>
+   </div>
+   {assets.filter(a=>a.active&&!['maintenance','retired'].includes(a.condition)).map(a=>{
+    const selected=bundle.items.find(x=>x.id===a.id);
+    return <div className="flex gap-2 items-center text-xs" key={a.id}><label className="flex flex-1 gap-2"><input type="checkbox" checked={!!selected} onChange={e=>toggle(a.id,e.target.checked)}/>{a.label}</label>
+     {selected&&<input className={input+' max-w-[100px]'} type="number" min={1} max={a.quantity} value={selected.quantity} onChange={e=>setBundle(v=>({...v,items:v.items.map(x=>x.id===a.id?{...x,quantity:Number(e.target.value)}:x)}))}/>}
+    </div>;
+   })}
+   <button disabled={busy||!bundle.items.length} className={button}>Create bundle</button>
+   {bundles.map(v=><p className="border-t border-[var(--cc-border)] pt-2 text-xs text-[var(--cc-text-secondary)]" key={v.id}>{v.title} · {v.discount_bps/100}% off · {v.items?.length||0} items</p>)}
+  </form>
+ </section>;
+}
++((a.daily_cents??a.hourly_cents*24)/100).toFixed(2)}/day</span>
    </button>)}
    {!assets.length&&<p className="text-xs text-[var(--cc-text-secondary)]">No equipment registered yet.</p>}
   </div>
