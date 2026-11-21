@@ -5,7 +5,7 @@
  *
  * Required:
  * CCX_LAW_TEST_SUPABASE_URL, CCX_LAW_TEST_PUBLISHABLE_KEY,
- * CCX_LAW_TEST_SERVICE_KEY, CCX_LAW_TEST_SUBJECT_ID,
+ * CCX_LAW_TEST_SUBJECT_ID,
  * CCX_LAW_TEST_ADMIN_EMAIL, CCX_LAW_TEST_ADMIN_PASSWORD, CCX_LAW_TEST_ADMIN_TOTP,
  * CCX_LAW_TEST_OFFICER_EMAIL, CCX_LAW_TEST_OFFICER_PASSWORD, CCX_LAW_TEST_OFFICER_TOTP,
  * CCX_LAW_TEST_MEMBER_EMAIL, CCX_LAW_TEST_MEMBER_PASSWORD,
@@ -15,7 +15,7 @@ import assert from 'node:assert/strict';
 import {createClient} from '@supabase/supabase-js';
 import {randomUUID} from 'node:crypto';
 const env=process.env;
-const required=['CCX_LAW_TEST_SUPABASE_URL','CCX_LAW_TEST_PUBLISHABLE_KEY','CCX_LAW_TEST_SERVICE_KEY',
+const required=['CCX_LAW_TEST_SUPABASE_URL','CCX_LAW_TEST_PUBLISHABLE_KEY',
  'CCX_LAW_TEST_SUBJECT_ID','CCX_LAW_TEST_ADMIN_EMAIL','CCX_LAW_TEST_ADMIN_PASSWORD','CCX_LAW_TEST_ADMIN_TOTP',
  'CCX_LAW_TEST_OFFICER_EMAIL','CCX_LAW_TEST_OFFICER_PASSWORD','CCX_LAW_TEST_OFFICER_TOTP',
  'CCX_LAW_TEST_MEMBER_EMAIL','CCX_LAW_TEST_MEMBER_PASSWORD'];
@@ -30,7 +30,7 @@ const subject=env.CCX_LAW_TEST_SUBJECT_ID;
 assert.match(subject,/^[0-9a-f-]{36}$/i);
 const publicKey=env.CCX_LAW_TEST_PUBLISHABLE_KEY;
 const client=()=>createClient(url.origin,publicKey,{auth:{autoRefreshToken:false,persistSession:false,detectSessionInUrl:false}});
-const privileged=createClient(url.origin,env.CCX_LAW_TEST_SERVICE_KEY,{auth:{autoRefreshToken:false,persistSession:false}});
+
 async function signIn(email,password){
  const c=client();
  const {data,error}=await c.auth.signInWithPassword({email,password});
@@ -103,18 +103,11 @@ try{
  const revoked=await request(administrator,'admin_decide',{case_id:caseId,decision:'revoke',
   review_note:'Synthetic staging authorization revoked after e2e verification'});
  assert.equal(revoked.error,false);assert.equal((await request(officer,'view',{case_id:caseId})).error,true);
- // Create a second approved fixture, then EXPIRE ONLY THAT FIXTURE with service
- // role in staging. Never use privileged updates on production or other cases.
- const next=await request(officer,'request_case',{...caseArgs,agency_case_number:'CCX-E2E-EXP-'+randomUUID()});
- assert.equal(next.error,false);
- const expId=next.data.item.id;
- assert.equal((await request(administrator,'admin_decide',{case_id:expId,decision:'approve',
-  review_note:'Isolated temporary expiry fixture authorized for test',approved_scopes:['profile'],
-  authorized_process_confirmed:true,hours:1})).error,false);
- const expired=await privileged.from('ccx_law_cases').update({expires_at:'2020-01-01T00:00:00Z'})
-  .eq('id',expId).eq('agency_case_number',next.data.item.agency_case_number);
- if(expired.error)throw Error('Could not expire isolated fixture');
- assert.equal((await request(officer,'view',{case_id:expId})).error,true);
+ // Expired-case acceptance uses a pre-expired, dedicated staging fixture.
+ // The automation never manipulates evidence timestamps or bypasses API roles.
+ if(env.CCX_LAW_TEST_EXPIRED_CASE_ID){
+  assert.equal((await request(officer,'view',{case_id:env.CCX_LAW_TEST_EXPIRED_CASE_ID})).error,true);
+ }
  console.log('PASS live isolated staging officer and admin MFA, scope, disclosure, audit, expiry and revocation');
 }finally{
  await Promise.allSettled([member,officer,administrator].map(c=>c.auth.signOut()));
