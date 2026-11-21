@@ -4,7 +4,7 @@ import {CategoryStrip,DISCOVERY_CATEGORIES} from './CategoryArtwork';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {Search,SlidersHorizontal,RefreshCw,X,ChevronDown,ChevronUp} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
-import {countryName,contentCategories,genderOptions,roleOptions} from './profileOptions';
+import {countryName,contentCategories,genderOptions,roleOptions,orientationOptions} from './profileOptions';
 import GeoLocationSelect,{EMPTY_GEO} from './GeoLocationSelect';
 import {localDiscoveryFilters,validateWorkLink} from './roleWorkspacePolicy.mjs';
 import {useRoleWorkspace} from './RoleWorkspaceContext';
@@ -15,7 +15,7 @@ import AIMatchSuggestions from './AIMatchSuggestions';
 import {IntroThread} from './FriendMessaging';
 const input='w-full min-w-0 rounded-xl bg-[var(--cc-surface-subtle)] border border-[var(--cc-border)] px-3 py-2.5 text-[var(--cc-text-primary)] focus:outline-none focus:ring-2 focus:ring-fuchsia-500';
 const panel='ccx-surface p-5';
-const emptyFilters={query:'',role:'',country:'',state:'',city:'',category:'',gender:''};
+const emptyFilters={query:'',role:'',country:'',state:'',city:'',category:'',gender:'',orientation:'',min_age:'',max_age:'',min_height_cm:'',max_height_cm:'',min_weight_kg:'',max_weight_kg:'',ethnicity:'',min_penis_inches:'',max_penis_inches:'',circumcision:'',breast_size:''};
 const roleNames=Object.fromEntries(roleOptions);
 async function directoryRequest(body){const {data,error}=await supabase.functions.invoke('directory',{body});if(error||data?.error){let message=data?.error||error?.message||'Directory unavailable';if(error?.context?.json){try{const response=await error.context.json();message=response.error||message;}catch{/* use original */}}throw new Error(message);}return data;}
 export default function CreatorDiscovery({user,approved,paid,mode='discovery',onNavigate}){
@@ -23,14 +23,7 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
  const local=localDiscoveryFilters(workspace.profile||{});
  if(local.country)local.country=countryName(local.country);
  const [filters,setFilters]=useState(()=>mode==='discovery'?local:emptyFilters);
- const [filtersOpen,setFiltersOpen]=useState(()=>typeof window!=='undefined'&&window.matchMedia('(min-width: 768px)').matches);
- useEffect(()=>{
-  const media=window.matchMedia('(min-width: 768px)');
-  const update=event=>setFiltersOpen(event.matches);
-  update(media);
-  media.addEventListener('change',update);
-  return()=>media.removeEventListener('change',update);
- },[]);
+ const [filtersOpen,setFiltersOpen]=useState(false);
  const [applied,setApplied]=useState(()=>mode==='discovery'?local:emptyFilters);
  const [results,setResults]=useState([]),[saved,setSaved]=useState([]),[favoriteBusy,setFavoriteBusy]=useState([]);
  const [inviteEligibility,setInviteEligibility]=useState(null),[representativeProfiles,setRepresentativeProfiles]=useState([]);
@@ -75,9 +68,9 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
   <header className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-2xl font-semibold">{mode==='discovery'?'Discovery':mode==='search'?'Search':'Favorites'}</h2><p className="mt-1 text-sm text-[var(--cc-text-secondary)]">{mode==='favorites'?'People you saved from Discovery.':mode==='search'?'Find people in any city and filter by professional role.':local.city?'Discover people in '+local.city+' and change the filters to explore elsewhere.':'Set your city in My Profile to start locally, or choose a city below.'}</p></div>{approved&&<button type="button" className="ccx-secondary rounded-lg p-3" disabled={working} aria-label="Refresh profiles" onClick={()=>void search(applied)}><RefreshCw size={17}/></button>}</header>
   {!approved?<div className={panel}>Independent age verification is required before viewing profiles.</div>:<>
    {mode!=='favorites'&&<CategoryStrip items={DISCOVERY_CATEGORIES}
-    value={DISCOVERY_CATEGORIES.find(item=>item.role===applied.role&&(!item.gender||item.gender===applied.gender))?.key||'all'}
-    onSelect={item=>{const next={...applied,role:item.role,gender:item.gender||''};setFilters(next);void search(next);}}/>}
-   {mode!=='favorites'&&<form className={panel+' space-y-4'} data-discovery-filters="true" onSubmit={e=>{e.preventDefault();void search(filters);if(window.matchMedia('(max-width: 767px)').matches)setFiltersOpen(false);}}>
+    value={DISCOVERY_CATEGORIES.find(item=>item.role===applied.role&&applied.role)?.key||''}
+    onSelect={item=>{const next={...applied,role:item.role};setFilters(next);void search(next);}}/>}
+   {mode!=='favorites'&&<form className={panel+' space-y-4'} data-discovery-filters="true" onSubmit={e=>{e.preventDefault();void search(filters);setFiltersOpen(false);}}>
     <button type="button" className="flex min-h-11 w-full items-center justify-between gap-3 text-left" aria-controls="ccx-discovery-filter-fields" aria-expanded={filtersOpen} onClick={()=>setFiltersOpen(v=>!v)}>
      <span className="flex items-center gap-2"><SlidersHorizontal size={17}/><span className="font-semibold">Discovery filters</span></span>
      {filtersOpen?<ChevronUp size={18}/>:<ChevronDown size={18}/>}
@@ -92,7 +85,27 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
       state:location.state,city:location.city}))}/>
     </div>
     <label className="text-sm">Content type (opt-in profiles)<select className={input+' mt-2'} value={filters.category} onChange={e=>change('category',e.target.value)}><option value="">All categories</option>{contentCategories.map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
-    {mode!=='favorites'&&<label className="text-sm">Gender identity (opt-in profiles)<select className={input+' mt-2'} value={filters.gender} onChange={e=>change('gender',e.target.value)}><option value="">All / not specified</option>{genderOptions.filter(([key])=>key&&key!=='self_describe').map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>}
+    {mode!=='favorites'&&<label className="text-sm">Gender identity (opt-in profiles)<select className={input+' mt-2'} value={filters.gender} onChange={e=>setFilters(old=>({...old,gender:e.target.value,min_penis_inches:'',max_penis_inches:'',circumcision:'',breast_size:''}))}><option value="">All / not specified</option>{genderOptions.filter(([key])=>key&&key!=='self_describe').map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>}
+    <label className="text-sm">Sexual orientation<select className={input+' mt-2'} value={filters.orientation} onChange={e=>change('orientation',e.target.value)}><option value="">Any orientation</option>{orientationOptions.filter(([key])=>['straight','gay','lesbian','bisexual','pansexual','queer','asexual','questioning'].includes(key)).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
+    <label className="text-sm">Ethnicity (self-described)<select className={input+' mt-2'} value={filters.ethnicity} onChange={e=>change('ethnicity',e.target.value)}><option value="">Any ethnicity</option>{[['black','Black'],['white','White'],['asian','Asian'],['hispanic_latino','Hispanic / Latino'],['middle_eastern','Middle Eastern / North African'],['native_indigenous','Native / Indigenous'],['mixed','Mixed'],['other','Other self-description']].map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
+    <div className="grid grid-cols-2 gap-3">
+     {[[ 'min_age','Age from',18,100],['max_age','Age to',18,100]].map(([key,label,min,max])=><label key={key} className="text-sm">{label}<input type="number" min={min} max={max} step="1" className={input+' mt-2'} value={filters[key]} onChange={e=>change(key,e.target.value)}/></label>)}
+    </div>
+    <div className="grid grid-cols-2 gap-3">
+     {[['min_height_cm','Height from (cm)',100,250],['max_height_cm','Height to (cm)',100,250]].map(([key,label,min,max])=><label key={key} className="text-sm">{label}<input type="number" min={min} max={max} step="1" className={input+' mt-2'} value={filters[key]} onChange={e=>change(key,e.target.value)}/></label>)}
+    </div>
+    <div className="grid grid-cols-2 gap-3">
+     {[['min_weight_kg','Weight from (kg)',25,350],['max_weight_kg','Weight to (kg)',25,350]].map(([key,label,min,max])=><label key={key} className="text-sm">{label}<input type="number" min={min} max={max} step="1" className={input+' mt-2'} value={filters[key]} onChange={e=>change(key,e.target.value)}/></label>)}
+    </div>
+    {['man','trans_woman'].includes(filters.gender)&&<>
+     <div className="grid grid-cols-2 gap-3">
+      {[['min_penis_inches','Penis length from (in)'],['max_penis_inches','Penis length to (in)']].map(([key,label])=><label key={key} className="text-sm">{label}<input type="number" min="1" max="16" step="0.5" className={input+' mt-2'} value={filters[key]} onChange={e=>change(key,e.target.value)}/></label>)}
+     </div>
+     <label className="text-sm">Circumcision<select className={input+' mt-2'} value={filters.circumcision} onChange={e=>change('circumcision',e.target.value)}><option value="">Any / not specified</option><option value="circumcised">Circumcised</option><option value="uncircumcised">Uncircumcised</option></select></label>
+    </>}
+    {filters.gender==='woman'&&<label className="text-sm">Breast size (self-reported)<select className={input+' mt-2'} value={filters.breast_size} onChange={e=>change('breast_size',e.target.value)}><option value="">Any / not specified</option>{['AA','A','B','C','D','DD','DDD','E','F','G','H','I','J','K+'].map(size=><option key={size} value={size}>{size}</option>)}</select></label>}
+    <p className="text-xs text-[var(--cc-text-secondary)] sm:col-span-2 lg:col-span-3">Sensitive filters search only details members explicitly choose to share with other verified members. Age is self-reported profile age, not the identity document's date of birth. Leave location fields blank to search broadly, or specify country, state or city individually.</p>
+
    </div><div className="flex flex-wrap gap-2"><button className="ccx-primary inline-flex items-center gap-2 rounded-lg px-4 py-2.5" disabled={working}><Search size={17}/>{working?'Searching…':'Search people'}</button><button type="button" className="ccx-secondary rounded-lg px-4 py-2.5" onClick={reset} disabled={working}>{mode==='discovery'?'Reset to my city':'Reset filters'}</button></div></div>}</form>}
    {!paid&&mode!=='favorites'&&<p className="text-sm text-[var(--cc-text-secondary)]">Free members can browse and save profiles worldwide. Existing local contact limits and membership requirements still apply.</p>}
    {error&&<p role="alert" className={panel+' text-red-800'}>{error}</p>}{favoriteError&&<p role="alert" className={panel+' text-red-800'}>Favorites could not be updated: {favoriteError}</p>}
