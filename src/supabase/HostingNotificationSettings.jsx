@@ -13,7 +13,7 @@ function decodeKey(value){
  return Uint8Array.from(raw,c=>c.charCodeAt(0));
 }
 export default function HostingNotificationSettings(){
- const [preferences,setPreferences]=useState({email_digest:false,booking_reminders:true,message_alerts:true});
+ const [preferences,setPreferences]=useState({email_digest:false,booking_reminders:true,message_alerts:true,transactional_email:false});
  const [enabled,setEnabled]=useState(false);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
@@ -70,7 +70,7 @@ export default function HostingNotificationSettings(){
     <h3 className="font-semibold">Your notification preferences</h3>
     {[
       ['email_digest','Email summaries'],['booking_reminders','Booking and shoot reminders'],
-      ['message_alerts','New message notifications']
+      ['message_alerts','New message notifications'],['transactional_email','Individual private notification emails']
     ].map(([id,label])=><label key={id} className="flex items-center gap-3 text-sm"><input type="checkbox" checked={Boolean(preferences[id])} onChange={e=>setPreferences(v=>({...v,[id]:e.target.checked}))}/>{label}</label>)}
     <button className={button} disabled={busy}>Save preferences</button>
   </form>
