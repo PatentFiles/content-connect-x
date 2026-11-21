@@ -1,6 +1,6 @@
 /** Original header, sidebar, mobile drawer and bottom navigation. Supabase only. */
 import React,{useEffect,useMemo,useState} from 'react';
-import {Bell,ChevronRight,ExternalLink,LogOut,Menu,Settings,Shield,X,CreditCard,LayoutGrid,Compass,Users,Briefcase,ShieldCheck,UserRound,Plug,MoreHorizontal,ChevronDown} from 'lucide-react';
+import {Bell,ChevronRight,ExternalLink,LogOut,Menu,Settings,Shield,X,CreditCard,LayoutGrid,Compass,Users,Briefcase,ShieldCheck,UserRound,Plug,MoreHorizontal,ChevronDown,Trophy} from 'lucide-react';
 import {getNavigationForRole} from './originalRoleNav';
 import {groupedWorkspaceNavigation,currentNavigationGroup} from './workspaceNavigationGroups.mjs';
 import {isModuleVisible} from './featureModules.mjs';
@@ -11,14 +11,14 @@ import {supabase} from '@/api/supabaseClient';
 const routeMap=Object.freeze({
  Dashboard:'dashboard',Discovery:'directory',Search:'directory',Favorites:'favorites',Connections:'connections',Groups:'groups',Messages:'messages',Collaborations:'collaborations',
  Contracts:'contracts',Shop:'shop',Testing:'testing',Verification:'verification',Properties:'hosting',HostingMarketplace:'hosting',HostDashboard:'host',HostProfile:'profile',
- HostSettings:'host-settings',Profile:'profile',PublicProfile:'public-profile',Settings:'settings',Representations:'roster',Roster:'roster',RosterPortfolio:'roster',Portfolio:'portfolio',
+ HostSettings:'host-settings',Profile:'profile',PublicProfile:'public-profile',YearInReview:'annual-recap',Settings:'settings',Representations:'roster',Roster:'roster',RosterPortfolio:'roster',Portfolio:'portfolio',
  Invitations:'notifications',Notifications:'notifications',AccountSecurity:'account-security',Consent:'consent',ProductionManager:'production',AvailabilitySchedule:'schedule',TravelSchedule:'schedule',AdminDashboard:'controls',AgentManagement:'controls',
  DeveloperReadMe:'developer',CompliancePortal:'integrations',TestingReviews:'testing-reviews',Pricing:'membership',Membership:'membership',
  CreateCollaboration:'collaborations',CollaborationDetail:'collaborations',ViewProfile:'directory',ViewContract:'contracts',Meeting:'meeting',PropertyDetail:'hosting'
 });
 const keyFor=path=>routeMap[path]||'dashboard';
 const reverseRoutes={dashboard:'Dashboard',directory:'Discovery',favorites:'Favorites',connections:'Connections',groups:'Groups',messages:'Messages',collaborations:'Collaborations',
- contracts:'Contracts',shop:'Shop',testing:'Testing',verification:'Verification',hosting:'Properties',host:'HostDashboard',profile:'Profile','public-profile':'PublicProfile',settings:'Settings',portfolio:'Portfolio',
+ contracts:'Contracts',shop:'Shop',testing:'Testing',verification:'Verification',hosting:'Properties',host:'HostDashboard',profile:'Profile','public-profile':'PublicProfile','annual-recap':'YearInReview',settings:'Settings',portfolio:'Portfolio',
  invitations:'Notifications',notifications:'Notifications','account-security':'AccountSecurity',consent:'Consent',production:'ProductionManager',schedule:'AvailabilitySchedule',representations:'Roster',roster:'Roster','host-settings':'HostSettings',controls:'AdminDashboard',integrations:'CompliancePortal','testing-reviews':'TestingReviews',membership:'Pricing',meeting:'Meeting'};
 export const tabFromLegacyPath=pathname=>{const part=decodeURIComponent(String(pathname||'').split('/').filter(Boolean)[0]||'');const matched=Object.keys(routeMap).find(key=>key.toLowerCase()===part.toLowerCase());return matched?routeMap[matched]:'dashboard';};
 export const legacyPathForTab=tab=>'/'+(reverseRoutes[tab]||'Dashboard');
@@ -117,6 +117,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
  ]:[],[isAdmin]);
  const accountNav=useMemo(()=>[
   {path:'PublicProfile',label:'View Profile',icon:ExternalLink},
+  {path:'YearInReview',label:'Year in Review',icon:Trophy},
   {path:'Notifications',label:'Notifications',icon:Bell},
   {path:'Membership',label:isPremiumMember?'Membership & billing':'Membership · Free',icon:CreditCard}
  ],[isPremiumMember]);
