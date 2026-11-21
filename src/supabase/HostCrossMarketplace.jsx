@@ -3,11 +3,11 @@
  * is a read/write *client* of that canonical inventory, never a local cache.
  */
 import React,{useCallback,useEffect,useState} from 'react';
-import {Search,CalendarDays,MapPin,Home,ArrowLeft,RefreshCw,ExternalLink,ShieldCheck} from 'lucide-react';
+import {CalendarDays,MapPin,ArrowLeft,RefreshCw,ShieldCheck} from 'lucide-react';
 import {hostConnectAction} from './hostConnectApi';
 import {venueDateToIso,nightsBetween} from './hostingDateRange.mjs';
 import HostDialog from './HostDialog';
-import GeoLocationSelect,{EMPTY_GEO} from './GeoLocationSelect';
+import MarketplaceExplore from './MarketplaceExplore';
 import HostGuestInspection from './HostGuestInspection';
 import {uploadHostGuestEvidence} from './hostGuestEvidenceStorage';
 const panel='ccx-surface rounded-2xl p-5';
@@ -20,7 +20,7 @@ const localDate=value=>value?new Date(value).toLocaleString(undefined,{dateStyle
 export default function HostCrossMarketplace({paid=false,user=null}){
  const [items,setItems]=useState([]),[bookings,setBookings]=useState([]),[view,setView]=useState('explore');
  const [selected,setSelected]=useState(null),[unavailable,setUnavailable]=useState([]);
- const [query,setQuery]=useState(''),[where,setWhere]=useState({...EMPTY_GEO}),[starts,setStarts]=useState(''),[ends,setEnds]=useState('');
+ const [starts,setStarts]=useState(''),[ends,setEnds]=useState('');
  const [crew,setCrew]=useState(1),[purpose,setPurpose]=useState(''),[quote,setQuote]=useState(null),[modal,setModal]=useState(false),[ack,setAck]=useState(false);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [inspectionBooking,setInspectionBooking]=useState(null);
@@ -48,7 +48,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
   return()=>{active=false;window.clearInterval(timer);window.removeEventListener('focus',sync);};
  },[refresh,selected?.id]);
  const run=async fn=>{setBusy(true);setError('');setNotice('');try{await fn();}catch(e){setError(e.message||'Host Connect X unavailable');}finally{setBusy(false);}};
- const search=()=>run(async()=>{const r=await hostConnectAction('browse',{query,country:where.country,state:where.state,city:where.city});setItems(r.items||[]);});
+ const search=params=>run(async()=>{const r=await hostConnectAction('browse',params);setItems(r.items||[]);});
  const open=id=>run(async()=>{const r=await hostConnectAction('listing',{id});setSelected(r.item);setUnavailable(r.unavailable||[]);setStarts('');setEnds('');setPurpose(r.item?.permitted_uses?.[0]||'');setCrew(1);setQuote(null);});
  const calculate=()=>run(async()=>{
   if(!selected||nightsBetween(starts,ends)<1)throw Error('Choose a valid daily rental period.');
@@ -71,7 +71,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
    <div><p className="text-xs font-bold uppercase tracking-wider text-[var(--cc-link)]">Host Connect X venues</p>
     <h1 className="mt-1 text-2xl font-bold">Find a production location</h1>
     <p className="text-sm text-[var(--cc-text-secondary)]">Live approved spaces and dates from Host Connect X. One booking calendar on both websites.</p></div>
-   <a className={secondary} href="https://hostconnectx.com" target="_blank" rel="noopener noreferrer"><ExternalLink size={16}/> Open Host Connect X</a>
+
   </div>
   <div className="flex flex-wrap gap-2" role="group" aria-label="Property marketplace sections">
    <button className={view==='explore'?primary:secondary} onClick={()=>{setView('explore');setSelected(null);}}>Explore spaces</button>
@@ -80,24 +80,8 @@ export default function HostCrossMarketplace({paid=false,user=null}){
   </div>
   {error&&<p role="alert" className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
   {notice&&<p role="status" className="rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm">{notice}</p>}
-  {view==='explore'&&!selected&&<div className="space-y-5">
-   <form onSubmit={e=>{e.preventDefault();void search();}} className={panel+' grid gap-3 md:grid-cols-[1fr_1fr_auto]'}>
-    <label className="text-sm">Find a location<input className={input} type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Studio, house, venue name"/></label>
-    <div className="text-sm"><GeoLocationSelect compact allowAny idPrefix="ccx-venue-search" value={where}
-      onChange={location=>setWhere(location)}/></div>
-    <button className={primary+' self-end'} disabled={busy}><Search size={17}/> Search</button>
-   </form>
-   {!items.length?<p className={panel+' text-sm text-[var(--cc-text-secondary)]'}>There are no independently approved Host Connect X locations matching this search yet. New listings appear after property verification.</p>:
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-     {items.map(p=><button type="button" key={p.id} className="ccx-surface overflow-hidden rounded-xl text-left" onClick={()=>void open(p.id)}>
-      {p.cover_url?<img className="aspect-[4/3] w-full object-cover" src={p.cover_url} alt={p.title}/>:
-       <div className="flex aspect-[4/3] items-center justify-center bg-[var(--cc-surface-subtle)]"><Home size={38} className="text-[var(--cc-text-muted)]"/></div>}
-      <div className="space-y-2 p-4"><h3 className="text-lg font-semibold">{p.title}</h3>
-       <p className="flex items-center gap-1 text-xs text-[var(--cc-text-secondary)]"><MapPin size={13}/>{[p.city,p.state,p.country].filter(Boolean).join(', ')}</p>
-       <p className="font-semibold">{money(p.daily_rate_cents)} / day</p>
-      </div></button>)}
-    </div>}
-  </div>}
+  {view==='explore'&&!selected&&<MarketplaceExplore items={items} busy={busy} onSearch={search}
+    onOpen={id=>void open(id)} site="ccx"/>}
   {view==='explore'&&selected&&<div className="grid gap-5 lg:grid-cols-[1fr_345px]">
    <div className="space-y-4"><button className={secondary} onClick={()=>{setSelected(null);setQuote(null);}}><ArrowLeft size={16}/> All spaces</button>
     <section className={panel+' space-y-3'}>
