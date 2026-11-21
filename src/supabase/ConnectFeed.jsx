@@ -59,6 +59,19 @@ function FeedPost({post,paid,userId,onChanged,onError}){
   {local.original&&<div className="rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm">
    <p className="text-xs font-semibold">{local.original.author_name||'Member'}</p>
    <p className="mt-2 whitespace-pre-wrap break-words">{local.original.body}</p>
+    {local.original.photos?.length>0&&<div className={'mt-3 grid gap-2 '+(local.original.photos.length>1?'grid-cols-2':'grid-cols-1')} data-original-repost-media="true">
+     {local.original.photos.map(photo=>{
+      const concealed=photo.content_label==='adult_nudity'&&!revealedPhotos.includes(photo.id);
+      return <div key={photo.id} className="relative overflow-hidden rounded-xl border border-[var(--cc-border)]">
+       <a href={concealed?undefined:photo.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" aria-label={'View original post photo '+(photo.caption||'')} className="block">
+        <img src={photo.url} alt={concealed?'Adult image concealed until revealed':photo.caption||'Original professional photo'} loading="lazy" referrerPolicy="no-referrer"
+         className={'aspect-square h-auto w-full object-cover '+(concealed?'blur-2xl':'')}/>
+       </a>
+       {concealed&&<button type="button" className="absolute inset-0 flex items-center justify-center bg-black/40 px-4 text-center text-sm font-semibold text-white"
+        onClick={()=>setRevealedPhotos(v=>[...v,photo.id])}>Adult nudity — click to reveal</button>}
+      </div>;
+     })}
+    </div>}
   </div>}
   {local.photos?.length>0&&<div className={'grid gap-2 '+(local.photos.length>1?'grid-cols-2':'grid-cols-1')}>
    {local.photos.map(photo=>{
