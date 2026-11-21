@@ -9,7 +9,7 @@ test('monthly pricing excludes Host and includes configured agent capacities',()
  assert.deepEqual(DEFAULT_PREMIUM_PLANS.map(p=>p.monthly_cents),[1999,2999,4999,4999,4999,9999,24999,24999]);
  assert.deepEqual(DEFAULT_PREMIUM_PLANS.filter(p=>p.role_type==='agent').map(p=>p.roster_seats),[10,25,null]);
  assert.equal(FREE_BENEFITS.some(s=>s.includes('25-mile')),true);
- for(const role of PROFESSIONAL_ROLES)assert.ok(ROLE_BENEFITS[role.id].items.length>=4);
+ for(const role of PROFESSIONAL_ROLES)assert.ok(ROLE_BENEFITS[role.id].items.length>=2,role.id+' needs a description without invented paid plans');
 });
 test('five local contact actions are separately gated from premium collaboration features',()=>{
  for(const a of ['request_connection','respond_connection','send_message','list_messages','list_notifications'])assert.equal(isFreeAction(a),true);
