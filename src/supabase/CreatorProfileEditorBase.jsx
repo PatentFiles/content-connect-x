@@ -12,9 +12,9 @@ import TravelCalendar from './TravelCalendar';
 import {TestingCredentials} from './CollaborationTesting';
 import MemberSocialLinks from './MemberSocialLinks';
 import ProfileAnalytics from './ProfileAnalytics';
+import GeoLocationSelect from './GeoLocationSelect';
 import OriginalCreatorPreferences,{initialCreatorPreferences} from './OriginalCreatorPreferences';
-import {originalUSCities,originalUSStateCodes} from './originalLocationData';
-import {countries,countryCode,countryName,regionOptions,roleOptions,
+import {countryCode,countryName,roleOptions,
  genderOptions,orientationOptions,contentCategories,scenePairings,specialties} from './profileOptions';
 
 const input='w-full min-w-0 rounded-xl bg-[var(--cc-surface-subtle)] border border-[var(--cc-border)] px-3 py-2.5 text-[var(--cc-text-primary)] focus:outline-none focus:ring-2 focus:ring-fuchsia-500';
@@ -236,29 +236,11 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
         </section>
         <section className={panel}><h3 className="text-lg font-semibold">Location</h3>
          <p className="text-xs text-[var(--cc-text-secondary)]">Only city, state or region, and country are shared in discovery. Never enter your exact address here.</p>
-         <div className="grid gap-3 sm:grid-cols-3">
-          <label className="block text-sm">Country
-           <select className={input+' mt-2'} value={form.country}
-            onChange={e=>setForm(old=>({...old,country:e.target.value,state:'',city:''}))}>
-            {countries.map(c=><option key={c.code} value={c.code}>{c.name}</option>)}</select></label>
-          <label className="block text-sm">State / province / region
-           {regionOptions[form.country]?<select className={input+' mt-2'} value={form.state}
-            onChange={e=>setForm(old=>({...old,state:e.target.value,city:''}))}>
-             <option value="">Select region</option>
-             {regionOptions[form.country].map(s=><option key={s} value={s}>{s}</option>)}
-            </select>:<input className={input+' mt-2'} value={form.state} onChange={e=>update('state',e.target.value)}
-            placeholder="State / region" maxLength={100}/>}</label>
-          <label className="block text-sm">City
-           {form.country==='US'&&originalUSCities[originalUSStateCodes[form.state]]?.length>0&&
-            <select className={input+' mt-2'} value={originalUSCities[originalUSStateCodes[form.state]].includes(form.city)?form.city:''}
-             onChange={e=>update('city',e.target.value)}>
-             <option value="">Select a city or enter another below</option>
-             {originalUSCities[originalUSStateCodes[form.state]].map(city=><option key={city} value={city}>{city}</option>)}
-            </select>}
-           <input className={input+' mt-2'} value={form.city}
-            onChange={e=>update('city',e.target.value)} maxLength={100} placeholder="City or other city"/>
-          </label>
-         </div>
+         <GeoLocationSelect idPrefix="ccx-profile" value={{
+          country:countryName(form.country),countryCode:form.country,state:form.state,city:form.city
+         }} onChange={location=>setForm(old=>({...old,
+          country:location.countryCode||old.country,state:location.state,city:location.city}))}/>
+         <p className="mt-2 text-xs text-[var(--cc-text-muted)]">Country, state and city must be selected from the location catalog. Never enter a precise residential address.</p>
         </section>
       </>}
       {id==='identity'&&<section className={panel}><h3 className="text-lg font-semibold">Personal identity</h3>
