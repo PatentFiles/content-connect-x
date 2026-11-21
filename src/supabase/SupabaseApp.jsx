@@ -29,6 +29,7 @@ import OriginalShell,{tabFromLegacyPath,legacyPathForTab} from './OriginalShell'
 import OriginalRoleDashboard from './OriginalRoleDashboard';
 import CreatorProfileEditor from './CreatorProfileEditor';
 import MemberPublicProfile from './MemberPublicProfile';
+import AnnualRecap from './AnnualRecap';
 import MeetingStudio from './MeetingStudio';
 import AffiliateShop from './AffiliateShop';
 import CreatorDiscovery from './CreatorDiscovery';
@@ -460,6 +461,7 @@ export default function SupabaseApp() {
       </section>
     </>}
     {tab==='public-profile'&&approved&&<MemberPublicProfile onNavigate={navigateInWorkspace}/>}
+    {tab==='annual-recap'&&approved&&<AnnualRecap/>}
     {tab==='verification'&&<div className="mx-auto max-w-md"><IdentityVerification onApproval={()=>refresh(session)}/></div>}
     {['directory','favorites'].includes(tab)&&
       <CreatorDiscovery key={tab} user={user} approved={approved} paid={paid}
