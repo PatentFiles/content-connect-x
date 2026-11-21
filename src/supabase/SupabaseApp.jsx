@@ -270,6 +270,10 @@ export default function SupabaseApp() {
       </nav>
     </header>
     <PublicPricing/>
+    <footer className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-2 px-4 py-6 text-sm text-[var(--cc-text-secondary)]" aria-label="Connected marketplaces">
+     <span>Production spaces and venue hosting:</span>
+     <a href="https://hostconnectx.com" className="font-bold underline underline-offset-4" aria-label="Host Connect X">Host Connect<span style={{color:"#12698f"}}>X</span></a>
+    </footer>
   </div>;
   if(!user&&!authPage)return <div className={shell}>
     <div className="ccx-brand-topline"/>
@@ -293,6 +297,10 @@ export default function SupabaseApp() {
     </section>
     <PublicLandingSections/>
     </main>
+    <footer className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-2 px-4 py-6 text-sm text-[var(--cc-text-secondary)]" aria-label="Connected marketplaces">
+     <span>Production spaces and venue hosting:</span>
+     <a href="https://hostconnectx.com" className="font-bold underline underline-offset-4" aria-label="Host Connect X">Host Connect<span style={{color:"#12698f"}}>X</span></a>
+    </footer>
   </div>;
   if(!user&&authPage)return <div className={shell}>
     <div className="ccx-brand-topline"/>
