@@ -2,17 +2,16 @@
  * report payloads, member emails or provider secrets leave the backend.
  */
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
+import {verifiedAal2} from '../_shared/verifiedAdminAal.mjs';
 const respond=(payload,status=200)=>Response.json(payload,{status,headers:{'Cache-Control':'no-store','X-Content-Type-Options':'nosniff'}});
 Deno.serve(async req=>{
  if(req.method!=='POST')return respond({error:'POST required'},405);
  const url=Deno.env.get('SUPABASE_URL'),anon=Deno.env.get('SUPABASE_ANON_KEY'),service=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
  if(!url||!anon||!service)return respond({error:'Service unavailable'},503);
  const caller=createClient(url,anon,{global:{headers:{Authorization:req.headers.get('Authorization')||''}}});
- const [{data:{user},error:authError},{data:aal,error:aalError}]=await Promise.all([
-  caller.auth.getUser(),caller.auth.mfa.getAuthenticatorAssuranceLevel()
- ]);
+ const {data:{user},error:authError}=await caller.auth.getUser();
  if(authError||!user)return respond({error:'Sign in required'},401);
- if(aalError||aal?.currentLevel!=='aal2')return respond({error:'Administrator two-factor verification required'},403);
+ if(!verifiedAal2(req.headers.get('Authorization'),user.id))return respond({error:'Administrator two-factor verification required'},403);
  const db=createClient(url,service),now=new Date().toISOString();
  const [{data:sec,error:secError},{data:admission,error:admissionError}]=await Promise.all([
   db.from('account_security').select('admin,banned,suspended').eq('user_id',user.id).maybeSingle(),
