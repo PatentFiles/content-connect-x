@@ -62,7 +62,7 @@ jobs:
       - name: Provider endpoints reject anonymous or unsigned requests
         run: |
           # Retry bounded transport timeouts, never accept a timeout, 404 or 2xx.
-          for fn in identity-verification ccx-law-portal ccx-operations membership-billing membership-ccbill-webhook hosting-ccbill-webhook; do
+          for fn in identity-verification ccx-law-portal annual-recap ccx-operations membership-billing membership-ccbill-webhook hosting-ccbill-webhook; do
             payload='{}'
             if [ "$fn" = identity-verification ]; then payload='{"action":"status"}'; fi
             code=$(curl --silent --show-error --retry 2 --retry-all-errors --retry-delay 2 --retry-max-time 65 --connect-timeout 10 --max-time 20 -o /tmp/provider-response -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d "$payload" "https://yxuqbygykpfbioslljlf.supabase.co/functions/v1/$fn")
