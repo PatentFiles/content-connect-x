@@ -269,8 +269,16 @@ export default function OnlyHostApp(){
   </main>
   <footer className="oh-footer"><div className="oh-landing-container oh-footer-inner">
    <strong className="text-base font-bold">Host Connect</strong>
+   <nav aria-label="Host Connect legal and support links" className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs">
+    <a href="/trust/terms">Terms</a>
+    <a href="/trust/privacy">Privacy</a>
+    <a href="/trust/cookies">Cookies</a>
+    <a href="/trust/billing">Billing &amp; cancellations</a>
+    <a href="/trust/content-removal">Report content or safety concern</a>
+    <a href="/trust/accessibility">Accessibility</a>
+   </nav>
    <a href="/" className="oh-ccx-gradient">Content Connect X</a>
-   <p>© 2027 Host Connect. All rights reserved.</p>
+   <p>© {new Date().getFullYear()} Host Connect. All rights reserved.</p>
   </div></footer>
   {showLogin&&<div className="oh-modal-backdrop" role="presentation" onClick={()=>setShowLogin(false)}>
    <section role="dialog" aria-modal="true" aria-label="Host Connect account" className="oh-modal max-w-md" onClick={e=>e.stopPropagation()}>
