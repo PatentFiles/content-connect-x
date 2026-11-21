@@ -5,6 +5,25 @@
  * Change palette ONLY here; signed-in modules inherit their semantic tokens.
  */
 :root[data-ccx-appearance="workspace"] {
+ --brand-host-bg:#f7fafd;
+ --brand-host-surface:#ffffff;
+ --brand-host-surface-subtle:#f4f9fc;
+ --brand-host-surface-hover:#e8f3fa;
+ --brand-host-border:#dce8f0;
+ --brand-host-border-hover:#a7c9df;
+ --brand-host-input-border:#c5d9e7;
+ --brand-host-text-primary:#182b3e;
+ --brand-host-text-secondary:#435a6e;
+ --brand-host-text-muted:#637889;
+ --brand-host-link:#11668b;
+ --brand-host-blue:#11668b;
+ --brand-host-pink:#5962b7;
+ --brand-host-action:#12698f;
+ --brand-host-action-hover:#0c5272;
+ --brand-host-on-action:#ffffff;
+ --brand-host-focus:#1584ac;
+ --brand-host-accent-surface:#e9f5fb;
+ --brand-host-accent-border:#b6dce9;
  --cc-radius-card:16px;
  --cc-radius-control:11px;
  --cc-shadow:0 2px 8px rgba(24,20,38,.045);
@@ -40,25 +59,25 @@
 }
 :root[data-ccx-appearance="workspace"] .oh-app,
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .host-connect-theme {
- --cc-bg:#f7fafd;
- --cc-surface:#ffffff;
- --cc-surface-subtle:#f4f9fc;
- --cc-surface-hover:#e8f3fa;
- --cc-border:#dce8f0;
- --cc-border-hover:#a7c9df;
- --cc-input-border:#c5d9e7;
- --cc-text-primary:#182b3e;
- --cc-text-secondary:#435a6e;
- --cc-text-muted:#637889;
- --cc-link:#11668b;
- --cc-blue:#11668b;
- --cc-pink:#5962b7;
- --cc-action:#12698f;
- --cc-action-hover:#0c5272;
- --cc-on-action:#ffffff;
- --cc-focus:#1584ac;
- --cc-accent-surface:#e9f5fb;
- --cc-accent-border:#b6dce9;
+ --cc-bg:var(--brand-host-bg);
+ --cc-surface:var(--brand-host-surface);
+ --cc-surface-subtle:var(--brand-host-surface-subtle);
+ --cc-surface-hover:var(--brand-host-surface-hover);
+ --cc-border:var(--brand-host-border);
+ --cc-border-hover:var(--brand-host-border-hover);
+ --cc-input-border:var(--brand-host-input-border);
+ --cc-text-primary:var(--brand-host-text-primary);
+ --cc-text-secondary:var(--brand-host-text-secondary);
+ --cc-text-muted:var(--brand-host-text-muted);
+ --cc-link:var(--brand-host-link);
+ --cc-blue:var(--brand-host-blue);
+ --cc-pink:var(--brand-host-pink);
+ --cc-action:var(--brand-host-action);
+ --cc-action-hover:var(--brand-host-action-hover);
+ --cc-on-action:var(--brand-host-on-action);
+ --cc-focus:var(--brand-host-focus);
+ --cc-accent-surface:var(--brand-host-accent-surface);
+ --cc-accent-border:var(--brand-host-accent-border);
  --ccx-fuchsia:#12698f;
  --ccx-pink:#5962b7;
  --ccx-blue:#12698f;
@@ -369,4 +388,43 @@
  background:var(--cc-action)!important;
  border-color:var(--cc-action)!important;
  color:var(--cc-on-action)!important;
+}
+
+/* HostDialog is intentionally portaled to <body>. It must receive the same
+ * brand variables as the Host app rather than falling back to slate/navy.
+ */
+:root[data-ccx-appearance="workspace"] .oh-dialog.host-connect-theme {
+ --cc-bg:var(--brand-host-bg);
+ --cc-surface:var(--brand-host-surface);
+ --cc-surface-subtle:var(--brand-host-surface-subtle);
+ --cc-surface-hover:var(--brand-host-surface-hover);
+ --cc-border:var(--brand-host-border);
+ --cc-border-hover:var(--brand-host-border-hover);
+ --cc-input-border:var(--brand-host-input-border);
+ --cc-text-primary:var(--brand-host-text-primary);
+ --cc-text-secondary:var(--brand-host-text-secondary);
+ --cc-text-muted:var(--brand-host-text-muted);
+ --cc-link:var(--brand-host-link);
+ --cc-blue:var(--brand-host-blue);
+ --cc-pink:var(--brand-host-pink);
+ --cc-action:var(--brand-host-action);
+ --cc-action-hover:var(--brand-host-action-hover);
+ --cc-on-action:var(--brand-host-on-action);
+ --cc-focus:var(--brand-host-focus);
+ --cc-accent-surface:var(--brand-host-accent-surface);
+ --cc-accent-border:var(--brand-host-accent-border);
+ color:var(--cc-text-primary);
+ background:var(--cc-surface);
+ border-color:var(--cc-border);
+}
+:root[data-ccx-appearance="workspace"] .oh-dialog.host-connect-theme .oh-primary,
+:root[data-ccx-appearance="workspace"] .oh-dialog.host-connect-theme .ccx-action-primary {
+ background:var(--cc-action)!important;
+ border-color:var(--cc-action)!important;
+ color:var(--cc-on-action)!important;
+}
+:root[data-ccx-appearance="workspace"] .oh-dialog.host-connect-theme .oh-secondary {
+ background:var(--cc-surface)!important;
+ border-color:var(--cc-border)!important;
+ color:var(--cc-text-primary)!important;
 }
