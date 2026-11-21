@@ -151,12 +151,12 @@ function FilterModal({value,onChange,onClose,onApply,matching}){
     </section>
     {amenityGroups.map(group=><section key={group.title} className="border-t border-[#e2e8ed] pt-5">
      <h3 className="mb-3 font-semibold">{group.title}</h3>
-     <div className="grid gap-3 sm:grid-cols-2">{group.items.map(([id,label])=><label key={id} className="flex min-h-10 items-center gap-3 text-sm">
+     <div className="grid gap-3 sm:grid-cols-2">{group.items.map(([id,label])=><label key={id} className="flex min-h-11 items-center gap-3 text-sm">
       <input type="checkbox" className="h-4 w-4 accent-[#12698f]" checked={local.amenities.includes(id)} onChange={()=>toggle('amenities',id)}/>{label}
      </label>)}</div>
     </section>)}
     <section className="border-t border-[#e2e8ed] pt-5"><h3 className="mb-3 font-semibold">Accessibility</h3>
-     <div className="grid gap-3 sm:grid-cols-2">{accessibility.map(([id,label])=><label key={id} className="flex items-center gap-3 text-sm">
+     <div className="grid gap-3 sm:grid-cols-2">{accessibility.map(([id,label])=><label key={id} className="flex min-h-11 items-center gap-3 text-sm">
       <input type="checkbox" className="h-4 w-4 accent-[#12698f]" checked={local.access.includes(id)} onChange={()=>toggle('access',id)}/>{label}</label>)}</div>
     </section>
     <section className="grid gap-4 border-t border-[#e2e8ed] pt-5 sm:grid-cols-2">
