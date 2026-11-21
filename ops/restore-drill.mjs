@@ -64,21 +64,25 @@ function requireTools(...names){
  }
 }
 function execute(command,args,opts={}){
+ // The connection string is passed in a protected child environment, never
+ // the command line or the drill attestation.
  const result=spawnSync(command,args,{stdio:['ignore','pipe','pipe'],encoding:'utf8',timeout:opts.timeout||30000,
-  env:{...process.env,PGCONNECT_TIMEOUT:'10'}});
+  env:{...process.env,PGCONNECT_TIMEOUT:'10',...(opts.database?{PGDATABASE:opts.database}:{})}});
  if(result.error||result.status!==0)throw Error(command+' operation failed. Consult the private runner logs; no data was printed.');
  return result.stdout.trim();
 }
 function snapshot(dsn){
  // Only fixed count queries are run: never log row contents.
- return execute('psql',['--no-psqlrc','--no-align','--tuples-only','--set=ON_ERROR_STOP=1','--dbname='+dsn,
-  '-c',"select (select count(*) from auth.users)::text||','||(select count(*) from public.member_profiles)::text||','||(select count(*) from public.member_media_assets)::text||','||(select count(*) from storage.objects)::text||','||(select count(*) from public.ccx_law_disclosure_audit)::text;"]);
+ return execute('psql',['--no-psqlrc','--no-align','--tuples-only','--set=ON_ERROR_STOP=1',
+  '-c',"select (select count(*) from auth.users)::text||','||(select count(*) from public.member_profiles)::text||','||(select count(*) from public.member_media_assets)::text||','||(select count(*) from storage.objects)::text||','||(select count(*) from public.ccx_law_disclosure_audit)::text;"],{database:dsn});
 }
-function pipeline(firstCommand,firstArgs,lastCommand,lastArgs){
+function pipeline(firstCommand,firstArgs,lastCommand,lastArgs,firstDatabase=null,lastDatabase=null){
  return new Promise((resolve,reject)=>{
   let failure=null;
-  const source=spawn(firstCommand,firstArgs,{stdio:['ignore','pipe','ignore']});
-  const dest=spawn(lastCommand,lastArgs,{stdio:['pipe','ignore','ignore']});
+  const source=spawn(firstCommand,firstArgs,{stdio:['ignore','pipe','ignore'],
+   env:{...process.env,...(firstDatabase?{PGDATABASE:firstDatabase}:{})}});
+  const dest=spawn(lastCommand,lastArgs,{stdio:['pipe','ignore','ignore'],
+   env:{...process.env,...(lastDatabase?{PGDATABASE:lastDatabase}:{})}});
   const record=error=>{failure||=error;};
   source.on('error',record);dest.on('error',record);
   source.stdout.pipe(dest.stdin);
@@ -104,19 +108,22 @@ export async function main(env=process.env){
  const targetManifest=JSON.parse(readFileSync(env.CCX_DRILL_TARGET_STORAGE_MANIFEST,'utf8'));
  validateManifest(sourceManifest);validateManifest(targetManifest);
  const targetReady=execute('psql',['--no-psqlrc','--no-align','--tuples-only','--set=ON_ERROR_STOP=1',
-  '--dbname='+env.CCX_DRILL_TARGET_DATABASE_URL,'-c',
-  "select count(*) from information_schema.tables where table_schema not in ('pg_catalog','information_schema') and table_type='BASE TABLE';"]);
+  '-c',"select count(*) from information_schema.tables where table_schema not in ('pg_catalog','information_schema') and table_type='BASE TABLE';"],
+  {database:env.CCX_DRILL_TARGET_DATABASE_URL});
  // No --clean or --if-exists is used: refuse target with existing tables.
  if(Number(targetReady)!==0)throw Error('The recovery target must be an empty, newly allocated database');
  const started=Date.now(),sourceSummary=snapshot(env.CCX_DRILL_SOURCE_DATABASE_URL);
+ // Require private permissions for all archives and attestations, including
+ // the files opened by child processes. Do not write an unencrypted dump.
+ process.umask(0o077);
  mkdirSync(env.CCX_DRILL_OUTPUT_DIR,{recursive:true,mode:0o700});
  const archive=join(env.CCX_DRILL_OUTPUT_DIR,'ccx-backup-'+started+'.pgdump.age');
- await pipeline('pg_dump',['--format=custom','--no-owner','--no-privileges',
-  '--dbname='+env.CCX_DRILL_SOURCE_DATABASE_URL],
- 'age',['-r',env.CCX_DRILL_AGE_RECIPIENT,'-o',archive]);
+ await pipeline('pg_dump',['--format=custom','--no-owner','--no-privileges'],
+  'age',['-r',env.CCX_DRILL_AGE_RECIPIENT,'-o',archive],
+  env.CCX_DRILL_SOURCE_DATABASE_URL,null);
  await pipeline('age',['-d','-i',env.CCX_DRILL_AGE_IDENTITY_FILE,archive],
-  'pg_restore',['--exit-on-error','--single-transaction','--no-owner','--no-privileges',
-   '--dbname='+env.CCX_DRILL_TARGET_DATABASE_URL]);
+  'pg_restore',['--exit-on-error','--single-transaction','--no-owner','--no-privileges'],
+  null,env.CCX_DRILL_TARGET_DATABASE_URL);
  const targetSummary=snapshot(env.CCX_DRILL_TARGET_DATABASE_URL);
  assert.equal(targetSummary,sourceSummary,'Database account/profile/media/evidence counts did not survive restore');
  const manifest=compareManifests(sourceManifest,targetManifest);
