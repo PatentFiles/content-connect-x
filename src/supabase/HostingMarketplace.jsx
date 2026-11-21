@@ -10,7 +10,7 @@ import {supabase} from '@/api/supabaseClient';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Search, SlidersHorizontal, MapPin, Heart, CalendarDays, Users, Star,
-  Camera, Home, ArrowLeft, ShieldCheck, Clock, CheckCircle2, RefreshCw, Building2, Trees, Warehouse, Clapperboard, Layers, Package,
+  Camera, Home, ArrowLeft, ShieldCheck, Clock, CheckCircle2, RefreshCw,
 } from 'lucide-react';
 import {
   hostingAction, rentalCategories, rentalAmenities, rentalUses, usd, dateTime,
