@@ -24,6 +24,15 @@ jobs:
         run: npm run typecheck
       - name: All offline policy, authorization and product regressions
         run: npm run test:unit
+      - name: Inventory all interactive JSX controls and fail on inert elements
+        run: npm run audit:ui-controls
+      - name: Upload interactive control inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ccx-interactive-controls
+          path: artifacts/interactive-controls.json
+          if-no-files-found: ignore
       - name: Desktop, mobile and enlarged-text control geometry
         run: npm run test:ui-controls
       - name: Professional light theme across public pages, host dialogs and all role dashboards
