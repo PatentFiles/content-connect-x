@@ -37,7 +37,7 @@ class Query{
  then(resolve){
   if(this.insertValue){
    if(failAudit)return resolve({error:{message:'Synthetic audit unavailable'},data:null});
-   const input={...this.insertValue};logged.push(input);
+   const input={...this.insertValue,...(this.table==='ccx_annual_recap_events'?{occurred_at:'2027-01-02T11:59:00Z'}:{})};logged.push(input);
    (records[this.table]??=[]).push(input);
    return resolve({error:null,data:[input]});
   }
@@ -134,6 +134,12 @@ test('PDF generation is owner-scoped, uncached and audit-gated',async()=>{
  assert.equal(logged.filter(x=>x.action==='pdf_exported').length,1);
  reset();failAudit=true;
  assert.notEqual((await request('user','download_pdf',{year:2026})).status,200);
+});
+test('PDF requests are bounded by an hourly audit-backed rate limit',async()=>{
+ reset();
+ for(let i=0;i<12;i++)assert.equal((await request('user','download_pdf',{year:2026})).status,200);
+ assert.equal((await request('user','download_pdf',{year:2026})).status,429);
+ assert.equal(logged.filter(item=>item.action==='pdf_exported').length,12);
 });
 test('feed share is explicit, actor-locked and repeated requests cannot produce duplicate posts',async()=>{
  reset();assert.equal(records.ccx_annual_recaps[0].feed_post_id,null);
