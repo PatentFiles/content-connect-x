@@ -1,9 +1,17 @@
 # Content Connect X / Host Connect — Developer ReadMe
 
-**Canonical operational reference · updated November 20, 2026**  
+**Canonical operational reference · updated November 21, 2026**  
 **Source of truth:** deployed server configuration and schema, current GitHub `main`, and verified release checks. Do not mistake a code module, enabled UI flag, mocked integration, or archived design for a production capability.
 
 
+
+## November 21, 2026 — Opt-in Discovery filters and professional service roles
+
+- **Discovery UI:** Removed the Everyone, Female creators and Male creators icon shortcuts. Remaining custom PNG role/service icons use a larger centered rail; Properties retains its independent category sizing. Advanced filters are collapsed by default on all screen sizes, including desktop; toggling expands them. Country-only and country+state searches do not require a city.
+- **Discovery search:** The authenticated, admitted and gated `directory` Edge Function **version 17** accepts validated gender, sexual orientation (straight/gay/bi/etc.), ethnicity, self-reported age range, height in centimeters, weight in kilograms, and conditional physical-characteristic filters. Penis length/circumcision are exposed only when searching man or trans woman. Breast-size filter is exposed only for woman. Trans man, nonbinary and genderfluid selections have no anatomy-specific inputs. Untrusted or mismatched combinations are rejected by `searchPolicy.mjs`. Public profile card responses do **not** return raw physical values, ages or ethnicity; only eligible member IDs are filtered at the backend. Contact, verification, block and paid-entitlement gates remain unchanged.
+- **User-controlled privacy:** Migration `20261121224612_ccx_discovery_roles_and_owner_only_profile_characteristics.sql` creates `member_discovery_attributes`, a private owner-RLS-only table for voluntary, self-reported age, height, weight, ethnicity and anatomy fields. `visible_in_discovery` defaults to **false**; values match only after explicit owner opt-in. Ordinary authenticated accounts may read/write **their own** rows only; the service-role directory reads opt-in rows without returning raw values. Verification documents/DOB and health testing records are not used as search data. A no-user-auth-claim RLS read test returned zero rows.
+- **Service roles:** The database profile role constraint, directory allowlist, profile editor, portfolio authorizer, navigation, and UI support `director_producer`, `hair_stylist`, `makeup_artist`, `wardrobe_stylist`, `equipment_rental`, `chef`, `spa_provider` alongside the original roles. Corresponding applied migrations: `20261121224644_ccx_professional_profile_role_extension.sql` and `20261121225109_ccx_portfolio_role_extension.sql`. No prices have been invented: premium subscription plans for new roles remain **unconfigured** and checkout is disabled for them until approved plans exist.
+- **Operational limitation:** Edge schema and code are deployed; frontend changes still require publishing the current Bolt/main build. Real multi-account browser acceptance and live paid booking for new roles have not yet been certified; do not call unpriced billing or unsupported production integrations complete.
 
 ## November 20–21, 2026 — Profile, media, lawful-access and recovery corrections
 
