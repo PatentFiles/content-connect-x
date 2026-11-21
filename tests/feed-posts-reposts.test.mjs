@@ -11,11 +11,11 @@ const postId='30000000-0000-4000-8000-000000000003';
 const make=body=>new Request('https://fixture.invalid/functions/v1/connect-feed',{
  method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)
 });
-function handler(){
+function handler(items=[]){
  const calls=[];
  const db={rpc:async(name,args)=>{
   calls.push({name,args});
-  if(name==='ccx_feed_page')return {data:{items:[]},error:null};
+  if(name==='ccx_feed_page')return {data:{items},error:null};
   if(name==='ccx_feed_can_view')return {data:true,error:null};
   if(name==='ccx_feed_create_trusted')return {data:{id:postId,status:'published'},error:null};
   return {data:{},error:null};
@@ -69,6 +69,20 @@ test('reposting continues through server side paid/visibility and moderation wor
  assert.equal(h.calls[0].args.p_repost,postId);
  assert.equal(h.calls[0].args.p_body,'Reposted this update.');
 });
+test('original repost photos receive short-lived signed URLs and no private paths leak',async()=>{
+ const h=handler([{id:postId,author_id:creator,body:'Reposted this update.',repost_of:'40000000-0000-4000-8000-000000000004',
+  author_name:'Fixture member',media:[],original:{id:'40000000-0000-4000-8000-000000000004',
+   body:'Original professional photo',author_id:creator,author_name:'Original photographer',
+   media:[{id:'50000000-0000-4000-8000-000000000005',path:viewer+'/media/approved.jpg',
+     caption:'Approved image',content_label:'adult_nudity',mime_type:'image/jpeg'}]}}]);
+ const response=await h.handle(make({action:'feed',mode:'profile_reposts',author_id:creator}));
+ assert.equal(response.status,200);
+ const data=await response.json();
+ assert.equal(data.items[0].original.photos.length,1);
+ assert.match(data.items[0].original.photos[0].url,/\/signed$/);
+ assert.equal(data.items[0].original.photos[0].content_label,'adult_nudity');
+ assert.equal(data.items[0].original.media,undefined,'Raw media paths must not be disclosed');
+});
 test('feed UI uses original and repost tabs, clear attribution, no post share control',()=>{
  const ui=read('src/supabase/ConnectFeed.jsx');
  const backend=read('supabase/functions/connect-feed/handler.mjs');
@@ -83,6 +97,7 @@ test('feed UI uses original and repost tabs, clear attribution, no post share co
  assert.match(ui,/onClick=\{\(\)=>void mutate\('repost'/);
  assert.match(ui,/local\.original\.author_name/);
  assert.match(ui,/repostNote/);
+ assert.match(ui,/data-original-repost-media="true"/);
  assert.doesNotMatch(ui,/<Share2|>Share<\/button>|const share=|onClick=\{share\}|setReposting/);
  assert.match(ui,/\['Sharing this professional update\.',\s*'Reposted this update\.'\]/,'Old boilerplate is suppressed for existing historical reposts');
  assert.match(backend,/profile_reposts/);
@@ -103,5 +118,8 @@ test('database applies filters before pagination, preserving access and block po
  assert.match(sql,/public\.ccx_feed_can_view\(p_actor,p\.id\)/);
  assert.match(sql,/where p\.status='published' and p\.hidden_at is null/);
  assert.match(sql,/limit p_limit/);
+ const mediaSql=read('supabase/migrations/20261121135450_repost_original_media_approved_only.sql');
+ assert.match(mediaSql,/m.visibility='verified'/);
+ assert.match(mediaSql,/public.ccx_feed_can_view\(p_actor,o.id\)/);
  assert.doesNotMatch(sql,/drop table|truncate table|delete from public\.community_posts/i);
 });
