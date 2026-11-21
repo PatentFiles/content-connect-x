@@ -1,36 +1,75 @@
-/* Content Connect X + Host Connect: authenticated enterprise workspace only.
- * Design principles drawn from enterprise tools (Linear/Stripe): low-chroma
- * surfaces, strong typography, predictable primary actions, quiet chrome.
- * Entire file is scoped to the real authenticated appearance; marketing heroes
- * and all logged-out branding remain untouched.
+/* CENTRAL AUTHENTICATED BRAND TOKENS.
+ * Public pages and auth art remain managed by public-brand-theme.css.
+ * Content Connect X: ink + editorial fuchsia. Host Connect: hospitality cyan + indigo.
+ * Refero: Art + Commerce (image-led white canvas) and Airbnb (quiet cards and clear CTAs).
+ * Change palette ONLY here; signed-in modules inherit their semantic tokens.
  */
-:root[data-ccx-appearance="workspace"] .ccx-original-shell,
-:root[data-ccx-appearance="workspace"] .oh-app{
- --cc-bg:#f7f8fa;
- --cc-surface:#ffffff;
- --cc-surface-subtle:#f8f9fb;
- --cc-surface-hover:#eef1f5;
- --cc-border:#e1e5eb;
- --cc-border-hover:#bdc5d0;
- --cc-input-border:#d5dce5;
- --cc-text-primary:#1c2633;
- --cc-text-secondary:#4b5a6c;
- --cc-text-muted:#667385;
- --cc-link:#334155;
- --cc-blue:#334155;
- --cc-pink:#334155;
- --cc-action:#253244;
- --cc-action-hover:#3a485b;
- --cc-on-action:#ffffff;
- --cc-focus:#72869e;
- --cc-shadow:0 1px 3px rgba(17,24,39,.045);
- --cc-shadow-raised:0 6px 18px rgba(17,24,39,.07);
+:root[data-ccx-appearance="workspace"] {
+ --cc-radius-card:16px;
+ --cc-radius-control:11px;
+ --cc-shadow:0 2px 8px rgba(24,20,38,.045);
+ --cc-shadow-raised:0 12px 30px rgba(24,20,38,.09);
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell {
+ --cc-bg:#faf8fc;
+ --cc-surface:var(--cc-surface);
+ --cc-surface-subtle:#fbf7fc;
+ --cc-surface-hover:#f7eaf5;
+ --cc-border:#e8dce8;
+ --cc-border-hover:#d7afce;
+ --cc-input-border:#ddcadb;
+ --cc-text-primary:#21172a;
+ --cc-text-secondary:#51445c;
+ --cc-text-muted:#72657a;
+ --cc-link:#9b166e;
+ --cc-blue:#156d8e;
+ --cc-pink:#b41883;
+ --cc-action:#971466;
+ --cc-action-hover:#791151;
+ --cc-on-action:var(--cc-surface);
+ --cc-focus:#a21b79;
+ --cc-accent-surface:#f8e8f3;
+ --cc-accent-border:#e8bddb;
+ --ccx-fuchsia:#b41883;
+ --ccx-pink:#bb278b;
+ --ccx-blue:#156d8e;
+ --ccx-deep-blue:#7658b9;
+ --ccx-gradient:linear-gradient(112deg,#156d8e,#7658b9 50%,#b41883);
+ background:var(--cc-bg);
+ color:var(--cc-text-primary);
+}
+:root[data-ccx-appearance="workspace"] .oh-app,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .host-connect-theme {
+ --cc-bg:#f7fafd;
+ --cc-surface:var(--cc-surface);
+ --cc-surface-subtle:#f4f9fc;
+ --cc-surface-hover:#e8f3fa;
+ --cc-border:#dce8f0;
+ --cc-border-hover:#a7c9df;
+ --cc-input-border:#c5d9e7;
+ --cc-text-primary:#182b3e;
+ --cc-text-secondary:#435a6e;
+ --cc-text-muted:#637889;
+ --cc-link:#11668b;
+ --cc-blue:#11668b;
+ --cc-pink:#5962b7;
+ --cc-action:#12698f;
+ --cc-action-hover:#0c5272;
+ --cc-on-action:var(--cc-surface);
+ --cc-focus:#1584ac;
+ --cc-accent-surface:#e9f5fb;
+ --cc-accent-border:#b6dce9;
+ --ccx-fuchsia:#12698f;
+ --ccx-pink:#5962b7;
+ --ccx-blue:#12698f;
+ --ccx-deep-blue:#5962b7;
+ --ccx-gradient:linear-gradient(112deg,#12698f,#5962b7 80%);
  background:var(--cc-bg);
  color:var(--cc-text-primary);
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-shell-fixed-header,
 :root[data-ccx-appearance="workspace"] .oh-app .oh-header{
- background:#fff!important;
+ background:var(--cc-surface)!important;
  border-bottom:1px solid var(--cc-border)!important;
  box-shadow:none!important;
  backdrop-filter:none;
@@ -42,7 +81,7 @@
 :root[data-ccx-appearance="workspace"] .oh-app .oh-portfolio-panel,
 :root[data-ccx-appearance="workspace"] .oh-app .oh-listings-actions,
 :root[data-ccx-appearance="workspace"] .oh-app .oh-market-explorer{
- background:#ffffff!important;
+ background:var(--cc-surface)!important;
  border:1px solid var(--cc-border)!important;
  border-radius:12px!important;
  box-shadow:0 1px 3px rgba(17,24,39,.045)!important;
@@ -58,10 +97,10 @@
 :root[data-ccx-appearance="workspace"] .oh-app .ccx-primary,
 :root[data-ccx-appearance="workspace"] .oh-app .ccx-action-primary,
 :root[data-ccx-appearance="workspace"] .oh-app .oh-new-space-action{
- background:#253244!important;
+ background:var(--cc-action)!important;
  background-image:none!important;
- border:1px solid #253244!important;
- color:#ffffff!important;
+ border:1px solid var(--cc-action)!important;
+ color:var(--cc-on-action)!important;
  border-radius:9px!important;
  box-shadow:none!important;
  text-shadow:none!important;
@@ -73,8 +112,8 @@
 :root[data-ccx-appearance="workspace"] .oh-app .oh-primary:hover:not(:disabled),
 :root[data-ccx-appearance="workspace"] .oh-app .ccx-action-primary:hover:not(:disabled),
 :root[data-ccx-appearance="workspace"] .oh-app .oh-new-space-action:hover:not(:disabled){
- background:#3a485b!important;
- border-color:#3a485b!important;
+ background:var(--cc-action-hover)!important;
+ border-color:var(--cc-action-hover)!important;
  box-shadow:none!important;
  transform:none!important;
  filter:none!important;
@@ -83,65 +122,65 @@
 :root[data-ccx-appearance="workspace"] .oh-app .oh-secondary,
 :root[data-ccx-appearance="workspace"] .oh-app .ccx-secondary,
 :root[data-ccx-appearance="workspace"] .oh-app .oh-ccx-link{
- background:#ffffff!important;
+ background:var(--cc-surface)!important;
  border:1px solid var(--cc-border)!important;
- color:#344256!important;
+ color:var(--cc-text-secondary)!important;
  border-radius:9px!important;
  box-shadow:none!important;
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-secondary:hover:not(:disabled),
 :root[data-ccx-appearance="workspace"] .oh-app .oh-secondary:hover:not(:disabled),
 :root[data-ccx-appearance="workspace"] .oh-app .oh-ccx-link:hover{
- background:#f5f7fa!important;
- border-color:#bbc5d0!important;
+ background:var(--cc-surface-subtle)!important;
+ border-color:var(--cc-border-hover)!important;
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-pill.is-active,
 :root[data-ccx-appearance="workspace"] .oh-app .oh-option-selected{
- background:#eef1f5!important;
- border-color:#cbd3dc!important;
- color:#253244!important;
+ background:var(--cc-surface-hover)!important;
+ border-color:var(--cc-border-hover)!important;
+ color:var(--cc-action)!important;
  box-shadow:none!important;
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-monogram,
 :root[data-ccx-appearance="workspace"] .oh-app .ccx-monogram,
 :root[data-ccx-appearance="workspace"] .oh-app .oh-mark{
- background:#253244!important;
+ background:var(--cc-action)!important;
  background-image:none!important;
  color:white!important;
- border-color:#253244!important;
+ border-color:var(--cc-action)!important;
  box-shadow:none!important;
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-workspace-eyebrow,
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-dashboard-welcome-kicker{
- color:#6d7887!important;
+ color:var(--cc-text-muted)!important;
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-catalog-option,
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-person-preview{
- background:#ffffff;
+ background:var(--cc-surface);
  border-color:var(--cc-border);
  box-shadow:none;
  color:var(--cc-text-primary);
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-catalog-option:hover:not(:disabled),
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-person-preview:hover{
- background:#f9fafb;
- border-color:#c3cbd5;
+ background:var(--cc-surface-subtle);
+ border-color:var(--cc-border-hover);
  transform:none;
  box-shadow:none;
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell [data-feed-composer="true"]{
- background:#f9fafb!important;
- border:1px solid #dce2e9!important;
+ background:var(--cc-surface-subtle)!important;
+ border:1px solid var(--cc-border)!important;
  border-radius:11px!important;
  box-shadow:none!important;
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell [data-feed-composer="true"] textarea{
- color:#253244!important;
+ color:var(--cc-action)!important;
  background:transparent!important;
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell form[aria-label="Share an update"],
 :root[data-ccx-appearance="workspace"] .ccx-original-shell form[aria-label="Group post composer"]{
- background:#ffffff!important;
+ background:var(--cc-surface)!important;
  border:1px solid var(--cc-border)!important;
  box-shadow:0 1px 3px rgba(17,24,39,.045)!important;
 }
@@ -161,21 +200,21 @@
  line-height:1.25;
  letter-spacing:-.035em;
  font-weight:700;
- color:#1c2633;
+ color:var(--cc-text-primary);
  overflow-wrap:anywhere;
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-dashboard-welcome-subtitle{
- font-size:13px;line-height:1.65;color:#5a6779;
+ font-size:13px;line-height:1.65;color:var(--cc-text-secondary);
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-dashboard-heading{
  border-bottom:1px solid var(--cc-border);
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-panel,
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-mobile-panel{
- --cc-blue:#f2f4f7;
+ --cc-blue:var(--cc-surface-hover);
  --cc-link:#e1e6ed;
  --cc-text-secondary:#c1c7d0;
- --cc-text-primary:#f2f4f7;
+ --cc-text-primary:var(--cc-surface-hover);
  --cc-text-muted:#a8b0bc;
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-link,
@@ -187,47 +226,102 @@
 :root[data-ccx-appearance="workspace"] .oh-app .oh-amenity-panel,
 :root[data-ccx-appearance="workspace"] .oh-app .oh-new-tour-field,
 :root[data-ccx-appearance="workspace"] .oh-app .oh-feature-panel{
- background:#ffffff!important;
+ background:var(--cc-surface)!important;
  border-color:var(--cc-border)!important;
  box-shadow:none!important;
 }
 :root[data-ccx-appearance="workspace"] .oh-app .oh-host-menu-trigger{
- background:#ffffff;
- border-color:#dce2e9;
- color:#253244;
+ background:var(--cc-surface);
+ border-color:var(--cc-border);
+ color:var(--cc-action);
 }
 :root[data-ccx-appearance="workspace"] .oh-app .oh-host-menu-trigger:hover{
- background:#f5f7fa;
+ background:var(--cc-surface-subtle);
 }
 :root[data-ccx-appearance="workspace"] .oh-app .oh-host-mobile-drawer{
  padding-top:env(safe-area-inset-top,0px);
  padding-bottom:env(safe-area-inset-bottom,0px);
- background:#ffffff;
- color:#253244;
+ background:var(--cc-surface);
+ color:var(--cc-action);
  box-shadow:-10px 0 36px rgba(13,20,31,.16);
 }
 :root[data-ccx-appearance="workspace"] .oh-app .oh-host-mobile-link{
- color:#334155;
+ color:var(--cc-text-secondary);
  text-decoration:none;
 }
 :root[data-ccx-appearance="workspace"] .oh-app .oh-host-mobile-link:hover,
 :root[data-ccx-appearance="workspace"] .oh-app .oh-host-mobile-link.is-active{
- background:#eef1f5;
- color:#253244;
+ background:var(--cc-surface-hover);
+ color:var(--cc-action);
 }
 :root[data-ccx-appearance="workspace"] .oh-app .oh-host-mobile-link.is-active{
  font-weight:650;
- box-shadow:inset 3px 0 0 #64748b;
+ box-shadow:inset 3px 0 0 var(--cc-focus);
 }
 :root[data-ccx-appearance="workspace"] .oh-app .oh-host-menu-trigger:focus-visible,
 :root[data-ccx-appearance="workspace"] .oh-app .oh-host-mobile-link:focus-visible,
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-primary:focus-visible,
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-heading-button:focus-visible{
- outline:2px solid #64748b;
+ outline:2px solid var(--cc-focus);
  outline-offset:3px;
 }
 @media(prefers-reduced-motion:reduce){
  :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-primary,
  :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-action-primary,
  :root[data-ccx-appearance="workspace"] .oh-app .oh-primary{transition:none!important;}
+}
+
+/* Authenticated brand details: single-source accents, all screens and roles. */
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-dashboard-welcome-kicker,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-workspace-eyebrow,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-eyebrow,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-gradient-text,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-gradient-text {
+ color:var(--cc-link)!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-pill.is-active,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-option-selected {
+ background:var(--cc-accent-surface)!important;
+ border-color:var(--cc-accent-border)!important;
+ color:var(--cc-action)!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-primary,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-action-primary,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-solid-action,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-primary,
+:root[data-ccx-appearance="workspace"] .oh-app .ccx-primary,
+:root[data-ccx-appearance="workspace"] .oh-app .ccx-solid-action,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-new-space-action {
+ color:var(--cc-on-action)!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-surface,
+:root[data-ccx-appearance="workspace"] .oh-app .ccx-surface,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-panel {
+ border-radius:var(--cc-radius-card)!important;
+ box-shadow:var(--cc-shadow)!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-primary:focus-visible,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-primary:focus-visible,
+:root[data-ccx-appearance="workspace"] .oh-app .oh-host-menu-trigger:focus-visible {
+ outline:3px solid var(--cc-focus)!important;
+ outline-offset:3px;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell [data-feed-composer="true"] {
+ border-color:var(--cc-border)!important;
+ background:var(--cc-surface-subtle)!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell [data-feed-composer="true"] textarea {
+ color:var(--cc-text-primary)!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-rail-button.is-active,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-link.is-active {
+ border-color:var(--ccx-nav-panel-accent)!important;
+}
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-link.is-active::before,
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-rail-button.is-active {
+ box-shadow:inset 3px 0 0 var(--ccx-nav-panel-accent);
+}
+@media(prefers-reduced-motion:reduce){
+ :root[data-ccx-appearance="workspace"] .ccx-original-shell *,
+ :root[data-ccx-appearance="workspace"] .oh-app * {scroll-behavior:auto!important;}
 }
