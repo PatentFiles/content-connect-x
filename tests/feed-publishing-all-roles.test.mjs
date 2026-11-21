@@ -9,7 +9,8 @@ test('Feed publishing uses one entitlement source for every actual professional 
  const wrapper=read('src/supabase/OriginalRoleDashboard.jsx');
  const dashboard=read('src/supabase/CustomDashboard.jsx');
  const feed=read('src/supabase/ConnectFeed.jsx');
- assert.deepEqual(Object.keys(ROLE_ROUTES),['creator','agent','studio','photographer','videographer','video_editor']);
+ assert.deepEqual(Object.keys(ROLE_ROUTES).slice(0,6),['creator','agent','studio','photographer','videographer','video_editor']);
+ for(const role of ['director_producer','hair_stylist','makeup_artist','wardrobe_stylist','equipment_rental','chef','spa_provider'])assert.ok(ROLE_ROUTES[role],role+' must have a workspace');
  assert.match(main,/tab==='dashboard'&&<OriginalRoleDashboard/);
  assert.match(main,/paid=\{paid\} onNavigate=\{navigateInWorkspace\}/);
  assert.match(wrapper,/roleOverride,paid=false/);
