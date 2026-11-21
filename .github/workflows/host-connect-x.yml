@@ -1,0 +1,41 @@
+name: Host Connect X standalone quality
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+concurrency:
+  group: host-connect-x-quality-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - name: Standalone Host Connect and credential isolation tests
+        run: node --test tests/host-standalone-config.test.mjs
+      - name: Existing host safety and marketplace tests
+        run: node --test tests/hosting-rules.test.mjs tests/hosting-map-math.test.mjs tests/hosting-mobile-map-date.test.mjs tests/hosting-discovery-runtime.test.mjs tests/host-refresh.test.mjs tests/host-daily-rentals-contract.test.mjs tests/public-host-footer.test.mjs
+      - name: Application production build
+        env:
+          VITE_SUPABASE_URL: https://ci-fixture-hostconnect.supabase.co
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_host_connect_fixture_123456
+        run: npm run build
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm audit --audit-level=low
