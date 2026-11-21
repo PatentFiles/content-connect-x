@@ -38,6 +38,22 @@ export default function LawEnforcementAdmin(){
   catch(e){setError(e.message);}finally{setBusy(false);}
  };
  const update=(id,key,value)=>setDecisions(v=>({...v,[id]:{...v[id],[key]:value}}));
+ const preservation=async(item,mode)=>{
+  const entry=decisions[item.id]||{},reason=(entry.hold_reason||'').trim();
+  if(mode==='apply'&&!entry.legal_preservation_confirmed)return setError('Confirm the verified and necessary legal-process preservation before applying a hold.');
+  if(reason.length<(mode==='apply'?25:15))return setError('Provide the reason for this preservation decision.');
+  setBusy(true);setError('');setNotice('');
+  try{
+   const result=await call(mode==='apply'?'admin_hold':'admin_release_hold',{
+    case_id:item.id,review_note:reason,days:30,
+    legal_preservation_confirmed:entry.legal_preservation_confirmed===true,
+    release_confirmed:true
+   });
+   setNotice(mode==='apply'?'A bounded 30-day ID-evidence preservation hold was recorded and audited.':'The preservation hold was released and audited.');
+   await load();
+  }catch(e){setError(e.message);}finally{setBusy(false);}
+ };
+
  const decide=async(item,decision)=>{
   const selected=decisions[item.id]||{};
   setBusy(true);setError('');setNotice('');
@@ -98,7 +114,21 @@ export default function LawEnforcementAdmin(){
       <button type="button" className={btn} disabled={busy||!(decisions[item.id]?.review_note||'').trim()} onClick={()=>void decide(item,'deny')}>Deny</button></div>
     </div>}
     {item.status==='approved'&&<button className={btn} disabled={busy||!(decisions[item.id]?.review_note||'').trim()} type="button" onClick={()=>void decide(item,'revoke')}>Revoke grant (enter reason first)</button>}
-    {item.status==='approved'&&<textarea rows={2} className={field} placeholder="Reason for immediate revocation" value={decisions[item.id]?.review_note||''} onChange={e=>update(item.id,'review_note',e.target.value)}/>}
+    {item.status==='approved'&&<div className="space-y-2 rounded-xl border border-[var(--cc-border)] p-3">
+    <h4 className="text-sm font-semibold">Finite ID-evidence preservation</h4>
+    <p className="text-xs text-[var(--cc-text-secondary)]">Only a verified legal process can preserve private ID records for a limited period. This does not preserve all platform data and does not override ordinary privacy rights outside the approved hold.</p>
+    <p className="text-xs">Current case hold: {item.preservation_hold?'Active':'None'}</p>
+    <label className="block text-sm">Preservation necessity or release reason
+     <textarea rows={2} className={field} value={decisions[item.id]?.hold_reason||''} onChange={e=>update(item.id,'hold_reason',e.target.value)} placeholder="Document the legal basis, necessity, and period or release justification"/></label>
+    {!item.preservation_hold&&<label className="flex items-start gap-2 text-xs"><input type="checkbox" checked={decisions[item.id]?.legal_preservation_confirmed===true}
+     onChange={e=>update(item.id,'legal_preservation_confirmed',e.target.checked)}/>
+     I independently confirmed the current valid preservation order and necessity for this subject.</label>}
+    {item.preservation_hold?
+     <button type="button" className={btn} disabled={busy||(decisions[item.id]?.hold_reason||'').trim().length<15} onClick={()=>void preservation(item,'release')}>Release evidence hold</button>
+     :<button type="button" className={btn} disabled={busy||!decisions[item.id]?.legal_preservation_confirmed||(decisions[item.id]?.hold_reason||'').trim().length<25}
+       onClick={()=>void preservation(item,'apply')}>Apply finite 30-day ID-evidence hold</button>}
+   </div>}
+   {item.status==='approved'&&<textarea rows={2} className={field} placeholder="Reason for immediate revocation" value={decisions[item.id]?.review_note||''} onChange={e=>update(item.id,'review_note',e.target.value)}/>}
    </article>)}
   </section>
  </section>;
