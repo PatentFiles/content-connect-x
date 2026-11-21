@@ -3,14 +3,13 @@
  * Every disclosed record or export is tied to legal basis and an audit event.
  */
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
-import {validUuid,validScopes,isCaseLive,makeCsv,reportRows} from './disclosurePolicy.mjs';
+import {validUuid,validScopes,isCaseLive,makeCsv} from './disclosurePolicy.mjs';
 import {makeCasePdf} from './pdfReport.mjs';
 import {verifiedAal2} from '../_shared/verifiedAdminAal.mjs';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info','Access-Control-Allow-Methods':'POST,OPTIONS','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const out=(value,status=200)=>Response.json(value,{status,headers:cors});
 const txt=(v,max=250)=>typeof v==='string'?v.trim().slice(0,max):'';
 const validEmail=s=>typeof s==='string'&&s.length<200&&/^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(s);
-const scopeList=new Set(['profile','admission','platform_activity','safety_reports','collaboration_metadata']);
 Deno.serve(async req=>{
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
  if(req.method!=='POST')return out({error:'POST required'},405);
