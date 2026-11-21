@@ -19,7 +19,7 @@ export async function initializeOptionalIntegrations(){
      release:import.meta.env.VITE_RELEASE_SHA||undefined,
      tracesSampleRate:0,profilesSampleRate:0,sampleRate:0.2,
      sendDefaultPii:false,attachStacktrace:false,autoSessionTracking:false,
-     integrations:[],beforeBreadcrumb(){return null;},beforeSend:sanitizeMonitoringEvent
+     beforeBreadcrumb(){return null;},beforeSend:sanitizeMonitoringEvent
     });
    }
   }catch{console.warn('Optional privacy-filtered monitoring unavailable');}
