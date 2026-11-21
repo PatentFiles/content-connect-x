@@ -113,6 +113,9 @@ export default function PublicPricing({signedIn=false,onNavigate=(destination)=>
      :'Recurring membership billed every 30 days. No Content Connect X percentage taken from your project earnings.'}
     features={premium.items} disabled={signedIn?(!billing?.ready||paying||currentlyPaid):false} href="/signup" onClick={signedIn?checkout:null} action={!signedIn?'Create an account to subscribe':currentlyPaid?'Your membership is active':paying?'Opening secure checkout…':billing?.ready?'Subscribe securely with CCBill':'Membership checkout opens after approved billing is connected'}/>
   </section>
+  <p className="mx-auto mt-4 max-w-5xl text-center text-xs leading-6 text-[var(--cc-text-secondary)]">
+   Recurring subscriptions renew every 30 days unless cancelled. Cancellation stops the next renewal and preserves paid access through the existing paid period. No prorated refunds are provided, except where required by applicable law.
+  </p>
   <section className="mx-auto mt-7 grid max-w-5xl gap-4 sm:grid-cols-3">
    <div className="ccx-surface p-5"><ShieldCheck size={22} className="text-[var(--cc-link)]"/><h3 className="mt-3 font-semibold text-[var(--cc-text-primary)]">Verified adults only</h3>
     <p className="mt-2 text-sm leading-6 text-[var(--cc-text-secondary)]">Every member must complete independent 18+ verification before entering the professional network.</p></div>
