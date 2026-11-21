@@ -171,7 +171,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
      <span className="ccx-monogram" aria-hidden="true">CX</span><span className="hidden text-lg font-semibold sm:block">Content Connect X</span>
     </button>
     <div className="ccx-shell-header-actions">
-     {isAdmin&&<a href="/hostconnect" className="ccx-admin-host-link" aria-label="Open Host Connect">Host Connect</a>}
+     {isAdmin&&<a href="https://hostconnectx.com" className="ccx-admin-host-link" aria-label="Open Host Connect">Host Connect</a>}
      <button type="button" onClick={()=>onNavigate('membership')} aria-label={'Membership: '+(isPremiumMember?'Premium Account':'Free Account')+'; view plans'} className="inline-flex min-h-10 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-semibold sm:px-3" style={{borderColor:'var(--cc-border)',background:'var(--cc-surface)',color:'var(--cc-text-primary)'}}>
       <CreditCard size={15} className="text-[var(--cc-link)]"/><span className="hidden sm:inline">Membership</span><span>{isPremiumMember?'Premium':'Free'}</span>
      </button>
