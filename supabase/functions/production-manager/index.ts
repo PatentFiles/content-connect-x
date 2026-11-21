@@ -234,13 +234,13 @@ Deno.serve(async req=>{
        return json({item:{id:data.id,status:data.status}});
      }
      case 'notification_preferences':{
-       const {data,error}=await db.from('member_notification_preferences').select('email_digest,booking_reminders,message_alerts').eq('user_id',uid).maybeSingle();
+       const {data,error}=await db.from('member_notification_preferences').select('email_digest,booking_reminders,message_alerts,transactional_email').eq('user_id',uid).maybeSingle();
        if(error)throw error;
-       return json({item:data||{email_digest:false,booking_reminders:true,message_alerts:true}});
+       return json({item:data||{email_digest:false,booking_reminders:true,message_alerts:true,transactional_email:false}});
      }
      case 'set_notification_preferences':{
-       if(typeof body.email_digest!=='boolean'||typeof body.booking_reminders!=='boolean'||typeof body.message_alerts!=='boolean')return json({error:'Boolean notification choices required'},400);
-       const {data,error}=await db.from('member_notification_preferences').upsert({user_id:uid,email_digest:body.email_digest,booking_reminders:body.booking_reminders,message_alerts:body.message_alerts,updated_at:new Date().toISOString()},{onConflict:'user_id'}).select('email_digest,booking_reminders,message_alerts').single();
+       if(typeof body.email_digest!=='boolean'||typeof body.booking_reminders!=='boolean'||typeof body.message_alerts!=='boolean'||typeof body.transactional_email!=='boolean')return json({error:'Boolean notification choices required'},400);
+       const {data,error}=await db.from('member_notification_preferences').upsert({user_id:uid,email_digest:body.email_digest,booking_reminders:body.booking_reminders,message_alerts:body.message_alerts,transactional_email:body.transactional_email,updated_at:new Date().toISOString()},{onConflict:'user_id'}).select('email_digest,booking_reminders,message_alerts').single();
        if(error)throw error;
        return json({item:data});
      }
