@@ -32,6 +32,7 @@ export default function AnnualRecap(){
  const [available,setAvailable]=useState([]),[selectedYear,setSelectedYear]=useState(null);
  const [report,setReport]=useState(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false);
  const [error,setError]=useState(''),[notice,setNotice]=useState(''),[shareConfirm,setShareConfirm]=useState(false);
+ const [preparedFile,setPreparedFile]=useState(null);
  const refresh=useCallback(async()=>{
   setLoading(true);setError('');
   try{
@@ -44,7 +45,7 @@ export default function AnnualRecap(){
  useEffect(()=>{void refresh();},[refresh]);
  useEffect(()=>{
   if(!selectedYear){setReport(null);return;}
-  let live=true;setError('');setReport(null);setShareConfirm(false);
+  let live=true;setError('');setReport(null);setShareConfirm(false);setPreparedFile(null);
   void invoke('view',{year:selectedYear}).then(data=>{
    if(live)setReport(data?.report||null);
   }).catch(e=>{if(live)setError(e.message);});
@@ -94,6 +95,24 @@ export default function AnnualRecap(){
    setNotice('Your aggregate achievement summary was copied. No private PDF or documents were shared.');
   }catch{setError('Copy is unavailable in this browser. Download the PDF or use your device Share menu.');}
  };
+ const preparePdfShare=async()=>{
+  if(!report||busy)return;
+  setBusy(true);setError('');
+  try{
+   const data=await invoke('download_pdf',{year:report.year});
+   if(!(data instanceof Blob)||!data.size)throw Error('PDF preparation was unavailable.');
+   setPreparedFile(new File([data],'ContentConnectX-'+report.year+'-YearInReview.pdf',{type:'application/pdf'}));
+   setNotice('Your private PDF is prepared. Select Share prepared PDF to choose where to send it.');
+  }catch(e){setError(e.message);}finally{setBusy(false);}
+ };
+ const sharePreparedPdf=()=>{
+  if(!preparedFile)return;
+  if(navigator.share&&navigator.canShare?.({files:[preparedFile]})){
+   void navigator.share({files:[preparedFile],title:'Content Connect X Year in Review'})
+    .then(()=>setNotice('Your device handled the PDF share request.'))
+    .catch(e=>{if(e?.name!=='AbortError')setError('Could not share this file. Use Download PDF instead.');});
+  }else setNotice('Your device does not support direct PDF sharing. Download the PDF, then upload it to the destination app.');
+ };
  const shareSocial=()=>{
   if(!report)return;
   const info={title:report.year+' Content Connect X Year in Review',text:report.share_text};
@@ -102,7 +121,8 @@ export default function AnnualRecap(){
     .catch(err=>{if(err?.name!=='AbortError')setError('Your device could not complete sharing. Use Copy summary instead.');});
   }else void copy();
  };
- const currentYear=new Date().getUTCFullYear(),upcoming=Math.max(2026,currentYear);
+ const currentYear=new Date().getUTCFullYear(),upcoming=currentYear>2026?currentYear-1:2026;
+ const deliveryYear=upcoming+1;
  return <section className="mx-auto max-w-5xl space-y-6" data-annual-recap="true" aria-label="Year in Review">
   <header className="ccx-surface relative overflow-hidden rounded-2xl p-6 sm:p-8">
    <div className="pointer-events-none absolute -right-12 -top-14 h-52 w-52 rounded-full bg-cyan-500/10"/>
@@ -120,7 +140,7 @@ export default function AnnualRecap(){
   {loading&&<p role="status" className="ccx-surface rounded-xl p-5 text-sm">Loading your annual reports…</p>}
   {!loading&&!available.length&&<section className="ccx-surface space-y-3 rounded-2xl p-6">
    <h2 className="flex items-center gap-2 text-lg font-semibold"><CalendarDays size={20}/>Your first recap</h2>
-   <p className="text-sm text-[var(--cc-text-secondary)]">Reports for {upcoming} become available on January 1, {upcoming+1}, after the reporting year closes. You will receive an account notification when yours is prepared.</p>
+   <p className="text-sm text-[var(--cc-text-secondary)]">Your {upcoming} report {currentYear>upcoming?'is being prepared for delivery on':'will become available on'} January 1, {deliveryYear}. Refresh this page after the delivery notification arrives. You will receive an account notification when yours is prepared.</p>
    <p className="text-xs text-[var(--cc-text-secondary)]">All six professional roles are included. Only independently verified and active accounts are eligible; no report is automatically posted.</p>
   </section>}
   {!loading&&available.length>0&&<div className="space-y-5">
@@ -158,6 +178,8 @@ export default function AnnualRecap(){
      <div className="flex flex-wrap gap-3">
       <button type="button" className={primary} disabled={busy} onClick={()=>void file()}><Download size={16}/>Download PDF</button>
       <button type="button" className={button} disabled={busy} onClick={shareSocial}><Share2 size={16}/>Share to social media</button>
+      <button type="button" className={button} disabled={busy} onClick={()=>void preparePdfShare()}><Download size={16}/>Prepare PDF to share</button>
+      {preparedFile&&<button type="button" className={primary} disabled={busy} onClick={sharePreparedPdf}><Share2 size={16}/>Share prepared PDF</button>}
       <button type="button" className={button} disabled={busy} onClick={()=>void copy()}><Copy size={16}/>Copy summary</button>
      </div>
      {!report.feedPostId?<div className="space-y-3 border-t border-[var(--cc-border)] pt-4">
