@@ -27,8 +27,11 @@ Deno.serve(async req=>{
   db.from('ccx_law_officers').select('user_id,agency,official_email,jurisdiction,enabled,disabled_at').eq('user_id',uid).maybeSingle()
  ]);
  if(account.error||officer.error)return out({error:'Role check unavailable'},503);
- const admin=account.data?.admin===true&&!account.data.banned&&!account.data.suspended;
- const officerReady=officer.data?.enabled===true&&!officer.data.disabled_at&&!account.data?.banned&&!account.data?.suspended;
+ // A law-enforcement identity must have a live security record and must not
+ // simultaneously inherit administrative privileges. Absent rows fail closed.
+ const accountActive=Boolean(account.data&&!account.data.banned&&!account.data.suspended);
+ const admin=accountActive&&account.data.admin===true;
+ const officerReady=accountActive&&account.data.admin!==true&&officer.data?.enabled===true&&!officer.data.disabled_at;
  const hasMfa=verifiedAal2(authHeader,uid);
  const log=async(what,caseId,subject=null,details={})=>{
   const {error}=await db.from('ccx_law_disclosure_audit').insert({
