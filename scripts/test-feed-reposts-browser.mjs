@@ -14,9 +14,9 @@ const folder=fs.mkdtempSync(path.join(os.tmpdir(),'ccx-repost-browser-'));
 let browser,socket;
 const mock=[
  "const viewer='10000000-0000-4000-8000-000000000001';",
- "const original={id:'20000000-0000-4000-8000-000000000002',author_id:'30000000-0000-4000-8000-000000000003',author:{display_name:'Original Artist',role_type:'photographer'},body:'Original professional photo shoot update.',audience:'verified',published_at:'2026-11-21T10:00:00Z',allow_repost:true,likes:2,comments:1,saved:false,liked:false,photos:[],repost_of:null};",
+ "const original={id:'20000000-0000-4000-8000-000000000002',author_id:'30000000-0000-4000-8000-000000000003',author:{display_name:'Original Artist',role_type:'photographer'},body:'Original professional photo shoot update.',audience:'verified',published_at:'2026-11-21T10:00:00Z',allow_repost:true,likes:2,comments:1,saved:false,liked:false,photos:[{id:'70000000-0000-4000-8000-000000000007',url:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL2RwAAAABJRU5ErkJggg==',caption:'Large feed photo',content_label:'professional'}],repost_of:null};",
  "const mine={...original,id:'40000000-0000-4000-8000-000000000004',author_id:viewer,author:{display_name:'Fixture Member',role_type:'creator'},body:'My own professional update.'};",
- "const repost={...original,id:'50000000-0000-4000-8000-000000000005',author_id:viewer,author:{display_name:'Fixture Member',role_type:'creator'},body:'Sharing this professional update.',repost_of:original.id,allow_repost:false,original:{id:original.id,body:original.body,author_id:original.author_id,author_name:'Original Artist',created_at:original.published_at,photos:[{id:'60000000-0000-4000-8000-000000000006',url:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL2RwAAAABJRU5ErkJggg==',caption:'Approved original photo',content_label:'professional'}]}};",
+ "const repost={...original,id:'50000000-0000-4000-8000-000000000005',author_id:viewer,author:{display_name:'Fixture Member',role_type:'creator'},body:'Sharing this professional update.',photos:[],repost_of:original.id,allow_repost:false,original:{id:original.id,body:original.body,author_id:original.author_id,author_name:'Original Artist',created_at:original.published_at,photos:[{id:'60000000-0000-4000-8000-000000000006',url:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL2RwAAAABJRU5ErkJggg==',caption:'Approved original photo',content_label:'professional'}]}};",
  "window.__feedApi={calls:[],reposts:0};",
  "export const supabase={",
  "from:()=>({select(){return this},eq(){return this},maybeSingle:async()=>({data:{feed_view:'discover',default_audience:'verified'},error:null})}),",
@@ -111,6 +111,19 @@ try{
     if(![...post.querySelectorAll('button')].some(b=>b.textContent.includes(text)))throw Error('Missing '+text+' action');
    if(post.querySelector('button[aria-label="Save post"]')===null)throw Error('Save action unavailable');
    if([...post.querySelectorAll('button')].some(b=>b.textContent.trim()==='Share'))throw Error('Share action still visible');
+   const header=post.querySelector('[data-feed-post-header]');
+   const stamp=post.querySelector('[data-feed-post-time]');
+   if(!header||!stamp||!stamp.textContent.includes('2026')||stamp.textContent.match(/:\\d\\d:\\d\\d/))
+    throw Error('Post timestamp missing or includes seconds');
+   const timeBox=stamp.getBoundingClientRect(),postBox=post.getBoundingClientRect();
+   if(timeBox.right<postBox.right-72||timeBox.left<postBox.left+60)
+    throw Error('Timestamp is not in the top-right post header');
+   if(header.textContent.includes('Entire community'))throw Error('Audience metadata still clutters the header');
+   if(!post.querySelector('[data-feed-post-header] .rounded-full'))throw Error('Circular author avatar missing');
+   const mainPhoto=post.querySelector('[data-feed-photo-gallery] img[alt="Large feed photo"]');
+   if(!mainPhoto||mainPhoto.getBoundingClientRect().width<postBox.width-96)
+    throw Error('Main post photo is not large and full-width');
+
    post.querySelector('button[aria-label="Repost to your profile"]').click();await pause();
    if(window.__feedApi.reposts!==1)throw Error('Repost click did not call API');
    const call=window.__feedApi.calls.find(x=>x.action==='repost');
@@ -122,6 +135,10 @@ try{
     throw Error('Repost attribution incorrect');
    if(repost.textContent.includes('Sharing this professional update.'))throw Error('Legacy generic caption leaked');
    if(!repost.querySelector('[data-original-repost-media] img[alt="Approved original photo"]'))throw Error('Original approved photo was not rendered');
+   const originalImage=repost.querySelector('[data-original-repost-media] img');
+   if(originalImage.getBoundingClientRect().width<repost.getBoundingClientRect().width-112)
+    throw Error('Repost photo is not a large, readable media panel');
+   if(!repost.querySelector('[data-feed-original-card] .rounded-full'))throw Error('Original author avatar missing');
    if(repost.querySelector('button[aria-label="Repost to your profile"]'))throw Error('Nested repost button must be hidden');
    if(window.__errors.length)throw Error('JS errors: '+window.__errors.join(', '));
   });
