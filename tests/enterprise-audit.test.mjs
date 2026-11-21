@@ -115,7 +115,7 @@ test('role previews cannot publish feed posts and repost media keeps its full-wi
 test('authenticated brands use separate central tokens and no recursive surface variable',()=>{
  const css=read('src/supabase/workspace-visual-system.css');
  assert.match(css,/--cc-action:#971466/);
- assert.match(css,/--cc-action:#12698f/);
+ assert.match(css,/--brand-host-action:#12698f/);
  assert.match(css,/--ccx-nav-panel-accent:#e9a3d1/);
  assert.doesNotMatch(css,/--cc-surface:var\(--cc-surface\)/);
  assert.match(css,/:root\[data-ccx-appearance="workspace"\]/);
