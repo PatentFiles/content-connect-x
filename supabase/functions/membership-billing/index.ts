@@ -59,7 +59,7 @@ Deno.serve(async req=>{
    try{providerResponse=await fetch(endpoint.toString(),{method:'GET',redirect:'error',signal:AbortSignal.timeout(12000),headers:{'Accept':'application/xml'}});}
    catch{return out({error:'Processor cancellation could not be confirmed. Verify the subscription with CCBill before retrying.',manage_url:'https://support.ccbill.com'},502);}
    const result=await providerResponse.text();
-   if(!providerResponse.ok||result.length>2000||!/<results>\\s*1\\s*<\\/results>/.test(result))
+   if(!providerResponse.ok||result.length>2000||!/<results>\s*1\s*<\/results>/.test(result))
     return out({error:'CCBill did not confirm cancellation. Please use CCBill subscription support.',manage_url:'https://support.ccbill.com'},502);
    const {data:updated,error:updateError}=await db.from('ccx_membership_contracts')
     .update({cancel_at_period_end:true,updated_at:new Date().toISOString()})
