@@ -439,3 +439,18 @@ Regression coverage: `tests/enterprise-audit.test.mjs` now asserts role-preview 
 7. Existing `HostingWorkforceManager` already supports accepted staff invitations, cleaning assignments, checklists, ratings and supplies. Physical cleaning-code issuance is *not* connected to a supported lock provider until credentials and device enrollment exist.
 
 **Release boundary:** Source commits are not Bolt publication. CI mock/browser tests and database schema inspections are not proof that a real processor charged a card, a physical lock changed its PIN, or every role completed a live booking. Do not market automated capture, guaranteed deposits or lock integration as ready until certified end-to-end with enrolled services, signed policy and real hardware.
+
+
+## November 21, 2026 — Independent Host Connect X calendar, property API and reservation references
+
+**Separate company/product:** Host Connect X runs from its own Bolt/GitHub repository `PatentFiles/host-connect-x` and a **different** Supabase project `szfdoqkfewwpdkapqptp`, with its own login and hosting roles. Content Connect X remains on Supabase `yxuqbygykpfbioslljlf` and this repository.
+
+**The authoritative listing source is Host Connect X**, not the old CCX `properties` or `property_booking_requests` tables. `src/supabase/HostCrossMarketplace.jsx` is the CCX Properties guest interface and calls `src/supabase/hostConnectApi.js`, `https://szfdoqkfewwpdkapqptp.supabase.co/functions/v1/host-marketplace`. Both websites refresh visible calendars every 30 seconds and when focused, and every booking/blackout is transactionally rechecked on the Host database. No local mirror table is introduced in CCX.
+
+**Authorization:** approved Host listing browsing is public. A CCX reservation request supplies the real current CCX Auth token, which the Host Edge verifies against the CCX Auth issuer and checks through CCX row-level security for admission, unrestricted account and active Premium subscription. It then creates the booking in the **Host** database using a serialized SQL RPC; Host-only guests use Host Auth tokens. Both entry points show the same authoritative booking holds. The CCX browser never receives Host service-role credentials.
+
+**Collaboration planning:** `supabase/functions/collaboration-workspace/index.ts` (deployed to CCX) fetches approved Host X venues and verifies the chosen listing; plans persist its ID in `ccx_collaboration_plans.host_property_id`. The legacy local `property_id` foreign key is left intact for old history. Selecting a venue is a proposed shoot location, **not** a paid booking or approval by on-site participants.
+
+**Production boundary:** Host Connect X listing approval still requires a separately authorized human reviewer, owner/property-authority proof and independent photo checks. No real account/booking end-to-end test has been performed yet; the Host project currently has zero customer listings/bookings. The current request workflow is pending/unpaid. CCBill, DocuSign, automatic payment capture, smart locks, cleaning service, federation/account linking and unanimous on-site collaboration-booking automation are not represented as complete or operational. Source changes still require publication in each respective Bolt project.
+
+**Validation:** Host and CCX quality gates, live anonymous marketplace discovery/authorization-denial tests, Supabase RLS advisor, SQL transactional rollback tests of idempotency, overlapping bookings, blackout conflicts, late host acceptance and independent evidence review. Tests do not guarantee third-party payment underwriting or live hardware operations.
