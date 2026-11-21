@@ -30,6 +30,7 @@
     "test:control-layout": "node --test tests/control-layout.test.mjs",
     "test:ui-controls": "node --experimental-websocket scripts/test-control-layout-browser.mjs",
     "test:unit": "node scripts/test-unit-suite.mjs",
+    "audit:ui-controls": "node scripts/audit-interactive-controls.mjs",
     "test:enterprise": "node --test tests/enterprise-audit.test.mjs tests/enterprise-runtime.test.mjs",
     "test:ui-theme": "node --experimental-websocket scripts/test-professional-theme-browser.mjs"
   },
