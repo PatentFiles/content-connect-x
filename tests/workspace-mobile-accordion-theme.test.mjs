@@ -15,7 +15,7 @@ test('six professional dashboards greet the actual member above the update compo
  assert.match(source,/Welcome back, \{dashboardGreetingName\(profile\)\}/);
  assert.ok(source.indexOf('ccx-dashboard-welcome')<source.indexOf('<ConnectFeed userId='),
   'Welcome header must precede the Feed composer');
- assert.match(source,/ConnectFeed userId=\{userId\} paid=\{paid\} preview=\{false\}/);
+ assert.match(source,/ConnectFeed userId=\{userId\} paid=\{paid\} preview=\{preview\}/);
 });
 test('greeting selects a display or stage name before legal/private name',()=>{
  assert.equal(dashboardGreetingName({display_name:'  Ava Rae  ',stage_name:'Other',real_name:'Legal'}),'Ava Rae');
