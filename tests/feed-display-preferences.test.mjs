@@ -71,9 +71,9 @@ test('only icon buttons remain in composer, and audience/view selectors live in 
  assert.match(member,/<FeedPreferencesSettings userId=\{user\?\.id\}/);
  assert.match(app,/<FeedPreferencesSettings userId=\{user\.id\}/);
 });
-test('mobile Discovery filters start collapsed, remain user expandable, desktop defaults expanded',()=>{
+test('Discovery filters start collapsed on desktop and mobile and remain user expandable',()=>{
  const file=fs.readFileSync('src/supabase/CreatorDiscovery.jsx','utf8');
- assert.match(file,/window\.matchMedia\('\(min-width: 768px\)'\)\.matches/);
+ assert.match(file,/const \[filtersOpen,setFiltersOpen\]=useState\(false\)/);
  assert.match(file,/aria-expanded=\{filtersOpen\}/);
  assert.match(file,/setFiltersOpen\(v=>!v\)/);
  assert.match(file,/filtersOpen&&<div id="ccx-discovery-filter-fields"/);
