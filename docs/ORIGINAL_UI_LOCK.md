@@ -1,9 +1,8 @@
 # Content Connect X — Original UI lock and Supabase migration contract
 
 ## Canonical frontend reference
-- Original pre-Supabase source: commit `00640e05b91478d544dd590084a3f423bf52a47e`
-- Permanent reference branch: `historical source snapshot at commit 00640e05b91478d544dd590084a3f423bf52a47e`
-- Current restoration branch: `restore/original-role-shell-supabase`
+- Historical design baseline: commit `00640e05b91478d544dd590084a3f423bf52a47e`
+- Current release source: GitHub `main`; old snapshots are not release branches
 
 **No frontend redesign is authorized.** The user requested a legacy-to-Supabase
 backend migration, while retaining the original appearance, navigation, data
