@@ -41,6 +41,8 @@ jobs:
         run: node scripts/test-identity-onboarding-browser.mjs
       - name: Open every footer link in isolated Chromium and check trust forms
         run: node --experimental-websocket scripts/test-trust-dashboard-browser.mjs
+      - name: Click every role sidebar and mobile navigation destination in isolated Chromium
+        run: node --experimental-websocket scripts/test-all-role-navigation-browser.mjs
       - name: Render actual role workspaces and shared cards
         run: node scripts/test-role-workspace-render.mjs
       - name: Release invariants
