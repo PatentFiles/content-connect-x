@@ -1,7 +1,8 @@
 /** Single guided frontend for the existing protected collaboration creation.
  * This does not sign contracts, confirm a reservation or bypass provider checks.
  */
-import React,{useEffect,useRef,useState} from 'react';
+import React,{useEffect,useMemo,useRef,useState} from 'react';
+import {hostingAction} from './hostingApi';
 import MemberPicker from './MemberPicker';
 import {WIZARD_STEPS,productionTimeZoneChoices,validateProductionWizardStep,localDateTimeToUtc} from './productionWizardPolicy.mjs';
 const field='mt-1 min-h-11 w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-2.5 text-sm';
@@ -10,6 +11,25 @@ const muted='text-[var(--cc-text-secondary)]';
 const roles=[['creator','Creator'],['photographer','Photographer'],['videographer','Videographer'],['video_editor','Video editor'],['studio','Studio'],['agent','Agent']];
 export default function CollaborationCreationWizard({user,title,setTitle,description,setDescription,plan,setPlan,requiresClearance,setRequiresClearance,target,setTarget,role,setRole,properties=[],onCreate,onCancel,busy=false}){
  const [index,setIndex]=useState(0),[error,setError]=useState('');
+ const [venueQuery,setVenueQuery]=useState(''),[venueDates,setVenueDates]=useState(null),[venueLoading,setVenueLoading]=useState(false);
+ const matchingProperties=useMemo(()=>properties.filter(p=>[p.title,p.city,p.state,p.country].some(value=>String(value||'').toLowerCase().includes(venueQuery.trim().toLowerCase()))),[properties,venueQuery]);
+ useEffect(()=>{
+  if(!plan.property_id){setVenueDates(null);setVenueLoading(false);return;}
+  let active=true;setVenueLoading(true);setVenueDates(null);
+  void hostingAction('listing',{id:plan.property_id}).then(result=>{
+   if(active)setVenueDates({unavailable:Array.isArray(result.unavailable)?result.unavailable:[],loaded:true});
+  }).catch(()=>{if(active)setVenueDates({loaded:false,unavailable:[]});}).finally(()=>{if(active)setVenueLoading(false);});
+  return()=>{active=false;};
+ },[plan.property_id]);
+ const venueConflict=useMemo(()=>{
+  if(!venueDates?.loaded||!plan.starts_at||!plan.ends_at)return null;
+  try{
+   const from=Date.parse(localDateTimeToUtc(plan.starts_at,plan.timezone));
+   const to=Date.parse(localDateTimeToUtc(plan.ends_at,plan.timezone));
+   if(!Number.isFinite(from)||!Number.isFinite(to)||to<=from)return null;
+   return venueDates.unavailable.some(item=>Date.parse(item.starts_at)<to&&Date.parse(item.ends_at)>from);
+  }catch{return null;}
+ },[venueDates,plan.starts_at,plan.ends_at,plan.timezone]);
  const heading=useRef(null);
  useEffect(()=>{heading.current?.focus();},[index]);
  const update=(key,value)=>setPlan(p=>({...p,[key]:value}));
@@ -52,7 +72,22 @@ export default function CollaborationCreationWizard({user,title,setTitle,descrip
      <label className="block text-sm">City<input className={field} value={plan.city||''} maxLength={160} onChange={e=>update('city',e.target.value)}/></label>
      <label className="block text-sm">Location or studio label<input className={field} value={plan.venue_label||''} maxLength={240} onChange={e=>update('venue_label',e.target.value)}/></label>
     </div>
-    <label className="block text-sm">Proposed Host Connect property<select className={field} value={plan.property_id||''} onChange={e=>{const selected=properties.find(p=>p.id===e.target.value);setPlan(p=>({...p,property_id:e.target.value,city:selected?.city||p.city,timezone:selected?.timezone||p.timezone}));}}><option value="">None selected</option>{properties.map(p=><option value={p.id} key={p.id}>{p.title} — {[p.city,p.state,p.country].filter(Boolean).join(', ')}</option>)}</select><span className={'mt-1 block text-xs '+muted}>Selecting a listing is a proposal, not a reservation. Booking requires separate confirmation.</span></label>
+    <div className="space-y-2" aria-label="Find a Host Connect venue">
+     <label className="block text-sm">Search Host Connect properties
+      <input className={field} type="search" value={venueQuery} onChange={e=>setVenueQuery(e.target.value)} placeholder="Search by location or property name" autoComplete="off"/>
+     </label>
+     <label className="block text-sm">Proposed venue
+      <select className={field} value={plan.property_id||''} onChange={e=>{const selected=properties.find(p=>p.id===e.target.value);setPlan(p=>({...p,property_id:e.target.value,venue_label:selected?.title||p.venue_label,city:selected?.city||p.city,timezone:selected?.timezone||p.timezone}));}}>
+       <option value="">No property selected</option>
+       {properties.filter(p=>p.id===plan.property_id||matchingProperties.includes(p)).map(p=><option value={p.id} key={p.id}>{p.title} — {[p.city,p.state,p.country].filter(Boolean).join(', ')}</option>)}
+      </select>
+     </label>
+     {venueQuery&&matchingProperties.length===0&&<p className={'text-xs '+muted}>No matching approved properties. Try another city or property name.</p>}
+     {plan.property_id&&<p className={'rounded-lg border border-[var(--cc-border)] p-3 text-xs '+muted} role="status">
+      {venueLoading?'Checking the property calendar…':!venueDates?.loaded?'Property calendar could not be loaded. Check availability in Host Connect before committing.':venueConflict===true?'These proposed dates overlap a blocked venue period. Pick different dates or another property.':venueConflict===false?'No overlapping dates found in the latest calendar snapshot. Availability must be checked again when requesting the booking.':'Select valid production dates to compare with this venue’s calendar.'}
+     </p>}
+     <p className={'text-xs '+muted}>Property selection and date review are planning aids, not a booking. Final reservation requires host acceptance, participant approvals and provider-confirmed payment.</p>
+    </div>
    </>}
    {index===2&&<><p className={'text-sm '+muted}>Clearly distinguish proposed work from what participants later confirm was actually completed. Additional activities require new voluntary agreement.</p>
     {[['scope_of_work','Proposed professional scope'],['activities','Proposed activities (comma-separated)'],['deliverables','Deliverables and deadlines'],['usage_rights','Permitted usage and distribution rights']].map(([key,label])=><label key={key} className="block text-sm">{label}<textarea className={field} value={plan[key]||''} onChange={e=>update(key,e.target.value)} rows={2} maxLength={key==='activities'?6000:4000} required={key==='scope_of_work'}/></label>)}
