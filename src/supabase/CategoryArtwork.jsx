@@ -44,8 +44,8 @@ export function CategoryArtwork({item,size=54}){
  </span>;
 }
 export function CategoryStrip({items,value,onSelect,activeColor='var(--cc-link)',large=false}) {
- return <nav aria-label="Browse categories" className="w-full overflow-x-auto overscroll-x-contain">
-  <div className="mx-auto flex w-max min-w-max items-start justify-center gap-2 px-3 py-3 sm:gap-4">
+ return <nav aria-label="Browse categories" className={"w-full overscroll-x-contain "+(large?"overflow-x-auto lg:overflow-visible":"overflow-x-auto")}> 
+  <div className={"mx-auto flex items-start justify-center gap-2 px-3 py-3 sm:gap-4 "+(large?"w-max min-w-max lg:w-full lg:min-w-0 lg:max-w-[1500px] lg:flex-wrap":"w-max min-w-max")}>
    {items.map(item=><button type="button" key={item.key} aria-pressed={value===item.key}
     onClick={()=>onSelect(item)} style={{borderBottomColor:value===item.key?activeColor:'transparent'}}
     className={"flex shrink-0 snap-start flex-col items-center justify-start gap-2 border-b-[3px] px-1 py-2 text-center text-xs font-semibold text-[var(--cc-text-primary)] transition hover:opacity-75 focus-visible:outline-2 focus-visible:outline-offset-2 "+(large?"min-h-[122px] w-[116px] sm:w-[130px]":"min-h-[104px] w-[94px] sm:w-[102px]")}>
