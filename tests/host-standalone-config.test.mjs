@@ -33,3 +33,11 @@ test('standalone host entry always uses Host Connect and crosses to CCX external
  assert.match(client,/resolveHostSupabaseConfig/);
  assert.match(app,/href="https:\/\/contentconnectx\.com"/);
 });
+
+test('new Bolt imports show the public Host Connect homepage before database setup',()=>{
+ const entry=readFileSync('src/supabase/bootstrap.jsx','utf8');
+ const app=readFileSync('src/supabase/OnlyHostApp.jsx','utf8');
+ assert.match(entry,/const configuredApp=isTrustRoute/);
+ assert.match(app,/if\(!supabase\)\{setLoading\(false\);return;\}/);
+ assert.match(app,/if\(!supabase\)throw Error\(supabaseConfiguration.error/);
+});
