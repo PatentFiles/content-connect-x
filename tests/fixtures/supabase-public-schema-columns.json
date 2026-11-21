@@ -367,7 +367,8 @@
       "usage_rights",
       "version",
       "updated_by",
-      "updated_at"
+      "updated_at",
+      "host_property_id"
     ],
     "ccx_collaboration_safety_checkins": [
       "collaboration_id",
