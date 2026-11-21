@@ -9,7 +9,18 @@ const ghostBtn='rounded-lg border px-3 py-2 text-sm font-medium disabled:opacity
 const reportMediaUrl=id=>'/trust/privacy?locator='+encodeURIComponent('gallery-media:'+id);
 async function mediaRequest(action,data={}){
   const {data:result,error}=await supabase.functions.invoke('media-gateway',{body:{action,...data}});
-  if(error||result?.error)throw new Error(result?.error||error?.message||'Media service unavailable');
+  if(error||result?.error){
+    // Supabase FunctionHttpError's generic message hides the useful, safe API
+    // error body. Read a cloned response without consuming the SDK's stream.
+    let message=typeof result?.error==='string'?result.error:null;
+    if(!message&&error?.context?.clone)try{
+      const body=await error.context.clone().json();
+      if(typeof body?.error==='string')message=body.error;
+    }catch{/* Network and non-JSON errors use the generic fallback. */}
+    if(!message||message==='Unable to process media action')
+      message='The media service is temporarily unavailable. Please retry.';
+    throw new Error(message);
+  }
   return result;
 }
 export default function MediaGallery({userId,paid=false,admin=false}){
@@ -35,14 +46,20 @@ export default function MediaGallery({userId,paid=false,admin=false}){
   const load=async()=>{
     setBusy(true);setError('');
     try{
-      const results=await Promise.all([
+      // Each gallery section is independent. Failure to load albums or the
+      // moderation queue must not erase approved media and prevent navigation.
+      const results=await Promise.allSettled([
         mediaRequest('gallery',{owner_id:target||userId,album_id:selectedAlbum||undefined}),
         paid?mediaRequest('my_media'):Promise.resolve({items:[]}),
         paid?mediaRequest('list_albums'):Promise.resolve({items:[]}),
         admin?mediaRequest('admin_queue'):Promise.resolve({items:[]})
       ]);
-      setAssets(results[0].items||[]);setOwned(results[1].items||[]);
-      setAlbums(results[2].items||[]);setReview(results[3].items||[]);
+      if(results[0].status==='fulfilled')setAssets(results[0].value.items||[]);
+      if(results[1].status==='fulfilled')setOwned(results[1].value.items||[]);
+      if(results[2].status==='fulfilled')setAlbums(results[2].value.items||[]);
+      if(results[3].status==='fulfilled')setReview(results[3].value.items||[]);
+      const issues=results.filter(item=>item.status==='rejected').map(item=>item.reason?.message||'Media section unavailable');
+      if(issues.length)setError([...new Set(issues)].join(' '));
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
   useEffect(()=>{load();},[selectedAlbum]);
