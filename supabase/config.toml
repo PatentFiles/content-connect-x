@@ -122,3 +122,7 @@ verify_jwt = true
 
 [functions.shop-directory]
 verify_jwt = true
+
+# Private scheduled queue consumer. Its one-purpose Vault token is checked in-handler.
+[functions.ccx-email-worker]
+verify_jwt = false
