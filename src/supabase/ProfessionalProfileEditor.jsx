@@ -9,6 +9,7 @@ import RosterPanel from './RosterPanel';
 import ProfessionalPortfolio from './ProfessionalPortfolio';
 import MemberSocialLinks from './MemberSocialLinks';
 import ProfileAnalytics from './ProfileAnalytics';
+import DiscoveryAttributesEditor from './DiscoveryAttributesEditor';
 import TravelCalendar from './TravelCalendar';
 const field='mt-2 w-full min-w-0 rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-2.5 text-[var(--cc-text-primary)]';
 const initialDetails={specialties:'',services:'',equipment:'',software:'',website:'',hourly_rate:'',day_rate:'',currency:'USD',commission_percent:'',accepting_talent:false,available_to_travel:false,turnaround_days:''};
@@ -58,6 +59,7 @@ export default function ProfessionalProfileEditor({user,profile,onSaved,approved
     {id==='services'&&<>{text('specialties',role==='photographer'?'Photography specialties':role==='videographer'?'Video specialties':'Editing specialties',true)}{text('services','Services and deliverables',true)}{role==='video_editor'?text('software','Editing software',true):text('equipment','Camera and production equipment',true)}<div className="grid gap-3 sm:grid-cols-3">{number('hourly_rate','Hourly rate')}{number('day_rate','Day rate')}<label className="text-sm">Currency<select className={field} value={details.currency} onChange={e=>detail('currency',e.target.value)}>{['USD','GBP','EUR','CAD','AUD'].map(c=><option key={c}>{c}</option>)}</select></label></div>{role!=='photographer'&&number('turnaround_days','Typical turnaround (days)',365)}<label className="flex gap-2 text-sm"><input type="checkbox" checked={details.available_to_travel} onChange={e=>detail('available_to_travel',e.target.checked)}/>Available to travel</label></>}
     {id==='privacy'&&<p className="text-sm text-[var(--cc-text-secondary)]">Discovery uses your display name, professional role and general location. Your real name and private account records are not included in directory cards. Social-link sharing is controlled separately below.</p>}
    </fieldset>}</div>}</section>)}<button className="ccx-primary rounded-xl px-5 py-3 font-semibold" disabled={preview||busy}>{busy?'Saving…':'Save '+roleTitle(role)+' profile'}</button></form>{!preview&&<div className="mt-6"><MemberSocialLinks userId={user.id}/></div>}{!preview&&<div className="mt-6"><TravelCalendar userId={user.id}/></div>}</>}
+   {tab==='profile'&&!preview&&<div className="mt-5"><DiscoveryAttributesEditor userId={user.id} professional/></div>}
    {tab==='roster'&&business&&<RosterPanel user={user} role={role} preview={preview}/>}
    {tab==='portfolio'&&service&&<ProfessionalPortfolio userId={user.id} role={role} preview={preview} paid={paid} admin={isAdmin}/>}
    {tab==='analytics'&&(preview?<p className="text-sm text-[var(--cc-text-secondary)]">Analytics are not simulated for a role preview.</p>:<ProfileAnalytics/>)}
