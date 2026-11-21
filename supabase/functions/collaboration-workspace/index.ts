@@ -8,6 +8,17 @@ const send=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,
 const id=v=>typeof v==='string'&&/^[a-f0-9]{8}-[a-f0-9]{4}-[1-8][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(v);
 const safe=(v:unknown,n:number)=>typeof v==='string'?v.trim().slice(0,n):'';
 const terminal=new Set(['completed','cancelled','archived','closed']);
+const HOST_MARKETPLACE='https://szfdoqkfewwpdkapqptp.supabase.co/functions/v1/host-marketplace';
+/** The Host Connect X API returns only approved public venue information here.
+ * Never forward privileged CCX Supabase keys to another database. */
+async function hostVenue(action:string,data:Record<string,unknown>={}){
+ const result=await fetch(HOST_MARKETPLACE,{method:'POST',headers:{'content-type':'application/json'},
+   body:JSON.stringify({action,...data}),signal:AbortSignal.timeout(12000)});
+ const json=await result.json().catch(()=>null);
+ if(!result.ok||json?.error||!json)throw Error('Host Connect X venue data unavailable');
+ return json;
+}
+
 const fail=(message:string,status=400)=>send({error:message},status);
 const origin=Deno.env.get('SUPABASE_URL'),publicKey=Deno.env.get('SUPABASE_ANON_KEY'),secret=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 if(!origin||!publicKey||!secret)throw Error('Server configuration missing');
@@ -76,8 +87,10 @@ Deno.serve(async req=>{
  try{
   if(action==='eligibility')return send(await invitationEligibility(payload.target_user_id));
   if(action==='properties'){
-   const {data,error}=await admin.from('properties').select('id,title,city,state,country,timezone').eq('status','active').not('approved_at','is',null).order('created_at',{ascending:false}).limit(75);
-   if(error)throw error;return send({items:data||[]});
+   const remote=await hostVenue('browse');
+   return send({items:(remote.items||[]).slice(0,100).filter(x=>id(x.id)).map(x=>({
+    id:x.id,title:x.title,city:x.city,state:x.state,country:x.country,timezone:x.timezone
+   }))});
   }
   if(action==='list'){
    const {data:links,error:e}=await admin.from('collaboration_members').select('collaboration_id').eq('user_id',uid).limit(300);
@@ -87,10 +100,10 @@ Deno.serve(async req=>{
    const [c,h,plans]=await Promise.all([
     admin.from('collaborations').select('id,title,description,status,creator_id,created_at,requires_work_clearance').in('id',ids).order('created_at',{ascending:false}),
     admin.from('ccx_collaboration_hidden').select('collaboration_id').eq('user_id',uid),
-    admin.from('ccx_collaboration_plans').select('collaboration_id,starts_at,city,venue_label,property_id,version').in('collaboration_id',ids)
+    admin.from('ccx_collaboration_plans').select('collaboration_id,starts_at,city,venue_label,property_id,host_property_id,version').in('collaboration_id',ids)
    ]);
    if(c.error||h.error||plans.error)throw Error('Collaboration history unavailable');
-   const planMap=new Map((plans.data||[]).map(x=>[x.collaboration_id,x]));
+   const planMap=new Map((plans.data||[]).map(x=>[x.collaboration_id,{...x,property_id:x.host_property_id||x.property_id}]));
    return send({items:(c.data||[]).map(x=>({...x,plan:planMap.get(x.id)||null})),hidden:(h.data||[]).map(x=>x.collaboration_id)});
   }
   const cid=payload.collaboration_id;
@@ -127,11 +140,12 @@ Deno.serve(async req=>{
    const venue=safe(payload.venue_label,240),city=safe(payload.city,160),propertyId=payload.property_id||null;
    if(propertyId){
     if(!id(propertyId))return fail('Invalid property selection');
-    const {data:property,error:e}=await admin.from('properties').select('id,status,approved_at,timezone').eq('id',propertyId).maybeSingle();
-    if(e||!property||property.status!=='active'||!property.approved_at)return fail('Property is not an approved active listing',403);
-    if(property.timezone&&property.timezone!==timeZone)return fail('Use the selected property’s production time zone',409);
+    const remote=await hostVenue('listing',{id:propertyId});
+    const property=remote.item;
+    if(!property||property.status!=='active')return fail('Host Connect X property is not an approved active listing',403);
+    if(property.timezone&&property.timezone!==timeZone)return fail('Use the selected Host Connect X property timezone',409);
    }
-   const data={collaboration_id:cid,starts_at:starts||null,ends_at:ends||null,timezone:timeZone,city,venue_label:venue,property_id:propertyId,
+   const data={collaboration_id:cid,starts_at:starts||null,ends_at:ends||null,timezone:timeZone,city,venue_label:venue,property_id:null,host_property_id:propertyId,
     scope_of_work:safe(payload.scope_of_work,6000),agreed_activities:activities,deliverables:safe(payload.deliverables,6000),usage_rights:safe(payload.usage_rights,6000),
     version:(prior.data?.version||0)+1,updated_by:uid,updated_at:new Date().toISOString()};
    const out=prior.data
@@ -143,7 +157,7 @@ Deno.serve(async req=>{
   }
   const [members,plan,history,contracts,consents,invites]=await Promise.all([
    admin.from('collaboration_members').select('user_id,membership_role').eq('collaboration_id',cid),
-   admin.from('ccx_collaboration_plans').select('starts_at,ends_at,timezone,city,venue_label,property_id,scope_of_work,agreed_activities,deliverables,usage_rights,version,updated_at').eq('collaboration_id',cid).maybeSingle(),
+   admin.from('ccx_collaboration_plans').select('starts_at,ends_at,timezone,city,venue_label,property_id,host_property_id,scope_of_work,agreed_activities,deliverables,usage_rights,version,updated_at').eq('collaboration_id',cid).maybeSingle(),
    admin.from('ccx_collaboration_plan_history').select('version,actor_id,recorded_at,snapshot').eq('collaboration_id',cid).order('version',{ascending:false}).limit(40),
    admin.from('contracts').select('id,title,status,content,locked_at,created_at').eq('collaboration_id',cid).order('created_at',{ascending:false}).limit(40),
    admin.from('collaboration_consents').select('user_id,participation_consent,recording_consent,distribution_consent,download_consent,recorded_at,revoked_at').eq('collaboration_id',cid),
@@ -164,7 +178,7 @@ Deno.serve(async req=>{
   const signatures=(contracts.data||[]).length?await admin.from('contract_signatures').select('contract_id,signer_id,accepted_at,signed_content_hash').in('contract_id',(contracts.data||[]).map(x=>x.id)):{data:[],error:null};
   if(signatures.error)throw signatures.error;
   await admin.from('platform_action_audit').insert({actor_id:uid,action:'collaboration_detail_read',target_type:'collaboration',target_id:cid});
-  return send({collaboration:collab,plan:plan.data||null,history:history.data||[],
+  return send({collaboration:collab,plan:plan.data?{...plan.data,property_id:plan.data.host_property_id||plan.data.property_id}:null,history:history.data||[],
     members:(members.data||[]).map(x=>({...x,profile:profileMap.get(x.user_id)||null,admitted:admittedSet.has(x.user_id),restricted:!securityMap.has(x.user_id)||securityMap.get(x.user_id)?.banned===true||securityMap.get(x.user_id)?.suspended===true})),
     contracts:(contracts.data||[]).map(x=>({...x,signatures:(signatures.data||[]).filter(s=>s.contract_id===x.id)})),
     consents:consents.data||[],invitations:collab.creator_id===uid?invites.data||[]:[]});
