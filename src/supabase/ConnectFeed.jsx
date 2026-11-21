@@ -123,13 +123,15 @@ async function safePhotoBlob(file){
  }finally{bitmap.close();}
 }
 export default function ConnectFeed({userId,paid=false,preview=false,initialMode='discover',profileId=null,groupId=null,onNavigate=(_tab)=>{}}){
- const [mode,setMode]=useState(groupId?'group':profileId?'profile':initialMode),[items,setItems]=useState([]),[cursor,setCursor]=useState(null);
+ const [mode,setMode]=useState(groupId?'group':initialMode),[items,setItems]=useState([]),[cursor,setCursor]=useState(null);
+ const [activityTab,setActivityTab]=useState('posts');
  const [preferencesReady,setPreferencesReady]=useState(Boolean(groupId||profileId));
  const [loading,setLoading]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [sharedPost,setSharedPost]=useState(null),[sharedError,setSharedError]=useState(''),[loadingShared,setLoadingShared]=useState(false);
  const [text,setText]=useState(''),[audience,setAudience]=useState('verified');
  const [uploadFile,setUploadFile]=useState(null),[rights,setRights]=useState(false),[adultNudity,setAdultNudity]=useState(false),[uploading,setUploading]=useState(false);
  const reqNo=useRef(0),posting=useRef(false),photoPicker=useRef(null);
+ const feedMode=groupId?'group':profileId?(activityTab==='reposts'?'profile_reposts':'profile_posts'):activityTab==='reposts'?'my_reposts':mode;
  useEffect(()=>{
   if(groupId||profileId){setPreferencesReady(true);return;}
   let live=true;setPreferencesReady(false);
@@ -152,22 +154,22 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
  const load=useCallback(async(more=false)=>{
   if(more&&!cursor)return;const seq=++reqNo.current;setLoading(true);setError('');
   try{
-   const result=await action('feed',{mode:groupId?'group':profileId?'profile':mode,author_id:groupId||profileId||undefined,
+   const result=await action('feed',{mode:feedMode,author_id:groupId||profileId||undefined,
     ...(more&&cursor?cursor:{})});
    if(seq!==reqNo.current)return;
    setItems(prior=>more?[...prior,...(result.items||[])]:result.items||[]);
    setCursor(result.cursor||null);
   }catch(e){if(seq===reqNo.current)setError(e.message);}finally{if(seq===reqNo.current)setLoading(false);}
- },[mode,profileId,groupId,cursor?.before,cursor?.before_id]);
+ },[feedMode,profileId,groupId,cursor?.before,cursor?.before_id]);
  useEffect(()=>{
   if(!preferencesReady)return;
   reqNo.current++;setCursor(null);setItems([]);
   let alive=true;setLoading(true);setError('');
-  void action('feed',{mode:groupId?'group':profileId?'profile':mode,author_id:groupId||profileId||undefined})
+  void action('feed',{mode:feedMode,author_id:groupId||profileId||undefined})
    .then(data=>{if(alive){setItems(data.items||[]);setCursor(data.cursor||null);}},e=>{if(alive)setError(e.message);})
    .finally(()=>{if(alive)setLoading(false);});
   return()=>{alive=false;reqNo.current++;};
- },[mode,profileId,groupId,userId,preferencesReady]);
+ },[feedMode,profileId,groupId,userId,preferencesReady]);
  useEffect(()=>{
   if(profileId||groupId)return;
   const value=new URLSearchParams(window.location.search).get('ccx_post');
@@ -258,6 +260,10 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
     <button className={secondary} type="button" title="Refresh Feed" disabled={loading} onClick={()=>void load(false)} aria-label="Refresh Feed"><RefreshCw size={17}/></button>
    </div>
   </header>}
+  {!groupId&&<div role="tablist" aria-label={profileId?'Profile activity':'Dashboard feed activity'} className="ccx-surface flex items-center gap-2 rounded-xl p-2" data-feed-activity-tabs="true">
+   <button type="button" role="tab" aria-selected={activityTab==='posts'} className={'min-h-11 flex-1 rounded-lg px-4 py-2 text-sm font-semibold '+(activityTab==='posts'?'ccx-primary':'ccx-secondary')} onClick={()=>setActivityTab('posts')}>{profileId?'Posts':'Feed'}</button>
+   <button type="button" role="tab" aria-selected={activityTab==='reposts'} className={'min-h-11 flex-1 rounded-lg px-4 py-2 text-sm font-semibold '+(activityTab==='reposts'?'ccx-primary':'ccx-secondary')} onClick={()=>setActivityTab('reposts')}><Repeat2 size={17} className="mr-2 inline" aria-hidden="true"/>Reposts</button>
+  </div>}
   {error&&<p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-900">{error}</p>}
   {notice&&<p role="status" className="rounded-xl bg-[var(--cc-surface-subtle)] p-3 text-sm">{notice}</p>}
   {!profileId&&!groupId&&(loadingShared||sharedPost||sharedError)&&<section className="space-y-3 rounded-xl border-2 border-[var(--cc-border)] p-3" aria-label="Shared post">
@@ -268,7 +274,7 @@ export default function ConnectFeed({userId,paid=false,preview=false,initialMode
   </section>}
   <div className="space-y-4">{items.map(post=><FeedPost key={post.id} post={post} paid={paid} userId={userId} onError={setError} onChanged={()=>void load(false)}/>)}</div>
   {!loading&&items.length===0&&<div className="ccx-surface rounded-xl p-6 text-center text-sm text-[var(--cc-text-secondary)]">
-   {mode==='friends'?'Your friends’ approved posts will appear here. Connect with members to build your feed.':mode==='following'?'Follow verified members to see their posts here.':'No approved posts have been published here yet.'}
+   {activityTab==='reposts'?'No approved reposts to display yet.':profileId?'No original posts shared with your account yet.':mode==='friends'?'Your friends’ approved posts will appear here. Connect with members to build your feed.':mode==='following'?'Follow verified members to see their posts here.':'No approved posts have been published here yet.'}
   </div>}
   {cursor&&<button className={secondary+' w-full'} onClick={()=>void load(true)} disabled={loading}>Load more posts</button>}
   {loading&&<p role="status" className="text-center text-sm text-[var(--cc-text-secondary)]">Loading Connect Feed…</p>}
