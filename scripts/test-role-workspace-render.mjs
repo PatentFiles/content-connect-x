@@ -43,14 +43,14 @@ try{
   }
  }
  // The admin dashboard role switcher is a visual preview, not account
- // impersonation. It must still let its authenticated owner post as themselves.
+ // impersonation. It must never render a mutating composer for another role.
  const adminProfile={...base,role_type:'creator'};
  const previewHTML=renderToStaticMarkup(React.createElement(Shell,{
   user,profile:adminProfile,approved:true,isAdmin:true,tab:'dashboard',
   featureFlags:flags,onNavigate:()=>{},onSignOut:()=>{}
  },React.createElement(Dashboard,{profile:adminProfile,roleOverride:'studio',
   verified:true,features:flags,paid:true,onNavigate:()=>{}})));
- assert.ok(previewHTML.includes('data-feed-composer="true"'),'Admin studio preview must keep the member’s Feed composer');
+ assert.ok(!previewHTML.includes('data-feed-composer="true"'),'Admin studio preview must not allow changes from the role preview');
  assert.ok(previewHTML.includes('not as another role'),'Admin previews must identify the real posting identity');
  checks++;
  const freeProfile={...base,role_type:'studio'};
