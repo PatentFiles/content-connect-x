@@ -32,8 +32,8 @@ Deno.serve(async req=>{
  // Unlike directory search, the signed-in member can preview their own profile.
  if(body?.action==='my_public_profile'){
   const [own,choices,verification]=await Promise.all([
-   db.from('member_profiles').select('id,display_name,role_type,bio,avatar_path,cover_path,city,state,country,profile_complete').eq('id',user.id).maybeSingle(),
-   db.from('member_profile_preferences').select('gender_identity,sexual_orientation,content_categories,show_gender_in_discovery,show_orientation_in_discovery,show_categories_in_discovery').eq('user_id',user.id).maybeSingle(),
+   db.from('member_profiles').select('id,display_name,stage_name,company_name,role_type,bio,avatar_path,cover_path,city,state,country,profile_complete').eq('id',user.id).maybeSingle(),
+   db.from('member_profile_preferences').select('gender_identity,sexual_orientation,pronouns,content_categories,specialties,available_to_travel,show_gender_in_discovery,show_orientation_in_discovery,show_categories_in_discovery').eq('user_id',user.id).maybeSingle(),
    db.from('age_verification_requests').select('status,expires_at').eq('user_id',user.id).order('created_at',{ascending:false}).limit(1)
   ]);
   if(own.error||choices.error||verification.error)return json({error:'Your public profile preview is unavailable'},503);
@@ -47,15 +47,77 @@ Deno.serve(async req=>{
    const {data:link,error}=await db.storage.from('member-private').createSignedUrl(path,600);
    if(!error)signed[kind]=link?.signedUrl||null;
   }
+  // Profile extensions are derived only from member-visible, already-approved
+  // fields. An owner preview is not permission to expose private account data.
+  // Isolate optional section failures so a missing legacy table cannot break
+  // the entire profile; report the sections that could not load.
+  const sections=await Promise.allSettled([
+   db.from('ccx_travel_dates').select('id,city,region,country,starts_at,ends_at')
+    .eq('user_id',user.id).eq('visible_to_members',true).gte('ends_at',new Date().toISOString())
+    .order('starts_at',{ascending:true}).limit(24),
+   db.from('member_social_links').select('links,share_with_premium').eq('user_id',user.id).maybeSingle(),
+   db.from('member_representations').select('representative_id,creator_id,representative_role,status,starts_at,expires_at,agreed_by_representative_at,agreed_by_professional_at')
+    .or('creator_id.eq.'+user.id+',representative_id.eq.'+user.id).eq('status','active').limit(20),
+   db.from('creator_production_preferences').select('availability_type,travel_regions,scene_pairings').eq('user_id',user.id).maybeSingle(),
+   db.from('member_portfolio_items').select('id,kind,title,description,external_url,created_at').eq('user_id',user.id).eq('featured',true)
+    .order('created_at',{ascending:false}).limit(12),
+   db.from('community_posts').select('id,body,published_at,created_at')
+    .eq('author_id',user.id).eq('status','published').eq('audience','verified').is('hidden_at',null).is('group_id',null)
+    .order('published_at',{ascending:false}).limit(12)
+  ]);
+  const names=['travel','social_links','representation','production','portfolio','posts'];
+  const missing=sections.flatMap((v,i)=>v.status==='rejected'||v.value.error?[names[i]]:[]);
+  const value=i=>sections[i].status==='fulfilled'&&!sections[i].value.error?sections[i].value.data:null;
+  const travels=Array.isArray(value(0))?value(0):[];
+  const social=value(1),allowedSocial= social?.share_with_premium===true&&social?.links&&typeof social.links==='object'?social.links:{};
+  // Only official HTTPS social domains and safe links can leave the service.
+  const socialDomains={onlyfans:['onlyfans.com'],fansly:['fansly.com'],twitter:['twitter.com','x.com'],instagram:['instagram.com']};
+  const socialLinks=Object.entries(allowedSocial).flatMap(([key,raw])=>{
+   if(!Array.isArray(socialDomains[key])||typeof raw!=='string')return [];
+   try{const parsed=new URL(raw),host=parsed.hostname.toLowerCase().replace(/^www\\./,'');
+    return parsed.protocol==='https:'&&!parsed.username&&!parsed.password&&socialDomains[key].includes(host)?[{platform:key,url:parsed.toString()}]:[];
+   }catch{return [];}
+  });
+  const active=(Array.isArray(value(2))?value(2):[]).filter(row=>row.agreed_by_representative_at&&row.agreed_by_professional_at&&(!row.expires_at||Date.parse(row.expires_at)>Date.now()));
+  const ids=active.map(row=>row.creator_id===user.id?row.representative_id:row.creator_id);
+  let representatives=[];
+  if(ids.length){
+   const [counterparts,security]=await Promise.all([
+    db.from('member_profiles').select('id,display_name,role_type,profile_complete').in('id',ids),
+    db.from('account_security').select('user_id,banned,suspended').in('user_id',ids)
+   ]);
+   if(counterparts.error||security.error)missing.push('representation');
+   else{
+    const secure=new Set((security.data||[]).filter(x=>!x.banned&&!x.suspended).map(x=>x.user_id));
+    const byId=new Map((counterparts.data||[]).filter(x=>x.profile_complete&&secure.has(x.id)).map(x=>[x.id,x]));
+    representatives=active.flatMap(row=>{
+     const person=byId.get(row.creator_id===user.id?row.representative_id:row.creator_id);
+     return person?[{id:person.id,display_name:person.display_name,role_type:person.role_type,relationship:row.creator_id===user.id?'Represented by':'Represents'}]:[];
+    });
+   }
+  }
+  const creator=value(3),portfolio=Array.isArray(value(4))?value(4):[],posts=Array.isArray(value(5))?value(5):[];
+  const externalUrl=raw=>{
+   if(typeof raw!=='string')return null;
+   try{const u=new URL(raw);return u.protocol==='https:'&&!u.username&&!u.password?u.toString():null;}catch{return null;}
+  };
   const publicProfile={
-   id:p.id,display_name:p.display_name,role_type:p.role_type,bio:p.bio,
+   id:p.id,display_name:p.display_name,stage_name:p.stage_name,company_name:p.company_name,role_type:p.role_type,bio:p.bio,
    city:p.city,state:p.state,country:p.country,
    avatar_url:signed.avatar||null,cover_url:signed.cover||null,
    profile_complete:p.profile_complete===true,
    age_verified:badge?.status==='approved'&&(!badge.expires_at||Date.parse(badge.expires_at)>Date.now()),
    gender_identity:c.show_gender_in_discovery?c.gender_identity:null,
+   pronouns:c.show_gender_in_discovery?c.pronouns:null,
    sexual_orientation:c.show_orientation_in_discovery?c.sexual_orientation:null,
-   content_categories:c.show_categories_in_discovery?c.content_categories||[]:[]
+   content_categories:c.show_categories_in_discovery?c.content_categories||[]:[],
+   specialties:c.show_categories_in_discovery?c.specialties||[]:[],
+   production:{availability_type:creator?.availability_type||null,
+    travel_regions:c.available_to_travel===true?(creator?.travel_regions||[]):[],
+    scene_pairings:c.show_categories_in_discovery?(creator?.scene_pairings||[]):[]},
+   travel_dates:travels, social_links:socialLinks,representatives,
+   featured_portfolio:portfolio.map(x=>({id:x.id,kind:x.kind,title:x.title,description:x.description,url:externalUrl(x.external_url)})),
+   posts, sections_unavailable:[...new Set(missing)]
   };
   return json({item:publicProfile,owner_preview:true});
  }
