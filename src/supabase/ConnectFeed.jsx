@@ -42,7 +42,7 @@ function FeedPhotos({photos=[],revealed,onReveal,embedded=false}){
   {photos.map((photo,index)=>{
    const concealed=photo.content_label==='adult_nudity'&&!revealed.includes(photo.id);
    const alt=concealed?'Adult image concealed until revealed':photo.caption||'Professional photo';
-   return <div key={photo.id} className={'relative flex min-w-0 items-center justify-center overflow-hidden rounded-lg bg-[var(--cc-surface-subtle)] '+(index===0?'col-span-2':'col-span-2 sm:col-span-1')}>
+   return <div key={photo.id} className={'relative flex min-w-0 items-center justify-center overflow-hidden bg-[var(--cc-surface-subtle)] '+(embedded?'':'rounded-lg ')+(index===0?'col-span-2':'col-span-2 sm:col-span-1')}>
     <a href={concealed?undefined:photo.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"
      aria-label={'View attached photo '+(photo.caption||'')} className="flex w-full items-center justify-center">
      <img src={photo.url} alt={alt} loading="lazy" referrerPolicy="no-referrer"
@@ -110,7 +110,7 @@ function FeedPost({post,paid,userId,onChanged,onError}){
     {postTime(local.original.created_at)&&<time dateTime={local.original.created_at} className="shrink-0 text-right text-xs text-[var(--cc-text-secondary)]">{postTime(local.original.created_at)}</time>}
    </div>
    <p className="whitespace-pre-wrap break-words px-3 text-[15px] leading-6">{local.original.body}</p>
-   {local.original.photos?.length>0&&<div className="px-3 pb-3" data-original-repost-media="true">
+   {local.original.photos?.length>0&&<div className="pb-0" data-original-repost-media="true">
     <FeedPhotos photos={local.original.photos} revealed={revealedPhotos} onReveal={reveal} embedded/>
    </div>}
   </div>}
