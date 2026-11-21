@@ -130,3 +130,7 @@ verify_jwt = false
 # Read-only admin readiness metrics. Signed-in JWT and AAL2 verified by function.
 [functions.ccx-operations]
 verify_jwt = true
+
+# Server-to-server only; independent one-purpose Vault secret checked in handler.
+[functions.ccx-transcription-worker]
+verify_jwt = false
