@@ -47,7 +47,7 @@ Deno.serve(async req=>{
  try{
   if(body.action==='list'){
    const {data,error}=await db.from('ccx_annual_recaps').select(fields)
-    .eq('user_id',uid).order('report_year',{ascending:false}).limit(15);
+    .eq('user_id',uid).order('report_year',{ascending:false}).limit(100);
    if(error)throw Error('Listing unavailable');
    return out({items:(data||[]).map(row=>({
     ...normalizeRecap(row),generated_at:row.generated_at,
@@ -68,6 +68,13 @@ Deno.serve(async req=>{
    achievements:recapAchievements(report),share_text:recapShareText(report)
   }});
   if(body.action==='download_pdf'){
+   // Limit repeated, expensive PDF generation per member and report. Never
+   // log token values, recipient names or report contents for rate limiting.
+   const recent=await db.from('ccx_annual_recap_events').select('id',{count:'exact',head:true})
+    .eq('recap_id',report.id).eq('actor_id',uid).eq('action','pdf_exported')
+    .gte('occurred_at',new Date(Date.now()-3600000).toISOString());
+   if(recent.error)return out({error:'PDF rate limit verification unavailable'},503);
+   if((recent.count||0)>=12)return out({error:'You have reached the hourly PDF limit. Try again later.'},429);
    // Generate first, then write an append-only audit event. No PDF is sent if
    // the audit append fails. PDF bytes are never persisted or publicly cached.
    const pdf=await renderRecapPdf(report,profile.data.display_name);
