@@ -1,8 +1,8 @@
 /** Single public browser client. No service-role credentials belong here. */
 import {createClient} from '@supabase/supabase-js';
-import {resolveBrowserSupabaseConfig} from './publicSupabaseConfig.mjs';
+import {resolveHostSupabaseConfig} from './hostSupabaseConfig.mjs';
 import {compatibleEdgeFetch} from './edgeTransport.mjs';
-export const supabaseConfiguration=resolveBrowserSupabaseConfig(import.meta.env);
+export const supabaseConfiguration=resolveHostSupabaseConfig(import.meta.env);
 if(supabaseConfiguration.warning)console.warn(supabaseConfiguration.warning);
 export const supabase=supabaseConfiguration.ready
  ?createClient(supabaseConfiguration.url,supabaseConfiguration.key,{
