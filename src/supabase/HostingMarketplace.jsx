@@ -1,4 +1,5 @@
 import PropertyVirtualTour from './PropertyVirtualTour';
+import {CategoryStrip,PROPERTY_CATEGORIES} from './CategoryArtwork';
 import PropertyAmenities,{usePropertyAmenities} from './PropertyAmenities';
 import {supabase} from '@/api/supabaseClient';
 /**
@@ -227,6 +228,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
   const [locations,setLocations]=useState([]);
   const [city,setCity]=useState('');
   const [category,setCategory]=useState('');
+  const [visualCategory,setVisualCategory]=useState('all');
   const [maxPrice,setMaxPrice]=useState('');
   const [crew,setCrew]=useState('');
   const [selectedAmenities,setSelectedAmenities]=useState([]);
@@ -299,7 +301,24 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
       setNotice(response.note||'Review submitted for moderation.');
     }catch(e){setError(e.message);}
   };
-  const visible=useMemo(()=>onlySaved?listings.filter(v=>favorites.includes(v.id)):listings,[listings,favorites,onlySaved]);
+  const visible=useMemo(()=>{
+    const chosen=PROPERTY_CATEGORIES.find(item=>item.key===visualCategory);
+    const matching=listings.filter(v=>{
+      if(chosen?.amenity)return (v.amenities||[]).includes(chosen.amenity);
+      if(chosen?.category){
+        // Existing Content Connect listings use 'apartment' for condos and 'outdoor' for landscapes.
+        const keys=chosen.category==='condo'?['condo','apartment']:
+          chosen.category==='warehouse'?['warehouse','set']:
+          chosen.category==='private_beach'?['private_beach','outdoor']:
+          chosen.category==='equipment'?['equipment']:
+          [chosen.category];
+        if(!keys.includes(v.category))return false;
+        if(chosen.key==='private_beach'&&v.category==='outdoor'&&!((v.amenities||[]).includes('beach')||/beach/i.test(v.title||'')))return false;
+      }
+      return true;
+    });
+    return onlySaved?matching.filter(v=>favorites.includes(v.id)):matching;
+  },[listings,favorites,onlySaved,visualCategory]);
 
   return <div className="space-y-6 text-[var(--cc-text-primary)]">
     <header className="professional-market-heading">
@@ -316,26 +335,14 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
     {(section==='explore'||section==='favorites')&&<>
       {selected?<ListingDetail brand={brand} id={selected} paid={paid} favorites={favorites} toggle={toggle} back={()=>setSelected('')} onBooked={()=>search()}/>:
       <div className="space-y-5">
-        <nav aria-label="Browse properties by type" className={panel+' overflow-hidden px-3 py-4'}>
-         <div className="flex gap-2 overflow-x-auto pb-1" data-property-categories="true">
-          {[
-           {id:'',label:'All spaces',Icon:Layers},
-           {id:'house',label:'Houses',Icon:Home},
-           {id:'apartment',label:'Condos & apartments',Icon:Building2},
-           {id:'dungeon',label:'BDSM dungeons',Icon:ShieldCheck},
-           {id:'film_studio',label:'Production studios',Icon:Clapperboard},
-           {id:'photo_studio',label:'Photo studios',Icon:Camera},
-           {id:'set',label:'Production sets',Icon:Warehouse},
-           {id:'equipment',label:'Equipment rentals',Icon:Package},
-           {id:'outdoor',label:'Outdoor spaces',Icon:Trees}
-          ].map(({id,label,Icon})=><button key={label} type="button" disabled={busy} aria-pressed={category===id}
-           onClick={()=>{setCategory(id);setMapBounds(null);}}
-           className={'flex min-w-[100px] shrink-0 flex-col items-center justify-center gap-2 rounded-xl border-b-[3px] px-3 py-2 text-center text-xs font-semibold transition hover:bg-[var(--cc-surface-subtle)] '+(category===id?'border-[var(--cc-link)] text-[var(--cc-text-primary)]':'border-transparent text-[var(--cc-text-secondary)]')}>
-           <Icon size={30} strokeWidth={1.6} aria-hidden="true"/><span>{label}</span>
-          </button>)}
-         </div>
-         <p className="mt-2 text-xs text-[var(--cc-text-secondary)]">Choose a category to update the listings below. Use advanced filters for city, dates, and amenities.</p>
-        </nav>
+        <CategoryStrip items={PROPERTY_CATEGORIES} value={visualCategory} onSelect={item=>{
+          setVisualCategory(item.key);
+          // Existing CCX venue categories differ from Host Connect canonical keys.
+          // Unsupported categories are filtered locally rather than sent as invalid RPC input.
+          const supported=new Set(rentalCategories.map(([key])=>key));
+          setCategory(supported.has(item.category)?item.category:'');
+          setMapBounds(null);
+        }}/>
         <details className={panel+' group overflow-hidden'} data-host-space-filters="true">
          <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold">
           <span className="flex items-center gap-2"><SlidersHorizontal size={18}/>Find a space · Filter location, dates and amenities</span>
@@ -343,7 +350,7 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
           <span className="hidden text-xs text-[var(--cc-text-secondary)] group-open:block">Collapse</span>
          </summary>
          <form onSubmit={e=>{e.preventDefault();search();}} className="grid gap-3 border-t border-[var(--cc-border)] p-4 md:grid-cols-3 xl:grid-cols-4">
-          <label className="block text-xs text-[var(--cc-text-secondary)]">Find a space<select aria-label="Find a space" value={category} onChange={e=>setCategory(e.target.value)} className={input+' mt-1'}><option value="">All space types</option>{rentalCategories.map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label>
+          <label className="block text-xs text-[var(--cc-text-secondary)]">Find a space<select aria-label="Find a space" value={category} onChange={e=>{setCategory(e.target.value);setVisualCategory('all');}} className={input+' mt-1'}><option value="">All space types</option>{rentalCategories.map(([id,name])=><option key={id} value={id}>{name}</option>)}</select></label>
           <label className="block text-xs text-[var(--cc-text-secondary)]">Country<select aria-label="Country" className={input+' mt-1'} value={country} onChange={e=>{setCountry(e.target.value);setRegion('');setCity('');}}><option value="">All countries</option>{countries.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
           <label className="block text-xs text-[var(--cc-text-secondary)]">State / region<select aria-label="State / region" className={input+' mt-1'} value={region} onChange={e=>{setRegion(e.target.value);setCity('');}}><option value="">All states / regions</option>{regions.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
           <label className="block text-xs text-[var(--cc-text-secondary)]">City<select aria-label="City" className={input+' mt-1'} value={city} onChange={e=>setCity(e.target.value)}><option value="">All cities</option>{cities.map(v=><option key={v} value={v}>{v}</option>)}</select></label>
