@@ -18,10 +18,11 @@ async function load(path){
  }
  return memory.get(path);
 }
+/** @type {{country:string,countryCode:string,state:string,stateCode:string,city:string,latitude:number|null,longitude:number|null,timezone:string}} */
 export const EMPTY_GEO=Object.freeze({country:'',countryCode:'',state:'',stateCode:'',city:'',latitude:null,longitude:null,timezone:''});
 const norm=x=>String(x||'').trim().toLowerCase().replace(/[^a-z0-9]/g,'');
 const control='w-full min-h-11 rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface)] px-3 py-2.5 text-sm text-[var(--cc-text-primary)] focus-visible:outline-2 focus-visible:outline-[var(--cc-focus)] disabled:opacity-60';
-export default function GeoLocationSelect({value=EMPTY_GEO,onChange=()=>{},required=false,compact=false,allowAny=false,disabled=false,labels=true,idPrefix='location'}){
+export default function GeoLocationSelect({value=EMPTY_GEO,onChange=(_next)=>{void _next;},required=false,compact=false,allowAny=false,disabled=false,labels=true,idPrefix='location'}){
  const [countries,setCountries]=useState([]),[states,setStates]=useState([]),[cities,setCities]=useState([]);
  const [error,setError]=useState(''),[loading,setLoading]=useState('countries'),[retry,setRetry]=useState(0);
  const selectedCountry=useMemo(()=>countries.find(c=>c.iso2===value.countryCode||norm(c.name)===norm(value.country)),[countries,value.countryCode,value.country]);
