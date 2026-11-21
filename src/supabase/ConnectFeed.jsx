@@ -19,85 +19,113 @@ async function action(name,payload={}){
  }
  return data;
 }
+/** Short, locally formatted timestamps. Don't display seconds or technical metadata. */
+function postTime(value){
+ if(typeof value!=='string'||Number.isNaN(Date.parse(value)))return '';
+ return new Intl.DateTimeFormat(undefined,{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}).format(new Date(value));
+}
+/** A missing or expired avatar becomes a clean initial rather than a broken image. */
+function FeedAvatar({url,name,small=false}){
+ const [failed,setFailed]=useState(false);
+ useEffect(()=>{setFailed(false);},[url]);
+ const displayName=typeof name==='string'&&name.trim()?name.trim():'Member';
+ const size=small?'h-10 w-10':'h-12 w-12';
+ return <span className={'grid shrink-0 place-items-center overflow-hidden rounded-full bg-[var(--cc-surface-subtle)] text-[var(--cc-text-secondary)] ring-1 ring-[var(--cc-border)] '+size}>
+  {typeof url==='string'&&url.startsWith('https://')&&!failed
+   ?<img src={url} alt={displayName+' profile picture'} onError={()=>setFailed(true)} loading="lazy" referrerPolicy="no-referrer" className="h-full w-full object-cover"/>
+   :<span aria-hidden="true" className="text-base font-semibold uppercase">{displayName.slice(0,1)}</span>}
+ </span>;
+}
+/** Full-width, uncropped feed media. The first image leads each multi-photo post. */
+function FeedPhotos({photos=[],revealed,onReveal,embedded=false}){
+ if(!Array.isArray(photos)||!photos.length)return null;
+ return <div className={'grid grid-cols-2 gap-1.5 '+(embedded?'':'-mx-4 sm:-mx-5')} data-feed-photo-gallery="true">
+  {photos.map((photo,index)=>{
+   const concealed=photo.content_label==='adult_nudity'&&!revealed.includes(photo.id);
+   const alt=concealed?'Adult image concealed until revealed':photo.caption||'Professional photo';
+   return <div key={photo.id} className={'relative flex min-w-0 items-center justify-center overflow-hidden rounded-lg bg-[var(--cc-surface-subtle)] '+(index===0?'col-span-2':'col-span-2 sm:col-span-1')}>
+    <a href={concealed?undefined:photo.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"
+     aria-label={'View attached photo '+(photo.caption||'')} className="flex w-full items-center justify-center">
+     <img src={photo.url} alt={alt} loading="lazy" referrerPolicy="no-referrer"
+      className={'block h-auto max-h-[min(80vh,740px)] w-full object-contain '+(concealed?'blur-2xl':'')}/>
+    </a>
+    {concealed&&<button type="button" className="absolute inset-0 flex items-center justify-center bg-black/45 px-4 text-center text-sm font-semibold text-white"
+     onClick={()=>onReveal(photo.id)}>Adult nudity — click to reveal</button>}
+   </div>;
+  })}
+ </div>;
+}
 function FeedPost({post,paid,userId,onChanged,onError}){
  const [comments,setComments]=useState(null),[commentText,setCommentText]=useState('');
- const [busy,setBusy]=useState(false);
- const [revealedPhotos,setRevealedPhotos]=useState([]);
+ const [busy,setBusy]=useState(false),[revealedPhotos,setRevealedPhotos]=useState([]);
  const [reporting,setReporting]=useState(false),[reportReason,setReportReason]=useState('unsafe');
  const [local,setLocal]=useState(post),[notice,setNotice]=useState('');
  useEffect(()=>{setLocal(post);},[post]);
- const mutate=async (name,args={})=>{
-  if(busy)return;setBusy(true);setNotice('');
+ const mutate=async(name,args={})=>{
+  if(busy)return;
+  setBusy(true);setNotice('');
   try{
    const result=await action(name,{post_id:post.id,...args});
    if(name==='like'||name==='unlike')setLocal(previous=>({...previous,liked:result.liked,likes:Math.max(0,previous.likes+(result.liked?1:-1))}));
    if(name==='save'||name==='unsave')setLocal(previous=>({...previous,saved:result.saved}));
-   if(name==='comment'){setCommentText('');setNotice('Comment submitted for moderation; it will appear after approval.');}
+   if(name==='comment'){setCommentText('');setNotice('Comment submitted for review.');}
    if(name==='repost'){setNotice(result?.item?.status==='published'?'Added to your Reposts.':'Repost submitted for review.');onChanged?.();}
-   if(name==='report'){setReporting(false);setNotice(result.note||'Post report recorded.');}
-   if(name==='hide'){onChanged();}
+   if(name==='report'){setReporting(false);setNotice(result.note||'Report received.');}
+   if(name==='hide')onChanged?.();
   }catch(error){onError(error.message);}finally{setBusy(false);}
  };
  const loadComments=async()=>{
   if(busy)return;
   if(comments){setComments(null);return;}
   setBusy(true);
-  try{const result=await action('comments',{post_id:post.id});setComments(result.items||[]);}catch(e){onError(e.message);}finally{setBusy(false);}
+  try{const result=await action('comments',{post_id:post.id});setComments(result.items||[]);}
+  catch(e){onError(e.message);}finally{setBusy(false);}
  };
  const isRepost=Boolean(local.repost_of&&local.original);
  const repostNote=isRepost&&!['Sharing this professional update.','Reposted this update.'].includes(String(local.body||'').trim())?local.body:null;
- return <article className="ccx-surface min-w-0 space-y-3 rounded-2xl p-4 sm:p-5" data-connect-post={local.id}>
-  <header className="flex items-start justify-between gap-3">
-   <div className="min-w-0">
-    {isRepost?<p className="flex flex-wrap items-center gap-2 text-sm font-semibold" data-repost-attribution="true"><span className="grid h-7 w-7 place-items-center rounded-full border border-[var(--cc-border)]"><Repeat2 size={16}/></span>{local.author?.display_name||'Member'} reposted</p>:<p className="font-semibold break-words">{local.author?.display_name||'Member'}</p>}
-    <p className="mt-1 text-xs text-[var(--cc-text-secondary)]">{local.author?.role_type||'Professional member'} · {audienceLabels[local.audience]||'Verified community'} · {local.published_at?new Date(local.published_at).toLocaleString():''}</p>
+ const authorName=local.author?.display_name||'Member';
+ const reveal=id=>setRevealedPhotos(values=>values.includes(id)?values:[...values,id]);
+ return <article className="ccx-surface min-w-0 space-y-4 overflow-hidden rounded-2xl p-4 sm:p-5" data-connect-post={local.id}>
+  <header className="flex min-w-0 items-start justify-between gap-3" data-feed-post-header="true">
+   <div className="flex min-w-0 items-center gap-3">
+    <FeedAvatar url={local.author?.avatar_url} name={authorName}/>
+    <div className="min-w-0">
+     {isRepost?<p className="flex flex-wrap items-center gap-1.5 text-sm font-semibold" data-repost-attribution="true"><span className="truncate">{authorName}</span><Repeat2 size={15} aria-hidden="true"/><span className="font-normal text-[var(--cc-text-secondary)]">reposted</span></p>
+      :<p className="truncate text-sm font-semibold sm:text-base">{authorName}</p>}
+     <p className="mt-0.5 text-xs capitalize text-[var(--cc-text-secondary)]">{String(local.author?.role_type||'Professional member').replaceAll('_',' ')}</p>
+    </div>
    </div>
-   {local.author_id===userId&&<button type="button" className="text-xs underline min-h-11" disabled={busy} onClick={()=>{if(window.confirm('Hide this post and its shared access?'))void mutate('hide');}}>Remove</button>}
+   <div className="flex shrink-0 flex-col items-end gap-1 text-right">
+    {postTime(local.published_at)&&<time dateTime={local.published_at} className="text-xs leading-5 text-[var(--cc-text-secondary)]" data-feed-post-time="true">{postTime(local.published_at)}</time>}
+    {local.author_id===userId&&<button type="button" className="min-h-9 text-xs text-[var(--cc-text-secondary)] underline underline-offset-2" disabled={busy} onClick={()=>{if(window.confirm('Remove this post from the feed?'))void mutate('hide');}}>Remove</button>}
+   </div>
   </header>
-  {!isRepost&&<p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{local.body}</p>}
-  {repostNote&&<p className="whitespace-pre-wrap break-words text-sm leading-relaxed">{repostNote}</p>}
-  {local.original&&<div className="rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm">
-   <p className="text-xs font-semibold">{local.original.author_name||'Member'}</p>
-   <p className="mt-2 whitespace-pre-wrap break-words">{local.original.body}</p>
-    {local.original.photos?.length>0&&<div className={'mt-3 grid gap-2 '+(local.original.photos.length>1?'grid-cols-2':'grid-cols-1')} data-original-repost-media="true">
-     {local.original.photos.map(photo=>{
-      const concealed=photo.content_label==='adult_nudity'&&!revealedPhotos.includes(photo.id);
-      return <div key={photo.id} className="relative overflow-hidden rounded-xl border border-[var(--cc-border)]">
-       <a href={concealed?undefined:photo.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" aria-label={'View original post photo '+(photo.caption||'')} className="block">
-        <img src={photo.url} alt={concealed?'Adult image concealed until revealed':photo.caption||'Original professional photo'} loading="lazy" referrerPolicy="no-referrer"
-         className={'aspect-square h-auto w-full object-cover '+(concealed?'blur-2xl':'')}/>
-       </a>
-       {concealed&&<button type="button" className="absolute inset-0 flex items-center justify-center bg-black/40 px-4 text-center text-sm font-semibold text-white"
-        onClick={()=>setRevealedPhotos(v=>[...v,photo.id])}>Adult nudity — click to reveal</button>}
-      </div>;
-     })}
-    </div>}
+  {!isRepost&&local.body&&<p className="whitespace-pre-wrap break-words text-[15px] leading-6">{local.body}</p>}
+  {repostNote&&<p className="whitespace-pre-wrap break-words text-[15px] leading-6">{repostNote}</p>}
+  {local.original&&<div className="space-y-3 overflow-hidden rounded-xl border border-[var(--cc-border)]" data-feed-original-card="true">
+   <div className="flex min-w-0 items-start justify-between gap-3 px-3 pt-3">
+    <div className="flex min-w-0 items-center gap-2.5">
+     <FeedAvatar url={local.original.author_avatar_url} name={local.original.author_name} small/>
+     <p className="truncate text-sm font-semibold">{local.original.author_name||'Member'}</p>
+    </div>
+    {postTime(local.original.created_at)&&<time dateTime={local.original.created_at} className="shrink-0 text-right text-xs text-[var(--cc-text-secondary)]">{postTime(local.original.created_at)}</time>}
+   </div>
+   <p className="whitespace-pre-wrap break-words px-3 text-[15px] leading-6">{local.original.body}</p>
+   {local.original.photos?.length>0&&<div className="px-3 pb-3" data-original-repost-media="true">
+    <FeedPhotos photos={local.original.photos} revealed={revealedPhotos} onReveal={reveal} embedded/>
+   </div>}
   </div>}
-  {local.photos?.length>0&&<div className={'grid gap-2 '+(local.photos.length>1?'grid-cols-2':'grid-cols-1')}>
-   {local.photos.map(photo=>{
-    const concealed=photo.content_label==='adult_nudity'&&!revealedPhotos.includes(photo.id);
-    return <div key={photo.id} className="relative overflow-hidden rounded-xl border border-[var(--cc-border)]">
-     <a href={concealed?undefined:photo.url} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer"
-      aria-label={'View attached photo '+(photo.caption||'')} className="block">
-      <img src={photo.url} alt={concealed?'Adult image concealed until revealed':photo.caption||'Shared professional photo'}
-       loading="lazy" referrerPolicy="no-referrer" className={'aspect-square h-auto w-full object-cover '+(concealed?'blur-2xl':'')}/>
-     </a>
-     {concealed&&<button type="button" className="absolute inset-0 flex items-center justify-center bg-black/40 px-4 text-center text-sm font-semibold text-white"
-      onClick={()=>setRevealedPhotos(v=>[...v,photo.id])}>Adult nudity — click to reveal</button>}
-    </div>;
-   })}
-  </div>}
-  <div className="flex flex-wrap items-center gap-1 border-t border-[var(--cc-border)] pt-3">
-   <button type="button" className={secondary} disabled={busy} aria-label={local.liked?'Unlike post':'Like post'} onClick={()=>void mutate(local.liked?'unlike':'like')}>
-    <Heart size={17} fill={local.liked?'currentColor':'none'}/><span>{local.likes}</span>
+  {local.photos?.length>0&&<FeedPhotos photos={local.photos} revealed={revealedPhotos} onReveal={reveal}/>}
+  <div className="flex flex-wrap items-center justify-between gap-1 border-t border-[var(--cc-border)] pt-3" data-feed-post-actions="true">
+   <button type="button" className={secondary} disabled={busy} aria-label={local.liked?'Unlike post':'Like post'} aria-pressed={Boolean(local.liked)} onClick={()=>void mutate(local.liked?'unlike':'like')}>
+    <Heart size={17} fill={local.liked?'currentColor':'none'}/><span>Like</span>{local.likes>0&&<span className="tabular-nums">{local.likes}</span>}
    </button>
-   <button type="button" className={secondary} disabled={busy} onClick={()=>void loadComments()}><MessageCircle size={17}/>{local.comments} Comments</button>
+   <button type="button" className={secondary} disabled={busy} onClick={()=>void loadComments()}><MessageCircle size={17}/><span>Comments</span>{local.comments>0&&<span className="tabular-nums">{local.comments}</span>}</button>
    {paid&&!local.repost_of&&local.audience==='verified'&&local.allow_repost&&<button type="button" className={secondary} disabled={busy} aria-label="Repost to your profile" onClick={()=>void mutate('repost',{text:'Reposted this update.',audience:'verified'})}><span className="grid h-7 w-7 place-items-center rounded-full border border-[var(--cc-border)]"><Repeat2 size={17}/></span>Repost</button>}
-   <button type="button" className={secondary} disabled={busy} aria-label={local.saved?'Remove saved post':'Save post'} onClick={()=>void mutate(local.saved?'unsave':'save')}><Bookmark size={17} fill={local.saved?'currentColor':'none'}/></button>
+   <button type="button" className={secondary} disabled={busy} aria-label={local.saved?'Remove saved post':'Save post'} aria-pressed={Boolean(local.saved)} onClick={()=>void mutate(local.saved?'unsave':'save')}><Bookmark size={17} fill={local.saved?'currentColor':'none'}/>{local.saved?'Saved':'Save'}</button>
    <button type="button" className={secondary} disabled={busy} onClick={()=>setReporting(v=>!v)}><Flag size={17}/>Report</button>
   </div>
   {reporting&&<form onSubmit={e=>{e.preventDefault();void mutate('report',{reason:reportReason});}} className="space-y-2">
-   <p className="text-xs">Post reporting does not dispatch emergency services.</p>
    <label className="block text-xs">Reason
     <select className={input+' mt-1'} value={reportReason} onChange={e=>setReportReason(e.target.value)}>
      {[['unsafe','Safety concern'],['rights','Image or content rights'],['privacy','Privacy concern'],['harassment','Harassment'],['other','Other']].map(([v,label])=><option value={v} key={v}>{label}</option>)}
