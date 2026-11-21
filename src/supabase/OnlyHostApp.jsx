@@ -134,7 +134,7 @@ export default function OnlyHostApp(){
      <span className="oh-wordmark text-xl font-extrabold tracking-tight">Host<span className="oh-gradient-text">Connect</span></span>
     </button>
     <nav className="oh-header-actions ml-auto flex items-center justify-end gap-2" aria-label="Host Connect navigation">
-     <a href="/" className={'oh-ccx-link items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold '+(user?'hidden md:inline-flex':'inline-flex')}><span className="oh-ccx-gradient">Content Connect X</span></a>
+     <a href="https://contentconnectx.com" className={'oh-ccx-link items-center justify-center rounded-xl px-4 py-2.5 text-sm font-bold '+(user?'hidden md:inline-flex':'inline-flex')}><span className="oh-ccx-gradient">Content Connect X</span></a>
      {!ready&&<button className={primary+' oh-list-space'+(user?' hidden md:inline-flex':'')} onClick={openWorkspace}>List Your Space<ArrowUpRight size={16}/></button>}
      {user&&<button className="oh-ccx-link hidden items-center gap-2 rounded-xl px-3 py-2.5 text-sm md:inline-flex" onClick={()=>setShowSettings(true)} aria-label="Host settings"><Settings size={18}/><span className="hidden sm:inline">Settings</span></button>}
      {user&&<button type="button" className="oh-logout-button hidden min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--cc-border)] px-3 py-2 text-sm font-semibold md:inline-flex" onClick={()=>void signOut()} disabled={busy} aria-label="Log out of Host Connect"><LogOut size={18}/>Log out</button>}
@@ -166,7 +166,7 @@ export default function OnlyHostApp(){
       onClick={()=>{setHostMenuOpen(false);setView('account');}}><Briefcase size={19}/>Complete host account setup</button>}
      <button type="button" className="oh-host-mobile-link flex min-h-12 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm"
       onClick={()=>{setShowSettings(true);setHostMenuOpen(false);}}><Settings size={19}/>Account settings</button>
-     <a href="/" className="oh-host-mobile-link flex min-h-12 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm"><ArrowLeft size={19}/>Content Connect X</a>
+     <a href="https://contentconnectx.com" className="oh-host-mobile-link flex min-h-12 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm"><ArrowLeft size={19}/>Content Connect X</a>
     </nav>
     <div className="border-t border-[var(--cc-border)] p-3">
      <button type="button" className="oh-host-mobile-link flex min-h-12 w-full items-center gap-3 rounded-lg px-3 py-2 text-sm"
@@ -180,7 +180,7 @@ export default function OnlyHostApp(){
     <div className="mx-auto max-w-7xl px-4 py-8 md:px-6">
      <div className="oh-panel mb-5 flex flex-wrap items-center justify-between gap-3 p-5">
       <div><h1 className="text-2xl font-bold">Host Connect property dashboard</h1><p className="mt-1 text-sm text-[var(--cc-text-secondary)]">Manage your locations, rules, equipment, availability, staff, and booking requests in one place.</p></div>
-      <a href="/" className={secondary}>Back to Content Connect X</a>
+      <a href="https://contentconnectx.com" className={secondary}>Back to Content Connect X</a>
      </div>
      <HostingMarketplace paid={true} isAdmin={false} user={user} brand="host_connect" initialSection="host" requestedSection={hostSection} hostOnly/>
     </div>
@@ -277,7 +277,7 @@ export default function OnlyHostApp(){
     <a href="/trust/content-removal">Report content or safety concern</a>
     <a href="/trust/accessibility">Accessibility</a>
    </nav>
-   <a href="/" className="oh-ccx-gradient">Content Connect X</a>
+   <a href="https://contentconnectx.com" className="oh-ccx-gradient">Content Connect X</a>
    <p>© {new Date().getFullYear()} Host Connect. All rights reserved.</p>
   </div></footer>
   {showLogin&&<div className="oh-modal-backdrop" role="presentation" onClick={()=>setShowLogin(false)}>
