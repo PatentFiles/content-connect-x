@@ -23,7 +23,7 @@ try{
  const html=fs.readFileSync(fixture,'utf8');
  browser=spawn(browserPath,['--headless','--no-sandbox','--disable-dev-shm-usage','--disable-background-networking','--remote-debugging-port=0','--user-data-dir='+path.join(folder,'profile'),'about:blank'],{stdio:['ignore','ignore','pipe']});
  const endpoint=await new Promise((resolve,reject)=>{
-  const timer=setTimeout(()=>reject(new Error('Browser startup timed out')),20000);let log='';
+  const timer=setTimeout(()=>reject(new Error('Browser startup timed out')),40000);let log='';
   browser.once('error',error=>{clearTimeout(timer);reject(error);});
   browser.once('exit',code=>{clearTimeout(timer);reject(new Error('Browser exited during startup: '+code));});
   browser.stderr.on('data',chunk=>{log+=chunk;const match=log.match(/DevTools listening on (ws:\/\/\S+)/);if(match){clearTimeout(timer);resolve(match[1]);}});
