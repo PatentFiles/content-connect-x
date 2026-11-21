@@ -18,7 +18,7 @@ export async function initializeOptionalIntegrations(){
      dsn:data.dsn,environment:import.meta.env.MODE||'supabase',
      release:import.meta.env.VITE_RELEASE_SHA||undefined,
      tracesSampleRate:0,sampleRate:0.2,
-     sendDefaultPii:false,attachStacktrace:false,autoSessionTracking:false,
+     
      beforeBreadcrumb(){return null;},beforeSend:sanitizeMonitoringEvent
     });
    }
