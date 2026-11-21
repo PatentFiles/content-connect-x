@@ -2,7 +2,7 @@
  * This does not sign contracts, confirm a reservation or bypass provider checks.
  */
 import React,{useEffect,useMemo,useRef,useState} from 'react';
-import {hostingAction} from './hostingApi';
+import {hostConnectAction} from './hostConnectApi';
 import MemberPicker from './MemberPicker';
 import {WIZARD_STEPS,productionTimeZoneChoices,validateProductionWizardStep,localDateTimeToUtc} from './productionWizardPolicy.mjs';
 const field='mt-1 min-h-11 w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-2.5 text-sm';
@@ -16,7 +16,7 @@ export default function CollaborationCreationWizard({user,title,setTitle,descrip
  useEffect(()=>{
   if(!plan.property_id){setVenueDates(null);setVenueLoading(false);return;}
   let active=true;setVenueLoading(true);setVenueDates(null);
-  void hostingAction('listing',{id:plan.property_id}).then(result=>{
+  void hostConnectAction('listing',{id:plan.property_id}).then(result=>{
    if(active)setVenueDates({unavailable:Array.isArray(result.unavailable)?result.unavailable:[],loaded:true});
   }).catch(()=>{if(active)setVenueDates({loaded:false,unavailable:[]});}).finally(()=>{if(active)setVenueLoading(false);});
   return()=>{active=false;};
