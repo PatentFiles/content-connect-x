@@ -136,7 +136,8 @@ DECLARE
   'rental_days',rental_days,'daily_rate_cents',round(prop.daily_rate*100)::bigint,
   'duration_minutes',rental_days*1440,'lines',lines,'inventory',asset_counts,
   'currency','USD','price_version','ccx-daily-3pm-v1');
-END $function$
+END;
+$function$;
 
 COMMENT ON FUNCTION public.ccx_hosting_price_quote(uuid,timestamptz,timestamptz,integer,text,jsonb,uuid,text) IS
  'Day-based venue-local 3 p.m.–3 p.m. booking quote, up to 365 days. Currency, bundles, cleaning and discounts calculated transactionally.';
@@ -163,7 +164,8 @@ BEGIN
  END IF;
  NEW.daily_rate_snapshot:=daily;
  RETURN NEW;
-END $guard$;
+END;
+$guard$;
 REVOKE ALL ON FUNCTION public.ccx_hosting_daily_booking_guard() FROM PUBLIC,anon,authenticated;
 CREATE TRIGGER ccx_hosting_daily_booking_guard
  BEFORE INSERT OR UPDATE OF starts_at,ends_at ON public.property_booking_requests
