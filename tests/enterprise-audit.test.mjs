@@ -124,7 +124,7 @@ test('venue selection checks available calendar and booking requests require rev
  const wizard=read('src/supabase/CollaborationCreationWizard.jsx');
  const host=read('src/supabase/HostingMarketplace.jsx');
  assert.match(wizard,/Search Host Connect properties/);
- assert.match(wizard,/hostingAction\('listing'/);
+ assert.match(wizard,/hostConnectAction\('listing'/);
  assert.match(wizard,/venueConflict/);
  assert.match(host,/Review reservation request/);
  assert.match(host,/<HostDialog title="Review your reservation request"/);
