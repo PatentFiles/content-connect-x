@@ -21,13 +21,13 @@ test('workspace footer aligns brand, links and request information to center on 
  assert.match(css,/@media\(max-width:600px\)[\s\S]*?\.ccx-trust-footer nav\{justify-content:center/);
 });
 
-test('view public profile uses the account owner preview and not Discovery',()=>{
+test('view profile uses the account owner preview and not Discovery',()=>{
  const shell=read('src/supabase/OriginalShell.jsx');
  const app=read('src/supabase/SupabaseApp.jsx');
  const directory=read('supabase/functions/directory/index.ts');
- assert.match(shell,/View Public Profile/);
+ assert.match(shell,/View Profile/);
  assert.match(shell,/onClick=\{\(\)=>onNavigate\('public-profile'\)\}/);
- assert.doesNotMatch(shell,/onClick=\{\(\)=>onNavigate\('directory'\)\}[^\n]*View Public Profile/);
+ assert.doesNotMatch(shell,/onClick=\{\(\)=>onNavigate\('directory'\)\}[^\n]*View Profile/);
  assert.match(app,/tab==='public-profile'&&approved&&<MemberPublicProfile/);
  assert.match(directory,/body\?\.action==='my_public_profile'/);
  assert.match(directory,/\.eq\('id',user\.id\)/);
