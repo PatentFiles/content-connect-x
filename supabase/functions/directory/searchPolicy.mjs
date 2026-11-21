@@ -4,7 +4,8 @@
  * Never accept raw SQL, PostgREST filter expressions or unrestricted columns.
  */
 export const DIRECTORY_ROLES=Object.freeze([
- 'creator','photographer','videographer','video_editor','agent','studio','host'
+ 'creator','photographer','videographer','video_editor','agent','studio','host',
+ 'director_producer','hair_stylist','makeup_artist','wardrobe_stylist','equipment_rental','chef','spa_provider'
 ]);
 const clean=(value,max=80)=>typeof value==='string'
  ?value.replace(/[\u0000-\u001f\u007f]/g,' ').trim().replace(/\s+/g,' ').slice(0,max)
@@ -19,6 +20,27 @@ export function directoryFilters(raw={},premium=false){
  if(category&&!['standard','fetish','kink_edge'].includes(category))throw Error('Unsupported content category.');
  const gender=clean(input.gender,40).toLowerCase();
  if(gender&&!['man','woman','trans_man','trans_woman','nonbinary','genderfluid'].includes(gender))throw Error('Unsupported gender identity.');
+ const orientation=clean(input.orientation,32).toLowerCase();
+ if(orientation&&!['straight','gay','lesbian','bisexual','pansexual','queer','asexual','questioning'].includes(orientation))throw Error('Unsupported orientation.');
+ const ethnicity=clean(input.ethnicity,32).toLowerCase();
+ if(ethnicity&&!['black','white','asian','hispanic_latino','middle_eastern','native_indigenous','mixed','other'].includes(ethnicity))throw Error('Unsupported ethnicity.');
+ const circumcision=clean(input.circumcision,20).toLowerCase();
+ if(circumcision&&!['circumcised','uncircumcised'].includes(circumcision))throw Error('Unsupported circumcision value.');
+ const breast_size=clean(input.breast_size,8).toUpperCase();
+ if(breast_size&&!['AA','A','B','C','D','DD','DDD','E','F','G','H','I','J','K+'].includes(breast_size))throw Error('Unsupported breast size.');
+ const bounded=(key,min,max)=>{
+  const value=input[key];if(value===undefined||value===null||value==='')return null;
+  const number=Number(value);if(!Number.isFinite(number)||number<min||number>max)throw Error('Invalid '+key);
+  return number;
+ };
+ const min_age=bounded('min_age',18,100),max_age=bounded('max_age',18,100);
+ const min_height_cm=bounded('min_height_cm',100,250),max_height_cm=bounded('max_height_cm',100,250);
+ const min_weight_kg=bounded('min_weight_kg',25,350),max_weight_kg=bounded('max_weight_kg',25,350);
+ const min_penis_inches=bounded('min_penis_inches',1,16),max_penis_inches=bounded('max_penis_inches',1,16);
+ for(const [a,b] of [[min_age,max_age],[min_height_cm,max_height_cm],[min_weight_kg,max_weight_kg],[min_penis_inches,max_penis_inches]])
+  if(a!==null&&b!==null&&a>b)throw Error('Minimum cannot exceed maximum.');
+ if((min_penis_inches!==null||max_penis_inches!==null||circumcision)&&!['man','trans_woman'].includes(gender))throw Error('Choose a compatible gender for anatomy filters.');
+ if(breast_size&&gender!=='woman')throw Error('Choose woman for the breast size filter.');
  // Favorites can only request profile UUIDs; the server still checks independent verification.
  const ids=Array.isArray(input.ids)?[...new Set(input.ids.filter(
   id=>typeof id==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)
@@ -31,7 +53,8 @@ export function directoryFilters(raw={},premium=false){
   role,
   city:clean(input.city,80),
   country:clean(input.country,80),
-  state:clean(input.state,80),category,gender,ids,
-  limit,offset
+  state:clean(input.state,80),category,gender,orientation,ethnicity,circumcision,breast_size,
+  min_age,max_age,min_height_cm,max_height_cm,min_weight_kg,max_weight_kg,min_penis_inches,max_penis_inches,
+  ids,limit,offset
  };
 }
