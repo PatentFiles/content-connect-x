@@ -9,7 +9,7 @@ import {supabase} from '@/api/supabaseClient';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Search, SlidersHorizontal, MapPin, Heart, CalendarDays, Users, Star,
-  Camera, Home, ArrowLeft, ShieldCheck, Clock, CheckCircle2, RefreshCw,
+  Camera, Home, ArrowLeft, ShieldCheck, Clock, CheckCircle2, RefreshCw, Building2, Trees, Warehouse, Clapperboard, Layers,
 } from 'lucide-react';
 import {
   hostingAction, rentalCategories, rentalAmenities, rentalUses, usd, dateTime,
@@ -316,6 +316,25 @@ export default function HostingMarketplace({paid=false,isAdmin=false,user,brand=
     {(section==='explore'||section==='favorites')&&<>
       {selected?<ListingDetail brand={brand} id={selected} paid={paid} favorites={favorites} toggle={toggle} back={()=>setSelected('')} onBooked={()=>search()}/>:
       <div className="space-y-5">
+        <nav aria-label="Browse properties by type" className={panel+' overflow-hidden px-3 py-4'}>
+         <div className="flex gap-2 overflow-x-auto pb-1" data-property-categories="true">
+          {[
+           {id:'',label:'All spaces',Icon:Layers},
+           {id:'house',label:'Houses',Icon:Home},
+           {id:'apartment',label:'Condos & apartments',Icon:Building2},
+           {id:'dungeon',label:'BDSM dungeons',Icon:ShieldCheck},
+           {id:'film_studio',label:'Production studios',Icon:Clapperboard},
+           {id:'photo_studio',label:'Photo studios',Icon:Camera},
+           {id:'set',label:'Production sets',Icon:Warehouse},
+           {id:'outdoor',label:'Outdoor spaces',Icon:Trees}
+          ].map(({id,label,Icon})=><button key={label} type="button" disabled={busy} aria-pressed={category===id}
+           onClick={()=>{setCategory(id);setMapBounds(null);}}
+           className={'flex min-w-[100px] shrink-0 flex-col items-center justify-center gap-2 rounded-xl border-b-[3px] px-3 py-2 text-center text-xs font-semibold transition hover:bg-[var(--cc-surface-subtle)] '+(category===id?'border-[var(--cc-link)] text-[var(--cc-text-primary)]':'border-transparent text-[var(--cc-text-secondary)]')}>
+           <Icon size={30} strokeWidth={1.6} aria-hidden="true"/><span>{label}</span>
+          </button>)}
+         </div>
+         <p className="mt-2 text-xs text-[var(--cc-text-secondary)]">Choose a category to update the listings below. Use advanced filters for city, dates, and amenities.</p>
+        </nav>
         <details className={panel+' group overflow-hidden'} data-host-space-filters="true">
          <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-semibold">
           <span className="flex items-center gap-2"><SlidersHorizontal size={18}/>Find a space · Filter location, dates and amenities</span>
