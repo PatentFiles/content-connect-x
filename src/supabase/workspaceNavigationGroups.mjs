@@ -8,7 +8,7 @@ export const WORKSPACE_NAV_GROUPS=Object.freeze([
  {id:'community',label:'Community',paths:['Connections','Groups','Messages']},
  {id:'collaborate',label:'Collaborations',paths:['Collaborations','Contracts','Roster','Representations','Portfolio']},
  {id:'safety',label:'Safety & verification',paths:['Testing','Verification']},
- {id:'personal',label:'Personal',paths:['Profile','PublicProfile','Notifications']},
+ {id:'personal',label:'Personal',paths:['Profile','PublicProfile','YearInReview','Notifications']},
  {id:'account',label:'Account',paths:['Membership','Settings']},
  {id:'admin',label:'Admin',paths:['AdminDashboard','TestingReviews']},
  {id:'integrations',label:'Integrations',paths:['CompliancePortal']}
