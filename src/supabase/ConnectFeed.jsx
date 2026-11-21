@@ -61,7 +61,7 @@ function FeedPost({post,paid,userId,onChanged,onError,preview=false}){
  const [local,setLocal]=useState(post),[notice,setNotice]=useState('');
  useEffect(()=>{setLocal(post);},[post]);
  const mutate=async(name,args={})=>{
-  if(busy)return;
+  if(busy||preview)return;
   setBusy(true);setNotice('');
   try{
    const result=await action(name,{post_id:post.id,...args});
