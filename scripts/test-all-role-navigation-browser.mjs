@@ -15,7 +15,9 @@ const folder=fs.mkdtempSync(path.join(os.tmpdir(),'ccx-role-clicks-'));
 let browser,socket;
 const mock=[
  "const q={select(){return this},eq(){return this},is(){return this},then(resolve){return Promise.resolve({data:[],count:0,error:null}).then(resolve)}};",
- "export const supabase={from:()=>({...q}),channel:()=>({on(){return this},subscribe(){return this}}),removeChannel:async()=>{}};"
+ "export const supabase={from:()=>({...q}),channel:()=>({on(){return this},subscribe(){return this}}),removeChannel:async()=>{}};",
+ "export const supabaseConfiguration={ready:true};",
+ "export const requireSupabase=()=>supabase;"
 ].join('\n');
 const fixture=[
  "import React,{useState} from 'react';",
