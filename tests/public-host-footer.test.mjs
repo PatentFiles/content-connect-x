@@ -19,5 +19,5 @@ test('Host Connect public CTAs remain real authentication and navigation control
  assert.match(host,/aria-label="Open Host Connect navigation menu"/);
  assert.match(host,/aria-label="Host Connect mobile navigation"/);
  assert.match(host,/setShowLogin\(true\)/);
- assert.match(host,/href="\/" className="oh-ccx-gradient"/);
+ assert.match(host,/href="https:\/\/contentconnectx\.com" className="oh-ccx-gradient"/);
 });
