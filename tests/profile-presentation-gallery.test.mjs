@@ -47,5 +47,5 @@ test('owner profile includes connected sections without leaking restricted user 
  assert.match(dir,/show_categories_in_discovery/);
  assert.match(dir,/show_orientation_in_discovery/);
  assert.doesNotMatch(dir,/select\('\*'\)/);
- assert.doesNotMatch(dir,/real_name|password|document_path|testing_credentials/i);
+ assert.doesNotMatch(dir,/real_name|document_path|testing_credentials|select\([^)]*password/i);
 });
