@@ -18,11 +18,8 @@ export const PROPERTY_CATEGORIES=[
  {key:'grass',label:'Grassy areas',category:'outdoor',image:'/outdoor_grassy_area.png',Icon:Trees},
 ];
 export const DISCOVERY_CATEGORIES=[
- {key:'all',label:'Everyone',role:'',Icon:Users},
  {key:'videographer',label:'Videographers',role:'videographer',image:'/Videographer.png',Icon:Video},
  {key:'photographer',label:'Photographers',role:'photographer',image:'/Photographer.png',Icon:Camera},
- {key:'female_creator',label:'Female creators',role:'creator',gender:'woman',image:'/Creator%20female.png',Icon:UserRound},
- {key:'male_creator',label:'Male creators',role:'creator',gender:'man',image:'/Creator%20Male.png',Icon:UserRound},
  {key:'agent',label:'Agents',role:'agent',image:'/Agent.png',Icon:Briefcase},
  {key:'studio',label:'Studios',role:'studio',image:'/Studio.png',Icon:Clapperboard},
  {key:'director',label:'Directors / producers',role:'director_producer',image:'/Director.png',Icon:Film},
@@ -51,8 +48,8 @@ export function CategoryStrip({items,value,onSelect,activeColor='var(--cc-link)'
   <div className="mx-auto flex w-max min-w-max items-start justify-center gap-2 px-3 py-3 sm:gap-4">
    {items.map(item=><button type="button" key={item.key} aria-pressed={value===item.key}
     onClick={()=>onSelect(item)} style={{borderBottomColor:value===item.key?activeColor:'transparent'}}
-    className="flex min-h-[104px] w-[94px] shrink-0 snap-start flex-col items-center justify-start gap-2 border-b-[3px] px-1 py-2 text-center text-xs font-semibold text-[var(--cc-text-primary)] transition hover:opacity-75 focus-visible:outline-2 focus-visible:outline-offset-2 sm:w-[102px]">
-    <CategoryArtwork item={item} size={54}/><span className="leading-4">{item.label}</span>
+    className="flex min-h-[122px] w-[116px] shrink-0 snap-start flex-col items-center justify-start gap-2 border-b-[3px] px-1 py-2 text-center text-xs font-semibold text-[var(--cc-text-primary)] transition hover:opacity-75 focus-visible:outline-2 focus-visible:outline-offset-2 sm:w-[130px]">
+    <CategoryArtwork item={item} size={72}/><span className="leading-4">{item.label}</span>
    </button>)}
   </div>
  </nav>;
