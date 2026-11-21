@@ -7,6 +7,8 @@ import {Search,CalendarDays,MapPin,Home,ArrowLeft,RefreshCw,ExternalLink,ShieldC
 import {hostConnectAction} from './hostConnectApi';
 import {venueDateToIso,nightsBetween} from './hostingDateRange.mjs';
 import HostDialog from './HostDialog';
+import HostGuestInspection from './HostGuestInspection';
+import {uploadHostGuestEvidence} from './hostGuestEvidenceStorage';
 const panel='ccx-surface rounded-2xl p-5';
 const input='mt-1 min-h-11 w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-2.5 text-sm text-[var(--cc-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--cc-focus)]';
 const primary='ccx-primary inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold disabled:opacity-50';
@@ -20,6 +22,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
  const [query,setQuery]=useState(''),[city,setCity]=useState(''),[starts,setStarts]=useState(''),[ends,setEnds]=useState('');
  const [crew,setCrew]=useState(1),[purpose,setPurpose]=useState(''),[quote,setQuote]=useState(null),[modal,setModal]=useState(false),[ack,setAck]=useState(false);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
+ const [inspectionBooking,setInspectionBooking]=useState(null);
  const refresh=useCallback(async()=>{
   const [browse,history]=await Promise.all([hostConnectAction('browse'),
    user?hostConnectAction('my_bookings'):Promise.resolve({items:[]})]);
@@ -127,12 +130,16 @@ export default function HostCrossMarketplace({paid=false,user=null}){
     <p className="text-xs text-[var(--cc-text-secondary)]">The quote may change until the transaction reserves the requested period. A pending request does not guarantee a paid booking.</p>
    </section>
   </div>}
-  {view==='bookings'&&<section className={panel+' space-y-3'}>
+  {view==='bookings'&&inspectionBooking&&<HostGuestInspection booking={inspectionBooking} action={hostConnectAction}
+    upload={uploadHostGuestEvidence} onClose={()=>setInspectionBooking(null)}/>}
+  {view==='bookings'&&!inspectionBooking&&<section className={panel+' space-y-3'}>
    <h2 className="text-lg font-semibold">My Host Connect X requests</h2>
    {!bookings.length?<p className="text-sm text-[var(--cc-text-secondary)]">No requests yet. Both websites share the same live calendar when you reserve.</p>:bookings.map(b=>
     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--cc-border)] py-3" key={b.id}>
      <div><h3 className="font-semibold">{b.title}</h3><p className="text-sm">{localDate(b.starts_at)} – {localDate(b.ends_at)}</p>
       <p className="text-xs text-[var(--cc-text-secondary)]">{b.status} · {money(b.total_cents)} · Agreement: {b.legal_status} · Payment: {b.payment_status}</p></div>
+     {b.status==='confirmed'&&b.legal_status==='signed'&&b.payment_status==='captured'&&
+      <button className={primary} type="button" onClick={()=>setInspectionBooking(b)}>Report check-in condition</button>}
      {['requested','accepted'].includes(b.status)&&<button className={secondary} disabled={busy} onClick={()=>void cancel(b)}>Cancel pending request</button>}
     </div>)}
   </section>}
