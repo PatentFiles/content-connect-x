@@ -111,6 +111,6 @@ export default function CustomDashboard({profile,onNavigate,roleOverride,paid=fa
    </section>
   </aside>
  </div>
-  {data?.checked_at&&<p className="text-xs" style={{color:'var(--cc-text-muted)'}}>Updated {new Date(data.checked_at).toLocaleString()}. Unknown or restricted values are never shown as zero.</p>}
+
  </section>;
 }
