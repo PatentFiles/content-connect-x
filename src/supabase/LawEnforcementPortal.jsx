@@ -65,8 +65,9 @@ export default function LawEnforcementPortal(){
   setBusy(true);setError('');
   try{
    const data=await request(kind==='pdf'?'export_pdf':'export_csv',{case_id:selected});
-   if(!(data instanceof Blob))throw Error('Export was not returned as a file');
-   const href=URL.createObjectURL(data),a=document.createElement('a');a.href=href;
+   const file=data instanceof Blob?data:(kind==='csv'&&typeof data==='string'?new Blob([data],{type:'text/csv;charset=utf-8'}):null);
+   if(!file)throw Error('Export was not returned in a supported file format');
+   const href=URL.createObjectURL(file),a=document.createElement('a');a.href=href;
    a.download='law-case-'+selected+'.'+kind;a.rel='noopener';document.body.appendChild(a);a.click();a.remove();
    setTimeout(()=>URL.revokeObjectURL(href),60000);
    setNotice('Case-scoped '+kind.toUpperCase()+' export created. Each export is recorded in the disclosure audit.');
