@@ -48,16 +48,21 @@ export function createConnectFeedHandler({authenticate,db,storage}){
   const {data,error}=await storage.from('member-private').createSignedUrl(path,180);
   return error?null:data?.signedUrl||null;
  };
- const decorate=async items=>Promise.all(items.map(async post=>{
-  const photos=await Promise.all((post.media||[]).slice(0,4).map(async media=>{
-   const url=await mediaUrl(media.path);
-   return url?{id:media.id,url,caption:media.caption||'',mime_type:media.mime_type,content_label:media.content_label==='adult_nudity'?'adult_nudity':'professional'}:null;
+ const decoratePhotos=async media=>{
+  const rows=await Promise.all((Array.isArray(media)?media:[]).slice(0,4).map(async photo=>{
+   const url=await mediaUrl(photo.path);
+   return url?{id:photo.id,url,caption:photo.caption||'',mime_type:photo.mime_type,content_label:photo.content_label==='adult_nudity'?'adult_nudity':'professional'}:null;
   }));
+  return rows.filter(Boolean);
+ };
+ const decorate=async items=>Promise.all(items.map(async post=>{
+  const photos=await decoratePhotos(post.media);
   const original=post.original?{id:post.original.id,body:post.original.body,author_id:post.original.author_id,
-   author_name:post.original.author_name||'Member',created_at:post.original.created_at}:null;
+   author_name:post.original.author_name||'Member',created_at:post.original.created_at,
+   photos:await decoratePhotos(post.original.media)}:null;
   return {id:post.id,author_id:post.author_id,author:{display_name:post.display_name||'Member',role_type:post.role_type||''},
    body:post.body,audience:post.audience,group_id:post.group_id||null,repost_of:post.repost_of||null,allow_repost:post.allow_repost===true,
-   published_at:post.published_at,photos:photos.filter(Boolean),likes:Number(post.likes)||0,liked:post.liked===true,
+   published_at:post.published_at,photos,likes:Number(post.likes)||0,liked:post.liked===true,
    comments:Number(post.comments)||0,saved:post.saved===true,reposts:Number(post.reposts)||0,original};
  }));
  return async req=>{
