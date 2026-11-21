@@ -45,10 +45,15 @@ const ALIASES={
  wardrobe_stylist:['wardrobe','stylist'],director_producer:['director','producer'],equipment_rental:['equipment']
 };
 const candidates=key=>{
- const names=[key,...(ALIASES[key]||[])].flatMap(x=>[x,x.replaceAll('_','-'),x.replaceAll('_',' ')]);
- return [...new Set(names.flatMap(x=>[x.toLowerCase(),x]))].flatMap(name=>
-  ['/','/icons/','/category-icons/','/categories/','/assets/icons/'].flatMap(folder=>
-   ['png','webp','svg'].map(ext=>folder+encodeURIComponent(name)+'.'+ext)));
+ // Keep retries bounded: missing artwork must not generate hundreds of 404s.
+ const alias=(ALIASES[key]||[])[0];
+ const names=[key,alias].filter(Boolean);
+ return names.flatMap(name=>[
+  '/'+encodeURIComponent(name)+'.png',
+  '/'+encodeURIComponent(name)+'.webp',
+  '/icons/'+encodeURIComponent(name)+'.png',
+  '/category-icons/'+encodeURIComponent(name)+'.png'
+ ]);
 };
 export function CategoryArtwork({item,size=48}){
  const paths=candidates(item.icon||item.key);
