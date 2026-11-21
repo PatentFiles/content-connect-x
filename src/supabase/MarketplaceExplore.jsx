@@ -4,7 +4,7 @@
  * No exact private addresses are fetched or sent to the map.
  */
 import React,{useEffect,useMemo,useRef,useState} from 'react';
-import {Search,SlidersHorizontal,Map,MapPin,CalendarDays,Users,Home,Building2,Warehouse,Camera,Clapperboard,TreePine,Hotel,Landmark,Package,ChevronLeft,ChevronRight,X,Check,Heart,ShieldCheck,Tag,Video,Scissors,Brush,Mic,Lightbulb,ExternalLink} from 'lucide-react';
+import {Search,SlidersHorizontal,Map,MapPin,Users,Home,Building2,Warehouse,Camera,Clapperboard,TreePine,Hotel,Landmark,Package,ChevronRight,X,Tag,Video,Scissors,Brush,Mic,Lightbulb,ExternalLink} from 'lucide-react';
 import GeoLocationSelect,{EMPTY_GEO} from './GeoLocationSelect';
 const kinds=[
  {id:'house',label:'Home',Icon:Home},{id:'condo',label:'Owned condo',Icon:Building2},
@@ -51,18 +51,19 @@ const DEFAULT_FILTERS={types:[],minPrice:'',maxPrice:'',bedrooms:0,beds:0,bathro
  access:[],language:'',use:'',pets:false,smoking:false};
 function loadMapLib(){
  if(typeof window==='undefined')return Promise.reject(Error('Map only available in a browser'));
- if(window.maplibregl)return Promise.resolve(window.maplibregl);
- if(window.__hostMapPromise)return window.__hostMapPromise;
- window.__hostMapPromise=new Promise((resolve,reject)=>{
+ const browser=/** @type {any} */(window);
+ if(browser.maplibregl)return Promise.resolve(browser.maplibregl);
+ if(browser.__hostMapPromise)return browser.__hostMapPromise;
+ browser.__hostMapPromise=new Promise((resolve,reject)=>{
   if(!document.querySelector('link[data-host-maplibre]')){
    const css=document.createElement('link');css.rel='stylesheet';css.href='https://unpkg.com/maplibre-gl@5.10.0/dist/maplibre-gl.css';
    css.dataset.hostMaplibre='true';document.head.appendChild(css);
   }
   const script=document.createElement('script');script.src='https://unpkg.com/maplibre-gl@5.10.0/dist/maplibre-gl.js';
-  script.async=true;script.onload=()=>window.maplibregl?resolve(window.maplibregl):reject(Error('Map script unavailable'));
+  script.async=true;script.onload=()=>browser.maplibregl?resolve(browser.maplibregl):reject(Error('Map script unavailable'));
   script.onerror=()=>reject(Error('Could not load the road map'));document.head.appendChild(script);
- }).catch(e=>{window.__hostMapPromise=null;throw e;});
- return window.__hostMapPromise;
+ }).catch(e=>{browser.__hostMapPromise=null;throw e;});
+ return browser.__hostMapPromise;
 }
 function ApproximateRoadMap({properties=[],onOpen}){
  const container=useRef(null),instance=useRef(null),markers=useRef([]);
@@ -184,12 +185,12 @@ function FilterModal({value,onChange,onClose,onApply,matching}){
   </section>
  </div>;
 }
-export default function MarketplaceExplore({items=[],busy=false,onSearch=()=>{},onOpen=()=>{},onBecomeHost=()=>{},site='host'}){
+export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filters)=>{void _filters;},onOpen=(_id)=>{void _id;},onBecomeHost=()=>{},site='host'}){
  const [tab,setTab]=useState('spaces'),[geo,setGeo]=useState({...EMPTY_GEO});
  const [keyword,setKeyword]=useState(''),[from,setFrom]=useState(''),[to,setTo]=useState('');
  const [crew,setCrew]=useState(Object.fromEntries(crewRoles.map(([key])=>[key,0])));
  const [crewOpen,setCrewOpen]=useState(false),[filterOpen,setFilterOpen]=useState(false),[filters,setFilters]=useState({...DEFAULT_FILTERS});
- const [showMap,setShowMap]=useState(true),[mapError,setMapError]=useState('');
+ const [showMap,setShowMap]=useState(true);
  const count=Object.values(crew).reduce((sum,n)=>sum+Number(n||0),0);
  const displayed=useMemo(()=>items.filter(p=>{
   if(filters.types.length&&!filters.types.includes(p.category))return false;
