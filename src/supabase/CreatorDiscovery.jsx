@@ -67,7 +67,7 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
  return <section className="space-y-5">
   <header className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-2xl font-semibold">{mode==='discovery'?'Discovery':mode==='search'?'Search':'Favorites'}</h2><p className="mt-1 text-sm text-[var(--cc-text-secondary)]">{mode==='favorites'?'People you saved from Discovery.':mode==='search'?'Find people in any city and filter by professional role.':local.city?'Discover people in '+local.city+' and change the filters to explore elsewhere.':'Set your city in My Profile to start locally, or choose a city below.'}</p></div>{approved&&<button type="button" className="ccx-secondary rounded-lg p-3" disabled={working} aria-label="Refresh profiles" onClick={()=>void search(applied)}><RefreshCw size={17}/></button>}</header>
   {!approved?<div className={panel}>Independent age verification is required before viewing profiles.</div>:<>
-   {mode!=='favorites'&&<CategoryStrip items={DISCOVERY_CATEGORIES}
+   {mode!=='favorites'&&<CategoryStrip large items={DISCOVERY_CATEGORIES}
     value={DISCOVERY_CATEGORIES.find(item=>item.role===applied.role&&applied.role)?.key||''}
     onSelect={item=>{const next={...applied,role:item.role};setFilters(next);void search(next);}}/>}
    {mode!=='favorites'&&<form className={panel+' space-y-4'} data-discovery-filters="true" onSubmit={e=>{e.preventDefault();void search(filters);setFiltersOpen(false);}}>
