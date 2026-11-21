@@ -15,13 +15,13 @@ const kinds=[
  {id:'villa',label:'Villa',Icon:Home},{id:'loft',label:'Loft',Icon:Building2},
  {id:'set',label:'Production set',Icon:Clapperboard},{id:'other',label:'Other venue',Icon:MapPin}
 ];
-const amenityGroups=[
+export const amenityGroups=[
  {title:'Essentials',items:[['wifi','Wi-Fi'],['kitchen','Kitchen'],['washer','Washer'],['dryer','Dryer'],['air_conditioning','Air conditioning'],['heating','Heating'],['dedicated_workspace','Dedicated workspace'],['tv','TV'],['hair_dryer','Hair dryer'],['iron','Iron']]},
  {title:'Amenities & features',items:[['pool','Swimming pool'],['hot_tub','Hot tub'],['free_parking','Free parking'],['ev_charger','EV charger'],['king_bed','King bed'],['gym','Gym'],['bbq_grill','BBQ grill'],['breakfast','Breakfast'],['indoor_fireplace','Fireplace'],['smoking_allowed','Smoking allowed'],['allows_pets','Pets permitted']]},
  {title:'Safety & accessibility',items:[['smoke_alarm','Smoke alarm'],['carbon_monoxide_alarm','CO alarm'],['wheelchair_access','Wheelchair accessible'],['elevator','Elevator'],['private_entrance','Private entrance'],['security','Security staff']]},
  {title:'Production equipment',items:[['camera_equipment','Cameras'],['lighting_equipment','Lighting'],['microphones','Microphones'],['monitor','Camera / LCD monitors'],['multiple_camera_angles','Multiple camera angles'],['sd_card_available','SD cards available'],['wardrobe','Wardrobe'],['makeup_station','Makeup station'],['soundproofing','Soundproofing'],['on_site_staff','On-site crew']] }
 ];
-const accessibility=[
+export const accessibility=[
  ['step_free_access','Step-free entrance'],['disabled_parking','Accessible parking'],
  ['wide_entrance','Entrance wider than 32 inches'],['step_free_bedroom','Step-free bedroom'],
  ['wide_bedroom','Wide bedroom entrance'],['step_free_bathroom','Step-free bathroom'],
