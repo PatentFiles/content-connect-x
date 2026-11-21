@@ -99,3 +99,13 @@ test('runtime and build configuration both reject legacy service JWT configurati
 test('normal public URLs and dotted versions remain valid config',()=>{
  assert.doesNotThrow(()=>assertSafeBrowserEnvironment({VITE_SUPABASE_URL:'https://project.supabase.co',VITE_SENTRY_DSN:'https://public@example.ingest.sentry.io/123',VITE_RELEASE_SHA:'1.2.3'}));
 });
+
+test('role previews cannot publish feed posts and repost media keeps its full-width layout',()=>{
+ const dashboard=read('src/supabase/CustomDashboard.jsx');
+ const feed=read('src/supabase/ConnectFeed.jsx');
+ assert.match(dashboard,/<ConnectFeed[^>]*preview=\{preview\}/);
+ assert.doesNotMatch(dashboard,/<ConnectFeed[^>]*preview=\{false\}/);
+ assert.match(feed,/if\(posting\.current\|\|!paid\|\|preview\)return/);
+ assert.match(feed,/data-original-repost-media="true"/);
+ assert.match(feed,/className="pb-0" data-original-repost-media/);
+});
