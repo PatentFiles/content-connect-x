@@ -432,6 +432,20 @@
 /* Cross-brand footer link: Host identity is deliberately separate from the
  * Content Connect X fuchsia accent. No header-level cross-site promotion. */
 .ccx-sister-brand-footer{margin:0!important;width:100%;box-sizing:border-box;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:10px;padding:22px 18px 86px;text-align:center;color:var(--cc-text-secondary);font-size:13px;border-top:1px solid var(--cc-border);background:var(--cc-surface);}
+/* The sidebar consumes 18rem of the desktop content canvas. Center the *link text*
+ * against the actual viewport, not the remaining content column. Keep the
+ * background in normal document flow to avoid overlap with the fixed nav. */
+.ccx-sister-brand-footer-inner{
+ display:flex;align-items:center;justify-content:center;gap:10px;
+ flex-wrap:wrap;text-align:center;min-width:0;max-width:100%;
+ margin:0 auto;
+}
+@media(min-width:768px){
+ :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-sister-brand-footer-inner{
+  position:relative;
+  transform:translateX(calc(var(--ccx-workspace-nav-width,18rem) / -2));
+ }
+}
 .ccx-host-footer-link{font-weight:800;letter-spacing:-.01em;color:#12698f;text-decoration:none;}
 .ccx-host-footer-link:hover,.ccx-host-footer-link:focus-visible{color:#0c5272;text-decoration:underline;text-underline-offset:3px}
 @media(min-width:768px){.ccx-sister-brand-footer{padding-bottom:24px}}
