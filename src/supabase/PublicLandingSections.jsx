@@ -72,7 +72,7 @@ export default function PublicLandingSections(){
    </div>
   </section>
   <footer className="ccx-slim-footer">
-   <div className="ccx-slim-container ccx-slim-footer-inner"><span>Content Connect <strong>X</strong></span><p>Professional collaborations · Locations by <a href="https://hostconnectx.com" className="ccx-host-footer-link" target="_blank" rel="noopener noreferrer">Host Connect X</a></p></div>
+   <div className="ccx-slim-container ccx-slim-footer-inner"><span>Content Connect <strong>X</strong></span><p>Professional collaborations · Locations by <a href="https://hostconnectx.com" className="ccx-host-footer-link" target="_blank" rel="noopener noreferrer">Host ConnectX</a></p></div>
   </footer>
  </div>;
 }
