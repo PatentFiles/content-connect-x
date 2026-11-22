@@ -3,7 +3,7 @@
  * Owner account data, documents and restricted communications never render here.
  */
 import React,{useCallback,useEffect,useMemo,useState} from 'react';
-import {ArrowLeft,MapPin,ShieldCheck,RefreshCw,UserRound,ExternalLink,CalendarDays,ChevronLeft,ChevronRight,Image as ImageIcon} from 'lucide-react';
+import {ArrowLeft,MapPin,ShieldCheck,RefreshCw,UserRound,ExternalLink,CalendarDays,ChevronLeft,ChevronRight} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
 import ConnectFeed from './ConnectFeed';
 import ProfileGallery from './ProfileGallery';
@@ -132,7 +132,7 @@ export default function MemberPublicProfile({onNavigate,viewerId,paid=false}){
      <ConnectFeed key={profile.id} userId={profile.id} profileId={profile.id} paid={false} preview/>
     </section>
    </div>
-   </>
+   </>}
   </>}
  </section>;
 }
