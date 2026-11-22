@@ -100,12 +100,12 @@ export default function ScheduleHub({paid=false,userId,creatorBookingEnabled=fal
     const events=mine.map(item=>[
       'BEGIN:VEVENT','UID:'+item.id+'@contentconnectx.com','DTSTAMP:'+utc(new Date()),
       'DTSTART:'+utc(item.starts_at),'DTEND:'+utc(item.ends_at),
-      'SUMMARY:'+escape('Content Connect X: '+item.kind+' in '+item.city),
+      'SUMMARY:'+escape('Content ConnectX: '+item.kind+' in '+item.city),
       'LOCATION:'+escape(item.city+', '+item.country),
       'DESCRIPTION:'+escape(item.note||'Professional availability'),
       'END:VEVENT'
     ].join('\r\n')).join('\r\n');
-    const payload='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Content Connect X//Availability//EN\r\n'+events+'\r\nEND:VCALENDAR\r\n';
+    const payload='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Content ConnectX//Availability//EN\r\n'+events+'\r\nEND:VCALENDAR\r\n';
     const file=new Blob([payload],{type:'text/calendar;charset=utf-8'});
     const url=URL.createObjectURL(file);
     const anchor=document.createElement('a');anchor.href=url;anchor.download='content-connect-x-availability.ics';
