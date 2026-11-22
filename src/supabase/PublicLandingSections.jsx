@@ -1,5 +1,7 @@
 /** Signed-out landing sections. Marketing-only: never expose private records or bypass member gates. */
 import React from 'react';
+import {DISCOVERY_CATEGORIES} from './CategoryArtwork';
+import BrandWordmark from './BrandWordmark';
 import { MessageCircleMore, UsersRound, HeartPulse, FileSignature, MapPinned, Fingerprint, CreditCard, Search, MessagesSquare, PenLine, ArrowUpRight, ArrowRight, ShieldCheck, Sparkles, Camera } from 'lucide-react';
 
 const features = [
@@ -42,6 +44,29 @@ export default function PublicLandingSections(){
     <p className="ccx-slim-availability-note"><ShieldCheck size={16} aria-hidden="true"/> Features requiring verification, subscription, provider approval, or payment are available only when the corresponding services are enabled.</p>
    </div>
   </section>
+  <section className="ccx-slim-section ccx-home-discovery" aria-labelledby="ccx-home-discovery-title" data-public-discovery-icons="true">
+   <div className="ccx-slim-container">
+    <div className="ccx-slim-section-heading">
+     <p className="ccx-slim-kicker"><Search size={15} aria-hidden="true"/> DISCOVERY</p>
+     <h2 id="ccx-home-discovery-title">Discover a network of <span className="ccx-slim-gradient">industry professionals.</span></h2>
+     <p>Find creators, filmmakers, production teams and services to collaborate, create and work together.</p>
+    </div>
+    <div className="ccx-home-discovery-grid" aria-label="Discover professional categories">
+     {DISCOVERY_CATEGORIES.map(item=><article className="ccx-home-discovery-card" key={item.key}>
+      <span className="ccx-home-discovery-artwork" aria-hidden="true">
+       {item.image&&<img src={item.image} alt="" loading="lazy" decoding="async"/>}
+      </span>
+      <h3>{item.label}</h3>
+     </article>)}
+    </div>
+    <div className="ccx-home-discovery-actions">
+     <a className="ccx-slim-button ccx-slim-button-primary" href="/signup">
+      Join the network <ArrowRight size={18} aria-hidden="true"/>
+     </a>
+     <p>Browse member profiles after registration and required verification.</p>
+    </div>
+   </div>
+  </section>
   <section className="ccx-slim-section ccx-slim-steps-section" aria-labelledby="ccx-steps-title">
    <div className="ccx-slim-container">
     <div className="ccx-slim-section-heading">
@@ -72,7 +97,7 @@ export default function PublicLandingSections(){
    </div>
   </section>
   <footer className="ccx-slim-footer">
-   <div className="ccx-slim-container ccx-slim-footer-inner"><span>Content Connect <strong>X</strong></span><p>Professional collaborations · Locations by <a href="https://hostconnectx.com" className="ccx-host-footer-link" target="_blank" rel="noopener noreferrer">Host ConnectX</a></p></div>
+   <div className="ccx-slim-container ccx-slim-footer-inner"><BrandWordmark brand="content"/><p>Professional collaborations · Locations by <a href="https://hostconnectx.com" className="ccx-host-footer-link" target="_blank" rel="noopener noreferrer"><BrandWordmark brand="host"/></a></p></div>
   </footer>
  </div>;
 }
