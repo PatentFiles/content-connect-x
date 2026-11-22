@@ -26,8 +26,10 @@ assert.match(app,/useAuthAppearance\(user\)/,'Theme follows Auth, not URL');
 assert.match(get(root+'/OnlyHostApp.jsx'),/Host_Connect_Banner\.png/,'Original host banner required');
 assert.match(get(root+'/OnlyHostApp.jsx'),/useAuthAppearance\(user\)/);
 assert.match(pricingView,/Free Membership/);assert.match(pricingView,/membership_plan_catalog/);assert.match(pricingView,/checkout opens after approved billing is connected/);
-assert.match(originalShell,/ccx-shell-sidebar fixed bottom-0 left-0 z-30 hidden md:flex/,'Desktop two-tier sidebar must remain fixed');
-assert.match(originalShell,/ccx-nav-rail/,'Icon category rail must exist');
+assert.match(originalShell,/ccx-shell-sidebar fixed bottom-0 left-0 z-30 hidden md:flex/,'Desktop full sidebar must remain fixed');
+assert.doesNotMatch(originalShell,/CategoryRail|ccx-nav-rail-button|expandedGroup/,'The old double navigation and accordion must be absent');
+assert.match(originalShell,/className="ccx-nav-heading"/,'Static section headings must remain visible');
+assert.match(originalShell,/onNavigate\('settings'\)/,'Settings must remain available');
 assert.match(originalShell,/NavigationSections groups=\{navGroups\}/,'Role navigation must remain grouped');
 assert.match(originalShell,/data-nav-groups="true"/,'Mobile drawer must share categorized pages');assert.match(originalShell,/aria-label="Open navigation menu"/);assert.match(originalShell,/aria-label="Mobile navigation"/);assert.match(originalShell,/aria-label="Sign out"/);assert.doesNotMatch(originalShell,/Sign Out<\/button>[\s\S]*<header/);
 // The user explicitly moved Host management to OnlyHost. Assert the six CCX
