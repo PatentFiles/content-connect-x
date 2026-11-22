@@ -214,6 +214,7 @@ Deno.serve(async req=>{
         .eq('owner_id',uid).gte('created_at',new Date(Date.now()-86400000).toISOString());
       if(rateError)return reply({error:'Upload limit unavailable'},503);
       if((count||0)>=10)return reply({error:'Daily media submission limit reached'},429);
+      if(body.visibility==='groups'&&!body.album_id)return reply({error:'Choose a group album'},400);
       let visibility=body.visibility==='friends'||body.visibility==='connections'?'connections':
         body.visibility==='private'?'private':'verified';
       let albumId:string|null=null;
@@ -289,13 +290,16 @@ Deno.serve(async req=>{
       let policy;
       try{policy=await policyInput();}catch(e){return reply({error:(e as Error).message},400);}
       const {data:existing,error:existingError}=await db.from('member_media_albums')
-        .select('id').eq('id',body.album_id).eq('owner_id',uid).maybeSingle();
+        .select('id,visibility').eq('id',body.album_id).eq('owner_id',uid).maybeSingle();
       if(existingError||!existing)return reply({error:'Album not found'},404);
-      // Prevent old globally shared reposts persisting after any change to album rules.
-      const {data:media,error:mediaError}=await db.from('member_media_assets')
-        .select('id').eq('album_id',body.album_id).eq('owner_id',uid);
-      if(mediaError)throw mediaError;
-      await revokeShares((media||[]).map((m:any)=>m.id));
+      // Only revoke feed reposts if the album stops allowing Premium sharing.
+      // Renaming an album must not delete legitimate existing reposts.
+      if(existing.visibility==='premium'&&policy.visibility!=='premium'){
+        const {data:media,error:mediaError}=await db.from('member_media_assets')
+          .select('id').eq('album_id',body.album_id).eq('owner_id',uid);
+        if(mediaError)throw mediaError;
+        await revokeShares((media||[]).map((m:any)=>m.id));
+      }
       const {data,error}=await db.from('member_media_albums')
         .update({title,...policy,updated_at:new Date().toISOString()})
         .eq('id',body.album_id).eq('owner_id',uid)
@@ -325,6 +329,9 @@ Deno.serve(async req=>{
     if(action==='assign_album'){
       if(!paid)return reply({error:'Premium membership required'},403);
       if(!uuid(body.media_id))return reply({error:'Invalid media'},400);
+      const {data:owned,error:ownedError}=await db.from('member_media_assets')
+        .select('id,album_id').eq('id',body.media_id).eq('owner_id',uid).maybeSingle();
+      if(ownedError||!owned)return reply({error:'Media not found'},404);
       let albumId:string|null=null;
       let visibility='private';
       if(body.album_id){
@@ -335,7 +342,8 @@ Deno.serve(async req=>{
         visibility=album.visibility==='premium'?'verified':
           album.visibility==='friends'?'connections':'private';
       }
-      await revokeShares([body.media_id]);
+      if((owned.album_id||null)===(albumId||null))return reply({ok:true});
+      await revokeShares([owned.id]);
       const {data,error}=await db.from('member_media_assets')
         .update({album_id:albumId,visibility,allow_repost:false})
         .eq('id',body.media_id).eq('owner_id',uid).select('id').maybeSingle();
