@@ -20,8 +20,7 @@ function SetEditor({name,values=[],onChange}){
  const allowsOther=name!=='compensation_preferences';
  const maxItems=name==='looking_for_genders'||name==='performance_positioning'?20:30;
  const update=choice=>onChange(values.includes(choice)?values.filter(item=>item!==choice):values.length>=maxItems?values:[...values,choice]);
- const add=event=>{
-  event.preventDefault();
+ const add=()=>{
   const label=custom.trim().replace(/\s+/g,' ').slice(0,80);
   if(!label)return;
   const tag='custom:'+label;
@@ -45,13 +44,14 @@ function SetEditor({name,values=[],onChange}){
     className="rounded-lg border border-[var(--cc-link)] bg-[var(--cc-surface-hover)] px-3 py-2 text-sm text-[var(--cc-link)]">
     {tag.slice(7)} <span aria-hidden="true">×</span></button>)}
   </div>
-  {allowsOther&&<form onSubmit={add} className="mt-4 flex flex-wrap items-end gap-2">
+  {allowsOther&&<div className="ccx-action-row mt-4 flex flex-wrap items-end gap-2">
    <label className="min-w-[160px] flex-1 text-sm">Other — add your own tag
     <input className={field+' mt-2'} style={control} maxLength={80} value={custom}
-     placeholder="Enter a custom option" onChange={e=>setCustom(e.target.value)}/></label>
-   <button type="submit" className="ccx-secondary rounded-lg px-4 py-2.5 text-sm"
+     placeholder="Enter a custom option" onChange={e=>setCustom(e.target.value)}
+     onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();add();}}}/></label>
+   <button type="button" onClick={add} className="ccx-secondary rounded-lg px-4 py-2.5 text-sm"
     disabled={!custom.trim()||values.length>=maxItems}>Add tag</button>
-  </form>}
+  </div>}
  </section>;
 }
 export const initialCreatorPreferences={

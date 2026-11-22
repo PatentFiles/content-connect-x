@@ -50,7 +50,7 @@ export default function GalleryAlbumManager({albums=[],request,onRefresh,selecte
    <button type="button" className={button} onClick={()=>start(null)} disabled={busy}>
     <FolderPlus size={16}/>Create album</button>
   </div>
-  <div className="flex flex-wrap gap-2">
+  <div className="ccx-action-row flex flex-wrap gap-2">
    <button type="button" className={button} aria-pressed={!selectedAlbum} onClick={()=>onSelectAlbum('')}>All photos & videos</button>
    {albums.map(album=><div key={album.id} className="flex items-center overflow-hidden rounded-lg border border-[var(--cc-border)]">
     <button type="button" aria-pressed={selectedAlbum===album.id} className="min-h-10 px-3 py-2 text-sm"
@@ -75,7 +75,7 @@ export default function GalleryAlbumManager({albums=[],request,onRefresh,selecte
       ids.length>=12?ids:[...ids,g.id]:ids.filter(id=>id!==g.id))}/>{g.name}</label>)
       :<p className="text-xs text-[var(--cc-text-secondary)]">Join an active group before sharing an album with it.</p>}
    </fieldset>}
-   <div className="flex flex-wrap gap-2">
+   <div className="ccx-action-row flex flex-wrap gap-2">
     <button type="submit" className="ccx-primary inline-flex min-h-10 items-center gap-2 rounded-lg px-4 py-2 text-sm"
      disabled={busy||!title.trim()||(visibility==='groups'&&!groupIds.length)}><Check size={16}/>{busy?'Saving…':'Save album'}</button>
     <button type="button" className={button} onClick={()=>setEditing(null)} disabled={busy}><X size={16}/>Cancel</button>
