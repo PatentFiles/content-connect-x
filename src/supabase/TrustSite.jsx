@@ -4,6 +4,7 @@ import {TRUST_LINKS,TRUST_PAGES} from './trustContent.mjs';
 import {readTracking,saveTracking} from './trackingPreferences.mjs';
 import {validateTrustRequest} from '../../supabase/functions/trust-intake/policy.mjs';
 import TrustReporterStatus from './TrustReporterStatus';
+import BrandWordmark from './BrandWordmark';
 import './trust-site.css';
 const kinds=[['ncii','Non-consensual intimate imagery'],['trafficking','Trafficking or coercion'],['csam','Suspected child exploitation'],['privacy','Privacy request'],['support','Account or technical support'],['copyright','Copyright concern'],['law_enforcement','Law-enforcement request'],['accessibility','Accessibility barrier'],['affiliate','Non-explicit professional partnership'],['appeal','Review or appeal'],['other','Other concern']];
 const emailLink=value=>typeof value==='string'&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)?'mailto:'+encodeURIComponent(value):null;
@@ -14,7 +15,7 @@ const emailLink=value=>typeof value==='string'&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.tes
 export function TrustFooter({legalPage=false}){
  return <footer className={'ccx-trust-footer'+(legalPage?' ccx-trust-footer-standalone':'')}>
   <div className="ccx-trust-footer-top">
-   <div><a href="/" className="ccx-trust-brand">CONTENT CONNECT <span>X</span></a>
+   <div><a href="/" className="ccx-trust-brand"><BrandWordmark brand="content"/></a>
     <p>Professional collaboration. Clear consent. Accountable access.</p></div>
    <a className="ccx-trust-report-link" href="/trust/content-removal">Content removal &amp; safety</a>
   </div>
@@ -101,7 +102,7 @@ export default function TrustSite({children}){
  useEffect(()=>{if(legalPage)document.title=(page?.title|| (slug==='cookies'?'Cookie preferences':slug==='review'?'Staff review':'Trust & safety'))+' | Content ConnectX';},[legalPage,page,slug]);
  if(!legalPage)return <>{children}<TrustFooter/></>;
  const formKind={'content-removal':'ncii',support:'support',privacy:'privacy',accessibility:'accessibility',affiliates:'affiliate','law-enforcement':'law_enforcement'}[slug]||(page&&!['cookies','review'].includes(slug)?'support':null);
- return <div className="ccx-trust-layout"><header className="ccx-trust-header"><a className="ccx-trust-brand" href="/">CONTENT CONNECT <span>X</span></a><a href="/Dashboard">Return to workspace</a></header>
+ return <div className="ccx-trust-layout"><header className="ccx-trust-header"><a className="ccx-trust-brand" href="/"><BrandWordmark brand="content"/></a><a href="/Dashboard">Return to workspace</a></header>
   <main className="ccx-trust-page"><p className="ccx-trust-eyebrow">TRUST · PRIVACY · SUPPORT</p><h1>{page?.title||(slug==='cookies'?'Cookie preferences':slug==='review'?'Staff review':'Page not found')}</h1>
    {!config?.policies_approved&&!['cookies','review'].includes(slug)&&<aside className="ccx-trust-draft"><strong>Pre-launch policy draft — operator and legal review required.</strong><p>This page is not a certification of worldwide compliance or a substitute for final terms. Public reporting is not active until the intake notice below confirms availability.</p></aside>}
    {config?.legal_entity&&<p className="ccx-trust-operator">Operator: {config.legal_entity}{config.postal_address?' · '+config.postal_address:''}{emailLink(config.contact_email)&&<> · <a href={emailLink(config.contact_email)}>{config.contact_email}</a></>}</p>}
