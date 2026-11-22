@@ -47,8 +47,15 @@ function CropDialog({kind,file,onClose,onSave}){
     <p className="text-xs text-[var(--cc-text-secondary)]">{cover?'Recommended image: 1200 × 400 pixels (3:1)':'Recommended image: 600 × 600 pixels (square)'} · Use the sliders to position and zoom</p></div>
     <button type="button" aria-label="Close crop editor" onClick={onClose} disabled={saving}><X size={21}/></button></div>
    <div className={'relative mx-auto overflow-hidden bg-[var(--cc-surface-hover)] '+(cover?'w-full aspect-[3/1]':'w-52 aspect-square rounded-full sm:w-64')}>
-    {src&&<img src={src} alt="Live crop preview" className="absolute inset-0 h-full w-full object-cover" draggable={false}
-     style={{objectPosition:x+'% '+y+'%',transform:'scale('+zoom+')'}}/>}
+    {src&&dimensions&&(()=>{
+     // Use exactly the same pixel geometry as the exported canvas.
+     const scale=Math.max(width/dimensions.width,height/dimensions.height)*zoom;
+     const sw=dimensions.width*scale,sh=dimensions.height*scale;
+     return <img src={src} alt="Live crop preview" draggable={false}
+      className="absolute max-w-none"
+      style={{left:((width-sw)*x/width)+'%',top:((height-sh)*y/height)+'%',
+       width:(sw/width*100)+'%',height:(sh/height*100)+'%',objectFit:'fill'}}/>;
+    })()}
    </div>
    <div className="grid gap-3 sm:grid-cols-3">
     {[['Horizontal position',x,setX],['Vertical position',y,setY]].map(([label,value,setter])=><label key={label} className="text-xs">{label}<input className="mt-2 w-full" aria-label={label} type="range" min="0" max="100" value={value} onChange={e=>setter(Number(e.target.value))}/></label>)}
@@ -97,7 +104,7 @@ export default function EditableProfileHero({cover='',avatar='',displayName='',r
     {verified&&<span className="inline-flex items-center gap-1 rounded-full border border-emerald-400 px-3 py-1 text-xs"><ShieldCheck size={14}/>Verified adult</span>}
    </div>
    <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--cc-text-secondary)]">
-    <span>Profile photo: square 600 × 600 px · Banner: 1200 × 400 px</span>
+    <span>Photo 600 × 600 px · Banner 1200 × 400 px</span>
     {onEdit&&<button type="button" className="ccx-secondary rounded-lg px-4 py-2 text-sm" onClick={onEdit}>Edit profile details</button>}
    </div>
   </div>
