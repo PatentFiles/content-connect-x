@@ -71,7 +71,7 @@ export default function MemberPublicProfile({onNavigate,viewerId,paid=false}){
   {error&&<p role="alert" className="rounded-xl border border-red-300 bg-red-50 p-4 text-sm text-red-800">{error}</p>}
   {profile&&!loading&&<>
    <article className="ccx-surface overflow-hidden rounded-2xl">
-    <div className="relative h-44 sm:h-60" style={{background:'var(--cc-surface-hover)'}}>
+    <div className="relative aspect-[3/1] w-full" style={{background:'var(--cc-surface-hover)'}}>
      {profile.cover_url&&<img alt="" src={profile.cover_url} className="h-full w-full object-cover"/>}
     </div>
     <div className="space-y-5 p-5 sm:p-7">
