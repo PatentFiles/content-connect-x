@@ -83,7 +83,7 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
    if(profileError)throw profileError;
    setAssetPreview(old=>({...old,[kind]:signed.signedUrl}));setNotice(`${kind==='avatar'?'Profile photo':'Profile banner'} updated.`);
    if(onSaved)await onSaved();
-  }catch(e){setError('Could not update this profile image.');console.error('profile image upload failed',e);}
+  }catch(e){setError('Could not update this profile image.');console.error('profile image upload failed',e);throw e;}
   finally{setUploading('');}
  };
  useEffect(()=>{
