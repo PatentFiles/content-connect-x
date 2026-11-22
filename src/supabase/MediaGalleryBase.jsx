@@ -136,7 +136,7 @@ export default function MediaGallery({userId,paid=false,admin=false}){
   };
   const albumName=id=>albums.find(a=>a.id===id)?.title||'Unassigned';
   return <section className="space-y-5">
-    <div className="flex justify-between gap-2 items-center"><div><h2 className="text-2xl font-semibold">Creator media</h2><p className="text-sm text-[var(--cc-text-secondary)] mt-1">Age-gated private storage, rights attestation and human moderation before publishing.</p></div><div className="flex gap-2"><button onClick={load} disabled={busy} className={button} aria-label="Refresh media"><RefreshCw size={16}/></button></div></div>
+    <div className="flex justify-between gap-2 items-center"><div><h2 className="text-2xl font-semibold">Creator media</h2></div><div className="flex gap-2"><button onClick={load} disabled={busy} className={button} aria-label="Refresh media"><RefreshCw size={16}/></button></div></div>
     {error&&<p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{error}</p>}
     {notice&&<p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800" role="status">{notice}</p>}
     {paid&&<section className={panel+' space-y-4'}>
@@ -154,7 +154,7 @@ export default function MediaGallery({userId,paid=false,admin=false}){
           <button className="px-3 py-2 text-sm font-medium" style={{color:selectedAlbum===a.id?'var(--cc-blue)':'var(--cc-text-secondary)'}} onClick={()=>setSelectedAlbum(a.id)}>{a.title} ({a.count})</button>
           <button className="px-1.5 py-2 text-red-800 hover:text-red-800" disabled={busy} onClick={()=>deleteAlbum(a.id)} aria-label={`Delete ${a.title}`}><Trash2 size={14}/></button>
         </div>)}
-        {!albums.length&&!showAlbumForm&&<p className="text-xs text-[var(--cc-text-secondary)]">No albums yet — create one to organize your photos.</p>}
+        
       </div>
     </section>}
     <form onSubmit={e=>{e.preventDefault();load();}} className={panel+' flex flex-wrap gap-3 items-end'}>
@@ -164,7 +164,7 @@ export default function MediaGallery({userId,paid=false,admin=false}){
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {assets.map(asset=><article className={panel} key={asset.id}><div className="flex items-center gap-2"><Image size={17} className="text-[var(--cc-text-secondary)]"/><p className="font-semibold">Approved media</p></div><p className="text-xs mt-1 text-[var(--cc-text-secondary)]">{new Date(asset.created_at).toLocaleDateString()}</p>{asset.album_id&&<p className="text-xs text-[var(--cc-text-secondary)]">Album: {albumName(asset.album_id)}</p>}<p className="my-3 text-sm break-words">{asset.caption||'Creator gallery'}</p><div className="flex flex-wrap gap-2"><button className={button} disabled={busy} onClick={()=>open(asset.id)}>View private media</button><a className={ghostBtn} href={reportMediaUrl(asset.id)}>Report media</a></div></article>)}
     </div>
-    {!assets.length&&<div className={panel}><p className="text-[var(--cc-text-secondary)] text-sm">No approved media entries are available for this member.</p></div>}
+    
     {image&&<div className={panel+' space-y-3'}><div className="flex gap-2 items-center text-sm text-[var(--cc-text-secondary)]">{image.mime_type.startsWith('video')?<Video size={17}/>:<Image size={17}/>}Temporary media preview (link expires in 60 seconds)</div>
       {image.mime_type.startsWith('video')?<video controls className="rounded-lg max-h-96 w-full" src={image.url}/>:<img className="rounded-lg max-h-96 w-full object-contain" src={image.url} alt="Approved creator media"/>}
       <div className="flex flex-wrap gap-3"><button className="text-[var(--cc-text-secondary)] text-sm" onClick={()=>setImage(null)}>Close preview</button><a className="text-sm underline" href={reportMediaUrl(image.id)}>Report this image or video</a></div>
@@ -193,7 +193,7 @@ export default function MediaGallery({userId,paid=false,admin=false}){
             <button className={ghostBtn} disabled={busy} onClick={()=>assignAlbum(v.id,assignTarget[v.id]||null)}><Check size={14} className="inline mr-1"/>Assign</button>
           </div>}
         </div>)}
-        {!owned.length&&<p className="text-[var(--cc-text-secondary)] text-xs">No submissions yet.</p>}
+        
       </div>
     </form>}
     {admin&&<div className={panel+' space-y-3'}>
