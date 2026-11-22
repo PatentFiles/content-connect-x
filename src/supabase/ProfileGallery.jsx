@@ -16,7 +16,7 @@ const field='w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-sur
 
 export default function ProfileGallery({ownerId,viewerId,paid=false,mode='photos',onNavigate}){
  const own=ownerId===viewerId;
- const [items,setItems]=useState([]),[pending,setPending]=useState([]);
+ const [items,setItems]=useState([]),[pending,setPending]=useState([]),[pendingUrls,setPendingUrls]=useState({});
  const [busy,setBusy]=useState(''),[opened,setOpened]=useState(null),[comments,setComments]=useState({});
  const [draft,setDraft]=useState({}),[composer,setComposer]=useState(''),[error,setError]=useState(''),[message,setMessage]=useState('');
  const [file,setFile]=useState(null),[caption,setCaption]=useState(''),[rights,setRights]=useState(false),[visibility,setVisibility]=useState('verified'),[repostAllowed,setRepostAllowed]=useState(false);
@@ -29,6 +29,13 @@ export default function ProfileGallery({ownerId,viewerId,paid=false,mode='photos
    setItems(approved.items||[]);
    const review=(mine.items||[]).filter(x=>x.status==='pending'&&((mode==='videos')===x.mime_type?.startsWith('video/')));
    setPending(review);
+   if(review.length){
+    const previews=await Promise.all(review.slice(0,24).map(async entry=>{
+     try{const r=await action('view',{id:entry.id});return [entry.id,r.url||null];}
+     catch{return [entry.id,null];}
+    }));
+    setPendingUrls(Object.fromEntries(previews));
+   }else setPendingUrls({});
   }catch(e){setError(e.message||'Gallery unavailable.');}
  },[ownerId,own,paid,mode]);
  useEffect(()=>{void load();},[load]);
@@ -123,8 +130,11 @@ export default function ProfileGallery({ownerId,viewerId,paid=false,mode='photos
      <a href={'/trust/content-removal?locator='+encodeURIComponent('gallery-media:'+item.id)} className="block text-[10px] text-[var(--cc-text-secondary)] underline">Report</a>
     </div>
    </article>)}
-   {own&&pending.map(item=><article key={item.id} className="flex aspect-square items-center justify-center rounded-xl border border-dashed border-[var(--cc-border)] p-3 text-center text-xs text-[var(--cc-text-secondary)]">
-    <span>{item.caption||'Upload'}<span className="mt-2 block font-semibold">Under review</span></span>
+   {own&&pending.map(item=><article key={item.id} className="relative aspect-square overflow-hidden rounded-xl border border-dashed border-[var(--cc-border)] bg-[var(--cc-surface-subtle)]">
+    {pendingUrls[item.id]&&(mode==='videos'
+     ?<video preload="metadata" controls className="h-full w-full object-contain" src={pendingUrls[item.id]}/>
+     :<img src={pendingUrls[item.id]} alt={item.caption||'Your uploaded photo'} className="h-full w-full object-cover"/>)}
+    <span className="absolute inset-x-0 bottom-0 bg-black/80 px-2 py-2 text-center text-[11px] font-semibold text-white">Under review</span>
    </article>)}
   </div>
   {opened&&<div role="dialog" aria-modal="true" aria-label="Gallery photo" className="fixed inset-0 z-[110] flex items-center justify-center bg-black/85 p-5" onClick={()=>setOpened(null)}>
