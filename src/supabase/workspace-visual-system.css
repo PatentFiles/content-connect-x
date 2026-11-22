@@ -432,19 +432,30 @@
 /* Cross-brand footer link: Host identity is deliberately separate from the
  * Content Connect X fuchsia accent. No header-level cross-site promotion. */
 .ccx-sister-brand-footer{margin:0!important;width:100%;box-sizing:border-box;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:10px;padding:22px 18px 86px;text-align:center;color:var(--cc-text-secondary);font-size:13px;border-top:1px solid var(--cc-border);background:var(--cc-surface);}
-/* The sidebar consumes 18rem of the desktop content canvas. Center the *link text*
- * against the actual viewport, not the remaining content column. Keep the
- * background in normal document flow to avoid overlap with the fixed nav. */
-.ccx-sister-brand-footer-inner{
- display:flex;align-items:center;justify-content:center;gap:10px;
- flex-wrap:wrap;text-align:center;min-width:0;max-width:100%;
- margin:0 auto;
+/* This footer is already a full-viewport sibling of the sidebar and main.
+ * Unlike the main content, it must NOT be shifted by the sidebar width.
+ * Center its contents on the exact same viewport axis as the legal footer. */
+:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-sister-brand-footer{
+ margin:0!important;
+ width:100%!important;
+ max-width:none;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ text-align:center;
 }
-@media(min-width:768px){
- :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-sister-brand-footer-inner{
-  position:relative;
-  transform:translateX(calc(var(--ccx-workspace-nav-width,18rem) / -2));
- }
+.ccx-sister-brand-footer-inner{
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ gap:10px;
+ flex-wrap:wrap;
+ width:fit-content;
+ max-width:100%;
+ min-width:0;
+ margin-inline:auto;
+ text-align:center;
+ transform:none!important;
 }
 .ccx-host-footer-link{font-weight:800;letter-spacing:-.01em;color:#12698f;text-decoration:none;}
 .ccx-host-footer-link:hover,.ccx-host-footer-link:focus-visible{color:#0c5272;text-decoration:underline;text-underline-offset:3px}
