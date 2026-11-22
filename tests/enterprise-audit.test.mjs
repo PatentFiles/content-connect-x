@@ -116,7 +116,7 @@ test('authenticated brands use separate central tokens and no recursive surface 
  const css=read('src/supabase/workspace-visual-system.css');
  assert.match(css,/--cc-action:#12698f/);
  assert.match(css,/--brand-host-action:#12698f/);
- assert.match(css,/--ccx-nav-panel-accent:#e9a3d1/);
+ assert.match(css,/--ccx-nav-panel-accent:#8fd3ef/);
  assert.doesNotMatch(css,/--cc-surface:var\(--cc-surface\)/);
  assert.match(css,/:root\[data-ccx-appearance="workspace"\]/);
 });
