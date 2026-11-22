@@ -26,18 +26,16 @@ test('greeting selects a display or stage name before legal/private name',()=>{
  assert.equal(dashboardGreetingName({display_name:'  '}),'there');
  assert.equal(dashboardGreetingName({display_name:'A\u0000B'}),'A B');
 });
-test('desktop category rail reveals one section; mobile is traditional single-column hamburger',()=>{
+test('desktop navigation is a single full sidebar with static headings and mobile hamburger',()=>{
  const source=read('src/supabase/OriginalShell.jsx');
- assert.match(source,/const \[expandedGroup,setExpandedGroup\]=useState\(null\)/);
- assert.match(source,/visibleGroup=expandedGroup===null/);
- assert.match(source,/const toggleGroup=id=>setExpandedGroup\(id\?\?'\'\)/);
- assert.match(source,/const open=mobile\|\|expandedGroup===group\.id/);
- assert.match(source,/aria-expanded=\{open\}/);
- assert.match(source,/onClick=\{\(\)=>onExpand\?\.\(open\?null:group\.id\)\}/);
- assert.match(source,/aria-label="Open navigation menu"/);
+ assert.doesNotMatch(source,/CategoryRail|expandedGroup|toggleGroup|visibleGroup|ccx-nav-heading-button/);
+ assert.match(source,/aria-label="Grouped role navigation"/);
  assert.match(source,/aria-label="Mobile navigation"/);
- assert.doesNotMatch(source,/<CategoryRail mobile/);
- assert.match(source,/flex-col overflow-hidden border-r/);
+ assert.match(source,/aria-label="Open navigation menu"/);
+ assert.match(source,/className="ccx-nav-heading"/);
+ assert.match(source,/ccx-nav-section-links/);
+ assert.match(source,/onNavigate\('settings'\)/);
+ assert.match(source,/onSignOut/);
  const groups=groupedWorkspaceNavigation([{path:'Dashboard',label:'Dashboard'},
  {path:'Discovery',label:'Discovery'},{path:'Messages',label:'Messages'}]);
  assert.equal(currentNavigationGroup(groups,'messages',path=>({Messages:'messages',Dashboard:'dashboard',Discovery:'directory'})[path]),'community');
@@ -72,7 +70,7 @@ test('unified enterprise colors are scoped to authenticated sites, not public ma
  assert.match(css,/ccx-dashboard-card::before\{\s*display:none!important/);
  assert.match(css,/oh-host-mobile-drawer/);
  assert.match(nav,/--ccx-nav-rail-bg:#15191f/);
- assert.match(nav,/ccx-nav-heading-button/);
+ assert.match(nav,/ccx-nav-heading/);
  assert.doesNotMatch(css,/data-ccx-appearance="public"/);
  const boot=read('src/supabase/bootstrap.jsx');
  assert.match(boot,/Host_Connect_Banner|onlyhost-theme|OnlyHostApp/);
