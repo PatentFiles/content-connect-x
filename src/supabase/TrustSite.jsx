@@ -22,7 +22,7 @@ export function TrustFooter({legalPage=false}){
    {TRUST_LINKS.map(([slug,title])=><a key={slug} href={'/trust/'+slug}>{title}</a>)}
   </nav>
   <div className="ccx-trust-footer-bottom">
-   <p>© {new Date().getFullYear()} Content Connect X · Adults only</p>
+   <p>© {new Date().getFullYear()} Content ConnectX · Adults only</p>
    <p><a href="/trust/law-enforcement">Lawful requests are reviewed case by case.</a> No unrestricted backend access.</p>
    <a href="/trust/review">Staff review</a>
   </div>
@@ -98,7 +98,7 @@ export default function TrustSite({children}){
   void Promise.resolve(supabase.rpc('ccx_trust_public_config')).then(({data,error})=>{if(active){setConfig(error?null:data);setConfigError(Boolean(error));}}).catch(()=>{if(active)setConfigError(true);});
   return()=>{active=false;};
  },[legalPage]);
- useEffect(()=>{if(legalPage)document.title=(page?.title|| (slug==='cookies'?'Cookie preferences':slug==='review'?'Staff review':'Trust & safety'))+' | Content Connect X';},[legalPage,page,slug]);
+ useEffect(()=>{if(legalPage)document.title=(page?.title|| (slug==='cookies'?'Cookie preferences':slug==='review'?'Staff review':'Trust & safety'))+' | Content ConnectX';},[legalPage,page,slug]);
  if(!legalPage)return <>{children}<TrustFooter/></>;
  const formKind={'content-removal':'ncii',support:'support',privacy:'privacy',accessibility:'accessibility',affiliates:'affiliate','law-enforcement':'law_enforcement'}[slug]||(page&&!['cookies','review'].includes(slug)?'support':null);
  return <div className="ccx-trust-layout"><header className="ccx-trust-header"><a className="ccx-trust-brand" href="/">CONTENT CONNECT <span>X</span></a><a href="/Dashboard">Return to workspace</a></header>
