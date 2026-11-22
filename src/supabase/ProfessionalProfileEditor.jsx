@@ -37,7 +37,7 @@ export default function ProfessionalProfileEditor({user,profile,onSaved,approved
   const {error:uploadError}=await supabase.storage.from('member-private').upload(path,file,{contentType:file.type,upsert:false});if(uploadError)throw uploadError;
   const {error:saveError}=await supabase.from('member_profiles').update({[kind+'_path']:path,updated_at:new Date().toISOString()}).eq('id',user.id);if(saveError)throw saveError;
   const {data,error:linkError}=await supabase.storage.from('member-private').createSignedUrl(path,3600);if(linkError)throw linkError;setAssets(old=>({...old,[kind]:data.signedUrl}));if(onSaved)await onSaved();
- }catch(err){setError(err.message);}finally{setBusy(false);}};
+ }catch(err){setError(err.message);throw err;}finally{setBusy(false);}};
  const text=(key,label,area=false)=> <label className="block text-sm" key={key}>{label}{area?<textarea className={field} rows={3} maxLength={key==='software'||key==='specialties'?1000:2000} value={details[key]} onChange={e=>detail(key,e.target.value)}/>:<input className={field} type={key==='website'?'url':'text'} value={details[key]} maxLength={1000} onChange={e=>detail(key,e.target.value)}/>}</label>;
  const number=(key,label,max=99999999)=> <label className="block text-sm" key={key}>{label}<input className={field} type="number" inputMode={key==='turnaround_days'?'numeric':'decimal'} min={0} max={max} step={key==='turnaround_days'?1:'0.01'} value={details[key]} onChange={e=>detail(key,e.target.value)}/></label>;
  const business=ROSTER_ROLES.includes(role),service=PORTFOLIO_ROLES.includes(role);
