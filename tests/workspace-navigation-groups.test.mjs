@@ -34,17 +34,18 @@ test('admin links have their own gated groups, and role previews cannot invent a
  assert.equal(currentNavigationGroup(admin,'unknown',()=>null),null);
  assert.equal(WORKSPACE_NAV_GROUPS.at(0).label,'Overview');
 });
-test('desktop rail and mobile drawer share categorized page components and current-page feedback',()=>{
+test('desktop full sidebar and mobile drawer share categorized destinations without a shortcut rail',()=>{
  const shell=read('src/supabase/OriginalShell.jsx');
- assert.match(shell,/ccx-nav-rail/);
+ assert.doesNotMatch(shell,/CategoryRail|ccx-nav-rail-button|expandedGroup/);
  assert.match(shell,/NavigationSections groups=\{navGroups\}/);
  assert.match(shell,/aria-label="Mobile navigation" data-nav-groups="true"/);
  assert.match(shell,/aria-current=\{isActive\?'page':undefined\}/);
- assert.match(shell,/aria-current=\{active\?'location':undefined\}/);
  assert.match(shell,/onNavigate\('public-profile'\)/);
  assert.match(shell,/RoleDashboardSwitcher/);
  assert.match(shell,/getNavigationForRole\(effectiveRole\)\.filter\(item=>isModuleVisible/);
  assert.match(shell,/isAdmin\?\[/);
+ assert.match(shell,/Settings<\/button>/);
+ assert.match(shell,/Log Out<\/button>/);
 });
 test('authenticated sidebar styling respects marketing pages and aligns footer',()=>{
  const css=read('src/supabase/workspace-nav.css');
