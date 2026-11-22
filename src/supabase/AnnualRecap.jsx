@@ -108,14 +108,14 @@ export default function AnnualRecap(){
  const sharePreparedPdf=()=>{
   if(!preparedFile)return;
   if(navigator.share&&navigator.canShare?.({files:[preparedFile]})){
-   void navigator.share({files:[preparedFile],title:'Content Connect X Year in Review'})
+   void navigator.share({files:[preparedFile],title:'Content ConnectX Year in Review'})
     .then(()=>setNotice('Your device handled the PDF share request.'))
     .catch(e=>{if(e?.name!=='AbortError')setError('Could not share this file. Use Download PDF instead.');});
   }else setNotice('Your device does not support direct PDF sharing. Download the PDF, then upload it to the destination app.');
  };
  const shareSocial=()=>{
   if(!report)return;
-  const info={title:report.year+' Content Connect X Year in Review',text:report.share_text};
+  const info={title:report.year+' Content ConnectX Year in Review',text:report.share_text};
   if(navigator.share){
    void navigator.share(info).then(()=>setNotice('Your device handled the share request.'))
     .catch(err=>{if(err?.name!=='AbortError')setError('Your device could not complete sharing. Use Copy summary instead.');});
@@ -153,7 +153,7 @@ export default function AnnualRecap(){
    {!report?<p role="status" className="ccx-surface rounded-xl p-5">Preparing your private report…</p>:<>
     <section className="ccx-surface overflow-hidden rounded-2xl">
      <div className="bg-slate-900 p-6 text-white sm:p-8">
-      <p className="text-xs font-semibold uppercase tracking-widest text-cyan-300">Content Connect X</p>
+      <p className="text-xs font-semibold uppercase tracking-widest text-cyan-300">Content ConnectX</p>
       <p className="mt-3 text-6xl font-bold tabular-nums sm:text-7xl">{report.year}</p>
       <h2 className="mt-2 text-2xl font-semibold">Your Year in Review</h2>
       <p className="mt-2 text-sm text-slate-200">{report.displayName} · {report.roleLabel}</p>
