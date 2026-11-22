@@ -5,7 +5,7 @@ import {Folder,FolderPlus,Pencil,Trash2,Check,X,Users} from 'lucide-react';
 const input='w-full rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-2.5 text-sm';
 const button='ccx-secondary inline-flex min-h-10 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold disabled:opacity-40';
 const choices=[['premium','Premium members'],['friends','Friends'],['groups','Selected groups'],['private','Only me']];
-export default function GalleryAlbumManager({albums=[],request,onRefresh,selectedAlbum='',onSelectAlbum=()=>{},onError=()=>{}}){
+export default function GalleryAlbumManager({albums=[],request,onRefresh,selectedAlbum='',onSelectAlbum=(_id='')=>{},onError=(_message='')=>{}}){
  const [editing,setEditing]=useState(null);
  const [title,setTitle]=useState('');
  const [visibility,setVisibility]=useState('private');
