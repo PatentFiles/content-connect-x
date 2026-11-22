@@ -30,30 +30,30 @@
  --cc-shadow-raised:0 12px 30px rgba(24,20,38,.09);
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell {
- --cc-bg:#faf8fc;
+ --cc-bg:#f7fafd;
  --cc-surface:#ffffff;
- --cc-surface-subtle:#fbf7fc;
- --cc-surface-hover:#f7eaf5;
- --cc-border:#e8dce8;
- --cc-border-hover:#d7afce;
- --cc-input-border:#ddcadb;
- --cc-text-primary:#21172a;
- --cc-text-secondary:#51445c;
- --cc-text-muted:#72657a;
- --cc-link:#9b166e;
- --cc-blue:#156d8e;
- --cc-pink:#b41883;
- --cc-action:#971466;
- --cc-action-hover:#791151;
+ --cc-surface-subtle:#f4f9fc;
+ --cc-surface-hover:#e8f3fa;
+ --cc-border:#dce8f0;
+ --cc-border-hover:#a7c9df;
+ --cc-input-border:#c5d9e7;
+ --cc-text-primary:#182b3e;
+ --cc-text-secondary:#435a6e;
+ --cc-text-muted:#637889;
+ --cc-link:#11668b;
+ --cc-blue:#11668b;
+ --cc-pink:#5962b7;
+ --cc-action:#12698f;
+ --cc-action-hover:#0c5272;
  --cc-on-action:#ffffff;
- --cc-focus:#a21b79;
- --cc-accent-surface:#f8e8f3;
- --cc-accent-border:#e8bddb;
- --ccx-fuchsia:#b41883;
- --ccx-pink:#bb278b;
- --ccx-blue:#156d8e;
- --ccx-deep-blue:#7658b9;
- --ccx-gradient:linear-gradient(112deg,#156d8e,#7658b9 50%,#b41883);
+ --cc-focus:#1584ac;
+ --cc-accent-surface:#e9f5fb;
+ --cc-accent-border:#b6dce9;
+ --ccx-fuchsia:#12698f;
+ --ccx-pink:#5962b7;
+ --ccx-blue:#12698f;
+ --ccx-deep-blue:#5962b7;
+ --ccx-gradient:linear-gradient(112deg,#12698f,#5962b7 80%);
  background:var(--cc-bg);
  color:var(--cc-text-primary);
 }
@@ -431,7 +431,7 @@
 
 /* Cross-brand footer link: Host identity is deliberately separate from the
  * Content Connect X fuchsia accent. No header-level cross-site promotion. */
-.ccx-sister-brand-footer{margin-left:var(--cc-sidebar-width,0);display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:10px;padding:22px 18px 86px;color:var(--cc-text-secondary);font-size:13px;border-top:1px solid var(--cc-border);background:var(--cc-surface);}
+.ccx-sister-brand-footer{margin:0!important;width:100%;box-sizing:border-box;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:10px;padding:22px 18px 86px;text-align:center;color:var(--cc-text-secondary);font-size:13px;border-top:1px solid var(--cc-border);background:var(--cc-surface);}
 .ccx-host-footer-link{font-weight:800;letter-spacing:-.01em;color:#12698f;text-decoration:none;}
 .ccx-host-footer-link:hover,.ccx-host-footer-link:focus-visible{color:#0c5272;text-decoration:underline;text-underline-offset:3px}
 @media(min-width:768px){.ccx-sister-brand-footer{padding-bottom:24px}}
