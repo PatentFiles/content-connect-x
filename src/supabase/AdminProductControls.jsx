@@ -64,7 +64,7 @@ export default function AdminProductControls({onFeatureChange}){
     {notice&&<p role="status" className="bg-emerald-50 text-emerald-800 rounded-lg p-3 text-sm">{notice}</p>}
     <section className={panel+' space-y-3'} aria-label="Account entry policy">
       <h3 className="text-lg font-semibold flex items-center gap-2"><ShieldAlert size={19}/>Signup verification</h3>
-      <p className="text-sm text-[var(--cc-text-secondary)]">New Content Connect X accounts complete age verification once, before entering the site. Returning to an unfinished signup resumes verification. Admitted accounts are not blocked by additional age or MFA requirements on individual features.</p>
+      <p className="text-sm text-[var(--cc-text-secondary)]">New Content ConnectX accounts complete age verification once, before entering the site. Returning to an unfinished signup resumes verification. Admitted accounts are not blocked by additional age or MFA requirements on individual features.</p>
       <p className="text-sm text-[var(--cc-text-secondary)]">Two-factor authentication is optional in Account Security. Existing administrator access is preserved separately from age-verification evidence.</p>
     </section>
     <section className="space-y-3">
