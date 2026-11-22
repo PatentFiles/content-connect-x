@@ -58,7 +58,8 @@ function CropDialog({kind,file,onClose,onSave}){
     })()}
    </div>
    <div className="grid gap-3 sm:grid-cols-3">
-    {[['Horizontal position',x,setX],['Vertical position',y,setY]].map(([label,value,setter])=><label key={label} className="text-xs">{label}<input className="mt-2 w-full" aria-label={label} type="range" min="0" max="100" value={value} onChange={e=>setter(Number(e.target.value))}/></label>)}
+    <label className="text-xs">Horizontal position<input className="mt-2 w-full" aria-label="Horizontal position" type="range" min="0" max="100" value={x} onChange={e=>setX(Number(e.target.value))}/></label>
+    <label className="text-xs">Vertical position<input className="mt-2 w-full" aria-label="Vertical position" type="range" min="0" max="100" value={y} onChange={e=>setY(Number(e.target.value))}/></label>
     <label className="text-xs">Zoom<input className="mt-2 w-full" type="range" min="1" max="3" step=".05" value={zoom} onChange={e=>setZoom(Number(e.target.value))}/></label>
    </div>
    {error&&<p role="alert" className="text-sm text-red-600">{error}</p>}
