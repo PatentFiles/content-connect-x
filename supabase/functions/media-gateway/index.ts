@@ -205,7 +205,7 @@ Deno.serve(async req=>{
     if(action==='gallery'){
       const target=uuid(body.owner_id)?body.owner_id:uid;
       let q=db.from('member_media_assets')
-        .select('id,owner_id,caption,status,mime_type,visibility,album_id,created_at')
+        .select('id,owner_id,caption,status,mime_type,storage_path,visibility,album_id,allow_repost,created_at')
         .eq('owner_id',target).eq('status','approved').order('created_at',{ascending:false}).limit(50);
       if(uuid(body.album_id))q=q.eq('album_id',body.album_id);
       const {data,error}=await q;if(error)throw error;
@@ -229,7 +229,24 @@ Deno.serve(async req=>{
       const filtered=(data||[]).filter((m:any)=>
         m.owner_id===uid||m.visibility==='verified'||m.visibility==='connections'&&connected
       );
-      return reply({items:filtered});
+      const ids=filtered.map((m:any)=>m.id);
+      const [likes,comments,reposts]=await Promise.all([
+        ids.length?db.from('ccx_gallery_likes').select('media_id,user_id').in('media_id',ids):Promise.resolve({data:[],error:null}),
+        ids.length?db.from('ccx_gallery_comments').select('media_id').in('media_id',ids).eq('status','published'):Promise.resolve({data:[],error:null}),
+        ids.length?db.from('ccx_gallery_reposts').select('media_id').in('media_id',ids):Promise.resolve({data:[],error:null})
+      ]);
+      if(likes.error||comments.error||reposts.error)return reply({error:'Gallery activity temporarily unavailable'},503);
+      const count=(rows:any[],id:string)=>rows.filter(x=>x.media_id===id).length;
+      const publicItems=await Promise.all(filtered.map(async(m:any)=>{
+        const {data:link,error:linkError}=await bucket.createSignedUrl(m.storage_path,300);
+        return {id:m.id,owner_id:m.owner_id,caption:m.caption,mime_type:m.mime_type,
+          visibility:m.visibility,album_id:m.album_id,created_at:m.created_at,
+          allow_repost:m.allow_repost===true,url:linkError?null:link?.signedUrl||null,
+          likes:count(likes.data||[],m.id),comments:count(comments.data||[],m.id),
+          reposts:count(reposts.data||[],m.id),
+          liked:(likes.data||[]).some(x=>x.media_id===m.id&&x.user_id===uid)};
+      }));
+      return reply({items:publicItems});
     }
     if(action==='view'){
       if(!uuid(body.id))return reply({error:'Invalid media'},400);
@@ -261,6 +278,98 @@ Deno.serve(async req=>{
       const {data:link,error:linkError}=await bucket.createSignedUrl(asset.storage_path,60);
       if(linkError)return reply({error:'Media URL unavailable'},503);
       return reply({url:link.signedUrl,expires_in:60,mime_type:asset.mime_type});
+    }
+    // All gallery engagement is server-authorized. Private storage URLs and
+    // declined/unapproved media never enter comments, reactions or the feed.
+    if(['gallery_comments','gallery_like','gallery_comment','gallery_repost','gallery_repost_permission'].includes(action)){
+      if(!uuid(body.media_id))return reply({error:'Select a valid gallery item'},400);
+      const {data:asset,error:assetError}=await db.from('member_media_assets')
+        .select('id,owner_id,status,visibility,mime_type,storage_path,allow_repost,uploader_rights_attested')
+        .eq('id',body.media_id).maybeSingle();
+      if(assetError||!asset||asset.status!=='approved'||!asset.uploader_rights_attested)
+        return reply({error:'Gallery item not available'},404);
+      const owner=asset.owner_id===uid;
+      if(!owner){
+        const [admission,security,blocking]=await Promise.all([
+          db.from('member_admissions').select('id,admitted_at').eq('user_id',asset.owner_id).not('admitted_at','is',null).limit(1),
+          db.from('account_security').select('banned,suspended').eq('user_id',asset.owner_id).maybeSingle(),
+          db.from('member_blocks').select('blocker_id')
+            .or(`and(blocker_id.eq.${uid},blocked_id.eq.${asset.owner_id}),and(blocker_id.eq.${asset.owner_id},blocked_id.eq.${uid})`).limit(1)
+        ]);
+        if(admission.error||security.error||blocking.error||!admission.data?.length||
+            security.data?.banned||security.data?.suspended||blocking.data?.length)
+          return reply({error:'Gallery item not available'},403);
+        if(asset.visibility==='private')return reply({error:'Private media'},403);
+        if(asset.visibility==='connections'){
+          const {data:connections,error}=await db.from('member_connection_requests').select('id').eq('status','accepted')
+            .or(`and(requester_id.eq.${uid},recipient_id.eq.${asset.owner_id}),and(requester_id.eq.${asset.owner_id},recipient_id.eq.${uid})`).limit(1);
+          if(error||!connections?.length)return reply({error:'Connection required'},403);
+        }
+      }
+      if(action==='gallery_repost_permission'){
+        if(!owner||!paid)return reply({error:'Owner Premium membership required'},403);
+        const {error}=await db.from('member_media_assets').update({allow_repost:body.allow_repost===true})
+          .eq('id',asset.id).eq('owner_id',uid);
+        if(error)throw error;
+        return reply({ok:true,allow_repost:body.allow_repost===true});
+      }
+      if(!paid)return reply({error:'Premium membership required for gallery interactions'},403);
+      if(action==='gallery_comments'){
+        const {data:rows,error}=await db.from('ccx_gallery_comments')
+          .select('id,media_id,user_id,body,created_at').eq('media_id',asset.id)
+          .eq('status','published').order('created_at',{ascending:false}).limit(40);
+        if(error)throw error;
+        const users=[...new Set((rows||[]).map((v:any)=>v.user_id))];
+        const {data:members,error:peopleError}=users.length
+          ?await db.from('member_profiles').select('id,display_name').in('id',users)
+          :{data:[],error:null};
+        if(peopleError)throw peopleError;
+        const names=new Map((members||[]).map((m:any)=>[m.id,m.display_name]));
+        return reply({items:(rows||[]).map((r:any)=>({id:r.id,body:r.body,created_at:r.created_at,
+         author_name:names.get(r.user_id)||'Member',is_mine:r.user_id===uid}))});
+      }
+      if(action==='gallery_like'){
+        const {data:existing,error:readError}=await db.from('ccx_gallery_likes')
+          .select('media_id').eq('media_id',asset.id).eq('user_id',uid).maybeSingle();
+        if(readError)throw readError;
+        if(existing){const {error}=await db.from('ccx_gallery_likes').delete().eq('media_id',asset.id).eq('user_id',uid);if(error)throw error;}
+        else{const {error}=await db.from('ccx_gallery_likes').insert({media_id:asset.id,user_id:uid});if(error&&error.code!=='23505')throw error;}
+        return reply({liked:!existing});
+      }
+      if(action==='gallery_comment'){
+        const bodyText=plain(body.comment,600);
+        if(bodyText.length<2)return reply({error:'Write a comment first'},400);
+        const {count,error:limitError}=await db.from('ccx_gallery_comments').select('id',{head:true,count:'exact'})
+          .eq('user_id',uid).gte('created_at',new Date(Date.now()-86400000).toISOString());
+        if(limitError)throw limitError;
+        if((count||0)>=40)return reply({error:'Daily comment limit reached'},429);
+        const {error}=await db.from('ccx_gallery_comments')
+          .insert({media_id:asset.id,user_id:uid,body:bodyText,status:'published'});
+        if(error)throw error;
+        return reply({ok:true});
+      }
+      if(action==='gallery_repost'){
+        if(asset.visibility!=='verified'||asset.allow_repost!==true)
+          return reply({error:'The owner has not enabled reposting for this media'},403);
+        if(asset.mime_type!=='video/mp4'&&!asset.mime_type.startsWith('image/'))
+          return reply({error:'Unsupported media'},400);
+        const {data:prior,error:priorError}=await db.from('ccx_gallery_reposts')
+          .select('post_id').eq('media_id',asset.id).eq('user_id',uid).maybeSingle();
+        if(priorError)throw priorError;
+        if(prior)return reply({already_reposted:true,post_id:prior.post_id});
+        const {data:author}=await db.from('member_profiles').select('display_name').eq('id',asset.owner_id).maybeSingle();
+        const message='Shared approved gallery media by '+plain(author?.display_name||'a community member',90);
+        const {data:post,error:postError}=await db.from('community_posts')
+          .insert({author_id:uid,body:message,status:'published',published_at:new Date().toISOString(),audience:'verified',allow_repost:true})
+          .select('id').single();
+        if(postError||!post)return reply({error:'Could not create repost'},503);
+        const link=await db.from('ccx_feed_post_media').insert({post_id:post.id,media_id:asset.id,ordinal:0});
+        if(link.error){await db.from('community_posts').delete().eq('id',post.id).eq('author_id',uid);throw link.error;}
+        const record=await db.from('ccx_gallery_reposts').insert({media_id:asset.id,user_id:uid,post_id:post.id});
+        if(record.error){await db.from('community_posts').delete().eq('id',post.id).eq('author_id',uid);throw record.error;}
+        await audit('gallery_repost',asset.id,{post_id:post.id});
+        return reply({ok:true,post_id:post.id});
+      }
     }
     if(action==='admin_queue'){
       if(!admin)return reply({error:'Administrator required'},403);
