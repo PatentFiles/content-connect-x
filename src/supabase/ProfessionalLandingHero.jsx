@@ -4,7 +4,7 @@ import React from 'react';
 import {ArrowRight, CalendarDays, FileText, Home, MessageSquare, Users, ShieldCheck} from 'lucide-react';
 
 export function PublicBrand({host=false}) {
- return <a href={host?'/hostconnect':'/'} className="professional-wordmark" aria-label={host?'Host Connect home':'Content Connect X home'}>
+ return <a href={host?'/hostconnect':'/'} className="professional-wordmark" aria-label={host?'Host Connect home':'Content ConnectX home'}>
   <span className="ccx-monogram" aria-hidden="true">{host?<Home size={20}/>: 'CX'}</span>
   <span>{host?'Host Connect':'Content Connect'}{!host&&<span className="professional-brand-x"> X</span>}</span>
  </a>;
