@@ -2,48 +2,25 @@
 import React from 'react';
 import {DISCOVERY_CATEGORIES} from './CategoryArtwork';
 import BrandWordmark from './BrandWordmark';
-import { MessageCircleMore, UsersRound, HeartPulse, FileSignature, MapPinned, Fingerprint, CreditCard, Search, MessagesSquare, PenLine, ArrowUpRight, ArrowRight, ShieldCheck, Sparkles, Camera } from 'lucide-react';
+import { MessageCircleMore, UsersRound, HeartPulse, FileSignature, MapPinned, Fingerprint, CreditCard, Search, Globe2, Handshake, FilePenLine, ArrowUpRight, ArrowRight, Sparkles, Camera } from 'lucide-react';
 
 const features = [
-  {number:'01', title:'Messaging', sub:'Stay connected', text:'Direct in-app conversations with verified members. Keep introductions and production discussions in one place.', Icon:MessageCircleMore, tone:'cyan'},
-  {number:'02', title:'Collaborations', sub:'Create together', text:'Coordinate multi-participant projects, negotiate expectations, and keep contracts and consent records connected.', Icon:UsersRound, tone:'pink'},
-  {number:'03', title:'Health Testing', sub:'Work-readiness checks', text:'Privacy-conscious testing credential workflows, with clearance requirements before applicable collaborations.', Icon:HeartPulse, tone:'violet'},
-  {number:'04', title:'Digital Contracts', sub:'Clarity from the start', text:'Prepare, sign, and retain agreements with documented consent and a traceable history.', Icon:FileSignature, tone:'cyan'},
-  {number:'05', title:'Hosting & Location Booking', sub:'Powered by Host Connect', text:'Discover production spaces, request bookings, and coordinate a location with the rest of your project.', Icon:MapPinned, tone:'pink', href:'https://hostconnectx.com'}
+  {title:'Messaging', sub:'Stay connected', text:'Direct in-app conversations with verified members. Keep introductions and production discussions in one place.', Icon:MessageCircleMore, tone:'cyan'},
+  {title:'Collaborations', sub:'Create together', text:'Coordinate multi-participant projects, negotiate expectations, and keep contracts and consent records connected.', Icon:UsersRound, tone:'pink'},
+  {title:'Health Testing', sub:'Work-readiness checks', text:'Privacy-conscious testing credential workflows, with clearance requirements before applicable collaborations.', Icon:HeartPulse, tone:'violet'},
+  {title:'Digital Contracts', sub:'Clarity from the start', text:'Prepare, sign, and retain agreements with documented consent and a traceable history.', Icon:FileSignature, tone:'cyan'},
+  {title:'Hosting & Location Booking', sub:'Powered by Host Connect', text:'Discover production spaces, request bookings, and coordinate a location with the rest of your project.', Icon:MapPinned, tone:'pink', href:'https://hostconnectx.com'}
 ];
 const steps = [
-  {label:'Verify',desc:'Complete your independent identity and age verification.',Icon:Fingerprint},
-  {label:'Subscribe',desc:'Explore plans and choose the access you need when available.',Icon:CreditCard},
-  {label:'Discover',desc:'Find creators, production partners, and spaces.',Icon:Search},
-  {label:'Negotiate',desc:'Discuss collaboration details and agree on expectations.',Icon:MessagesSquare},
-  {label:'Sign',desc:'Review and e-sign agreements where enabled.',Icon:PenLine}
+  {label:'Verify',desc:'Confirm your identity and age.',Icon:Fingerprint},
+  {label:'Subscribe',desc:'Choose the membership that fits your work.',Icon:CreditCard},
+  {label:'Discover',desc:'Explore creators, production partners, and spaces.',Icon:Globe2},
+  {label:'Negotiate',desc:'Align on project details and expectations.',Icon:Handshake},
+  {label:'Sign',desc:'Review and sign your collaboration agreement.',Icon:FilePenLine}
 ];
 
 export default function PublicLandingSections(){
  return <div className="ccx-public-landing">
-  <section className="ccx-slim-section ccx-slim-features" aria-labelledby="ccx-feature-title">
-   <div className="ccx-slim-container">
-    <div className="ccx-slim-section-heading">
-     <p className="ccx-slim-kicker"><Sparkles size={15} aria-hidden="true"/> CREATE · COLLABORATE · GROW</p>
-     <h2 id="ccx-feature-title">Everything you need to <span className="ccx-slim-gradient">create together.</span></h2>
-     <p>Five connected tools for professionals who want to make more and manage less.</p>
-    </div>
-    <div className="ccx-slim-feature-grid">
-     {features.map(({number,title,sub,text,Icon,tone,href})=>
-      <article key={title} className={`ccx-slim-feature ccx-slim-${tone}`}>
-       <span className="ccx-slim-feature-num">{number} / 05</span>
-       <div className="ccx-slim-feature-icon"><Icon size={29} strokeWidth={1.65} aria-hidden="true"/></div>
-       <div className="ccx-slim-feature-body">
-        <p className="ccx-slim-feature-sub">{sub}</p>
-        <h3>{title}</h3>
-        <p>{text}</p>
-       </div>
-       {href?<a className="ccx-slim-feature-link" href={href}>Explore Host Connect <ArrowUpRight size={17}/></a>:<span className="ccx-slim-feature-rule" aria-hidden="true"/>}
-      </article>)}
-    </div>
-    <p className="ccx-slim-availability-note"><ShieldCheck size={16} aria-hidden="true"/> Features requiring verification, subscription, provider approval, or payment are available only when the corresponding services are enabled.</p>
-   </div>
-  </section>
   <section className="ccx-slim-section ccx-home-discovery" aria-labelledby="ccx-home-discovery-title" data-public-discovery-icons="true">
    <div className="ccx-slim-container">
     <div className="ccx-slim-section-heading">
@@ -52,7 +29,7 @@ export default function PublicLandingSections(){
      <p>Find creators, filmmakers, production teams and services to collaborate, create and work together.</p>
     </div>
     <div className="ccx-home-discovery-grid" aria-label="Discover professional categories">
-     {DISCOVERY_CATEGORIES.map(item=><article className="ccx-home-discovery-card" key={item.key}>
+     {DISCOVERY_CATEGORIES.filter(item=>item.key!=='chef').map(item=><article className="ccx-home-discovery-card" key={item.key}>
       <span className="ccx-home-discovery-artwork" aria-hidden="true">
        {item.image&&<img src={item.image} alt="" loading="lazy" decoding="async"/>}
       </span>
@@ -63,7 +40,27 @@ export default function PublicLandingSections(){
      <a className="ccx-slim-button ccx-slim-button-primary" href="/signup">
       Join the network <ArrowRight size={18} aria-hidden="true"/>
      </a>
-     <p>Browse member profiles after registration and required verification.</p>
+    </div>
+   </div>
+  </section>
+  <section className="ccx-slim-section ccx-slim-features" aria-labelledby="ccx-feature-title">
+   <div className="ccx-slim-container">
+    <div className="ccx-slim-section-heading">
+     <p className="ccx-slim-kicker"><Sparkles size={15} aria-hidden="true"/> CREATE · COLLABORATE · GROW</p>
+     <h2 id="ccx-feature-title">Everything you need to <span className="ccx-slim-gradient">create together.</span></h2>
+     <p>Five connected tools for professionals who want to make more and manage less.</p>
+    </div>
+    <div className="ccx-slim-feature-grid">
+     {features.map(({title,sub,text,Icon,tone,href})=>
+      <article key={title} className={`ccx-slim-feature ccx-slim-${tone}`}>
+       <div className="ccx-slim-feature-icon"><Icon size={29} strokeWidth={1.65} aria-hidden="true"/></div>
+       <div className="ccx-slim-feature-body">
+        <p className="ccx-slim-feature-sub">{sub}</p>
+        <h3>{title}</h3>
+        <p>{text}</p>
+       </div>
+       {href?<a className="ccx-slim-feature-link" href={href}>Explore Host Connect <ArrowUpRight size={17}/></a>:<span className="ccx-slim-feature-rule" aria-hidden="true"/>}
+      </article>)}
     </div>
    </div>
   </section>
@@ -74,9 +71,9 @@ export default function PublicLandingSections(){
      <h2 id="ccx-steps-title">From introduction to <span className="ccx-slim-gradient">action.</span></h2>
      <p>A clear path from creating an account to planning your next professional collaboration.</p>
     </div>
-    <ol className="ccx-slim-steps">{steps.map(({label,desc,Icon},i)=>
+    <ol className="ccx-slim-steps">{steps.map(({label,desc,Icon})=>
      <li className="ccx-slim-step" key={label}>
-      <div className="ccx-slim-step-top"><span>{String(i+1).padStart(2,'0')}</span><Icon size={24} strokeWidth={1.6} aria-hidden="true"/></div>
+      <div className="ccx-slim-step-top"><Icon size={64} strokeWidth={1.55} aria-hidden="true"/></div>
       <h3>{label}</h3><p>{desc}</p>
      </li>)}</ol>
    </div>
@@ -92,12 +89,14 @@ export default function PublicLandingSections(){
       <a className="ccx-slim-button ccx-slim-button-primary" href="/signup">Create free account <ArrowRight size={18}/></a>
       <a className="ccx-slim-button ccx-slim-button-secondary" href="/pricing">View pricing <ArrowUpRight size={18}/></a>
      </div>
-     <p className="ccx-slim-fineprint">Registration is free. Verification and paid feature access are subject to eligibility and service availability.</p>
     </div>
    </div>
   </section>
   <footer className="ccx-slim-footer">
-   <div className="ccx-slim-container ccx-slim-footer-inner"><BrandWordmark brand="content"/><p>Professional collaborations · Locations by <a href="https://hostconnectx.com" className="ccx-host-footer-link" target="_blank" rel="noopener noreferrer"><BrandWordmark brand="host"/></a></p></div>
+   <div className="ccx-slim-container ccx-slim-footer-inner">
+    <BrandWordmark brand="content"/>
+    <p>Production spaces and venue hosting: <a href="https://hostconnectx.com" className="ccx-host-footer-link" target="_blank" rel="noopener noreferrer"><BrandWordmark brand="host"/></a></p>
+   </div>
   </footer>
  </div>;
 }
