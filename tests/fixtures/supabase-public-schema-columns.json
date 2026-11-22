@@ -1500,7 +1500,9 @@
       "owner_id",
       "title",
       "created_at",
-      "updated_at"
+      "updated_at",
+      "visibility",
+      "allowed_group_ids"
     ],
     "member_media_assets": [
       "id",

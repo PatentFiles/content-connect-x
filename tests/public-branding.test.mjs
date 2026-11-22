@@ -53,7 +53,7 @@ test('signed-out discovery displays every original professional icon and no priv
  const shell=read('src/supabase/workspace-visual-system.css');
  // The markup uses the same catalog as authenticated Discovery rather than stale copies.
  assert.match(landing,/import \{DISCOVERY_CATEGORIES\} from '.\/CategoryArtwork'/);
- assert.match(landing,/DISCOVERY_CATEGORIES\.filter\(item=>item\.key!=='chef'\)\.map\(item=>/);
+ assert.match(landing,/DISCOVERY_CATEGORIES\.filter\(item=>item\.key!=='chef'\)\.map\(\(item,index\)=>/);
  assert.match(landing,/data-public-discovery-icons="true"/);
  assert.match(landing,/Discover a network of/);
  assert.match(landing,/href="\/signup"/);
