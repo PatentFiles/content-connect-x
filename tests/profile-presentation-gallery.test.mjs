@@ -70,3 +70,32 @@ test('public profile uses real gallery tabs, travel sidecards and red unavailabl
  assert.match(editor,/aspect-\[3\/1\]/);
  assert.match(profile,/aspect-\[3\/1\]/);
 });
+
+test('Premium gallery actions enforce rights and visibility in the backend',()=>{
+ const sql=read('supabase/migrations/20261122101500_ccx_gallery_premium_interactions.sql');
+ const edge=read('supabase/functions/media-gateway/index.ts');
+ const gallery=read('src/supabase/ProfileGallery.jsx');
+ for(const table of ['ccx_gallery_likes','ccx_gallery_comments','ccx_gallery_reposts']){
+  assert.match(sql,new RegExp('public\\.'+table));
+ }
+ assert.match(sql,/enable row level security/i);
+ assert.match(sql,/revoke all on public\\.ccx_gallery_likes/);
+ for(const operation of ['gallery_like','gallery_comment','gallery_comments','gallery_repost','gallery_repost_permission'])
+  assert.ok(edge.includes("action==='"+operation+"'"),operation);
+ assert.match(edge,/Premium membership required for gallery interactions/);
+ assert.match(edge,/asset\.status!=='approved'/);
+ assert.match(edge,/asset\.allow_repost!==true/);
+ assert.match(edge,/member_blocks/);
+ assert.match(edge,/member_connection_requests/);
+ assert.match(edge,/Daily repost limit reached/);
+ assert.match(gallery,/action\('register_upload'/);
+ assert.match(gallery,/onNavigate\?\.\('membership'\)/);
+});
+test('Discovery member profile opens actual Photos and Videos with own-vs-viewer authorization',()=>{
+ const discovery=read('src/supabase/CreatorDiscovery.jsx');
+ assert.match(discovery,/ProfileGallery ownerId=\{selected\.id\} viewerId=\{user\.id\}/);
+ assert.match(discovery,/Member profile sections/);
+ assert.match(discovery,/About me/);
+ assert.match(discovery,/Photos/);
+ assert.match(discovery,/Videos/);
+});
