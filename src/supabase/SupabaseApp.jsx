@@ -1,4 +1,4 @@
-/** Content Connect X — Supabase application, backed by protected Edge Functions. */
+/** Content ConnectX — Supabase application, backed by protected Edge Functions. */
 import React, { useCallback, useEffect, useState } from 'react';
 import { supabase, requireSupabase } from '@/api/supabaseClient';
 import { platformAction } from './platformApi';
@@ -286,11 +286,11 @@ export default function SupabaseApp() {
       </nav>
     </header>
     <main id="main-content">
-    <h1 className="sr-only">Content Connect X — Create. Collaborate. Connect.</h1>
+    <h1 className="sr-only">Content ConnectX — Create. Collaborate. Connect.</h1>
     <section className="ccx-hero-image relative w-full overflow-hidden">
       <picture>
         <source media="(max-width: 640px)" srcSet="/ContentConnectX__Create,_Collaborate,_Grow.png"/>
-        <img src="/content_conect_hero.png" alt="Content Connect X — Create. Collaborate. Connect." className="block h-auto w-full object-cover"/>
+        <img src="/content_conect_hero.png" alt="Content ConnectX — Create. Collaborate. Connect." className="block h-auto w-full object-cover"/>
       </picture>
       <div className="ccx-public-hero-actions pointer-events-none absolute inset-x-0 z-10 flex justify-center px-5">
         <a href="/signup" className="ccx-primary pointer-events-auto inline-flex items-center rounded-full px-7 py-3 text-sm">Create your profile <span aria-hidden="true" className="ml-2 text-lg leading-none">→</span></a>
@@ -307,14 +307,14 @@ export default function SupabaseApp() {
     <div className="ccx-brand-topline"/>
     <div className="relative flex min-h-[calc(100vh-4px)] items-center justify-center overflow-hidden px-4 py-8 sm:px-6">
       <section className="ccx-login-art absolute inset-0 rounded-none border-0" aria-hidden="true"/>
-      <section id="ccx-auth" className="ccx-surface relative z-10 w-full max-w-xl scroll-mt-24 bg-[var(--cc-surface-subtle)] p-6 backdrop-blur-xl sm:p-8" aria-label={signUp?'Create a Content Connect X account':'Sign in to Content Connect X'}>
+      <section id="ccx-auth" className="ccx-surface relative z-10 w-full max-w-xl scroll-mt-24 bg-[var(--cc-surface-subtle)] p-6 backdrop-blur-xl sm:p-8" aria-label={signUp?'Create a Content ConnectX account':'Sign in to Content ConnectX'}>
         <div className="flex items-center gap-4">
           <img src="/content_connect_logo.png" alt="Content ConnectX" className="ccx-brand-mark h-16 w-16 shrink-0 rounded-2xl object-cover"/>
           <div><p className="ccx-eyebrow"><BrandWordmark brand="content"/></p><h2 className="mt-1 text-2xl font-bold">{signUp?'Join the network':'Welcome back'}</h2></div>
         </div>
         <p className="mt-5 text-sm leading-6 text-[var(--cc-text-secondary)]">Start with free registration and independent age verification. Membership and premium actions are available only when their services are activated.</p>
         {signUp&&<div className="mt-3 rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-xs leading-5 text-[var(--cc-text-secondary)]">
-          Content Connect X and Host Connect are professional content-production marketplaces. No escorting, paid sexual services, coercion, trafficking or non-consensual content. Before meeting anyone, check their credentials and arrange safety measures. Verification is not a guarantee of behavior.
+          Content ConnectX and Host Connect are professional content-production marketplaces. No escorting, paid sexual services, coercion, trafficking or non-consensual content. Before meeting anyone, check their credentials and arrange safety measures. Verification is not a guarantee of behavior.
           <span className="mt-2 block"><a href="/trust/terms" className="font-semibold underline">Read the draft terms</a> · <a href="/trust/anti-trafficking" className="font-semibold underline">Safety policy</a> · <a href="/trust/content-removal" className="font-semibold underline">Report a concern</a></span>
         </div>}
         {recovering?
