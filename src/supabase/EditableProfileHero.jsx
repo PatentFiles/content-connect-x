@@ -81,7 +81,7 @@ export default function EditableProfileHero({cover='',avatar='',displayName='',r
   setPending({kind,file});
  };
  return <section className="ccx-surface overflow-hidden rounded-2xl border border-[var(--cc-border)]" data-profile-hero-editor="true">
-  <div className="relative h-44 sm:h-60 bg-[var(--cc-surface-hover)]">
+  <div className="relative aspect-[3/1] w-full bg-[var(--cc-surface-hover)]">
    {cover?<img src={cover} alt="Profile banner preview" className="h-full w-full object-cover"/>:
     <div className="grid h-full w-full place-items-center text-center text-xs text-[var(--cc-text-secondary)]"><ImageIcon size={30} strokeWidth={1.4}/><span>No banner yet · Recommended 1200 × 400 px</span></div>}
    {!disabled&&<label className="absolute bottom-3 right-3 inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-xl bg-slate-900/85 px-3 py-2 text-xs font-semibold text-white">
