@@ -79,7 +79,7 @@ test('Premium gallery actions enforce rights and visibility in the backend',()=>
   assert.match(sql,new RegExp('public\\.'+table));
  }
  assert.match(sql,/enable row level security/i);
- assert.match(sql,/revoke all on public\\.ccx_gallery_likes/);
+ assert.ok(sql.includes('revoke all on public.ccx_gallery_likes'));
  for(const operation of ['gallery_like','gallery_comment','gallery_comments','gallery_repost','gallery_repost_permission'])
   assert.ok(edge.includes("action==='"+operation+"'"),operation);
  assert.match(edge,/Premium membership required for gallery interactions/);
