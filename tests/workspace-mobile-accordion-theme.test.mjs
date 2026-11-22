@@ -63,7 +63,7 @@ test('unified enterprise colors are scoped to authenticated sites, not public ma
  assert.match(css,/:root\[data-ccx-appearance="workspace"\] \.ccx-original-shell/);
  assert.match(css,/:root\[data-ccx-appearance="workspace"\] \.oh-app/);
  assert.match(css,/--cc-surface:#ffffff/);
- assert.match(css,/--cc-action:#971466/);
+ assert.match(css,/--cc-action:#12698f/);
  assert.match(css,/--brand-host-action:#12698f/);
  assert.match(css,/--ccx-gradient:linear-gradient/);
  assert.match(css,/data-feed-composer/);
