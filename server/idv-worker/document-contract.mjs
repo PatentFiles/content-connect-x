@@ -7,6 +7,10 @@ export function usDocumentDate(value){
  const text=value.trim();if(validISO(text))return text;
  const m=/^(\d{2})[\/-](\d{2})[\/-](\d{4})$/.exec(text)||/^(\d{2})(\d{2})(\d{4})$/.exec(text);
  if(m)return validISO(`${m[3]}-${m[1]}-${m[2]}`);
+ // Some AAMVA-compatible decoders emit eight-digit YYYYMMDD without separators.
+ // Match year-first explicitly, never guess DDMMYYYY or bypass front/back matching.
+ const yearFirst=/^(1[89]\d{2}|20\d{2}|21\d{2})(\d{2})(\d{2})$/.exec(text);
+ if(yearFirst)return validISO(`${yearFirst[1]}-${yearFirst[2]}-${yearFirst[3]}`);
  const iso=/^(\d{4})[\/-](\d{2})[\/-](\d{2})$/.exec(text);
  return iso?validISO(`${iso[1]}-${iso[2]}-${iso[3]}`):null;
 }
@@ -49,4 +53,4 @@ export function compareDocumentFields(front,back,nameKey){
  ])if(!good)mismatches.push(field);
  return {passed:mismatches.length===0,mismatches};
 }
-export const WORKER_REVISION='ccx-document-date-normalization-2026-11-19-v4';
+export const WORKER_REVISION='ccx-document-date-normalization-2026-11-21-v5';
