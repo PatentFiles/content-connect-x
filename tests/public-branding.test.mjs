@@ -62,7 +62,7 @@ test('signed-out discovery displays every original professional icon and no priv
  assert.match(css,/ccx-home-discovery-grid/);
  assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
  assert.match(css,/--ccx-gradient:linear-gradient\(112deg,#12698f/);
- assert.match(css,/\.ccx-sister-brand-footer\{margin:0!important;width:100%/);
+ assert.match(shell,/\.ccx-sister-brand-footer\{margin:0!important;width:100%/);
  assert.match(shell,/--cc-action:#12698f/);
 });
 
