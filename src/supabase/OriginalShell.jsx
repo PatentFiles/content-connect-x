@@ -89,7 +89,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
   {path:'Notifications',label:'Notifications',icon:Bell},
   {path:'Membership',label:isPremiumMember?'Membership & billing':'Membership · Free',icon:CreditCard}
  ],[isPremiumMember]);
- const navGroups=useMemo(()=>groupedWorkspaceNavigation(nav,adminRole==='admin'?adminNav:[],accountNav),[nav,adminRole,adminNav,accountNav]);
+ const navGroups=useMemo(()=>groupedWorkspaceNavigation(nav.filter(item=>item.path!=='Settings'),adminRole==='admin'?adminNav:[],accountNav),[nav,adminRole,adminNav,accountNav]);
 
 
  const workspace=useMemo(()=>({role:effectiveRole,actualRole:role,preview:isAdmin&&effectiveRole!==role,tab,profile,user,isAdmin,onNavigate,account:featureFlags?.__ccxAccount,featureAccess:featureFlags?.__ccxAccess}),[effectiveRole,role,isAdmin,tab,profile,user,onNavigate,featureFlags]);
