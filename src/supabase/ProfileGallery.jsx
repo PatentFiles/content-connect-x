@@ -4,6 +4,7 @@
  */
 import React,{useCallback,useEffect,useState} from 'react';
 import {Heart,MessageCircle,Repeat2,ImagePlus,ShieldCheck,RefreshCw} from 'lucide-react';
+import GalleryAlbumManager from './GalleryAlbumManager';
 import {supabase} from '@/api/supabaseClient';
 
 async function action(name,body={}){
@@ -17,16 +18,20 @@ const field='w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-sur
 export default function ProfileGallery({ownerId,viewerId,paid=false,mode='photos',onNavigate}){
  const own=ownerId===viewerId;
  const [items,setItems]=useState([]),[pending,setPending]=useState([]),[pendingUrls,setPendingUrls]=useState({});
+ const [albums,setAlbums]=useState([]),[selectedAlbum,setSelectedAlbum]=useState(''),[uploadAlbumId,setUploadAlbumId]=useState('');
+ const [captionEdits,setCaptionEdits]=useState({}),[visibilityEdits,setVisibilityEdits]=useState({}),[assignEdits,setAssignEdits]=useState({});
  const [busy,setBusy]=useState(''),[opened,setOpened]=useState(null),[comments,setComments]=useState({});
  const [draft,setDraft]=useState({}),[composer,setComposer]=useState(''),[error,setError]=useState(''),[message,setMessage]=useState('');
- const [file,setFile]=useState(null),[caption,setCaption]=useState(''),[rights,setRights]=useState(false),[visibility,setVisibility]=useState('verified'),[repostAllowed,setRepostAllowed]=useState(false);
+ const [file,setFile]=useState(null),[caption,setCaption]=useState(''),[rights,setRights]=useState(false),[visibility,setVisibility]=useState('premium'),[repostAllowed,setRepostAllowed]=useState(false);
  const load=useCallback(async()=>{
   try{
-   const [approved,mine]=await Promise.all([
+   const [approved,mine,ownAlbums]=await Promise.all([
     action('gallery',{owner_id:ownerId}),
-    own&&paid?action('my_media'):Promise.resolve({items:[]})
+    own&&paid?action('my_media'):Promise.resolve({items:[]}),
+    own&&paid?action('list_albums'):Promise.resolve({items:[]})
    ]);
    setItems(approved.items||[]);
+   setAlbums(own&&paid?ownAlbums.items||[]:approved.albums||[]);
    const review=(mine.items||[]).filter(x=>x.status==='pending'&&((mode==='videos')===x.mime_type?.startsWith('video/')));
    setPending(review);
    if(review.length){
@@ -43,7 +48,19 @@ export default function ProfileGallery({ownerId,viewerId,paid=false,mode='photos
   if(busy)return;setBusy(key);setError('');setMessage('');
   try{await callback();}catch(e){setError(e.message||'Action failed');}finally{setBusy('');}
  };
- const files=items.filter(item=>(mode==='videos')===item.mime_type?.startsWith('video/'));
+ const files=items.filter(item=>(mode==='videos')===item.mime_type?.startsWith('video/')&&(!selectedAlbum||item.album_id===selectedAlbum));
+ const pendingItems=pending.filter(item=>!selectedAlbum||item.album_id===selectedAlbum);
+ const albumSelected=albums.find(a=>a.id===uploadAlbumId);
+ const uploadAudience=albumSelected?.visibility||visibility;
+ const saveMedia=async item=>run('edit-'+item.id,async()=>{
+  await action('edit_media',{media_id:item.id,caption:captionEdits[item.id]??item.caption??'',
+    visibility:item.album_id?undefined:(visibilityEdits[item.id]??item.visibility)});
+  setMessage('Media details updated.');await load();
+ });
+ const assign=async item=>run('assign-'+item.id,async()=>{
+  await action('assign_album',{media_id:item.id,album_id:assignEdits[item.id]??item.album_id??null});
+  setMessage('Album updated.');await load();
+ });
  const comment=async item=>run('comment-'+item.id,async()=>{
   const text=String(draft[item.id]||'').trim();
   if(text.length<2)return;
@@ -70,12 +87,22 @@ export default function ProfileGallery({ownerId,viewerId,paid=false,mode='photos
    const path=viewerId+'/media/'+crypto.randomUUID()+'.'+(file.type==='video/mp4'?'mp4':file.type.split('/')[1]);
    const {error:uploadError}=await supabase.storage.from('member-private').upload(path,file,{contentType:file.type,upsert:false});
    if(uploadError)throw uploadError;
-   await action('register_upload',{storage_path:path,mime_type:file.type,caption,visibility,attest_rights:true,allow_repost:repostAllowed});
+   if(uploadAudience==='groups'&&!albumSelected)throw Error('Choose a group-restricted album first.');
+   await action('register_upload',{storage_path:path,mime_type:file.type,caption,visibility:uploadAudience,
+    album_id:uploadAlbumId||undefined,attest_rights:true,
+    allow_repost:uploadAudience==='premium'&&repostAllowed});
    setFile(null);setCaption('');setRights(false);setRepostAllowed(false);setMessage('Uploaded.');
    await load();
   });
  };
  return <section className="space-y-5" aria-label={mode==='videos'?'Profile videos':'Profile photos'} data-profile-media-gallery={mode}>
+  {own&&paid&&<GalleryAlbumManager albums={albums} request={action} onRefresh={load}
+   selectedAlbum={selectedAlbum} onSelectAlbum={id=>{setSelectedAlbum(id);setUploadAlbumId(id);}} onError={setError}/>}
+  {!own&&albums.length>0&&<div className="flex flex-wrap gap-2" aria-label="Photo and video albums">
+   <button type="button" className={ctl} aria-pressed={!selectedAlbum} onClick={()=>setSelectedAlbum('')}>All</button>
+   {albums.map(album=><button key={album.id} type="button" className={ctl}
+    aria-pressed={selectedAlbum===album.id} onClick={()=>setSelectedAlbum(album.id)}>{album.title}</button>)}
+  </div>}
   {own&&paid&&<form onSubmit={e=>void upload(e)} className="ccx-surface space-y-3 rounded-2xl p-4">
    <h3 className="flex items-center gap-2 text-sm font-semibold"><ImagePlus size={18}/>Add {mode==='videos'?'video':'photos'}</h3>
    <div className="flex flex-wrap items-end gap-3">
