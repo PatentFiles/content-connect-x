@@ -98,6 +98,7 @@ export default function ProfileGallery({ownerId,viewerId,paid=false,mode='photos
    <button className={ctl} onClick={()=>void load()} type="button" aria-label="Refresh gallery"><RefreshCw size={15}/>Refresh</button>
   </div>
   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4" data-profile-photo-grid="true">
+   {!files.length&&!pending.length&&Array.from({length:8},(_,i)=><div key={'empty-'+i} aria-hidden="true" className="aspect-square rounded-xl border border-dashed border-[var(--cc-border)] bg-[var(--cc-surface-subtle)]"/>)}
    {files.map(item=><article key={item.id} className="min-w-0 overflow-hidden rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface)]">
     <div className="relative aspect-square overflow-hidden bg-[var(--cc-surface-subtle)]">
      {item.url?(mode==='videos'?
