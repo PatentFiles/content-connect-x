@@ -68,5 +68,6 @@ test('public profile uses real gallery tabs, travel sidecards and red unavailabl
  assert.match(editor,/data-profile-hero-editor="true"/);
  assert.match(editor,/canvas\.toBlob/);
  assert.match(editor,/aspect-\[3\/1\]/);
- assert.match(editor,/h-44 sm:h-60/);
+ assert.match(editor,/aspect-\\[3\\/1\\]/);
+ assert.match(profile,/aspect-\\[3\\/1\\]/);
 });
