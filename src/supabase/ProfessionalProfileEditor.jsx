@@ -11,6 +11,7 @@ import MemberSocialLinks from './MemberSocialLinks';
 import ProfileAnalytics from './ProfileAnalytics';
 import DiscoveryAttributesEditor from './DiscoveryAttributesEditor';
 import TravelCalendar from './TravelCalendar';
+import EditableProfileHero from './EditableProfileHero';
 const field='mt-2 w-full min-w-0 rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] px-3 py-2.5 text-[var(--cc-text-primary)]';
 const initialDetails={specialties:'',services:'',equipment:'',software:'',website:'',hourly_rate:'',day_rate:'',currency:'USD',commission_percent:'',accepting_talent:false,available_to_travel:false,turnaround_days:''};
 export default function ProfessionalProfileEditor({user,profile,onSaved,approved=false,paid=false,isAdmin=false,role,preview=false}){
@@ -30,22 +31,24 @@ export default function ProfessionalProfileEditor({user,profile,onSaved,approved
   const {error:failure}=await supabase.rpc('ccx_save_professional_profile',{p_profile:{...form,country:countryName(form.country)},p_details:details});
   if(failure)throw failure;if(onSaved)await onSaved();setNotice(roleTitle(role)+' profile saved.');
  }catch(e){setError(e.message);}finally{setBusy(false);}};
- const upload=kind=>async e=>{const file=e.target.files?.[0];if(!file||preview)return;setBusy(true);setError('');try{
+ const upload=async(file,kind)=>{if(!file||preview)return;setBusy(true);setError('');try{
   if(!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>10485760)throw new Error('Choose a JPEG, PNG or WebP under 10 MB.');
   const path=user.id+'/profile/'+kind+'-'+crypto.randomUUID()+'.'+file.type.split('/')[1];
   const {error:uploadError}=await supabase.storage.from('member-private').upload(path,file,{contentType:file.type,upsert:false});if(uploadError)throw uploadError;
   const {error:saveError}=await supabase.from('member_profiles').update({[kind+'_path']:path,updated_at:new Date().toISOString()}).eq('id',user.id);if(saveError)throw saveError;
   const {data,error:linkError}=await supabase.storage.from('member-private').createSignedUrl(path,3600);if(linkError)throw linkError;setAssets(old=>({...old,[kind]:data.signedUrl}));if(onSaved)await onSaved();
- }catch(err){setError(err.message);}finally{setBusy(false);e.target.value='';}};
+ }catch(err){setError(err.message);}finally{setBusy(false);}};
  const text=(key,label,area=false)=> <label className="block text-sm" key={key}>{label}{area?<textarea className={field} rows={3} maxLength={key==='software'||key==='specialties'?1000:2000} value={details[key]} onChange={e=>detail(key,e.target.value)}/>:<input className={field} type={key==='website'?'url':'text'} value={details[key]} maxLength={1000} onChange={e=>detail(key,e.target.value)}/>}</label>;
  const number=(key,label,max=99999999)=> <label className="block text-sm" key={key}>{label}<input className={field} type="number" inputMode={key==='turnaround_days'?'numeric':'decimal'} min={0} max={max} step={key==='turnaround_days'?1:'0.01'} value={details[key]} onChange={e=>detail(key,e.target.value)}/></label>;
  const business=ROSTER_ROLES.includes(role),service=PORTFOLIO_ROLES.includes(role);
  if(!business&&!service)return <section className="ccx-surface p-5">Host account tools are managed on the separate Host Connect website.</section>;
  const sections=professionalSections(role);
  return <div className="space-y-6">
-  <div className="overflow-hidden rounded-2xl border" style={{borderColor:'var(--cc-border)'}}>
-   <label className="group relative block h-48 cursor-pointer overflow-hidden md:h-64" style={{background:'var(--cc-surface-subtle)'}}>{assets.cover&&<img src={assets.cover} alt="Profile banner" className="h-full w-full object-cover"/>}<span className="absolute inset-0 grid place-items-center bg-black/45 text-sm text-white opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100"><span className="flex items-center gap-2"><Upload size={16}/>Change banner</span></span><input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={upload('cover')} disabled={busy||preview}/></label>
-   <div className="mx-auto max-w-4xl px-4 pb-5"><div className="relative -mt-16 flex flex-col items-center gap-4 md:-mt-20"><label className="group relative grid h-32 w-32 cursor-pointer place-items-center overflow-hidden rounded-full border-4 text-5xl font-bold md:h-40 md:w-40" style={{backgroundColor:'var(--cc-surface)',borderColor:'var(--cc-bg)',color:'var(--cc-blue)'}}>{assets.avatar?<img src={assets.avatar} alt="Profile photo" className="h-full w-full object-cover"/>:(form.display_name||'U').slice(0,1).toUpperCase()}<span className="absolute inset-0 grid place-items-center rounded-full bg-black/60 text-sm text-white opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100"><Upload size={16}/>Change photo</span><input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={upload('avatar')} disabled={busy||preview}/></label><div className="text-center"><h1 className="text-2xl font-bold">{form.display_name||roleTitle(role)+' profile'}</h1><div className="mt-2 flex items-center justify-center gap-2"><span className="rounded-full border border-[var(--cc-border)] px-3 py-1 text-xs">{roleTitle(role)}</span>{approved&&<span className="inline-flex items-center gap-1 rounded-full border border-emerald-300 px-3 py-1 text-xs text-emerald-800"><ShieldCheck size={13}/>Verified</span>}</div><button type="button" onClick={()=>{setTab('profile');setOpen('basic');}} className="mt-3 inline-flex items-center gap-2 rounded-lg ccx-solid-action px-4 py-2 text-sm font-semibold text-[var(--cc-text-primary)]"><Edit2 size={16}/>Edit profile</button></div></div></div>
+  <div className="mx-auto max-w-5xl">
+   <EditableProfileHero avatar={assets.avatar} cover={assets.cover} displayName={form.display_name}
+    role={role} verified={approved} uploading={busy} disabled={preview}
+    onUpload={(file,kind)=>upload(file,kind)}
+    onEdit={()=>{setTab('profile');setOpen('basic');}}/>
   </div>
   <div className="mx-auto max-w-4xl px-4">
    <div role="tablist" aria-label={roleTitle(role)+' profile sections'} className="mb-6 grid grid-cols-3 gap-2 border-b border-[var(--cc-border)] pb-2">{[{key:'profile',name:'Profile',Icon:User},{key:business?'roster':'portfolio',name:business?'Roster':'Portfolio',Icon:business?Users:Camera},{key:'analytics',name:'Analytics',Icon:Activity}].map(({key,name,Icon})=><button key={key} role="tab" type="button" aria-selected={tab===key} onClick={()=>setTab(key)} className="flex items-center justify-center gap-2 rounded-lg px-3 py-3 text-sm font-medium" style={{background:tab===key?'var(--cc-surface-hover)':'transparent',color:tab===key?'var(--cc-blue)':'var(--cc-text-secondary)'}}><Icon size={17}/>{name}</button>)}</div>
