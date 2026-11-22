@@ -52,9 +52,15 @@ begin
   raise exception 'TEST_FAILURE: verified name editable';
  exception when others then if SQLERRM<>'The verified legal name can only change through reverification' then raise;end if;end;
  begin
-  insert into public.age_verification_requests(id,user_id,status,provider) values(gen_random_uuid(),adult,'approved','idswyft_self_hosted');
+  insert into public.age_verification_requests(id,user_id,status,provider,verification_method)
+   values(gen_random_uuid(),adult,'approved','idswyft_self_hosted','DOCUMENT_SELFIE');
   raise exception 'TEST_FAILURE: unbound approval accepted';
- exception when others then if SQLERRM<>'Bound identity evidence required' then raise;end if;end;
+ exception when others then if SQLERRM<>'Bound first-party identity evidence required' then raise;end if;end;
+ begin
+  insert into public.age_verification_requests(id,user_id,status,provider)
+   values(gen_random_uuid(),adult,'approved','idswyft_self_hosted');
+  raise exception 'TEST_FAILURE: missing document-selfie method accepted';
+ exception when others then if SQLERRM<>'Only first-party verified document and live-selfie evidence may grant admission' then raise;end if;end;
 end $$;
 reset role;
 do $$ begin
