@@ -46,12 +46,11 @@ test('shared wordmarks use exact names and brand-specific X treatment in active 
  assert.doesNotMatch(shell,/CategoryRail|ccx-nav-rail-button|expandedGroup/);
 });
 
-test('signed-out discovery displays every original professional icon and no private member information',async()=>{
+test('signed-out discovery displays every original professional icon and no private member information',()=>{
  const landing=read('src/supabase/PublicLandingSections.jsx');
  const categories=read('src/supabase/CategoryArtwork.jsx');
  const css=read('src/supabase/public-brand-theme.css');
  const shell=read('src/supabase/workspace-visual-system.css');
- const {DISCOVERY_CATEGORIES}=await import('../src/supabase/CategoryArtwork.jsx').catch(()=>({}));
  // The markup uses the same catalog as authenticated Discovery rather than stale copies.
  assert.match(landing,/import \{DISCOVERY_CATEGORIES\} from '.\/CategoryArtwork'/);
  assert.match(landing,/DISCOVERY_CATEGORIES\.map\(item=>/);
@@ -65,5 +64,4 @@ test('signed-out discovery displays every original professional icon and no priv
  assert.match(css,/--ccx-gradient:linear-gradient\(112deg,#12698f/);
  assert.match(shell,/\.ccx-sister-brand-footer\{margin:0!important;width:100%/);
  assert.match(shell,/--cc-action:#12698f/);
- assert.equal(DISCOVERY_CATEGORIES,undefined); // The Node test reads JSX as text; browser tests render it.
 });
