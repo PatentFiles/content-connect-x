@@ -210,7 +210,7 @@ export default function HostingHost({paid=false,isAdmin=false,reviewMode=false,u
    'DTSTART:'+utc(x.starts_at),'DTEND:'+utc(x.ends_at),
    'SUMMARY:Unavailable for filming','END:VEVENT'
   ].join('\r\n')).join('\r\n');
-  const content='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Content Connect X//Private Hosting Calendar//EN\r\n'+events+'\r\nEND:VCALENDAR\r\n';
+  const content='BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Content ConnectX//Private Hosting Calendar//EN\r\n'+events+'\r\nEND:VCALENDAR\r\n';
   const url=URL.createObjectURL(new Blob([content],{type:'text/calendar;charset=utf-8'}));
   const link=document.createElement('a');link.href=url;link.download='contentconnectx-hosting.ics';link.click();
   setTimeout(()=>URL.revokeObjectURL(url),1000);
