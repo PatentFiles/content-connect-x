@@ -25,6 +25,7 @@ export default function TravelCalendar({userId,viewerId=userId}){
    while(more){
     const page=await suiteAction('travel_list',{user_id:userId,offset});
     result=result.concat(page.items||[]);
+    if(offset===0&&!own)setBlocks(page.blocks||[]);
     more=page.has_more===true;
     offset=page.next_offset||offset+(page.items||[]).length;
     if(more&&(!page.items?.length||result.length>20000))throw Error('Too many records to display at once. Refresh your calendar.');
