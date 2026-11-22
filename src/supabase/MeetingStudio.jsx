@@ -40,7 +40,7 @@ export default function MeetingStudio({scope,scopeId,userId,onNavigate=(destinat
   setBusy(true);setError('');setNotice('');
   try{
    const result=await api('invite');
-   setNotice(result.invited+' participant(s) notified in their Content Connect X notifications.');
+   setNotice(result.invited+' participant(s) notified in their Content ConnectX notifications.');
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
  const save=async()=>{
