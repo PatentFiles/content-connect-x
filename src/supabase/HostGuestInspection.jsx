@@ -1,4 +1,4 @@
-/** Booking-scoped arrival inspection. Shared UI between Host Connect X and CCX.
+/** Booking-scoped arrival inspection. Shared UI between Host ConnectX and CCX.
  * The backend authenticates the booking guest and restricts uploads to a
  * signed, private Storage path during the first 48 hours after check-in.
  */
