@@ -6,7 +6,7 @@ export function usDocumentDate(value){
  if(typeof value!=='string')return null;
  const text=value.trim();if(validISO(text))return text;
  const m=/^(\d{2})[\/-](\d{2})[\/-](\d{4})$/.exec(text)||/^(\d{2})(\d{2})(\d{4})$/.exec(text);
- if(m)return validISO(`${m[3]}-${m[1]}-${m[2]}`);
+ if(m){const american=validISO(`${m[3]}-${m[1]}-${m[2]}`);if(american)return american;}
  // Some AAMVA-compatible decoders emit eight-digit YYYYMMDD without separators.
  // Match year-first explicitly, never guess DDMMYYYY or bypass front/back matching.
  const yearFirst=/^(1[89]\d{2}|20\d{2}|21\d{2})(\d{2})(\d{2})$/.exec(text);
