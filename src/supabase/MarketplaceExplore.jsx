@@ -1,6 +1,6 @@
-/** Production-space discovery UI — shared between Host Connect X and CCX.
+/** Production-space discovery UI — shared between Host ConnectX and CCX.
  * Reference-locked to a photo-first two-column browsing pattern (Refero:
- * Airbnb discovery + Tripadvisor map), using ORIGINAL Host Connect X blue.
+ * Airbnb discovery + Tripadvisor map), using ORIGINAL Host ConnectX blue.
  * No exact private addresses are fetched or sent to the map.
  */
 import React,{useEffect,useMemo,useRef,useState} from 'react';
@@ -216,7 +216,7 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
  const data=displayed;
  return <div className="space-y-5 text-[#193246]" data-host-discovery="true">
   <div className="flex flex-wrap items-center justify-between gap-3">
-   <div><p className="text-xs font-bold uppercase tracking-[.15em] text-[#12698f]">Host Connect X</p>
+   <div><p className="text-xs font-bold uppercase tracking-[.15em] text-[#12698f]">Host ConnectX</p>
     <h2 className="mt-1 text-2xl font-bold">Find your next production location</h2>
     <p className="mt-1 text-sm text-[#61778a]">Browse approved spaces without signing in. Booking requires a verified account.</p></div>
    {site==='host'&&<button type="button" className={secondary} onClick={onBecomeHost}><Home size={16}/> Become a host</button>}
