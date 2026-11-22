@@ -468,7 +468,7 @@ export default function SupabaseApp() {
        <ConnectFeed key={user.id} userId={user.id} profileId={user.id}/>
       </section>
     </>}
-    {tab==='public-profile'&&approved&&<MemberPublicProfile onNavigate={navigateInWorkspace}/>}
+    {tab==='public-profile'&&approved&&<MemberPublicProfile onNavigate={navigateInWorkspace} viewerId={user.id} paid={paid}/>}
     {tab==='annual-recap'&&approved&&<AnnualRecap/>}
     {tab==='verification'&&<div className="mx-auto max-w-md"><IdentityVerification onApproval={()=>refresh(session)}/></div>}
     {['directory','favorites'].includes(tab)&&
