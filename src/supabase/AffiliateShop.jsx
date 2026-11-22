@@ -36,11 +36,11 @@ export default function AffiliateShop({isAdmin=false}){
  const categories=items.filter(item=>active==='all'||item.categories?.includes(active));
  return <section className="mx-auto max-w-6xl space-y-6" data-affiliate-shop="true">
   <header className="flex flex-wrap items-center justify-between gap-3">
-   <div><h1 className="flex items-center gap-2 text-2xl font-bold"><ShoppingBag size={23}/>Content Connect X Shop</h1>
+   <div><h1 className="flex items-center gap-2 text-2xl font-bold"><ShoppingBag size={23}/>Content ConnectX Shop</h1>
     <p className="mt-2 text-sm text-[var(--cc-text-secondary)]">Curated adult-product and specialty-furniture brands. Browse the manufacturer’s own store for inventory, checkout, fulfillment, and customer service.</p></div>
    <button type="button" className={btn} onClick={()=>void load()} disabled={loading}><RefreshCw size={16} className="mr-1 inline"/>Refresh</button>
   </header>
-  <p className="rounded-xl border border-[var(--cc-border)] p-4 text-sm">External merchant storefronts handle payment and delivery. Some links may earn Content Connect X a commission when an approved affiliate relationship is active, at no additional cost to you. Prices, warranties and shipping policies are set by each merchant.</p>
+  <p className="rounded-xl border border-[var(--cc-border)] p-4 text-sm">External merchant storefronts handle payment and delivery. Some links may earn Content ConnectX a commission when an approved affiliate relationship is active, at no additional cost to you. Prices, warranties and shipping policies are set by each merchant.</p>
   <div className="flex flex-wrap gap-2" aria-label="Shop categories">
    {filters.map(([key,label])=><button type="button" key={key} className={active===key?'ccx-primary rounded-xl px-3 py-2 text-sm':btn} aria-pressed={active===key} onClick={()=>setActive(key)}>{label}</button>)}
   </div>
