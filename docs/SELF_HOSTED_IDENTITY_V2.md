@@ -97,3 +97,16 @@ The SQL suite simulates successful blob removal by clearing its fixture deletion
 5. Release the tested source to the existing Bolt project, verify its actual HTTPS camera flow and authenticated multi-user boundaries, then activate only after prerequisites are satisfied. GitHub merge does not itself prove Bolt publication.
 
 Keep `ccx_idv_config.enabled=false` until these steps are completed. Preserve the original one-time account-admission rules and all consent, ownership, suspension and subscription checks throughout deployment.
+
+
+## November 21, 2026 follow-up — worker/document date compatibility
+
+- The live Railway identity-only worker was rebuilt from the current `PatentFiles/content-connect-x` `main` source at commit `b6c5de39e9c2b9fab15ce44830891d20ed45be98`. Railway reported deployment SUCCESS; runtime startup logged `Identity startup: ready; OCR self-test passed`.
+- The worker uses the pinned first-party wrapper over the IDSwYft community engine (upstream revision `3c6f17f1aba84bc980dc759f6be42f69b576f439`). It uses visual document OCR, actual decoded PDF417/AAMVA or passport MRZ cross-checks, ID-to-live-face descriptors, and two prompted head turns. A text-OCR-only back side cannot count as a decoded barcode.
+- Document-date normalization now explicitly supports strict US `MMDDYYYY`, `MM/DD/YYYY`, ISO date and eight-digit `YYYYMMDD`. Invalid calendar dates fail closed; front and decoded-back fields must still match. Worker revision is `ccx-document-date-normalization-2026-11-21-v5`; `tests/document-date-regression.test.mjs` and `tests/identity-guidance.test.mjs` exercise the new cases.
+- CI now runs identity verification validation and worker Docker builds for `main`, not only historical feature branches. The main-branch identity handler and database-integration workflows passed on `b6c5de39` and the worker container test passed on `7adaf4d2`.
+- Production admission remains **disabled and NOT certified** (`ccx_idv_config.enabled=false`, no security/privacy sign-offs, no approved notice/retention, and no completed production ID sessions at inspection). OCR startup proves neither reliable real ID decoding nor biometric accuracy. Private pilot testing is separate from production membership admission.
+- The server-only Railway retention job is scheduled independently from the inactive original Supabase `ccx-idv-retention` Cron; an independently witnessed private Storage deletion, legal-hold and backup recovery check is still required before activation.
+- A purely additive index migration `20261122010053_ccx_core_fk_hot_path_indexes.sql` was applied and committed for high-traffic media, repost, identity-review, recording and DocuSign event lookups. It changes no auth, age, consent, or billing gates.
+
+**Do not bypass age verification or assume ID scanning is production validated solely because a worker is healthy or CI is green.** Reconcile approved policy, retention, model testing and live mobile capture in a controlled acceptance before opening public admission.
