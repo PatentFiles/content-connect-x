@@ -381,14 +381,13 @@ Deno.serve(async req=>{
         .or(`and(blocker_id.eq.${uid},blocked_id.eq.${target}),and(blocker_id.eq.${target},blocked_id.eq.${uid})`).limit(1);
       if(blockError)throw blockError;
       if(blocks?.length)return reply({items:[]});
-      const {data:connections,error:connectError}=await db.from('member_connection_requests')
-        .select('id').eq('status','accepted')
-        .or(`and(requester_id.eq.${uid},recipient_id.eq.${target}),and(requester_id.eq.${target},recipient_id.eq.${uid})`).limit(1);
-      if(connectError)throw connectError;
-      const connected=Boolean(connections?.length);
-      const filtered=(data||[]).filter((m:any)=>
-        m.owner_id===uid||m.visibility==='verified'||m.visibility==='connections'&&connected
-      );
+      
+      // Every asset is filtered by effective album or item policy, regardless
+      // of any client-provided owner or album identifier.
+      const filtered=[];
+      for(const media of data||[]){
+        if(await canView(media))filtered.push(media);
+      }
       const ids=filtered.map((m:any)=>m.id);
       const [likes,comments,reposts]=await Promise.all([
         ids.length?db.from('ccx_gallery_likes').select('media_id,user_id').in('media_id',ids):Promise.resolve({data:[],error:null}),
@@ -398,20 +397,27 @@ Deno.serve(async req=>{
       if(likes.error||comments.error||reposts.error)return reply({error:'Gallery activity temporarily unavailable'},503);
       const count=(rows:any[],id:string)=>rows.filter(x=>x.media_id===id).length;
       const publicItems=await Promise.all(filtered.map(async(m:any)=>{
-        const {data:link,error:linkError}=await bucket.createSignedUrl(m.storage_path,300);
+        const {data:link,error:linkError}=await bucket.createSignedUrl(m.storage_path,60);
+        const audience=await audienceFor(m);
         return {id:m.id,owner_id:m.owner_id,caption:m.caption,mime_type:m.mime_type,
-          visibility:m.visibility,album_id:m.album_id,created_at:m.created_at,
-          allow_repost:m.allow_repost===true,url:linkError?null:link?.signedUrl||null,
+          visibility:audience,album_id:m.album_id,created_at:m.created_at,
+          allow_repost:audience==='premium'&&m.allow_repost===true,url:linkError?null:link?.signedUrl||null,
           likes:count(likes.data||[],m.id),comments:count(comments.data||[],m.id),
           reposts:count(reposts.data||[],m.id),
           liked:(likes.data||[]).some(x=>x.media_id===m.id&&x.user_id===uid)};
       }));
-      return reply({items:publicItems});
+      const uniqueAlbumIds=[...new Set(filtered.map((m:any)=>m.album_id).filter(Boolean))];
+      const visibleAlbums=[];
+      for(const id of uniqueAlbumIds){
+        const album=await albumFor(id);
+        if(album&&album.owner_id===target)visibleAlbums.push({id:album.id,title:album.title,visibility:album.visibility});
+      }
+      return reply({items:publicItems,albums:visibleAlbums});
     }
     if(action==='view'){
       if(!uuid(body.id))return reply({error:'Invalid media'},400);
       const {data:asset,error}=await db.from('member_media_assets')
-        .select('id,owner_id,storage_path,status,visibility,mime_type').eq('id',body.id).maybeSingle();
+        .select('id,owner_id,storage_path,status,visibility,album_id,mime_type').eq('id',body.id).maybeSingle();
       if(error||!asset)return reply({error:'Media not found'},404);
       if(asset.owner_id!==uid&&asset.status!=='approved')return reply({error:'Media not available'},403);
       if(asset.owner_id!==uid){
@@ -424,16 +430,10 @@ Deno.serve(async req=>{
         if(ownerAge.error||ownerSecurity.error||ownerSecurity.data?.banned||
           ownerSecurity.data?.suspended||!ownerAge.data?.[0]?.admitted_at)
           return reply({error:'Media unavailable'},403);
-        if(asset.visibility==='private')return reply({error:'Private media'},403);
         const {data:blocks,error:blockError}=await db.from('member_blocks').select('blocker_id')
           .or(`and(blocker_id.eq.${uid},blocked_id.eq.${asset.owner_id}),and(blocker_id.eq.${asset.owner_id},blocked_id.eq.${uid})`).limit(1);
-        if(blockError||blocks?.length)return reply({error:'Media unavailable'},403);
-        if(asset.visibility==='connections'){
-          const {data:connection,error:cError}=await db.from('member_connection_requests')
-            .select('id').eq('status','accepted')
-            .or(`and(requester_id.eq.${uid},recipient_id.eq.${asset.owner_id}),and(requester_id.eq.${asset.owner_id},recipient_id.eq.${uid})`).limit(1);
-          if(cError||!connection?.length)return reply({error:'Connection required'},403);
-        }
+        if(blockError||blocks?.length||!await canView(asset))
+          return reply({error:'Media unavailable'},403);
       }
       const {data:link,error:linkError}=await bucket.createSignedUrl(asset.storage_path,60);
       if(linkError)return reply({error:'Media URL unavailable'},503);
@@ -444,7 +444,7 @@ Deno.serve(async req=>{
     if(['gallery_comments','gallery_like','gallery_comment','gallery_repost','gallery_repost_permission'].includes(action)){
       if(!uuid(body.media_id))return reply({error:'Select a valid gallery item'},400);
       const {data:asset,error:assetError}=await db.from('member_media_assets')
-        .select('id,owner_id,status,visibility,mime_type,storage_path,allow_repost,uploader_rights_attested')
+        .select('id,owner_id,status,visibility,album_id,mime_type,storage_path,allow_repost,uploader_rights_attested')
         .eq('id',body.media_id).maybeSingle();
       if(assetError||!asset||asset.status!=='approved'||!asset.uploader_rights_attested)
         return reply({error:'Gallery item not available'},404);
@@ -459,15 +459,12 @@ Deno.serve(async req=>{
         if(admission.error||security.error||blocking.error||!admission.data?.length||
             security.data?.banned||security.data?.suspended||blocking.data?.length)
           return reply({error:'Gallery item not available'},403);
-        if(asset.visibility==='private')return reply({error:'Private media'},403);
-        if(asset.visibility==='connections'){
-          const {data:connections,error}=await db.from('member_connection_requests').select('id').eq('status','accepted')
-            .or(`and(requester_id.eq.${uid},recipient_id.eq.${asset.owner_id}),and(requester_id.eq.${asset.owner_id},recipient_id.eq.${uid})`).limit(1);
-          if(error||!connections?.length)return reply({error:'Connection required'},403);
-        }
+        if(!await canView(asset))return reply({error:'Gallery item not available'},403);
       }
       if(action==='gallery_repost_permission'){
         if(!owner||!paid)return reply({error:'Owner Premium membership required'},403);
+        if(body.allow_repost===true&&await audienceFor(asset)!=='premium')
+          return reply({error:'Reposting requires Premium audience'},403);
         const {error}=await db.from('member_media_assets').update({allow_repost:body.allow_repost===true})
           .eq('id',asset.id).eq('owner_id',uid);
         if(error)throw error;
@@ -524,7 +521,7 @@ Deno.serve(async req=>{
         return reply({ok:true});
       }
       if(action==='gallery_repost'){
-        if(asset.visibility!=='verified'||asset.allow_repost!==true)
+        if(await audienceFor(asset)!=='premium'||asset.allow_repost!==true)
           return reply({error:'The owner has not enabled reposting for this media'},403);
         if(asset.mime_type!=='video/mp4'&&!asset.mime_type.startsWith('image/'))
           return reply({error:'Unsupported media'},400);
