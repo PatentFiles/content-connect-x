@@ -9,6 +9,7 @@ import GeoLocationSelect,{EMPTY_GEO} from './GeoLocationSelect';
 import {localDiscoveryFilters,validateWorkLink} from './roleWorkspacePolicy.mjs';
 import {useRoleWorkspace} from './RoleWorkspaceContext';
 import MemberDiscoveryCard from './MemberDiscoveryCard';
+import ProfileGallery from './ProfileGallery';
 import SponsorshipSlot from './SponsorshipSlot';
 import TravelCalendar from './TravelCalendar';
 import AIMatchSuggestions from './AIMatchSuggestions';
@@ -28,6 +29,7 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
  const [results,setResults]=useState([]),[saved,setSaved]=useState([]),[favoriteBusy,setFavoriteBusy]=useState([]);
  const [inviteEligibility,setInviteEligibility]=useState(null),[representativeProfiles,setRepresentativeProfiles]=useState([]);
  const [working,setWorking]=useState(false),[searched,setSearched]=useState(false),[more,setMore]=useState(false),[offset,setOffset]=useState(0);
+ const [selectedTab,setSelectedTab]=useState('about');
  const [error,setError]=useState(''),[favoriteError,setFavoriteError]=useState(''),[selected,setSelected]=useState(null),[socials,setSocials]=useState({}),[contactNotice,setContactNotice]=useState(''),[contactBusy,setContactBusy]=useState(false);
  const sequence=useRef(0),favoriteLocks=useRef(new Set());
  const loadSaved=useCallback(async()=>{const {data,error:failure}=await supabase.from('creator_favorites').select('creator_id').eq('user_id',user.id).order('created_at',{ascending:false});if(failure)throw failure;const ids=(data||[]).map(row=>row.creator_id);setSaved(ids);return ids;},[user.id]);
@@ -54,7 +56,7 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
   }catch(e){setFavoriteError(e.message);}finally{favoriteLocks.current.delete(id);setFavoriteBusy(old=>old.filter(value=>value!==id));}
  };
  const openProfile=person=>{
-  setSelected(person);setSocials({});setContactNotice('');setInviteEligibility(null);setRepresentativeProfiles([]);
+  setSelected(person);setSelectedTab('about');setSocials({});setContactNotice('');setInviteEligibility(null);setRepresentativeProfiles([]);
   if(person.id!==user.id)void supabase.rpc('ccx_representation_agreement_action',{p_action:'profile_links',p_data:{target_id:person.id}}).then(({data,error})=>{if(!error)setRepresentativeProfiles(data?.items||[]);},()=>{});
   if(paid&&person.id!==user.id)void supabase.functions.invoke('collaboration-workspace',{body:{action:'eligibility',target_user_id:person.id}}).then(({data,error})=>{if(!error)setInviteEligibility(current=>current===null?{member_id:person.id,...data}:current);}).catch(()=>{});
   if(paid)void supabase.functions.invoke('member-workflows',{body:{action:'view_social_links',target_user_id:person.id}}).then(({data,error:failure})=>{if(!failure)setSocials(data?.socials||{});}).catch(()=>{});
@@ -115,11 +117,17 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
    {mode==='discovery'&&paid&&<AIMatchSuggestions/>}
    <SponsorshipSlot placement="feed"/>
    {more&&<button type="button" className="ccx-primary rounded-xl px-5 py-3" disabled={working} onClick={()=>void search(applied,true)}>Load more</button>}
-   {selected&&<div role="dialog" aria-modal="true" aria-label="Public professional profile" className="fixed inset-0 z-[100] grid place-items-center bg-black/80 p-4" onClick={()=>setSelected(null)}><section className="ccx-surface max-h-[85dvh] w-full max-w-lg space-y-4 overflow-y-auto p-6" onClick={e=>e.stopPropagation()}>
+   {selected&&<div role="dialog" aria-modal="true" aria-label="Public professional profile" className="fixed inset-0 z-[100] grid place-items-center bg-black/80 p-4" onClick={()=>setSelected(null)}><section className={'ccx-surface max-h-[85dvh] w-full space-y-4 overflow-y-auto p-6 '+(selectedTab==='about'?'max-w-lg':'max-w-5xl')} onClick={e=>e.stopPropagation()}>
     <header className="flex items-start justify-between gap-3"><div><h3 className="text-xl font-semibold">{selected.display_name}</h3><p className="mt-1 text-sm text-[var(--cc-link)]">{roleNames[selected.role_type]||selected.role_type}</p></div><button type="button" className="p-2" aria-label="Close profile" onClick={()=>setSelected(null)}><X size={20}/></button></header>
+    <nav className="flex flex-wrap gap-2 border-b border-[var(--cc-border)] pb-2" role="tablist" aria-label="Member profile sections">
+     {[['about','About me'],['photos','Photos'],['videos','Videos']].map(([key,label])=><button type="button" key={key}
+      role="tab" aria-selected={selectedTab===key} onClick={()=>setSelectedTab(key)}
+      className={'rounded-lg px-4 py-2 text-sm font-semibold '+(selectedTab===key?'bg-[#12698f] text-white':'ccx-secondary')}>{label}</button>)}
+    </nav>
+    {selectedTab==='about'&&<>
     <p className="text-sm text-[var(--cc-text-secondary)]">{[selected.city,selected.state,selected.country].filter(Boolean).join(', ')}</p>{selected.sexual_orientation&&<p className="text-sm capitalize text-[var(--cc-text-secondary)]">Orientation: {selected.sexual_orientation}</p>}{selected.bio&&<p className="whitespace-pre-wrap text-sm">{selected.bio}</p>}
-    {representativeProfiles.length>0&&<section className="rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3"><h4 className="mb-2 text-sm font-semibold">Active professional representation</h4><ul className="space-y-1">{representativeProfiles.map(person=><li key={person.id} className="text-sm">{person.display_name} <span className="text-xs capitalize text-[var(--cc-text-secondary)]">· {person.role_type.replaceAll('_',' ')}</span></li>)}</ul><p className="mt-2 text-xs text-[var(--cc-text-secondary)]">Only mutually accepted current agreements appear here. Private contract terms are not shared.</p></section>}
-    {paid?<div className="space-y-2"><h4 className="text-sm font-semibold">Shared professional links</h4>{Object.entries(socials).filter(([,url])=>validateWorkLink(url)).map(([provider,url])=><a key={provider} href={String(url)} target="_blank" rel="noopener noreferrer" className="ccx-secondary mr-2 inline-flex rounded-lg px-3 py-2 text-sm capitalize">{provider==='twitter'?'X / Twitter':provider}</a>)}{!Object.keys(socials).length&&<p className="text-xs text-[var(--cc-text-secondary)]">No links have been shared with premium members.</p>}</div>:<p className="text-xs text-[var(--cc-text-secondary)]">Social-link visibility follows the existing owner permissions and membership rules.</p>}
+    {representativeProfiles.length>0&&<section className="rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3"><h4 className="mb-2 text-sm font-semibold">Active professional representation</h4><ul className="space-y-1">{representativeProfiles.map(person=><li key={person.id} className="text-sm">{person.display_name} <span className="text-xs capitalize text-[var(--cc-text-secondary)]">· {person.role_type.replaceAll('_',' ')}</span></li>)}</ul></section>}
+    {paid?<div className="space-y-2"><h4 className="text-sm font-semibold">Shared professional links</h4>{Object.entries(socials).filter(([,url])=>validateWorkLink(url)).map(([provider,url])=><a key={provider} href={String(url)} target="_blank" rel="noopener noreferrer" className="ccx-secondary mr-2 inline-flex rounded-lg px-3 py-2 text-sm capitalize">{provider==='twitter'?'X / Twitter':provider}</a>)}</div>:null}
     {selected.id!==user.id&&<IntroThread peerId={selected.id} userId={user.id}/>}
     {selected.id!==user.id&&<TravelCalendar userId={selected.id} viewerId={user.id}/>}
     {contactNotice&&<p role="status" className="rounded-lg border border-[var(--cc-border)] p-3 text-sm">{contactNotice}</p>}
@@ -132,6 +140,8 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
     <button type="button" className="ccx-primary w-full rounded-xl px-4 py-2.5" disabled={favoriteBusy.includes(selected.id)} onClick={()=>void toggle(selected.id)}>{saved.includes(selected.id)?'Remove from favorites':'Add to favorites'}</button>
     <button type="button" className="text-sm text-[var(--cc-link)] underline" onClick={()=>onNavigate?.('connections')}>View connection requests</button>
     <section className="mt-4 space-y-3" aria-label="Member's shared posts"><h4 className="font-semibold">Profile posts</h4><ConnectFeed key={selected.id} profileId={selected.id} userId={user.id} paid={paid}/></section>
+    </>}
+    {selectedTab!=='about'&&<ProfileGallery ownerId={selected.id} viewerId={user.id} paid={paid} mode={selectedTab} onNavigate={onNavigate}/>}
    </section></div>}
   </>}
  </section>;
