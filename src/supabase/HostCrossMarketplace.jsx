@@ -1,5 +1,5 @@
-/** Content Connect X property discovery and booking.
- * Host Connect X owns every listing, blackout and reservation; this component
+/** Content ConnectX property discovery and booking.
+ * Host ConnectX owns every listing, blackout and reservation; this component
  * is a read/write *client* of that canonical inventory, never a local cache.
  */
 import React,{useCallback,useEffect,useState} from 'react';
@@ -33,7 +33,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
   setItems(browse.items||[]);setBookings(history.items||[]);
  },[user?.id]);
  useEffect(()=>{let live=true;refresh().catch(e=>{if(live)setError(e.message);});return()=>{live=false;};},[refresh]);
- // Host Connect X is the calendar authority. Keep background-open CCX tabs
+ // Host ConnectX is the calendar authority. Keep background-open CCX tabs
  // current without ever duplicating or writing a local property inventory.
  useEffect(()=>{
   let active=true;
@@ -50,7 +50,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
   window.addEventListener('focus',sync);
   return()=>{active=false;window.clearInterval(timer);window.removeEventListener('focus',sync);};
  },[refresh,selected?.id]);
- const run=async fn=>{setBusy(true);setError('');setNotice('');try{await fn();}catch(e){setError(e.message||'Host Connect X unavailable');}finally{setBusy(false);}};
+ const run=async fn=>{setBusy(true);setError('');setNotice('');try{await fn();}catch(e){setError(e.message||'Host ConnectX unavailable');}finally{setBusy(false);}};
  const search=params=>run(async()=>{const r=await hostConnectAction('browse',params);setItems(r.items||[]);});
  const open=id=>run(async()=>{const r=await hostConnectAction('listing',{id});setSelected(r.item);setUnavailable(r.unavailable||[]);setStarts('');setEnds('');setPurpose(r.item?.permitted_uses?.[0]||'');setCrew(1);setQuote(null);setLinkedCollab('');});
  useEffect(()=>{
@@ -80,15 +80,15 @@ export default function HostCrossMarketplace({paid=false,user=null}){
   await hostConnectAction('booking_cancel',{booking_id:b.id});await refresh();setNotice('Booking request cancelled.');});
  return <div className="space-y-5" data-ccx-host-connect="true">
   <div className="flex flex-wrap items-start justify-between gap-3">
-   <div><p className="text-xs font-bold uppercase tracking-wider text-[var(--cc-link)]">Host Connect X venues</p>
+   <div><p className="text-xs font-bold uppercase tracking-wider text-[var(--cc-link)]">Host ConnectX venues</p>
     <h1 className="mt-1 text-2xl font-bold">Find a production location</h1>
-    <p className="text-sm text-[var(--cc-text-secondary)]">Live approved spaces and dates from Host Connect X. One booking calendar on both websites.</p></div>
+    <p className="text-sm text-[var(--cc-text-secondary)]">Live approved spaces and dates from Host ConnectX. One booking calendar on both websites.</p></div>
 
   </div>
   <div className="flex flex-wrap gap-2" role="group" aria-label="Property marketplace sections">
    <button className={view==='explore'?primary:secondary} onClick={()=>{setView('explore');setSelected(null);}}>Explore spaces</button>
    <button className={view==='bookings'?primary:secondary} onClick={()=>setView('bookings')}><CalendarDays size={16}/> My venue requests</button>
-   <button className={secondary} onClick={()=>void run(refresh)} disabled={busy} aria-label="Refresh Host Connect X availability"><RefreshCw size={16}/></button>
+   <button className={secondary} onClick={()=>void run(refresh)} disabled={busy} aria-label="Refresh Host ConnectX availability"><RefreshCw size={16}/></button>
   </div>
   {error&&<p role="alert" className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
   {notice&&<p role="status" className="rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm">{notice}</p>}
@@ -129,7 +129,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
     </div>
     <label className="text-xs">Crew size<input className={input} type="number" min={1} max={selected.capacity} value={crew} onChange={e=>{setCrew(Number(e.target.value));setQuote(null);}}/></label>
     <label className="text-xs">Proposed use<select className={input} value={purpose} onChange={e=>{setPurpose(e.target.value);setQuote(null);}}>{selected.permitted_uses.map(u=><option key={u} value={u}>{u.replaceAll('_',' ')}</option>)}</select></label>
-    <label className="block text-xs">Related Content Connect X collaboration (optional)
+    <label className="block text-xs">Related Content ConnectX collaboration (optional)
      <select className={input} value={linkedCollab} onChange={e=>setLinkedCollab(e.target.value)}>
       <option value="">Independent venue rental</option>
       {collaborations.filter(c=>c.plan?.property_id===selected.id).map(c=>
@@ -146,17 +146,17 @@ export default function HostCrossMarketplace({paid=false,user=null}){
     </div>}
     <button type="button" className={secondary+' w-full'} disabled={busy||nightsBetween(starts,ends)<1} onClick={()=>void calculate()}>Check live dates and price</button>
     <button type="button" className={primary+' w-full'} disabled={!paid||!quote||busy} onClick={()=>{setAck(false);setModal(true);}}>Review venue request</button>
-    {!paid&&<p className="text-xs text-[var(--cc-text-secondary)]">Verified Premium membership is required to request Host Connect X properties.</p>}
+    {!paid&&<p className="text-xs text-[var(--cc-text-secondary)]">Verified Premium membership is required to request Host ConnectX properties.</p>}
     <p className="text-xs text-[var(--cc-text-secondary)]">The quote may change until the transaction reserves the requested period. A pending request does not guarantee a paid booking.</p>
    </section>
   </div>}
   {view==='bookings'&&chatBooking&&<HostBookingMessages bookingId={chatBooking.id}
-    title={chatBooking.title||'Host Connect X booking'} userId={user?.id} action={hostConnectAction}
+    title={chatBooking.title||'Host ConnectX booking'} userId={user?.id} action={hostConnectAction}
     onBack={()=>setChatBooking(null)}/>}
   {view==='bookings'&&inspectionBooking&&<HostGuestInspection booking={inspectionBooking} action={hostConnectAction}
     upload={uploadHostGuestEvidence} onClose={()=>setInspectionBooking(null)}/>}
   {view==='bookings'&&!inspectionBooking&&!chatBooking&&<section className={panel+' space-y-3'}>
-   <h2 className="text-lg font-semibold">My Host Connect X requests</h2>
+   <h2 className="text-lg font-semibold">My Host ConnectX requests</h2>
    {!bookings.length?<p className="text-sm text-[var(--cc-text-secondary)]">No requests yet. Both websites share the same live calendar when you reserve.</p>:bookings.map(b=>
     <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[var(--cc-border)] py-3" key={b.id}>
      <div><h3 className="font-semibold">{b.title}</h3><p className="text-sm">{localDate(b.starts_at)} – {localDate(b.ends_at)}</p>
@@ -167,7 +167,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
      {['requested','accepted'].includes(b.status)&&<button className={secondary} disabled={busy} onClick={()=>void cancel(b)}>Cancel pending request</button>}
     </div>)}
   </section>}
-  {modal&&selected&&quote&&<HostDialog title="Review Host Connect X reservation" onClose={()=>{setModal(false);setAck(false);}} busy={busy}>
+  {modal&&selected&&quote&&<HostDialog title="Review Host ConnectX reservation" onClose={()=>{setModal(false);setAck(false);}} busy={busy}>
    <div className="space-y-4 text-sm"><h3 className="font-semibold">{selected.title}</h3>
     <p>{starts} to {ends} · {nightsBetween(starts,ends)} days · 3 p.m. property-local check-in</p>
     <p className="font-semibold">Quoted total: {money(quote.total_cents)}</p>
