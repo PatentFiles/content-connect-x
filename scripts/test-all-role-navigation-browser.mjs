@@ -99,13 +99,14 @@ try{
    const groupNames=sections.map(x=>x.querySelector('h2')?.textContent.trim()).filter(Boolean);
    const clicked=[];
    const getSection=name=>[...root.querySelectorAll('section.ccx-nav-section')].find(x=>x.querySelector('h2')?.textContent.trim()===name);
+   if(root.querySelector('.ccx-nav-heading-button')||document.querySelector('.ccx-nav-rail'))
+    throw Error('Retired double navigation is still present for '+role);
    for(const name of groupNames){
-    let section=getSection(name),heading=section.querySelector('.ccx-nav-heading-button');
-    if(heading.getAttribute('aria-expanded')!=='true'){heading.click();await pause();}
-    const labels=[...getSection(name).querySelectorAll('button.ccx-nav-link')].map(x=>x.textContent.trim());
+    const section=getSection(name);
+    if(!section||!section.querySelector('h2.ccx-nav-heading'))
+     throw Error('Missing static section heading '+name);
+    const labels=[...section.querySelectorAll('button.ccx-nav-link')].map(x=>x.textContent.trim());
     for(const label of labels){
-     section=getSection(name);heading=section.querySelector('.ccx-nav-heading-button');
-     if(heading.getAttribute('aria-expanded')!=='true'){heading.click();await pause();}
      const button=[...getSection(name).querySelectorAll('button.ccx-nav-link')].find(x=>x.textContent.trim()===label);
      if(!button)throw Error('Missing desktop button '+role+' / '+label);
      const before=window.__navigations.length;button.click();await pause();
@@ -124,11 +125,13 @@ try{
    if(['photographer','videographer','video_editor'].includes(role)&&!clicked.includes('Portfolio'))throw Error('Missing Portfolio for '+role);
    if(role==='creator-admin'&&!clicked.includes('Platform Controls'))throw Error('Missing admin control link');
    const prev=window.__navigations.length;
-   document.querySelector('button[aria-label="Go to dashboard"]').click();await pause();
-   document.querySelector('button[aria-label="Open account settings"]').click();await pause();
-   if(window.__navigations.length!==prev+2||window.__navigations.at(-1)!=='settings')throw Error('Rail shortcuts are inert');
-   const exit=document.querySelector('.ccx-nav-exit button');
-   if(!exit)throw Error('Sign-out button missing');exit.click();
+   const settings=[...document.querySelectorAll('.ccx-nav-exit button')].find(b=>b.textContent.trim()==='Settings');
+   if(!settings)throw Error('Bottom Settings link missing');
+   settings.click();await pause();
+   if(window.__navigations.length!==prev+1||window.__navigations.at(-1)!=='settings')
+    throw Error('Bottom Settings link is inert');
+   const exit=[...document.querySelectorAll('.ccx-nav-exit button')].find(b=>b.textContent.trim()==='Log Out');
+   if(!exit)throw Error('Bottom Log out button missing');exit.click();
    if(window.__signouts!==1)throw Error('Desktop sign-out callback failed');
    if(window.__errors.length)throw Error('Runtime errors: '+window.__errors.join(' / '));
    return clicked.length;
