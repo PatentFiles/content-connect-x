@@ -67,7 +67,7 @@ export default function TrustReporterStatus({initialReference='',initialAccessCo
    <div><h3 className="font-semibold">Request messages</h3>
     {result.messages.length===0&&<p className="text-sm">No follow-up messages yet. You can send additional information below.</p>}
     <div className="space-y-2" aria-live="polite">{result.messages.map(item=><article key={item.id} className="rounded-xl border border-[var(--cc-border)] p-3">
-     <p className="text-xs font-semibold">{item.author==='staff'?'Content Connect X support':'You'} · {new Date(item.created_at).toLocaleString()}</p>
+     <p className="text-xs font-semibold">{item.author==='staff'?'Content ConnectX support':'You'} · {new Date(item.created_at).toLocaleString()}</p>
      <p className="whitespace-pre-wrap break-words text-sm">{item.body}</p>
     </article>)}</div>
    </div>
