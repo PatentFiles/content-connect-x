@@ -27,7 +27,7 @@ export default function MfaChallenge({onVerified}){
   };
   return <main className="min-h-screen bg-[var(--cc-surface-subtle)] text-[var(--cc-text-primary)] grid place-items-center p-4"><div className="w-full max-w-md bg-[var(--cc-surface-subtle)] border border-[var(--cc-border)] rounded-xl p-6 space-y-4">
     <h1 className="text-xl font-bold">Verify your authenticator</h1>
-    <p className="text-sm text-[var(--cc-text-secondary)]">Your account requires a second authentication factor before accessing Content Connect X.</p>
+    <p className="text-sm text-[var(--cc-text-secondary)]">Your account requires a second authentication factor before accessing Content ConnectX.</p>
     {error&&<p role="alert" className="bg-red-50 text-red-800 rounded-lg p-3 text-sm">{error}</p>}
     <form onSubmit={verify} className="space-y-3"><label className="block text-sm">Six-digit code<input autoComplete="one-time-code" inputMode="numeric" pattern="[0-9]{6}" minLength={6} maxLength={6} required className="w-full mt-1 bg-[var(--cc-surface-subtle)] border border-[var(--cc-border)] p-3 rounded-lg" value={code} onChange={e=>setCode(e.target.value)}/></label><button disabled={busy||!factor} className="ccx-action-primary text-[var(--cc-text-primary)] rounded-lg px-4 py-2 w-full font-semibold">Verify</button></form>
     <button className="text-sm text-[var(--cc-text-secondary)]" onClick={()=>supabase.auth.signOut()}>Sign out instead</button>
