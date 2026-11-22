@@ -128,7 +128,8 @@ Deno.serve(async req=>{
       }
       const {data,error}=await db.from('member_media_assets').insert({
         owner_id:uid,storage_path:path,mime_type:type,caption:plain(body.caption,500),
-        status:'pending',visibility,album_id:albumId,uploader_rights_attested:true,rights_attested_at:new Date().toISOString()
+        status:'pending',visibility,album_id:albumId,allow_repost:visibility==='verified'&&body.allow_repost===true,
+        uploader_rights_attested:true,rights_attested_at:new Date().toISOString()
       }).select('id,status').single();
       if(error)return reply({error:'Media could not be registered'},400);
       const {error:queueError}=await db.from('content_moderation_queue').insert({
