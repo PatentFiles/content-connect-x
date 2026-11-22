@@ -13,8 +13,8 @@ export default function BrandWordmark({brand='content',className='',style={}}){
  const prefix=host?'Host Connect':'Content Connect';
  return <span className={className||'inline-flex'} style={{whiteSpace:'nowrap',...style}}>
   <span>{prefix}</span><span style={host?{color:'#12698f',fontWeight:900}:{
-   backgroundImage:'linear-gradient(110deg,#6d4aff 0%,#a13ef4 50%,#c32fae 100%)',
-   WebkitBackgroundClip:'text',backgroundClip:'text',WebkitTextFillColor:'transparent',color:'#9751db',fontWeight:900
+   backgroundImage:'linear-gradient(110deg,#12698f 0%,#2585ad 52%,#5db7df 100%)',
+   WebkitBackgroundClip:'text',backgroundClip:'text',WebkitTextFillColor:'transparent',color:'#12698f',fontWeight:900
   }}>X</span>
  </span>;
 }
