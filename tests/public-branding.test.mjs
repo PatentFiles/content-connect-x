@@ -27,3 +27,21 @@ test('appearance helper switches dark/light and browser chrome without changing 
  assert.equal(applyAuthAppearance(false,root),'public');assert.ok(classes.has('dark'));
  const source=read('src/supabase/authAppearance.js');assert.doesNotMatch(source,/localStorage|matchMedia|member_admissions|functions\.invoke/);
 });
+
+test('shared wordmarks use exact names and brand-specific X treatment in active headers and footers',()=>{
+ const wordmark=read('src/supabase/BrandWordmark.jsx');
+ const shell=read('src/supabase/OriginalShell.jsx');
+ const app=read('src/supabase/SupabaseApp.jsx');
+ const html=read('index.html');
+ const manifest=JSON.parse(read('public/manifest.json'));
+ assert.match(wordmark,/content:'Content ConnectX'/);
+ assert.match(wordmark,/host:'Host ConnectX'/);
+ assert.match(wordmark,/#12698f/);
+ assert.match(wordmark,/linear-gradient/);
+ assert.match(shell,/<BrandWordmark brand="content"/);
+ assert.match(shell,/<BrandWordmark brand="host"/);
+ assert.match(app,/<BrandWordmark brand="host"/);
+ assert.match(html,/<title>Content ConnectX<\/title>/);
+ assert.match(manifest.name,/^Content ConnectX/);
+ assert.doesNotMatch(shell,/CategoryRail|ccx-nav-rail-button|expandedGroup/);
+});
