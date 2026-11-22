@@ -75,7 +75,7 @@ export default function PublicPricing({signedIn=false,onNavigate=(destination)=>
  const premium=ROLE_BENEFITS[role]||ROLE_BENEFITS.creator;
  return <main className="mx-auto w-full max-w-7xl px-4 pb-20 pt-10 sm:px-6 sm:pt-14">
   <div className="mx-auto max-w-3xl text-center">
-   <p className="ccx-eyebrow">Content Connect X memberships</p>
+   <p className="ccx-eyebrow">Content ConnectX memberships</p>
    <h1 className="mt-3 text-3xl font-extrabold tracking-tight text-[var(--cc-text-primary)] sm:text-5xl">
     Simple, <span className="ccx-gradient-text">transparent pricing.</span>
    </h1>
@@ -110,7 +110,7 @@ export default function PublicPricing({signedIn=false,onNavigate=(destination)=>
    <Card highlight eyebrow="Expanded access" title={role==='studio'?'Studio Membership':'Professional Membership'}
     price={price+(selected?' / 30 days':'')} subtitle={role==='agent'
      ?selected?.label+' · Cancel according to the published subscription terms.'
-     :'Recurring membership billed every 30 days. No Content Connect X percentage taken from your project earnings.'}
+     :'Recurring membership billed every 30 days. No Content ConnectX percentage taken from your project earnings.'}
     features={premium.items} disabled={signedIn?(!selected||!billing?.ready||paying||currentlyPaid):false} href="/signup" onClick={signedIn?checkout:null} action={!signedIn?'Create an account to subscribe':currentlyPaid?'Your membership is active':!selected?'Premium plan not yet configured for this role':paying?'Opening secure checkout…':billing?.ready?'Subscribe securely with CCBill':'Membership checkout opens after approved billing is connected'}/>
   </section>
   <p className="mx-auto mt-4 max-w-5xl text-center text-xs leading-6 text-[var(--cc-text-secondary)]">
