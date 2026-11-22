@@ -27,7 +27,7 @@ function TravelCalendarPreview({dates=[],blocks=[]}){
   });
  },[month,dates,blocks]);
  const change=delta=>setMonth(m=>new Date(Date.UTC(m.getUTCFullYear(),m.getUTCMonth()+delta,1)));
- return <section className={panel} aria-label="Travel calendar">
+ return <section className={panel+' lg:col-span-2'} aria-label="Travel calendar">
   <header className="flex items-center justify-between gap-2"><h3 className="flex items-center gap-2 font-semibold"><CalendarDays size={17}/>Travel calendar</h3>
    <div className="flex items-center gap-2"><button className="ccx-secondary rounded-lg p-2" type="button" onClick={()=>change(-1)} aria-label="Previous travel month"><ChevronLeft size={17}/></button>
     <strong className="min-w-32 text-center text-sm">{month.toLocaleString(undefined,{month:'long',year:'numeric',timeZone:'UTC'})}</strong>
