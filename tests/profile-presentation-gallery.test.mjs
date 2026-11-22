@@ -32,7 +32,7 @@ test('View Profile navigation remains separate from the account editor',()=>{
 
 test('owner profile includes connected sections without leaking restricted user data',()=>{
  const ui=read('src/supabase/MemberPublicProfile.jsx');
- for(const name of ['Travel calendar','Professional social links','Representation','Production details','Profile posts','Galleries'])
+ for(const name of ['Travel calendar','Professional social links','Representation','Production details','Profile posts','Photos','Videos'])
   assert.ok(ui.includes(name),'Missing profile section '+name);
  assert.doesNotMatch(ui,/real_name|document_path|medical/i);
  const dir=read('supabase/functions/directory/index.ts').split("if(body?.action==='my_public_profile'){")[1].split('const featureKey=')[0];
@@ -48,4 +48,25 @@ test('owner profile includes connected sections without leaking restricted user 
  assert.match(dir,/show_orientation_in_discovery/);
  assert.doesNotMatch(dir,/select\('\*'\)/);
  assert.doesNotMatch(dir,/real_name|document_path|testing_credentials|select\([^)]*password/i);
+});
+
+test('public profile uses real gallery tabs, travel sidecards and red unavailable dates',()=>{
+ const profile=read('src/supabase/MemberPublicProfile.jsx');
+ const gallery=read('src/supabase/ProfileGallery.jsx');
+ const editor=read('src/supabase/EditableProfileHero.jsx');
+ assert.match(profile,/role="tablist" aria-label="Profile sections"/);
+ assert.match(profile,/data-member-public-profile="true"/);
+ assert.match(profile,/Travel locations and dates/);
+ assert.match(profile,/blocks\.some\(/);
+ assert.match(profile,/border-red-400 bg-red-100/);
+ assert.match(profile,/ProfileGallery ownerId=\{profile\.id\}/);
+ assert.match(gallery,/data-profile-photo-grid="true"/);
+ assert.match(gallery,/gallery_like/);
+ assert.match(gallery,/gallery_comments/);
+ assert.match(gallery,/gallery_repost/);
+ assert.match(gallery,/premium|Premium/i);
+ assert.match(editor,/data-profile-hero-editor="true"/);
+ assert.match(editor,/canvas\.toBlob/);
+ assert.match(editor,/aspect-\[3\/1\]/);
+ assert.match(editor,/h-44 sm:h-60/);
 });
