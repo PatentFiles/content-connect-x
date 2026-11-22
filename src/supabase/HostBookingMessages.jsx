@@ -1,4 +1,4 @@
-/** One Host Connect X booking thread shared by Host and CCX.
+/** One Host ConnectX booking thread shared by Host and CCX.
  * Sender identity, membership, history and write limits are verified by the
  * canonical Host marketplace; browser does not decide visibility.
  */
@@ -38,7 +38,7 @@ export default function HostBookingMessages({bookingId,action,userId='',onBack=(
    <div className="flex gap-2"><button type="button" className="oh-secondary min-h-10 rounded-lg px-3 text-sm" onClick={()=>void load().catch(e=>setError(e.message))}><RefreshCw size={15}/> Refresh</button>
     <button type="button" className="oh-secondary min-h-10 rounded-lg px-3 text-sm" onClick={onBack}><ArrowLeft size={15}/> Back</button></div>
   </div>
-  <p className="text-xs text-[var(--cc-text-secondary)]">Messages are saved to the Host Connect X booking record. A verified CCX collaboration member can participate only when the booking is linked to their collaboration. No shared login is required.</p>
+  <p className="text-xs text-[var(--cc-text-secondary)]">Messages are saved to the Host ConnectX booking record. A verified CCX collaboration member can participate only when the booking is linked to their collaboration. No shared login is required.</p>
   {error&&<p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-800">{error}</p>}
   {notice&&<p role="status" className="text-xs text-[var(--cc-link)]">{notice}</p>}
   <div className="h-[360px] space-y-3 overflow-y-auto rounded-xl bg-[var(--cc-surface-subtle)] p-4" role="log" aria-label="Booking conversation" aria-live="polite">
