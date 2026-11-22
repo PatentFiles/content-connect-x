@@ -110,14 +110,18 @@ export default function ProfileGallery({ownerId,viewerId,paid=false,mode='photos
      <input key={mode} type="file" accept={mode==='videos'?'video/mp4':'image/jpeg,image/png,image/webp'} className={field+' mt-1'} onChange={e=>setFile(e.target.files?.[0]||null)}/></label>
     <label className="min-w-[190px] flex-1 text-xs">Caption<input className={field+' mt-1'} maxLength={500} value={caption} onChange={e=>setCaption(e.target.value)}/></label>
     <label className="min-w-[140px] flex-1 text-xs">Who can view<select className={field+' mt-1'} value={visibility} onChange={e=>setVisibility(e.target.value)}>
-     <option value="verified">Verified members</option><option value="connections">Connections</option><option value="private">Only me</option>
+     <option value="premium">Premium members</option><option value="friends">Friends</option><option value="groups">Groups (choose a group album)</option><option value="private">Only me</option>
     </select></label>
+    <label className="min-w-[160px] flex-1 text-xs">Album
+     <select className={field+' mt-1'} value={uploadAlbumId} onChange={e=>setUploadAlbumId(e.target.value)}>
+      <option value="">No album</option>{albums.map(a=><option key={a.id} value={a.id}>{a.title} — {a.visibility}</option>)}
+     </select></label>
    </div>
    <div className="flex flex-wrap items-center gap-4">
     <label className="flex max-w-xl items-start gap-2 text-xs"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)}/><span>I own or have rights to share this media, and all people depicted are consenting adults with required releases.</span></label>
-    {visibility==='verified'&&<label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={repostAllowed} onChange={e=>setRepostAllowed(e.target.checked)}/>Allow others to repost after approval</label>}
+    {uploadAudience==='premium'&&<label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={repostAllowed} onChange={e=>setRepostAllowed(e.target.checked)}/>Allow others to repost after approval</label>}
    </div>
-   <button className="ccx-primary inline-flex min-h-10 items-center gap-2 rounded-xl px-4 py-2 text-sm" disabled={!file||!rights||Boolean(busy)}><ShieldCheck size={16}/>{busy==='upload'?'Uploading…':'Add to gallery'}</button>
+   <button className="ccx-primary inline-flex min-h-10 items-center gap-2 rounded-xl px-4 py-2 text-sm" disabled={!file||!rights||Boolean(busy)||(uploadAudience==='groups'&&!albumSelected)}><ShieldCheck size={16}/>{busy==='upload'?'Uploading…':'Add to gallery'}</button>
   </form>}
   {error&&<p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
   {message&&<p role="status" className="text-sm text-[var(--cc-text-secondary)]">{message}</p>}
@@ -125,7 +129,7 @@ export default function ProfileGallery({ownerId,viewerId,paid=false,mode='photos
    <button className={ctl} onClick={()=>void load()} type="button" aria-label="Refresh gallery"><RefreshCw size={15}/>Refresh</button>
   </div>
   <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4" data-profile-photo-grid="true">
-   {!files.length&&!pending.length&&Array.from({length:8},(_,i)=><div key={'empty-'+i} aria-hidden="true" className="aspect-square rounded-xl border border-dashed border-[var(--cc-border)] bg-[var(--cc-surface-subtle)]"/>)}
+   {!files.length&&!pendingItems.length&&Array.from({length:8},(_,i)=><div key={'empty-'+i} aria-hidden="true" className="aspect-square rounded-xl border border-dashed border-[var(--cc-border)] bg-[var(--cc-surface-subtle)]"/>)}
    {files.map(item=><article key={item.id} className="min-w-0 overflow-hidden rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface)]">
     <div className="relative aspect-square overflow-hidden bg-[var(--cc-surface-subtle)]">
      {item.url?(mode==='videos'?
@@ -137,17 +141,36 @@ export default function ProfileGallery({ownerId,viewerId,paid=false,mode='photos
     </div>
     <div className="space-y-2 p-2.5">
      {item.caption&&<p className="line-clamp-2 break-words text-xs">{item.caption}</p>}
+     {own&&paid&&<div className="space-y-2 border-b border-[var(--cc-border)] pb-2">
+      <label className="block text-[11px]">Edit caption
+       <input className={field+' mt-1'} maxLength={500} value={captionEdits[item.id]??item.caption??''}
+        onChange={e=>setCaptionEdits(v=>({...v,[item.id]:e.target.value}))}/></label>
+      {!item.album_id&&<label className="block text-[11px]">Who can view
+       <select className={field+' mt-1'} value={visibilityEdits[item.id]??item.visibility}
+        onChange={e=>setVisibilityEdits(v=>({...v,[item.id]:e.target.value}))}>
+        <option value="premium">Premium members</option><option value="friends">Friends</option><option value="private">Only me</option>
+       </select></label>}
+      <button type="button" disabled={Boolean(busy)} className={ctl} onClick={()=>void saveMedia(item)}>Save details</button>
+      <label className="block text-[11px]">Move to album
+       <select className={field+' mt-1'} value={assignEdits[item.id]??item.album_id??''}
+        onChange={e=>setAssignEdits(v=>({...v,[item.id]:e.target.value}))}>
+        <option value="">No album (Only me)</option>
+        {albums.map(a=><option key={a.id} value={a.id}>{a.title} — {a.visibility}</option>)}
+       </select></label>
+      <button type="button" disabled={Boolean(busy)} className={ctl}
+       onClick={()=>void assign(item)}>Move</button>
+     </div>}
      <div className="flex flex-wrap gap-1">
       <button type="button" className={ctl+' '+(item.liked?'text-red-600':'')} disabled={Boolean(busy)}
        onClick={()=>paid?void run('like-'+item.id,async()=>{await action('gallery_like',{media_id:item.id});await load();}):onNavigate?.('membership')}>
        <Heart size={15} fill={item.liked?'currentColor':'none'}/>{item.likes||0}</button>
       <button type="button" className={ctl} disabled={Boolean(busy)} onClick={()=>void viewComments(item)}><MessageCircle size={15}/>{item.comments||0}</button>
-      <button type="button" className={ctl} disabled={Boolean(busy)||!item.allow_repost||item.visibility!=='verified'}
+      <button type="button" className={ctl} disabled={Boolean(busy)||!item.allow_repost||item.visibility!=='premium'}
        title={!item.allow_repost?'Reposting disabled by the owner':'Share to community'}
        onClick={()=>paid?void run('repost-'+item.id,async()=>{const r=await action('gallery_repost',{media_id:item.id});setMessage(r.already_reposted?'Already shared to Feed.':'Shared to Feed.');await load();}):onNavigate?.('membership')}>
        <Repeat2 size={15}/>{item.reposts||0}</button>
      </div>
-     {own&&paid&&item.visibility==='verified'&&<label className="flex items-center gap-2 text-[10px] text-[var(--cc-text-secondary)]"><input type="checkbox" checked={item.allow_repost===true} onChange={e=>void run('allow-'+item.id,async()=>{await action('gallery_repost_permission',{media_id:item.id,allow_repost:e.target.checked});await load();})}/>Allow reposting</label>}
+     {own&&paid&&item.visibility==='premium'&&<label className="flex items-center gap-2 text-[10px] text-[var(--cc-text-secondary)]"><input type="checkbox" checked={item.allow_repost===true} onChange={e=>void run('allow-'+item.id,async()=>{await action('gallery_repost_permission',{media_id:item.id,allow_repost:e.target.checked});await load();})}/>Allow reposting</label>}
      {composer===item.id&&<div className="space-y-2">
       {(comments[item.id]||[]).map(c=><p key={c.id} className="rounded-lg bg-[var(--cc-surface-subtle)] p-2 text-[11px]"><strong>{c.author_name}</strong> {c.body}</p>)}
       <form className="flex gap-1" onSubmit={e=>{e.preventDefault();void comment(item);}}>
@@ -158,7 +181,7 @@ export default function ProfileGallery({ownerId,viewerId,paid=false,mode='photos
      <a href={'/trust/content-removal?locator='+encodeURIComponent('gallery-media:'+item.id)} className="block text-[10px] text-[var(--cc-text-secondary)] underline">Report</a>
     </div>
    </article>)}
-   {own&&pending.map(item=><article key={item.id} className="relative aspect-square overflow-hidden rounded-xl border border-dashed border-[var(--cc-border)] bg-[var(--cc-surface-subtle)]">
+   {own&&pendingItems.map(item=><article key={item.id} className="relative aspect-square overflow-hidden rounded-xl border border-dashed border-[var(--cc-border)] bg-[var(--cc-surface-subtle)]">
     {pendingUrls[item.id]&&(mode==='videos'
      ?<video preload="metadata" controls className="h-full w-full object-contain" src={pendingUrls[item.id]}/>
      :<img src={pendingUrls[item.id]} alt={item.caption||'Your uploaded photo'} className="h-full w-full object-cover"/>)}
