@@ -98,7 +98,7 @@ export default function PassClearanceHub({isAdmin=false}){
   <section className="ccx-surface space-y-3 p-5">
    <h3 className="flex items-center gap-2 font-semibold"><ShieldCheck size={18} className="text-[var(--cc-link)]"/>PASS work-clearance connection</h3>
    <p className="text-sm text-[var(--cc-text-secondary)]">PASS is the adult-industry work-clearance standard. It tracks a 14-day yes/no status—not private lab panel results. Partner API access needs written approval and technical onboarding.</p>
-   <p className="text-xs text-[var(--cc-text-secondary)]">Check your current clearance directly in the <a className="underline text-[var(--cc-link)]" href="https://app.passcertified.org/" target="_blank" rel="noopener noreferrer">official PASS database</a>. Content Connect X cannot automatically check PASS clearance until PASS grants access to its documented partner interface.</p>
+   <p className="text-xs text-[var(--cc-text-secondary)]">Check your current clearance directly in the <a className="underline text-[var(--cc-link)]" href="https://app.passcertified.org/" target="_blank" rel="noopener noreferrer">official PASS database</a>. Content ConnectX cannot automatically check PASS clearance until PASS grants access to its documented partner interface.</p>
    <p className="text-sm">Connection: <strong className="capitalize">{(connection?.status||'not linked').replaceAll('_',' ')}</strong></p>
    <div role="status" className="rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 space-y-1">
     <p className="text-sm">Your work-clearance status: <strong className={clearance?.status==='current'?'text-emerald-800':'text-amber-800'}>{clearance?.status==='current'?'Current':'Not currently confirmed'}</strong></p>
