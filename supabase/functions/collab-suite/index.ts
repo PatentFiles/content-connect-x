@@ -107,7 +107,18 @@ Deno.serve(async req=>{
   if(target!==uid)q.eq('visible_to_members',true);
   const {data,error}=await q;if(error)throw error;
   const items=(data||[]).map(e=>target===uid?e:{...e,note:''});
-  return out({items,has_more:items.length===100,next_offset:offset+items.length});
+  // Date-only unavailable ranges can be shown to admitted, unblocked peers.
+  // Never return private availability notes or account contact details.
+  let blocks=[];
+  if(offset===0){
+   const {data:dates,error:dateError}=await db.from('ccx_calendar_blocks')
+     .select('starts_on,ends_on').eq('user_id',target)
+     .gte('ends_on',new Date().toISOString().slice(0,10))
+     .order('starts_on',{ascending:true}).limit(200);
+   if(dateError)return out({error:'Availability calendar could not load'},503);
+   blocks=dates||[];
+  }
+  return out({items,blocks,has_more:items.length===100,next_offset:offset+items.length});
  }
  case 'travel_save':{
   const city=txt(body.city,100),region=txt(body.region,100),country=txt(body.country,100),starts=Date.parse(body.starts_at),ends=Date.parse(body.ends_at);
