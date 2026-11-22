@@ -84,7 +84,7 @@ export default function MemberPublicProfile({onNavigate,viewerId,paid=false}){
      </div>
      {activeTab==='about'&&<>
      <p className="flex items-center gap-2 text-sm text-[var(--cc-text-secondary)]"><MapPin size={16}/>{[profile.city,profile.state,profile.country].filter(Boolean).join(', ')||'Location not shared'}</p>
-     <section><h3 className="mb-2 font-semibold">About</h3><p className="whitespace-pre-wrap break-words text-sm">{profile.bio||'No public bio yet.'}</p></section>
+     {profile.bio&&<section><h3 className="mb-2 font-semibold">About</h3><p className="whitespace-pre-wrap break-words text-sm">{profile.bio}</p></section>}
      {(profile.stage_name||profile.company_name)&&<section className="grid gap-3 text-sm sm:grid-cols-2" aria-label="Basic information">
       {profile.stage_name&&<div><strong>Professional name</strong><p>{profile.stage_name}</p></div>}
       {profile.company_name&&<div><strong>Company / studio</strong><p>{profile.company_name}</p></div>}
@@ -105,32 +105,32 @@ export default function MemberPublicProfile({onNavigate,viewerId,paid=false}){
    {activeTab!=='about'&&<ProfileGallery ownerId={profile.id} viewerId={viewerId||profile.id} paid={paid} mode={activeTab} onNavigate={onNavigate}/>}
    {activeTab==='about'&&<>
    <div className="grid gap-5 lg:grid-cols-2">
-    <section className={panel} aria-label="Production details"><h3 className="font-semibold">Production details</h3>
+    {(!!profile.specialties?.length||profile.production?.availability_type||!!profile.production?.scene_pairings?.length||!!profile.production?.travel_regions?.length)&&<section className={panel} aria-label="Production details"><h3 className="font-semibold">Production details</h3>
      {!!profile.specialties?.length&&<div><p className="text-xs font-semibold">Specialties</p><p className="text-sm">{profile.specialties.map(titleCase).join(', ')}</p></div>}
      {profile.production?.availability_type&&<p className="text-sm">Availability: {titleCase(profile.production.availability_type)}</p>}
      {!!profile.production?.scene_pairings?.length&&<div><p className="text-xs font-semibold">Shared production interests</p><p className="text-sm">{profile.production.scene_pairings.map(titleCase).join(', ')}</p></div>}
      {!!profile.production?.travel_regions?.length&&<p className="text-sm">Travel regions: {profile.production.travel_regions.join(', ')}</p>}
      
-    </section>
-    <section className={panel} aria-label="Representation"><h3 className="font-semibold">Representation</h3>
+    </section>}
+    {!!profile.representatives?.length&&<section className={panel} aria-label="Representation"><h3 className="font-semibold">Representation</h3>
      {profile.representatives?.length?profile.representatives.map(item=><div key={item.id} className="rounded-lg border border-[var(--cc-border)] p-3 text-sm">
       <strong>{item.display_name}</strong><p className="text-[var(--cc-text-secondary)]">{item.relationship} · {titleCase(item.role_type)}</p>
      </div>):null}
-    </section>
+    </section>}
     <TravelCalendarPreview dates={profile.travel_dates||[]} blocks={profile.blocked_dates||[]}/>
-    <section className={panel} aria-label="Social links"><h3 className="font-semibold">Professional social links</h3>
+    {!!profile.social_links?.length&&<section className={panel} aria-label="Social links"><h3 className="font-semibold">Professional social links</h3>
      {profile.social_links?.length?profile.social_links.map(item=><a key={item.platform} href={item.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 break-all text-sm text-[var(--cc-link)] underline"><ExternalLink size={15}/>{titleCase(item.platform)}</a>):null}
-    </section>
-    <section className={panel} aria-label="Featured portfolio"><h3 className="font-semibold">Featured portfolio</h3>
+    </section>}
+    {!!profile.featured_portfolio?.length&&<section className={panel} aria-label="Featured portfolio"><h3 className="font-semibold">Featured portfolio</h3>
      {profile.featured_portfolio?.length?profile.featured_portfolio.map(item=><article key={item.id} className="rounded-xl border border-[var(--cc-border)] p-3">
       <strong>{item.title||titleCase(item.kind)}</strong><p className="mt-1 whitespace-pre-wrap break-words text-sm">{item.description}</p>
       {item.url&&<a href={item.url} target="_blank" rel="noopener noreferrer" className="mt-2 inline-flex items-center gap-1 text-sm text-[var(--cc-link)] underline"><ExternalLink size={14}/>View portfolio link</a>}
      </article>):null}
-    </section>
-    <section className={panel+' lg:col-span-2'} aria-label="Profile posts">
+    </section>}
+    {!!profile.posts?.length&&<section className={panel+' lg:col-span-2'} aria-label="Profile posts">
      <h3 className="font-semibold">Profile posts and reposts</h3>
      <ConnectFeed key={profile.id} userId={profile.id} profileId={profile.id} paid={false} preview/>
-    </section>
+    </section>}
    </div>
    </>}
   </>}
