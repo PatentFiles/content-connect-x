@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Image, ShieldCheck, Search, RefreshCw, Video, FolderPlus, Folder, Trash2, Check } from 'lucide-react';
+import { Image, ShieldCheck, Search, RefreshCw, Video, Check } from 'lucide-react';
+import GalleryAlbumManager from './GalleryAlbumManager';
 import { supabase } from '@/api/supabaseClient';
 
 const panel='ccx-surface p-5';
@@ -32,14 +33,14 @@ export default function MediaGallery({userId,paid=false,admin=false}){
   const [image,setImage]=useState(null);
   const [file,setFile]=useState(null);
   const [caption,setCaption]=useState('');
-  const [visibility,setVisibility]=useState('verified');
+  const [visibility,setVisibility]=useState('premium');
   const [rights,setRights]=useState(false);
   const [humanReviewed,setHumanReviewed]=useState(false);
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
   const [notice,setNotice]=useState('');
-  const [showAlbumForm,setShowAlbumForm]=useState(false);
-  const [albumTitle,setAlbumTitle]=useState('');
+  const [captionEdits,setCaptionEdits]=useState({});
+  const [visibilityEdits,setVisibilityEdits]=useState({});
   const [selectedAlbum,setSelectedAlbum]=useState('');
   const [uploadAlbumId,setUploadAlbumId]=useState('');
   const [assignTarget,setAssignTarget]=useState({});
@@ -76,6 +77,8 @@ export default function MediaGallery({userId,paid=false,admin=false}){
         upsert:false,contentType:file.type
       });
       if(storageError)throw storageError;
+      if(visibility==='groups'&&!albums.some(a=>a.id===uploadAlbumId&&a.visibility==='groups'))
+        throw new Error('Choose a group-restricted album first.');
       const r=await mediaRequest('register_upload',{
         storage_path:path,mime_type:file.type,caption,visibility,attest_rights:true,
         album_id:uploadAlbumId||undefined
@@ -110,21 +113,16 @@ export default function MediaGallery({userId,paid=false,admin=false}){
       setHumanReviewed(false);await load();
     }catch(e){setError(e.message);}finally{setBusy(false);}
   };
-  const createAlbum=async(e)=>{
-    e.preventDefault();setBusy(true);setError('');
+  const updateMedia=async(item)=>{
+    setBusy(true);setError('');setNotice('');
     try{
-      await mediaRequest('create_album',{title:albumTitle});
-      setAlbumTitle('');setShowAlbumForm(false);
-      await load();
-    }catch(e){setError(e.message);}finally{setBusy(false);}
-  };
-  const deleteAlbum=async(id)=>{
-    setBusy(true);setError('');
-    try{
-      await mediaRequest('delete_album',{album_id:id});
-      if(selectedAlbum===id)setSelectedAlbum('');
-      await load();
-    }catch(e){setError(e.message);}finally{setBusy(false);}
+      await mediaRequest('edit_media',{media_id:item.id,
+       caption:captionEdits[item.id]??item.caption??'',
+       visibility:item.album_id?undefined:(visibilityEdits[item.id]||(item.visibility==='verified'?'premium':
+        item.visibility==='connections'?'friends':'private'))});
+      setNotice('Photo or video details saved.');await load();
+    }catch(e){setError(e.message||'Unable to save media details');}
+    finally{setBusy(false);}
   };
   const assignAlbum=async(mediaId,albumId)=>{
     setBusy(true);setError('');
@@ -139,24 +137,9 @@ export default function MediaGallery({userId,paid=false,admin=false}){
     <div className="flex justify-between gap-2 items-center"><div><h2 className="text-2xl font-semibold">Creator media</h2></div><div className="flex gap-2"><button onClick={load} disabled={busy} className={button} aria-label="Refresh media"><RefreshCw size={16}/></button></div></div>
     {error&&<p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{error}</p>}
     {notice&&<p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800" role="status">{notice}</p>}
-    {paid&&<section className={panel+' space-y-4'}>
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <h3 className="font-semibold flex gap-2 items-center"><Folder size={18}/> Albums</h3>
-        <button className={button} disabled={busy} onClick={()=>setShowAlbumForm(v=>!v)}><FolderPlus size={16} className="inline mr-1"/>New album</button>
-      </div>
-      {showAlbumForm&&<form onSubmit={createAlbum} className="ccx-action-row flex gap-2 items-end">
-        <label className="flex-1 text-sm">Album name<input className={input+' mt-1'} maxLength={120} value={albumTitle} onChange={e=>setAlbumTitle(e.target.value)} placeholder="e.g. Studio shoots 2026"/></label>
-        <button className={button} disabled={busy||!albumTitle.trim()}>Create</button>
-      </form>}
-      <div className="flex flex-wrap gap-2">
-        <button className={ghostBtn} style={{borderColor:selectedAlbum===''?'var(--cc-blue)':'var(--cc-border)',color:selectedAlbum===''?'var(--cc-blue)':'var(--cc-text-secondary)'}} onClick={()=>setSelectedAlbum('')}>All media ({assets.length})</button>
-        {albums.map(a=><div key={a.id} className="flex items-center gap-1 rounded-lg border" style={{borderColor:selectedAlbum===a.id?'var(--cc-blue)':'var(--cc-border)'}}>
-          <button className="px-3 py-2 text-sm font-medium" style={{color:selectedAlbum===a.id?'var(--cc-blue)':'var(--cc-text-secondary)'}} onClick={()=>setSelectedAlbum(a.id)}>{a.title} ({a.count})</button>
-          <button className="px-1.5 py-2 text-red-800 hover:text-red-800" disabled={busy} onClick={()=>deleteAlbum(a.id)} aria-label={`Delete ${a.title}`}><Trash2 size={14}/></button>
-        </div>)}
-        
-      </div>
-    </section>}
+    {paid&&<GalleryAlbumManager albums={albums} request={mediaRequest}
+      selectedAlbum={selectedAlbum} onSelectAlbum={setSelectedAlbum}
+      onRefresh={load} onError={setError}/>}
     <form onSubmit={e=>{e.preventDefault();load();}} className={panel+' flex flex-wrap gap-3 items-end'}>
       <label className="flex-1 text-sm min-w-[200px]">Creator's public member ID<input className={input+' mt-1'} value={target} onChange={e=>setTarget(e.target.value)} placeholder="Blank = my gallery"/></label>
       <button className={button}><Search size={16} className="inline mr-1"/>Find</button>
@@ -173,10 +156,11 @@ export default function MediaGallery({userId,paid=false,admin=false}){
       <h3 className="font-semibold flex gap-2 items-center"><ShieldCheck size={17}/> Upload private media for review</h3>
       <label className="block text-sm">Image or short video (20 MB maximum)<input type="file" accept="image/jpeg,image/png,image/webp,video/mp4" onChange={e=>setFile(e.target.files?.[0]||null)} className="block mt-2 text-sm"/></label>
       <label className="block text-sm">Caption<input className={input+' mt-1'} maxLength={500} value={caption} onChange={e=>setCaption(e.target.value)}/></label>
-      <label className="block text-sm">Visibility after approval<select className={input+' mt-1'} value={visibility} onChange={e=>setVisibility(e.target.value)}><option value="verified">Verified adults</option><option value="connections">Mutual connections</option><option value="private">Me only</option></select></label>
-      <label className="block text-sm">Add to album (optional)<select className={input+' mt-1'} value={uploadAlbumId} onChange={e=>setUploadAlbumId(e.target.value)}><option value="">No album</option>{albums.map(a=><option key={a.id} value={a.id}>{a.title}</option>)}</select></label>
+      <label className="block text-sm">Visibility after approval<select className={input+' mt-1'} value={visibility} onChange={e=>setVisibility(e.target.value)}><option value="premium">Premium members</option><option value="friends">Friends</option><option value="groups">Selected groups (choose a group album)</option><option value="private">Only me</option></select></label>
+      <label className="block text-sm">Add to album (optional)<select className={input+' mt-1'} value={uploadAlbumId} onChange={e=>setUploadAlbumId(e.target.value)}><option value="">No album</option>{albums.map(a=><option key={a.id} value={a.id}>{a.title} — {a.visibility}</option>)}</select></label>
+      {uploadAlbumId&&<p className="text-xs text-[var(--cc-text-secondary)]">The album's audience controls who can see this item.</p>}
       <label className="flex min-w-0 items-start gap-2 text-sm"><input type="checkbox" checked={rights} onChange={e=>setRights(e.target.checked)} className="mt-1 shrink-0"/><span className="min-w-0 break-words">I have the authority to submit this media and confirm that everyone depicted is an adult and that required permissions and releases exist. This attestation will be reviewed; it is not proof by itself.</span></label>
-      <button className={button} disabled={busy||!file||!rights}>Submit for review</button>
+      <button className={button} disabled={busy||!file||!rights||(visibility==='groups'&&!albums.some(a=>a.id===uploadAlbumId&&a.visibility==='groups'))}>Submit for review</button>
       <div className="space-y-3 border-t border-[var(--cc-border)] pt-3">
         <h4 className="font-semibold text-sm">My submissions ({owned.length})</h4>
         {owned.map(v=><div key={v.id} className="rounded-lg border border-[var(--cc-border)] p-3 space-y-2">
@@ -185,6 +169,18 @@ export default function MediaGallery({userId,paid=false,admin=false}){
             <span className="text-xs text-[var(--cc-text-secondary)] shrink-0">{new Date(v.created_at).toLocaleDateString()}</span>
           </div>
           {v.album_id&&<p className="text-xs text-[var(--cc-text-secondary)]">Album: {albumName(v.album_id)}</p>}
+          <div className="space-y-2">
+            <label className="block text-xs">Edit caption
+              <input className={input+' mt-1'} maxLength={500}
+               value={captionEdits[v.id]??v.caption??''}
+               onChange={e=>setCaptionEdits(old=>({...old,[v.id]:e.target.value}))}/></label>
+            {!v.album_id&&<label className="block text-xs">Who can view
+              <select className={input+' mt-1'} value={visibilityEdits[v.id]??(v.visibility==='verified'?'premium':v.visibility==='connections'?'friends':'private')}
+               onChange={e=>setVisibilityEdits(old=>({...old,[v.id]:e.target.value}))}>
+               <option value="premium">Premium members</option><option value="friends">Friends</option><option value="private">Only me</option>
+              </select></label>}
+            <button type="button" className={ghostBtn} disabled={busy} onClick={()=>void updateMedia(v)}>Save details</button>
+          </div>
           {v.status==='approved'&&<div className="ccx-action-row flex gap-2 items-center">
             <select className={input+' max-w-[180px]'} value={assignTarget[v.id]||v.album_id||''} onChange={e=>setAssignTarget(p=>({...p,[v.id]:e.target.value}))}>
               <option value="">Unassigned</option>
