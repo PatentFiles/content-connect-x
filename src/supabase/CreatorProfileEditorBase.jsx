@@ -51,6 +51,22 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
  const [uploading,setUploading]=useState('');
  const [generatingBio,setGeneratingBio]=useState(false);
  const [assetPreview,setAssetPreview]=useState({avatar:profile?.avatar_path?.startsWith('https://')?profile.avatar_path:'',cover:profile?.cover_url?.startsWith('https://')?profile.cover_url:''});
+ useEffect(()=>{
+  let active=true;
+  void (async()=>{
+   for(const kind of ['avatar','cover']){
+    const path=profile?.[kind+'_path'];
+    if(!path)continue;
+    let url=path.startsWith('https://')?path:'';
+    if(!url&&path.startsWith(user.id+'/profile/')){
+     const {data,error}=await supabase.storage.from('member-private').createSignedUrl(path,3600);
+     if(!error)url=data?.signedUrl||'';
+    }
+    if(active&&url)setAssetPreview(old=>({...old,[kind]:url}));
+   }
+  })().catch(()=>{});
+  return()=>{active=false;};
+ },[user.id,profile?.avatar_path,profile?.cover_path]);
  const update=(key,value)=>setForm(old=>({...old,[key]:value}));
  const preference=(key,value)=>setPrefs(old=>({...old,[key]:value}));
  const generateBio=async()=>{
