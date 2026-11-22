@@ -65,3 +65,14 @@ test('signed-out discovery displays every original professional icon and no priv
  assert.match(shell,/\.ccx-sister-brand-footer\{margin:0!important;width:100%/);
  assert.match(shell,/--cc-action:#12698f/);
 });
+
+test('signed-in partner footer centers on viewport despite the desktop sidebar',()=>{
+ const shell=read('src/supabase/OriginalShell.jsx');
+ const css=read('src/supabase/workspace-visual-system.css');
+ assert.match(shell,/className="ccx-sister-brand-footer-inner"/);
+ assert.match(shell,/Production locations and daily rentals:/);
+ assert.match(css,/\.ccx-sister-brand-footer-inner\{[\s\S]*?justify-content:center/);
+ assert.match(css,/@media\(min-width:768px\)\{\s*:root\[data-ccx-appearance="workspace"\] \.ccx-original-shell \.ccx-sister-brand-footer-inner\{/);
+ assert.match(css,/translateX\(calc\(var\(--ccx-workspace-nav-width,18rem\) \/ -2\)\)/);
+ assert.match(css,/\.ccx-sister-brand-footer\{margin:0!important;width:100%/);
+});
