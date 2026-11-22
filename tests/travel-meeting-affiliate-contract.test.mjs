@@ -13,7 +13,7 @@ test('travel calendar enforces non-overlap at both UI and Postgres transaction b
  assert.match(sql,/EXCLUDE USING GIST|exclude using gist/i);
  assert.match(sql,/user_id with =, tstzrange\(starts_at,ends_at,'\[\]'\) with &&/i);
  assert.match(calendar,/Conflicts with/);
- assert.match(calendar,/entry\.city/);
+ assert.match(calendar,/destination\(t\)/);
  assert.match(calendar,/trip\.city/);
  assert.match(calendar,/has_more/);
  assert.match(backend,/result\.error\?\.code==='23P01'/);
@@ -89,4 +89,18 @@ test('adult shop uses supplier checkout, no tracking until approved, private adm
  assert.match(correction,/official_url='https:\/\/shockspot\.net\/'/);
  assert.match(correction,/partner_status='prospect'/);
  assert.doesNotMatch(ui,/addToCart|paymentMethod|creditCardNumber/);
+});
+
+test('calendar dates are blocked privately, owner controlled and rendered red',()=>{
+ const sql=read('supabase/migrations/20261122091500_ccx_calendar_availability_blocks.sql');
+ const ui=read('src/supabase/TravelCalendar.jsx');
+ assert.match(sql,/ccx_calendar_blocks_owner_select/);
+ assert.match(sql,/ccx_calendar_blocks_owner_insert/);
+ assert.match(sql,/ccx_calendar_blocks_owner_delete/);
+ assert.match(sql,/enable row level security/);
+ assert.match(ui,/Block dates/);
+ assert.match(ui,/Save blocked dates/);
+ assert.match(ui,/bg-red-100/);
+ assert.match(ui,/aria-label="Travel destinations and dates"/);
+ assert.match(ui,/ccx_calendar_blocks/);
 });
