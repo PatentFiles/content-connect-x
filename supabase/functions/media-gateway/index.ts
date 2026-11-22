@@ -312,6 +312,21 @@ Deno.serve(async req=>{
         const {error}=await db.from('member_media_assets').update({allow_repost:body.allow_repost===true})
           .eq('id',asset.id).eq('owner_id',uid);
         if(error)throw error;
+        if(body.allow_repost!==true){
+          // Revoke future sharing AND hide previously cross-posted feed entries.
+          // Keep the audit trail without leaving unauthorized media visible.
+          const {data:shared,error:shareError}=await db.from('ccx_gallery_reposts')
+            .select('post_id').eq('media_id',asset.id);
+          if(shareError)throw shareError;
+          const ids=(shared||[]).map((row:any)=>row.post_id).filter(Boolean);
+          if(ids.length){
+            const {error:hideError}=await db.from('community_posts')
+              .update({hidden_at:new Date().toISOString()}).in('id',ids);
+            if(hideError)throw hideError;
+          }
+          const {error:delError}=await db.from('ccx_gallery_reposts').delete().eq('media_id',asset.id);
+          if(delError)throw delError;
+        }
         return reply({ok:true,allow_repost:body.allow_repost===true});
       }
       if(!paid)return reply({error:'Premium membership required for gallery interactions'},403);
