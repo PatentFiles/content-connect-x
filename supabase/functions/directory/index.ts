@@ -55,6 +55,8 @@ Deno.serve(async req=>{
    db.from('ccx_travel_dates').select('id,city,region,country,starts_at,ends_at')
     .eq('user_id',user.id).eq('visible_to_members',true).gte('ends_at',new Date().toISOString())
     .order('starts_at',{ascending:true}).limit(24),
+   db.from('ccx_calendar_blocks').select('id,starts_on,ends_on')
+    .eq('user_id',user.id).gte('ends_on',new Date().toISOString().slice(0,10)).order('starts_on',{ascending:true}).limit(200),
    db.from('member_social_links').select('links,share_with_premium').eq('user_id',user.id).maybeSingle(),
    db.from('member_representations').select('representative_id,creator_id,representative_role,status,starts_at,expires_at,agreed_by_representative_at,agreed_by_professional_at')
     .or('creator_id.eq.'+user.id+',representative_id.eq.'+user.id).eq('status','active').limit(20),
@@ -65,11 +67,12 @@ Deno.serve(async req=>{
     .eq('author_id',user.id).eq('status','published').eq('audience','verified').is('hidden_at',null).is('group_id',null)
     .order('published_at',{ascending:false}).limit(12)
   ]);
-  const names=['travel','social_links','representation','production','portfolio','posts'];
+  const names=['travel','availability','social_links','representation','production','portfolio','posts'];
   const missing=sections.flatMap((v,i)=>v.status==='rejected'||v.value.error?[names[i]]:[]);
   const value=i=>sections[i].status==='fulfilled'&&!sections[i].value.error?sections[i].value.data:null;
   const travels=Array.isArray(value(0))?value(0):[];
-  const social=value(1),allowedSocial= social?.share_with_premium===true&&social?.links&&typeof social.links==='object'?social.links:{};
+  const blockedDates=Array.isArray(value(1))?value(1):[];
+  const social=value(2),allowedSocial= social?.share_with_premium===true&&social?.links&&typeof social.links==='object'?social.links:{};
   // Only official HTTPS social domains and safe links can leave the service.
   const socialDomains={onlyfans:['onlyfans.com'],fansly:['fansly.com'],twitter:['twitter.com','x.com'],instagram:['instagram.com']};
   const socialLinks=Object.entries(allowedSocial).flatMap(([key,raw])=>{
@@ -78,7 +81,7 @@ Deno.serve(async req=>{
     return parsed.protocol==='https:'&&!parsed.username&&!parsed.password&&socialDomains[key].includes(host)?[{platform:key,url:parsed.toString()}]:[];
    }catch{return [];}
   });
-  const active=(Array.isArray(value(2))?value(2):[]).filter(row=>row.agreed_by_representative_at&&row.agreed_by_professional_at&&(!row.expires_at||Date.parse(row.expires_at)>Date.now()));
+  const active=(Array.isArray(value(3))?value(3):[]).filter(row=>row.agreed_by_representative_at&&row.agreed_by_professional_at&&(!row.expires_at||Date.parse(row.expires_at)>Date.now()));
   const ids=active.map(row=>row.creator_id===user.id?row.representative_id:row.creator_id);
   let representatives=[];
   if(ids.length){
@@ -96,7 +99,7 @@ Deno.serve(async req=>{
     });
    }
   }
-  const creator=value(3),portfolio=Array.isArray(value(4))?value(4):[],posts=Array.isArray(value(5))?value(5):[];
+  const creator=value(4),portfolio=Array.isArray(value(5))?value(5):[],posts=Array.isArray(value(6))?value(6):[];
   const externalUrl=raw=>{
    if(typeof raw!=='string')return null;
    try{const u=new URL(raw);return u.protocol==='https:'&&!u.username&&!u.password?u.toString():null;}catch{return null;}
@@ -115,7 +118,7 @@ Deno.serve(async req=>{
    production:{availability_type:creator?.availability_type||null,
     travel_regions:c.available_to_travel===true?(creator?.travel_regions||[]):[],
     scene_pairings:c.show_categories_in_discovery?(creator?.scene_pairings||[]):[]},
-   travel_dates:travels, social_links:socialLinks,representatives,
+   travel_dates:travels,blocked_dates:blockedDates, social_links:socialLinks,representatives,
    featured_portfolio:portfolio.map(x=>({id:x.id,kind:x.kind,title:x.title,description:x.description,url:externalUrl(x.external_url)})),
    posts, sections_unavailable:[...new Set(missing)]
   };
