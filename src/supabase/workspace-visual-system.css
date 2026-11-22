@@ -347,25 +347,25 @@
 
 /* Sidebar palette stays with the central brand system, not per-page CSS. */
 :root[data-ccx-appearance="workspace"] {
- --ccx-nav-rail-bg:#201729;
- --ccx-nav-panel-bg:#292033;
- --ccx-nav-panel-divider:#46384c;
- --ccx-nav-panel-text:#f9f2fb;
- --ccx-nav-panel-muted:#c9b8cc;
- --ccx-nav-panel-active:#44304d;
- --ccx-nav-panel-accent:#e9a3d1;
+ --ccx-nav-rail-bg:#122a3b;
+ --ccx-nav-panel-bg:#193447;
+ --ccx-nav-panel-divider:#31566e;
+ --ccx-nav-panel-text:#f3f9fc;
+ --ccx-nav-panel-muted:#afc8d9;
+ --ccx-nav-panel-active:#25485d;
+ --ccx-nav-panel-accent:#8fd3ef;
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-panel,
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-mobile-panel {
  --cc-bg:var(--ccx-nav-panel-bg);
  --cc-surface:var(--ccx-nav-panel-bg);
- --cc-surface-subtle:#362940;
+ --cc-surface-subtle:#203d50;
  --cc-surface-hover:var(--ccx-nav-panel-active);
  --cc-border:var(--ccx-nav-panel-divider);
  --cc-blue:var(--ccx-nav-panel-accent);
  --cc-link:var(--ccx-nav-panel-accent);
  --cc-text-primary:var(--ccx-nav-panel-text);
- --cc-text-secondary:#dfd1e0;
+ --cc-text-secondary:#d1e3ee;
  --cc-text-muted:var(--ccx-nav-panel-muted);
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-nav-rail-button.is-active,
