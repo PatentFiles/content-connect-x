@@ -37,6 +37,7 @@ import IdentityVerification from './IdentityVerification';
 import PublicLandingSections from './PublicLandingSections';
 import {useAuthAppearance} from './authAppearance';
 import PublicPricing from './PublicPricing';
+import BrandWordmark from './BrandWordmark';
 import AgeGateOnboarding from './AgeGateOnboarding';
 const HostCrossMarketplace = React.lazy(() => import('./HostCrossMarketplace'));
 import {   AlertTriangle, Loader2, RefreshCw, Eye, EyeOff } from 'lucide-react';
@@ -272,7 +273,7 @@ export default function SupabaseApp() {
     <PublicPricing/>
     <footer className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-2 px-4 py-6 text-sm text-[var(--cc-text-secondary)]" aria-label="Connected marketplaces">
      <span>Production spaces and venue hosting:</span>
-     <a href="https://hostconnectx.com" className="font-bold underline underline-offset-4" aria-label="Host Connect X">Host Connect<span style={{color:"#12698f"}}>X</span></a>
+     <a href="https://hostconnectx.com" className="font-bold underline underline-offset-4" aria-label="Host ConnectX"><BrandWordmark brand="host"/></a>
     </footer>
   </div>;
   if(!user&&!authPage)return <div className={shell}>
@@ -299,7 +300,7 @@ export default function SupabaseApp() {
     </main>
     <footer className="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-2 px-4 py-6 text-sm text-[var(--cc-text-secondary)]" aria-label="Connected marketplaces">
      <span>Production spaces and venue hosting:</span>
-     <a href="https://hostconnectx.com" className="font-bold underline underline-offset-4" aria-label="Host Connect X">Host Connect<span style={{color:"#12698f"}}>X</span></a>
+     <a href="https://hostconnectx.com" className="font-bold underline underline-offset-4" aria-label="Host ConnectX"><BrandWordmark brand="host"/></a>
     </footer>
   </div>;
   if(!user&&authPage)return <div className={shell}>
@@ -308,8 +309,8 @@ export default function SupabaseApp() {
       <section className="ccx-login-art absolute inset-0 rounded-none border-0" aria-hidden="true"/>
       <section id="ccx-auth" className="ccx-surface relative z-10 w-full max-w-xl scroll-mt-24 bg-[var(--cc-surface-subtle)] p-6 backdrop-blur-xl sm:p-8" aria-label={signUp?'Create a Content Connect X account':'Sign in to Content Connect X'}>
         <div className="flex items-center gap-4">
-          <img src="/content_connect_logo.png" alt="Content Connect X" className="ccx-brand-mark h-16 w-16 shrink-0 rounded-2xl object-cover"/>
-          <div><p className="ccx-eyebrow">Content Connect X</p><h2 className="mt-1 text-2xl font-bold">{signUp?'Join the network':'Welcome back'}</h2></div>
+          <img src="/content_connect_logo.png" alt="Content ConnectX" className="ccx-brand-mark h-16 w-16 shrink-0 rounded-2xl object-cover"/>
+          <div><p className="ccx-eyebrow"><BrandWordmark brand="content"/></p><h2 className="mt-1 text-2xl font-bold">{signUp?'Join the network':'Welcome back'}</h2></div>
         </div>
         <p className="mt-5 text-sm leading-6 text-[var(--cc-text-secondary)]">Start with free registration and independent age verification. Membership and premium actions are available only when their services are activated.</p>
         {signUp&&<div className="mt-3 rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-xs leading-5 text-[var(--cc-text-secondary)]">
