@@ -50,6 +50,100 @@ Deno.serve(async req=>{
   const audit=async(event:string,target:string,details:Record<string,unknown>={})=>{
     await db.from('platform_action_audit').insert({actor_id:uid,action:event,target_type:'media',target_id:target,metadata:details});
   };
+  // Album policy is server-authorized on every list, open and interaction.
+  // No private image or membership data is returned without the matching gate.
+  const albums=new Map<string,any>();
+  const albumFor=async (id:string|null|undefined)=>{
+    if(!id)return null;
+    if(albums.has(id))return albums.get(id);
+    const {data,error}=await db.from('member_media_albums')
+      .select('id,owner_id,title,visibility,allowed_group_ids').eq('id',id).maybeSingle();
+    if(error)throw error;
+    albums.set(id,data||null);
+    return data||null;
+  };
+  const isConnected=async(owner:string)=>{
+    const {data,error}=await db.from('member_connection_requests').select('id')
+      .eq('status','accepted')
+      .or(`and(requester_id.eq.${uid},recipient_id.eq.${owner}),and(requester_id.eq.${owner},recipient_id.eq.${uid})`)
+      .limit(1);
+    if(error)throw error;
+    return Boolean(data?.length);
+  };
+  const activeGroups=async(owner:string,groupIds:string[])=>{
+    if(!groupIds.length)return false;
+    const {data:groups,error:groupError}=await db.from('ccx_social_groups')
+      .select('id').in('id',groupIds).eq('state','active');
+    if(groupError)throw groupError;
+    const allowed=(groups||[]).map((g:any)=>g.id);
+    if(!allowed.length)return false;
+    const {data:members,error:memberError}=await db.from('ccx_social_group_members')
+      .select('group_id,user_id').in('group_id',allowed)
+      .in('user_id',[owner,uid]).eq('status','active');
+    if(memberError)throw memberError;
+    return allowed.some(id=>(members||[]).some((m:any)=>m.group_id===id&&m.user_id===owner)
+      &&(members||[]).some((m:any)=>m.group_id===id&&m.user_id===uid));
+  };
+  const audienceFor=async(asset:any)=>{
+    if(!asset.album_id)return asset.visibility==='verified'?'premium':
+      asset.visibility==='connections'?'friends':'private';
+    const album=await albumFor(asset.album_id);
+    if(!album||album.owner_id!==asset.owner_id)return 'private';
+    return album.visibility;
+  };
+  const canView=async(asset:any)=>{
+    if(asset.owner_id===uid)return true;
+    const audience=await audienceFor(asset);
+    if(audience==='private')return false;
+    if(audience==='premium')return paid;
+    if(audience==='friends')return isConnected(asset.owner_id);
+    if(audience==='groups'){
+      const album=await albumFor(asset.album_id);
+      return Boolean(album&&await activeGroups(asset.owner_id,album.allowed_group_ids||[]));
+    }
+    return false;
+  };
+  const revokeShares=async(mediaIds:string[])=>{
+    if(!mediaIds.length)return;
+    const {data:shares,error}=await db.from('ccx_gallery_reposts')
+      .select('post_id').in('media_id',mediaIds);
+    if(error)throw error;
+    const posts=(shares||[]).map((r:any)=>r.post_id).filter(Boolean);
+    if(posts.length){
+      const {error:hideError}=await db.from('community_posts')
+        .update({hidden_at:new Date().toISOString()}).in('id',posts);
+      if(hideError)throw hideError;
+    }
+    const {error:delError}=await db.from('ccx_gallery_reposts')
+      .delete().in('media_id',mediaIds);
+    if(delError)throw delError;
+  };
+  const ownerGroupIds=async()=>{
+    const {data:member,error}=await db.from('ccx_social_group_members')
+      .select('group_id').eq('user_id',uid).eq('status','active').limit(100);
+    if(error)throw error;
+    const ids=(member||[]).map((m:any)=>m.group_id);
+    if(!ids.length)return [];
+    const {data:groups,error:groupError}=await db.from('ccx_social_groups')
+      .select('id,name').in('id',ids).eq('state','active');
+    if(groupError)throw groupError;
+    return groups||[];
+  };
+  const policyInput=async()=>{
+    const visibility=['premium','friends','groups','private'].includes(body.visibility)
+      ?body.visibility:'private';
+    const ids=Array.isArray(body.group_ids)?body.group_ids:[];
+    if(ids.length>12||ids.some((v:unknown)=>!uuid(v))||new Set(ids).size!==ids.length)
+      throw Error('Choose valid groups');
+    const requested=visibility==='groups'?ids:[];
+    if(visibility==='groups'&&!requested.length)throw Error('Select at least one group');
+    if(requested.length){
+      const groupRows=await ownerGroupIds();
+      if(requested.some((v:string)=>!groupRows.some((g:any)=>g.id===v)))
+        throw Error('Choose only active groups you belong to');
+    }
+    return {visibility,allowed_group_ids:requested};
+  };
   try{
     if(action==='register_self_feed_photo'){
       // Solo images only: account verification is NOT verification of other performers.
@@ -120,11 +214,18 @@ Deno.serve(async req=>{
         .eq('owner_id',uid).gte('created_at',new Date(Date.now()-86400000).toISOString());
       if(rateError)return reply({error:'Upload limit unavailable'},503);
       if((count||0)>=10)return reply({error:'Daily media submission limit reached'},429);
-      const visibility=['verified','connections','private'].includes(body.visibility)?body.visibility:'verified';
+      let visibility=body.visibility==='friends'||body.visibility==='connections'?'connections':
+        body.visibility==='private'?'private':'verified';
       let albumId:string|null=null;
-      if(uuid(body.album_id)){
-        const {data:album}=await db.from('member_media_albums').select('id').eq('id',body.album_id).eq('owner_id',uid).maybeSingle();
-        if(album)albumId=album.id;
+      if(body.album_id){
+        if(!uuid(body.album_id))return reply({error:'Invalid album'},400);
+        const album=await albumFor(body.album_id);
+        if(!album||album.owner_id!==uid)return reply({error:'Album not found'},404);
+        albumId=album.id;
+        // Albums own the effective access policy. Keep the legacy asset field
+        // aligned so removing the album never silently broadens visibility.
+        visibility=album.visibility==='premium'?'verified':
+          album.visibility==='friends'?'connections':'private';
       }
       const {data,error}=await db.from('member_media_assets').insert({
         owner_id:uid,storage_path:path,mime_type:type,caption:plain(body.caption,500),
@@ -144,14 +245,14 @@ Deno.serve(async req=>{
     }
     if(action==='my_media'){
       const {data,error}=await db.from('member_media_assets')
-        .select('id,caption,status,visibility,mime_type,album_id,created_at').eq('owner_id',uid)
+        .select('id,caption,status,visibility,mime_type,album_id,allow_repost,created_at').eq('owner_id',uid)
         .order('created_at',{ascending:false}).limit(60);
       if(error)throw error;
       return reply({items:data||[]});
     }
     if(action==='list_albums'){
       const {data,error}=await db.from('member_media_albums')
-        .select('id,title,created_at,updated_at').eq('owner_id',uid)
+        .select('id,title,visibility,allowed_group_ids,created_at,updated_at').eq('owner_id',uid)
         .order('created_at',{ascending:false});
       if(error)throw error;
       const albums=(data||[]).map((a:any)=>({...a,count:0}));
@@ -164,44 +265,102 @@ Deno.serve(async req=>{
       }
       return reply({items:albums});
     }
+    if(action==='available_groups'){
+      return reply({items:await ownerGroupIds()});
+    }
     if(action==='create_album'){
       if(!paid)return reply({error:'Premium membership required for albums'},403);
       const title=plain(body.title,120);
       if(!title)return reply({error:'Album title is required'},400);
       const {count}=await db.from('member_media_albums').select('id',{count:'exact',head:true}).eq('owner_id',uid);
       if((count||0)>=20)return reply({error:'Album limit reached (20)'},429);
-      const {data,error}=await db.from('member_media_albums').insert({owner_id:uid,title})
-        .select('id,title,created_at').single();
+      let policy;
+      try{policy=await policyInput();}catch(e){return reply({error:(e as Error).message},400);}
+      const {data,error}=await db.from('member_media_albums').insert({owner_id:uid,title,...policy})
+        .select('id,title,visibility,allowed_group_ids,created_at').single();
       if(error)return reply({error:'Could not create album'},400);
       return reply({item:data},201);
     }
     if(action==='update_album'){
+      if(!paid)return reply({error:'Premium membership required'},403);
       if(!uuid(body.album_id))return reply({error:'Invalid album'},400);
       const title=plain(body.title,120);
       if(!title)return reply({error:'Album title is required'},400);
-      const {data,error}=await db.from('member_media_albums').update({title,updated_at:new Date().toISOString()})
-        .eq('id',body.album_id).eq('owner_id',uid).select('id,title').maybeSingle();
+      let policy;
+      try{policy=await policyInput();}catch(e){return reply({error:(e as Error).message},400);}
+      const {data:existing,error:existingError}=await db.from('member_media_albums')
+        .select('id').eq('id',body.album_id).eq('owner_id',uid).maybeSingle();
+      if(existingError||!existing)return reply({error:'Album not found'},404);
+      // Prevent old globally shared reposts persisting after any change to album rules.
+      const {data:media,error:mediaError}=await db.from('member_media_assets')
+        .select('id').eq('album_id',body.album_id).eq('owner_id',uid);
+      if(mediaError)throw mediaError;
+      await revokeShares((media||[]).map((m:any)=>m.id));
+      const {data,error}=await db.from('member_media_albums')
+        .update({title,...policy,updated_at:new Date().toISOString()})
+        .eq('id',body.album_id).eq('owner_id',uid)
+        .select('id,title,visibility,allowed_group_ids').maybeSingle();
       if(error||!data)return reply({error:'Album not found'},404);
+      await audit('gallery_album_updated',body.album_id);
       return reply({item:data});
     }
     if(action==='delete_album'){
+      if(!paid)return reply({error:'Premium membership required'},403);
       if(!uuid(body.album_id))return reply({error:'Invalid album'},400);
+      const {data:media,error:mediaError}=await db.from('member_media_assets')
+        .select('id').eq('album_id',body.album_id).eq('owner_id',uid);
+      if(mediaError)throw mediaError;
+      const ids=(media||[]).map((m:any)=>m.id);
+      await revokeShares(ids);
+      if(ids.length){
+        const {error:lockError}=await db.from('member_media_assets')
+          .update({visibility:'private',allow_repost:false}).in('id',ids).eq('owner_id',uid);
+        if(lockError)throw lockError;
+      }
       const {error}=await db.from('member_media_albums').delete().eq('id',body.album_id).eq('owner_id',uid);
       if(error)return reply({error:'Could not delete album'},400);
+      await audit('gallery_album_deleted',body.album_id);
       return reply({ok:true});
     }
     if(action==='assign_album'){
+      if(!paid)return reply({error:'Premium membership required'},403);
       if(!uuid(body.media_id))return reply({error:'Invalid media'},400);
       let albumId:string|null=null;
-      if(uuid(body.album_id)){
-        const {data:album}=await db.from('member_media_albums').select('id').eq('id',body.album_id).eq('owner_id',uid).maybeSingle();
-        if(!album)return reply({error:'Album not found'},404);
+      let visibility='private';
+      if(body.album_id){
+        if(!uuid(body.album_id))return reply({error:'Invalid album'},400);
+        const album=await albumFor(body.album_id);
+        if(!album||album.owner_id!==uid)return reply({error:'Album not found'},404);
         albumId=album.id;
+        visibility=album.visibility==='premium'?'verified':
+          album.visibility==='friends'?'connections':'private';
       }
-      const {error}=await db.from('member_media_assets').update({album_id:albumId})
-        .eq('id',body.media_id).eq('owner_id',uid);
-      if(error)return reply({error:'Could not assign album'},400);
+      await revokeShares([body.media_id]);
+      const {data,error}=await db.from('member_media_assets')
+        .update({album_id:albumId,visibility,allow_repost:false})
+        .eq('id',body.media_id).eq('owner_id',uid).select('id').maybeSingle();
+      if(error||!data)return reply({error:'Could not assign media'},404);
+      await audit('gallery_media_assigned',body.media_id);
       return reply({ok:true});
+    }
+    if(action==='edit_media'){
+      if(!paid)return reply({error:'Premium membership required'},403);
+      if(!uuid(body.media_id))return reply({error:'Invalid media'},400);
+      const {data:media,error:readError}=await db.from('member_media_assets')
+        .select('id,album_id,visibility').eq('id',body.media_id).eq('owner_id',uid).maybeSingle();
+      if(readError||!media)return reply({error:'Media not found'},404);
+      const nextVisibility=body.visibility==='premium'?'verified':
+        body.visibility==='friends'?'connections':
+        body.visibility==='private'?'private':media.visibility;
+      if(media.album_id&&body.visibility)return reply({error:'Change the album audience instead'},400);
+      if(nextVisibility!=='verified')await revokeShares([media.id]);
+      const {data,error}=await db.from('member_media_assets')
+        .update({caption:plain(body.caption,500),visibility:nextVisibility,
+          allow_repost:nextVisibility==='verified'?undefined:false})
+        .eq('id',media.id).eq('owner_id',uid).select('id,caption,visibility').maybeSingle();
+      if(error||!data)return reply({error:'Unable to update media'},400);
+      await audit('gallery_media_edited',media.id);
+      return reply({item:data});
     }
     if(action==='gallery'){
       const target=uuid(body.owner_id)?body.owner_id:uid;
