@@ -102,7 +102,7 @@ export default function TrustSite({children}){
   return()=>{active=false;};
  },[legalPage]);
  useEffect(()=>{if(legalPage)document.title=(page?.title|| (slug==='cookies'?'Cookie preferences':slug==='review'?'Staff review':'Trust & safety'))+' | Content ConnectX';},[legalPage,page,slug]);
- if(!legalPage)return <>{children}<TrustFooter homePage={path===''}/>;
+ if(!legalPage)return <>{children}<TrustFooter homePage={path===''}/></>;
  const formKind={'content-removal':'ncii',support:'support',privacy:'privacy',accessibility:'accessibility',affiliates:'affiliate','law-enforcement':'law_enforcement'}[slug]||(page&&!['cookies','review'].includes(slug)?'support':null);
  return <div className="ccx-trust-layout"><header className="ccx-trust-header"><a className="ccx-trust-brand" href="/"><BrandWordmark brand="content"/></a><a href="/Dashboard">Return to workspace</a></header>
   <main className="ccx-trust-page"><p className="ccx-trust-eyebrow">TRUST · PRIVACY · SUPPORT</p><h1>{page?.title||(slug==='cookies'?'Cookie preferences':slug==='review'?'Staff review':'Page not found')}</h1>

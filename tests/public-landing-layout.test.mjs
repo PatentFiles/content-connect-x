@@ -39,6 +39,7 @@ test('signed-out home uses one unlinked Content brand with a fully linked Host b
  assert.ok(trust.includes('className="ccx-home-host-link" href="https://hostconnectx.com"'));
  assert.ok(trust.includes('<BrandWordmark brand="host"/></a>'));
  assert.ok(trust.includes("homePage={path===''}"));
+ assert.ok(trust.includes("<TrustFooter homePage={path===''} /></>".replace(' />','/>')),'Trust footer fragment is closed');
  assert.ok(trust.includes('aria-label="Legal, safety and support"'));
 });
 
