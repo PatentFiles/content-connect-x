@@ -9,6 +9,7 @@ import {effectiveWorkspaceRole} from './roleWorkspacePolicy.mjs';
 import ModuleAccessBoundary from './ModuleAccessBoundary';
 import {supabase} from '@/api/supabaseClient';
 import BrandWordmark from './BrandWordmark';
+import DashboardProfileAvatar from './DashboardProfileAvatar';
 const routeMap=Object.freeze({
  Dashboard:'dashboard',Discovery:'directory',Search:'directory',Favorites:'favorites',Connections:'connections',Groups:'groups',Messages:'messages',Collaborations:'collaborations',
  Contracts:'contracts',Shop:'shop',Testing:'testing',Verification:'verification',Properties:'hosting',HostingMarketplace:'hosting',HostDashboard:'host',HostProfile:'profile',
@@ -147,8 +148,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
    <div className="ccx-nav-panel flex min-w-0 flex-1 flex-col">
     <div className="ccx-nav-profile">
      <button type="button" className="flex w-full items-center gap-3 rounded-lg p-2 text-left" onClick={()=>onNavigate('profile')}>
-      <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full"
-       style={{background:'var(--cc-surface-hover)',color:'var(--cc-blue)'}}>{profile?.avatar_path?<img src={profile.avatar_path} alt="" className="h-full w-full object-cover"/>:(profile?.display_name||'U').slice(0,1).toUpperCase()}</span>
+      <DashboardProfileAvatar profile={profile} userId={user?.id} className="h-10 w-10"/>
       <span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{profile?.display_name||'Set up profile'}</span>
        <span className="mt-1 inline-flex rounded-full border px-2 py-0.5 text-xs capitalize"
         style={{borderColor:'var(--cc-border)',color:'var(--cc-text-secondary)'}}>{roleLabel[role]||role}</span></span>

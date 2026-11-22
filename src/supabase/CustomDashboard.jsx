@@ -7,6 +7,7 @@ import {roleTitle,dashboardGreetingName} from './roleWorkspacePolicy.mjs';
 import {widgetsForRole,defaultDashboardLayout,normalizeDashboardLayout,moveDashboardWidget} from './dashboardWidgets.mjs';
 import {accessCopy} from './moduleAccessPolicy.mjs';
 import DashboardPeople from './DashboardPeople';
+import DashboardProfileAvatar from './DashboardProfileAvatar';
 import DashboardProperties from './DashboardProperties';
 import SponsorshipSlot from './SponsorshipSlot';
 import ConnectFeed from './ConnectFeed';
@@ -76,9 +77,8 @@ export default function CustomDashboard({profile,onNavigate,roleOverride,paid=fa
   <main className="min-w-0" aria-label="Feed">
    <header className="ccx-dashboard-welcome mb-4" aria-label="Welcome to your dashboard">
     <div className="flex items-center gap-4">
-     <button type="button" aria-label="Open my profile" onClick={()=>onNavigate('profile')}
-      className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full border border-[var(--cc-border)] bg-[var(--cc-surface-hover)] text-xl font-bold">
-      {profile?.avatar_path&&/^https:\/\//.test(profile.avatar_path)?<img src={profile.avatar_path} alt="" className="h-full w-full object-cover"/>:dashboardGreetingName(profile).slice(0,1).toUpperCase()}
+     <button type="button" aria-label="Open my profile" onClick={()=>onNavigate('profile')}>
+      <DashboardProfileAvatar profile={profile} userId={userId}/>
      </button>
      <div className="min-w-0">
       <p className="ccx-dashboard-welcome-kicker">YOUR WORKSPACE</p>

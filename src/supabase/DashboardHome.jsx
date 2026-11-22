@@ -4,6 +4,7 @@
  * Supabase-authorized workflow rather than pretending a backend capability exists.
  */
 import React from 'react';
+import DashboardProfileAvatar from './DashboardProfileAvatar';
 import {
   ArrowUpRight, CalendarDays, Building2, UsersRound, Search,
   ShieldCheck, MessageSquare, CheckCircle2, UserRound,
@@ -47,9 +48,8 @@ export default function DashboardHome({profile,verification,approved,paid,onNavi
       <div className="ccx-hero-ambient absolute inset-0 pointer-events-none"/>
     </section>
     <section className="ccx-surface rounded-[26px] px-6 py-7 md:px-10 md:py-9">
-      <div className="flex items-center gap-4"><button type="button" onClick={()=>onNavigate('profile')} aria-label="Open my profile"
-       className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full border border-[var(--cc-border)] bg-[var(--cc-surface-hover)] text-lg font-semibold">
-       {profile?.avatar_path&&/^https:\/\//.test(profile.avatar_path)?<img src={profile.avatar_path} alt="" className="h-full w-full object-cover"/>:(name||'U').slice(0,1).toUpperCase()}
+      <div className="flex items-center gap-4"><button type="button" onClick={()=>onNavigate('profile')} aria-label="Open my profile">
+       <DashboardProfileAvatar profile={profile} userId={profile?.id}/>
       </button>
       <h2 className="max-w-2xl text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-[2.75rem]">
         {name?<>Welcome back, <span className="ccx-gradient-text">{name}</span>.</>:
