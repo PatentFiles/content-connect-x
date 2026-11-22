@@ -1,7 +1,7 @@
 /** Role-specific professional settings. Creator-only identity/acts remain in the original creator editor. */
 import {bioSafetyMessage} from './bioSafety.mjs';
 import React,{useEffect,useState} from 'react';
-import {User,Users,Camera,Activity,ChevronDown,Upload,ShieldCheck,Edit2} from 'lucide-react';
+import {User,Users,Camera,Activity,ChevronDown} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
 import {countries,countryCode,countryName,regionOptions} from './profileOptions';
 import {professionalSections,ROSTER_ROLES,PORTFOLIO_ROLES,roleTitle,validateWorkLink} from './roleWorkspacePolicy.mjs';
