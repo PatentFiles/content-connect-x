@@ -1235,3 +1235,190 @@ html[data-ccx-appearance="public"] .ccx-app {
 :where(html[data-ccx-appearance="public"]) .ccx-slim-footer {
  background:transparent;
 }
+
+/* Content Connect X signed-out HOME ONLY.
+ * Restore the hero's blue/violet/pink visual family across Discovery,
+ * Features, Steps, final CTA and the single footer; never alter workspace,
+ * Host Connect, login, or the original hero artwork. */
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing {
+ --sl-cyan:#52d9ff;
+ --sl-pink:#ff68cf;
+ background:
+  radial-gradient(ellipse 60% 24% at 12% 4%,rgba(48,110,255,.17),transparent 84%),
+  radial-gradient(ellipse 55% 30% at 90% 46%,rgba(161,77,255,.15),transparent 84%),
+  radial-gradient(ellipse 58% 23% at 14% 79%,rgba(255,66,183,.11),transparent 86%),
+  linear-gradient(180deg,#090e25 0%,#0d102b 39%,#110c2a 75%,#090d24 100%);
+ color:#f5f4ff;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-gradient {
+ background:linear-gradient(105deg,#59ddff 0%,#a98aff 48%,#ff64d0 100%);
+ -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-kicker {
+ color:#d8b6ff;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-home-discovery {
+ border-block:1px solid rgba(149,115,255,.23);
+ background:
+  radial-gradient(ellipse 65% 60% at 10% 0%,rgba(44,141,252,.12),transparent 85%),
+  radial-gradient(ellipse 45% 65% at 90% 80%,rgba(210,73,221,.13),transparent 83%);
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-features {
+ background:
+  radial-gradient(ellipse 60% 75% at 93% 8%,rgba(125,74,255,.11),transparent 78%),
+  radial-gradient(ellipse 55% 60% at 10% 98%,rgba(241,61,182,.09),transparent 80%);
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-steps-section {
+ border-top:1px solid rgba(161,117,255,.20);
+ background:
+  radial-gradient(ellipse 67% 78% at 50% 50%,rgba(111,68,232,.19),transparent 82%),
+  radial-gradient(ellipse 40% 90% at 0% 85%,rgba(21,146,239,.10),transparent 85%);
+}
+/* Retain the original animated Feature cards, but color their glows to match
+ * the supplied hero rather than the later all-blue marketing override. */
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-feature {
+ --accent:#65dcff;--ambient:rgba(64,166,255,.23);
+ background:linear-gradient(150deg,rgba(28,28,67,.92),rgba(12,16,39,.96) 75%);
+ border-color:rgba(138,136,211,.32);
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-feature.ccx-slim-pink {
+ --accent:#ff73cf;--ambient:rgba(255,68,187,.24);
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-feature.ccx-slim-violet {
+ --accent:#b89aff;--ambient:rgba(157,95,255,.25);
+}
+/* Shared effect mirrors Feature hover lift + ambient radial light + twisting
+ * pictogram. Cards are informational, not fake buttons or unlocked links. */
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-hover-cyan {
+ --card-accent:#60d9ff;--card-glow:rgba(47,160,245,.28);
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-hover-pink {
+ --card-accent:#ff72d0;--card-glow:rgba(245,66,188,.30);
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-hover-violet {
+ --card-accent:#b99aff;--card-glow:rgba(159,96,255,.30);
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing :is(.ccx-slim-step,.ccx-home-discovery-card) {
+ position:relative;isolation:isolate;overflow:hidden;
+ border:1px solid rgba(151,131,211,.32);
+ background:linear-gradient(145deg,rgba(30,25,69,.94),rgba(14,18,45,.95) 82%);
+ box-shadow:0 12px 30px rgba(5,7,30,.22);
+ transform:translateY(0);
+ transition:transform .38s cubic-bezier(.2,.8,.2,1),border-color .3s,box-shadow .38s;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing :is(.ccx-slim-step,.ccx-home-discovery-card)::before {
+ content:"";position:absolute;inset:-70% -45% 33%;
+ z-index:0;pointer-events:none;
+ background:radial-gradient(circle,var(--card-glow),transparent 70%);
+ opacity:.63;transform:translateY(-8px);
+ transition:opacity .35s,transform .5s;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing :is(.ccx-slim-step,.ccx-home-discovery-card) > * {
+ position:relative;z-index:1;
+}
+/* Fix the misaligned pictograms on both desktop and narrow screens. The icon
+ * is centered within its square and the square within the full-width card. */
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-step {
+ display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+ min-height:260px;padding:27px 18px 25px;text-align:center;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-step-top {
+ box-sizing:border-box;display:grid;place-items:center;
+ align-items:center;justify-items:center;justify-content:center;
+ width:106px;height:106px;flex:0 0 106px;
+ margin:0 auto 20px;padding:0;
+ border:1px solid color-mix(in srgb,var(--card-accent) 38%,transparent);
+ border-radius:26px;
+ background:linear-gradient(145deg,var(--card-glow),rgba(10,15,35,.58));
+ box-shadow:inset 0 0 24px var(--card-glow);
+ color:var(--card-accent);
+ transition:transform .4s cubic-bezier(.2,.8,.2,1),box-shadow .4s;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-step-top svg {
+ display:block;width:64px;height:64px;place-self:center;margin:auto;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-step h3 {
+ margin:0 0 10px;text-align:center;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-step p {
+ margin:0 auto;max-width:205px;text-align:center;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-step:not(:last-child)::after {
+ top:72px;border-color:#ae91ff;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-home-discovery-artwork {
+ flex:none;transform:translateY(0);
+ transition:transform .4s cubic-bezier(.2,.8,.2,1),filter .35s;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-home-discovery-card h3 {
+ color:#f6f0ff;
+}
+/* Let the entire footer/last CTA follow the hero palette: no extra box and
+ * no duplicated footer branding. */
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-cta-wrap {
+ background:radial-gradient(ellipse 70% 88% at 50% 100%,rgba(176,74,229,.13),transparent 84%);
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-cta {
+ border-color:rgba(176,116,255,.48);
+ background:linear-gradient(118deg,#1e163f 0%,#101e41 53%,#321438 100%);
+ box-shadow:0 25px 60px rgba(5,7,27,.33),0 0 28px rgba(177,87,230,.08);
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-cta-glow {
+ background:radial-gradient(circle at 8% 16%,rgba(32,172,255,.25),transparent 38%),
+  radial-gradient(circle at 94% 84%,rgba(255,53,180,.25),transparent 42%);
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-button-primary {
+ background:linear-gradient(105deg,#139cd9,#8c59e8 55%,#dc3da8);
+ border-color:rgba(202,137,251,.6);
+ color:#fff;box-shadow:0 8px 26px rgba(141,67,212,.29);
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-button-primary:hover {
+ box-shadow:0 12px 30px rgba(179,74,212,.42);
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-footer {
+ border-top:1px solid rgba(177,117,244,.25);
+ background:radial-gradient(ellipse 55% 95% at 8% 90%,rgba(65,105,235,.11),transparent 78%),
+  radial-gradient(ellipse 55% 95% at 95% 10%,rgba(243,66,192,.12),transparent 78%),
+  linear-gradient(180deg,#0c102a,#0b0c20);
+}
+/* Match the public navigation accent to the homepage only (not /login or
+ * /pricing), while leaving the source hero image exactly as uploaded. */
+:where(html[data-ccx-appearance="public"]:has(.ccx-public-landing)) .ccx-brand-topline {
+ background:linear-gradient(90deg,#197fcb 0%,#9260ec 50%,#ef54b9 100%);
+ box-shadow:0 0 18px rgba(149,70,211,.28);
+}
+:where(html[data-ccx-appearance="public"]:has(.ccx-public-landing)) .ccx-public-nav .ccx-primary,
+:where(html[data-ccx-appearance="public"]:has(.ccx-public-landing)) .ccx-hero-image .ccx-primary {
+ background:linear-gradient(105deg,#139cd9,#8c59e8 55%,#dc3da8);
+ border-color:#bb7bdc;color:#fff;
+}
+@media(hover:hover) and (pointer:fine){
+ :where(html[data-ccx-appearance="public"]) .ccx-public-landing :is(.ccx-slim-step,.ccx-home-discovery-card):hover {
+  transform:translateY(-9px);border-color:var(--card-accent);
+  box-shadow:0 22px 50px rgba(5,8,26,.42),0 0 27px var(--card-glow);
+ }
+ :where(html[data-ccx-appearance="public"]) .ccx-public-landing :is(.ccx-slim-step,.ccx-home-discovery-card):hover::before {
+  opacity:1;transform:translateY(14px);
+ }
+ :where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-step:hover .ccx-slim-step-top {
+  transform:translateY(-3px) rotate(-5deg) scale(1.08);
+  box-shadow:0 0 28px var(--card-glow),inset 0 0 24px var(--card-glow);
+ }
+ :where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-home-discovery-card:hover .ccx-home-discovery-artwork {
+  transform:translateY(-3px) rotate(-5deg) scale(1.08);
+  filter:drop-shadow(0 0 12px var(--card-glow));
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ :where(html[data-ccx-appearance="public"]) .ccx-public-landing :is(.ccx-slim-step,.ccx-home-discovery-card),
+ :where(html[data-ccx-appearance="public"]) .ccx-public-landing :is(.ccx-slim-step,.ccx-home-discovery-card)::before,
+ :where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-step-top,
+ :where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-home-discovery-artwork {
+  transition:none!important;animation:none!important;
+ }
+ :where(html[data-ccx-appearance="public"]) .ccx-public-landing :is(.ccx-slim-step,.ccx-home-discovery-card):hover,
+ :where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-slim-step:hover .ccx-slim-step-top,
+ :where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-home-discovery-card:hover .ccx-home-discovery-artwork {
+  transform:none!important;
+ }
+}

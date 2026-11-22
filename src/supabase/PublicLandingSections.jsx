@@ -11,6 +11,7 @@ const features = [
   {title:'Digital Contracts', sub:'Clarity from the start', text:'Prepare, sign, and retain agreements with documented consent and a traceable history.', Icon:FileSignature, tone:'cyan'},
   {title:'Hosting & Location Booking', sub:'Powered by Host Connect', text:'Discover production spaces, request bookings, and coordinate a location with the rest of your project.', Icon:MapPinned, tone:'pink', href:'https://hostconnectx.com'}
 ];
+const hoverTones=['cyan','pink','violet'];
 const steps = [
   {label:'Verify',desc:'Confirm your identity and age.',Icon:Fingerprint},
   {label:'Subscribe',desc:'Choose the membership that fits your work.',Icon:CreditCard},
@@ -29,7 +30,7 @@ export default function PublicLandingSections(){
      <p>Find creators, filmmakers, production teams and services to collaborate, create and work together.</p>
     </div>
     <div className="ccx-home-discovery-grid" aria-label="Discover professional categories">
-     {DISCOVERY_CATEGORIES.filter(item=>item.key!=='chef').map(item=><article className="ccx-home-discovery-card" key={item.key}>
+     {DISCOVERY_CATEGORIES.filter(item=>item.key!=='chef').map((item,index)=><article className={`ccx-home-discovery-card ccx-hover-${hoverTones[index%hoverTones.length]}`} key={item.key}>
       <span className="ccx-home-discovery-artwork" aria-hidden="true">
        {item.image&&<img src={item.image} alt="" loading="lazy" decoding="async"/>}
       </span>
@@ -71,8 +72,8 @@ export default function PublicLandingSections(){
      <h2 id="ccx-steps-title">From introduction to <span className="ccx-slim-gradient">action.</span></h2>
      <p>A clear path from creating an account to planning your next professional collaboration.</p>
     </div>
-    <ol className="ccx-slim-steps">{steps.map(({label,desc,Icon})=>
-     <li className="ccx-slim-step" key={label}>
+    <ol className="ccx-slim-steps">{steps.map(({label,desc,Icon},index)=>
+     <li className={`ccx-slim-step ccx-hover-${hoverTones[index%hoverTones.length]}`} key={label}>
       <div className="ccx-slim-step-top"><Icon size={64} strokeWidth={1.55} aria-hidden="true"/></div>
       <h3>{label}</h3><p>{desc}</p>
      </li>)}</ol>
