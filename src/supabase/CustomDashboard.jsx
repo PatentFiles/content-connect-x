@@ -20,7 +20,7 @@ function Metric({widget,metric,onNavigate}){
   return <div className="space-y-2"><p className="text-sm font-medium">{copy.title}</p><p className="text-xs leading-5" style={{color:'var(--cc-text-secondary)'}}>{copy.description}</p>{copy.tab&&<button type="button" onClick={()=>onNavigate(copy.tab)} className="text-xs text-[var(--cc-link)] underline">{copy.action}</button>}</div>;
  }
  return <><p className="text-3xl font-bold tabular-nums">{displayNumber(metric.value)}</p><p className="mt-2 text-xs leading-5" style={{color:'var(--cc-text-secondary)'}}>{metric.subtitle}</p>
-  {Array.isArray(metric.items)&&<div className="mt-3 space-y-2">{metric.items.length===0?<p className="text-xs" style={{color:'var(--cc-text-muted)'}}>No entries yet.</p>:metric.items.map(item=><div key={item.id} className="border-t pt-2" style={{borderColor:'var(--cc-border)'}}><p className="text-sm break-words">{item.title}</p><time className="text-xs" style={{color:'var(--cc-text-muted)'}} dateTime={item.at}>{new Date(item.at).toLocaleString()}</time></div>)}</div>}
+  {Array.isArray(metric.items)&&<div className="mt-3 space-y-2">{metric.items.length===0?null:metric.items.map(item=><div key={item.id} className="border-t pt-2" style={{borderColor:'var(--cc-border)'}}><p className="text-sm break-words">{item.title}</p><time className="text-xs" style={{color:'var(--cc-text-muted)'}} dateTime={item.at}>{new Date(item.at).toLocaleString()}</time></div>)}</div>}
   <button type="button" onClick={()=>onNavigate(widget.tab)} className="mt-4 inline-flex items-center gap-1 text-xs text-[var(--cc-link)]">Open {widget.title.toLowerCase()}<ArrowRight size={13}/></button></>;
 }
 export default function CustomDashboard({profile,onNavigate,roleOverride,paid=false}){
