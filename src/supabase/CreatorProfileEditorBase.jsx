@@ -10,6 +10,7 @@ import {Image,Activity,User,Edit2,ShieldCheck,Upload,Heart,Users,Clapperboard,St
 import MediaGallery from './MediaGallery';
 import DiscoveryAttributesEditor from './DiscoveryAttributesEditor';
 import TravelCalendar from './TravelCalendar';
+import EditableProfileHero from './EditableProfileHero';
 import {TestingCredentials} from './CollaborationTesting';
 import MemberSocialLinks from './MemberSocialLinks';
 import ProfileAnalytics from './ProfileAnalytics';
@@ -65,8 +66,8 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
    setNotice('AI draft inserted. Review the wording and click Save to publish. Nothing was saved automatically.');
   }catch(e){setError(e.message||'Bio generator unavailable');}finally{setGeneratingBio(false);}
  };
- const uploadProfileAsset=async(kind,event)=>{
-  const file=event.target.files?.[0];if(!file)return;
+ const uploadProfileAsset=async(kind,file)=>{
+  if(!file)return;
   setUploading(kind);setError('');setNotice('');
   try{
    if(file.size>10*1024*1024)throw new Error('Profile images must be 10 MB or smaller.');
@@ -83,7 +84,7 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
    setAssetPreview(old=>({...old,[kind]:signed.signedUrl}));setNotice(`${kind==='avatar'?'Profile photo':'Profile banner'} updated.`);
    if(onSaved)await onSaved();
   }catch(e){setError('Could not update this profile image.');console.error('profile image upload failed',e);}
-  finally{setUploading('');event.target.value='';}
+  finally{setUploading('');}
  };
  useEffect(()=>{
   let mounted=true;
@@ -147,37 +148,11 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
   }catch(e){setError(e.message);}finally{setSaving(false);}
  };
  return <div className="min-h-screen pb-20 md:pb-8" style={{background:'var(--cc-bg)',color:'var(--cc-text-primary)'}}>
-  <div className="relative">
-   <label className="group relative block h-48 cursor-pointer overflow-hidden md:h-64" style={{background:'var(--cc-surface-subtle)'}}>
-    {assetPreview.cover&&<img src={assetPreview.cover} alt="Profile banner" className="h-full w-full object-cover"/>}
-    <span className="absolute inset-0 grid place-items-center bg-black/45 text-sm text-white opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100"><span className="flex items-center gap-2"><Upload size={16}/>{uploading==='cover'?'Uploading…':'Change banner'}</span></span>
-    <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={e=>uploadProfileAsset('cover',e)} disabled={Boolean(uploading)}/>
-   </label>
-   <div className="mx-auto max-w-4xl px-4">
-    <div className="relative -mt-16 flex flex-col items-center gap-4 md:-mt-20">
-     <label className="group relative grid h-32 w-32 cursor-pointer place-items-center overflow-hidden rounded-full border-4 text-5xl font-bold md:h-40 md:w-40"
-      style={{backgroundColor:'var(--cc-surface)',borderColor:'var(--cc-bg)',color:'var(--cc-blue)'}}>
-      {assetPreview.avatar?<img src={assetPreview.avatar} alt="Profile photo" className="h-full w-full object-cover"/>:
-        (form.display_name||'U').slice(0,1).toUpperCase()}
-      <span className="absolute inset-0 grid place-items-center rounded-full bg-black/60 text-white opacity-0 transition group-hover:opacity-100 group-focus-within:opacity-100">
-       <span className="flex items-center gap-2 text-sm"><Upload size={16}/>{uploading==='avatar'?'Uploading…':'Change photo'}</span>
-      </span>
-      <input type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" onChange={e=>uploadProfileAsset('avatar',e)} disabled={Boolean(uploading)}/>
-     </label>
-     <div className="text-center">
-      <h1 className="text-2xl font-bold">{form.display_name||'Set up your profile'}</h1>
-      <div className="mt-2 flex items-center justify-center gap-2">
-       <span className="rounded-full border px-3 py-1 text-xs capitalize"
-        style={{borderColor:'var(--cc-border)'}}>{form.role_type.replaceAll('_',' ')}</span>
-       {approved&&<span className="inline-flex items-center gap-1 rounded-full border border-emerald-300 px-3 py-1 text-xs text-emerald-800">
-        <ShieldCheck size={13}/>Verified</span>}
-      </div>
-      <button type="button" onClick={()=>setOpenSection('basic')}
-       className="mt-3 inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold text-[var(--cc-text-primary)]"
-       style={{background:'var(--cc-action)',color:'var(--cc-on-action)'}}><Edit2 size={16}/>Edit profile</button>
-     </div>
-    </div>
-   </div>
+  <div className="mx-auto max-w-5xl px-4 pt-4">
+   <EditableProfileHero cover={assetPreview.cover} avatar={assetPreview.avatar}
+    displayName={form.display_name} role={form.role_type} verified={approved}
+    uploading={Boolean(uploading)} onUpload={(file,kind)=>uploadProfileAsset(kind,file)}
+    onEdit={()=>{setActiveTab('profile');setOpenSection('basic');}}/>
   </div>
   <div className="mx-auto mt-6 max-w-4xl px-4">
    <div role="tablist" aria-label="Profile sections" className="mb-6 grid grid-cols-3 gap-2 border-b pb-2"
