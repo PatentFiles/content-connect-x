@@ -8,6 +8,7 @@ import {RoleWorkspaceContext} from './RoleWorkspaceContext';
 import {effectiveWorkspaceRole} from './roleWorkspacePolicy.mjs';
 import ModuleAccessBoundary from './ModuleAccessBoundary';
 import {supabase} from '@/api/supabaseClient';
+import BrandWordmark from './BrandWordmark';
 const routeMap=Object.freeze({
  Dashboard:'dashboard',Discovery:'directory',Search:'directory',Favorites:'favorites',Connections:'connections',Groups:'groups',Messages:'messages',Collaborations:'collaborations',
  Contracts:'contracts',Shop:'shop',Testing:'testing',Verification:'verification',Properties:'hosting',HostingMarketplace:'hosting',HostDashboard:'host',HostProfile:'profile',
@@ -129,8 +130,8 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
  return <RoleWorkspaceContext.Provider value={workspace}><div ref={shellRef} className="ccx-original-shell min-h-screen" style={{background:'var(--cc-bg)',color:'var(--cc-text-primary)'}}>
   <header ref={headerRef} className="ccx-shell-fixed-header fixed left-0 right-0 top-0 z-40 border-b backdrop-blur-xl" style={{paddingTop:'env(safe-area-inset-top,0px)',backgroundColor:'color-mix(in srgb,var(--cc-bg) 95%,transparent)',borderColor:'var(--cc-border)'}}>
    <div className="ccx-shell-toolbar">
-    <button type="button" className="flex shrink-0 items-center gap-2" onClick={()=>onNavigate('dashboard')} aria-label="Content Connect X dashboard">
-     <span className="ccx-monogram" aria-hidden="true">CX</span><span className="hidden text-lg font-semibold sm:block">Content Connect X</span>
+    <button type="button" className="flex shrink-0 items-center gap-2" onClick={()=>onNavigate('dashboard')} aria-label="Content ConnectX dashboard">
+     <span className="ccx-monogram" aria-hidden="true">CX</span><BrandWordmark brand="content" className="hidden text-lg font-semibold sm:inline-flex"/>
     </button>
     <div className="ccx-shell-header-actions">
      <button type="button" onClick={()=>onNavigate('membership')} aria-label={'Membership: '+(isPremiumMember?'Premium Account':'Free Account')+'; view plans'} className="inline-flex min-h-10 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-semibold sm:px-3" style={{borderColor:'var(--cc-border)',background:'var(--cc-surface)',color:'var(--cc-text-primary)'}}>
@@ -196,7 +197,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
   <main id="main-content" className="ccx-shell-main min-h-screen px-4 pb-24 pt-24 md:pr-6 md:pb-10" style={{paddingTop:'calc(var(--cc-shell-header-height,4rem) + 1.5rem)'}}><div className="mx-auto max-w-7xl"><ModuleAccessBoundary tab={tab} flags={featureFlags} onNavigate={onNavigate}>{children}</ModuleAccessBoundary></div></main>
   <footer className="ccx-sister-brand-footer" aria-label="Connected marketplaces">
     <span>Production locations and daily rentals:</span>
-    <a href="https://hostconnectx.com" target="_blank" rel="noopener noreferrer" className="ccx-host-footer-link" aria-label="Host Connect X">Host Connect<span style={{color:"#12698f"}}>X</span></a>
+    <a href="https://hostconnectx.com" target="_blank" rel="noopener noreferrer" className="ccx-host-footer-link" aria-label="Host ConnectX"><BrandWordmark brand="host"/></a>
   </footer>
   <nav aria-label="Mobile bottom navigation" className="fixed bottom-0 left-0 right-0 z-50 flex border-t backdrop-blur-xl md:hidden" style={{backgroundColor:'color-mix(in srgb,var(--cc-bg) 95%,transparent)',borderColor:'var(--cc-border)',paddingBottom:'env(safe-area-inset-bottom,0px)'}}>
    {['Dashboard','Testing','Discovery','Collaborations','Properties'].map(path=>nav.find(item=>item.path===path)).filter(Boolean).map(item=>{const Icon=item.icon,active=tabMatches(tab,item.path);return <button key={item.path} onClick={()=>onNavigate(keyFor(item.path))} className="flex min-h-14 flex-1 flex-col items-center justify-center gap-1 px-1 py-2" aria-current={active?'page':undefined} style={{color:active?'var(--cc-blue)':'var(--cc-text-muted)'}}><Icon size={20}/><span className="max-w-full truncate text-[10px] font-medium">{item.label}</span></button>;})}
