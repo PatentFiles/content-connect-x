@@ -246,6 +246,13 @@
       "verified_at",
       "created_at"
     ],
+    "ccx_calendar_blocks": [
+      "id",
+      "user_id",
+      "starts_on",
+      "ends_on",
+      "created_at"
+    ],
     "ccx_clearance_document_submissions": [
       "id",
       "user_id",
@@ -434,6 +441,26 @@
       "request_policy",
       "allow_intro_messages",
       "updated_at"
+    ],
+    "ccx_gallery_comments": [
+      "id",
+      "media_id",
+      "user_id",
+      "body",
+      "status",
+      "created_at"
+    ],
+    "ccx_gallery_likes": [
+      "media_id",
+      "user_id",
+      "created_at"
+    ],
+    "ccx_gallery_reposts": [
+      "id",
+      "media_id",
+      "user_id",
+      "post_id",
+      "created_at"
     ],
     "ccx_idv_accounts": [
       "user_id",
@@ -1491,7 +1518,8 @@
       "approval_origin",
       "content_label",
       "self_only_attested",
-      "album_id"
+      "album_id",
+      "allow_repost"
     ],
     "member_notification_preferences": [
       "user_id",
