@@ -32,7 +32,7 @@ export default function HostingCalendarManager({propertyId}){
  };
  return <section className="space-y-4 text-[var(--cc-text-primary)]">
   <h3 className="flex items-center gap-2 text-lg font-semibold"><CalendarDays size={18}/>External booking calendar synchronization</h3>
-  <p className="text-xs text-[var(--cc-text-secondary)]">Two-way iCalendar: import blocked dates from trusted providers, and give those providers a revocable Content Connect X busy-calendar feed. Imported calendars never store third-party guest details.</p>
+  <p className="text-xs text-[var(--cc-text-secondary)]">Two-way iCalendar: import blocked dates from trusted providers, and give those providers a revocable Content ConnectX busy-calendar feed. Imported calendars never store third-party guest details.</p>
   {error&&<p className="rounded-lg bg-red-50 p-3 text-sm text-red-800" role="alert">{error}</p>}
   {notice&&<p className="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800" role="status">{notice}</p>}
   <form className={panel+' space-y-3'} onSubmit={connect}>
