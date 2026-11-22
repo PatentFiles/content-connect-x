@@ -373,6 +373,10 @@ Deno.serve(async req=>{
           .select('post_id').eq('media_id',asset.id).eq('user_id',uid).maybeSingle();
         if(priorError)throw priorError;
         if(prior)return reply({already_reposted:true,post_id:prior.post_id});
+        const {count:dayCount,error:dayError}=await db.from('ccx_gallery_reposts').select('id',{count:'exact',head:true})
+          .eq('user_id',uid).gte('created_at',new Date(Date.now()-86400000).toISOString());
+        if(dayError)return reply({error:'Gallery repost limit unavailable'},503);
+        if((dayCount||0)>=12)return reply({error:'Daily repost limit reached'},429);
         const {data:author}=await db.from('member_profiles').select('display_name').eq('id',asset.owner_id).maybeSingle();
         const message='Shared approved gallery media by '+plain(author?.display_name||'a community member',90);
         const {data:post,error:postError}=await db.from('community_posts')
