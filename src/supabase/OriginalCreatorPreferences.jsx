@@ -16,11 +16,23 @@ const other={
 };
 function SetEditor({name,values=[],onChange}){
  const choices=originalCreatorCatalog[name]||[];
- const update=value=>onChange(values.includes(value)?values.filter(item=>item!==value):[...values,value]);
+ const [custom,setCustom]=React.useState('');
+ const allowsOther=name!=='compensation_preferences';
+ const maxItems=name==='looking_for_genders'||name==='performance_positioning'?20:30;
+ const update=choice=>onChange(values.includes(choice)?values.filter(item=>item!==choice):values.length>=maxItems?values:[...values,choice]);
+ const add=event=>{
+  event.preventDefault();
+  const label=custom.trim().replace(/\s+/g,' ').slice(0,80);
+  if(!label)return;
+  const tag='custom:'+label;
+  if(!values.some(v=>v.toLowerCase()===tag.toLowerCase())&&values.length<maxItems)
+   onChange([...values.filter(v=>v!=='other'),tag]);
+  setCustom('');
+ };
  return <section className={box} style={surface}>
   <h3 className="mb-4 text-lg font-semibold">{creatorFieldLabels[name]}</h3>
   <div className="flex flex-wrap gap-2">
-   {choices.map(choice=>{
+   {choices.filter(choice=>choice!=='other').map(choice=>{
     const active=values.includes(choice);
     return <button type="button" key={choice} aria-pressed={active} onClick={()=>update(choice)}
      className="min-w-0 rounded-lg border px-3 py-2 text-sm leading-5 transition hover:-translate-y-0.5"
@@ -28,7 +40,18 @@ function SetEditor({name,values=[],onChange}){
       borderColor:active?'var(--cc-link)':'var(--cc-border)',
       color:active?'var(--cc-blue)':'var(--cc-text-secondary)'}}>{friendlyChoice(choice)}</button>;
    })}
+   {values.filter(tag=>tag.startsWith('custom:')).map(tag=><button type="button" key={tag}
+    aria-label={'Remove '+tag.slice(7)} onClick={()=>update(tag)}
+    className="rounded-lg border border-[var(--cc-link)] bg-[var(--cc-surface-hover)] px-3 py-2 text-sm text-[var(--cc-link)]">
+    {tag.slice(7)} <span aria-hidden="true">×</span></button>)}
   </div>
+  {allowsOther&&<form onSubmit={add} className="mt-4 flex flex-wrap items-end gap-2">
+   <label className="min-w-[160px] flex-1 text-sm">Other — add your own tag
+    <input className={field+' mt-2'} style={control} maxLength={80} value={custom}
+     placeholder="Enter a custom option" onChange={e=>setCustom(e.target.value)}/></label>
+   <button type="submit" className="ccx-secondary rounded-lg px-4 py-2.5 text-sm"
+    disabled={!custom.trim()||values.length>=maxItems}>Add tag</button>
+  </form>}
  </section>;
 }
 export const initialCreatorPreferences={
@@ -46,7 +69,7 @@ export default function OriginalCreatorPreferences({value=initialCreatorPreferen
     'fetish_acts','kink_edge_acts','performance_positioning',
     'looking_for_genders'].map(key=><React.Fragment key={key}>
      <SetEditor name={key} values={value[key]||[]} onChange={v=>update(key,v)}/>
-     {other[key]&&(value[key]||[]).includes('other')&&
+     {other[key]&&Boolean(value[other[key]])&&
       <label className="block text-sm">Other {creatorFieldLabels[key]}
        <input className={field+' mt-2'} style={control}
         value={value[other[key]]||''} maxLength={250}
