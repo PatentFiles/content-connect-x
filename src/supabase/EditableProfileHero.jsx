@@ -2,7 +2,7 @@
  * Cropping is applied to image pixels before upload (no public image-position
  * metadata is required), and the same saved asset renders on View Profile.
  */
-import React,{useEffect,useState} from 'react';
+import React,{useEffect,useRef,useState} from 'react';
 import {Camera,Image as ImageIcon,Move,ShieldCheck,UserRound,X} from 'lucide-react';
 
 const roles=name=>String(name||'professional').replaceAll('_',' ');
@@ -11,6 +11,7 @@ function CropDialog({kind,file,onClose,onSave}){
  const [dimensions,setDimensions]=useState(null);
  const [x,setX]=useState(50),[y,setY]=useState(50),[zoom,setZoom]=useState(1);
  const [saving,setSaving]=useState(false),[error,setError]=useState('');
+ const dragging=useRef(null);
  const cover=kind==='cover',width=cover?1200:600,height=cover?400:600;
  useEffect(()=>{
   if(!file)return;
@@ -21,6 +22,23 @@ function CropDialog({kind,file,onClose,onSave}){
   img.src=url;
   return()=>URL.revokeObjectURL(url);
  },[file]);
+ const pointerDown=e=>{
+  if(!dimensions||saving)return;
+  e.currentTarget.setPointerCapture(e.pointerId);
+  dragging.current={startX:e.clientX,startY:e.clientY,x,y};
+ };
+ const pointerMove=e=>{
+  const start=dragging.current;if(!start||!dimensions)return;
+  const rect=e.currentTarget.getBoundingClientRect();
+  const scale=Math.max(width/dimensions.width,height/dimensions.height)*zoom;
+  const overflowX=dimensions.width*scale-width,overflowY=dimensions.height*scale-height;
+  if(overflowX>0&&rect.width>0)setX(Math.max(0,Math.min(100,start.x-(e.clientX-start.startX)/rect.width*width/overflowX*100)));
+  if(overflowY>0&&rect.height>0)setY(Math.max(0,Math.min(100,start.y-(e.clientY-start.startY)/rect.height*height/overflowY*100)));
+ };
+ const pointerUp=e=>{
+  dragging.current=null;
+  if(e.currentTarget.hasPointerCapture(e.pointerId))e.currentTarget.releasePointerCapture(e.pointerId);
+ };
  const submit=async()=>{
   if(!dimensions||!src)return;
   setSaving(true);setError('');
@@ -46,7 +64,10 @@ function CropDialog({kind,file,onClose,onSave}){
    <div className="flex justify-between gap-3"><div><h3 className="text-lg font-semibold">Adjust {cover?'banner':'profile photo'}</h3>
     <p className="text-xs text-[var(--cc-text-secondary)]">{cover?'Recommended image: 1200 × 400 pixels (3:1)':'Recommended image: 600 × 600 pixels (square)'} · Use the sliders to position and zoom</p></div>
     <button type="button" aria-label="Close crop editor" onClick={onClose} disabled={saving}><X size={21}/></button></div>
-   <div className={'relative mx-auto overflow-hidden bg-[var(--cc-surface-hover)] '+(cover?'w-full aspect-[3/1]':'w-52 aspect-square rounded-full sm:w-64')}>
+   <div className={'relative mx-auto cursor-grab overflow-hidden bg-[var(--cc-surface-hover)] active:cursor-grabbing '+(cover?'w-full aspect-[3/1]':'w-52 aspect-square rounded-full sm:w-64')}
+    style={{touchAction:'none'}}
+    onPointerDown={pointerDown} onPointerMove={pointerMove}
+    onPointerUp={pointerUp} onPointerCancel={pointerUp}>
     {src&&dimensions&&(()=>{
      // Use exactly the same pixel geometry as the exported canvas.
      const scale=Math.max(width/dimensions.width,height/dimensions.height)*zoom;
