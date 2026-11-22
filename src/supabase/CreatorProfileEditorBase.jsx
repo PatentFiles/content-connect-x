@@ -255,14 +255,10 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
       </section>}
       {id==='collaboration'&&form.role_type!=='host'&&<section className={panel}><h3 className="text-lg font-semibold">Collaboration preferences</h3>
        <p className="text-sm text-[var(--cc-text-secondary)]">Selections indicate interest only. They are not consent to any activity or booking.</p>
-       <CheckList label="Preferred collaborators" options={genderOptions.filter(([v])=>v&&v!=='self_describe')}
-        selected={prefs.preferred_collaborators} change={v=>preference('preferred_collaborators',v)}/>
        <CheckList label="Content categories" options={contentCategories}
         selected={prefs.content_categories} change={v=>preference('content_categories',v)}/>
        {form.role_type!=='creator'&&form.role_type!=='host'&&<CheckList label="Scene / creative formats" options={scenePairings}
         selected={prefs.scene_pairings} change={v=>preference('scene_pairings',v)}/>}
-       <CheckList label="Professional specialties" options={specialties}
-        selected={prefs.specialties} change={v=>preference('specialties',v)}/>
        <button type="button" aria-pressed={prefs.available_to_travel} onClick={()=>preference('available_to_travel',!prefs.available_to_travel)}
         className="rounded-lg border px-3 py-2 text-left text-sm transition"
         style={{background:prefs.available_to_travel?'rgba(16,185,129,.15)':'transparent',borderColor:prefs.available_to_travel?'#10B981':'var(--cc-border)',color:prefs.available_to_travel?'var(--cc-success)':'var(--cc-text-secondary)'}}>Available to travel for collaborations</button>

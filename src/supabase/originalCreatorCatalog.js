@@ -83,7 +83,7 @@ export const creatorFieldLabels=Object.freeze({
  compensation_preferences:'Compensation Preferences',
  standard_acts:'Standard Acts',
  fetish_acts:'Fetish Acts',
- kink_edge_acts:'Kink / Edge Acts',
+ kink_edge_acts:'Kink & Extra Acts',
  performance_positioning:'Performance Positioning',
  looking_for_genders:'Looking For'
 });

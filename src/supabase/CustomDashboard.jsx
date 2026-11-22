@@ -75,9 +75,17 @@ export default function CustomDashboard({profile,onNavigate,roleOverride,paid=fa
  <div className="grid min-w-0 grid-cols-1 items-start gap-5 xl:grid-cols-[minmax(0,1fr)_330px]">
   <main className="min-w-0" aria-label="Feed">
    <header className="ccx-dashboard-welcome mb-4" aria-label="Welcome to your dashboard">
-    <p className="ccx-dashboard-welcome-kicker">YOUR WORKSPACE</p>
-    <h1 className="ccx-dashboard-welcome-title">Welcome back, {dashboardGreetingName(profile)}</h1>
-    <p className="ccx-dashboard-welcome-subtitle">{roleTitle(role)} workspace · Share an update and stay connected with your community.</p>
+    <div className="flex items-center gap-4">
+     <button type="button" aria-label="Open my profile" onClick={()=>onNavigate('profile')}
+      className="grid h-14 w-14 shrink-0 place-items-center overflow-hidden rounded-full border border-[var(--cc-border)] bg-[var(--cc-surface-hover)] text-xl font-bold">
+      {profile?.avatar_path&&/^https:\/\//.test(profile.avatar_path)?<img src={profile.avatar_path} alt="" className="h-full w-full object-cover"/>:dashboardGreetingName(profile).slice(0,1).toUpperCase()}
+     </button>
+     <div className="min-w-0">
+      <p className="ccx-dashboard-welcome-kicker">YOUR WORKSPACE</p>
+      <h1 className="ccx-dashboard-welcome-title">Welcome back, {dashboardGreetingName(profile)}</h1>
+      <p className="ccx-dashboard-welcome-subtitle">{roleTitle(role)} workspace · Share an update and stay connected with your community.</p>
+     </div>
+    </div>
    </header>
    {preview&&<p className="mb-3 rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm text-[var(--cc-text-secondary)]">
     Viewing the {roleTitle(role)} dashboard layout. Updates are published from your own signed-in account, not as another role.
