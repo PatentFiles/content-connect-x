@@ -40,7 +40,7 @@ test('result synchronization accepts real final results and a genuinely new sess
  assert.equal(mergeIdentitySnapshot({session:{id:'first',status:'name_mismatch'}},{session:{id:'first',status:'approved'}}).session.status,'approved');
  assert.match(identityResultTitle('review_required',true),/finished/);
 });
-for(const [input,expected] of [['06/15/2035','2035-06-15'],['06152035','2035-06-15'],['2035-06-15','2035-06-15'],['02/30/2035',null],['15/06/2035',null],['6/15/35',null]])test('explicit US barcode date '+input,()=>assert.equal(usDocumentDate(input),expected));
+for(const [input,expected] of [['06/15/2035','2035-06-15'],['06152035','2035-06-15'],['20350615','2035-06-15'],['2035-06-15','2035-06-15'],['02/30/2035',null],['15/06/2035',null],['6/15/35',null]])test('explicit US barcode date '+input,()=>assert.equal(usDocumentDate(input),expected));
 test('actual barcode payload keeps middle names and complete uppercase surnames',()=>{
  const d=decodedUSDocument(raw());assert.equal(d.full_name,'JORDAN A EXAMPLE');assert.equal(d.date_of_birth,'1990-06-15');assert.equal(d.expiry_date,'2035-06-15');assert.equal(d.id_number,'SYNTHETIC123');
  assert.equal(decodedUSDocument(raw({DAD:'NONE'})).full_name,'JORDAN EXAMPLE');
