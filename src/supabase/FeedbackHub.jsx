@@ -37,7 +37,7 @@ export default function FeedbackHub({admin=false}){
     catch(e){setError(e.message);}finally{setBusy(false);}
   };
   return <div className="space-y-5">
-    <div className="flex justify-between items-start gap-3"><div><h2 className="text-2xl font-semibold">Feature requests</h2><p className="text-[var(--cc-text-secondary)] text-sm mt-1">Suggest and vote on what Content Connect X builds next.</p></div><button className={button} onClick={load} disabled={busy} aria-label="Refresh requests"><RefreshCw size={17}/></button></div>
+    <div className="flex justify-between items-start gap-3"><div><h2 className="text-2xl font-semibold">Feature requests</h2><p className="text-[var(--cc-text-secondary)] text-sm mt-1">Suggest and vote on what Content ConnectX builds next.</p></div><button className={button} onClick={load} disabled={busy} aria-label="Refresh requests"><RefreshCw size={17}/></button></div>
     {error&&<p role="alert" className="rounded-lg bg-red-50 text-red-800 p-3 text-sm">{error}</p>}
     {notice&&<p role="status" className="rounded-lg bg-emerald-50 text-emerald-800 p-3 text-sm">{notice}</p>}
     <form className={panel+' space-y-3'} onSubmit={create}>
