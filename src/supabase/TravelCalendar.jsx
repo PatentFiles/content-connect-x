@@ -128,7 +128,14 @@ export default function TravelCalendar({userId,viewerId=userId}){
    })}
   </div>
   <aside className="space-y-2 rounded-xl border border-[var(--cc-border)] p-3" aria-label="Travel destinations and dates"><h4 className="font-semibold">Travel plans</h4>
-   {items.map(t=><div key={t.id} className="rounded-lg border border-[var(--cc-border)] p-3 text-xs"><p className="font-semibold">{destination(t)}</p><p className="mt-1 text-[var(--cc-text-secondary)]">{pretty(t.starts_at)} – {pretty(t.ends_at)}</p></div>)}
+   {items.map(t=><div key={t.id} className="space-y-2 rounded-lg border border-[var(--cc-border)] p-3 text-xs">
+    <p className="flex items-center gap-1 font-semibold"><MapPin size={14}/>{destination(t)}</p>
+    <p className="mt-1 text-[var(--cc-text-secondary)]">{pretty(t.starts_at)} – {pretty(t.ends_at)}</p>
+    {own&&<div className="flex flex-wrap gap-2">
+     <button type="button" className={button} disabled={busy} onClick={()=>editTrip(t)} aria-label={'Edit trip to '+t.city}><Pencil size={14}/>Edit</button>
+     <button type="button" className={button} disabled={busy} onClick={()=>void remove(t.id)} aria-label={'Delete trip to '+t.city}><Trash2 size={14}/>Remove</button>
+    </div>}
+   </div>)}
    {own&&blocks.map(b=><div key={b.id} className="flex items-start justify-between gap-2 rounded-lg border border-red-200 bg-red-50 p-2 text-xs text-red-800"><span>Unavailable<br/>{pretty(b.starts_on)} – {pretty(b.ends_on)}</span><button type="button" disabled={busy} onClick={()=>void removeBlock(b.id)} aria-label={'Remove blocked dates '+b.starts_on}><Trash2 size={14}/></button></div>)}
   </aside>
   </div>
@@ -149,15 +156,5 @@ export default function TravelCalendar({userId,viewerId=userId}){
    <label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={form.visible_to_members} onChange={e=>update('visible_to_members',e.target.checked)}/>Show this trip to other verified members</label>
    <button type="button" className="ccx-primary rounded-xl px-4 py-2 text-sm" disabled={busy||Boolean(conflict)||!form.city.trim()||!form.country.trim()||!form.starts_at||!form.ends_at||form.ends_at<form.starts_at} onClick={()=>void save()}>{busy?'Saving…':form.id?'Update trip':'Save trip'}</button>
   </div>}
-  <div className="hidden" aria-hidden="true" data-legacy-travel-list="true">
-   {items.length===0&&<p className="text-sm text-[var(--cc-text-secondary)]">No upcoming travel dates shared.</p>}
-   {items.map(entry=><div key={entry.id} className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--cc-border)] p-3 text-sm">
-    <div><p className="flex items-center gap-2 font-semibold"><MapPin size={16}/>{destination(entry)}</p>
-     <p className="mt-1 text-xs text-[var(--cc-text-secondary)]">{pretty(entry.starts_at)} – {pretty(entry.ends_at)}{own&&!entry.visible_to_members?' · Only you can see this':''}</p>
-    </div>
-    {own&&<div className="flex gap-2"><button type="button" className={button} disabled={busy} onClick={()=>editTrip(entry)} aria-label={'Edit trip to '+entry.city}><Pencil size={15}/></button>
-     <button type="button" className={button} disabled={busy} onClick={()=>void remove(entry.id)} aria-label={'Delete trip to '+entry.city}><Trash2 size={15}/></button></div>}
-   </div>)}
-  </div>
  </section>;
 }
