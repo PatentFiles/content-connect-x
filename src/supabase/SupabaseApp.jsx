@@ -276,7 +276,7 @@ export default function SupabaseApp() {
      <a href="https://hostconnectx.com" className="font-bold underline underline-offset-4" aria-label="Host ConnectX"><BrandWordmark brand="host"/></a>
     </footer>
   </div>;
-  if(!user&&!authPage)return <div className={shell}>
+  if(!user&&!authPage)return <div className={shell+' ccx-public-home'}>
     <div className="ccx-brand-topline"/>
     <header className="ccx-public-auth-links px-4 py-3 sm:px-6" aria-label="Account links">
       <nav className="ccx-public-nav" aria-label="Public navigation">

@@ -25,15 +25,21 @@ test('marketing tools and workflow use pictograms, no sequence badges or operati
  assert.doesNotMatch(landing,/ccx-slim-feature-num|String\(i\+1\)|Features requiring verification|Browse member profiles after registration|Registration is free\./);
 });
 
-test('logged-out homepage has one footer with one wordmark for each brand and no extra blue boxed footer',()=>{
+test('signed-out home uses one unlinked Content brand with a fully linked Host brand in the legal footer',()=>{
  const landing=read('src/supabase/PublicLandingSections.jsx');
  const app=read('src/supabase/SupabaseApp.jsx');
- const publicHome=app.slice(app.indexOf('if(!user&&!authPage)'),app.indexOf('if(!user&&authPage)'));
- assert.equal((landing.match(/<footer\b/g)||[]).length,1);
- assert.equal((landing.match(/<BrandWordmark brand="content"/g)||[]).length,1);
- assert.equal((landing.match(/<BrandWordmark brand="host"/g)||[]).length,1);
- assert.match(landing,/Production spaces and venue hosting:/);
- assert.doesNotMatch(publicHome,/<footer\b/,'second footer must not render on logged-out homepage');
+ const trust=read('src/supabase/TrustSite.jsx');
+ const home=app.slice(app.indexOf('if(!user&&!authPage)'),app.indexOf('if(!user&&authPage)'));
+ assert.ok(!landing.includes('<footer'),'Duplicate marketing footer is removed');
+ assert.ok(!landing.includes('BrandWordmark'),'Landing section has no second Content brand');
+ assert.ok(home.includes("shell+' ccx-public-home'"));
+ assert.ok(home.includes('<PublicLandingSections/>'));
+ assert.ok(!home.includes('<footer'));
+ assert.ok(trust.includes('homePage?<span className="ccx-trust-brand"><BrandWordmark brand="content"/></span>'));
+ assert.ok(trust.includes('className="ccx-home-host-link" href="https://hostconnectx.com"'));
+ assert.ok(trust.includes('<BrandWordmark brand="host"/></a>'));
+ assert.ok(trust.includes("homePage={path===''}"));
+ assert.ok(trust.includes('aria-label="Legal, safety and support"'));
 });
 
 test('workflow and discovery cards share the existing lift, twist and ambient glow with centered icons',()=>{
@@ -62,4 +68,24 @@ test('hero-matched violet, blue and pink palette is isolated to signed-out homep
  assert.doesNotMatch(homeCss,/\[data-ccx-appearance="workspace"\]/);
  assert.match(app,/content_conect_hero\.png/);
  assert.match(app,/ContentConnectX__Create,_Collaborate,_Grow\.png/);
+});
+
+test('continuous root gradient, original hero fade and one animated Host link are homepage-scoped',()=>{
+ const css=read('src/supabase/public-brand-theme.css');
+ const app=read('src/supabase/SupabaseApp.jsx');
+ const trust=read('src/supabase/TrustSite.jsx');
+ const homeCss=css.slice(css.lastIndexOf('/* Logged-out Content Connect X homepage: one continuous backdrop'));
+ assert.ok(homeCss.includes('#root:has(.ccx-public-home)'));
+ assert.ok(homeCss.includes('linear-gradient(180deg,#0d0923'));
+ for(const area of ['.ccx-home-discovery','.ccx-slim-features','.ccx-slim-steps-section','.ccx-slim-cta-wrap','.ccx-trust-footer'])assert.ok(homeCss.includes(area));
+ assert.ok(homeCss.includes('background:transparent!important'));
+ assert.ok(homeCss.includes('.ccx-hero-image picture'));
+ assert.ok(homeCss.includes('mask-image:linear-gradient(to bottom'));
+ assert.ok(homeCss.includes('a.ccx-home-host-link:hover'));
+ assert.ok(homeCss.includes('a.ccx-home-host-link:focus-visible'));
+ assert.ok(homeCss.includes('@media(prefers-reduced-motion:reduce)'));
+ assert.ok(!homeCss.includes('[data-ccx-appearance="workspace"]'));
+ assert.ok(app.includes('/content_conect_hero.png'));
+ assert.ok(app.includes('/ContentConnectX__Create,_Collaborate,_Grow.png'));
+ assert.ok(trust.includes('<TrustFooter legalPage/>'));
 });

@@ -1,7 +1,6 @@
 /** Signed-out landing sections. Marketing-only: never expose private records or bypass member gates. */
 import React from 'react';
 import {DISCOVERY_CATEGORIES} from './CategoryArtwork';
-import BrandWordmark from './BrandWordmark';
 import { MessageCircleMore, UsersRound, HeartPulse, FileSignature, MapPinned, Fingerprint, CreditCard, Search, Globe2, Handshake, FilePenLine, ArrowUpRight, ArrowRight, Sparkles, Camera } from 'lucide-react';
 
 const features = [
@@ -93,11 +92,5 @@ export default function PublicLandingSections(){
     </div>
    </div>
   </section>
-  <footer className="ccx-slim-footer">
-   <div className="ccx-slim-container ccx-slim-footer-inner">
-    <BrandWordmark brand="content"/>
-    <p>Production spaces and venue hosting: <a href="https://hostconnectx.com" className="ccx-host-footer-link" target="_blank" rel="noopener noreferrer"><BrandWordmark brand="host"/></a></p>
-   </div>
-  </footer>
  </div>;
 }

@@ -1422,3 +1422,85 @@ html[data-ccx-appearance="public"] .ccx-app {
   transform:none!important;
  }
 }
+
+/* Logged-out Content Connect X homepage: one continuous backdrop from the
+ * hero through the existing legal footer. The source artwork stays unchanged. */
+:root[data-ccx-appearance="public"] #root:has(.ccx-public-home) {
+ background:
+  radial-gradient(ellipse 70% 22% at 8% 3%,rgba(111,61,205,.15),transparent 88%),
+  radial-gradient(ellipse 72% 34% at 94% 47%,rgba(48,94,219,.12),transparent 87%),
+  radial-gradient(ellipse 76% 30% at 12% 83%,rgba(222,57,164,.11),transparent 89%),
+  linear-gradient(180deg,#0d0923 0%,#110b2e 26%,#111131 55%,#120c2c 79%,#0b0b21 100%);
+}
+:root[data-ccx-appearance="public"] .ccx-app.ccx-public-home,
+:root[data-ccx-appearance="public"] .ccx-public-home .ccx-public-landing,
+:root[data-ccx-appearance="public"] .ccx-public-home .ccx-public-landing :is(.ccx-home-discovery,.ccx-slim-features,.ccx-slim-steps-section,.ccx-slim-cta-wrap),
+:root[data-ccx-appearance="public"] .ccx-public-home .ccx-public-auth-links,
+:root[data-ccx-appearance="public"] .ccx-public-home .ccx-hero-image,
+:root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer {
+ background:transparent!important;background-image:none!important;
+}
+:root[data-ccx-appearance="public"] .ccx-public-home .ccx-home-discovery,
+:root[data-ccx-appearance="public"] .ccx-public-home .ccx-slim-steps-section,
+:root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer {
+ border-top:0!important;
+}
+:root[data-ccx-appearance="public"] .ccx-public-home .ccx-home-discovery {
+ border-bottom:0!important;
+}
+/* Mask only the supplied image so the hero CTA stays crisp and clickable. */
+:root[data-ccx-appearance="public"] .ccx-public-home .ccx-hero-image picture {
+ display:block;
+ -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 69%,rgba(0,0,0,.95) 76%,transparent 100%);
+ mask-image:linear-gradient(to bottom,#000 0%,#000 69%,rgba(0,0,0,.95) 76%,transparent 100%);
+}
+:root[data-ccx-appearance="public"] .ccx-public-home .ccx-hero-image picture img {
+ display:block;width:100%;height:auto;
+}
+/* Content brand appears once in the existing legal footer, without a link;
+ * Host Connect X is one anchor whose hit area includes every letter and X. */
+:root[data-ccx-appearance="public"] .ccx-home-footer-partner {display:none}
+:root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer .ccx-home-footer-partner {
+ display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+ gap:4px 7px;margin:12px auto 0;color:#c4c9e2;
+}
+:root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer {
+ color:#ece9fc;padding-block:34px 28px;
+}
+:root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer .ccx-trust-footer-top p,
+:root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer .ccx-trust-footer-bottom {color:#c4c9e2}
+:root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer nav {border-color:rgba(156,123,221,.24)}
+:root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer a.ccx-home-host-link {
+ display:inline-flex;align-items:center;justify-content:center;
+ white-space:nowrap;min-height:40px;padding:5px 7px;border-radius:9px;
+ border:1px solid transparent;color:#83d5ff;text-decoration:none;
+ transition:transform .3s cubic-bezier(.2,.8,.2,1),filter .3s,border-color .3s,background-color .3s;
+}
+:root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer a.ccx-home-host-link > span {
+ display:inline-flex;align-items:baseline;transition:transform .3s;
+}
+:root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer a.ccx-home-host-link > span > span:last-child {
+ display:inline-block;color:#79d1fc!important;transform-origin:center;
+ transition:transform .3s,filter .3s;
+}
+@media(hover:hover) and (pointer:fine){
+ :root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer a.ccx-home-host-link:hover {
+  transform:translateY(-3px) scale(1.05);
+  filter:drop-shadow(0 0 12px rgba(159,115,248,.65));
+  border-color:rgba(186,145,250,.42);background-color:rgba(145,90,221,.12);
+  text-decoration:none;
+ }
+ :root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer a.ccx-home-host-link:hover > span > span:last-child {
+  transform:rotate(-8deg) scale(1.16);filter:drop-shadow(0 0 7px rgba(93,188,255,.85));
+ }
+}
+:root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer a.ccx-home-host-link:focus-visible {
+ outline:3px solid #bb93ff;outline-offset:3px;border-color:#bb93ff;
+}
+@media(prefers-reduced-motion:reduce){
+ :root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer a.ccx-home-host-link,
+ :root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer a.ccx-home-host-link > span,
+ :root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer a.ccx-home-host-link > span > span:last-child {
+  transition:none!important;transform:none!important;
+ }
+}

@@ -12,11 +12,13 @@ const emailLink=value=>typeof value==='string'&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.tes
  * mounting a shared modal. This is safe on browser Back/Forward, refresh,
  * mobile webviews, and when network requests for a form fail.
  */
-export function TrustFooter({legalPage=false}){
+export function TrustFooter({legalPage=false,homePage=false}){
  return <footer className={'ccx-trust-footer'+(legalPage?' ccx-trust-footer-standalone':'')}>
   <div className="ccx-trust-footer-top">
-   <div><a href="/" className="ccx-trust-brand"><BrandWordmark brand="content"/></a>
-    <p>Professional collaboration. Clear consent. Accountable access.</p></div>
+   <div>{homePage?<span className="ccx-trust-brand"><BrandWordmark brand="content"/></span>:<a href="/" className="ccx-trust-brand"><BrandWordmark brand="content"/></a>}
+    <p>Professional collaboration. Clear consent. Accountable access.</p>
+    {homePage&&<p className="ccx-home-footer-partner">Production spaces and venue hosting: <a className="ccx-home-host-link" href="https://hostconnectx.com" target="_blank" rel="noopener noreferrer" aria-label="Visit Host ConnectX"><BrandWordmark brand="host"/></a></p>}
+   </div>
    <a className="ccx-trust-report-link" href="/trust/content-removal">Content removal &amp; safety</a>
   </div>
   <nav aria-label="Legal, safety and support">
@@ -100,7 +102,7 @@ export default function TrustSite({children}){
   return()=>{active=false;};
  },[legalPage]);
  useEffect(()=>{if(legalPage)document.title=(page?.title|| (slug==='cookies'?'Cookie preferences':slug==='review'?'Staff review':'Trust & safety'))+' | Content ConnectX';},[legalPage,page,slug]);
- if(!legalPage)return <>{children}<TrustFooter/></>;
+ if(!legalPage)return <>{children}<TrustFooter homePage={path===''}/>;
  const formKind={'content-removal':'ncii',support:'support',privacy:'privacy',accessibility:'accessibility',affiliates:'affiliate','law-enforcement':'law_enforcement'}[slug]||(page&&!['cookies','review'].includes(slug)?'support':null);
  return <div className="ccx-trust-layout"><header className="ccx-trust-header"><a className="ccx-trust-brand" href="/"><BrandWordmark brand="content"/></a><a href="/Dashboard">Return to workspace</a></header>
   <main className="ccx-trust-page"><p className="ccx-trust-eyebrow">TRUST · PRIVACY · SUPPORT</p><h1>{page?.title||(slug==='cookies'?'Cookie preferences':slug==='review'?'Staff review':'Page not found')}</h1>
