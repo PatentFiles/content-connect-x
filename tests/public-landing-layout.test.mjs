@@ -90,3 +90,20 @@ test('continuous root gradient, original hero fade and one animated Host link ar
  assert.ok(app.includes('/ContentConnectX__Create,_Collaborate,_Grow.png'));
  assert.ok(trust.includes('<TrustFooter legalPage/>'));
 });
+
+test('the desktop and mobile hero fade in at the top and fade out at the bottom',()=>{
+ const css=read('src/supabase/public-brand-theme.css');
+ const app=read('src/supabase/SupabaseApp.jsx');
+ const fade=css.slice(css.lastIndexOf('/* Blend both edges of the existing desktop AND mobile hero artwork'));
+ assert.match(fade,/\\.ccx-hero-image picture \\{/);
+ assert.match(fade,/-webkit-mask-image:linear-gradient\\(to bottom,\\s*transparent 0%/);
+ assert.match(fade,/mask-image:linear-gradient\\(to bottom,\\s*transparent 0%/);
+ assert.match(fade,/#000 16%/);
+ assert.match(fade,/transparent 100%/);
+ assert.match(fade,/@media\\(max-width:640px\\)/);
+ assert.match(fade,/#000 18%/);
+ assert.match(fade,/#000 71%/);
+ assert.doesNotMatch(fade,/\\.ccx-public-hero-actions[^\\n]*mask-image/);
+ assert.match(app,/<source media="\\(max-width: 640px\\)" srcSet="\\/ContentConnectX__Create,_Collaborate,_Grow\\.png"\\/>/);
+ assert.match(app,/src="\\/content_conect_hero\\.png"/);
+});

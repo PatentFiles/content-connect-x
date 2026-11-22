@@ -1448,11 +1448,28 @@ html[data-ccx-appearance="public"] .ccx-app {
 :root[data-ccx-appearance="public"] .ccx-public-home .ccx-home-discovery {
  border-bottom:0!important;
 }
-/* Mask only the supplied image so the hero CTA stays crisp and clickable. */
+/* Blend both edges of the existing desktop AND mobile hero artwork into
+ * the shared homepage gradient. Mask only the picture, never the signup CTA. */
 :root[data-ccx-appearance="public"] .ccx-public-home .ccx-hero-image picture {
  display:block;
- -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 69%,rgba(0,0,0,.95) 76%,transparent 100%);
- mask-image:linear-gradient(to bottom,#000 0%,#000 69%,rgba(0,0,0,.95) 76%,transparent 100%);
+ -webkit-mask-image:linear-gradient(to bottom,
+  transparent 0%,rgba(0,0,0,.50) 5%,#000 16%,
+  #000 69%,rgba(0,0,0,.95) 76%,transparent 100%);
+ mask-image:linear-gradient(to bottom,
+  transparent 0%,rgba(0,0,0,.50) 5%,#000 16%,
+  #000 69%,rgba(0,0,0,.95) 76%,transparent 100%);
+}
+/* The small-screen source is taller: preserve more of its center artwork
+ * while feathering the top and bottom at mobile aspect ratios. */
+@media(max-width:640px){
+ :root[data-ccx-appearance="public"] .ccx-public-home .ccx-hero-image picture {
+  -webkit-mask-image:linear-gradient(to bottom,
+   transparent 0%,rgba(0,0,0,.48) 6%,#000 18%,
+   #000 71%,rgba(0,0,0,.92) 79%,transparent 100%);
+  mask-image:linear-gradient(to bottom,
+   transparent 0%,rgba(0,0,0,.48) 6%,#000 18%,
+   #000 71%,rgba(0,0,0,.92) 79%,transparent 100%);
+ }
 }
 :root[data-ccx-appearance="public"] .ccx-public-home .ccx-hero-image picture img {
  display:block;width:100%;height:auto;
