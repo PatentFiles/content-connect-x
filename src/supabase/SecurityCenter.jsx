@@ -24,7 +24,7 @@ export default function SecurityCenter(){
   const enroll=async()=>{
     setBusy(true);setError('');setNotice('');
     try{
-      const {data,error:e}=await supabase.auth.mfa.enroll({factorType:'totp',friendlyName:'Content Connect X authenticator'});
+      const {data,error:e}=await supabase.auth.mfa.enroll({factorType:'totp',friendlyName:'Content ConnectX authenticator'});
       if(e)throw e;
       setPending({id:data.id,qr:data.totp?.qr_code,secret:data.totp?.secret});
     }catch(e){setError(e.message);}finally{setBusy(false);}
