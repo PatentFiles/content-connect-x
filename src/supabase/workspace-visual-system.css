@@ -470,21 +470,21 @@
 .maplibregl-map{font-family:inherit}.maplibregl-control-container{font-family:inherit}
 @media(prefers-reduced-motion:reduce){.host-map-price-pin{transition:none}}
 
-/* Center partner footer within the available workspace width on every page. */
+/* Keep the cross-brand footer centered on the viewport itself on every role
+ * page, regardless of the sidebar width or role-specific content layout. */
 :root[data-ccx-appearance="workspace"] .ccx-original-shell > .ccx-sister-brand-footer {
  box-sizing:border-box!important;display:flex!important;align-items:center!important;
- justify-content:center!important;width:calc(100% - var(--ccx-workspace-nav-width,0px))!important;
- margin-left:var(--ccx-workspace-nav-width,0px)!important;padding:20px 16px!important;
- transform:none!important;text-align:center!important;
+ justify-content:center!important;width:100%!important;max-width:none!important;
+ margin:0!important;padding:20px 16px!important;transform:none!important;
+ text-align:center!important;
 }
 :root[data-ccx-appearance="workspace"] .ccx-original-shell > .ccx-sister-brand-footer .ccx-sister-brand-footer-inner {
- display:flex!important;width:100%!important;margin:0 auto!important;
- align-items:center!important;justify-content:center!important;flex-wrap:wrap!important;
- gap:8px!important;transform:none!important;text-align:center!important;
+ display:flex!important;width:fit-content!important;max-width:100%!important;
+ margin-inline:auto!important;align-items:center!important;justify-content:center!important;
+ flex-wrap:wrap!important;gap:8px!important;transform:none!important;text-align:center!important;
 }
 @media(max-width:767px){
  :root[data-ccx-appearance="workspace"] .ccx-original-shell > .ccx-sister-brand-footer {
-  margin-left:0!important;width:100%!important;
   padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))!important;
  }
 }
