@@ -17,10 +17,13 @@ try{
  for(const role of Object.keys(ROLE_ROUTES)){
   const profile={...base,role_type:role};
   const html=renderToStaticMarkup(React.createElement(Shell,{user,profile,approved:true,tab:'dashboard',featureFlags:flags,onNavigate:()=>{},onSignOut:()=>{}},React.createElement(Dashboard,{profile,verified:true,features:flags,paid:true,onNavigate:()=>{}})));
-  // Desktop accordion intentionally renders only its active group's pages.
-  // Check retained routes in the role catalog and the visible Explore icon rail.
+  // Desktop renders one full sidebar with static group headings and visible
+  // page controls. No secondary icon rail or accordion remains.
   for(const label of ['Discovery','Favorites','Properties'])assert.ok(ROLE_ROUTES[role].includes(label),role+' must keep '+label);
-  assert.ok(html.includes('Jump to Explore section'),role+' must expose its Explore group');
+  assert.ok(html.includes('ccx-nav-heading')&&html.includes('>Explore</h2>'),role+' must expose the static Explore group');
+  assert.ok(html.includes('aria-label="Grouped role navigation"'),role+' must retain its full sidebar');
+  assert.ok(!html.includes('ccx-nav-rail-button')&&!html.includes('ccx-nav-heading-button'),role+' must not have the double navigation');
+  assert.ok(html.includes('>Settings</button>')&&html.includes('>Log Out</button>'),role+' must have bottom account actions');
   assert.ok(html.includes('Mobile bottom navigation'));
   assert.ok(html.includes('Welcome back, Role layout test'),role+' must show personalized welcome above Feed');
   // Every real professional role can compose updates with the same entitled
