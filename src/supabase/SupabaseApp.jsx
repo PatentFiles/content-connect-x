@@ -314,7 +314,7 @@ export default function SupabaseApp() {
         </div>
         <p className="mt-5 text-sm leading-6 text-[var(--cc-text-secondary)]">Start with free registration and independent age verification. Membership and premium actions are available only when their services are activated.</p>
         {signUp&&<div className="mt-3 rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-xs leading-5 text-[var(--cc-text-secondary)]">
-          Content ConnectX and Host Connect are professional content-production marketplaces. No escorting, paid sexual services, coercion, trafficking or non-consensual content. Before meeting anyone, check their credentials and arrange safety measures. Verification is not a guarantee of behavior.
+          Content ConnectX and Host ConnectX are professional content-production marketplaces. No escorting, paid sexual services, coercion, trafficking or non-consensual content. Before meeting anyone, check their credentials and arrange safety measures. Verification is not a guarantee of behavior.
           <span className="mt-2 block"><a href="/trust/terms" className="font-semibold underline">Read the draft terms</a> · <a href="/trust/anti-trafficking" className="font-semibold underline">Safety policy</a> · <a href="/trust/content-removal" className="font-semibold underline">Report a concern</a></span>
         </div>}
         {recovering?
