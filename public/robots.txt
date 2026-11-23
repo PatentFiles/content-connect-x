@@ -1,0 +1,24 @@
+# Public marketing pages are crawlable. This is not a content authorization policy.
+# No member, verification, booking or account records belong in the public index.
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /signup
+Disallow: /Dashboard
+Disallow: /dashboard
+Disallow: /Verification
+Disallow: /verification
+Disallow: /Admin
+Disallow: /admin
+Disallow: /LawEnforcement
+Disallow: /Meeting
+Disallow: /Booking
+Disallow: /Messages
+Disallow: /account
+Disallow: /auth/
+Disallow: /api/
+Disallow: /functions/
+Disallow: /private/
+Disallow: /trust/review
+
+Sitemap: https://contentconnectx.com/sitemap.xml
