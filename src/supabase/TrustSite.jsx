@@ -13,9 +13,9 @@ const emailLink=value=>typeof value==='string'&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.tes
  * mobile webviews, and when network requests for a form fail.
  */
 export function TrustFooter({legalPage=false,homePage=false}){
- return <footer className={'ccx-trust-footer'+(legalPage?' ccx-trust-footer-standalone':'')}>
+ return <footer className={'ccx-trust-footer'+(legalPage?' ccx-trust-footer-standalone':'')} data-homepage={homePage?'true':undefined}>
   <div className="ccx-trust-footer-top">
-   <div>{homePage?<span className="ccx-trust-brand"><BrandWordmark brand="content"/></span>:<a href="/" className="ccx-trust-brand"><BrandWordmark brand="content"/></a>}
+   <div><span className="ccx-trust-brand"><BrandWordmark brand="content"/></span>
     <p>Professional collaboration. Clear consent. Accountable access.</p>
     <p className="ccx-trust-partner">Production locations and daily rentals: <a className="ccx-home-host-link" href="https://hostconnectx.com" target="_blank" rel="noopener noreferrer" aria-label="Visit Host ConnectX"><BrandWordmark brand="host"/></a></p>
    </div>

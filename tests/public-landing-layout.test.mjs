@@ -35,7 +35,8 @@ test('signed-out home uses one unlinked Content brand with a fully linked Host b
  assert.ok(home.includes("shell+' ccx-public-home'"));
  assert.ok(home.includes('<PublicLandingSections/>'));
  assert.ok(!home.includes('<footer'));
- assert.ok(trust.includes('homePage?<span className="ccx-trust-brand"><BrandWordmark brand="content"/></span>'));
+ assert.ok(trust.includes('<span className="ccx-trust-brand"><BrandWordmark brand="content"/></span>'));
+ assert.ok(!trust.includes('<a href="/" className="ccx-trust-brand">'),'Own brand should not link to the site already open');
  assert.ok(trust.includes('className="ccx-home-host-link" href="https://hostconnectx.com"'));
  assert.ok(trust.includes('<BrandWordmark brand="host"/></a>'));
  assert.ok(trust.includes("homePage={path===''}"));

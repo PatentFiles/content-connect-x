@@ -141,3 +141,48 @@
   transform:none!important;
  }
 }
+
+/* Identical sister-site animation on Content and Host: the entire
+ * cross-brand wordmark is a single accessible link; own brand stays text. */
+@keyframes sister-brand-jiggle{
+ 0%,100%{transform:translateY(0) rotate(0) scale(1);}
+ 20%{transform:translateY(-2px) rotate(-3deg) scale(1.055);}
+ 42%{transform:translateY(-2px) rotate(2.5deg) scale(1.055);}
+ 62%{transform:translateY(-2px) rotate(-1.7deg) scale(1.055);}
+ 82%{transform:translateY(-2px) rotate(1deg) scale(1.055);}
+}
+.ccx-trust-footer .ccx-trust-brand {
+ display:inline-flex;align-items:baseline;font-size:18px;font-weight:850;
+ text-decoration:none!important;color:inherit;cursor:default;
+}
+.ccx-trust-footer .ccx-trust-partner a.ccx-home-host-link {
+ display:inline-flex!important;align-items:center;justify-content:center;
+ min-height:44px!important;padding:6px 12px!important;
+ border:1px solid transparent;border-radius:12px;
+ font-size:clamp(19px,2.5vw,23px)!important;font-weight:850!important;
+ text-decoration:none!important;transform-origin:center center;
+ transition:border-color .2s,filter .2s,background .2s;
+}
+.ccx-trust-footer .ccx-trust-partner a.ccx-home-host-link > span {
+ display:inline-flex;align-items:baseline;
+}
+.ccx-trust-footer .ccx-trust-partner a.ccx-home-host-link > span > span:last-child {
+ background-image:linear-gradient(105deg,#85e6ff,#a895ff 54%,#ff81d5)!important;
+ background-clip:text!important;-webkit-background-clip:text!important;
+ -webkit-text-fill-color:transparent!important;
+}
+@media(hover:hover) and (pointer:fine){
+ .ccx-trust-footer .ccx-trust-partner a.ccx-home-host-link:hover {
+  animation:sister-brand-jiggle .6s ease-in-out 1!important;
+  border-color:rgba(170,144,255,.45)!important;
+  background:rgba(119,84,209,.11)!important;
+  filter:drop-shadow(0 0 15px rgba(170,104,254,.53))!important;
+  text-decoration:none!important;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .ccx-trust-footer .ccx-trust-partner a.ccx-home-host-link,
+ .ccx-trust-footer .ccx-trust-partner a.ccx-home-host-link:hover {
+  animation:none!important;transition:none!important;transform:none!important;
+ }
+}
