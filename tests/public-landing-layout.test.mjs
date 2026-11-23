@@ -110,3 +110,29 @@ test('the desktop and mobile hero fade in at the top and fade out at the bottom'
  assert.ok(app.includes('srcSet="/ContentConnectX__Create,_Collaborate,_Grow.png"'));
  assert.ok(app.includes('src="/content_conect_hero.png"'));
 });
+
+test('all twelve professional Discovery cards have useful modal descriptions and protected navigation',async()=>{
+ const {PUBLIC_DISCOVERY_DETAILS}=await import('../src/supabase/publicDiscoveryDetails.mjs');
+ const catalog=read('src/supabase/CategoryArtwork.jsx');
+ const section=catalog.split('export const DISCOVERY_CATEGORIES=[')[1].split('];')[0];
+ const keys=[...section.matchAll(/\{key:'([^']+)'/g)].map(match=>match[1]).filter(key=>key!=='chef');
+ assert.equal(keys.length,12);
+ assert.deepEqual(Object.keys(PUBLIC_DISCOVERY_DETAILS).sort(),keys.sort());
+ for(const [key,story] of Object.entries(PUBLIC_DISCOVERY_DETAILS)){
+  assert.ok(story.label.length>3,key+' label');
+  assert.ok(story.title.length>15,key+' title');
+  assert.ok(story.intro.length>60,key+' introduction');
+  assert.ok(story.detail.length>95,key+' explanation');
+  assert.equal(story.ways.length,3,key+' useful suggestions');
+  assert.ok(story.ways.every(value=>value.length>17),key+' suggestions need substance');
+ }
+ assert.equal(PUBLIC_DISCOVERY_DETAILS.spa.label,'Set Design & Props');
+ assert.match(PUBLIC_DISCOVERY_DETAILS.verified.detail,/OnlyFans or Fansly/);
+ assert.match(PUBLIC_DISCOVERY_DETAILS.verified.detail,/independently confirmed/);
+ const landing=read('src/supabase/PublicLandingSections.jsx');
+ for(const term of ["filter(item=>item.key!=='chef')",'ccx-home-discovery-trigger','aria-haspopup="dialog"','aria-controls="ccx-discovery-detail-dialog"','onClick={event=>openDialog','<dialog','aria-modal="true"','aria-labelledby=','onClose=','dialog.showModal()','document.body.style.overflow','triggerRef.current?.focus()','href="/signup"','href="/login"'])
+  assert.ok(landing.includes(term),'Missing accessible modal behavior: '+term);
+ const css=read('src/supabase/public-brand-theme.css');
+ for(const selector of ['.ccx-discovery-detail-dialog::backdrop','.ccx-discovery-dialog-ways','.ccx-home-discovery-trigger:focus-visible','.ccx-discovery-dialog-art','.ccx-discovery-dialog-actions'])
+  assert.ok(css.includes(selector),'Missing modal styling: '+selector);
+});
