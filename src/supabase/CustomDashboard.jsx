@@ -82,7 +82,7 @@ export default function CustomDashboard({profile,onNavigate,roleOverride,paid=fa
      </button>
      <div className="min-w-0">
       <p className="ccx-dashboard-welcome-kicker">YOUR WORKSPACE</p>
-      <h1 className="ccx-dashboard-welcome-title">Welcome back, {dashboardGreetingName(profile)}</h1>
+      <h1 className="ccx-dashboard-welcome-title">Welcome back, <span className="ccx-member-firstname">{dashboardGreetingName(profile)}</span></h1>
       <p className="ccx-dashboard-welcome-subtitle">{roleTitle(role)} workspace · Share an update and stay connected with your community.</p>
      </div>
     </div>

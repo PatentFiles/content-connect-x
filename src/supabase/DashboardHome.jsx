@@ -4,6 +4,7 @@
  * Supabase-authorized workflow rather than pretending a backend capability exists.
  */
 import React from 'react';
+import {dashboardGreetingName} from './roleWorkspacePolicy.mjs';
 import DashboardProfileAvatar from './DashboardProfileAvatar';
 import {
   ArrowUpRight, CalendarDays, Building2, UsersRound, Search,
@@ -35,7 +36,7 @@ const modules=[
 
 export default function DashboardHome({profile,verification,approved,paid,onNavigate,features={}}){
   const enabled = /** @type {Record<string, boolean>} */ (features);
-  const name=profile?.display_name?.trim();
+  const name=dashboardGreetingName(profile);
   const hasProfile=profile?.profile_complete===true;
   const canAccessWorkspace=Boolean(paid&&approved);
   const status=approved?'Verified':verification?.status==='pending'?'Pending review':'Not verified';
@@ -52,8 +53,7 @@ export default function DashboardHome({profile,verification,approved,paid,onNavi
        <DashboardProfileAvatar profile={profile} userId={profile?.id}/>
       </button>
       <h2 className="max-w-2xl text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl lg:text-[2.75rem]">
-        {name?<>Welcome back, <span className="ccx-gradient-text">{name}</span>.</>:
-          <>Create. Collaborate. <span className="ccx-gradient-text">Connect.</span></>}
+        <>Welcome back, <span className="ccx-gradient-text">{name}</span>.</>
       </h2></div>
       <p className="mt-4 max-w-lg text-sm leading-relaxed text-[var(--cc-text-secondary)] sm:text-base">
         Your productions, collaborations, locations and professional tools in one private workspace.

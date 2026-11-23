@@ -3,16 +3,20 @@ import {countryAliases,displayRegion} from '../../supabase/functions/directory/l
 export const CREATIVE_ROLES=Object.freeze(['creator','agent','studio','photographer','videographer','video_editor','director_producer','hair_stylist','makeup_artist','wardrobe_stylist','equipment_rental','chef','spa_provider']);
 export const PORTFOLIO_ROLES=Object.freeze(['photographer','videographer','video_editor','director_producer','hair_stylist','makeup_artist','wardrobe_stylist','equipment_rental','chef','spa_provider']);
 export const ROSTER_ROLES=Object.freeze(['agent','studio']);
-/** A friendly greeting uses the member's chosen public/stage name first.
- * Real/legal names are only a fallback on their own authenticated dashboard.
- * Never substitute an email or expose identity/verification documents.
+/** Only the member's first chosen name belongs in the welcome heading.
+ * Display/stage names take precedence over private/legal details; company
+ * names and emails are never used as a person's first name.
  */
 export function dashboardGreetingName(profile={}){
- for(const value of [
-  profile?.display_name,profile?.stage_name,profile?.company_name,
-  profile?.real_name,profile?.representative_name
- ]){
-  if(typeof value==='string'&&value.trim())return value.trim().replace(/[\u0000-\u001f\u007f]/g,' ').slice(0,100);
+ const candidates=[profile?.first_name,profile?.display_name,profile?.stage_name,
+  profile?.representative_name,profile?.real_name];
+ for(const value of candidates){
+  if(typeof value!=='string')continue;
+  const clean=value.replace(/[\u0000-\u001f\u007f]/g,' ').replace(/\s+/g,' ').trim();
+  if(!clean||clean.includes('@')||
+    /^(?:host connect x member|content connect x member|member|guest|unknown)$/i.test(clean))continue;
+  const first=clean.split(' ')[0].slice(0,60);
+  if(first)return first;
  }
  return 'there';
 }
