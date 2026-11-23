@@ -1521,3 +1521,128 @@ html[data-ccx-appearance="public"] .ccx-app {
   transition:none!important;transform:none!important;
  }
 }
+
+/* Public Discovery information: one accessible, fully-clickable category card.
+ * Keeps the existing hover lift/glow while adding keyboard-visible focus. */
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-home-discovery-trigger {
+ display:flex;flex:1;flex-direction:column;align-items:center;justify-content:flex-start;
+ width:100%;min-width:0;height:100%;gap:12px;padding:0;border:0;
+ color:inherit;background:transparent;cursor:pointer;text-align:center;font:inherit;appearance:none;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-home-discovery-card:focus-within {
+ border-color:#cda2ff;box-shadow:0 0 0 2px rgba(180,139,248,.55),0 16px 43px rgba(29,24,64,.6);
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-home-discovery-trigger:focus-visible {
+ outline:3px solid #bfa0ff;outline-offset:5px;border-radius:10px;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-home-discovery-title {
+ display:block;color:#f6f0ff;font-size:13px;line-height:1.35;font-weight:750;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-home-discovery-trigger:hover .ccx-home-discovery-title,
+:where(html[data-ccx-appearance="public"]) .ccx-public-landing .ccx-home-discovery-trigger:focus-visible .ccx-home-discovery-title {color:#e9d3ff}
+/* Native top-layer dialog manages focus trapping and Escape, even though the
+ * marketing page uses an overflow-clipped layout for decorative gradients. */
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-detail-dialog {
+ box-sizing:border-box;width:min(92vw,690px);max-height:min(89dvh,860px);
+ margin:auto;padding:0;border:1px solid rgba(171,141,243,.48);
+ border-radius:25px;color:#f5f2ff;
+ background:linear-gradient(142deg,#211739 0%,#131c3d 54%,#241132 100%);
+ box-shadow:0 28px 110px rgba(1,4,20,.76),0 0 35px rgba(142,82,217,.22);
+ overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-detail-dialog::backdrop {
+ background:rgba(5,6,22,.80);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-inner {
+ position:relative;isolation:isolate;padding:clamp(22px,4vw,34px);
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-glow {
+ position:absolute;z-index:-1;inset:0;pointer-events:none;
+ background:radial-gradient(ellipse 55% 45% at 4% 3%,rgba(85,170,255,.2),transparent 85%),
+  radial-gradient(ellipse 50% 55% at 94% 90%,rgba(244,81,194,.16),transparent 85%);
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-close {
+ position:absolute;right:16px;top:16px;display:grid;place-items:center;
+ width:42px;height:42px;border:1px solid rgba(176,156,223,.40);
+ border-radius:13px;background:rgba(39,37,77,.85);color:#f5edff;
+ cursor:pointer;transition:background .2s,transform .2s,border-color .2s;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-close:hover {
+ border-color:#d3a8ff;background:rgba(132,78,211,.28);transform:rotate(5deg);
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-close:focus-visible,
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-signin:focus-visible,
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-detail-dialog .ccx-slim-button:focus-visible {
+ outline:3px solid #b5dfff;outline-offset:3px;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-heading {
+ display:flex;align-items:center;gap:20px;padding-right:38px;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-art {
+ display:grid;place-items:center;flex:0 0 92px;width:92px;height:92px;
+ border-radius:22px;border:1px solid rgba(118,174,245,.32);
+ background:linear-gradient(135deg,rgba(52,86,149,.23),rgba(139,57,159,.18));
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-art img {
+ display:block;width:80px;height:80px;max-width:100%;object-fit:contain;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-eyebrow {
+ color:#9bdeff;letter-spacing:.14em;font-size:10px;font-weight:800;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-heading-copy h2 {
+ margin:7px 0 0;font-size:clamp(21px,3.4vw,31px);font-weight:850;
+ line-height:1.18;letter-spacing:-.032em;color:#fff;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-heading-copy h2:focus {outline:none}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-intro {
+ margin:23px 0 0;font-size:16px;line-height:1.6;font-weight:600;color:#f5f1ff;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-detail {
+ margin:12px 0 0;font-size:14px;line-height:1.75;color:#c9cfe8;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-ways {
+ margin:23px 0 0;padding:19px;border:1px solid rgba(155,140,214,.24);
+ background:rgba(16,24,53,.55);border-radius:16px;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-ways h3 {
+ margin:0 0 14px;font-size:14px;font-weight:800;color:#f9f5ff;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-ways ul {
+ display:grid;gap:13px;margin:0;padding:0;list-style:none;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-ways li {
+ display:flex;align-items:flex-start;gap:11px;font-size:13px;line-height:1.6;color:#d9dffa;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-check {
+ display:grid;place-items:center;flex:0 0 21px;width:21px;height:21px;
+ border-radius:50%;background:rgba(67,185,244,.17);color:#83dbff;font-size:13px;font-weight:800;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-actions {
+ display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin:24px 0 0;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-signin {
+ padding:10px 6px;color:#b1dfff;font-size:13px;font-weight:700;
+ text-decoration:none;text-underline-offset:3px;
+}
+:where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-signin:hover {text-decoration:underline}
+@media(max-width:480px) {
+ :where(html[data-ccx-appearance="public"]) .ccx-discovery-detail-dialog {
+  width:calc(100vw - 24px);max-height:calc(100dvh - 32px);border-radius:20px;
+ }
+ :where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-heading {
+  align-items:flex-start;gap:13px;padding-right:26px;
+ }
+ :where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-art {
+  flex-basis:64px;width:64px;height:64px;border-radius:16px;
+ }
+ :where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-art img {width:58px;height:58px}
+ :where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-close {right:10px;top:10px;width:36px;height:36px}
+ :where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-actions {align-items:stretch;flex-direction:column}
+ :where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-actions .ccx-slim-button {
+  width:100%;justify-content:center;text-align:center;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ :where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-close {transition:none!important}
+ :where(html[data-ccx-appearance="public"]) .ccx-discovery-dialog-close:hover {transform:none!important}
+}
