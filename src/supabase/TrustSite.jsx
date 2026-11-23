@@ -24,6 +24,11 @@ export function TrustFooter({legalPage=false,homePage=false}){
   <nav aria-label="Legal, safety and support">
    {TRUST_LINKS.map(([slug,title])=><a key={slug} href={'/trust/'+slug}>{title}</a>)}
   </nav>
+  <nav className="ccx-seo-guide-links" aria-label="Professional resources">
+   <a href="/creator-collaboration/">Creator collaboration</a>
+   <a href="/production-professionals/">Production professionals</a>
+   <a href="/how-it-works/">How it works</a>
+  </nav>
   <div className="ccx-trust-footer-bottom">
    <p>© {new Date().getFullYear()} Content ConnectX · Adults only</p>
    <p><a href="/trust/law-enforcement">Lawful requests are reviewed case by case.</a> No unrestricted backend access.</p>

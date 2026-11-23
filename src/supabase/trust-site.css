@@ -186,3 +186,16 @@
   animation:none!important;transition:none!important;transform:none!important;
  }
 }
+
+/* Search-readable public guides remain reachable in the shared footer. */
+.ccx-trust-footer .ccx-seo-guide-links {
+ display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
+ gap:7px 20px;width:100%;margin:9px auto 14px;
+ padding:13px 0;border-top:1px solid rgba(156,139,211,.25);
+}
+.ccx-trust-footer .ccx-seo-guide-links a {
+ display:inline-flex;align-items:center;min-height:44px;
+ color:inherit;font-size:13px;text-decoration:none;
+}
+.ccx-trust-footer .ccx-seo-guide-links a:hover{text-decoration:underline}
+.ccx-trust-footer .ccx-seo-guide-links a:focus-visible{outline:3px solid #98dafa;outline-offset:2px}

@@ -31,6 +31,18 @@
     <meta name="twitter:title" content="Content ConnectX | Professional Creator Collaboration Network" />
     <meta name="twitter:description" content="Connect with professional creators, photographers, videographers, agents and studios. Discover production partnerships with verification, consent and privacy controls." />
     <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://contentconnectx.com/#organization","name":"Content ConnectX","url":"https://contentconnectx.com/","description":"Professional networking and collaboration tools for adult-industry creators, production specialists, agents and studios.","logo":{"@type":"ImageObject","url":"https://contentconnectx.com/content_connect_logo.png"}},{"@type":"WebSite","@id":"https://contentconnectx.com/#website","name":"Content ConnectX","url":"https://contentconnectx.com/","inLanguage":"en-US","publisher":{"@id":"https://contentconnectx.com/#organization"}}]}</script>
+    <!-- Protected SPA routes never inherit public homepage index directives. -->
+    <script>
+      (function () {
+        var path = window.location.pathname;
+        if (path !== '/' && path !== '/index.html') {
+          var robots = document.querySelector('meta[name="robots"]');
+          if (robots) robots.setAttribute('content', 'noindex, nofollow');
+          var canonical = document.querySelector('link[rel="canonical"]');
+          if (canonical) canonical.remove();
+        }
+      }());
+    </script>
   </head>
   <body>
     <!-- Skip-link: lets keyboard/screen-reader users jump to main content -->
