@@ -25,7 +25,7 @@ try{
   assert.ok(!html.includes('ccx-nav-rail-button')&&!html.includes('ccx-nav-heading-button'),role+' must not have the double navigation');
   assert.ok(html.includes('>Settings</button>')&&html.includes('>Log Out</button>'),role+' must have bottom account actions');
   assert.ok(html.includes('Mobile bottom navigation'));
-  assert.ok(html.includes('Welcome back, Role layout test'),role+' must show personalized welcome above Feed');
+  assert.ok(html.includes('Welcome back, <span class="ccx-member-firstname">Role</span>')&&!html.includes('Welcome back, Role layout test'),role+' must use only the first name above Feed');
   // Every real professional role can compose updates with the same entitled
   // member account. Role navigation/preview must not silently hide the form.
   assert.ok(html.includes('data-feed-composer="true"'),role+' must show the Feed composer');
