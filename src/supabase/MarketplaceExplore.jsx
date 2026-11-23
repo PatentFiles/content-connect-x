@@ -7,11 +7,11 @@ import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {Search,SlidersHorizontal,Map,MapPin,Users,Home,Building2,Warehouse,Camera,Clapperboard,TreePine,Hotel,Landmark,ChevronRight,X,Tag} from 'lucide-react';
 import GeoLocationSelect,{EMPTY_GEO} from './GeoLocationSelect';
 import HostVenueCategoryRail from './HostVenueCategoryRail';
-import {HOST_VENUE_CATEGORIES,venueMatchesTypes} from './hostVenueCategories.mjs';
+import {HOST_VENUE_CATEGORIES,venueMatchesTypes,venueArtworkFor} from './hostVenueCategories.mjs';
 const icons={house:Home,condo:Building2,warehouse:Warehouse,film_studio:Clapperboard,
  photo_studio:Camera,dungeon:Landmark,outdoor:TreePine,private_beach:TreePine,
  pool:MapPin,resort:Hotel,villa:Home,loft:Building2,hotel:Hotel,other:MapPin};
-const kinds=HOST_VENUE_CATEGORIES.map(({id,label})=>({id,label,Icon:icons[id]||MapPin}));
+const kinds=HOST_VENUE_CATEGORIES.map(({id,label,image})=>({id,label,image,Icon:icons[id]||MapPin}));
 export const amenityGroups=[
  {title:'Essentials',items:[['wifi','Wi-Fi'],['kitchen','Kitchen'],['washer','Washer'],['dryer','Dryer'],['air_conditioning','Air conditioning'],['heating','Heating'],['dedicated_workspace','Dedicated workspace'],['tv','TV'],['hair_dryer','Hair dryer'],['iron','Iron']]},
  {title:'Amenities & features',items:[['pool','Swimming pool'],['hot_tub','Hot tub'],['free_parking','Free parking'],['ev_charger','EV charger'],['king_bed','King bed'],['gym','Gym'],['bbq_grill','BBQ grill'],['breakfast','Breakfast'],['indoor_fireplace','Fireplace'],['smoking_allowed','Smoking allowed'],['allows_pets','Pets permitted']]},
@@ -117,9 +117,11 @@ function FilterModal({value,onChange,onClose,onApply,matching}){
    </div>
    <div className="space-y-6 overflow-y-auto p-6">
     <section className="space-y-3"><h3 className="font-semibold">Type of production space</h3>
-     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{kinds.map(({id,label,Icon})=><button type="button" key={id} aria-pressed={local.types.includes(id)}
+     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">{kinds.map(({id,label,image,Icon})=><button type="button" key={id} aria-pressed={local.types.includes(id)}
       onClick={()=>toggle('types',id)} className={'flex min-h-[72px] items-center gap-3 rounded-xl border px-3 py-3 text-left text-sm '+(local.types.includes(id)?'border-[#12698f] bg-[#e9f5fc]':'border-[#dbe6ec]')}>
-      <Icon size={18} className="shrink-0 text-[#12698f]"/>{label}</button>)}</div>
+      {image?<img src={image} alt="" loading="lazy" decoding="async"
+       className="h-11 w-11 shrink-0 object-contain" />:<Icon size={21} className="shrink-0 text-[#12698f]"/>}
+      <span>{label}</span></button>)}</div>
     </section>
     <section className="border-t border-[#e2e8ed] pt-5"><h3 className="font-semibold">Price range</h3>
      <p className="mt-1 text-xs text-[#627789]">One-day estimate including the listed cleaning fee. Taxes and payment-provider fees are not yet available.</p>
@@ -271,7 +273,12 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
          onClick={()=>onOpen(p.id)}>
          <div className="relative aspect-[5/4] overflow-hidden rounded-2xl bg-[#eff5f8]">
           {p.cover_url?<img src={p.cover_url} alt={p.title} className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.025]"/>:
-           <div className="grid h-full w-full place-items-center text-[#12698f]"><Home size={46} strokeWidth={1.5}/></div>}
+           <div className="grid h-full w-full place-items-center bg-[#eff5f8] text-[#12698f]">
+            {venueArtworkFor(p.category,{listingPlaceholder:true})?
+             <img src={venueArtworkFor(p.category,{listingPlaceholder:true})} alt="" loading="lazy" decoding="async"
+              className="h-32 w-32 max-w-[75%] object-contain opacity-75" />:
+             <Home size={46} strokeWidth={1.5}/>}
+           </div>}
           <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-[#20394a] shadow-sm">{kinds.find(x=>x.id===p.category)?.label||'Production venue'}</span>
          </div>
          <div className="space-y-1 px-1 pb-3 pt-3">

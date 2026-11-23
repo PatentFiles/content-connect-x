@@ -29,14 +29,21 @@ export default function HostVenueCategoryRail({selected='',onSelect=(_id)=>{void
     })}
    </div>
   </nav>
-  <label htmlFor="ccx-venue-category-select" className="block text-xs font-semibold text-[#36576a]">
-   More property types
-   <select id="ccx-venue-category-select" value={selected}
-    onChange={event=>onSelect(event.target.value)}
-    className="mt-2 min-h-11 w-full rounded-xl border border-[#cbdde8] bg-white px-3 text-sm text-[#193246] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#12698f] sm:max-w-[320px]">
-    <option value="">All property types</option>
-    {HOST_VENUE_CATEGORIES.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}
-   </select>
-  </label>
+  <div className="flex flex-wrap items-end gap-3">
+   <label htmlFor="ccx-venue-category-select" className="block min-w-[170px] flex-1 text-xs font-semibold text-[#36576a] sm:flex-none">
+    More property types
+    <select id="ccx-venue-category-select" value={selected}
+     onChange={event=>onSelect(event.target.value)}
+     className="mt-2 min-h-11 w-full rounded-xl border border-[#cbdde8] bg-white px-3 text-sm text-[#193246] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#12698f] sm:w-[320px]">
+     <option value="">All property types</option>
+     {HOST_VENUE_CATEGORIES.map(item=><option key={item.id} value={item.id}>{item.label}</option>)}
+    </select>
+   </label>
+   {selected&&HOST_VENUE_CATEGORIES.some(item=>item.id===selected&&item.image)&&
+    <div className="flex min-h-11 min-w-14 items-center justify-center rounded-lg border border-[#dbe6ee] bg-white px-2"
+     aria-label="Selected property type illustration">
+     <VenueArtwork item={HOST_VENUE_CATEGORIES.find(item=>item.id===selected)}/>
+    </div>}
+  </div>
  </section>;
 }
