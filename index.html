@@ -15,22 +15,29 @@
     <meta name="color-scheme" content="dark" />
     <!-- Prevent phone number auto-detection -->
     <meta name="format-detection" content="telephone=no" />
+    <!-- Hide the raw crawler-only fallback before first paint when JavaScript is enabled.
+         Non-JavaScript crawlers still receive readable HTML below. -->
+    <script>document.documentElement.classList.add('js-enabled');</script>
+    <style>html.js-enabled .seo-home-fallback{display:none!important}</style>
     <link rel="manifest" href="/manifest.json" />
     <title>Content ConnectX | Professional Creator Collaboration Network</title>
     <!-- Public SEO metadata; Search Console verification remains under the future business accounts. -->
-    <meta name="description" content="Connect with professional creators, photographers, videographers, agents and studios. Discover production partnerships with verification, consent and privacy controls." />
+    <meta name="description" content="Discover adult creator collaborations, OnlyFans production partners, photographers, studios and videographers. Plan shoots with identity, privacy and consent controls." />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <link rel="canonical" href="https://contentconnectx.com/" />
     <meta property="og:type" content="website" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:site_name" content="Content ConnectX" />
     <meta property="og:title" content="Content ConnectX | Professional Creator Collaboration Network" />
-    <meta property="og:description" content="Connect with professional creators, photographers, videographers, agents and studios. Discover production partnerships with verification, consent and privacy controls." />
+    <meta property="og:description" content="Discover adult creator collaborations, OnlyFans production partners, photographers, studios and videographers. Plan shoots with identity, privacy and consent controls." />
     <meta property="og:url" content="https://contentconnectx.com/" />
     <meta property="og:image" content="https://contentconnectx.com/content_conect_hero.png" />
+    <meta property="og:image:alt" content="Content ConnectX — professional adult creator collaboration network" />
+    <meta name="twitter:image" content="https://contentconnectx.com/content_conect_hero.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Content ConnectX | Professional Creator Collaboration Network" />
-    <meta name="twitter:description" content="Connect with professional creators, photographers, videographers, agents and studios. Discover production partnerships with verification, consent and privacy controls." />
-    <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://contentconnectx.com/#organization","name":"Content ConnectX","url":"https://contentconnectx.com/","description":"Professional networking and collaboration tools for adult-industry creators, production specialists, agents and studios.","logo":{"@type":"ImageObject","url":"https://contentconnectx.com/content_connect_logo.png"}},{"@type":"WebSite","@id":"https://contentconnectx.com/#website","name":"Content ConnectX","url":"https://contentconnectx.com/","inLanguage":"en-US","publisher":{"@id":"https://contentconnectx.com/#organization"}}]}</script>
+    <meta name="twitter:description" content="Discover adult creator collaborations, OnlyFans production partners, photographers, studios and videographers. Plan shoots with identity, privacy and consent controls." />
+    <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://contentconnectx.com/#organization","name":"Content ConnectX","url":"https://contentconnectx.com/","description":"Professional networking and collaboration tools for adult-industry creators, production specialists, agents and studios.","logo":{"@type":"ImageObject","url":"https://contentconnectx.com/content_connect_logo.png"}},{"@type":"WebSite","@id":"https://contentconnectx.com/#website","name":"Content ConnectX","url":"https://contentconnectx.com/","inLanguage":"en-US","publisher":{"@id":"https://contentconnectx.com/#organization"},"alternateName":"Content Connect X"},{"@type":"WebPage","@id":"https://contentconnectx.com/#webpage","url":"https://contentconnectx.com/","name":"Content ConnectX","description":"Discover adult creator collaborations, OnlyFans production partners, photographers, studios and videographers. Plan shoots with identity, privacy and consent controls.","inLanguage":"en-US","isPartOf":{"@id":"https://contentconnectx.com/#website"},"about":{"@id":"https://contentconnectx.com/#organization"}}]}</script>
     <!-- Protected SPA routes never inherit public homepage index directives. -->
     <script>
       (function () {
@@ -58,6 +65,8 @@
             <a href="/creator-collaboration/" style="color:#8d69ff">How creator collaboration works</a>
             <a href="/production-professionals/" style="color:#8d69ff">Build your professional production team</a>
             <a href="/how-it-works/" style="color:#8d69ff">Discover, plan and collaborate professionally</a>
+            <a href="/onlyfans-creator-collaboration/" style="color:#a98aff">Plan an OnlyFans creator collaboration</a>
+            <a href="/adult-creator-safety/" style="color:#a98aff">Adult creator collaboration: safety and consent checklist</a>
           </nav>
           <a href="/signup" style="color:#b6edff">Explore Content ConnectX</a>
         </main>

@@ -1,5 +1,8 @@
 # Public marketing pages are crawlable. This is not a content authorization policy.
 # No member, verification, booking or account records belong in the public index.
+# OAI-SearchBot and general search crawlers may index only public guides;
+# no private profile, media, verification or booking URLs are in the sitemap.
+# GPTBot training access is independent of ChatGPT search visibility.
 User-agent: *
 Allow: /
 Disallow: /login

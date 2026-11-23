@@ -93,3 +93,17 @@ Search/AI bots use their current documented crawling behavior and applicable
 robots rules. Public content, clear branding, stable URLs and legitimate
 third-party citations are more useful than "AI visibility" meta tags that
 search engines do not document or support.
+
+## 2026-11-23 search enhancements
+
+- The initial public HTML remains available without JavaScript. A synchronous
+  head script hides the temporary SEO fallback before it can flash in normal
+  JavaScript-enabled browsers; this is not crawler-specific cloaking.
+- Added two additional substantive, unauthenticated, intent-focused guides:
+  - https://contentconnectx.com/onlyfans-creator-collaboration/
+  - https://contentconnectx.com/adult-creator-safety/
+- Updated the sitemap and public footer; all new pages have unique titles,
+  canonical URLs, social preview metadata, independent static HTML and JSON-LD.
+- No private member profiles, identity records, financial records or media were indexed.
+- OpenSEO has no configured projects for these domains in the connected account;
+  no Search Console, Google Ads or search-volume metrics were inferred.

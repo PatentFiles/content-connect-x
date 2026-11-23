@@ -28,7 +28,9 @@ export function TrustFooter({legalPage=false,homePage=false}){
    <a href="/creator-collaboration/">Creator collaboration</a>
    <a href="/production-professionals/">Production professionals</a>
    <a href="/how-it-works/">How it works</a>
-  </nav>
+      <a href="/onlyfans-creator-collaboration/">Plan an OnlyFans creator collaboration</a>
+    <a href="/adult-creator-safety/">Adult creator collaboration: safety and consent checklist</a>
+</nav>
   <div className="ccx-trust-footer-bottom">
    <p>© {new Date().getFullYear()} Content ConnectX · Adults only</p>
    <p><a href="/trust/law-enforcement">Lawful requests are reviewed case by case.</a> No unrestricted backend access.</p>

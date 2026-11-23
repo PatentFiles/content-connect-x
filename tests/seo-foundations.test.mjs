@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
 
 const ROOT='https://contentconnectx.com/';
-const PAGES=["creator-collaboration","production-professionals","how-it-works"];
+const PAGES=["creator-collaboration","production-professionals","how-it-works","onlyfans-creator-collaboration","adult-creator-safety"];
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 const extract=(html,regex)=>{const m=html.match(regex);assert.ok(m,'Missing SEO element '+regex);return m[1];};
 
@@ -75,4 +75,29 @@ test('the React footer exposes real public guide links on every page',()=>{
  assert.ok(footer.includes('aria-label="Professional resources"'));
  for(const slug of PAGES)
   assert.ok(footer.includes('href="/'+slug+'/"'),'Missing footer guide '+slug);
+});
+
+test('JavaScript browsers hide the crawler fallback before first paint while no-JS crawlers retain it',()=>{
+ const html=read('index.html');
+ assert.match(html,/document\.documentElement\.classList\.add\('js-enabled'\)/);
+ assert.match(html,/html\.js-enabled \.seo-home-fallback\{display:none!important\}/);
+ assert.match(html,/<div class="seo-home-fallback"/);
+});
+test('public crawlable guides support Open Graph images, unique intent and schema descriptions',()=>{
+ const html=read('index.html');
+ assert.match(html,/property="og:image:alt"/);
+ assert.match(html,/name="twitter:image"/);
+ const pages=PAGES.map(slug=>read('public/'+slug+'/index.html'));
+ for(const page of pages){
+  assert.match(page,/property="og:image"/);
+  assert.match(page,/name="twitter:card" content="summary_large_image"/);
+  assert.match(page,/href="\/trust\/privacy"/);
+  assert.doesNotMatch(page,/seo-home-fallback/);
+ }
+ for(const slug of ["onlyfans-creator-collaboration","adult-creator-safety"]){
+  const page=read('public/'+slug+'/index.html');
+  const schema=JSON.parse(extract(page,/<script type="application\/ld\+json">([\s\S]*?)<\/script>/));
+  assert.ok(schema['@graph'].some(x=>x['@type']==='BreadcrumbList'));
+  assert.ok(page.includes('href="/'+slug+'/"'));
+ }
 });
