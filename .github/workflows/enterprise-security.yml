@@ -32,7 +32,23 @@ jobs:
       - name: Scan source against OWASP rules
         run: |
           mkdir -p artifacts
+          set +e
           semgrep scan --config p/owasp-top-ten --config p/javascript --error --json --output artifacts/semgrep.json .
+          scan_result=$?
+          set -e
+          python - <<'PY'
+          import json, pathlib
+          file=pathlib.Path('artifacts/semgrep.json')
+          if not file.exists():
+              print('Semgrep report unavailable; scanner result remains authoritative.')
+          else:
+              report=json.loads(file.read_text())
+              findings=report.get('results',[])
+              print(f"Semgrep recorded {len(findings)} findings:")
+              for finding in findings[:60]:
+                  print(f"{finding.get('extra',{}).get('severity','UNKNOWN')} | {finding.get('check_id','unknown')} | {finding.get('path','unknown')}:{finding.get('start',{}).get('line','?')}")
+          PY
+          exit "$scan_result"
       - name: Preserve scan report for incident review
         if: always()
         uses: actions/upload-artifact@v4
