@@ -2,7 +2,7 @@
  * Host ConnectX owns every listing, blackout and reservation; this component
  * is a read/write *client* of that canonical inventory, never a local cache.
  */
-import React,{useCallback,useEffect,useState} from 'react';
+import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {CalendarDays,MapPin,ArrowLeft,RefreshCw,ShieldCheck} from 'lucide-react';
 import {hostConnectAction} from './hostConnectApi';
 import {venueDateToIso,nightsBetween} from './hostingDateRange.mjs';
@@ -27,10 +27,15 @@ export default function HostCrossMarketplace({paid=false,user=null}){
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [inspectionBooking,setInspectionBooking]=useState(null),[chatBooking,setChatBooking]=useState(null);
  const [collaborations,setCollaborations]=useState([]),[linkedCollab,setLinkedCollab]=useState('');
+ // Preserve the applied browse query across refresh/focus. Stale responses
+ // must not replace results when members select categories in rapid sequence.
+ const activeBrowse=useRef({}),browseVersion=useRef(0);
  const refresh=useCallback(async()=>{
-  const [browse,history]=await Promise.all([hostConnectAction('browse'),
+  const version=++browseVersion.current;
+  const [browse,history]=await Promise.all([hostConnectAction('browse',activeBrowse.current),
    user?hostConnectAction('my_bookings'):Promise.resolve({items:[]})]);
-  setItems(browse.items||[]);setBookings(history.items||[]);
+  if(version===browseVersion.current)setItems(browse.items||[]);
+  setBookings(history.items||[]);
  },[user?.id]);
  useEffect(()=>{let live=true;refresh().catch(e=>{if(live)setError(e.message);});return()=>{live=false;};},[refresh]);
  // Host ConnectX is the calendar authority. Keep background-open CCX tabs
@@ -51,7 +56,16 @@ export default function HostCrossMarketplace({paid=false,user=null}){
   return()=>{active=false;window.clearInterval(timer);window.removeEventListener('focus',sync);};
  },[refresh,selected?.id]);
  const run=async fn=>{setBusy(true);setError('');setNotice('');try{await fn();}catch(e){setError(e.message||'Host ConnectX unavailable');}finally{setBusy(false);}};
- const search=params=>run(async()=>{const r=await hostConnectAction('browse',params);setItems(r.items||[]);});
+ const search=params=>{
+  activeBrowse.current=params;
+  const version=++browseVersion.current;
+  setBusy(true);setError('');setNotice('');
+  void hostConnectAction('browse',params).then(response=>{
+   if(version===browseVersion.current)setItems(response.items||[]);
+  }).catch(reason=>{
+   if(version===browseVersion.current)setError(reason.message||'Could not load matching venues');
+  }).finally(()=>{if(version===browseVersion.current)setBusy(false);});
+ };
  const open=id=>run(async()=>{const r=await hostConnectAction('listing',{id});setSelected(r.item);setUnavailable(r.unavailable||[]);setStarts('');setEnds('');setPurpose(r.item?.permitted_uses?.[0]||'');setCrew(1);setQuote(null);setLinkedCollab('');});
  useEffect(()=>{
   if(!user){setCollaborations([]);return;}

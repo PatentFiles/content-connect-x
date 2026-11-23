@@ -176,7 +176,7 @@ function FilterModal({value,onChange,onClose,onApply,matching}){
  </div>;
 }
 export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filters)=>{void _filters;},onOpen=(_id)=>{void _id;},onBecomeHost=()=>{},site='host'}){
- const [selectedCategory,setSelectedCategory]=useState(''),[geo,setGeo]=useState({...EMPTY_GEO});
+ const [geo,setGeo]=useState({...EMPTY_GEO});
  const [keyword,setKeyword]=useState(''),[from,setFrom]=useState(''),[to,setTo]=useState('');
  const [crew,setCrew]=useState(Object.fromEntries(crewRoles.map(([key])=>[key,0])));
  const [crewOpen,setCrewOpen]=useState(false),[filterOpen,setFilterOpen]=useState(false),[filters,setFilters]=useState({...DEFAULT_FILTERS});
@@ -200,7 +200,7 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
  }),[items,filters,count]);
  const apply=(nextFilters=filters)=>onSearch({
   query:keyword,country:geo.country,state:geo.state,city:geo.city,
-  ...(nextFilters.types.length===1?{category:nextFilters.types[0]}:{}),
+  categories:nextFilters.types,
   ...(from&&to?{start_date:from,end_date:to}:{}),
   ...(count>0?{crew_size:count}:{}),
   ...(nextFilters.amenities.length?{amenities:nextFilters.amenities}:{}),
@@ -219,9 +219,9 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
     <p className="mt-1 text-sm text-[#61778a]">Browse approved spaces without signing in. Booking requires a verified account.</p></div>
    {site==='host'&&<button type="button" className={secondary} onClick={onBecomeHost}><Home size={16}/> Become a host</button>}
   </div>
-  <HostVenueCategoryRail selected={selectedCategory} onSelect={id=>{
-   const next={...filters,types:id?[id]:[]};
-   setSelectedCategory(id);setFilters(next);apply(next);
+  <HostVenueCategoryRail selectedTypes={filters.types} onChangeTypes={types=>{
+   const next={...filters,types};
+   setFilters(next);apply(next);
   }}/>
    <form className={panel+' relative grid gap-3 p-4 lg:grid-cols-[2.4fr_1fr_1fr_1.2fr_auto] lg:items-end'} onSubmit={e=>{e.preventDefault();apply();}}>
     <div className="space-y-2">
@@ -295,6 +295,6 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
      <ApproximateRoadMap properties={data} onOpen={onOpen}/>
     </aside>}
    </div>
-  {filterOpen&&<FilterModal value={filters} onChange={next=>{setFilters(next);setSelectedCategory(next.types.length===1?next.types[0]:'');}} onClose={()=>setFilterOpen(false)} onApply={apply} matching={displayed.length}/>}
+  {filterOpen&&<FilterModal value={filters} onChange={setFilters} onClose={()=>setFilterOpen(false)} onApply={apply} matching={displayed.length}/>}
  </div>;
 }
