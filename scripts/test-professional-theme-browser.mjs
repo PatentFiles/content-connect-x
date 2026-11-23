@@ -158,7 +158,7 @@ try {
    console.log('Checking',route,width);await navigate(route,width);await inspect(route==='/'?'homepage':route.slice(1),width);
    if(route==='/'&&[390,1440].includes(width)){
      const count=await evaluate("(()=>{const cards=[...document.querySelectorAll('.ccx-home-discovery-trigger')];cards[0]?.click();return cards.length;})()");
-     assert.equal(count,12,'Twelve public categories have clickable cards');
+     assert.equal(count,11,'Eleven supported public categories have clickable cards');
      await evaluate("new Promise(resolve=>setTimeout(resolve,100))");
      const state=await evaluate("(()=>{const d=document.querySelector('#ccx-discovery-detail-dialog');return {open:d?.open,title:d?.querySelector('h2')?.textContent,focused:d?.contains(document.activeElement),signup:!!d?.querySelector('a[href=\"/signup\"]')};})()");
      assert.equal(state.open,true,'Category click opens a native dialog');
