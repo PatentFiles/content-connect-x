@@ -28,6 +28,7 @@ export const DISCOVERY_CATEGORIES=[
  {key:'wardrobe',label:'Wardrobe stylists',role:'wardrobe_stylist',image:'/Wardrobe.png',Icon:Shirt},
  {key:'editor',label:'Video editors',role:'video_editor',image:'/Video%20Editor.png',Icon:Film},
  {key:'equipment',label:'Equipment rentals',role:'equipment_rental',image:'/Equipment_Rental.png',Icon:Package},
+ {key:'hosts',label:'Hosts',destination:'hosting',image:'/house.png',Icon:Home},
  {key:'verified',label:'Verified creators',role:'creator',image:'/Verified%20Creator.png',Icon:UserRound}
 ];
 /** Exact case-sensitive filenames from both repositories' public/ directories.

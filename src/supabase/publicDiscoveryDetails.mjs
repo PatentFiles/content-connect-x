@@ -72,6 +72,14 @@ export const PUBLIC_DISCOVERY_DETAILS=Object.freeze({
   ways:['Plan local or destination-based equipment rentals','Arrange gear around your production date','Discuss pickup, delivery and rental conditions'],
   cta:'Explore equipment rental options'
  },
+ hosts:{
+  label:'Hosts',eyebrow:'ADULT-CONTENT-FRIENDLY LOCATIONS',title:'Rent a property for your next adult-content shoot',
+  intro:'Discover houses, studios and unique properties whose hosts expressly permit adult-content productions within the listing rules.',
+  detail:'Some properties are specifically designed or furnished for adult-content photography and filming, with dedicated sets or production amenities. Others are standard rental locations where the host permits this type of production, but you may need to bring your own lighting, cameras, microphones and other equipment. Always review the permitted uses, available amenities, privacy expectations, house rules and booking terms before reserving a space.',
+  ways:['Browse hosts offering permitted adult-content-friendly spaces','Compare production-ready locations with bring-your-own-equipment options','Check house rules, available gear and booking requirements'],
+  cta:'Explore hosts and properties',
+  href:'https://hostconnectx.com'
+ },
  verified:{
   label:'Verified Creators',eyebrow:'CREATOR NETWORK',title:'Meet creators who want to work together',
   intro:'Discover other creators, explore shared projects and build ongoing professional collaborations.',

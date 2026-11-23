@@ -42,3 +42,19 @@ test('workspace navigation and browser history both invoke page-top reset',()=>{
  assert.match(app,/onPopState=.*scrollToNewPage\(\)/);
  assert.match(app,/scrollRestoration='manual'/);
 });
+
+test('Hosts appear on the public homepage and authenticated Discovery without querying creator profiles',async()=>{
+ const categories=read('src/supabase/CategoryArtwork.jsx');
+ const member=read('src/supabase/CreatorDiscovery.jsx');
+ const landing=read('src/supabase/PublicLandingSections.jsx');
+ const {PUBLIC_DISCOVERY_DETAILS}=await import('../src/supabase/publicDiscoveryDetails.mjs');
+ assert.match(categories,/key:'hosts',label:'Hosts',destination:'hosting',image:'\/house\.png'/);
+ assert.match(member,/item\.destination==='hosting'/);
+ assert.match(member,/onNavigate\?\.\('hosting'\)/);
+ assert.match(landing,/href=\{story\.href\|\|'\/signup'\}/);
+ const story=PUBLIC_DISCOVERY_DETAILS.hosts;
+ assert.equal(story.href,'https://hostconnectx.com');
+ assert.match(story.detail,/lighting, cameras, microphones/);
+ assert.match(story.detail,/host permits this type of production/);
+ assert.match(story.detail,/specifically designed or furnished/);
+});

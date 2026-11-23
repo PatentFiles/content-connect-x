@@ -92,7 +92,7 @@ export default function PublicLandingSections(){
      <ul>{story.ways.map(way=><li key={way}><span className="ccx-discovery-dialog-check" aria-hidden="true">✓</span><span>{way}</span></li>)}</ul>
     </section>
     <div className="ccx-discovery-dialog-actions">
-     <a className="ccx-slim-button ccx-slim-button-primary" href="/signup">{story.cta}<ArrowRight size={18} aria-hidden="true"/></a>
+     <a className="ccx-slim-button ccx-slim-button-primary" href={story.href||'/signup'}>{story.cta}<ArrowRight size={18} aria-hidden="true"/></a>
      <a className="ccx-discovery-dialog-signin" href="/login">Already a member? Sign in</a>
     </div>
    </div>}

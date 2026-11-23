@@ -112,12 +112,12 @@ test('the desktop and mobile hero fade in at the top and fade out at the bottom'
  assert.ok(app.includes('src="/content_conect_hero.png"'));
 });
 
-test('all eleven supported professional Discovery cards have useful modal descriptions and protected navigation',async()=>{
+test('all twelve supported professional Discovery cards have useful modal descriptions and protected navigation',async()=>{
  const {PUBLIC_DISCOVERY_DETAILS}=await import('../src/supabase/publicDiscoveryDetails.mjs');
  const catalog=read('src/supabase/CategoryArtwork.jsx');
  const section=catalog.split('export const DISCOVERY_CATEGORIES=[')[1].split('];')[0];
  const keys=[...section.matchAll(/\{key:'([^']+)'/g)].map(match=>match[1]);
- assert.equal(keys.length,11);
+ assert.equal(keys.length,12);
  assert.deepEqual(Object.keys(PUBLIC_DISCOVERY_DETAILS).sort(),keys.sort());
  for(const [key,story] of Object.entries(PUBLIC_DISCOVERY_DETAILS)){
   assert.ok(story.label.length>3,key+' label');

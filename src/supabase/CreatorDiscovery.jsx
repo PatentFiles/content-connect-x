@@ -72,7 +72,7 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
   {!approved?<div className={panel}>Independent age verification is required before viewing profiles.</div>:<>
    {mode!=='favorites'&&<DiscoveryCategoryGrid
     value={DISCOVERY_CATEGORIES.find(item=>item.role===applied.role&&applied.role)?.key||''}
-    onSelect={item=>{const next={...applied,role:item.role};setFilters(next);void search(next);}}/>}
+    onSelect={item=>{if(item.destination==='hosting'){onNavigate?.('hosting');return;}const next={...applied,role:item.role};setFilters(next);void search(next);}}/>}
    {mode!=='favorites'&&<form className={panel+' space-y-4'} data-discovery-filters="true" onSubmit={e=>{e.preventDefault();void search(filters);setFiltersOpen(false);}}>
     <button type="button" className="flex min-h-11 w-full items-center justify-between gap-3 text-left" aria-controls="ccx-discovery-filter-fields" aria-expanded={filtersOpen} onClick={()=>setFiltersOpen(v=>!v)}>
      <span className="flex items-center gap-2"><SlidersHorizontal size={17}/><span className="font-semibold">Discovery filters</span></span>
