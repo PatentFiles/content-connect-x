@@ -49,10 +49,12 @@ import Shell from './src/supabase/OriginalShell.jsx';
 import Dashboard from './src/supabase/CustomDashboard.jsx';
 import Workspace from './src/supabase/MemberWorkspace.jsx';
 import {MODULE_FEATURES} from './src/supabase/featureModules.mjs';
+import {applyAuthAppearance} from './src/supabase/authAppearance.js';
 const role=new URLSearchParams(location.search).get('role')||'creator';
 const user={id:'00000000-0000-4000-8000-000000000001',email:'style-fixture@example.invalid'};
 const profile={id:user.id,role_type:role,display_name:'Design review (test account)'};
 const flags=Object.fromEntries(Object.values(MODULE_FEATURES).map(key=>[key,true]));flags.__ccxLoaded=true;flags.__ccxAccess=Object.fromEntries(Object.values(MODULE_FEATURES).map(key=>[key,{eligible:true,reason:'ready'}]));
+if(['/dashboard','/collaborations'].includes(location.pathname))applyAuthAppearance(true);
 window.__errors=[];window.addEventListener('error',e=>window.__errors.push(e.message));window.addEventListener('unhandledrejection',e=>window.__errors.push(String(e.reason)));
 const view=location.pathname==='/dashboard'?<Shell user={user} profile={profile} isAdmin approved tab="dashboard" featureFlags={flags} onNavigate={()=>{}} onSignOut={()=>{}}><Dashboard profile={profile} onNavigate={()=>{}}/></Shell>:
  location.pathname==='/collaborations'?<Shell user={user} profile={profile} isAdmin approved tab="collaborations" featureFlags={flags} onNavigate={()=>{}} onSignOut={()=>{}}><Workspace user={user} flags={flags} paid initialSection="collaborations"/></Shell>:
@@ -70,7 +72,10 @@ try {
  await new Promise(resolve=>assetServer.listen(0,'127.0.0.1',resolve));
  const assetOrigin='http://127.0.0.1:'+assetServer.address().port;
  const base=path.join(folder,'template.html');await createControlFixture(base);
- const template=fs.readFileSync(base,'utf8').replace('<head>','<head><base href="'+assetOrigin+'/">');
+ const paletteCss=fs.readFileSync(path.resolve('src/supabase/workspace-public-palette.css'),'utf8');
+  const template=fs.readFileSync(base,'utf8')
+   .replace('<head>','<head><base href="'+assetOrigin+'/">')
+   .replace('</style>',paletteCss+'</style>');
  const bundle=await build({stdin:{contents:fixture,resolveDir:process.cwd(),sourcefile:'professional-fixture.jsx',loader:'jsx'},bundle:true,write:false,format:'iife',platform:'browser',define:{'process.env.NODE_ENV':'"production"','import.meta.env':'{}','window.location.pathname':'window.__stylePath','location.pathname':'window.__stylePath','window.location.search':'window.__styleSearch','location.search':'window.__styleSearch'},plugins:[{name:'isolated-professional-fixture',setup(b){b.onResolve({filter:/api\/supabaseClient/},()=>({path:'supabase',namespace:'fixture'}));b.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:mock,loader:'js',resolveDir:process.cwd()}));}}]});
  const html=template.replace(/<body>[\s\S]*<\/body>/,()=>`<body><div id="fixture-root"></div><script>window.__stylePath="/";window.__styleSearch="";window.__errors=[];window.addEventListener("error",e=>window.__errors.push(e.message));</script><script>${bundle.outputFiles[0].text.replace(/<\/script/gi,'<\\/script')}</script></body>`);
  browser=spawn(browserPath,['--headless','--no-sandbox','--disable-dev-shm-usage','--disable-background-networking','--remote-debugging-port=0','--user-data-dir='+path.join(folder,'profile'),'about:blank'],{stdio:['ignore','ignore','pipe']});
@@ -93,7 +98,16 @@ try {
    const visible=e=>{const s=getComputedStyle(e),r=e.getBoundingClientRect();return r.width>0&&r.height>0&&s.visibility!=='hidden'&&s.display!=='none';};
    const badButtons=[...document.querySelectorAll('.ccx-primary,.ccx-action-primary,.oh-primary,.ccx-solid-action,.oh-gallery-primary')].filter(e=>visible(e)&&!e.disabled).filter(e=>{const s=getComputedStyle(e);return s.backgroundImage!=='none'||s.animationName!=='none'||s.color!=='rgb(255, 255, 255)';}).map(e=>({text:e.textContent.slice(0,40),bg:getComputedStyle(e).backgroundColor,color:getComputedStyle(e).color}));
    const darkPanels=[...document.querySelectorAll('.ccx-surface,.oh-panel,.oh-dialog')].filter(visible).filter(e=>{const rgb=getComputedStyle(e).backgroundColor.match(/[\\d.]+/g)?.map(Number)||[];return rgb.length>=3&&Math.max(...rgb.slice(0,3))<240&&rgb[3]!==0;}).map(e=>e.className);
-   return {appearance:document.documentElement.dataset.ccxAppearance||'workspace',background:getComputedStyle(document.body).backgroundColor,colorScheme:getComputedStyle(document.documentElement).colorScheme,overflow:document.documentElement.scrollWidth>innerWidth+1,badButtons,darkPanels,errors:window.__errors||[],headings:[...document.querySelectorAll('h1')].map(e=>e.textContent)};
+   const shell=document.querySelector('.ccx-original-shell'),shellStyle=shell&&getComputedStyle(shell);
+   const header=shell?.querySelector('.ccx-shell-fixed-header');
+   const primary=shell&&[...shell.querySelectorAll('.ccx-primary,.ccx-action-primary,.ccx-solid-action')].find(visible);
+   const ccxBrand=shell?{background:shellStyle.backgroundImage,
+    cyan:shellStyle.getPropertyValue('--ccx-blue').trim(),
+    purple:shellStyle.getPropertyValue('--ccx-deep-blue').trim(),
+    pink:shellStyle.getPropertyValue('--ccx-fuchsia').trim(),
+    header:header?getComputedStyle(header).backgroundImage:'',
+    primary:primary?getComputedStyle(primary).backgroundImage:''}:null;
+   return {appearance:document.documentElement.dataset.ccxAppearance||'workspace',background:getComputedStyle(document.body).backgroundColor,colorScheme:getComputedStyle(document.documentElement).colorScheme,overflow:document.documentElement.scrollWidth>innerWidth+1,badButtons,darkPanels,ccxBrand,errors:window.__errors||[],headings:[...document.querySelectorAll('h1')].map(e=>e.textContent)};
   })()`);
   if(state.appearance==='public'){
    assert.notEqual(state.background,'rgb(255, 255, 255)',label+' original dark background');
@@ -104,10 +118,26 @@ try {
     assert.equal(hero.src,label==='homepage'?(width<=640?'/ContentConnectX__Create,_Collaborate,_Grow.png':'/content_conect_hero.png'):(width<=640?'/Host_Connect_Banner_Mobile.png':'/Host_Connect_Banner.png'),label+' expected responsive brand asset');
    }
   }else{
-   assert.equal(state.background,'rgb(255, 255, 255)',label+' background');
    assert.equal(state.colorScheme,'light',label+' browser chrome');
-   assert.deepEqual(state.badButtons,[],label+' solid button styling');
-   assert.deepEqual(state.darkPanels,[],label+' light surfaces');
+   if(label==='collaborations'||label.startsWith('dashboard-')){
+    assert.equal(state.appearance,'workspace',label+' authenticated session');
+    assert.ok(state.ccxBrand?.background.includes('gradient'),label+' blended brand background');
+    assert.ok(state.ccxBrand?.header.includes('gradient'),label+' hero-matched header gradient');
+    assert.equal(state.ccxBrand.cyan,'#09d3f7',label+' cyan identity');
+    assert.equal(state.ccxBrand.purple,'#8d69ff',label+' violet identity');
+    assert.equal(state.ccxBrand.pink,'#f800b8',label+' fuchsia identity');
+    if(state.ccxBrand.primary)
+     assert.ok(state.ccxBrand.primary.includes('gradient'),label+' gradient action');
+    assert.deepEqual(state.badButtons.filter(b=>b.color!=='rgb(255, 255, 255)'),[],
+     label+' primary text contrast');
+    if(label.startsWith('dashboard-'))
+     assert.ok(state.headings.some(h=>h.includes('Welcome back, Design')&&!h.includes('Design review')),
+      label+' first-name-only heading');
+   }else{
+    assert.equal(state.background,'rgb(255, 255, 255)',label+' unchanged Host/standalone background');
+    assert.deepEqual(state.badButtons,[],label+' Host blue solid actions');
+   }
+   assert.deepEqual(state.darkPanels,[],label+' readable light cards');
   }
   assert.equal(state.overflow,false,label+' horizontal overflow');
   assert.deepEqual(state.errors,[],label+' runtime errors');
@@ -164,7 +194,7 @@ try {
  for(const role of ['creator','agent','studio','photographer','videographer','video_editor']){
   await navigate('/dashboard?role='+role,1440);await inspect('dashboard-'+role,1440);
  }
- console.log(`PASS ${results.length} real-screen appearance checks: original public artwork, responsive public pages, login/logout transitions, white member/host dashboards and modals.`);
+ console.log(`PASS ${results.length} real-screen appearance checks: original public artwork, responsive public pages, login/logout transitions, cyan-violet-pink member dashboards with unchanged Host colors and readable modals.`);
  if(output)fs.writeFileSync(path.join(output,'professional-theme-results.json'),JSON.stringify(results,null,2));
  await send('Browser.close');
 } finally {
