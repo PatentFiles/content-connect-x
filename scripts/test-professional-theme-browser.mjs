@@ -170,6 +170,18 @@ try {
      await evaluate("new Promise(resolve=>setTimeout(resolve,90))");
      assert.equal(await evaluate("document.querySelector('#ccx-discovery-detail-dialog').open"),false,'Escape closes the modal');
      assert.equal(await evaluate("document.activeElement?.classList.contains('ccx-home-discovery-trigger')"),true,'Keyboard focus returns to the selected card');
+     // The new Hosts card must open the same branded dialog on phone and desktop.
+     await evaluate("(()=>{const host=[...document.querySelectorAll('.ccx-home-discovery-trigger')].find(e=>e.textContent.trim()==='Hosts');if(!host)throw Error('Hosts category missing');host.click();})()");
+     await evaluate("new Promise(r=>setTimeout(r,90))");
+     const hosts=await evaluate("(()=>{const d=document.querySelector('#ccx-discovery-detail-dialog');return {open:d?.open,detail:d?.textContent||'',href:d?.querySelector('.ccx-discovery-dialog-actions a')?.getAttribute('href')}})()");
+     assert.equal(hosts.open,true,'Hosts description opens in the existing branded modal');
+     assert.match(hosts.detail,/lighting, cameras, microphones/,'Rental preparation requirements are explained');
+     assert.match(hosts.detail,/specifically designed or furnished/,'Production-ready spaces are explained');
+     assert.equal(hosts.href,'https://hostconnectx.com','Host card links to the real property marketplace');
+     await page('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+     await page('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+     await evaluate("new Promise(r=>setTimeout(r,80))");
+     assert.equal(await evaluate("document.querySelector('#ccx-discovery-detail-dialog').open"),false,'Escape closes Hosts description');
     }
    if(route==='/host-dashboard'){
     await evaluate("document.querySelector('.oh-new-space-action').click();new Promise(r=>setTimeout(r,100))");
