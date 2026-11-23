@@ -1476,8 +1476,7 @@ html[data-ccx-appearance="public"] .ccx-app {
 }
 /* Content brand appears once in the existing legal footer, without a link;
  * Host Connect X is one anchor whose hit area includes every letter and X. */
-:root[data-ccx-appearance="public"] .ccx-home-footer-partner {display:none}
-:root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer .ccx-home-footer-partner {
+:root[data-ccx-appearance="public"] .ccx-public-home + .ccx-trust-footer .ccx-trust-partner {
  display:flex;align-items:center;justify-content:center;flex-wrap:wrap;
  gap:4px 7px;margin:12px auto 0;color:#c4c9e2;
 }

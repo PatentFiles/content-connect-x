@@ -17,7 +17,7 @@ export function TrustFooter({legalPage=false,homePage=false}){
   <div className="ccx-trust-footer-top">
    <div>{homePage?<span className="ccx-trust-brand"><BrandWordmark brand="content"/></span>:<a href="/" className="ccx-trust-brand"><BrandWordmark brand="content"/></a>}
     <p>Professional collaboration. Clear consent. Accountable access.</p>
-    {homePage&&<p className="ccx-home-footer-partner">Production spaces and venue hosting: <a className="ccx-home-host-link" href="https://hostconnectx.com" target="_blank" rel="noopener noreferrer" aria-label="Visit Host ConnectX"><BrandWordmark brand="host"/></a></p>}
+    <p className="ccx-trust-partner">Production locations and daily rentals: <a className="ccx-home-host-link" href="https://hostconnectx.com" target="_blank" rel="noopener noreferrer" aria-label="Visit Host ConnectX"><BrandWordmark brand="host"/></a></p>
    </div>
    <a className="ccx-trust-report-link" href="/trust/content-removal">Content removal &amp; safety</a>
   </div>

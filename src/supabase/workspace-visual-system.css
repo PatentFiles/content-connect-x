@@ -429,39 +429,6 @@
  color:var(--cc-text-primary)!important;
 }
 
-/* Cross-brand footer link: Host identity is deliberately separate from the
- * Content Connect X fuchsia accent. No header-level cross-site promotion. */
-.ccx-sister-brand-footer{margin:0!important;width:100%;box-sizing:border-box;display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:10px;padding:22px 18px 86px;text-align:center;color:var(--cc-text-secondary);font-size:13px;border-top:1px solid var(--cc-border);background:var(--cc-surface);}
-/* This footer is already a full-viewport sibling of the sidebar and main.
- * Unlike the main content, it must NOT be shifted by the sidebar width.
- * Center its contents on the exact same viewport axis as the legal footer. */
-:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-sister-brand-footer{
- margin:0!important;
- width:100%!important;
- max-width:none;
- display:flex;
- justify-content:center;
- align-items:center;
- text-align:center;
-}
-.ccx-sister-brand-footer-inner{
- display:flex;
- align-items:center;
- justify-content:center;
- gap:10px;
- flex-wrap:wrap;
- width:fit-content;
- max-width:100%;
- min-width:0;
- margin-inline:auto;
- text-align:center;
- transform:none!important;
-}
-.ccx-host-footer-link{font-weight:800;letter-spacing:-.01em;color:#12698f;text-decoration:none;}
-.ccx-host-footer-link:hover,.ccx-host-footer-link:focus-visible{color:#0c5272;text-decoration:underline;text-underline-offset:3px}
-@media(min-width:768px){.ccx-sister-brand-footer{padding-bottom:24px}}
-@media(prefers-color-scheme:dark){.ccx-host-footer-link{color:#5db7df}.ccx-host-footer-link:hover{color:#9cdbf4}}
-
 /* Production discovery: white road map with tappable branded price pins.
  * All map positions supplied by Host X are city-level, never exact addresses. */
 .host-map-price-pin{border:1px solid #bdd8e7;background:#fff;color:#153d54;box-shadow:0 3px 12px rgba(18,41,54,.18);
@@ -469,22 +436,3 @@
 .host-map-price-pin:hover,.host-map-price-pin:focus-visible{border-color:#12698f;background:#eaf6fc;transform:translateY(-2px);outline:2px solid #12698f;outline-offset:2px}
 .maplibregl-map{font-family:inherit}.maplibregl-control-container{font-family:inherit}
 @media(prefers-reduced-motion:reduce){.host-map-price-pin{transition:none}}
-
-/* Keep the cross-brand footer centered on the viewport itself on every role
- * page, regardless of the sidebar width or role-specific content layout. */
-:root[data-ccx-appearance="workspace"] .ccx-original-shell > .ccx-sister-brand-footer {
- box-sizing:border-box!important;display:flex!important;align-items:center!important;
- justify-content:center!important;width:100%!important;max-width:none!important;
- margin:0!important;padding:20px 16px!important;transform:none!important;
- text-align:center!important;
-}
-:root[data-ccx-appearance="workspace"] .ccx-original-shell > .ccx-sister-brand-footer .ccx-sister-brand-footer-inner {
- display:flex!important;width:fit-content!important;max-width:100%!important;
- margin-inline:auto!important;align-items:center!important;justify-content:center!important;
- flex-wrap:wrap!important;gap:8px!important;transform:none!important;text-align:center!important;
-}
-@media(max-width:767px){
- :root[data-ccx-appearance="workspace"] .ccx-original-shell > .ccx-sister-brand-footer {
-  padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))!important;
- }
-}
