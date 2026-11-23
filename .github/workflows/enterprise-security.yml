@@ -1,0 +1,65 @@
+name: Enterprise security checks
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: enterprise-security-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  secret-scanning:
+    name: Detect committed secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  security-analysis:
+    name: OWASP static analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Semgrep scanner
+        run: python -m pip install --disable-pip-version-check 'semgrep>=1.100,<2'
+      - name: Scan source against OWASP rules
+        run: |
+          mkdir -p artifacts
+          semgrep scan --config p/owasp-top-ten --config p/javascript --error --json --output artifacts/semgrep.json .
+      - name: Preserve scan report for incident review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: enterprise-semgrep-report
+          path: artifacts/semgrep.json
+          if-no-files-found: ignore
+  dependency-audit:
+    name: Audit shipped packages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Check production dependencies
+        run: |
+          mkdir -p artifacts
+          npm audit --omit=dev --audit-level=high --json > artifacts/npm-audit.json || exit_code=$?
+          node -e "const fs=require('fs'); const j=JSON.parse(fs.readFileSync('artifacts/npm-audit.json')); console.log(JSON.stringify(j.metadata?.vulnerabilities||{})); if((j.metadata?.vulnerabilities?.high||0)+(j.metadata?.vulnerabilities?.critical||0)>0)process.exit(1)"
+      - name: Save dependency report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: enterprise-dependency-audit
+          path: artifacts/npm-audit.json
+          if-no-files-found: ignore
