@@ -3,6 +3,10 @@
  * DST changes never produce a fractional night or an hourly booking.
  */
 export const DAILY_CHECKIN_TIME='15:00';
+/** Reject dates JavaScript would otherwise silently normalize. */
+export const isCalendarDate=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&
+ Number.isFinite(Date.parse(value+'T00:00:00Z'))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
+
 export const HALF_HOUR_SLOTS=Object.freeze(Array.from({length:48},(_,i)=>{
  const h=String(Math.floor(i/2)).padStart(2,'0'),m=i%2?'30':'00';
  return {value:h+':'+m,label:new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit',hour12:true,timeZone:'UTC'}).format(new Date('2026-01-01T'+h+':'+m+':00Z'))};
@@ -13,7 +17,7 @@ export const mergeLocal=(day,time)=>day?day+'T'+time:'';
 export const isHalfHour=value=>/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):(?:00|30)$/.test(String(value||''));
 export const timeFor=(day,value,defaultTime)=>mergeLocal(day,timePortion(value,defaultTime));
 export function selectionForDay(day,start,end){
- if(!/^\d{4}-\d{2}-\d{2}$/.test(day))return {start,end};
+ if(!isCalendarDate(day))return {start,end};
  const first=datePortion(start),last=datePortion(end);
  if(!first||last)return {start:mergeLocal(day,DAILY_CHECKIN_TIME),end:''};
  // A same-day checkout is not a full-day booking; prompt for another date.
@@ -23,7 +27,7 @@ export function selectionForDay(day,start,end){
 }
 export function nightsBetween(start,end){
  const a=datePortion(start),b=datePortion(end);
- if(!a||!b)return 0;
+ if(!isCalendarDate(a)||!isCalendarDate(b))return 0;
  const days=Math.round((Date.parse(b+'T00:00:00Z')-Date.parse(a+'T00:00:00Z'))/86400000);
  return Number.isSafeInteger(days)&&days>=1&&days<=365?days:0;
 }
@@ -36,7 +40,7 @@ export function validRange(start,end){
  * across 23/25-hour DST transitions. Never use the visitor's timezone.
  */
 export function venueDateToIso(day,timeZone='America/Los_Angeles'){
- if(!/^\d{4}-\d{2}-\d{2}$/.test(day)||Number.isNaN(Date.parse(day+'T00:00:00Z')))throw Error('Select a booking calendar date.');
+ if(!isCalendarDate(day))throw Error('Select a booking calendar date.');
  const [year,month,date]=day.split('-').map(Number);
  const target=Date.UTC(year,month-1,date,15,0,0);
  const formatter=new Intl.DateTimeFormat('en-US',{
