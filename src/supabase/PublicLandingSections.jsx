@@ -52,7 +52,7 @@ export default function PublicLandingSections(){
      <p>Find creators, filmmakers, production teams and services to collaborate, create and work together.</p>
     </div>
     <div className="ccx-home-discovery-grid" aria-label="Discover professional categories">
-     {DISCOVERY_CATEGORIES.filter(item=>item.key!=='chef').map((item,index)=><article className={'ccx-home-discovery-card ccx-hover-'+hoverTones[index%hoverTones.length]} key={item.key}>
+     {DISCOVERY_CATEGORIES.map((item,index)=><article className={'ccx-home-discovery-card ccx-hover-'+hoverTones[index%hoverTones.length]} key={item.key}>
       <button type="button" className="ccx-home-discovery-trigger"
        aria-haspopup="dialog" aria-controls="ccx-discovery-detail-dialog"
        aria-label={'Learn about '+(PUBLIC_DISCOVERY_DETAILS[item.key]?.label||item.label)}

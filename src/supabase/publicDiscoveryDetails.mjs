@@ -1,6 +1,5 @@
 /** Static marketing copy only. Private directory profiles remain age-verification gated.
- * The spa artwork/key remains a placeholder for the proposed set-design category
- * until a real role/provider taxonomy is available. Never map it to spa-provider results.
+ * Homepage and member Discovery share the same real, searchable category list.
  */
 export const PUBLIC_DISCOVERY_DETAILS=Object.freeze({
  videographer:{
@@ -72,13 +71,6 @@ export const PUBLIC_DISCOVERY_DETAILS=Object.freeze({
   detail:'Look for rental providers in your local area or where you travel. For example, when filming in Los Angeles, plan a one-day rental near the shoot. Compare availability, compatible equipment, rates, collection, returns and insurance requirements.',
   ways:['Plan local or destination-based equipment rentals','Arrange gear around your production date','Discuss pickup, delivery and rental conditions'],
   cta:'Explore equipment rental options'
- },
- spa:{
-  label:'Set Design & Props',eyebrow:'PRODUCTION DESIGN',title:'Turn an ordinary space into a compelling set',
-  intro:'Set styling, backdrops and carefully chosen props can give a small production a much more professional finish.',
-  detail:'Work with set designers and prop specialists to plan themed interiors, decor, practical props and temporary room transformations. Discuss budgets, sourcing, setup and teardown. This is a proposed service category; dedicated provider listings are not active yet.',
-  ways:['Plan sets, backgrounds, props and visual details','Style a studio or permitted rental location','Coordinate setup, delivery and breakdown'],
-  cta:'Join the production network'
  },
  verified:{
   label:'Verified Creators',eyebrow:'CREATOR NETWORK',title:'Meet creators who want to work together',

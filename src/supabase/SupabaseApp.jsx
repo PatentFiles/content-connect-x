@@ -1,5 +1,5 @@
 /** Content ConnectX — Supabase application, backed by protected Edge Functions. */
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
 import { supabase, requireSupabase } from '@/api/supabaseClient';
 import { platformAction } from './platformApi';
 import MemberWorkspace from './MemberWorkspace';
@@ -33,6 +33,7 @@ import AnnualRecap from './AnnualRecap';
 import MeetingStudio from './MeetingStudio';
 import AffiliateShop from './AffiliateShop';
 import CreatorDiscovery from './CreatorDiscovery';
+import {scrollToNewPage} from './navigationScroll.mjs';
 import IdentityVerification from './IdentityVerification';
 import PublicLandingSections from './PublicLandingSections';
 import {useAuthAppearance} from './authAppearance';
@@ -197,8 +198,17 @@ export default function SupabaseApp() {
     return()=>{alive=false;};
   },[session?.access_token,mfaRetry]);
 
+  // All workspace destinations, including browser Back/Forward, start at the top.
+  // Reset after React commits new content; navigation clicks also reset immediately.
+  useLayoutEffect(()=>{scrollToNewPage();},[tab]);
   useEffect(()=>{
-    const onPopState=()=>{setTab(tabFromLegacyPath(window.location.pathname));setError('');};
+    if(!('scrollRestoration' in window.history))return;
+    const previous=window.history.scrollRestoration;
+    window.history.scrollRestoration='manual';
+    return()=>{window.history.scrollRestoration=previous;};
+  },[]);
+  useEffect(()=>{
+    const onPopState=()=>{setTab(tabFromLegacyPath(window.location.pathname));setError('');scrollToNewPage();};
     window.addEventListener('popstate',onPopState);
     return()=>window.removeEventListener('popstate',onPopState);
   },[]);
@@ -421,6 +431,7 @@ export default function SupabaseApp() {
 
   const navigateInWorkspace=(destination,memberContext=null)=>{
     if(destination==='invitations')destination='notifications';
+    scrollToNewPage();
     setTab(destination);setError('');setNotice('');
     const target=destination==='meeting'&&memberContext?.scope&&memberContext?.scopeId
       ?'/Meeting?'+new URLSearchParams({scope:memberContext.scope,room:memberContext.scopeId}).toString()

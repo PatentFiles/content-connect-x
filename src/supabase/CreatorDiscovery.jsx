@@ -1,6 +1,7 @@
 /** Local discovery and independent city search share the same profile card/favorites. */
 import ConnectFeed from './ConnectFeed';
-import {CategoryStrip,DISCOVERY_CATEGORIES} from './CategoryArtwork';
+import {DISCOVERY_CATEGORIES} from './CategoryArtwork';
+import DiscoveryCategoryGrid from './DiscoveryCategoryGrid';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {Search,SlidersHorizontal,RefreshCw,X,ChevronDown,ChevronUp} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
@@ -69,7 +70,7 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
  return <section className="space-y-5">
   <header className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-2xl font-semibold">{mode==='discovery'?'Discovery':mode==='search'?'Search':'Favorites'}</h2><p className="mt-1 text-sm text-[var(--cc-text-secondary)]">{mode==='favorites'?'People you saved from Discovery.':mode==='search'?'Find people in any city and filter by professional role.':local.city?'Discover people in '+local.city+' and change the filters to explore elsewhere.':'Set your city in My Profile to start locally, or choose a city below.'}</p></div>{approved&&<button type="button" className="ccx-secondary rounded-lg p-3" disabled={working} aria-label="Refresh profiles" onClick={()=>void search(applied)}><RefreshCw size={17}/></button>}</header>
   {!approved?<div className={panel}>Independent age verification is required before viewing profiles.</div>:<>
-   {mode!=='favorites'&&<CategoryStrip large items={DISCOVERY_CATEGORIES}
+   {mode!=='favorites'&&<DiscoveryCategoryGrid
     value={DISCOVERY_CATEGORIES.find(item=>item.role===applied.role&&applied.role)?.key||''}
     onSelect={item=>{const next={...applied,role:item.role};setFilters(next);void search(next);}}/>}
    {mode!=='favorites'&&<form className={panel+' space-y-4'} data-discovery-filters="true" onSubmit={e=>{e.preventDefault();void search(filters);setFiltersOpen(false);}}>
@@ -79,7 +80,7 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
     </button>
     {filtersOpen&&<div id="ccx-discovery-filter-fields" className="space-y-4"><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
     <label className="text-sm">Name<input className={input+' mt-2'} value={filters.query} onChange={e=>change('query',e.target.value)} placeholder="Display name"/></label>
-    <label className="text-sm">Professional role<select className={input+' mt-2'} value={filters.role} onChange={e=>change('role',e.target.value)}><option value="">All roles</option>{roleOptions.filter(([key])=>key!=='host').map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
+    <label className="text-sm">Professional role<select className={input+' mt-2'} value={filters.role} onChange={e=>change('role',e.target.value)}><option value="">All roles</option>{roleOptions.filter(([key])=>!['host','chef','spa_provider'].includes(key)).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
     <div className="md:col-span-3">
      <GeoLocationSelect idPrefix="ccx-professional-discovery" allowAny compact value={{
       ...EMPTY_GEO,country:filters.country,state:filters.state,city:filters.city

@@ -3,7 +3,7 @@
  * No remote third-party artwork is loaded. Missing files degrade accessibly.
  */
 import React from 'react';
-import {Home,Building2,Warehouse,Clapperboard,Camera,Landmark,Trees,Waves,LifeBuoy,Package,Users,Video,UserRound,Scissors,Palette,Shirt,Film,Briefcase,Layers} from 'lucide-react';
+import {Home,Building2,Warehouse,Clapperboard,Camera,Landmark,Trees,Waves,LifeBuoy,Package,Video,UserRound,Scissors,Palette,Shirt,Film,Briefcase,Layers} from 'lucide-react';
 
 export const PROPERTY_CATEGORIES=[
  {key:'all',label:'All properties',category:'',Icon:Layers},
@@ -28,8 +28,6 @@ export const DISCOVERY_CATEGORIES=[
  {key:'wardrobe',label:'Wardrobe stylists',role:'wardrobe_stylist',image:'/Wardrobe.png',Icon:Shirt},
  {key:'editor',label:'Video editors',role:'video_editor',image:'/Video%20Editor.png',Icon:Film},
  {key:'equipment',label:'Equipment rentals',role:'equipment_rental',image:'/Equipment_Rental.png',Icon:Package},
- {key:'chef',label:'Chef services',role:'chef',image:'/chef_services.png',Icon:Users},
- {key:'spa',label:'Spa treatments',role:'spa_provider',image:'/spa_treatments.png',Icon:Palette},
  {key:'verified',label:'Verified creators',role:'creator',image:'/Verified%20Creator.png',Icon:UserRound}
 ];
 /** Exact case-sensitive filenames from both repositories' public/ directories.
