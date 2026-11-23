@@ -7,7 +7,7 @@ import {ChevronDown} from 'lucide-react';
 import {CategoryArtwork,DISCOVERY_CATEGORIES} from './CategoryArtwork';
 import {PUBLIC_DISCOVERY_DETAILS} from './publicDiscoveryDetails.mjs';
 const labelOf=item=>PUBLIC_DISCOVERY_DETAILS[item.key]?.label||item.label;
-export default function DiscoveryCategoryGrid({value='',onSelect=()=>{}}){
+export default function DiscoveryCategoryGrid({value='',onSelect=(_item)=>{void _item;}}){
  const [expanded,setExpanded]=useState(false);
  const active=DISCOVERY_CATEGORIES.find(item=>item.key===value);
  return <section className="space-y-3" data-discovery-category-grid="true">
