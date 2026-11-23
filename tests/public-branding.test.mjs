@@ -42,7 +42,7 @@ test('shared wordmarks use exact names and brand-specific X treatment in active 
  assert.match(shell,/<BrandWordmark brand="content"/);
  assert.match(trust,/<BrandWordmark brand="host"/);
  assert.match(app,/<BrandWordmark brand="host"/);
- assert.match(html,/<title>Content ConnectX<\/title>/);
+ assert.match(html,/<title>Content ConnectX \| Professional Creator Collaboration Network<\/title>/);
  assert.match(manifest.name,/^Content ConnectX/);
  assert.doesNotMatch(shell,/CategoryRail|ccx-nav-rail-button|expandedGroup/);
 });
