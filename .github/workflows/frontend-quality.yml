@@ -24,6 +24,8 @@ jobs:
         run: npm run typecheck
       - name: All offline policy, authorization and product regressions
         run: npm run test:unit
+      - name: Enterprise administration diagnostics wiring
+        run: node --test tests/enterprise-diagnostics-wiring.test.mjs
       - name: Inventory all interactive JSX controls and fail on inert elements
         run: npm run audit:ui-controls
       - name: Upload interactive control inventory
