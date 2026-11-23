@@ -11,10 +11,12 @@ import AIAgentAdmin from './AIAgentAdmin';
 import VideoProviderSettings from './VideoProviderSettings';
 import AdminTrustInbox from './AdminTrustInbox';
 import AdminOperations from './AdminOperations';
+import EnterpriseDiagnostics from './EnterpriseDiagnostics';
 import AdminSafetyOperations from './AdminSafetyOperations';
 import LawEnforcementAdmin from './LawEnforcementAdmin';
 const sections=[
  {key:'operations',title:'Operational readiness'},
+ {key:'diagnostics',title:'Diagnostics & test reports'},
  {key:'features',title:'Modules & rollouts'},
  {key:'pricing',title:'Membership pricing'},
  {key:'integrations',title:'APIs & provider keys'},
@@ -42,6 +44,7 @@ export default function AdminConsole({initialSection='features',onFeatureChange}
   </div>
   <div role="tabpanel">
    {section==='operations'&&<AdminOperations onSelect={setSection}/>}
+   {section==='diagnostics'&&<EnterpriseDiagnostics/>}
    {section==='features'&&<AdminProductControls onFeatureChange={onFeatureChange}/>}
    {section==='pricing'&&<MembershipPlanAdmin/>}
    {section==='integrations'&&<IntegrationHealth/>}
