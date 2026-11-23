@@ -42,3 +42,18 @@ test('quoted payout nets refund and fee without inventing settlement',()=>{
  assert.deepEqual(payoutQuote({capturedCents:10000,refundedCents:2000,feeBasisPoints:1000}),
   {grossCents:8000,platformFeeCents:800,hostPayoutCents:7200});
 });
+
+/** Regression: Date.parse normalizes impossible civil dates unless round-tripped. */
+test('impossible booking dates fail closed without changing a valid selection',async()=>{
+ const {isCalendarDate,nightsBetween,validRange,venueDateToIso,selectionForDay}=await import('../src/supabase/hostingDateRange.mjs');
+ for(const date of ['2026-02-29','2026-02-30','2026-04-31','2026-13-01','2026-01-00','2026-01-32']){
+  assert.equal(isCalendarDate(date),false,date);
+  assert.equal(nightsBetween(date+'T15:00','2026-05-02T15:00'),0,date);
+  assert.equal(validRange(date+'T15:00','2026-05-02T15:00'),false,date);
+  assert.throws(()=>venueDateToIso(date,'UTC'),/booking calendar date/);
+  assert.deepEqual(selectionForDay(date,'2026-02-28T15:00',''),{start:'2026-02-28T15:00',end:''});
+ }
+ assert.equal(isCalendarDate('2028-02-29'),true);
+ assert.equal(nightsBetween('2028-02-29T15:00','2028-03-01T15:00'),1);
+ assert.equal(venueDateToIso('2028-02-29','UTC'),'2028-02-29T15:00:00.000Z');
+});
