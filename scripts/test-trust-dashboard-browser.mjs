@@ -112,12 +112,12 @@ try{
  await run(()=>{window.__db.failLoad=false;});await click('Retry dashboard');await hasText('Feed');
  // Visit each production footer URL through its *actual anchor click*, not
  // only by navigating programmatically. This reproduces the former modal crash.
- await visit('/dashboard');await wait(count=>document.querySelectorAll('.ccx-trust-footer nav a').length===count,TRUST_LINKS.length);
+ await visit('/dashboard');await wait(count=>document.querySelectorAll('.ccx-trust-footer nav[aria-label="Legal, safety and support"] a').length===count,TRUST_LINKS.length);
  for(const [slug,title] of TRUST_LINKS){
   const route='/trust/'+slug;
   const before=await run(()=>performance.timeOrigin);
   const clicked=await run(slug=>{
-   const link=document.querySelector('.ccx-trust-footer nav a[href="/trust/'+slug+'"]');
+   const link=document.querySelector('.ccx-trust-footer nav[aria-label="Legal, safety and support"] a[href="/trust/'+slug+'"]');
    if(!link)return false;link.click();return true;
   },slug);
   assert.equal(clicked,true,'Footer link exists: '+slug);
