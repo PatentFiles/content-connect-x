@@ -60,7 +60,7 @@ function FeedPost({post,paid,userId,onChanged,onError,preview=false}){
  const [busy,setBusy]=useState(false),[revealedPhotos,setRevealedPhotos]=useState([]);
  const [reporting,setReporting]=useState(false),[reportReason,setReportReason]=useState('unsafe');
  const [deleteOpen,setDeleteOpen]=useState(false),[deleteError,setDeleteError]=useState('');
- const deleteLock=useRef(false),deleteDialogRef=useRef(null);
+ const deleteLock=useRef(false),deleteDialogRef=useRef(/** @type {HTMLDialogElement|null} */ (null));
  const deleteTitleId=React.useId(),deleteDescriptionId=React.useId();
  useEffect(()=>{
   if(!deleteOpen)return;
@@ -69,7 +69,7 @@ function FeedPost({post,paid,userId,onChanged,onError,preview=false}){
   const previouslyFocused=document.activeElement,previousOverflow=document.body.style.overflow;
   document.body.style.overflow='hidden';
   if(!dialog.open)dialog.showModal();
-  dialog.querySelector('[data-feed-delete-cancel]')?.focus({preventScroll:true});
+  /** @type {HTMLButtonElement|null} */ (dialog.querySelector('[data-feed-delete-cancel]'))?.focus({preventScroll:true});
   return()=>{
    if(dialog.open)dialog.close();
    document.body.style.overflow=previousOverflow;

@@ -17,7 +17,7 @@ const mock=[
  "const original={id:'20000000-0000-4000-8000-000000000002',author_id:'30000000-0000-4000-8000-000000000003',author:{display_name:'Original Artist',role_type:'photographer'},body:'Original professional photo shoot update.',audience:'verified',published_at:'2026-11-21T10:00:00Z',allow_repost:true,likes:2,comments:1,saved:false,liked:false,photos:[{id:'70000000-0000-4000-8000-000000000007',url:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL2RwAAAABJRU5ErkJggg==',caption:'Large feed photo',content_label:'professional'}],repost_of:null};",
  "const mine={...original,id:'40000000-0000-4000-8000-000000000004',author_id:viewer,author:{display_name:'Fixture Member',role_type:'creator'},body:'My own professional update.'};",
  "const repost={...original,id:'50000000-0000-4000-8000-000000000005',author_id:viewer,author:{display_name:'Fixture Member',role_type:'creator'},body:'Sharing this professional update.',photos:[],repost_of:original.id,allow_repost:false,original:{id:original.id,body:original.body,author_id:original.author_id,author_name:'Original Artist',created_at:original.published_at,photos:[{id:'60000000-0000-4000-8000-000000000006',url:'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVQIHWP4z8DwHwAFgAI/ScL2RwAAAABJRU5ErkJggg==',caption:'Approved original photo',content_label:'professional'}]}};",
- "window.__feedApi={calls:[],reposts:0};",
+ "window.__feedApi={calls:[],reposts:0,failHideOnce:0};",
  "export const supabase={",
  "from:()=>({select(){return this},eq(){return this},maybeSingle:async()=>({data:{feed_view:'discover',default_audience:'verified'},error:null})}),",
  "functions:{invoke:async(name,{body})=>{window.__feedApi.calls.push(body);",
@@ -28,6 +28,7 @@ const mock=[
  "if(body.action==='comments')return {data:{items:[]},error:null};",
  "if(body.action==='save')return {data:{saved:true},error:null};",
  "if(body.action==='report')return {data:{note:'Report received.'},error:null};",
+ "if(body.action==='hide'){if(window.__feedApi.failHideOnce>0){window.__feedApi.failHideOnce--;return {data:{hidden:false},error:null}}return {data:{hidden:true},error:null}}",
  "return {data:{},error:null}}}",
  "};"
 ].join('\n');
@@ -148,6 +149,30 @@ try{
    const tabs=[...document.querySelectorAll('[role=tab]')];
    if(tabs[0].textContent.trim()!=='Posts')throw Error('Profile Posts tab missing');
    if(!document.body.textContent.includes('My own professional update.'))throw Error('Own posts absent');
+   // The owner must explicitly confirm deletion. Cancel cannot call the API.
+   window.confirm=()=>{throw Error('Native browser confirm must not be used');};
+   const ownerDelete=document.querySelector('[data-connect-post] button[aria-label="Delete post"]');
+   if(!ownerDelete)throw Error('Owner delete button missing');
+   ownerDelete.click();await pause();
+   let dialog=document.querySelector('[data-feed-delete-dialog]');
+   if(!dialog?.open||dialog.getAttribute('role')!=='alertdialog')throw Error('Branded delete modal did not open');
+   if(window.__feedApi.calls.some(x=>x.action==='hide'))throw Error('Deletion occurred before confirmation');
+   dialog.querySelector('[data-feed-delete-cancel]')?.click();await pause();
+   if(document.querySelector('[data-feed-delete-dialog]'))throw Error('Cancel did not close the modal');
+   if(window.__feedApi.calls.some(x=>x.action==='hide'))throw Error('Cancel submitted deletion');
+   ownerDelete.click();await pause();
+   dialog=document.querySelector('[data-feed-delete-dialog]');
+   if(!dialog?.open)throw Error('Confirmation did not reopen');
+   window.__feedApi.failHideOnce=1;
+   let confirm=[...dialog.querySelectorAll('button')].find(b=>b.textContent.trim()==='Delete post');
+   if(!confirm)throw Error('Confirm deletion button missing');
+   confirm.click();await pause();await pause();
+   dialog=document.querySelector('[data-feed-delete-dialog]');
+   if(!dialog?.open||!dialog.querySelector('[role=alert]'))throw Error('Failed deletion must leave modal open with error');
+   confirm=[...dialog.querySelectorAll('button')].find(b=>b.textContent.trim()==='Delete post');
+   confirm?.click();await pause();await pause();
+   if(document.querySelector('[data-feed-delete-dialog]'))throw Error('Successful delete did not dismiss modal');
+   if(window.__feedApi.calls.filter(x=>x.action==='hide').length!==2)throw Error('Deletion was not retried correctly');
    tabs[1].click();
    for(let i=0;i<50&&!document.querySelector('[data-repost-attribution]');i++)await pause();
    if(!document.body.textContent.includes('Fixture Member reposted'))throw Error('Profile repost not rendered');
