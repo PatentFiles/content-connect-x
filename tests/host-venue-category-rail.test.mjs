@@ -21,9 +21,15 @@ test('Properties quick links omit All spaces and Production set; deep dropdown i
  assert.doesNotMatch(rail,/overflow-x-auto|w-max|min-w-max|overscroll-x-contain/);
  assert.match(rail,/HOST_VENUE_QUICK_LINKS\.map/);
  assert.match(rail,/HOST_VENUE_CATEGORIES\.map/);
- assert.match(rail,/ccx-venue-category-select/);
- assert.match(rail,/<option value="">All property types<\/option>/);
+ assert.match(rail,/ccx-venue-category-options/);
+ assert.match(rail,/selectedTypes\.includes\(item\.id\)/);
  assert.match(rail,/aria-pressed=\{active\}/);
+ assert.match(rail,/selectedTypes\.length/);
+ assert.match(rail,/type="checkbox"/);
+ assert.match(rail,/onChangeTypes\(next\)/);
+ assert.match(rail,/onChangeTypes\(\[\]\)/);
+ assert.match(rail,/aria-expanded=\{open\}/);
+ assert.match(rail,/event\.key==='Escape'/);
 });
 test('all real artwork exists in the property quick-link grid and mobile picture slots are fixed',()=>{
  for(const item of HOST_VENUE_QUICK_LINKS){
@@ -52,11 +58,13 @@ test('Properties routes send real Host Supabase filter IDs and the filter modal 
  const api=read('src/supabase/hostConnectApi.js');
  assert.match(app,/<HostCrossMarketplace key=\{tab\}/);
  assert.match(host,/<MarketplaceExplore items=\{items\}/);
- assert.match(explore,/<HostVenueCategoryRail selected=\{selectedCategory\}/);
- assert.match(explore,/types:id\?\[id\]:\[\]/);
+ assert.match(explore,/<HostVenueCategoryRail selectedTypes=\{filters\.types\}/);
+ assert.match(explore,/onChangeTypes=\{types=>/);
+ assert.match(explore,/const next=\{\.\.\.filters,types\}/);
+ assert.match(explore,/setFilters\(next\);apply\(next\)/);
  assert.match(explore,/venueMatchesTypes\(p,filters\.types\)/);
  assert.match(explore,/HOST_VENUE_CATEGORIES\.map/);
- assert.match(explore,/category:nextFilters\.types\[0\]/);
+ assert.match(explore,/categories:nextFilters\.types/);
  assert.match(explore,/\.amenities\.length\?\{amenities:nextFilters\.amenities\}/);
  assert.match(api,/functions\/v1\/host-marketplace/);
  assert.doesNotMatch(explore,/Specialty set|Production set|All spaces/);
@@ -94,12 +102,27 @@ test('category icons are consistent in quick grid, full dropdown, advanced filte
  const explore=read('src/supabase/MarketplaceExplore.jsx');
  assert.match(rail,/HOST_VENUE_QUICK_LINKS\.map/);
  assert.match(rail,/HOST_VENUE_CATEGORIES\.map/);
- assert.match(rail,/VenueArtwork item=\{HOST_VENUE_CATEGORIES\.find/);
+ assert.match(rail,/VenueArtwork item=\{item\}/);
  assert.match(explore,/HOST_VENUE_CATEGORIES\.map\(\(\{id,label,image\}\)/);
  assert.match(explore,/<img src=\{image\}/);
  assert.match(explore,/venueArtworkFor\(p\.category,\{listingPlaceholder:true\}\)/);
  assert.match(explore,/p\.cover_url\?<img/,'Real listing photos must be preferred');
- assert.match(explore,/types:id\?\[id\]:\[\]/);
- assert.match(explore,/category:nextFilters\.types\[0\]/);
+ assert.match(explore,/selectedTypes=\{filters\.types\}/);
+ assert.match(explore,/categories:nextFilters\.types/);
  assert.match(explore,/venueMatchesTypes\(p,filters\.types\)/);
+});
+
+test('photo and film studio remain selected together across all property filters',()=>{
+ const rail=read('src/supabase/HostVenueCategoryRail.jsx');
+ const explore=read('src/supabase/MarketplaceExplore.jsx');
+ const cross=read('src/supabase/HostCrossMarketplace.jsx');
+ const fixtures=[{category:'photo_studio',amenities:[]},{category:'film_studio',amenities:[]},{category:'house',amenities:[]}];
+ assert.deepEqual(fixtures.filter(p=>venueMatchesTypes(p,['photo_studio','film_studio'])),fixtures.slice(0,2));
+ for(const term of ['selectedTypes.includes(id)','selectedTypes.filter(key=>key!==id)','[...selectedTypes,id]','type="checkbox"'])
+  assert.ok(rail.includes(term),'Missing multi-select behavior '+term);
+ assert.match(explore,/categories:nextFilters\.types/);
+ assert.match(explore,/onChange=\{setFilters\}/);
+ assert.match(cross,/hostConnectAction\('browse',activeBrowse\.current\)/);
+ assert.match(cross,/version===browseVersion\.current/);
+ assert.doesNotMatch(explore,/selectedCategory|types:id\?\[id\]:\[\]/);
 });

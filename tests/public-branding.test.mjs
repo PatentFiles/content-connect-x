@@ -31,6 +31,7 @@ test('appearance helper switches dark/light and browser chrome without changing 
 test('shared wordmarks use exact names and brand-specific X treatment in active headers and footers',()=>{
  const wordmark=read('src/supabase/BrandWordmark.jsx');
  const shell=read('src/supabase/OriginalShell.jsx');
+ const trust=read('src/supabase/TrustSite.jsx');
  const app=read('src/supabase/SupabaseApp.jsx');
  const html=read('index.html');
  const manifest=JSON.parse(read('public/manifest.json'));
@@ -39,7 +40,7 @@ test('shared wordmarks use exact names and brand-specific X treatment in active 
  assert.match(wordmark,/#12698f/);
  assert.match(wordmark,/linear-gradient/);
  assert.match(shell,/<BrandWordmark brand="content"/);
- assert.match(shell,/<BrandWordmark brand="host"/);
+ assert.match(trust,/<BrandWordmark brand="host"/);
  assert.match(app,/<BrandWordmark brand="host"/);
  assert.match(html,/<title>Content ConnectX<\/title>/);
  assert.match(manifest.name,/^Content ConnectX/);
@@ -62,18 +63,25 @@ test('signed-out discovery displays every original professional icon and no priv
  assert.match(css,/ccx-home-discovery-grid/);
  assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
  assert.match(css,/--ccx-gradient:linear-gradient\(112deg,#12698f/);
- assert.match(shell,/\.ccx-sister-brand-footer\{margin:0!important;width:100%/);
+ assert.doesNotMatch(shell,/\.ccx-sister-brand-footer/);
+ assert.match(read('src/supabase/TrustSite.jsx'),/className="ccx-trust-partner"/);
  assert.match(shell,/--cc-action:#12698f/);
 });
 
-test('signed-in partner footer uses viewport center, never sidebar compensation',()=>{
+test('one centered legal footer serves regular and trust pages without a separate role strip',()=>{
  const shell=read('src/supabase/OriginalShell.jsx');
- const css=read('src/supabase/workspace-visual-system.css');
- assert.match(shell,/className="ccx-sister-brand-footer-inner"/);
- assert.match(shell,/Production locations and daily rentals:/);
- assert.match(css,/\.ccx-sister-brand-footer-inner\{[\s\S]*?justify-content:center/);
- assert.match(css,/\.ccx-sister-brand-footer-inner\{[\s\S]*?transform:none!important/);
- assert.match(css,/\.ccx-original-shell \.ccx-sister-brand-footer\{[\s\S]*?width:100%!important/);
- assert.doesNotMatch(css,/translateX\(calc\(var\(--ccx-workspace-nav-width/);
- assert.match(css,/\.ccx-sister-brand-footer\{margin:0!important;width:100%/);
+ const trust=read('src/supabase/TrustSite.jsx');
+ const css=read('src/supabase/trust-site.css');
+ const workspace=read('src/supabase/workspace-visual-system.css');
+ assert.doesNotMatch(shell,/ccx-sister-brand-footer|Connected marketplaces/);
+ assert.doesNotMatch(workspace,/ccx-sister-brand-footer/);
+ assert.equal((trust.match(/Production locations and daily rentals:/g)||[]).length,1);
+ assert.equal((trust.match(/<BrandWordmark brand="host"\/>/g)||[]).length,1);
+ assert.match(trust,/className="ccx-trust-partner"/);
+ assert.match(trust,/href="https:\/\/hostconnectx\.com"/);
+ assert.match(trust,/if\(!legalPage\)return <>{children}<TrustFooter/);
+ assert.match(trust,/<TrustFooter legalPage\/>/);
+ assert.match(css,/\.ccx-trust-footer \.ccx-trust-partner/);
+ assert.match(css,/justify-content:center/);
+ assert.match(css,/a\.ccx-home-host-link:focus-visible/);
 });
