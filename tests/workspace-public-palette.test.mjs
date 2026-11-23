@@ -26,7 +26,8 @@ test('workplace reuses the actual public cyan, violet and fuchsia palette',()=>{
  const next=bootstrap.indexOf("import './workspace-public-palette.css'");
  assert.ok(old>=0&&next>old,'Workspace palette must override older teal rules');
  assert.match(css,/:root\[data-ccx-appearance="workspace"\] \.ccx-original-shell/);
- assert.doesNotMatch(css,/data-ccx-appearance="public"|\.oh-app/);
+ const activeSelectors=css.replace(/\/\*[\s\S]*?\*\//g,'');
+ assert.doesNotMatch(activeSelectors,/data-ccx-appearance="public"|\.oh-app/);
  assert.ok(publicCss.includes('#09D3F7'));
  assert.ok(publicCss.includes('#8D69FF'));
  assert.ok(publicCss.includes('#F800B8'));
@@ -58,7 +59,8 @@ test('Host Connect blue tokens and all public artwork remain intact',()=>{
  const host=read('src/supabase/OnlyHostApp.jsx');
  assert.match(old,/--brand-host-action:#12698f/);
  assert.match(old,/:root\[data-ccx-appearance="workspace"\] \.oh-app/);
- assert.doesNotMatch(css,/\.oh-app|\.host-connect-theme/);
+ const activeSelectors=css.replace(/\/\*[\s\S]*?\*\//g,'');
+ assert.doesNotMatch(activeSelectors,/\.oh-app|\.host-connect-theme/);
  assert.match(host,/Host_Connect_Banner_Mobile\.png/);
  assert.match(read('src/supabase/SupabaseApp.jsx'),/content_conect_hero\.png/);
 });

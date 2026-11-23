@@ -83,7 +83,8 @@ test('authenticated Content Connect X adopts the public cyan, violet and pink id
  assert.match(palette,/--ccx-gradient:linear-gradient\(112deg/);
  assert.match(palette,/background:linear-gradient\(112deg,#126ea7/);
  assert.match(palette,/prefers-reduced-motion:reduce/);
- assert.doesNotMatch(palette,/\.oh-app|data-ccx-appearance="public"/,
+ const activeSelectors=palette.replace(/\/\*[\s\S]*?\*\//g,'');
+ assert.doesNotMatch(activeSelectors,/\.oh-app|data-ccx-appearance="public"/,
   'Host Connect or logged-out branding must not be overridden by workspace palette');
  assert.match(nav,/ccx-nav-heading/);
  assert.match(read('src/supabase/authAppearance.js'),/signedIn\?'#F7F3FF'/);
