@@ -126,6 +126,21 @@ try {
  for(const route of ['/','/login','/signup','/pricing','/hostconnect','/collaborations','/host-dashboard']){
   for(const width of [320,390,768,1440]){
    console.log('Checking',route,width);await navigate(route,width);await inspect(route==='/'?'homepage':route.slice(1),width);
+   if(route==='/'&&[390,1440].includes(width)){
+     const count=await evaluate("(()=>{const cards=[...document.querySelectorAll('.ccx-home-discovery-trigger')];cards[0]?.click();return cards.length;})()");
+     assert.equal(count,12,'Twelve public categories have clickable cards');
+     await evaluate("new Promise(resolve=>setTimeout(resolve,100))");
+     const state=await evaluate("(()=>{const d=document.querySelector('#ccx-discovery-detail-dialog');return {open:d?.open,title:d?.querySelector('h2')?.textContent,focused:d?.contains(document.activeElement),signup:!!d?.querySelector('a[href=\"/signup\"]')};})()");
+     assert.equal(state.open,true,'Category click opens a native dialog');
+     assert.match(state.title||'',/videographer/i,'Correct role details are displayed');
+     assert.equal(state.focused,true,'Keyboard focus moves inside the dialog');
+     assert.equal(state.signup,true,'Protected discovery directs visitors to registration');
+     await page('Input.dispatchKeyEvent',{type:'keyDown',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+     await page('Input.dispatchKeyEvent',{type:'keyUp',key:'Escape',code:'Escape',windowsVirtualKeyCode:27});
+     await evaluate("new Promise(resolve=>setTimeout(resolve,90))");
+     assert.equal(await evaluate("document.querySelector('#ccx-discovery-detail-dialog').open"),false,'Escape closes the modal');
+     assert.equal(await evaluate("document.activeElement?.classList.contains('ccx-home-discovery-trigger')"),true,'Keyboard focus returns to the selected card');
+    }
    if(route==='/host-dashboard'){
     await evaluate("document.querySelector('.oh-new-space-action').click();new Promise(r=>setTimeout(r,100))");
     await inspect('new-space-modal',width);
