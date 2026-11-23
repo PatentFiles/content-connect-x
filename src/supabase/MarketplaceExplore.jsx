@@ -7,15 +7,11 @@ import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {Search,SlidersHorizontal,Map,MapPin,Users,Home,Building2,Warehouse,Camera,Clapperboard,TreePine,Hotel,Landmark,ChevronRight,X,Tag} from 'lucide-react';
 import GeoLocationSelect,{EMPTY_GEO} from './GeoLocationSelect';
 import HostVenueCategoryRail from './HostVenueCategoryRail';
-const kinds=[
- {id:'house',label:'Home',Icon:Home},{id:'condo',label:'Owned condo',Icon:Building2},
- {id:'warehouse',label:'Warehouse',Icon:Warehouse},{id:'film_studio',label:'Film studio',Icon:Clapperboard},
- {id:'photo_studio',label:'Photo studio',Icon:Camera},{id:'dungeon',label:'Specialty set',Icon:Landmark},
- {id:'outdoor',label:'Outdoor',Icon:TreePine},{id:'private_beach',label:'Private beach',Icon:TreePine},
- {id:'hotel',label:'Hotel',Icon:Hotel},{id:'resort',label:'Resort',Icon:Hotel},
- {id:'villa',label:'Villa',Icon:Home},{id:'loft',label:'Loft',Icon:Building2},
- {id:'set',label:'Production set',Icon:Clapperboard},{id:'other',label:'Other venue',Icon:MapPin}
-];
+import {HOST_VENUE_CATEGORIES,venueMatchesTypes} from './hostVenueCategories.mjs';
+const icons={house:Home,condo:Building2,warehouse:Warehouse,film_studio:Clapperboard,
+ photo_studio:Camera,dungeon:Landmark,outdoor:TreePine,private_beach:TreePine,
+ pool:MapPin,resort:Hotel,villa:Home,loft:Building2,hotel:Hotel,other:MapPin};
+const kinds=HOST_VENUE_CATEGORIES.map(({id,label})=>({id,label,Icon:icons[id]||MapPin}));
 export const amenityGroups=[
  {title:'Essentials',items:[['wifi','Wi-Fi'],['kitchen','Kitchen'],['washer','Washer'],['dryer','Dryer'],['air_conditioning','Air conditioning'],['heating','Heating'],['dedicated_workspace','Dedicated workspace'],['tv','TV'],['hair_dryer','Hair dryer'],['iron','Iron']]},
  {title:'Amenities & features',items:[['pool','Swimming pool'],['hot_tub','Hot tub'],['free_parking','Free parking'],['ev_charger','EV charger'],['king_bed','King bed'],['gym','Gym'],['bbq_grill','BBQ grill'],['breakfast','Breakfast'],['indoor_fireplace','Fireplace'],['smoking_allowed','Smoking allowed'],['allows_pets','Pets permitted']]},
@@ -185,7 +181,7 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
  const [showMap,setShowMap]=useState(true);
  const count=Object.values(crew).reduce((sum,n)=>sum+Number(n||0),0);
  const displayed=useMemo(()=>items.filter(p=>{
-  if(filters.types.length&&!filters.types.includes(p.category))return false;
+  if(!venueMatchesTypes(p,filters.types))return false;
   const one=(Number(p.one_day_including_cleaning_cents)||Number(p.daily_rate_cents)+Number(p.cleaning_fee_cents))/100;
   const quoted=Number.isFinite(p.stay_total_cents)?p.stay_total_cents/100:one;
   if(filters.minPrice!==''&&quoted<Number(filters.minPrice))return false;
