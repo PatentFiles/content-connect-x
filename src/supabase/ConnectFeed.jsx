@@ -3,7 +3,8 @@
  * can submit posts and reposts. No public media URLs or third-party ad scripts.
  */
 import React,{useCallback,useEffect,useRef,useState} from 'react';
-import {Heart,MessageCircle,Repeat2,Bookmark,ImagePlus,Send,Flag,RefreshCw,X,Settings2} from 'lucide-react';
+import {createPortal} from 'react-dom';
+import {Heart,MessageCircle,Repeat2,Bookmark,ImagePlus,Send,Flag,RefreshCw,X,Settings2,Trash2,AlertTriangle} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
 import {loadFeedPreferences} from './feedDisplayPreferences.mjs';
 const secondary='ccx-secondary inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm disabled:opacity-50';
@@ -58,6 +59,24 @@ function FeedPost({post,paid,userId,onChanged,onError,preview=false}){
  const [comments,setComments]=useState(null),[commentText,setCommentText]=useState('');
  const [busy,setBusy]=useState(false),[revealedPhotos,setRevealedPhotos]=useState([]);
  const [reporting,setReporting]=useState(false),[reportReason,setReportReason]=useState('unsafe');
+ const [deleteOpen,setDeleteOpen]=useState(false),[deleteError,setDeleteError]=useState('');
+ const deleteLock=useRef(false),deleteDialogRef=useRef(null);
+ const deleteTitleId=React.useId(),deleteDescriptionId=React.useId();
+ useEffect(()=>{
+  if(!deleteOpen)return;
+  const dialog=deleteDialogRef.current;
+  if(!dialog)return;
+  const previouslyFocused=document.activeElement,previousOverflow=document.body.style.overflow;
+  document.body.style.overflow='hidden';
+  if(!dialog.open)dialog.showModal();
+  dialog.querySelector('[data-feed-delete-cancel]')?.focus({preventScroll:true});
+  return()=>{
+   if(dialog.open)dialog.close();
+   document.body.style.overflow=previousOverflow;
+   if(previouslyFocused instanceof HTMLElement&&previouslyFocused.isConnected)
+    previouslyFocused.focus({preventScroll:true});
+  };
+ },[deleteOpen]);
  const [local,setLocal]=useState(post),[notice,setNotice]=useState('');
  useEffect(()=>{setLocal(post);},[post]);
  const mutate=async(name,args={})=>{
@@ -70,9 +89,23 @@ function FeedPost({post,paid,userId,onChanged,onError,preview=false}){
    if(name==='comment'){setCommentText('');setNotice('Comment submitted for review.');}
    if(name==='repost'){setNotice(result?.item?.status==='published'?'Added to your Reposts.':'Repost submitted for review.');onChanged?.();}
    if(name==='report'){setReporting(false);setNotice(result.note||'Report received.');}
-   if(name==='hide')onChanged?.();
+
   }catch(error){onError(error.message);}finally{setBusy(false);}
  };
+ const confirmDelete=async()=>{
+  // The backend independently verifies post ownership. Never call it on Cancel.
+  if(deleteLock.current||busy||preview||local.author_id!==userId)return;
+  deleteLock.current=true;setBusy(true);setDeleteError('');
+  try{
+   const result=await action('hide',{post_id:post.id});
+   if(result?.hidden!==true)throw Error('The post could not be deleted. Try again.');
+   setDeleteOpen(false);
+   onChanged?.();
+  }catch(e){
+   setDeleteError(e?.message||'Unable to delete your post. Please try again.');
+  }finally{deleteLock.current=false;setBusy(false);}
+ };
+ const closeDelete=()=>{if(!busy)setDeleteOpen(false);};
  const loadComments=async()=>{
   if(busy)return;
   if(comments){setComments(null);return;}
@@ -84,7 +117,7 @@ function FeedPost({post,paid,userId,onChanged,onError,preview=false}){
  const repostNote=isRepost&&!['Sharing this professional update.','Reposted this update.'].includes(String(local.body||'').trim())?local.body:null;
  const authorName=local.author?.display_name||'Member';
  const reveal=id=>setRevealedPhotos(values=>values.includes(id)?values:[...values,id]);
- return <article className="ccx-surface min-w-0 space-y-4 overflow-hidden rounded-2xl p-4 sm:p-5" data-connect-post={local.id}>
+ return <><article className="ccx-surface min-w-0 space-y-4 overflow-hidden rounded-2xl p-4 sm:p-5" data-connect-post={local.id}>
   <header className="flex min-w-0 items-start justify-between gap-3" data-feed-post-header="true">
    <div className="flex min-w-0 items-center gap-3">
     <FeedAvatar url={local.author?.avatar_url} name={authorName}/>
@@ -96,7 +129,7 @@ function FeedPost({post,paid,userId,onChanged,onError,preview=false}){
    </div>
    <div className="flex shrink-0 flex-col items-end gap-1 text-right">
     {postTime(local.published_at)&&<time dateTime={local.published_at} className="text-xs leading-5 text-[var(--cc-text-secondary)]" data-feed-post-time="true">{postTime(local.published_at)}</time>}
-    {local.author_id===userId&&<button type="button" className="min-h-9 text-xs text-[var(--cc-text-secondary)] underline underline-offset-2" disabled={busy||preview} onClick={()=>{if(window.confirm('Remove this post from the feed?'))void mutate('hide');}}>Remove</button>}
+    {local.author_id===userId&&<button type="button" className="min-h-9 text-xs text-[var(--cc-text-secondary)] underline underline-offset-2 hover:text-rose-700 focus-visible:rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cc-focus)]" aria-label="Delete post" disabled={busy||preview} onClick={()=>{setDeleteError('');setDeleteOpen(true);}}>Delete</button>}
    </div>
   </header>
   {!isRepost&&local.body&&<p className="whitespace-pre-wrap break-words text-[15px] leading-6">{local.body}</p>}
@@ -141,7 +174,31 @@ function FeedPost({post,paid,userId,onChanged,onError,preview=false}){
    </form>
   </section>}
   {notice&&<p role="status" className="rounded-lg bg-[var(--cc-surface-subtle)] p-2 text-xs">{notice}</p>}
- </article>;
+ </article>
+  {deleteOpen&&createPortal(<dialog ref={deleteDialogRef} role="alertdialog"
+   data-feed-delete-dialog="true" aria-modal="true" aria-labelledby={deleteTitleId} aria-describedby={deleteDescriptionId}
+   onCancel={event=>{event.preventDefault();closeDelete();}}
+   onClick={event=>{if(event.target===event.currentTarget)closeDelete();}}
+   className="ccx-surface fixed inset-0 m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-[480px] overflow-y-auto rounded-3xl border border-[var(--cc-border)] bg-[var(--cc-surface)] p-0 text-[var(--cc-text-primary)] shadow-2xl backdrop:bg-slate-950/70 backdrop:backdrop-blur-sm">
+   <div className="space-y-5 p-5 sm:p-7">
+    <header className="flex items-start justify-between gap-4">
+     <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-rose-200 bg-rose-50 text-rose-700" aria-hidden="true"><AlertTriangle size={23}/></span>
+     <button type="button" aria-label="Close delete confirmation" className="ccx-secondary grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-[var(--cc-border)] disabled:opacity-50" disabled={busy} onClick={closeDelete}><X size={20}/></button>
+    </header>
+    <div className="space-y-2">
+     <h2 id={deleteTitleId} className="text-xl font-bold tracking-tight sm:text-2xl">{isRepost?'Delete this repost?':'Delete this post?'}</h2>
+     <p id={deleteDescriptionId} className="text-sm leading-6 text-[var(--cc-text-secondary)]">This will remove {isRepost?'your repost':'your post'} from the Feed and your profile. You cannot undo this action from the app.</p>
+    </div>
+    {deleteError&&<p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm text-rose-800">{deleteError}</p>}
+    <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+     <button type="button" data-feed-delete-cancel="true" disabled={busy} onClick={closeDelete} className="ccx-secondary inline-flex min-h-12 w-full items-center justify-center rounded-xl px-5 py-3 text-sm font-semibold sm:w-auto">Cancel</button>
+     <button type="button" disabled={busy} onClick={()=>void confirmDelete()} className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-rose-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-rose-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cc-focus)] disabled:opacity-60 sm:w-auto">
+      <Trash2 size={17} aria-hidden="true"/>{busy?'Deleting…':isRepost?'Delete repost':'Delete post'}
+     </button>
+    </div>
+   </div>
+  </dialog>,document.body)}
+ </>;
 }
 /** Re-encoding strips EXIF/GPS before any picture leaves the browser. */
 async function safePhotoBlob(file){
