@@ -71,7 +71,7 @@ export default function HostVenueCategoryRail({selectedTypes=[],onChangeTypes=(_
        <X size={15} aria-hidden="true"/>Clear</button>
      </div>
      {HOST_VENUE_CATEGORIES.map(item=><label key={item.id}
-      className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-2 py-2 text-sm text-[#1f3b4b] hover:bg-[#ecf7fd]">
+      className="ccx-choice-row flex min-h-[48px] cursor-pointer items-center gap-3 rounded-lg px-2 py-3 text-sm text-[#1f3b4b] hover:bg-[#ecf7fd]">
       <input type="checkbox" className="h-4 w-4 shrink-0 accent-[#12698f]"
        checked={selectedTypes.includes(item.id)} onChange={()=>toggle(item.id)}/>
       <span className="min-w-0 flex-1">{item.label}</span>
