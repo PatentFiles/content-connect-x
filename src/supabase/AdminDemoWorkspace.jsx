@@ -27,7 +27,7 @@ function sectionKey(value){
  return 'dashboard';
 }
 export default function AdminDemoWorkspace({data,section='dashboard',brand='host',onNavigate=(_id)=>{void _id;}}){
- const [local,setLocal]=useState(section),[filters,setFilters]=useState({}),[profileQuery,setProfileQuery]=useState(''),[role,setRole]=useState(''),[gender,setGender]=useState(''),[detail,setDetail]=useState(null),[duration,setDuration]=useState(6),[mode,setMode]=useState('hour'),[sampleNotice,setSampleNotice]=useState('');
+ const [local,setLocal]=useState(section),[filters,setFilters]=useState(/** @type {{city?:string,state?:string,country?:string,query?:string,categories?:string[],category?:string,crew_size?:number,amenities?:string[],bounds?:{west:number,east:number,south:number,north:number},start_date?:string,end_date?:string}} */ ({})),[profileQuery,setProfileQuery]=useState(''),[role,setRole]=useState(''),[gender,setGender]=useState(''),[detail,setDetail]=useState(null),[duration,setDuration]=useState(6),[mode,setMode]=useState('hour'),[sampleNotice,setSampleNotice]=useState('');
  useEffect(()=>{setLocal(section);setDetail(null);setSampleNotice('');},[section]);
  const active=sectionKey(local);
  const properties=useMemo(()=>data.properties.filter(p=>{
