@@ -1,4 +1,4 @@
-import {validJobBearer} from './jobAuth.mjs';
+import {validJobBearerWithVault} from './jobAuth.mjs';
 import {parseEvents} from './calendarParser.mjs';
 import {optionalProviderSetting} from './providerConfig.mjs';
 /**
@@ -83,7 +83,7 @@ Deno.serve(async req=>{
  const bearer=req.headers.get('Authorization')||'';
  const body=await req.json().catch(()=>({})),action=str(body.action,40);
  const jobSecret=Deno.env.get('HOSTING_CALENDAR_JOB_SECRET');
- const cron=action==='cron_sync'&&await validJobBearer(bearer,jobSecret);
+ const cron=action==='cron_sync'&&await validJobBearerWithVault(bearer,jobSecret,db,'calendar');
  if(action==='cron_sync'&&!cron)return err('Unauthorized job',401);
  let uid:string|null=null;
  if(!cron){

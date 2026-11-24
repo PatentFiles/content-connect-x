@@ -131,3 +131,16 @@ test('venue selection checks available calendar and booking requests require rev
  assert.match(host,/disabled=\{busy\|\|!acknowledged\}/);
  assert.match(host,/No deposit is charged at this stage/);
 });
+
+test('database-managed scheduler credentials do not require a manually entered Edge key',async()=>{
+ const {validJobBearerWithVault}=await import('../supabase/functions/_shared/jobAuth.mjs');
+ const token='v'.repeat(64);let calls=0;
+ const db={rpc:async(name,args)=>{calls++;assert.equal(name,'ccx_hosting_job_authorized');assert.equal(args.p_job,'calendar');assert.match(args.p_hash,/^[a-f0-9]{64}$/);assert.notEqual(args.p_hash,token);return {data:true,error:null};}};
+ assert.equal(await validJobBearerWithVault('Bearer '+token,undefined,db,'calendar'),true);
+ assert.equal(await validJobBearerWithVault('Bearer short',undefined,db,'calendar'),false);
+ assert.equal(await validJobBearerWithVault('Bearer '+token,undefined,db,'unrelated'),false);
+ assert.equal(calls,1);
+ for(const result of [{data:false,error:null},{data:{ok:true},error:null},{data:true,error:{message:'denied'}}])
+   assert.equal(await validJobBearerWithVault('Bearer '+token,undefined,{rpc:async()=>result},'calendar'),false);
+ assert.equal(await validJobBearerWithVault('Bearer '+token,undefined,{rpc:async()=>{throw Error('unavailable');}},'calendar'),false);
+});

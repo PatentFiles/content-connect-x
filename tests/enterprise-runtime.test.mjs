@@ -78,6 +78,6 @@ test('calendar external token route and job authentication do not become public 
 });
 test('notification worker rejects wrong credentials and disabled integrations never fake delivery',async()=>{
  reset();assert.equal((await call('hosting-notification-worker','run',{},'wrong')).status,401);
- const x=await call('hosting-notification-worker','run',{},'x'.repeat(64));assert.equal(x.status,503);
+ const x=await call('hosting-notification-worker','run',{},'x'.repeat(64));assert.equal(x.status,200);assert.equal(x.body.enabled,false);assert.equal(x.body.accepted,0);
  assert.equal(rpcs.length,0);
 });

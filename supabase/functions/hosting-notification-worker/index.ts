@@ -1,21 +1,21 @@
 import {isSupportedPushEndpoint} from './pushPolicy.mjs';
 /** Authenticated, leased, retryable notifications. Provider acceptance is not inbox delivery. */
 import {optionalProviderSetting} from './providerConfig.mjs';
-import {validJobBearer} from './jobAuth.mjs';
+import {validJobBearerWithVault} from './jobAuth.mjs';
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
 import webpush from 'npm:web-push@3.6.7';
 const reply=(body:unknown,status=200)=>Response.json(body,{status});
 Deno.serve(async req=>{
  if(req.method!=='POST')return reply({error:'Method not allowed'},405);
- if(!await validJobBearer(req.headers.get('Authorization'),Deno.env.get('HOSTING_NOTIFIER_JOB_SECRET')))
-  return reply({error:'Unauthorized job'},401);
  const url=Deno.env.get('SUPABASE_URL'),key=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
  if(!url||!key)return reply({error:'Backend not configured'},503);
  const db=createClient(url,key);
+ if(!await validJobBearerWithVault(req.headers.get('Authorization'),Deno.env.get('HOSTING_NOTIFIER_JOB_SECRET'),db,'notifications'))
+  return reply({error:'Unauthorized job'},401);
  const email=optionalProviderSetting('HOSTING_EMAIL_PROVIDER_ENABLED')==='true'&&Boolean(optionalProviderSetting('HOSTING_EMAIL_API_URL')&&optionalProviderSetting('HOSTING_EMAIL_FROM')&&Deno.env.get('HOSTING_EMAIL_API_TOKEN'));
  const push=optionalProviderSetting('HOSTING_PUSH_PROVIDER_ENABLED')==='true'&&Boolean(Deno.env.get('WEB_PUSH_VAPID_PUBLIC_KEY')&&Deno.env.get('WEB_PUSH_VAPID_PRIVATE_KEY')&&optionalProviderSetting('WEB_PUSH_SUBJECT'));
  const channels=[...(email?['email']:[]),...(push?['push']:[])];
- if(!channels.length)return reply({error:'No approved notification provider configured'},503);
+ if(!channels.length)return reply({enabled:false,accepted:0,failed:0,skipped:0,note:'Optional external delivery inactive; in-app notifications remain available.'});
  let accepted=0,failed=0,skipped=0;
  try{
   if(push)webpush.setVapidDetails(optionalProviderSetting('WEB_PUSH_SUBJECT')!,Deno.env.get('WEB_PUSH_VAPID_PUBLIC_KEY')!,Deno.env.get('WEB_PUSH_VAPID_PRIVATE_KEY')!);
