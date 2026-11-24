@@ -45,7 +45,7 @@ Deno.serve(async req=>{
  }
  const adminAction=action.startsWith('admin_');
  if(adminAction&&(!admin||!admission.data?.admitted_at))return bad('Administrator access required',403);
- if(['admin_set_secret','admin_provider_settings'].includes(action)){
+ if(['admin_set_secret','admin_provider_settings','admin_membership_prepaid'].includes(action)){
   if(!verifiedAal2(header,uid))return bad('Two-factor verification is required to change provider credentials or enable a service',403);
  }
  // New sensitive operations respect the Testing module flag. Existing documents,
@@ -114,7 +114,7 @@ Deno.serve(async req=>{
  }
  case 'admin_list':{
   const {data,error}=await db.from('ccx_integrations')
-   .select('provider,enabled,setup_status,notes,callback_origin,secondary_origin,updated_at').neq('provider','yoti').order('provider');
+   .select('provider,enabled,setup_status,notes,callback_origin,secondary_origin,updated_at,membership_prepaid_max_cents').neq('provider','yoti').order('provider');
   if(error)throw error;
   return out({providers:await Promise.all((data||[]).map(async p=>({
     ...p,launch_required:['ccbill','docusign'].includes(p.provider),fields:await Promise.all((['ccbill','docusign'].includes(p.provider)||p.enabled===true||body.include_optional===true?(secretFields[p.provider]||[]):[]).map(async name=>({
@@ -129,10 +129,23 @@ Deno.serve(async req=>{
   const {data,error}=await db.rpc('ccx_secret_set',{p_name:name,p_secret:value});
   if(error||!data)throw Error('Could not encrypt API credential');
   await db.from('ccx_integrations').update({
-   setup_status:provider==='pass'?'awaiting_partner':'credentials_stored',updated_by:uid,updated_at:new Date().toISOString()
+   setup_status:provider==='pass'?'awaiting_partner':'credentials_stored',...(provider==='ccbill'?{membership_prepaid_max_cents:0}:{}),updated_by:uid,updated_at:new Date().toISOString()
   }).eq('provider',provider);
   await audit('ccx_integration_secret_updated');
   return out({ok:true,configured:true,note:'Credential stored encrypted in Supabase Vault. No secret value is returned.'});
+ }
+ case 'admin_membership_prepaid':{
+  // Non-secret merchant limit. Only an admitted AAL2 administrator may
+  // approve the actual, independently tested single-billing contract.
+  const max=body.max_cents;
+  if(!Number.isSafeInteger(max)||max<0||max>1000000||(max>0&&(max<300||body.provider_contract_reviewed!==true)))return bad('Enter the approved transaction limit and confirm the prepaid merchant terms');
+  const {data:provider,error:providerError}=await db.from('ccx_integrations').select('enabled').eq('provider','ccbill').maybeSingle();
+  if(providerError||!provider||(max>0&&!provider.enabled))return bad('Enable the approved CCBill connection first',409);
+  const {data,error}=await db.from('ccx_integrations').update({membership_prepaid_max_cents:max,updated_by:uid,updated_at:new Date().toISOString()})
+   .eq('provider','ccbill').select('membership_prepaid_max_cents').single();
+  if(error||!data)return bad('Unable to save prepaid merchant limit',503);
+  await audit('ccx_membership_prepaid_limit_changed');
+  return out({ok:true,max_cents:data.membership_prepaid_max_cents});
  }
  case 'admin_provider_settings':{
   const provider=txt(body.provider,32),on=body.enabled===true;
@@ -147,7 +160,7 @@ Deno.serve(async req=>{
   if(on&&provider==='sentry'&&!verifiedSentryDsn(await getSecret('sentry_dsn')))
    return bad('Save a valid hosted Sentry HTTPS ingestion DSN before enabling monitoring',409);
   const {data,error}=await db.from('ccx_integrations').update({
-   enabled:on,notes:txt(body.notes,400),updated_by:uid,updated_at:new Date().toISOString()
+   enabled:on,notes:txt(body.notes,400),...(provider==='ccbill'&&!on?{membership_prepaid_max_cents:0}:{}),updated_by:uid,updated_at:new Date().toISOString()
   }).eq('provider',provider).select('provider,enabled,setup_status,notes').maybeSingle();
   if(error||!data)throw Error('Integration setting unavailable');
   await audit('ccx_integration_state_changed');

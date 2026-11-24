@@ -17,6 +17,7 @@ flagsmith:'Remote flags require environment and rollout verification.'};
 export default function IntegrationSettings(){
  const [providers,setProviders]=useState([]),[values,setValues]=useState({}),[visible,setVisible]=useState({}),[agreements,setAgreements]=useState({});
  const [showOptional,setShowOptional]=useState(false);
+ const [prepaidLimit,setPrepaidLimit]=useState(''),[prepaidReviewed,setPrepaidReviewed]=useState(false);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const load=async(includeOptional=showOptional)=>{
   setBusy(true);setError('');
@@ -32,6 +33,16 @@ export default function IntegrationSettings(){
    await integrationAction('admin_set_secret',{provider,name,secret:value});
    setValues(v=>({...v,[name]:''}));setNotice('Encrypted credential stored. Nothing was written to browser storage.');
    await load();
+  }catch(e){setError(e.message);}finally{setBusy(false);}
+ };
+ const savePrepaid=async(disable=false)=>{
+  const cents=disable?0:Math.round(Number(prepaidLimit)*100);
+  if(!disable&&(!prepaidReviewed||!Number.isSafeInteger(cents)||cents<300||cents>1000000))return setError('Enter the actual merchant-approved maximum in USD and confirm the prepaid terms.');
+  setBusy(true);setError('');setNotice('');
+  try{
+   await integrationAction('admin_membership_prepaid',{max_cents:cents,provider_contract_reviewed:prepaidReviewed});
+   setPrepaidLimit('');setPrepaidReviewed(false);
+   setNotice(disable?'Prepaid checkout disabled. Existing paid terms are unchanged.':'Approved prepaid transaction limit saved.');await load();
   }catch(e){setError(e.message);}finally{setBusy(false);}
  };
  const toggle=async(provider,enabled)=>{
@@ -83,6 +94,15 @@ export default function IntegrationSettings(){
       </div>
      </div>)}
     </div>
+    {p.provider==='ccbill'&&<section className="space-y-2 border-t border-[var(--cc-border)] pt-3" aria-label="Prepaid membership merchant approval">
+     <h4 className="font-semibold">Six-month and annual memberships</h4>
+     <p className="text-xs text-[var(--cc-text-secondary)]">One-time FlexForms payments, 180/365 days. No additional API key. Confirm that CCBill has approved the same form for single billing and the maximum transaction amount, then test both terms and their authenticated callbacks before enabling.</p>
+     <p className="text-xs font-semibold">{p.membership_prepaid_max_cents>0?'Approved limit: $'+(p.membership_prepaid_max_cents/100).toFixed(2):'Prepaid checkout disabled pending merchant acceptance'}</p>
+     <label className="block text-xs font-semibold">Approved one-time charge maximum (USD)<input type="number" min="3" max="10000" step="0.01" className={styles.input+' mt-1'} value={prepaidLimit} onChange={e=>setPrepaidLimit(e.target.value)}/></label>
+     <label className="flex items-start gap-2 text-xs"><input type="checkbox" checked={prepaidReviewed} onChange={e=>setPrepaidReviewed(e.target.checked)}/>I confirmed the merchant contract, one-time 180/365-day pricing and authenticated test callbacks for the approved maximum.</label>
+     <div className="flex flex-wrap gap-2"><button type="button" className="ccx-secondary rounded-xl px-3 py-2 text-sm" disabled={busy||!p.enabled||!prepaidReviewed||!prepaidLimit} onClick={()=>void savePrepaid()}>Save prepaid approval</button>
+      {p.membership_prepaid_max_cents>0&&<button type="button" className="ccx-secondary rounded-xl px-3 py-2 text-sm" disabled={busy} onClick={()=>void savePrepaid(true)}>Disable prepaid checkout</button>}</div>
+    </section>}
     <div className="border-t border-[var(--cc-border)] pt-3">
      <label className="flex items-start gap-2 text-xs text-[var(--cc-text-secondary)]"><input type="checkbox" className="mt-1" checked={Boolean(agreements[p.provider])}
       onChange={e=>setAgreements(v=>({...v,[p.provider]:e.target.checked}))}/>
