@@ -12,6 +12,7 @@ const call=async(action,args={})=>{
  return data;
 };
 export default function VideoProviderSettings(){
+ const [showProvider,setShowProvider]=useState(false);
  const [url,setUrl]=useState(''),[key,setKey]=useState(''),[secret,setSecret]=useState('');
  const [configured,setConfigured]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  useEffect(()=>{void call('config_status').then(r=>{setConfigured(r.configured);setUrl(r.server_url||'');}).catch(e=>setError(e.message));},[]);
@@ -25,15 +26,16 @@ export default function VideoProviderSettings(){
  };
  return <section className="ccx-surface space-y-4 rounded-xl p-5" data-video-provider-settings="true">
   <div><h2 className="flex items-center gap-2 text-lg font-semibold"><Video size={19}/>Group video meetings (LiveKit)</h2>
-   <p className="mt-1 text-sm text-[var(--cc-text-secondary)]">Add your LiveKit Cloud or self-hosted server credentials once. The backend signs private participant tokens. Bolt remains the website host.</p>
+   <p className="mt-1 text-sm text-[var(--cc-text-secondary)]">Optional managed group-video provider. Account, messaging and collaboration planning do not require LiveKit. If unconnected, managed video rooms remain unavailable. Bolt remains the website host.</p>
   </div>
-  <p className="flex items-center gap-2 text-sm"><ShieldCheck size={16}/>{configured?'Provider credentials configured':'Enter LiveKit provider credentials'}</p>
-  <form onSubmit={save} className="grid gap-3">
+  <p className="flex items-center gap-2 text-sm"><ShieldCheck size={16}/>{configured?'Provider credentials configured':'Optional video provider inactive'}</p>
+  <button type="button" aria-expanded={showProvider} className="ccx-secondary rounded-xl px-4 py-2 text-sm" onClick={()=>setShowProvider(v=>!v)}>{showProvider?'Hide video configuration':'Configure optional video provider'}</button>
+  {showProvider&&<form onSubmit={save} className="grid gap-3">
    <label className="text-sm">LiveKit secure WebSocket URL<input required className={field} type="url" placeholder="wss://your-project.livekit.cloud" value={url} onChange={e=>setUrl(e.target.value)} /></label>
    <label className="text-sm">LiveKit API key<input required className={field} autoComplete="off" value={key} onChange={e=>setKey(e.target.value)} placeholder="API key"/></label>
    <label className="text-sm">LiveKit API secret<input required className={field} type="password" autoComplete="off" value={secret} onChange={e=>setSecret(e.target.value)} placeholder="API secret"/></label>
    <button className="ccx-primary rounded-xl px-4 py-2.5 text-sm" disabled={busy||!url||!key||!secret}>{busy?'Saving…':'Save encrypted LiveKit credentials'}</button>
-  </form>
+  </form>}
   {error&&<p role="alert" className="text-sm text-red-700">{error}</p>}{notice&&<p role="status" className="text-sm">{notice}</p>}
   <p className="text-xs text-[var(--cc-text-secondary)]">The API secret is never sent back to the browser. Room access and recording consent are checked on the server for each member.</p>
  </section>;

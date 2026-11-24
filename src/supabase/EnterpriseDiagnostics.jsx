@@ -12,12 +12,12 @@ const panel='ccx-surface rounded-2xl border border-[var(--cc-border)] p-5';
 const button='ccx-secondary inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm disabled:opacity-50';
 
 function reducedReport(ops,health){
- const services=Object.entries(health?.services||{}).map(([name,s])=>({name,configured:s?.configured===true,missing_count:s?.missing?.length||0}));
+ const services=Object.entries(health?.services||{}).map(([name,s])=>({name,configured:s?.configured===true,launch_required:s?.launch_required!==false,missing_count:s?.missing?.length||0}));
  return {version:1,platform:'Content Connect X',checked_at:new Date().toISOString(),
   operations:{safety:ops?.safety,notifications:ops?.notifications,recordings:ops?.recordings,
    contracts:ops?.contracts,testing:ops?.testing,ai:{latest_run_status:ops?.ai?.latest_run?.status||null},
    warnings:ops?.warnings||[]},
-  integration_summary:{configured:services.filter(s=>s.configured).length,total:services.length,services},
+  integration_summary:{configured:services.filter(s=>s.launch_required&&s.configured).length,total:services.filter(s=>s.launch_required).length,services},
   evidence:{quality_workflow:quality,security_workflow:security},
   note:'Aggregates only; no provider secrets, user messages, identity documents or raw error payloads.'};
 }
@@ -75,7 +75,7 @@ export default function EnterpriseDiagnostics(){
    <h3 className="font-semibold">Provider readiness</h3>
    {!health?<p className="text-sm text-[var(--cc-text-secondary)]">Provider data not loaded.</p>:
     Object.entries(health.services||{}).map(([name,s])=><p key={name} className="flex items-center justify-between gap-3 border-t border-[var(--cc-border)] py-2 text-sm">
-     <span className="capitalize">{name.replaceAll('_',' ')}</span><span>{s.configured?'Configured, not acceptance-tested':'Needs configuration'}</span>
+     <span className="capitalize">{name.replaceAll('_',' ')}</span><span>{s.state==='optional_inactive'?'Optional · inactive':s.configured?'Configured, not acceptance-tested':'Needs configuration'}</span>
     </p>)}
   </div>
   <div className={panel+' space-y-3'}>

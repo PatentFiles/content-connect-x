@@ -70,3 +70,18 @@ test('provider readiness requires independently authenticated AAL2 before privil
     assert.equal(verifiedAal2(token({...valid,...overrides}),'synthetic-user',1000),false);
   assert.equal(verifiedAal2('Bearer malformed','synthetic-user',1000),false);
 });
+
+test('inactive optional providers neither demand secrets nor count as launch failures',async()=>{
+ const {scopeProvider}=await import('../supabase/functions/integration-health/providerChecks.mjs');
+ const incomplete={configured:false,missing:['EXTERNAL_KEY'],note:'Optional',acceptance_verified:false};
+ const optional=scopeProvider(incomplete);
+ assert.equal(optional.launch_required,false);
+ assert.equal(optional.state,'optional_inactive');
+ assert.deepEqual(optional.missing,[]);
+ assert.equal(optional.configured,false);
+ assert.equal(optional.acceptance_verified,false);
+ assert.deepEqual(scopeProvider(incomplete,{selected:true}).missing,['EXTERNAL_KEY']);
+ assert.deepEqual(scopeProvider(incomplete,{required:true}).missing,['EXTERNAL_KEY']);
+ assert.equal(scopeProvider(incomplete,{required:true}).launch_required,true);
+ assert.deepEqual(incomplete.missing,['EXTERNAL_KEY']);
+});

@@ -3,6 +3,7 @@ import React,{useEffect,useState} from 'react';
 import {ShieldCheck,KeyRound,Eye,EyeOff,RefreshCw,PlugZap,AlertTriangle} from 'lucide-react';
 import {integrationAction} from './integrationApi';
 const styles={panel:'ccx-surface p-5',input:'w-full rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm text-[var(--cc-text-primary)] focus:ring-2 focus:ring-[var(--cc-focus)]',button:'ccx-action-primary rounded-xl px-4 py-2.5 text-sm'};
+const launchProviders=new Set(['ccbill','docusign']);
 const names={pass:'PASS — Performer work clearance',ccbill:'CCBill — Payments',docusign:'DocuSign — Releases',email:'Transactional email',webpush:'Browser notifications',maps:'Location maps',openmoderate:'Media moderation',sentry:'Error monitoring',flagsmith:'Feature flags'};
 const help={pass:'PASS maintains 14-day yes/no work clearance. Store an approved partner credential here once PASS grants access; automatic status and production-hold checks remain disabled until the official API contract is received, mapped and tested. Never expose clinical results.',
 ccbill:'Keys are encrypted, but financial captures stay blocked until the approved merchant integration and callback contract are verified.',
@@ -15,10 +16,11 @@ sentry:'Hosted Sentry DSN enables redacted React errors only for members who opt
 flagsmith:'Remote flags require environment and rollout verification.'};
 export default function IntegrationSettings(){
  const [providers,setProviders]=useState([]),[values,setValues]=useState({}),[visible,setVisible]=useState({}),[agreements,setAgreements]=useState({});
+ const [showOptional,setShowOptional]=useState(false);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
- const load=async()=>{
+ const load=async(includeOptional=showOptional)=>{
   setBusy(true);setError('');
-  try{const r=await integrationAction('admin_list');setProviders((r.providers||[]).filter(p=>p.provider!=='yoti'));}catch(e){setError(e.message);}
+  try{const r=await integrationAction('admin_list',{include_optional:includeOptional===true});setProviders((r.providers||[]).filter(p=>p.provider!=='yoti'));}catch(e){setError(e.message);}
   finally{setBusy(false);}
  };
  useEffect(()=>{void load();},[]);
@@ -42,8 +44,8 @@ export default function IntegrationSettings(){
  };
  return <div className="space-y-5">
   <header className="flex items-start justify-between gap-3"><div><h2 className="text-2xl font-bold">API & integration settings</h2>
-   <p className="mt-2 text-sm text-[var(--cc-text-secondary)]">Enter your provider keys once. Secret values are encrypted in Supabase Vault and are never displayed again. Changing provider credentials and enabling integrations require an administrator with two-factor authentication enabled.</p></div>
-   <button onClick={load} disabled={busy} className="ccx-secondary rounded-xl p-3" aria-label="Refresh provider status"><RefreshCw size={19}/></button>
+   <p className="mt-2 text-sm text-[var(--cc-text-secondary)]">Connect CCBill and DocuSign here. Other integrations can be configured later, only if you choose to use them. Credentials are encrypted in Supabase Vault; changes require administrator MFA.</p></div>
+   <button onClick={()=>void load()} disabled={busy} className="ccx-secondary rounded-xl p-3" aria-label="Refresh provider status"><RefreshCw size={19}/></button>
   </header>
   <div className="ccx-surface flex items-start gap-3 p-4">
    <ShieldCheck className="mt-0.5 shrink-0 text-[var(--cc-link)]" size={21}/>
@@ -57,12 +59,17 @@ export default function IntegrationSettings(){
    <p className="text-xs text-[var(--cc-text-secondary)]">This does not require Yoti, another paid age-verification vendor, or a new provider API key. Production activation is controlled independently by the verified identity configuration and evidence-handling requirements.</p>
    <a className="inline-flex items-center rounded-lg border border-[var(--cc-border)] px-3 py-2 text-sm" href="/Verification">Open first-party verification</a>
   </section>
+  <div className="flex flex-wrap items-center justify-between gap-3">
+   <h3 className="font-semibold">Launch provider connections</h3>
+   <button type="button" aria-expanded={showOptional} className="ccx-secondary rounded-xl px-4 py-2 text-sm" onClick={()=>{const next=!showOptional;setShowOptional(next);if(next)void load(true);}}>{showOptional?'Hide optional services':'Configure optional services'}</button>
+  </div>
+  {showOptional&&<p className="text-sm text-[var(--cc-text-secondary)]">Optional services remain inactive without their own provider credentials. They are not required to deploy the core platform.</p>}
   <div className="grid gap-4 lg:grid-cols-2">
-   {providers.map(p=><article key={p.provider} className={styles.panel+' space-y-3'}>
+   {providers.filter(p=>launchProviders.has(p.provider)||showOptional).map(p=><article key={p.provider} className={styles.panel+' space-y-3'}>
     <div className="flex flex-wrap items-start justify-between gap-3">
      <div><h3 className="flex gap-2 items-center font-semibold"><PlugZap size={17} className="text-[var(--cc-link)]"/>{names[p.provider]||p.provider}</h3>
       <p className="mt-2 text-xs text-[var(--cc-text-secondary)]">{help[p.provider]}</p></div>
-     <span className={'rounded-full px-2 py-1 text-xs '+(p.enabled?'bg-emerald-50 text-emerald-800':'bg-[var(--cc-surface)] text-[var(--cc-text-secondary)]')}>{p.enabled?'Enabled':'Disabled'}</span>
+     <span className={'rounded-full px-2 py-1 text-xs '+(p.enabled?'bg-emerald-50 text-emerald-800':'bg-[var(--cc-surface)] text-[var(--cc-text-secondary)]')}>{p.enabled?'Enabled':launchProviders.has(p.provider)?'Awaiting connection':'Optional · not connected'}</span>
     </div>
     <div className="space-y-3">
      {(p.fields||[]).map(field=><div key={field.name}>

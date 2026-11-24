@@ -117,7 +117,7 @@ Deno.serve(async req=>{
    .select('provider,enabled,setup_status,notes,callback_origin,secondary_origin,updated_at').neq('provider','yoti').order('provider');
   if(error)throw error;
   return out({providers:await Promise.all((data||[]).map(async p=>({
-    ...p,fields:await Promise.all((secretFields[p.provider]||[]).map(async name=>({
+    ...p,launch_required:['ccbill','docusign'].includes(p.provider),fields:await Promise.all((['ccbill','docusign'].includes(p.provider)||p.enabled===true||body.include_optional===true?(secretFields[p.provider]||[]):[]).map(async name=>({
      name,configured:Boolean(await getSecret(name))
     })))
    })))});

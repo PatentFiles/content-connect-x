@@ -68,3 +68,10 @@ export function trustedOrigin(value){
       u.hostname!=='localhost';
   }catch{return false;}
 }
+
+/** Scope diagnostics without turning off or inventing any provider credentials. */
+export function scopeProvider(service,{required=false,selected=false}={}){
+ const active=required||selected;
+ return {...service,launch_required:required,state:!active?'optional_inactive':service.configured?'configured':'action_required',
+   missing:active?service.missing:[],acceptance_verified:false};
+}

@@ -6,6 +6,7 @@ const btn='ccx-secondary rounded-xl px-3 py-2 text-sm disabled:opacity-60';
 const cell='border-b border-[var(--cc-border)] p-3 text-sm';
 export default function AIAgentAdmin(){
  const [data,setData]=useState({runs:[],flags:[],risks:[]}),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
+ const [showKey,setShowKey]=useState(false);
  const [apiKey,setApiKey]=useState(''),[keyStatus,setKeyStatus]=useState(null);
  const load=async()=>{try{setData(await suiteAction('agent_dashboard'));}catch(e){setError(e.message);}};
  useEffect(()=>{
@@ -24,15 +25,16 @@ export default function AIAgentAdmin(){
  const review=async id=>{setBusy(true);setError('');try{await suiteAction('agent_flag_review',{id,review_note:'Reviewed in administrator console'});await load();}catch(e){setError(e.message);}finally{setBusy(false);}};
  return <div className="space-y-5">
  <section className="ccx-surface space-y-3 p-5"><h3 className="text-lg font-semibold">Shared OpenAI API credential</h3>
- <p className="text-sm text-[var(--cc-text-secondary)]">Paste your OpenAI key once. It is encrypted in Supabase Vault and never returned to the browser. All five AI tools read the same key automatically.</p>
- <p className="text-xs">{keyStatus?.configured?'OpenAI credential configured':'OpenAI credential not yet entered'}</p>
- <div className="flex flex-wrap gap-2"><input type="password" autoComplete="off" spellCheck={false} aria-label="OpenAI API key"
+ <p className="text-sm text-[var(--cc-text-secondary)]">Optional enhancement. Human review, member profiles and collaboration workflows do not require an OpenAI key. The AI tools are unavailable until a real credential is connected.</p>
+ <p className="text-xs">{keyStatus?.configured?'OpenAI credential configured':'Optional AI services inactive'}</p>
+ <button type="button" className={btn} aria-expanded={showKey} onClick={()=>setShowKey(v=>!v)}>{showKey?'Hide AI configuration':'Configure optional AI'}</button>
+ {showKey&&<div className="flex flex-wrap gap-2"><input type="password" autoComplete="off" spellCheck={false} aria-label="OpenAI API key"
  className="min-w-0 flex-1 rounded-xl border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3 text-sm"
  placeholder="sk-..." value={apiKey} onChange={e=>setApiKey(e.target.value)}/>
- <button type="button" className="ccx-primary rounded-xl px-4 py-2 text-sm" disabled={busy||apiKey.length<20} onClick={()=>void saveKey()}>Save OpenAI key</button></div>
+ <button type="button" className="ccx-primary rounded-xl px-4 py-2 text-sm" disabled={busy||apiKey.length<20} onClick={()=>void saveKey()}>Save OpenAI key</button></div>}
  </section>
  <section className="ccx-surface space-y-3 p-5">
- <div className="flex flex-wrap items-center justify-between gap-3"><h3 className="flex gap-2 text-lg font-semibold"><ShieldAlert size={19}/>AI safety agent</h3><div className="flex gap-2"><button className={btn} disabled={busy} onClick={()=>void load()}><RefreshCw size={16}/></button><button className="ccx-primary rounded-xl px-4 py-2 text-sm" disabled={busy} onClick={()=>void scan()}><Sparkles size={16} className="mr-1 inline"/>Run safety scan</button></div></div>
+ <div className="flex flex-wrap items-center justify-between gap-3"><h3 className="flex gap-2 text-lg font-semibold"><ShieldAlert size={19}/>AI safety agent</h3><div className="flex gap-2"><button className={btn} disabled={busy} onClick={()=>void load()}><RefreshCw size={16}/></button><button className="ccx-primary rounded-xl px-4 py-2 text-sm" disabled={busy||!keyStatus?.configured} onClick={()=>void scan()}><Sparkles size={16} className="mr-1 inline"/>Run safety scan</button></div></div>
  <p className="text-xs text-[var(--cc-text-secondary)]">OpenAI scans professional profiles and collaboration descriptions. Risk predictions and alerts support human review; they do not automatically sanction members.</p>
  {error&&<p role="alert" className="text-sm text-red-700">{error}</p>}{notice&&<p role="status" className="text-sm">{notice}</p>}
  <h4 className="font-semibold">Agent execution history</h4><div className="max-h-64 overflow-y-auto">{data.runs.map(x=><div className={cell} key={x.id}>{x.agent_type} · {x.status} · {x.scanned_count} reviewed · {x.flags_created} flags · {new Date(x.started_at).toLocaleString()}{x.error_message&&<p className="text-red-700">{x.error_message}</p>}</div>)}</div>
