@@ -27,10 +27,6 @@ export const PROPERTY_FEATURE_GROUPS=Object.freeze([
         "Private entrance"
       ],
       [
-        "free_parking",
-        "Free parking"
-      ],
-      [
         "multiple_rooms",
         "Multiple rooms"
       ],
