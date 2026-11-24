@@ -72,6 +72,26 @@ jobs:
           cd "$RUNNER_TEMP/supabase-replay"
           mkdir -p supabase/migrations
           cp "$GITHUB_WORKSPACE"/supabase/migrations/*.sql supabase/migrations/
+          # Legacy baseline migrations 046-053 live under supabase/sql, not
+          # supabase/migrations. The original live ledger order was verified
+          # against their SQL definitions. Stage copies ONLY in this temporary
+          # local project: never insert synthetic version IDs into production.
+          # Live ledger: 20261115160636
+          cp "$GITHUB_WORKSPACE/supabase/sql/046_enterprise_hotpath_indexes.sql" "supabase/migrations/20261117015001_046_enterprise_hotpath_indexes.sql"
+          # Live ledger: 20261115173650
+          cp "$GITHUB_WORKSPACE/supabase/sql/047_onlyhost_multibrand_vault_identity_pass.sql" "supabase/migrations/20261117015002_047_onlyhost_multibrand_vault_identity_pass.sql"
+          # Live ledger: 20261115174220
+          cp "$GITHUB_WORKSPACE/supabase/sql/048_onlyhost_origins_and_private_testing_documents.sql" "supabase/migrations/20261117015003_048_onlyhost_origins_and_private_testing_documents.sql"
+          # Live ledger: 20261115174839
+          cp "$GITHUB_WORKSPACE/supabase/sql/049_onlyhost_shared_reservations.sql" "supabase/migrations/20261117015004_049_onlyhost_shared_reservations.sql"
+          # Live ledger: 20261115180610
+          cp "$GITHUB_WORKSPACE/supabase/sql/050_yoti_branded_return_origins.sql" "supabase/migrations/20261117015005_050_yoti_branded_return_origins.sql"
+          # Live ledger: 20261117015736
+          cp "$GITHUB_WORKSPACE/supabase/sql/051_creator_profiles_favorites_and_dungeon.sql" "supabase/migrations/20261117015736_051_creator_profiles_favorites_and_dungeon.sql"
+          # Live ledger: 20261117021725
+          cp "$GITHUB_WORKSPACE/supabase/sql/052_restore_original_host_role.sql" "supabase/migrations/20261117021725_052_restore_original_host_role.sql"
+          # Live ledger: 20261117022457
+          cp "$GITHUB_WORKSPACE/supabase/sql/053_original_creator_production_preferences.sql" "supabase/migrations/20261117022457_053_original_creator_production_preferences.sql"
           "$RUNNER_TEMP/supabase" migration up --local
           expected="$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' | wc -l)"
           actual="$(psql -XAt -v ON_ERROR_STOP=1 -c 'select count(*) from supabase_migrations.schema_migrations')"
