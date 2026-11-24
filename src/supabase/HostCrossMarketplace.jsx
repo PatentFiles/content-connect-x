@@ -4,12 +4,13 @@
  */
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {CalendarDays,MapPin,ArrowLeft,RefreshCw,ShieldCheck} from 'lucide-react';
-import {hostConnectAction} from './hostConnectApi';
+import {hostConnectAction,hostRentalAgreementAction} from './hostConnectApi';
 import {venueDateToIso,nightsBetween} from './hostingDateRange.mjs';
 import HostDialog from './HostDialog';
 import MarketplaceExplore from './MarketplaceExplore';
 import HostGuestInspection from './HostGuestInspection';
 import HostBookingMessages from './HostBookingMessages';
+import HostRentalAgreement from './HostRentalAgreement';
 import {supabase} from '@/api/supabaseClient';
 import {uploadHostGuestEvidence} from './hostGuestEvidenceStorage';
 const panel='ccx-surface rounded-2xl p-5';
@@ -25,7 +26,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
  const [starts,setStarts]=useState(''),[ends,setEnds]=useState('');
  const [crew,setCrew]=useState(1),[purpose,setPurpose]=useState(''),[quote,setQuote]=useState(null),[modal,setModal]=useState(false),[ack,setAck]=useState(false);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
- const [inspectionBooking,setInspectionBooking]=useState(null),[chatBooking,setChatBooking]=useState(null);
+ const [inspectionBooking,setInspectionBooking]=useState(null),[chatBooking,setChatBooking]=useState(null),[agreementBooking,setAgreementBooking]=useState(null);
  const [collaborations,setCollaborations]=useState([]),[linkedCollab,setLinkedCollab]=useState('');
  // Preserve the applied browse query across refresh/focus. Stale responses
  // must not replace results when members select categories in rapid sequence.
@@ -169,6 +170,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
     onBack={()=>setChatBooking(null)}/>}
   {view==='bookings'&&inspectionBooking&&<HostGuestInspection booking={inspectionBooking} action={hostConnectAction}
     upload={uploadHostGuestEvidence} onClose={()=>setInspectionBooking(null)}/>}
+  {agreementBooking&&<HostRentalAgreement key={agreementBooking.id} booking={agreementBooking} action={hostRentalAgreementAction} brand="ccx" onClose={()=>setAgreementBooking(null)} onUpdated={()=>void refresh().catch(()=>{})}/>}
   {view==='bookings'&&!inspectionBooking&&!chatBooking&&<section className={panel+' space-y-3'}>
    <h2 className="text-lg font-semibold">My Host ConnectX requests</h2>
    {!bookings.length?<p className="text-sm text-[var(--cc-text-secondary)]">No requests yet. Both websites share the same live calendar when you reserve.</p>:bookings.map(b=>
@@ -177,6 +179,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
       <p className="text-xs text-[var(--cc-text-secondary)]">{b.status} · {money(b.total_cents)} · Agreement: {b.legal_status} · Payment: {b.payment_status}</p></div>
      {b.status==='confirmed'&&b.legal_status==='signed'&&b.payment_status==='captured'&&
       <button className={primary} type="button" onClick={()=>setInspectionBooking(b)}>Report check-in condition</button>}
+     {(b.status==='accepted'||b.legal_status!=='not_started')&&<button type="button" className={secondary} onClick={()=>setAgreementBooking(b)}>Rental agreement</button>}
      <button type="button" className={secondary} onClick={()=>{setChatBooking(b);setInspectionBooking(null);}}>Message the host / production group</button>
      {['requested','accepted'].includes(b.status)&&<button className={secondary} disabled={busy} onClick={()=>void cancel(b)}>Cancel pending request</button>}
     </div>)}

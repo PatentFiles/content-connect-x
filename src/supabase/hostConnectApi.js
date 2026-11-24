@@ -17,3 +17,18 @@ export async function hostConnectAction(action,args={}){
  if(!response.ok||!data||data.error)throw Error(data?.error||'Host Connect X is temporarily unavailable. Refresh the availability calendar and retry.');
  return data;
 }
+
+/** A CCX member may review their own HCX booking, never HCX administrator
+ * settings. The independent Host backend validates this exact CCX session.
+ */
+export async function hostRentalAgreementAction(action,args={}){
+ const {data:{session},error}=await supabase.auth.getSession();
+ if(error||!session?.access_token)throw Error('Sign in to view your rental agreement.');
+ const response=await fetch('https://szfdoqkfewwpdkapqptp.supabase.co/functions/v1/host-rental-agreements',{
+  method:'POST',headers:{'content-type':'application/json',Authorization:'Bearer '+session.access_token},
+  body:JSON.stringify({action,...args}),signal:AbortSignal.timeout(90000)
+ });
+ const data=await response.json().catch(()=>null);
+ if(!response.ok||!data||data.error)throw Error(data?.error||'Host Connect X agreement service unavailable.');
+ return data;
+}
