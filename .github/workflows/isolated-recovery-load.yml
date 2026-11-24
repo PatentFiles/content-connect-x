@@ -1,0 +1,115 @@
+name: Isolated recovery and concurrency drill
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/isolated-recovery-load.yml'
+      - 'tests/sql/identity-*.sql'
+      - 'ops/restore-drill.mjs'
+  pull_request:
+    paths:
+      - '.github/workflows/isolated-recovery-load.yml'
+      - 'tests/sql/identity-*.sql'
+      - 'ops/restore-drill.mjs'
+permissions:
+  contents: read
+concurrency:
+  group: isolated-recovery-load-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  recovery-and-load:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: ccx_idv_ci
+          POSTGRES_PASSWORD: fixture-only-disposable-database
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d ccx_idv_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGDATABASE: ccx_idv_ci
+      PGPASSWORD: fixture-only-disposable-database
+      PG_CONTAINER: ${{ job.services.postgres.id }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Exercise actual identity SQL in a disposable database
+        run: |
+          set -euo pipefail
+          test "$GITHUB_ACTIONS" = true
+          test "$PGHOST" = 127.0.0.1
+          test "$PGDATABASE" = ccx_idv_ci
+          test -n "$PG_CONTAINER"
+          psql -X -v ON_ERROR_STOP=1 -f tests/sql/identity-integration.sql
+          psql -X -v ON_ERROR_STOP=1 -f tests/sql/identity-pilot-integration.sql
+      - name: Back up and restore the synthetic identity fixture including grants
+        run: |
+          set -euo pipefail
+          umask 077
+          started="$(date +%s)"
+          archive="$RUNNER_TEMP/identity-fixture.dump"
+          # Never upload this archive; the CI data is synthetic and disposable.
+          docker exec "$PG_CONTAINER" pg_dump -U postgres -Fc --no-owner ccx_idv_ci > "$archive"
+          test -s "$archive"
+          docker exec "$PG_CONTAINER" createdb -U postgres ccx_idv_recovery
+          docker exec -i "$PG_CONTAINER" pg_restore -U postgres -d ccx_idv_recovery --exit-on-error --single-transaction --no-owner < "$archive"
+          summary="select (select count(*) from auth.users), (select count(*) from public.member_profiles), (select count(*) from public.member_admissions), (select count(*) from public.ccx_idv_sessions), (select count(*) from storage.objects), (select count(*) from pg_policies), (select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname in ('public','storage') and c.relrowsecurity), has_table_privilege('authenticated','public.ccx_idv_sessions','SELECT'), has_function_privilege('authenticated','public.ccx_idv_transition(uuid,uuid,text,jsonb)','EXECUTE');"
+          before="$(docker exec "$PG_CONTAINER" psql -U postgres -d ccx_idv_ci -XAt -v ON_ERROR_STOP=1 -c "$summary")"
+          after="$(docker exec "$PG_CONTAINER" psql -U postgres -d ccx_idv_recovery -XAt -v ON_ERROR_STOP=1 -c "$summary")"
+          test "$before" = "$after"
+          test "$(docker exec "$PG_CONTAINER" psql -U postgres -d ccx_idv_recovery -XAt -v ON_ERROR_STOP=1 -c "select has_table_privilege('authenticated','public.ccx_idv_sessions','SELECT') or has_function_privilege('authenticated','public.ccx_idv_transition(uuid,uuid,text,jsonb)','EXECUTE')")" = f
+          # Real file-copy and digest check, but only for a synthetic byte fixture.
+          mkdir -p "$RUNNER_TEMP/fixture-source" "$RUNNER_TEMP/fixture-restored"
+          printf 'synthetic private object, never real evidence\n' > "$RUNNER_TEMP/fixture-source/object"
+          cp "$RUNNER_TEMP/fixture-source/object" "$RUNNER_TEMP/fixture-restored/object"
+          cmp "$RUNNER_TEMP/fixture-source/object" "$RUNNER_TEMP/fixture-restored/object"
+          test "$(sha256sum "$RUNNER_TEMP/fixture-source/object" | cut -d' ' -f1)" = "$(sha256sum "$RUNNER_TEMP/fixture-restored/object" | cut -d' ' -f1)"
+          echo "Synthetic database restore + ACL + file-digest check: PASS; elapsed_seconds=$(($(date +%s)-started))"
+          rm -f "$archive"
+      - name: Seed 10000 synthetic members in restored test database
+        run: |
+          set -euo pipefail
+          docker exec -i "$PG_CONTAINER" psql -U postgres -d ccx_idv_recovery -X -v ON_ERROR_STOP=1 <<'SQL'
+          INSERT INTO auth.users(id) SELECT md5('load-fixture-'||n)::uuid FROM generate_series(1,10000) n;
+          INSERT INTO public.account_security(user_id) SELECT md5('load-fixture-'||n)::uuid FROM generate_series(1,10000) n;
+          INSERT INTO public.member_profiles(id,display_name) SELECT md5('load-fixture-'||n)::uuid,'Synthetic Load Member' FROM generate_series(1,10000) n;
+          INSERT INTO public.member_admissions(user_id) SELECT md5('load-fixture-'||n)::uuid FROM generate_series(1,10000) n;
+          ANALYZE;
+          SQL
+          docker exec -i "$PG_CONTAINER" sh -c 'cat > /tmp/ccx-member-lookup.sql' <<'SQL'
+          \set sample random(1,10000)
+          BEGIN;
+          SET LOCAL ROLE service_role;
+          SELECT a.user_id FROM public.member_admissions a
+            JOIN public.account_security s ON s.user_id=a.user_id
+            JOIN public.member_profiles p ON p.id=a.user_id
+            WHERE a.user_id=md5('load-fixture-'||:sample)::uuid AND NOT s.banned AND NOT s.suspended;
+          COMMIT;
+          SQL
+      - name: Benchmark concurrent synthetic admission queries
+        run: |
+          set -euo pipefail
+          for clients in 10 25 50; do
+            echo "Synthetic restored-DB load: $clients clients; 10 seconds"
+            report="$(docker exec "$PG_CONTAINER" pgbench -U postgres -d ccx_idv_recovery -n -c "$clients" -j 4 -T 10 -P 5 -f /tmp/ccx-member-lookup.sql)"
+            printf '%s\n' "$report"
+            printf '%s\n' "$report" | grep -E 'number of failed transactions: 0([[:space:]]|$)'
+            count="$(printf '%s\n' "$report" | awk '/number of transactions actually processed:/ {print $NF}')"
+            test "$count" -gt 0
+          done
+      - name: No production capacity or recovery claim
+        run: |
+          echo "These are isolated PostgreSQL identity-schema and synthetic member lookup tests."
+          echo "Production restore, complete Storage recovery, real biometric engine load and sustained live traffic remain separate gates."
