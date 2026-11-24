@@ -1,5 +1,6 @@
 import { supabase } from '@/api/supabaseClient';
 import {hostingEndpoint} from './hostingEndpoints.mjs';
+import {PROPERTY_FEATURE_GROUPS} from '../../supabase/functions/_shared/propertyFeatureCatalog.mjs';
 
 /**
  * All hosting mutations are independently authorized by the protected Edge
@@ -86,15 +87,7 @@ export const rentalCategories = [
   ['equipment','Equipment'],['dungeon','Dungeon / specialty studio'],['other','Other space'],
 ];
 
-export const rentalAmenities = [
-  ['wifi','Wi-Fi'],['parking','Parking'],['private_entrance','Private entrance'],
-  ['makeup_room','Makeup room'],['dressing_room','Dressing room'],['shower','Shower'],
-  ['kitchen','Kitchen'],['restroom','Restroom'],['soundproof','Soundproofing'],
-  ['lighting','Studio lighting'],['green_screen','Green screen'],
-  ['power_220v','220V power'],['accessible','Accessibility'],
-  ['outdoor','Outdoor space'],['security','Security'],['air_conditioning','A/C'],
-  ['load_in','Load-in access'],['bedroom','Bedroom'],['pool','Pool'],
-];
+export const rentalAmenities = PROPERTY_FEATURE_GROUPS.flatMap(g=>g.items);
 
 export const rentalUses = [
   ['photography','Photography'],['filming','Filming'],['commercial','Commercial production'],

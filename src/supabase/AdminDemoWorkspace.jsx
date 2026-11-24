@@ -2,6 +2,7 @@
 import React,{useEffect,useMemo,useState} from 'react';
 import {Search,UserRound,ArrowLeft,ShieldCheck,FileSignature} from 'lucide-react';
 import MarketplaceExplore from './MarketplaceExplore';
+import {matchesPropertyFeatures} from '../../supabase/functions/_shared/propertyFeatureCatalog.mjs';
 import HostDialog from './HostDialog';
 import {money,VENUE_ARTWORK} from './hostMapPresentation.mjs';
 import {nightsBetween} from './hostingDateRange.mjs';
@@ -27,7 +28,7 @@ function sectionKey(value){
  return 'dashboard';
 }
 export default function AdminDemoWorkspace({data,section='dashboard',brand='host',onNavigate=(_id)=>{void _id;}}){
- const [local,setLocal]=useState(section),[filters,setFilters]=useState(/** @type {{city?:string,state?:string,country?:string,query?:string,categories?:string[],category?:string,crew_size?:number,amenities?:string[],bounds?:{west:number,east:number,south:number,north:number},start_date?:string,end_date?:string}} */ ({})),[profileQuery,setProfileQuery]=useState(''),[role,setRole]=useState(''),[gender,setGender]=useState(''),[detail,setDetail]=useState(null),[duration,setDuration]=useState(6),[mode,setMode]=useState('hour'),[sampleNotice,setSampleNotice]=useState('');
+ const [local,setLocal]=useState(section),[filters,setFilters]=useState(/** @type {{city?:string,state?:string,country?:string,query?:string,categories?:string[],category?:string,crew_size?:number,amenities?:string[],accessibility?:string[],bounds?:{west:number,east:number,south:number,north:number},start_date?:string,end_date?:string}} */ ({})),[profileQuery,setProfileQuery]=useState(''),[role,setRole]=useState(''),[gender,setGender]=useState(''),[detail,setDetail]=useState(null),[duration,setDuration]=useState(6),[mode,setMode]=useState('hour'),[sampleNotice,setSampleNotice]=useState('');
  useEffect(()=>{setLocal(section);setDetail(null);setSampleNotice('');},[section]);
  const active=sectionKey(local);
  const properties=useMemo(()=>data.properties.filter(p=>{
@@ -37,7 +38,7 @@ export default function AdminDemoWorkspace({data,section='dashboard',brand='host
   if(f.categories?.length&&!f.categories.some(x=>x===p.category||x==='pool'&&p.amenities.includes('pool')))return false;
   if(f.category&&f.category!==p.category)return false;
   if(f.crew_size&&p.capacity<f.crew_size)return false;
-  if(f.amenities?.some(x=>!p.amenities.includes(x)))return false;
+  if(!matchesPropertyFeatures(p,f.amenities||[],f.accessibility||[]))return false;
   const b=f.bounds;if(b&&(p.approx_lat<b.south||p.approx_lat>b.north||(b.west<=b.east?(p.approx_lng<b.west||p.approx_lng>b.east):(p.approx_lng<b.west&&p.approx_lng>b.east))))return false;
   return true;
  }).map(p=>{const days=nightsBetween(filters.start_date,filters.end_date);return days?{...p,stay_total_cents:days*p.daily_rate_cents+p.cleaning_fee_cents,stay_days:days,date_availability_checked:false}:p;}),[data,filters]);

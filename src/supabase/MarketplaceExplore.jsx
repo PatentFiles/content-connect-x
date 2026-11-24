@@ -14,20 +14,8 @@ const icons={house:Home,condo:Building2,warehouse:Warehouse,film_studio:Clapperb
  photo_studio:Camera,dungeon:Landmark,outdoor:TreePine,private_beach:TreePine,
  pool:MapPin,resort:Hotel,villa:Home,loft:Building2,hotel:Hotel,other:MapPin};
 const kinds=HOST_VENUE_CATEGORIES.map(({id,label,image})=>({id,label,image,Icon:icons[id]||MapPin}));
-export const amenityGroups=[
- {title:'Essentials',items:[['wifi','Wi-Fi'],['kitchen','Kitchen'],['washer','Washer'],['dryer','Dryer'],['air_conditioning','Air conditioning'],['heating','Heating'],['dedicated_workspace','Dedicated workspace'],['tv','TV'],['hair_dryer','Hair dryer'],['iron','Iron']]},
- {title:'Amenities & features',items:[['pool','Swimming pool'],['hot_tub','Hot tub'],['free_parking','Free parking'],['ev_charger','EV charger'],['king_bed','King bed'],['gym','Gym'],['bbq_grill','BBQ grill'],['breakfast','Breakfast'],['indoor_fireplace','Fireplace'],['smoking_allowed','Smoking allowed'],['allows_pets','Pets permitted']]},
- {title:'Safety & accessibility',items:[['smoke_alarm','Smoke alarm'],['carbon_monoxide_alarm','CO alarm'],['wheelchair_access','Wheelchair accessible'],['elevator','Elevator'],['private_entrance','Private entrance'],['security','Security staff']]},
- {title:'Production equipment',items:[['camera_equipment','Cameras'],['lighting_equipment','Lighting'],['microphones','Microphones'],['monitor','Camera / LCD monitors'],['multiple_camera_angles','Multiple camera angles'],['sd_card_available','SD cards available'],['wardrobe','Wardrobe'],['makeup_station','Makeup station'],['soundproofing','Soundproofing'],['on_site_staff','On-site crew']] }
-];
-export const accessibility=[
- ['step_free_access','Step-free entrance'],['disabled_parking','Accessible parking'],
- ['wide_entrance','Entrance wider than 32 inches'],['step_free_bedroom','Step-free bedroom'],
- ['wide_bedroom','Wide bedroom entrance'],['step_free_bathroom','Step-free bathroom'],
- ['wide_bathroom','Wide bathroom entrance'],['toilet_grab_bar','Toilet grab bar'],
- ['shower_grab_bar','Shower grab bar'],['step_free_shower','Step-free shower'],['shower_chair','Shower chair'],
- ['hoist','Adaptive hoist']
-];
+import {amenityGroups,accessibility,matchesPropertyFeatures} from '../../supabase/functions/_shared/propertyFeatureCatalog.mjs';
+export {amenityGroups,accessibility};
 const crewRoles=[
  ['creators','Creators / performers'],['videographers','Videographers'],['photographers','Photographers'],
  ['agents','Agents / managers'],['production_staff','Production crew'],['makeup','Makeup & hair'],['other','Other guests']
@@ -37,8 +25,7 @@ const input='w-full min-h-[44px] rounded-xl border border-[#d5e2e9] bg-white px-
 const secondary='inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-[#d5e2e9] bg-white px-4 py-2 text-sm font-semibold text-[#1a3c50] hover:border-[#12698f]';
 const primary='inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-[#12698f] px-5 py-2.5 text-sm font-bold text-white hover:bg-[#0c5272] disabled:opacity-40';
 const money=cents=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format((Number(cents)||0)/100);
-const DEFAULT_FILTERS={types:[],minPrice:'',maxPrice:'',bedrooms:0,beds:0,bathrooms:0,amenities:[],
- access:[],language:'',use:'',pets:false,smoking:false};
+const DEFAULT_FILTERS={types:[],minPrice:'',maxPrice:'',amenities:[],access:[],language:'',use:''};
 function FilterModal({value,onChange,onClose,onApply,matching}){
  const [local,setLocal]=useState({...value,types:[...value.types],amenities:[...value.amenities],access:[...value.access]});
  useEffect(()=>{
@@ -47,7 +34,7 @@ function FilterModal({value,onChange,onClose,onApply,matching}){
   return()=>{document.removeEventListener('keydown',onKey);document.body.style.overflow=prev;};
  },[onClose]);
  const toggle=(key,id)=>setLocal(f=>({...f,[key]:f[key].includes(id)?f[key].filter(x=>x!==id):[...f[key],id]}));
- const count=local.types.length+local.amenities.length+local.access.length+Number(Boolean(local.language))+Number(Boolean(local.use));
+ const count=local.types.length+local.amenities.length+local.access.length+Number(Boolean(local.language))+Number(Boolean(local.use))+Number(local.minPrice!=='')+Number(local.maxPrice!=='');
  return <div className="fixed inset-0 z-[100] grid place-items-center bg-[#061622a8] p-3 backdrop-blur-[2px]" role="presentation" onClick={onClose}>
   <section className="flex max-h-[94vh] w-full max-w-2xl flex-col overflow-hidden rounded-[26px] bg-white text-[#193246] shadow-2xl"
    role="dialog" aria-modal="true" aria-label="Filter production venues" onClick={e=>e.stopPropagation()}>
@@ -67,15 +54,6 @@ function FilterModal({value,onChange,onClose,onApply,matching}){
      <div className="mt-3 grid grid-cols-2 gap-3">
       <label className="text-xs">Minimum (USD)<input type="number" min="0" className={input+' mt-1'} value={local.minPrice} onChange={e=>setLocal(f=>({...f,minPrice:e.target.value}))} placeholder="No minimum"/></label>
       <label className="text-xs">Maximum (USD)<input type="number" min="0" className={input+' mt-1'} value={local.maxPrice} onChange={e=>setLocal(f=>({...f,maxPrice:e.target.value}))} placeholder="No maximum"/></label>
-     </div>
-    </section>
-    <section className="border-t border-[#e2e8ed] pt-5">
-     <h3 className="mb-3 font-semibold">Rooms and capacity</h3>
-     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      {[['bedrooms','Bedrooms'],['beds','Beds'],['bathrooms','Bathrooms']].map(([id,label])=><label key={id} className="text-sm">{label}
-       <select className={input+' mt-1'} value={local[id]} onChange={e=>setLocal(f=>({...f,[id]:Number(e.target.value)}))}>
-        {[0,1,2,3,4,5,6,8,10].map(x=><option key={x} value={x}>{x===0?'Any':x+'+'}</option>)}
-       </select></label>)}
      </div>
     </section>
     {amenityGroups.map(group=><section key={group.title} className="border-t border-[#e2e8ed] pt-5">
@@ -103,9 +81,7 @@ function FilterModal({value,onChange,onClose,onApply,matching}){
       </select>
      </label>
     </section>
-    <div className="border-t border-[#e2e8ed] pt-5 text-sm"><h3 className="font-semibold">Booking options</h3>
-     <p className="mt-2 text-xs text-[#627789]">Instant booking, guaranteed free cancellation and automated self-check-in will appear when the relevant payment, agreement and lock providers are configured. No misleading disabled filters are shown.</p>
-    </div>
+
    </div>
    <div className="flex items-center justify-between border-t border-[#e2e8ed] px-6 py-5">
     <button type="button" className="text-sm font-semibold underline" onClick={()=>setLocal({...DEFAULT_FILTERS})}>Clear all</button>
@@ -129,11 +105,7 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
   const quoted=Number.isFinite(p.stay_total_cents)?p.stay_total_cents/100:one;
   if(filters.minPrice!==''&&quoted<Number(filters.minPrice))return false;
   if(filters.maxPrice!==''&&quoted>Number(filters.maxPrice))return false;
-  if(filters.bedrooms&&(p.bedrooms||0)<filters.bedrooms)return false;
-  if(filters.beds&&(p.beds||0)<filters.beds)return false;
-  if(filters.bathrooms&&(p.bathrooms||0)<filters.bathrooms)return false;
-  if(filters.amenities.some(k=>!p.amenities?.includes(k)))return false;
-  if(filters.access.some(k=>!p.accessibility_features?.includes(k)))return false;
+  if(!matchesPropertyFeatures(p,filters.amenities,filters.access))return false;
   if(filters.language&&!p.host_languages?.includes(filters.language))return false;
   if(filters.use&&!p.permitted_uses?.includes(filters.use))return false;
   if(count>0&&(p.capacity||0)<count)return false;
@@ -148,9 +120,8 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
   ...(nextFilters.access.length?{accessibility:nextFilters.access}:{}),
   ...(nextFilters.use?{requested_use:nextFilters.use}:{}),
   ...(nextFilters.language?{host_language:nextFilters.language}:{}),
-  ...(nextFilters.bedrooms?{min_bedrooms:nextFilters.bedrooms}:{}),
-  ...(nextFilters.beds?{min_beds:nextFilters.beds}:{}),
-  ...(nextFilters.bathrooms?{min_bathrooms:nextFilters.bathrooms}:{})
+  ...(nextFilters.minPrice!==''?{min_price:Number(nextFilters.minPrice)}:{}),
+  ...(nextFilters.maxPrice!==''?{max_price:Number(nextFilters.maxPrice)}:{})
  };applied.current=params;onSearch(params);};
  const mapSearch=bounds=>onSearch({...applied.current,bounds});
  const data=displayed;
@@ -195,6 +166,7 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
      <button type="button" className={secondary} onClick={()=>setFilterOpen(true)}><SlidersHorizontal size={16}/> Filters</button>
      <label className="flex items-center gap-2 rounded-full border border-[#d5e2e9] bg-white px-3 text-sm font-semibold">Rate <select className="bg-transparent p-2" value={rateUnit} onChange={e=>setRateUnit(e.target.value)}><option value="day">Daily</option><option value="hour">Hourly</option></select></label>
      <button type="button" className={secondary} aria-pressed={showMap} onClick={()=>setShowMap(x=>!x)}><Map size={16}/>{showMap?'Hide map':'Show map'}</button>
+     {filters.amenities.length+filters.access.length>0&&<span className="inline-flex items-center rounded-full bg-[#eaf5fb] px-3 text-xs font-semibold">{filters.amenities.length+filters.access.length} property features</span>}
      {filters.types.length>0&&<span className="inline-flex items-center rounded-full bg-[#eaf5fb] px-3 text-xs font-semibold">{filters.types.length} property types</span>}
     </div>
     <p className="flex items-center gap-2 text-xs text-[#627789]"><Tag size={16} className="text-[#12698f]"/> Rate plus separately displayed cleaning fee</p>

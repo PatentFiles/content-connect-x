@@ -10,6 +10,7 @@ import {subscribeHostCatalog} from './hostCatalogRealtime';
 import RentalPeriodPicker from './RentalPeriodPicker';
 import {rentalPeriod,rentalSelectionValid} from './hostRentalPeriod.mjs';
 import MarketplaceExplore from './MarketplaceExplore';
+import PropertyFeatureSummary from './PropertyFeatureSummary';
 import HostGuestInspection from './HostGuestInspection';
 import HostBookingMessages from './HostBookingMessages';
 import HostRentalAgreement from './HostRentalAgreement';
@@ -123,6 +124,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
      <h2 className="text-2xl font-semibold">{selected.title}</h2>
      <p className="flex items-center gap-1 text-sm text-[var(--cc-text-secondary)]"><MapPin size={16}/>{[selected.city,selected.state,selected.country].filter(Boolean).join(', ')}</p>
      <p className="whitespace-pre-wrap text-sm">{selected.description}</p>
+     <PropertyFeatureSummary property={selected}/>
      {(selected.equipment||[]).length>0&&<div className="space-y-3 border-t border-[var(--cc-border)] pt-4" aria-label="Available studio equipment">
       <h3 className="font-semibold">On-site cameras, lighting and equipment</h3>
       <p className="text-xs text-[var(--cc-text-secondary)]">Host-declared equipment. Add-on prices are estimates; no separate equipment charge can be collected until the approved processor is configured.</p>
