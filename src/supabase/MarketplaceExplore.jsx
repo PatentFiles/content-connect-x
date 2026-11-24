@@ -230,7 +230,7 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
           <p className="text-xs text-[#627789]">Up to {p.capacity||'—'} crew · {p.bedrooms||0} bedrooms · {p.bathrooms||0} bathrooms</p>
           <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1"><p className="text-sm font-bold">{money(p.daily_rate_cents)} <span className="font-normal text-[#627789]">/ day</span></p>
            {Number.isFinite(p.hourly_rate_cents)&&p.hourly_rate_cents>0&&<p className="text-sm font-bold">{money(p.hourly_rate_cents)} <span className="font-normal text-[#627789]">/ hour · {p.min_rental_hours||1}h min.</span></p>}</div>
-          {Number.isFinite(p.stay_total_cents)&&p.date_availability_checked?<p className="text-xs underline">{money(p.stay_total_cents)} total · {p.stay_days} {p.stay_days===1?'day':'days'} incl. cleaning</p>:<p className="text-xs text-[#627789]">{money(p.one_day_including_cleaning_cents??p.daily_rate_cents+(p.cleaning_fee_cents||0))} one-day estimate incl. cleaning</p>}
+          {rateUnit==='hour'&&Number.isFinite(p.hourly_rate_cents)?<p className="text-xs underline">{money(p.hourly_rate_cents*(p.min_rental_hours||1)+(p.cleaning_fee_cents||0))} minimum {p.min_rental_hours||1}h estimate incl. cleaning</p>:Number.isFinite(p.stay_total_cents)&&p.date_availability_checked?<p className="text-xs underline">{money(p.stay_total_cents)} total · {p.stay_days} {p.stay_days===1?'day':'days'} incl. cleaning</p>:<p className="text-xs text-[#627789]">{money(p.one_day_including_cleaning_cents??p.daily_rate_cents+(p.cleaning_fee_cents||0))} one-day estimate incl. cleaning</p>}
          </div>
         </button>)}
       </div>}

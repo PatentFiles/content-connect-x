@@ -92,6 +92,6 @@ export default function HostRoadMap({properties=[],onOpen=(_id)=>{void _id;},onB
   </div>
   {!rows.length&&ready&&<div className="absolute bottom-16 left-3 right-3 rounded-xl bg-white/95 p-3 text-xs text-[#193246] shadow"><MapPin size={16} className="mr-1 inline"/>No matching mapped properties in these results. Move the map or change filters.</div>}
   {error&&<div className="absolute inset-x-3 bottom-16 z-10 rounded-xl bg-white/95 p-3 text-xs text-[#193246] shadow-md" role="alert">{error} <button type="button" onClick={()=>setAttempt(v=>v+1)} className="ml-2 underline"><RefreshCw size={14} className="inline"/> Retry map</button></div>}
-  <div className="absolute inset-x-3 bottom-8 rounded-lg bg-white/95 p-2 text-center text-[11px] text-[#486379] shadow-sm">Approximate city-area pins · exact addresses remain private. <a className="underline" href="https://openfreemap.org/" target="_blank" rel="noreferrer">OpenFreeMap</a> · © <a className="underline" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap contributors</a></div>
+  <div className="absolute inset-x-3 bottom-8 rounded-lg bg-white/95 p-2 text-center text-[11px] text-[#486379] shadow-sm">Approximate city-area pins · exact addresses remain private. <a className="underline" href="https://openfreemap.org/" target="_blank" rel="noopener noreferrer">OpenFreeMap</a> · © <a className="underline" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a></div>
  </div>;
 }
