@@ -1,0 +1,93 @@
+name: Isolated migration reproducibility
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/migrations/**'
+      - '.github/workflows/isolated-migration-replay.yml'
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+      - '.github/workflows/isolated-migration-replay.yml'
+permissions:
+  contents: read
+concurrency:
+  group: isolated-migration-replay-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '54322'
+      PGUSER: postgres
+      PGDATABASE: postgres
+      PGPASSWORD: postgres # disposable local Supabase default, not a hosted credential
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Install checksum-pinned Supabase CLI
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --proto '=https' --max-time 120 https://github.com/supabase/cli/releases/download/v2.79.0/supabase_linux_amd64.tar.gz -o "$RUNNER_TEMP/supabase-cli.tgz"
+          echo "624dc29c696345dcc4fbe5293925c10c163f99f2952adeaeae892200740a3a27  $RUNNER_TEMP/supabase-cli.tgz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/supabase-cli.tgz" -C "$RUNNER_TEMP" supabase
+          "$RUNNER_TEMP/supabase" --version
+      - name: Boot a new unlinked, disposable local database
+        run: |
+          set -euo pipefail
+          test "$GITHUB_ACTIONS" = true
+          unset SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD
+          mkdir -p "$RUNNER_TEMP/supabase-replay"
+          cd "$RUNNER_TEMP/supabase-replay"
+          "$RUNNER_TEMP/supabase" init
+          "$RUNNER_TEMP/supabase" start -x studio,logflare,vector,supavisor,edge-runtime,imgproxy,realtime
+          test "$(psql -XAt -v ON_ERROR_STOP=1 -c 'select inet_server_port()')" = 5432
+          # Disable scheduled jobs before applying repository migrations.
+          if test "$(psql -XAt -v ON_ERROR_STOP=1 -c "select count(*) from pg_settings where name='cron.launch_active_jobs'")" = 1; then
+            psql -X -v ON_ERROR_STOP=1 -c "alter system set cron.launch_active_jobs = 'off'"
+            psql -X -v ON_ERROR_STOP=1 -c 'select pg_reload_conf()'
+            test "$(psql -XAt -v ON_ERROR_STOP=1 -c 'show cron.launch_active_jobs')" = off
+          fi
+          # The local database cannot initiate connections to outside services.
+          db="$(docker ps --filter name=supabase_db_ --format '{{.ID}}')"
+          test "$(printf '%s\n' "$db" | wc -l)" = 1
+          test -n "$db"
+          ip="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$db")"
+          [[ "$ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          sudo iptables -I DOCKER-USER 1 -s "$ip" -m conntrack --ctstate NEW -j REJECT
+      - name: Replay every committed migration with no production credentials
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP/supabase-replay"
+          mkdir -p supabase/migrations
+          cp "$GITHUB_WORKSPACE"/supabase/migrations/*.sql supabase/migrations/
+          "$RUNNER_TEMP/supabase" migration up --local
+          expected="$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' | wc -l)"
+          actual="$(psql -XAt -v ON_ERROR_STOP=1 -c 'select count(*) from supabase_migrations.schema_migrations')"
+          test "$expected" = "$actual"
+          echo "Fresh local migration replay: $actual/$expected"
+      - name: Verify private storage and table RLS
+        run: |
+          psql -X -v ON_ERROR_STOP=1 <<'SQL'
+          DO $$
+          BEGIN
+            IF EXISTS(SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+              WHERE n.nspname='public' AND c.relkind IN ('r','p') AND NOT c.relrowsecurity)
+            THEN RAISE EXCEPTION 'Public table lacks RLS'; END IF;
+            IF EXISTS(SELECT 1 FROM storage.buckets WHERE public) THEN RAISE EXCEPTION 'Public storage bucket'; END IF;
+          END $$;
+          SQL
+      - name: Run actual rollback-only application fixtures
+        run: |
+          set -euo pipefail
+          psql -X -v ON_ERROR_STOP=1 -f "$GITHUB_WORKSPACE/tests/sql/enterprise-integrity.sql"
+          psql -X -v ON_ERROR_STOP=1 -f "$GITHUB_WORKSPACE/scripts/check-provider-membership.sql"
+      - name: Tear down isolated database
+        if: always()
+        run: |
+          cd "$RUNNER_TEMP/supabase-replay" 2>/dev/null || exit 0
+          "$RUNNER_TEMP/supabase" stop --no-backup || true
