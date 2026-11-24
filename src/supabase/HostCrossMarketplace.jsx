@@ -5,9 +5,10 @@
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {CalendarDays,MapPin,ArrowLeft,RefreshCw,ShieldCheck} from 'lucide-react';
 import {hostConnectAction,hostRentalAgreementAction} from './hostConnectApi';
-import {venueDateToIso,nightsBetween} from './hostingDateRange.mjs';
 import HostDialog from './HostDialog';
 import {subscribeHostCatalog} from './hostCatalogRealtime';
+import RentalPeriodPicker from './RentalPeriodPicker';
+import {rentalPeriod,rentalSelectionValid} from './hostRentalPeriod.mjs';
 import MarketplaceExplore from './MarketplaceExplore';
 import HostGuestInspection from './HostGuestInspection';
 import HostBookingMessages from './HostBookingMessages';
@@ -26,6 +27,8 @@ export default function HostCrossMarketplace({paid=false,user=null}){
  const [selected,setSelected]=useState(null),[unavailable,setUnavailable]=useState([]);
  const [starts,setStarts]=useState(''),[ends,setEnds]=useState('');
  const [crew,setCrew]=useState(1),[purpose,setPurpose]=useState(''),[quote,setQuote]=useState(null),[modal,setModal]=useState(false),[ack,setAck]=useState(false);
+ const [rentalMode,setRentalMode]=useState('day'),[rentalHour,setRentalHour]=useState(9),[rentalHours,setRentalHours]=useState(6);
+ const requestKey=useRef(null);
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const [inspectionBooking,setInspectionBooking]=useState(null),[chatBooking,setChatBooking]=useState(null),[agreementBooking,setAgreementBooking]=useState(null);
  const [collaborations,setCollaborations]=useState([]),[linkedCollab,setLinkedCollab]=useState('');
@@ -69,7 +72,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
    if(version===browseVersion.current)setError(reason.message||'Could not load matching venues');
   }).finally(()=>{if(version===browseVersion.current)setBusy(false);});
  };
- const open=id=>run(async()=>{const r=await hostConnectAction('listing',{id});setSelected(r.item);setUnavailable(r.unavailable||[]);setStarts('');setEnds('');setPurpose(r.item?.permitted_uses?.[0]||'');setCrew(1);setQuote(null);setLinkedCollab('');});
+ const open=id=>run(async()=>{const r=await hostConnectAction('listing',{id});setSelected(r.item);setUnavailable(r.unavailable||[]);setStarts('');setEnds('');setRentalMode('day');setRentalHour(9);setRentalHours(Math.max(6,r.item?.min_rental_hours||1));requestKey.current=null;setPurpose(r.item?.permitted_uses?.[0]||'');setCrew(1);setQuote(null);setLinkedCollab('');});
  useEffect(()=>{
   if(!user){setCollaborations([]);return;}
   let active=true;
@@ -80,18 +83,20 @@ export default function HostCrossMarketplace({paid=false,user=null}){
   return()=>{active=false;};
  },[user?.id]);
  const calculate=()=>run(async()=>{
-  if(!selected||nightsBetween(starts,ends)<1)throw Error('Choose a valid daily rental period.');
-  const r=await hostConnectAction('quote',{property_id:selected.id,starts_at:venueDateToIso(starts,selected.timezone),
-   ends_at:venueDateToIso(ends,selected.timezone),requested_use:purpose,crew_size:crew});
-  setQuote(r.quote);
+  if(!selected)throw Error('Choose a property.');
+  const period=rentalPeriod(selected,rentalMode,starts,ends,rentalHour,rentalHours);
+  const res=await hostConnectAction('quote',{property_id:selected.id,...period,requested_use:purpose,crew_size:crew});
+  setQuote({...res.quote,...period});requestKey.current=crypto.randomUUID();
  });
  const reserve=()=>run(async()=>{
-  if(!ack||!selected||!quote||!paid)return;
-  const r=await hostConnectAction('reserve',{property_id:selected.id,starts_at:venueDateToIso(starts,selected.timezone),
-   ends_at:venueDateToIso(ends,selected.timezone),requested_use:purpose,crew_size:crew,
-   idempotency_key:crypto.randomUUID(),...(linkedCollab?{collaboration_id:linkedCollab}:{})});
-  setModal(false);setAck(false);setSelected(null);setQuote(null);setNotice(r.note||'Venue request submitted.');
-  await refresh();setView('bookings');
+  if(!ack||!quote||!selected||!paid)return;
+  const period=rentalPeriod(selected,rentalMode,starts,ends,rentalHour,rentalHours);
+  if(quote.starts_at!==period.starts_at||quote.ends_at!==period.ends_at||quote.rental_unit!==period.rental_unit)throw Error('Recalculate the current quote.');
+  if(!requestKey.current)requestKey.current=crypto.randomUUID();
+  const response=await hostConnectAction('reserve',{property_id:selected.id,...period,crew_size:crew,requested_use:purpose,
+   expected_total_cents:quote.total_cents,idempotency_key:requestKey.current,...(linkedCollab?{collaboration_id:linkedCollab}:{})});
+  setModal(false);setAck(false);setSelected(null);setQuote(null);setNotice(response.note||'Venue request submitted.');await refresh();setView('bookings');
+  requestKey.current=null;
  });
  const cancel=b=>run(async()=>{if(!window.confirm('Cancel this unpaid venue request?'))return;
   await hostConnectAction('booking_cancel',{booking_id:b.id});await refresh();setNotice('Booking request cancelled.');});
@@ -139,11 +144,8 @@ export default function HostCrossMarketplace({paid=false,user=null}){
    </div>
    <section className={panel+' h-fit space-y-3'}>
     <h2 className="text-xl font-semibold">{money(selected.daily_rate_cents)} <span className="text-sm font-normal">/ day</span></h2>
-    <p className="text-xs text-[var(--cc-text-secondary)]">3 p.m. local check-in and 3 p.m. checkout ({selected.timezone}).</p>
-    <div className="grid grid-cols-2 gap-2">
-     <label className="text-xs">Check-in<input className={input} type="date" value={starts} onChange={e=>{setStarts(e.target.value);setQuote(null);}}/></label>
-     <label className="text-xs">Checkout<input className={input} type="date" value={ends} onChange={e=>{setEnds(e.target.value);setQuote(null);}}/></label>
-    </div>
+    {Number.isFinite(selected.hourly_rate_cents)&&selected.hourly_rate_cents>0&&<p className="font-semibold">{money(selected.hourly_rate_cents)} <span className="text-sm font-normal">/ hour · {selected.min_rental_hours||1}h minimum</span></p>}
+    <RentalPeriodPicker property={selected} mode={rentalMode} onMode={v=>{setRentalMode(v);setQuote(null);}} day={starts} onDay={v=>{setStarts(v);setQuote(null);}} end={ends} onEnd={v=>{setEnds(v);setQuote(null);}} hour={rentalHour} onHour={v=>{setRentalHour(v);setQuote(null);}} duration={rentalHours} onDuration={v=>{setRentalHours(v);setQuote(null);}}/>
     <label className="text-xs">Crew size<input className={input} type="number" min={1} max={selected.capacity} value={crew} onChange={e=>{setCrew(Number(e.target.value));setQuote(null);}}/></label>
     <label className="text-xs">Proposed use<select className={input} value={purpose} onChange={e=>{setPurpose(e.target.value);setQuote(null);}}>{selected.permitted_uses.map(u=><option key={u} value={u}>{u.replaceAll('_',' ')}</option>)}</select></label>
     <label className="block text-xs">Related Content ConnectX collaboration (optional)
@@ -161,7 +163,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
      <div className="flex justify-between font-semibold"><span>Total</span><span>{money(quote.total_cents)}</span></div>
      <p className="text-xs text-[var(--cc-text-secondary)]">Quoted damage deposit: {money(quote.deposit_cents)}. No payment collected.</p>
     </div>}
-    <button type="button" className={secondary+' w-full'} disabled={busy||nightsBetween(starts,ends)<1} onClick={()=>void calculate()}>Check live dates and price</button>
+    <button type="button" className={secondary+' w-full'} disabled={busy||!rentalSelectionValid(selected,rentalMode,starts,ends,rentalHour,rentalHours)} onClick={()=>void calculate()}>Check live dates and price</button>
     <button type="button" className={primary+' w-full'} disabled={!paid||!quote||busy} onClick={()=>{setAck(false);setModal(true);}}>Review venue request</button>
     {!paid&&<p className="text-xs text-[var(--cc-text-secondary)]">Verified Premium membership is required to request Host ConnectX properties.</p>}
     <p className="text-xs text-[var(--cc-text-secondary)]">The quote may change until the transaction reserves the requested period. A pending request does not guarantee a paid booking.</p>
@@ -188,7 +190,7 @@ export default function HostCrossMarketplace({paid=false,user=null}){
   </section>}
   {modal&&selected&&quote&&<HostDialog title="Review Host ConnectX reservation" onClose={()=>{setModal(false);setAck(false);}} busy={busy}>
    <div className="space-y-4 text-sm"><h3 className="font-semibold">{selected.title}</h3>
-    <p>{starts} to {ends} · {nightsBetween(starts,ends)} days · 3 p.m. property-local check-in</p>
+     <p>{new Date(quote.starts_at).toLocaleString(undefined,{timeZone:selected.timezone})} – {new Date(quote.ends_at).toLocaleString(undefined,{timeZone:selected.timezone})} · {quote.rental_quantity} {quote.rental_unit}{quote.rental_quantity===1?'':'s'} · {selected.timezone}</p>
     <p className="font-semibold">Quoted total: {money(quote.total_cents)}</p>
     <p className="leading-6 text-[var(--cc-text-secondary)]">Submitting creates a pending booking request only. Host acceptance, signed rental terms and verified payment are required to confirm. No non-refundable charge or damage deposit has been collected at this stage.</p>
     <label className="flex items-start gap-2 rounded-xl border border-[var(--cc-border)] p-3"><input type="checkbox" checked={ack} onChange={e=>setAck(e.target.checked)} className="mt-1"/><span>I reviewed the location, dates, rate and booking conditions.</span></label>
