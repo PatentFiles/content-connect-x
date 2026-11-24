@@ -102,6 +102,11 @@ jobs:
           # Live ledger: 20261117022457
           cp "$GITHUB_WORKSPACE/supabase/sql/053_original_creator_production_preferences.sql" "supabase/migrations/20261117022457_053_original_creator_production_preferences.sql"
           # The identity CI fixtures already reference these canonical SQL files.
+          # Existing identity database tests exercise these exact two SQL sources.
+          # Strip standalone transaction wrappers because the CLI owns each migration transaction.
+          sed '/^[[:space:]]*begin;[[:space:]]*$/Id; /^[[:space:]]*commit;[[:space:]]*$/Id' "$GITHUB_WORKSPACE/supabase/sql/self_hosted_identity_v2.sql" > supabase/migrations/20261118205435_self_hosted_identity_v2.sql
+          sed '/^[[:space:]]*begin;[[:space:]]*$/Id; /^[[:space:]]*commit;[[:space:]]*$/Id' "$GITHUB_WORKSPACE/supabase/sql/self_hosted_identity_retention_hardening.sql" > supabase/migrations/20261118210340_self_hosted_identity_retention_hardening.sql
+          cp "$GITHUB_WORKSPACE/supabase/replay/20261118210421_self_hosted_identity_retention_schedule.sql" "supabase/migrations/20261118210421_self_hosted_identity_retention_schedule.sql"
           cp "$GITHUB_WORKSPACE/supabase/sql/identity_admin_pilot.sql" "supabase/migrations/20261118220731_identity_admin_pilot.sql"
           "$RUNNER_TEMP/supabase" migration up --local
           expected="$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' | wc -l)"

@@ -32,3 +32,11 @@ No provider credentials are stored in this document or Git repository.
 - Approved map tile contract and routing provider (public map centers only).
 
 **Activation requires human verification, not configuration booleans alone.**
+
+## Launch setup without optional provider keys
+
+The core deployment has two operator-entered commercial integrations: CCBill membership billing and DocuSign collaboration signing. Use the MFA-protected admin provider cards and encrypted Supabase Vault. The Railway identity worker is first-party and requires no external age-verification key; production activation still requires independent biometric/privacy approval, retention configuration and real-document acceptance.
+
+Calendar and hosting notification job credentials are generated in Supabase Vault by the managed scheduler migration. Do not paste them into Bolt or create duplicate Edge secrets; the server verifies scoped credential hashes. Existing configured Edge credentials remain compatible. External email, SMS, push, remote mapping, AI, managed group video, Sentry and Flagsmith are optional. Unconnected optional services remain inactive and do not block core deployment; a capability that requires an external provider is not considered delivered or tested merely because the credential form is hidden. PASS partner automation remains deferred; independent clearance evidence is still required when applicable.
+
+The admin console shows optional provider setup only when requested. Existing merchant and signing approval flags are not changed. Legacy CCX booking-provider diagnostics are distinct from the standalone Host Connect X booking authority; activating membership billing does not demonstrate successful Host Connect X rental payments, settlements or signing. Never expose server credentials to VITE variables.
