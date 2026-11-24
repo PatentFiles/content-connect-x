@@ -53,3 +53,20 @@ test('trusted Yoti return origin is an HTTPS origin, never a path or redirect',(
     assert.equal(trustedOrigin(bad),false,bad);
   }
 });
+
+test('provider readiness requires independently authenticated AAL2 before privileged reads',async()=>{
+  const {verifiedAal2}=await import('../supabase/functions/_shared/verifiedAdminAal.mjs');
+  const {readFileSync}=await import('node:fs');
+  const source=readFileSync(new URL('../supabase/functions/integration-health/index.ts',import.meta.url),'utf8');
+  assert.match(source,/import \{verifiedAal2\}/);
+  assert.ok(source.indexOf('auth.auth.getUser()')<source.indexOf('verifiedAal2(token,user.id)'));
+  assert.ok(source.indexOf('verifiedAal2(token,user.id)')<source.indexOf('const db=createClient(url,secret)'));
+  assert.match(source,/if\(!verifiedAal2\(token,user\.id\)\)return reply\(.*403\)/);
+  assert.match(source,/'Cache-Control':'no-store'/);
+  const token=claims=>'Bearer e30.'+Buffer.from(JSON.stringify(claims)).toString('base64url')+'.fixture';
+  const valid={sub:'synthetic-user',aal:'aal2',exp:2000,role:'authenticated'};
+  assert.equal(verifiedAal2(token(valid),'synthetic-user',1000),true);
+  for(const overrides of [{aal:'aal1'},{sub:'other-user'},{exp:999},{role:'service_role'}])
+    assert.equal(verifiedAal2(token({...valid,...overrides}),'synthetic-user',1000),false);
+  assert.equal(verifiedAal2('Bearer malformed','synthetic-user',1000),false);
+});

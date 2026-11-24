@@ -2,10 +2,11 @@
  * Never returns provider secrets. "Configured" never means "tested".
  */
 import {OPTIONAL_PROVIDER_SETTINGS,optionalProviderSetting} from './providerConfig.mjs';
+import {verifiedAal2} from '../_shared/verifiedAdminAal.mjs';
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
 import {PROVIDERS,inspectProvider} from './providerChecks.mjs';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, content-type',
-  'Access-Control-Allow-Methods':'POST, OPTIONS'};
+  'Access-Control-Allow-Methods':'POST, OPTIONS','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const reply=(body:unknown,status=200)=>Response.json(body,{status,headers:cors});
 Deno.serve(async req=>{
   if(req.method==='OPTIONS')return new Response(null,{status:204,headers:cors});
@@ -16,6 +17,8 @@ Deno.serve(async req=>{
   const auth=createClient(url,anon,{global:{headers:{Authorization:token}}});
   const {data:{user},error}=await auth.auth.getUser();
   if(error||!user)return reply({error:'Unauthorized'},401);
+  // Only inspect AAL2 after independently validating this exact caller token.
+  if(!verifiedAal2(token,user.id))return reply({error:'Administrator two-factor verification required'},403);
   const db=createClient(url,secret);
   const {data:account,error:accountError}=await db.from('account_security')
     .select('admin,banned,suspended').eq('user_id',user.id).maybeSingle();
