@@ -74,5 +74,26 @@ export const DEFAULT_PREMIUM_PLANS=Object.freeze([
  {plan_code:'agent_10',role_type:'agent',monthly_cents:4999,label:'Agent · up to 10 creators',roster_seats:10},
  {plan_code:'agent_25',role_type:'agent',monthly_cents:9999,label:'Agent · up to 25 creators',roster_seats:25},
  {plan_code:'agent_100plus',role_type:'agent',monthly_cents:24999,label:'Agent · 100+ creators',roster_seats:null},
- {plan_code:'studio_pro',role_type:'studio',monthly_cents:24999,label:'Studio Premium · starting at',roster_seats:null}
+ {plan_code:'studio_pro',role_type:'studio',monthly_cents:24999,label:'Studio Premium · starting at',roster_seats:null},
+ {plan_code:'director_producer_pro',role_type:'director_producer',monthly_cents:1999,label:'Director / Producer Premium',roster_seats:null},
+ {plan_code:'hair_stylist_pro',role_type:'hair_stylist',monthly_cents:1999,label:'Hair Stylist Premium',roster_seats:null},
+ {plan_code:'makeup_artist_pro',role_type:'makeup_artist',monthly_cents:1999,label:'Makeup Artist Premium',roster_seats:null},
+ {plan_code:'wardrobe_stylist_pro',role_type:'wardrobe_stylist',monthly_cents:1999,label:'Wardrobe Stylist Premium',roster_seats:null},
+ {plan_code:'equipment_rental_pro',role_type:'equipment_rental',monthly_cents:1999,label:'Equipment Rental Premium',roster_seats:null},
+ {plan_code:'chef_pro',role_type:'chef',monthly_cents:1999,label:'Chef / Catering Premium',roster_seats:null},
+ {plan_code:'spa_provider_pro',role_type:'spa_provider',monthly_cents:1999,label:'Spa / Wellness Premium',roster_seats:null}
 ]);
+
+/** Integer-cent totals match ccx_membership_term_price. Discounts compare with six or twelve monthly charges. */
+export const MEMBERSHIP_TERMS=Object.freeze([
+ {id:'monthly',label:'Monthly',days:30,months:1,discount:0},
+ {id:'six_months',label:'6 months',days:180,months:6,discount:10},
+ {id:'annual',label:'Annual',days:365,months:12,discount:20}
+]);
+export function membershipTermPrice(monthlyCents,termId){
+ const term=MEMBERSHIP_TERMS.find(x=>x.id===termId);
+ if(!term||!Number.isSafeInteger(monthlyCents)||monthlyCents<0||monthlyCents>1000000)return null;
+ const regular=monthlyCents*term.months;
+ const total=Math.floor((regular*(100-term.discount)+50)/100);
+ return {...term,total_cents:total,savings_cents:regular-total,monthly_equivalent_cents:Math.round(total/term.months)};
+}

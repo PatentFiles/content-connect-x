@@ -1,12 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {PROFESSIONAL_ROLES,DEFAULT_PREMIUM_PLANS,FREE_BENEFITS,ROLE_BENEFITS} from '../src/supabase/membershipCatalog.mjs';
+import {PROFESSIONAL_ROLES,DEFAULT_PREMIUM_PLANS,FREE_BENEFITS,ROLE_BENEFITS,MEMBERSHIP_TERMS,membershipTermPrice} from '../src/supabase/membershipCatalog.mjs';
 import {isFreeAction,localContactStatus,milesBetween} from '../supabase/functions/member-workflows/contactPolicy.mjs';
 import {readFileSync} from 'node:fs';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('monthly pricing excludes Host and includes configured agent capacities',()=>{
  assert.equal(PROFESSIONAL_ROLES.some(p=>p.id==='host'),false);
- assert.deepEqual(DEFAULT_PREMIUM_PLANS.map(p=>p.monthly_cents),[1999,2999,4999,4999,4999,9999,24999,24999]);
+ assert.deepEqual(DEFAULT_PREMIUM_PLANS.slice(0,8).map(p=>p.monthly_cents),[1999,2999,4999,4999,4999,9999,24999,24999]);
+ assert.equal(DEFAULT_PREMIUM_PLANS.length,15);
+ for(const role of PROFESSIONAL_ROLES)assert.ok(DEFAULT_PREMIUM_PLANS.some(p=>p.role_type===role.id));
  assert.deepEqual(DEFAULT_PREMIUM_PLANS.filter(p=>p.role_type==='agent').map(p=>p.roster_seats),[10,25,null]);
  assert.equal(FREE_BENEFITS.some(s=>s.includes('25-mile')),true);
  for(const role of PROFESSIONAL_ROLES)assert.ok(ROLE_BENEFITS[role.id].items.length>=2,role.id+' needs a description without invented paid plans');
@@ -55,4 +57,18 @@ test('free verified member messaging is backed by restrictive Supabase RLS polic
  assert.match(sql,/security\.banned or security\.suspended/);
  assert.match(sql,/as restrictive for select to authenticated/i);
  assert.doesNotMatch(sql,/member_subscriptions/);
+});
+
+test('all professions and agency tiers have exact monthly and prepaid totals',()=>{
+ assert.deepEqual(MEMBERSHIP_TERMS.map(x=>x.days),[30,180,365]);
+ for(const plan of DEFAULT_PREMIUM_PLANS){
+  const m=membershipTermPrice(plan.monthly_cents,'monthly'),s=membershipTermPrice(plan.monthly_cents,'six_months'),a=membershipTermPrice(plan.monthly_cents,'annual');
+  assert.equal(m.total_cents,plan.monthly_cents);
+  assert.equal(s.total_cents,Math.round(plan.monthly_cents*6*90/100));
+  assert.equal(a.total_cents,Math.round(plan.monthly_cents*12*80/100));
+  assert.ok(a.monthly_equivalent_cents<s.monthly_equivalent_cents&&s.monthly_equivalent_cents<m.total_cents);
+ }
+ assert.equal(membershipTermPrice(1999,'six_months').total_cents,10795);
+ assert.equal(membershipTermPrice(1999,'annual').total_cents,19190);
+ assert.equal(membershipTermPrice(1999,'invalid'),null);
 });
