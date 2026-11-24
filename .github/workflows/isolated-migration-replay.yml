@@ -5,10 +5,14 @@ on:
     branches: [main]
     paths:
       - 'supabase/migrations/**'
+      - 'supabase/replay/**'
+      - 'supabase/sql/**'
       - '.github/workflows/isolated-migration-replay.yml'
   pull_request:
     paths:
       - 'supabase/migrations/**'
+      - 'supabase/replay/**'
+      - 'supabase/sql/**'
       - '.github/workflows/isolated-migration-replay.yml'
 permissions:
   contents: read
@@ -76,6 +80,11 @@ jobs:
           # supabase/migrations. The original live ledger order was verified
           # against their SQL definitions. Stage copies ONLY in this temporary
           # local project: never insert synthetic version IDs into production.
+          # Restore four intervening, reviewed ledger-only hosting migrations.
+          cp "$GITHUB_WORKSPACE/supabase/replay/20261115144149_hosting_reschedule_and_financial_evidence_triggers.sql" "supabase/migrations/20261117013826_hosting_reschedule_and_financial_evidence_triggers.sql"
+          cp "$GITHUB_WORKSPACE/supabase/replay/20261115144622_hosting_trusted_signer_names_and_docusign_reconciliation.sql" "supabase/migrations/20261117013827_hosting_trusted_signer_names_and_docusign_reconciliation.sql"
+          cp "$GITHUB_WORKSPACE/supabase/replay/20261115144917_hosting_ccbill_checkout_attempt_guards.sql" "supabase/migrations/20261117013828_hosting_ccbill_checkout_attempt_guards.sql"
+          cp "$GITHUB_WORKSPACE/supabase/replay/20261115145050_hosting_delivery_worker_and_payout_uniqueness.sql" "supabase/migrations/20261117013829_hosting_delivery_worker_and_payout_uniqueness.sql"
           # Live ledger: 20261115160636
           cp "$GITHUB_WORKSPACE/supabase/sql/046_enterprise_hotpath_indexes.sql" "supabase/migrations/20261117015001_046_enterprise_hotpath_indexes.sql"
           # Live ledger: 20261115173650
@@ -92,6 +101,8 @@ jobs:
           cp "$GITHUB_WORKSPACE/supabase/sql/052_restore_original_host_role.sql" "supabase/migrations/20261117021725_052_restore_original_host_role.sql"
           # Live ledger: 20261117022457
           cp "$GITHUB_WORKSPACE/supabase/sql/053_original_creator_production_preferences.sql" "supabase/migrations/20261117022457_053_original_creator_production_preferences.sql"
+          # The identity CI fixtures already reference these canonical SQL files.
+          cp "$GITHUB_WORKSPACE/supabase/sql/identity_admin_pilot.sql" "supabase/migrations/20261118220731_identity_admin_pilot.sql"
           "$RUNNER_TEMP/supabase" migration up --local
           expected="$(find supabase/migrations -maxdepth 1 -type f -name '*.sql' | wc -l)"
           actual="$(psql -XAt -v ON_ERROR_STOP=1 -c 'select count(*) from supabase_migrations.schema_migrations')"
