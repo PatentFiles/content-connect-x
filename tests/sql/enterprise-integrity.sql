@@ -7,6 +7,13 @@ BEGIN
  INSERT INTO public.account_security(user_id,admin,banned,suspended) VALUES(owner_id,true,false,false),(member_id,true,false,false),(outsider,false,false,false) ON CONFLICT(user_id) DO UPDATE SET admin=excluded.admin;
  INSERT INTO public.member_admissions(user_id,source) VALUES(owner_id,'legacy_admin'),(member_id,'legacy_admin') ON CONFLICT(user_id) DO NOTHING;
  INSERT INTO public.collaborations(id,creator_id,title,status) VALUES(cid,owner_id,'Rollback-only integrity audit','draft');
+ -- A stranger invitation must be rejected by the current mutual-connection gate.
+ BEGIN
+  INSERT INTO public.collaboration_invitations(id,collaboration_id,invited_by,invitee_id) VALUES(iid,cid,owner_id,member_id);
+ INSERT INTO enterprise_checks VALUES('stranger_invitation_rejected',false);
+ EXCEPTION WHEN insufficient_privilege THEN INSERT INTO enterprise_checks VALUES('stranger_invitation_rejected',true); END;
+ -- Create only synthetic, transaction-scoped accepted connection data.
+ INSERT INTO public.member_connection_requests(requester_id,recipient_id,status,responded_at) VALUES(owner_id,member_id,'accepted',now());
  INSERT INTO public.collaboration_invitations(id,collaboration_id,invited_by,invitee_id) VALUES(iid,cid,owner_id,member_id);
  BEGIN
   PERFORM public.ccx_respond_collaboration_invitation(outsider,iid,'accepted');
@@ -38,7 +45,7 @@ BEGIN
  INSERT INTO enterprise_checks SELECT 'provider_acceptance_persisted',public.ccx_finish_hosting_notification(jobid,claim.lease_token,'delivered','fixture');
  INSERT INTO enterprise_checks SELECT 'one_delivery_log',count(*)=1 FROM public.hosting_notification_delivery_log WHERE outbox_id=jobid;
  INSERT INTO enterprise_checks SELECT 'second_finalize_idempotent',NOT public.ccx_finish_hosting_notification(jobid,claim.lease_token,'delivered','fixture');
- IF EXISTS(SELECT 1 FROM enterprise_checks WHERE NOT passed) THEN RAISE EXCEPTION 'Enterprise regression failure';END IF;
+ IF EXISTS(SELECT 1 FROM enterprise_checks WHERE passed IS DISTINCT FROM true) THEN RAISE EXCEPTION 'Enterprise regression failure';END IF;
 END $test$;
 SELECT jsonb_agg(jsonb_build_object('test',name,'passed',passed)) AS checks FROM enterprise_checks;
 ROLLBACK;
