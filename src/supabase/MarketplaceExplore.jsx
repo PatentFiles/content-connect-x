@@ -3,8 +3,10 @@
  * Airbnb discovery + Tripadvisor map), using ORIGINAL Host ConnectX blue.
  * No exact private addresses are fetched or sent to the map.
  */
-import React,{useEffect,useMemo,useRef,useState} from 'react';
+import React,{useEffect,useMemo,useState} from 'react';
 import {Search,SlidersHorizontal,Map,MapPin,Users,Home,Building2,Warehouse,Camera,Clapperboard,TreePine,Hotel,Landmark,ChevronRight,X,Tag} from 'lucide-react';
+import HostRoadMap from './HostRoadMap';
+import {VENUE_ARTWORK} from './hostMapPresentation.mjs';
 import GeoLocationSelect,{EMPTY_GEO} from './GeoLocationSelect';
 import HostVenueCategoryRail from './HostVenueCategoryRail';
 import {HOST_VENUE_CATEGORIES,venueMatchesTypes,venueArtworkFor} from './hostVenueCategories.mjs';
@@ -37,69 +39,6 @@ const primary='inline-flex min-h-[44px] items-center justify-center gap-2 rounde
 const money=cents=>new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0}).format((Number(cents)||0)/100);
 const DEFAULT_FILTERS={types:[],minPrice:'',maxPrice:'',bedrooms:0,beds:0,bathrooms:0,amenities:[],
  access:[],language:'',use:'',pets:false,smoking:false};
-function loadMapLib(){
- if(typeof window==='undefined')return Promise.reject(Error('Map only available in a browser'));
- const browser=/** @type {any} */(window);
- if(browser.maplibregl)return Promise.resolve(browser.maplibregl);
- if(browser.__hostMapPromise)return browser.__hostMapPromise;
- browser.__hostMapPromise=new Promise((resolve,reject)=>{
-  if(!document.querySelector('link[data-host-maplibre]')){
-   const css=document.createElement('link');css.rel='stylesheet';css.href='https://unpkg.com/maplibre-gl@5.10.0/dist/maplibre-gl.css';
-   css.dataset.hostMaplibre='true';document.head.appendChild(css);
-  }
-  const script=document.createElement('script');script.src='https://unpkg.com/maplibre-gl@5.10.0/dist/maplibre-gl.js';
-  script.async=true;script.onload=()=>browser.maplibregl?resolve(browser.maplibregl):reject(Error('Map script unavailable'));
-  script.onerror=()=>reject(Error('Could not load the road map'));document.head.appendChild(script);
- }).catch(e=>{browser.__hostMapPromise=null;throw e;});
- return browser.__hostMapPromise;
-}
-function ApproximateRoadMap({properties=[],onOpen}){
- const container=useRef(null),instance=useRef(null),markers=useRef([]);
- const [error,setError]=useState('');
- const mapRows=useMemo(()=>properties.filter(p=>Number.isFinite(p.approx_lat)&&Number.isFinite(p.approx_lng)),[properties]);
- useEffect(()=>{
-  if(!container.current||mapRows.length===0)return;
-  let disposed=false;let cleanup=null;
-  loadMapLib().then(lib=>{
-   if(disposed||!container.current)return;
-   const map=new lib.Map({
-    container:container.current,style:'https://tiles.openfreemap.org/styles/positron',
-    center:[Number(mapRows[0].approx_lng),Number(mapRows[0].approx_lat)],
-    zoom:9,cooperativeGestures:true,attributionControl:true
-   });
-   instance.current=map;
-   map.addControl(new lib.NavigationControl({showCompass:false}),'top-right');
-   map.on('load',()=>{
-    if(disposed)return;
-    const bounds=new lib.LngLatBounds();
-    for(const item of mapRows.slice(0,100)){
-     const lat=Number(item.approx_lat),lng=Number(item.approx_lng);
-     const el=document.createElement('button');el.type='button';
-     el.className='host-map-price-pin';el.textContent=money(item.one_day_including_cleaning_cents??item.daily_rate_cents);
-     el.title='Approximate city area for '+item.title+'; exact property address is private';
-     el.addEventListener('click',()=>onOpen(item.id));
-     const marker=new lib.Marker({element:el,anchor:'bottom'}).setLngLat([lng,lat]).addTo(map);
-     markers.current.push(marker);bounds.extend([lng,lat]);
-    }
-    if(mapRows.length>1)map.fitBounds(bounds,{padding:70,maxZoom:12,duration:0});
-   });
-   cleanup=()=>{for(const m of markers.current)m.remove();markers.current=[];map.remove();instance.current=null;};
-  }).catch(()=>{if(!disposed)setError('Map tiles are unavailable right now. Use the property list to continue.');});
-  return()=>{disposed=true;cleanup?.();};
- },[mapRows,onOpen]);
- return <div className="relative h-[min(76vh,760px)] min-h-[440px] overflow-hidden rounded-2xl bg-[#f7fafb]">
-  <div ref={container} className="absolute inset-0" role="region" aria-label="Approximate venue map with road labels"/>
-  {mapRows.length===0?<div className="absolute inset-0 grid place-items-center p-7 text-center">
-   <div><MapPin className="mx-auto mb-3 text-[#12698f]" size={38}/>
-    <p className="font-semibold text-[#193246]">Map locations aren't available yet</p>
-    <p className="mt-2 max-w-sm text-sm text-[#627789]">Approved hosts must select a city before an approximate map marker is shown. Exact property addresses stay private.</p></div>
-  </div>:null}
-  {error&&<div className="absolute inset-x-3 bottom-12 rounded-xl bg-white/95 p-3 text-xs text-[#193246] shadow-md" role="alert">{error}</div>}
-  <div className="absolute inset-x-3 bottom-3 rounded-lg bg-white/95 p-2 text-center text-[11px] text-[#486379] shadow-sm">
-   City-level markers only — not exact locations or guaranteed one-mile accuracy. © OpenStreetMap contributors.
-  </div>
- </div>;
-}
 function FilterModal({value,onChange,onClose,onApply,matching}){
  const [local,setLocal]=useState({...value,types:[...value.types],amenities:[...value.amenities],access:[...value.access]});
  useEffect(()=>{
@@ -180,9 +119,11 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
  const [keyword,setKeyword]=useState(''),[from,setFrom]=useState(''),[to,setTo]=useState('');
  const [crew,setCrew]=useState(Object.fromEntries(crewRoles.map(([key])=>[key,0])));
  const [crewOpen,setCrewOpen]=useState(false),[filterOpen,setFilterOpen]=useState(false),[filters,setFilters]=useState({...DEFAULT_FILTERS});
- const [showMap,setShowMap]=useState(true);
+ const [showMap,setShowMap]=useState(true),[rateUnit,setRateUnit]=useState('day');
+ const applied=React.useRef({});
  const count=Object.values(crew).reduce((sum,n)=>sum+Number(n||0),0);
  const displayed=useMemo(()=>items.filter(p=>{
+  if(rateUnit==='hour'&&!(Number.isFinite(p.hourly_rate_cents)&&p.hourly_rate_cents>0))return false;
   if(!venueMatchesTypes(p,filters.types))return false;
   const one=(Number(p.one_day_including_cleaning_cents)||Number(p.daily_rate_cents)+Number(p.cleaning_fee_cents))/100;
   const quoted=Number.isFinite(p.stay_total_cents)?p.stay_total_cents/100:one;
@@ -197,8 +138,8 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
   if(filters.use&&!p.permitted_uses?.includes(filters.use))return false;
   if(count>0&&(p.capacity||0)<count)return false;
   return true;
- }),[items,filters,count]);
- const apply=(nextFilters=filters)=>onSearch({
+ }),[items,filters,count,rateUnit]);
+ const apply=(nextFilters=filters)=>{const params={
   query:keyword,country:geo.country,state:geo.state,city:geo.city,
   categories:nextFilters.types,
   ...(from&&to?{start_date:from,end_date:to}:{}),
@@ -210,7 +151,8 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
   ...(nextFilters.bedrooms?{min_bedrooms:nextFilters.bedrooms}:{}),
   ...(nextFilters.beds?{min_beds:nextFilters.beds}:{}),
   ...(nextFilters.bathrooms?{min_bathrooms:nextFilters.bathrooms}:{})
- });
+ };applied.current=params;onSearch(params);};
+ const mapSearch=bounds=>onSearch({...applied.current,bounds});
  const data=displayed;
  return <div className="space-y-5 text-[#193246]" data-host-discovery="true">
   <div className="flex flex-wrap items-center justify-between gap-3">
@@ -251,10 +193,11 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
    <div className="flex flex-wrap items-center justify-between gap-3">
     <div className="flex flex-wrap gap-2">
      <button type="button" className={secondary} onClick={()=>setFilterOpen(true)}><SlidersHorizontal size={16}/> Filters</button>
+     <label className="flex items-center gap-2 rounded-full border border-[#d5e2e9] bg-white px-3 text-sm font-semibold">Rate <select className="bg-transparent p-2" value={rateUnit} onChange={e=>setRateUnit(e.target.value)}><option value="day">Daily</option><option value="hour">Hourly</option></select></label>
      <button type="button" className={secondary} aria-pressed={showMap} onClick={()=>setShowMap(x=>!x)}><Map size={16}/>{showMap?'Hide map':'Show map'}</button>
      {filters.types.length>0&&<span className="inline-flex items-center rounded-full bg-[#eaf5fb] px-3 text-xs font-semibold">{filters.types.length} property types</span>}
     </div>
-    <p className="flex items-center gap-2 text-xs text-[#627789]"><Tag size={16} className="text-[#12698f]"/> One-day price estimates include listed cleaning fees</p>
+    <p className="flex items-center gap-2 text-xs text-[#627789]"><Tag size={16} className="text-[#12698f]"/> Rate plus separately displayed cleaning fee</p>
    </div>
    {(from||to)&&<p className="rounded-lg bg-[#f0f6fa] px-4 py-2 text-xs text-[#315267]">
     Selected dates {from||'—'} to {to||'—'}. Search verifies property-local blocked/held dates; submit a booking request to recheck the exact live quote.
@@ -267,11 +210,11 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
       <h4 className="font-bold">No approved venues match those filters yet</h4>
       <p className="mt-2 text-sm text-[#627789]">Try a different city, crew size or venue type. New verified properties appear here automatically.</p>
      </div>:
-      <div className={'grid gap-4 '+(showMap?'sm:grid-cols-2 xl:grid-cols-2':'sm:grid-cols-2 xl:grid-cols-4')}>
+      <div className={'grid gap-4 '+(showMap?'grid-cols-1':'sm:grid-cols-2 xl:grid-cols-4')}>
        {data.map(p=>
-        <button type="button" key={p.id} className="group overflow-hidden rounded-2xl bg-white text-left transition hover:-translate-y-0.5 hover:shadow-md"
+        <button type="button" key={p.id} className={'group overflow-hidden rounded-2xl border border-[#e1e9ef] bg-white text-left transition hover:shadow-md '+(showMap?'grid grid-cols-[minmax(105px,38%)_minmax(0,1fr)] gap-3':'')}
          onClick={()=>onOpen(p.id)}>
-         <div className="relative aspect-[5/4] overflow-hidden rounded-2xl bg-[#eff5f8]">
+         <div className={'relative overflow-hidden rounded-xl bg-[#eff5f8] '+(showMap?'min-h-[138px] h-full':'aspect-[5/4]')}>
           {p.cover_url?<img src={p.cover_url} alt={p.title} className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.025]"/>:
            <div className="grid h-full w-full place-items-center bg-[#eff5f8] text-[#12698f]">
             {venueArtworkFor(p.category,{listingPlaceholder:true})?
@@ -279,20 +222,21 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
               className="h-32 w-32 max-w-[75%] object-contain opacity-75" />:
              <Home size={46} strokeWidth={1.5}/>}
            </div>}
-          <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-[#20394a] shadow-sm">{kinds.find(x=>x.id===p.category)?.label||'Production venue'}</span>
+          <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-[#20394a] shadow-sm"><img src={VENUE_ARTWORK[p.category]||VENUE_ARTWORK.other} alt="" className="mr-1 inline h-5 w-5 object-contain"/>{kinds.find(x=>x.id===p.category)?.label||'Production venue'}</span>
          </div>
          <div className="space-y-1 px-1 pb-3 pt-3">
           <h4 className="truncate text-sm font-bold">{p.title}</h4>
           <p className="truncate text-xs text-[#627789]">{[p.city,p.state,p.country].filter(Boolean).join(', ')}</p>
           <p className="text-xs text-[#627789]">Up to {p.capacity||'—'} crew · {p.bedrooms||0} bedrooms · {p.bathrooms||0} bathrooms</p>
-          <p className="mt-2 text-sm font-bold">{money(p.stay_total_cents??p.one_day_including_cleaning_cents??p.daily_rate_cents+p.cleaning_fee_cents)}
-           <span className="text-xs font-normal text-[#627789]">{p.date_availability_checked?p.stay_days+' days incl. cleaning':'one day incl. cleaning'}</span></p>
+          <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1"><p className="text-sm font-bold">{money(p.daily_rate_cents)} <span className="font-normal text-[#627789]">/ day</span></p>
+           {Number.isFinite(p.hourly_rate_cents)&&p.hourly_rate_cents>0&&<p className="text-sm font-bold">{money(p.hourly_rate_cents)} <span className="font-normal text-[#627789]">/ hour · {p.min_rental_hours||1}h min.</span></p>}</div>
+          {Number.isFinite(p.stay_total_cents)&&p.date_availability_checked?<p className="text-xs underline">{money(p.stay_total_cents)} total · {p.stay_days} {p.stay_days===1?'day':'days'} incl. cleaning</p>:<p className="text-xs text-[#627789]">{money(p.one_day_including_cleaning_cents??p.daily_rate_cents+(p.cleaning_fee_cents||0))} one-day estimate incl. cleaning</p>}
          </div>
         </button>)}
       </div>}
     </section>
     {showMap&&<aside className="sticky top-24 h-fit" aria-label="Approximate production location map">
-     <ApproximateRoadMap properties={data} onOpen={onOpen}/>
+     <HostRoadMap properties={data} onOpen={onOpen} onBounds={mapSearch} categorySelected={filters.types.length>0} unit={rateUnit}/>
     </aside>}
    </div>
   {filterOpen&&<FilterModal value={filters} onChange={setFilters} onClose={()=>setFilterOpen(false)} onApply={apply} matching={displayed.length}/>}

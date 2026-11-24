@@ -7,6 +7,7 @@ import {CalendarDays,MapPin,ArrowLeft,RefreshCw,ShieldCheck} from 'lucide-react'
 import {hostConnectAction,hostRentalAgreementAction} from './hostConnectApi';
 import {venueDateToIso,nightsBetween} from './hostingDateRange.mjs';
 import HostDialog from './HostDialog';
+import {subscribeHostCatalog} from './hostCatalogRealtime';
 import MarketplaceExplore from './MarketplaceExplore';
 import HostGuestInspection from './HostGuestInspection';
 import HostBookingMessages from './HostBookingMessages';
@@ -53,8 +54,9 @@ export default function HostCrossMarketplace({paid=false,user=null}){
    }
   };
   const timer=window.setInterval(sync,30000);
+  const unsubscribe=subscribeHostCatalog(sync);
   window.addEventListener('focus',sync);
-  return()=>{active=false;window.clearInterval(timer);window.removeEventListener('focus',sync);};
+  return()=>{active=false;window.clearInterval(timer);unsubscribe();window.removeEventListener('focus',sync);};
  },[refresh,selected?.id]);
  const run=async fn=>{setBusy(true);setError('');setNotice('');try{await fn();}catch(e){setError(e.message||'Host ConnectX unavailable');}finally{setBusy(false);}};
  const search=params=>{
