@@ -157,7 +157,8 @@ async function processJob(job){
 const respond=(res,status,body)=>{res.writeHead(status,{'Content-Type':'application/json','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(JSON.stringify(body));};
 const server=http.createServer(async(req,res)=>{
  if(req.method==='GET'&&req.url==='/health'){
-  try{if(!ready)throw Error();const r=await fetch('http://127.0.0.1:3002/health',{signal:AbortSignal.timeout(3000)});if(!r.ok)throw Error();respond(res,200,{status:'ok',schema:SCHEMA,engine_revision:ENGINE_REVISION,model_files:Object.keys(modelManifest).length,ocr_self_test:true,worker_revision:WORKER_REVISION,modes:['signup','pilot']});}catch{respond(res,503,{status:'starting'});}return;
+ // Fixed same-container health probe; no credentials or user input. Block redirects.
+  try{if(!ready)throw Error();const r=await fetch('http://127.0.0.1:3002/health',{redirect:'error',signal:AbortSignal.timeout(3000)});if(!r.ok)throw Error();respond(res,200,{status:'ok',schema:SCHEMA,engine_revision:ENGINE_REVISION,model_files:Object.keys(modelManifest).length,ocr_self_test:true,worker_revision:WORKER_REVISION,modes:['signup','pilot']});}catch{respond(res,503,{status:'starting'});}return; // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
  }
  if(req.method!=='POST'||req.url!=='/process')return respond(res,404,{error:'Not found'});
  if(!ready)return respond(res,503,{error:'Worker is starting'});
@@ -186,7 +187,8 @@ for(const sig of ['SIGTERM','SIGINT'])process.on(sig,()=>{engine.kill(sig);serve
   await faces.initialize();
   stage='engine_listener';console.info('Identity startup: face models loaded');
   let listening=false;
-  for(let i=0;i<60;i++){try{const r=await fetch('http://127.0.0.1:3002/health',{signal:AbortSignal.timeout(1000)});if(r.ok){listening=true;break;}}catch{}await new Promise(r=>setTimeout(r,1000));}
+ // Fixed same-container health probe; no credentials or user input. Block redirects.
+  for(let i=0;i<60;i++){try{const r=await fetch('http://127.0.0.1:3002/health',{redirect:'error',signal:AbortSignal.timeout(1000)});if(r.ok){listening=true;break;}}catch{}await new Promise(r=>setTimeout(r,1000));} // nosemgrep: typescript.react.security.react-insecure-request.react-insecure-request
   if(!listening)throw Error('Engine failed to start');
   stage='ocr_probe';console.info('Identity startup: checking OCR with synthetic text');
   const svg='<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="400"><rect width="100%" height="100%" fill="white"/><text x="60" y="150" font-family="sans-serif" font-size="64" fill="black">CONTENT CONNECT</text><text x="60" y="260" font-family="sans-serif" font-size="64" fill="black">OCR READY 2468</text></svg>';

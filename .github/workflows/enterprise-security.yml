@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4 (previously resolved revision)
         with:
           fetch-depth: 0
-      - uses: gitleaks/gitleaks-action@v2
+      - uses: gitleaks/gitleaks-action@ff98106e4c7b2bc287b24eaf42907196329070c7 # v2 (previously resolved revision)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   security-analysis:
@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4 (previously resolved revision)
       - name: Install Semgrep scanner
         run: python -m pip install --disable-pip-version-check 'semgrep>=1.100,<2'
       - name: Scan source against OWASP rules
@@ -51,7 +51,7 @@ jobs:
           exit "$scan_result"
       - name: Preserve scan report for incident review
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4 (previously resolved revision)
         with:
           name: enterprise-semgrep-report
           path: artifacts/semgrep.json
@@ -61,8 +61,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4 (previously resolved revision)
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4 (previously resolved revision)
         with:
           node-version: '22'
           cache: npm
@@ -74,7 +74,7 @@ jobs:
           node -e "const fs=require('fs'); const j=JSON.parse(fs.readFileSync('artifacts/npm-audit.json')); console.log(JSON.stringify(j.metadata?.vulnerabilities||{})); if((j.metadata?.vulnerabilities?.high||0)+(j.metadata?.vulnerabilities?.critical||0)>0)process.exit(1)"
       - name: Save dependency report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4 (previously resolved revision)
         with:
           name: enterprise-dependency-audit
           path: artifacts/npm-audit.json
