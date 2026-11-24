@@ -1,26 +1,34 @@
 /** One OpenFreeMap canvas per mounted search. Update pins without reinitializing the map. */
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {MapPin,RefreshCw} from 'lucide-react';
+import HostRasterFallback from './HostRasterFallback';
 import {ROAD_STYLE,VENUE_ARTWORK,finitePoint,markerPosition,normalizeBounds,money,rentalPrice} from './hostMapPresentation.mjs';
+const ASSETS='/vendor/maplibre-5.10.0/';
+let rendererPromise=null;
 function loadMapLib(){
  if(typeof window==='undefined')return Promise.reject(Error('Map only available in a browser'));
  const browser=/** @type {any} */(window);
- if(browser.maplibregl)return Promise.resolve(browser.maplibregl);
- if(browser.__hostMapPromise)return browser.__hostMapPromise;
- browser.__hostMapPromise=new Promise((resolve,reject)=>{
-  if(!document.querySelector('link[data-host-maplibre]')){
-   const css=document.createElement('link');css.rel='stylesheet';css.href='https://unpkg.com/maplibre-gl@5.10.0/dist/maplibre-gl.css';
-   css.dataset.hostMaplibre='true';document.head.appendChild(css);
-  }
-  document.querySelector('script[data-host-maplibre]')?.remove();
-  const script=document.createElement('script');script.src='https://unpkg.com/maplibre-gl@5.10.0/dist/maplibre-gl.js';
-  script.dataset.hostMaplibre='true';script.async=true;
-  const timer=window.setTimeout(()=>{script.remove();reject(Error('Map loading timed out'));},15000);
-  script.onload=()=>{window.clearTimeout(timer);browser.maplibregl?resolve(browser.maplibregl):reject(Error('Map script unavailable'));};
-  script.onerror=()=>{window.clearTimeout(timer);script.remove();reject(Error('Could not load the road map'));};
-  document.head.appendChild(script);
- }).catch(e=>{browser.__hostMapPromise=null;throw e;});
- return browser.__hostMapPromise;
+ if(rendererPromise)return rendererPromise;
+ // Offline role tests supply an isolated renderer; production loads local assets.
+ if(browser.maplibregl&&!browser.maplibregl.setWorkerUrl)return Promise.resolve(browser.maplibregl);
+ rendererPromise=new Promise((resolve,reject)=>{
+  const css=document.createElement('link'),script=document.createElement('script');
+  let settled=false,cssReady=false,scriptReady=false;
+  const fail=()=>{if(settled)return;settled=true;window.clearTimeout(timer);css.remove();script.remove();reject(Error('Local map assets could not be loaded'));};
+  const complete=()=>{
+   if(settled||!cssReady||!scriptReady)return;
+   const lib=browser.maplibregl;if(!lib?.Map||typeof lib.setWorkerUrl!=='function'){fail();return;}
+   try{lib.setWorkerUrl(new URL(ASSETS+'maplibre-gl-csp-worker.js',window.location.origin).href);}catch{fail();return;}
+   settled=true;window.clearTimeout(timer);resolve(lib);
+  };
+  const timer=window.setTimeout(fail,12000);
+  css.rel='stylesheet';css.href=ASSETS+'maplibre-gl.css';css.dataset.hostMaplibre='true';
+  css.onload=()=>{cssReady=true;complete();};css.onerror=fail;
+  script.src=ASSETS+'maplibre-gl-csp.js';script.async=true;script.dataset.hostMaplibre='true';
+  script.onload=()=>{scriptReady=true;complete();};script.onerror=fail;
+  document.head.append(css,script);
+ }).catch(e=>{rendererPromise=null;throw e;});
+ return rendererPromise;
 }
 function styleRoads(map){
  for(const layer of map.getStyle()?.layers||[]){
@@ -37,30 +45,35 @@ function styleRoads(map){
 export default function HostRoadMap({properties=[],onOpen=(_id)=>{void _id;},onBounds=(_bounds)=>{void _bounds;},categorySelected=false,unit='day'}){
  const node=useRef(null),mapRef=useRef(null),libRef=useRef(null),markers=useRef([]),callbacks=useRef({onOpen,onBounds}),searchRef=useRef(true);
  const fitted=useRef(false),timer=useRef(0),fitMove=useRef(false);
- const [searchMoving,setSearchMoving]=useState(true),[ready,setReady]=useState(false),[error,setError]=useState(''),[attempt,setAttempt]=useState(0);
+ const [searchMoving,setSearchMoving]=useState(true),[ready,setReady]=useState(false),[error,setError]=useState(''),[attempt,setAttempt]=useState(0),[fallback,setFallback]=useState(false);
  callbacks.current={onOpen,onBounds};searchRef.current=searchMoving;
  const rows=useMemo(()=>properties.filter(finitePoint),[properties]);
  const requestBounds=()=>{const map=mapRef.current;if(!map)return;const bounds=normalizeBounds(map.getBounds());if(bounds)callbacks.current.onBounds(bounds);};
  useEffect(()=>{
-  let disposed=false,observer=null;
+  if(fallback)return;
+  let disposed=false,observer=null,loadTimer=0,loaded=false;
   fitted.current=false;setReady(false);setError('');
+  const unavailable=()=>{if(!disposed){setError('Vector map unavailable on this device or connection.');setFallback(true);}};
+  loadTimer=window.setTimeout(unavailable,25000);
   loadMapLib().then(lib=>{
    if(disposed||!node.current)return;
    libRef.current=lib;
+   if(typeof lib.supported==='function'&&!lib.supported()){unavailable();return;}
    const map=new lib.Map({container:node.current,style:ROAD_STYLE,center:[-98.5,39.5],zoom:3.6,minZoom:2,maxZoom:15,cooperativeGestures:true,attributionControl:true,renderWorldCopies:false});
    mapRef.current=map;
    map.addControl(new lib.NavigationControl({showCompass:false}),'top-right');
-   map.on('load',()=>{if(disposed)return;styleRoads(map);setReady(true);setError('');});
-   map.on('error',()=>{if(!disposed&&!map.loaded())setError('Road map unavailable. The property list remains usable.');});
+   map.on('load',()=>{if(disposed)return;loaded=true;window.clearTimeout(loadTimer);styleRoads(map);map.resize();setReady(true);setError('');});
+   map.on('error',()=>{if(!disposed&&!loaded)setError('Loading map data…');});
+   map.on('webglcontextlost',unavailable);
    map.on('moveend',()=>{
     if(disposed||fitMove.current||!searchRef.current)return;
     window.clearTimeout(timer.current);
-    timer.current=window.setTimeout(()=>{const b=normalizeBounds(map.getBounds());if(b)callbacks.current.onBounds(b);},450);
+    timer.current=window.setTimeout(()=>{if(disposed||!searchRef.current)return;const b=normalizeBounds(map.getBounds());if(b)callbacks.current.onBounds(b);},450);
    });
-   observer=new ResizeObserver(()=>map.resize());observer.observe(node.current);
-  }).catch(()=>{if(!disposed)setError('Map unavailable. Browse the property list or retry.');});
-  return()=>{disposed=true;window.clearTimeout(timer.current);observer?.disconnect();markers.current.forEach(m=>m.remove());markers.current=[];mapRef.current?.remove();mapRef.current=null;};
- },[attempt]);
+   if(typeof ResizeObserver!=='undefined'){observer=new ResizeObserver(()=>map.resize());observer.observe(node.current);}
+  }).catch(unavailable);
+  return()=>{disposed=true;window.clearTimeout(loadTimer);window.clearTimeout(timer.current);observer?.disconnect();markers.current.forEach(m=>m.remove());markers.current=[];mapRef.current?.remove();mapRef.current=null;};
+ },[attempt,fallback]);
  useEffect(()=>{
   const map=mapRef.current,lib=libRef.current;if(!ready||!map||!lib)return;
   markers.current.forEach(m=>m.remove());markers.current=[];
@@ -84,13 +97,16 @@ export default function HostRoadMap({properties=[],onOpen=(_id)=>{void _id;},onB
    fitMove.current=false;
   }
  },[rows,ready,categorySelected,unit]);
- return <div className="relative h-[min(76vh,760px)] min-h-[440px] overflow-hidden rounded-2xl bg-[#f7fafb]" data-host-road-map="true">
-  <div ref={node} className="absolute inset-0" role="region" aria-label="Approximate venue map with road labels"/>
+ if(fallback)return <HostRasterFallback properties={rows} onOpen={onOpen} onBounds={onBounds} categorySelected={categorySelected} unit={unit} onRetry={()=>{setFallback(false);setAttempt(v=>v+1);}}/>;
+ return <div className="relative min-h-[440px] overflow-hidden rounded-2xl bg-[#f7fafb]" style={{height:'min(76vh, 760px)'}} data-host-road-map="true" data-map-renderer="vector" data-map-status={ready?'ready':'loading'}>
+  <div ref={node} className="absolute inset-0" style={{position:'absolute',inset:0,width:'100%',height:'100%'}} role="region" aria-label="Approximate venue map with road labels"/>
   <div className="absolute left-3 top-3 z-10 max-w-[calc(100%-65px)] space-y-2">
    <label className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-[#193246] shadow-md"><input type="checkbox" checked={searchMoving} onChange={e=>setSearchMoving(e.target.checked)} className="accent-[#12698f]"/>Search as I move the map</label>
    {!searchMoving&&<button type="button" onClick={requestBounds} className="rounded-lg bg-white px-3 py-2 text-sm font-semibold text-[#193246] shadow" disabled={!ready}>Search this area</button>}
   </div>
+  {!ready&&<div className="pointer-events-none absolute inset-0 flex items-center justify-center text-sm text-[#193246]" role="status">Loading road map…</div>}
   {!rows.length&&ready&&<div className="absolute bottom-16 left-3 right-3 rounded-xl bg-white/95 p-3 text-xs text-[#193246] shadow"><MapPin size={16} className="mr-1 inline"/>No matching mapped properties in these results. Move the map or change filters.</div>}
+  {!ready&&<button type="button" className="absolute bottom-20 right-3 z-10 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-[#193246] shadow" onClick={()=>setFallback(true)}>Use compatibility map</button>}
   {error&&<div className="absolute inset-x-3 bottom-16 z-10 rounded-xl bg-white/95 p-3 text-xs text-[#193246] shadow-md" role="alert">{error} <button type="button" onClick={()=>setAttempt(v=>v+1)} className="ml-2 underline"><RefreshCw size={14} className="inline"/> Retry map</button></div>}
   <div className="absolute inset-x-3 bottom-8 rounded-lg bg-white/95 p-2 text-center text-[11px] text-[#486379] shadow-sm">Approximate city-area pins · exact addresses remain private. <a className="underline" href="https://openfreemap.org/" target="_blank" rel="noopener noreferrer">OpenFreeMap</a> · © <a className="underline" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a></div>
  </div>;

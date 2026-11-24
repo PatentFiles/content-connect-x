@@ -7,7 +7,7 @@ import {venueHourToIso,rentalPeriod} from '../src/supabase/hostRentalPeriod.mjs'
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('stable fictional dataset stays out of real account and booking identifiers',()=>{
  const a=demoData(),b=demoData();assert.deepEqual(a,b);assert.equal(a.demo,true);assert.equal(a.read_only,true);
- assert.equal(a.profiles.length,18);assert.equal(a.properties.length,14);
+ assert.equal(a.profiles.length,16);assert.equal(a.properties.length,14);
  assert.ok(a.profiles.every(x=>x.demo===true&&x.id.startsWith('demo-profile-')&&x.avatar_ref===x.id));
  assert.ok(a.properties.every(x=>x.demo===true&&x.id.startsWith('demo-venue-')&&finitePoint(x)&&VENUE_ARTWORK[x.category]));
  assert.equal(new Set(a.properties.map(x=>x.id)).size,a.properties.length);
@@ -58,4 +58,16 @@ test('administrator mock slider is red OFF, green ON, accessible and server-stat
  assert.match(source,/onClick=\{\(\)=>onToggle\(\)\}/);
  assert.match(shell,/isAdmin&&approved&&demo&&<AdminMockToggle enabled=\{demo.enabled\} busy=\{demo.busy\} onToggle=\{\(\)=>void demo.toggle\(\)\}/);
  assert.doesNotMatch(source,/localStorage|sessionStorage|supabase/);
+});
+
+test('map uses locally pinned renderer, same-origin worker and compatible fallback',()=>{
+ const source=read('src/supabase/HostRoadMap.jsx');
+ assert.match(source,/\/vendor\/maplibre-5\.10\.0\//);
+ assert.match(source,/maplibre-gl-csp-worker\.js/);
+ assert.match(source,/setWorkerUrl/);
+ assert.match(source,/HostRasterFallback/);
+ assert.doesNotMatch(source,/unpkg\.com|cdn\.jsdelivr/);
+ assert.equal(JSON.parse(read('package.json')).dependencies['maplibre-gl'],'5.10.0');
+ assert.equal(JSON.parse(read('package-lock.json')).packages['node_modules/maplibre-gl'].version,'5.10.0');
+ assert.ok(demoData().profiles.every(p=>!['chef','spa_provider'].includes(p.role_type)));
 });
