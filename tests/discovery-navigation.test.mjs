@@ -14,7 +14,7 @@ test('Home and Discovery use one canonical category list without chef or spa til
  assert.match(grid,/DISCOVERY_CATEGORIES\.map/);
  assert.match(grid,/PUBLIC_DISCOVERY_DETAILS\[item\.key\]/);
  assert.match(member,/<DiscoveryCategoryGrid/);
- assert.match(member,/!?\['host','chef','spa_provider'\]\.includes\(key\)/);
+ assert.match(member,/key!=='host'/);
 });
 test('Discovery category cards collapse on mobile, remain visible on desktop',()=>{
  const grid=read('src/supabase/DiscoveryCategoryGrid.jsx');

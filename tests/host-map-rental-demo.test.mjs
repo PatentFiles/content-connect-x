@@ -62,12 +62,12 @@ test('administrator mock slider is red OFF, green ON, accessible and server-stat
 
 test('map uses locally pinned renderer, same-origin worker and compatible fallback',()=>{
  const source=read('src/supabase/HostRoadMap.jsx');
- assert.match(source,/\/vendor\/maplibre-5\.10\.0\//);
- assert.match(source,/maplibre-gl-csp-worker\.js/);
+ assert.match(source,/\/vendor\/maplibre-6\.19\.0\//);
+ assert.match(source,/maplibre-gl-worker\.mjs/);
  assert.match(source,/setWorkerUrl/);
  assert.match(source,/HostRasterFallback/);
  assert.doesNotMatch(source,/unpkg\.com|cdn\.jsdelivr/);
- assert.equal(JSON.parse(read('package.json')).dependencies['maplibre-gl'],'5.10.0');
- assert.equal(JSON.parse(read('package-lock.json')).packages['node_modules/maplibre-gl'].version,'5.10.0');
+ assert.equal(JSON.parse(read('package.json')).dependencies['maplibre-gl'],'6.19.0');
+ assert.equal(JSON.parse(read('package-lock.json')).packages['node_modules/maplibre-gl'].version,'6.19.0');
  assert.ok(demoData().profiles.every(p=>!['chef','spa_provider'].includes(p.role_type)));
 });

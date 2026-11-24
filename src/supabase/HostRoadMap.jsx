@@ -3,31 +3,22 @@ import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {MapPin,RefreshCw} from 'lucide-react';
 import HostRasterFallback from './HostRasterFallback';
 import {ROAD_STYLE,VENUE_ARTWORK,finitePoint,markerPosition,normalizeBounds,money,rentalPrice} from './hostMapPresentation.mjs';
-const ASSETS='/vendor/maplibre-5.10.0/';
+const ASSETS='/vendor/maplibre-6.19.0/';
 let rendererPromise=null;
 function loadMapLib(){
  if(typeof window==='undefined')return Promise.reject(Error('Map only available in a browser'));
  const browser=/** @type {any} */(window);
- if(rendererPromise)return rendererPromise;
- // Offline role tests supply an isolated renderer; production loads local assets.
+ // Offline role tests inject a renderer solely to exercise their DOM controls.
  if(browser.maplibregl&&!browser.maplibregl.setWorkerUrl)return Promise.resolve(browser.maplibregl);
- rendererPromise=new Promise((resolve,reject)=>{
-  const css=document.createElement('link'),script=document.createElement('script');
-  let settled=false,cssReady=false,scriptReady=false;
-  const fail=()=>{if(settled)return;settled=true;window.clearTimeout(timer);css.remove();script.remove();reject(Error('Local map assets could not be loaded'));};
-  const complete=()=>{
-   if(settled||!cssReady||!scriptReady)return;
-   const lib=browser.maplibregl;if(!lib?.Map||typeof lib.setWorkerUrl!=='function'){fail();return;}
-   try{lib.setWorkerUrl(new URL(ASSETS+'maplibre-gl-csp-worker.js',window.location.origin).href);}catch{fail();return;}
-   settled=true;window.clearTimeout(timer);resolve(lib);
-  };
-  const timer=window.setTimeout(fail,12000);
-  css.rel='stylesheet';css.href=ASSETS+'maplibre-gl.css';css.dataset.hostMaplibre='true';
-  css.onload=()=>{cssReady=true;complete();};css.onerror=fail;
-  script.src=ASSETS+'maplibre-gl-csp.js';script.async=true;script.dataset.hostMaplibre='true';
-  script.onload=()=>{scriptReady=true;complete();};script.onerror=fail;
-  document.head.append(css,script);
- }).catch(e=>{rendererPromise=null;throw e;});
+ if(rendererPromise)return rendererPromise;
+ const css=document.createElement('link');css.rel='stylesheet';css.href=ASSETS+'maplibre-gl.css';css.dataset.hostMaplibre='true';
+ const stylesheet=new Promise((resolve,reject)=>{css.onload=()=>resolve(true);css.onerror=()=>reject(Error('Local map stylesheet failed'));document.head.appendChild(css);});
+ const moduleUrl=new URL(ASSETS+'maplibre-gl.mjs',window.location.origin).href;
+ const timeout=()=>new Promise((_,reject)=>{window.setTimeout(()=>reject(Error('Local map loading timed out')),12000);});
+ rendererPromise=Promise.race([Promise.all([import(/* @vite-ignore */ moduleUrl),stylesheet]).then(([lib])=>{
+  lib.setWorkerUrl(new URL(ASSETS+'maplibre-gl-worker.mjs',window.location.origin).href);
+  return lib;
+ }),timeout()]).catch(e=>{css.remove();rendererPromise=null;throw e;});
  return rendererPromise;
 }
 function styleRoads(map){

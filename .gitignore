@@ -31,4 +31,4 @@ dist-ssr
 base44/.app.jsonc
 
 # Generated, lockfile-pinned map assets
-/public/vendor/maplibre-5.10.0/
+/public/vendor/maplibre-6.19.0/

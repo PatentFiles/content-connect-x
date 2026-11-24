@@ -24,6 +24,8 @@ jobs:
         run: npm run typecheck
       - name: Map, hourly rentals and isolated demonstration regression tests
         run: node --test tests/host-map-rental-demo.test.mjs
+      - name: Real OpenFreeMap renderer and WebGL fallback on desktop and mobile
+        run: node scripts/test-host-real-map.mjs
       - name: All offline policy, authorization and product regressions
         run: npm run test:unit
       - name: Enterprise administration diagnostics wiring
