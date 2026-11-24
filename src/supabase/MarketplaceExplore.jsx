@@ -114,7 +114,7 @@ function FilterModal({value,onChange,onClose,onApply,matching}){
   </section>
  </div>;
 }
-export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filters)=>{void _filters;},onOpen=(_id)=>{void _id;},onBecomeHost=()=>{},site='host'}){
+export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filters)=>{void _filters;},onOpen=(_id)=>{void _id;},onBecomeHost=()=>{},site='host',demo=false}){
  const [geo,setGeo]=useState({...EMPTY_GEO});
  const [keyword,setKeyword]=useState(''),[from,setFrom]=useState(''),[to,setTo]=useState('');
  const [crew,setCrew]=useState(Object.fromEntries(crewRoles.map(([key])=>[key,0])));
@@ -158,8 +158,8 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
   <div className="flex flex-wrap items-center justify-between gap-3">
    <div><p className="text-xs font-bold uppercase tracking-[.15em] text-[#12698f]">Host ConnectX</p>
     <h2 className="mt-1 text-2xl font-bold">Find your next production location</h2>
-    <p className="mt-1 text-sm text-[#61778a]">Browse approved spaces without signing in. Booking requires a verified account.</p></div>
-   {site==='host'&&<button type="button" className={secondary} onClick={onBecomeHost}><Home size={16}/> Become a host</button>}
+    <p className="mt-1 text-sm text-[#61778a]">{demo?'Fictional venues for this administrator walkthrough.':'Browse approved spaces without signing in. Booking requires a verified account.'}</p></div>
+   {!demo&&site==='host'&&<button type="button" className={secondary} onClick={onBecomeHost}><Home size={16}/> Become a host</button>}
   </div>
   <HostVenueCategoryRail selectedTypes={filters.types} onChangeTypes={types=>{
    const next={...filters,types};
@@ -204,10 +204,10 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
    </p>}
    <div className={'grid min-w-0 gap-5 '+(showMap?'lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]':'')}>
     <section className="min-w-0 space-y-4" aria-label="Venue search results">
-     <h3 className="font-bold">{data.length} approved spaces{geo.city?' in '+geo.city:''}</h3>
+     <h3 className="font-bold">{data.length} {demo?'sample':'approved'} spaces{geo.city?' in '+geo.city:''}</h3>
      {data.length===0?<div className={panel+' p-8 text-center'}>
       <Search className="mx-auto mb-3 text-[#12698f]" size={35}/>
-      <h4 className="font-bold">No approved venues match those filters yet</h4>
+      <h4 className="font-bold">No matching venues for these filters</h4>
       <p className="mt-2 text-sm text-[#627789]">Try a different city, crew size or venue type. New verified properties appear here automatically.</p>
      </div>:
       <div className={'grid gap-4 '+(showMap?'grid-cols-1':'sm:grid-cols-2 xl:grid-cols-4')}>

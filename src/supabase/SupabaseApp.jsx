@@ -36,6 +36,8 @@ import CreatorDiscovery from './CreatorDiscovery';
 import {scrollToNewPage} from './navigationScroll.mjs';
 import IdentityVerification from './IdentityVerification';
 import PublicLandingSections from './PublicLandingSections';
+import AdminDemoWorkspace from './AdminDemoWorkspace';
+import {useAdminDemo} from './useAdminDemo';
 import {useAuthAppearance} from './authAppearance';
 import PublicPricing from './PublicPricing';
 import BrandWordmark from './BrandWordmark';
@@ -112,6 +114,7 @@ export default function SupabaseApp() {
   const activePaid = (billing?.status === 'active' || billing?.status === 'trial') && (!billing?.period_end || new Date(billing.period_end) > new Date());
   const paid = activePaid || isAdmin;
   const suspended = security?.banned || security?.suspended;
+  const demo=useAdminDemo(user?.id,Boolean(isAdmin&&approved&&!suspended));
 
   const refresh = useCallback(async (activeSession) => {
     const generation=++refreshGeneration.current;
@@ -450,7 +453,9 @@ export default function SupabaseApp() {
   return <OriginalShell user={user} profile={profile} approved={approved}
     isAdmin={isAdmin} tab={tab} featureFlags={visibleFeatures} isPremiumMember={activePaid}
     onNavigate={navigateInWorkspace} onSignOut={signOut}
-    onRolePreviewChange={setRolePreview}>
+    onRolePreviewChange={setRolePreview} demo={demo}>
+    {demo.error&&<ErrorMessage message={demo.error}/>}
+    {demo.enabled?<AdminDemoWorkspace data={demo.data} section={tab} brand="ccx" onNavigate={navigateInWorkspace}/>:<>
     <ErrorMessage message={error}/>
     {notice&&<p role="status" className="my-3 text-green-800">{notice}</p>}
     {suspended?<div className="space-y-4">
@@ -536,5 +541,5 @@ export default function SupabaseApp() {
     {tab==='shop'&&approved&&<AffiliateShop isAdmin={isAdmin}/>}
     {tab==='membership'&&<PublicPricing signedIn onNavigate={navigateInWorkspace} initialRole={profile?.role_type||'creator'}/>}
 
-  </>}</OriginalShell>;
+  </>}</>}</OriginalShell>;
 }

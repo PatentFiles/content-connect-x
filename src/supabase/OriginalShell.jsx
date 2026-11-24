@@ -61,7 +61,7 @@ function NavigationSections({groups,tab,onNavigate,onClose=()=>{},mobile=false,u
  </section>)}</>;
 }
 
-export default function OriginalShell({children,tab,onNavigate,user,profile,isAdmin=false,approved=false,onSignOut,onRolePreviewChange,featureFlags=null,isPremiumMember=false}){
+export default function OriginalShell({children,tab,onNavigate,user,profile,isAdmin=false,approved=false,onSignOut,onRolePreviewChange,featureFlags=null,isPremiumMember=false,demo=null}){
  const [mobileOpen,setMobileOpen]=useState(false),[adminRole,setAdminRole]=useState('admin');
  const [unread,setUnread]=useState(0);
  const menuButtonRef=React.useRef(null),mobileCloseRef=React.useRef(null),mobileDialogRef=React.useRef(null);
@@ -135,6 +135,7 @@ export default function OriginalShell({children,tab,onNavigate,user,profile,isAd
      <span className="ccx-monogram" aria-hidden="true">CX</span><BrandWordmark brand="content" className="hidden text-lg font-semibold sm:inline-flex"/>
     </button>
     <div className="ccx-shell-header-actions">
+     {isAdmin&&approved&&demo&&<button type="button" data-admin-mock-toggle="true" aria-pressed={demo.enabled} disabled={demo.busy} onClick={()=>void demo.toggle()} className={'inline-flex min-h-10 shrink-0 items-center rounded-lg border px-2 py-2 text-xs font-semibold '+(demo.enabled?'border-amber-400 bg-amber-100 text-amber-950':'border-[var(--cc-border)] bg-[var(--cc-surface)]')}>{demo.enabled?'Mock data: ON':'Mock data'}</button>}
      <button type="button" onClick={()=>onNavigate('membership')} aria-label={'Membership: '+(isPremiumMember?'Premium Account':'Free Account')+'; view plans'} className="inline-flex min-h-10 items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-semibold sm:px-3" style={{borderColor:'var(--cc-border)',background:'var(--cc-surface)',color:'var(--cc-text-primary)'}}>
       <CreditCard size={15} className="text-[var(--cc-link)]"/><span className="hidden sm:inline">Membership</span><span>{isPremiumMember?'Premium':'Free'}</span>
      </button>
