@@ -38,7 +38,7 @@ test('sensitive provider changes require the same verified admin AAL2 session',(
  const api=read('supabase/functions/ccx-integrations/index.ts');
  assert.match(api,/auth\.getUser\(\)/);
  assert.match(api,/verifiedAal2\(header,uid\)/);
- assert.match(api,/\['admin_set_secret','admin_provider_settings'\]/);
+ assert.match(api,/\['admin_set_secret','admin_provider_settings','admin_membership_prepaid'\]/);
  assert.match(api,/verifiedSentryDsn/);
  assert.match(api,/Save a valid Resend API key and verified sender address/);
 });
