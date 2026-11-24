@@ -1,0 +1,82 @@
+name: Bounded public production canary
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/bounded-production-canary.yml'
+permissions:
+  contents: read
+concurrency:
+  group: bounded-production-canary
+  cancel-in-progress: false
+jobs:
+  public-canary:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Measure low-volume HTTPS availability without credentials or mutations
+        run: |
+          python3 - <<'PY'
+          import concurrent.futures as futures
+          import json
+          import statistics
+          import time
+          import urllib.error
+          import urllib.request
+
+          # Explicit allowlist. No user IDs, access tokens, real bookings, payments,
+          # storage writes, browser cookies, or biometric submissions.
+          targets = [
+              ('CCX public homepage', 'https://contentconnectx.com/', None, 200, 'html'),
+              ('HCX public homepage', 'https://hostconnectx.com/', None, 200, 'html'),
+              ('HCX public property browse', 'https://szfdoqkfewwpdkapqptp.supabase.co/functions/v1/host-marketplace', {'action':'browse'}, 200, 'browse'),
+              ('CCX protected identity status boundary', 'https://yxuqbygykpfbioslljlf.supabase.co/functions/v1/identity-verification', {'action':'status'}, 401, 'deny'),
+              ('Railway identity health', 'https://ccx-identity-worker-staging.up.railway.app/health', None, 200, 'health'),
+          ]
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, headers, newurl):
+                  return None
+
+          def sample(target):
+              name, url, payload, expected, kind = target
+              body = None if payload is None else json.dumps(payload).encode()
+              req = urllib.request.Request(url, data=body, headers={'Content-Type':'application/json','Cache-Control':'no-cache','User-Agent':'CCX-Bounded-Release-Canary/1.0'})
+              start = time.perf_counter()
+              status = None
+              try:
+                  opener = urllib.request.build_opener(NoRedirect())
+                  try:
+                      with opener.open(req, timeout=12) as resp:
+                          status, raw = resp.status, resp.read(1024*1024+1)
+                  except urllib.error.HTTPError as exc:
+                      status, raw = exc.code, b''
+                  ok = status == expected and len(raw) <= 1024*1024
+                  if ok and kind == 'html':
+                      ok = b'<html' in raw[:50000].lower()
+                  if ok and kind == 'browse':
+                      data = json.loads(raw)
+                      items = data.get('items')
+                      ok = isinstance(items,list) and all(isinstance(row,dict) and row.get('status')=='active' and not any(k in row for k in ('address_line1','access_instructions','guest_email')) for row in items)
+                  if ok and kind == 'health':
+                      data = json.loads(raw)
+                      ok = data.get('status')=='ok' and data.get('ocr_self_test') is True
+              except Exception:
+                  ok = False
+              return ok, status, (time.perf_counter()-start)*1000
+
+          # 16 requests per target, 80 maximum. Stop on first failing batch;
+          # no retry storm, no destructive load, and never exceed 10 in flight.
+          for target in targets:
+              for n in (1,5,10):
+                  with futures.ThreadPoolExecutor(max_workers=n) as pool:
+                      results = list(pool.map(sample, [target]*n))
+                  times = [r[2] for r in results]
+                  passed = sum(r[0] for r in results)
+                  print(json.dumps({'target':target[0],'concurrency':n,'passed':passed,'requests':n,'median_ms':round(statistics.median(times),1),'max_ms':round(max(times),1),'status_codes':sorted(set(str(r[1]) for r in results))}),flush=True)
+                  if passed != n:
+                      raise SystemExit('Public canary failed; do not increase load')
+                  time.sleep(1)
+          print('PASS: bounded public production smoke only; not sustained or authenticated capacity certification.')
+          PY
