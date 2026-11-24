@@ -44,3 +44,18 @@ test('marker and rental logic withstand repeated synthetic evaluations',()=>{
  for(let i=0;i<10000;i++){const p=rows[i%rows.length];const a=markerPosition(p);assert.ok(a.every(Number.isFinite));assert.equal(rentalPrice(p,'hour'),p.hourly_rate_cents);n+=2;}
  assert.equal(n,20000);
 });
+
+test('administrator mock slider is red OFF, green ON, accessible and server-state driven',()=>{
+ const source=read('src/supabase/AdminMockToggle.jsx');
+ const shell=read('src/supabase/OriginalShell.jsx');
+ assert.match(source,/role="switch"/);
+ assert.match(source,/aria-label="Mock data"/);
+ assert.match(source,/aria-checked=\{enabled\}/);
+ assert.match(source,/disabled=\{busy\}/);
+ assert.match(source,/backgroundColor:enabled\?'#15803d':'#b91c1c'/);
+ assert.match(source,/enabled\?'ON':'OFF'/);
+ assert.match(source,/transform:enabled\?'translateX\(30px\)':'translateX\(0px\)'/);
+ assert.match(source,/onClick=\{\(\)=>onToggle\(\)\}/);
+ assert.match(shell,/isAdmin&&approved&&demo&&<AdminMockToggle enabled=\{demo.enabled\} busy=\{demo.busy\} onToggle=\{\(\)=>void demo.toggle\(\)\}/);
+ assert.doesNotMatch(source,/localStorage|sessionStorage|supabase/);
+});
