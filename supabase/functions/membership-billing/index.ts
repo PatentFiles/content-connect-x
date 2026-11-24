@@ -1,7 +1,7 @@
-/** Monthly membership hosted checkout. Price and role originate in the database. */
+/** Monthly recurring and approved prepaid checkout. Price, role and term originate in the database. */
 import {createClient} from 'npm:@supabase/supabase-js@2.95.0';
 import {membershipVaultConfig} from '../_shared/ccbillVaultConfig.mjs';
-import {recurringCheckout} from '../_shared/ccbillPolicy.mjs';
+import {recurringCheckout,prepaidCheckout} from '../_shared/ccbillPolicy.mjs';
 const cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization,apikey,content-type,x-client-info,x-supabase-client-platform,x-supabase-client-platform-version,x-supabase-client-runtime,x-supabase-client-runtime-version','Access-Control-Allow-Methods':'POST,OPTIONS','Cache-Control':'no-store'};
 const out=(v:unknown,status=200)=>Response.json(v,{status,headers:cors});
 Deno.serve(async req=>{
@@ -17,21 +17,21 @@ Deno.serve(async req=>{
   const [security,admission,provider,subscription]=await Promise.all([
    db.from('account_security').select('banned,suspended').eq('user_id',uid).maybeSingle(),
    db.from('member_admissions').select('admitted_at').eq('user_id',uid).maybeSingle(),
-   db.from('ccx_integrations').select('enabled').eq('provider','ccbill').maybeSingle(),
+   db.from('ccx_integrations').select('enabled,membership_prepaid_max_cents').eq('provider','ccbill').maybeSingle(),
    db.from('member_subscriptions').select('status,period_end,plan_id,billing_provider,provider_subscription_id').eq('user_id',uid).maybeSingle()
   ]);
   if([security,admission,provider,subscription].some(x=>x.error))return out({error:'Billing status unavailable'},503);
   if(!security.data||security.data.banned||security.data.suspended||!admission.data?.admitted_at)return out({error:'Complete account onboarding first'},403);
   const cfg=await membershipVaultConfig(db),ready=cfg.ready&&provider.data?.enabled===true;
   if(body.action==='status'){
-   let cancelAtEnd=false;
+   let cancelAtEnd=false,periodDays=30;
    if(subscription.data?.provider_subscription_id){
-    const {data,error}=await db.from('ccx_membership_contracts').select('cancel_at_period_end').eq('subscription_id',subscription.data.provider_subscription_id).eq('user_id',uid).maybeSingle();
-    if(error)return out({error:'Subscription status unavailable'},503);cancelAtEnd=data?.cancel_at_period_end===true;
+    const {data,error}=await db.from('ccx_membership_contracts').select('cancel_at_period_end,period_days').eq('subscription_id',subscription.data.provider_subscription_id).eq('user_id',uid).maybeSingle();
+    if(error)return out({error:'Subscription status unavailable'},503);cancelAtEnd=data?.cancel_at_period_end===true;periodDays=data?.period_days||30;
    }
    const {data:review,error:reviewError}=await db.from('ccx_membership_payment_events').select('event_id').eq('user_id',uid).eq('status','reconciliation_required').limit(1);
    if(reviewError)return out({error:'Payment status unavailable'},503);
-   return out({ready,subscription:subscription.data,cancel_at_period_end:cancelAtEnd,reconciliation_required:Boolean(review?.length),
+   return out({ready,prepaid_max_cents:ready?(provider.data?.membership_prepaid_max_cents||0):0,period_days:periodDays,subscription:subscription.data,cancel_at_period_end:cancelAtEnd,reconciliation_required:Boolean(review?.length),
     manage_url:'https://support.ccbill.com',note:ready?'Checkout is handled securely by CCBill.':'Membership billing awaits provider configuration and approval.'});
   }
   if(body.action==='cancel_at_period_end'){
@@ -40,15 +40,16 @@ Deno.serve(async req=>{
    const sub=subscription.data;
    if(sub?.billing_provider!=='ccbill'||!sub.provider_subscription_id)return out({error:'No CCBill subscription to cancel'},409);
    const {data:contract,error:contractError}=await db.from('ccx_membership_contracts')
-    .select('subscription_id,account,subaccount,user_id,status,cancel_at_period_end,period_end')
+    .select('subscription_id,account,subaccount,user_id,status,cancel_at_period_end,period_end,period_days')
     .eq('user_id',uid).eq('subscription_id',sub.provider_subscription_id).maybeSingle();
    if(contractError||!contract)return out({error:'Active subscription contract could not be verified'},409);
+   if(contract.period_days!==30&&contract.period_days!=null)return out({cancel_at_period_end:true,period_end:contract.period_end,already_cancelled:true,note:'Prepaid access has no automatic renewal.'});
    if(contract.cancel_at_period_end)return out({cancel_at_period_end:true,period_end:contract.period_end,already_cancelled:true});
    if(!['active','past_due'].includes(contract.status))return out({error:'Subscription is no longer renewable'},409);
    const dataLinkUser=Deno.env.get('CCBILL_DATALINK_USERNAME');
    const dataLinkPassword=Deno.env.get('CCBILL_DATALINK_PASSWORD');
    if(!dataLinkUser||!dataLinkPassword)return out({error:'In-app cancellation is not configured. Use CCBill subscription support to stop renewal.',manage_url:'https://support.ccbill.com'},503);
-   if(!/^\\d{6}$/.test(contract.account)||!/^\\d{4}$/.test(contract.subaccount)||!/^[a-zA-Z0-9-]{1,80}$/.test(contract.subscription_id))
+   if(!/^\d{6}$/.test(contract.account)||!/^\d{4}$/.test(contract.subaccount)||!/^[a-zA-Z0-9-]{1,80}$/.test(contract.subscription_id))
     return out({error:'Stored processor subscription details are invalid'},409);
    // CCBill Data Link credentials must remain exclusively server-side.
    const endpoint=new URL('https://datalink.ccbill.com/utils/subscriptionManagement.cgi');
@@ -70,10 +71,16 @@ Deno.serve(async req=>{
   }
   if(body.action!=='create_checkout'||typeof body.plan_code!=='string')return out({error:'Invalid billing action'},400);
   if(!ready)return out({error:'CCBill recurring membership approval, hosted form and signed webhooks must be configured first'},503);
-  const {data:attempt,error}=await db.rpc('ccx_start_membership_checkout',{p_user:uid,p_plan:body.plan_code,p_account:cfg.account,p_subaccount:cfg.subaccount});
+  const days=body.period_days??30,expected=body.expected_amount_cents;
+  if(![30,180,365].includes(days)||((days!==30||expected!==undefined)&&(!Number.isSafeInteger(expected)||expected<300||expected>1000000)))return out({error:'Select a valid membership term and reviewed price'},400);
+  if(days!==30&&(!provider.data?.membership_prepaid_max_cents||expected>provider.data.membership_prepaid_max_cents))return out({error:'Prepaid checkout awaits merchant approval for this price'},503);
+  const args={p_user:uid,p_plan:body.plan_code,p_account:cfg.account,p_subaccount:cfg.subaccount};
+  const {data:attempt,error}=days===30&&expected===undefined?await db.rpc('ccx_start_membership_checkout',args):
+   await db.rpc('ccx_start_membership_checkout_term',{...args,p_days:days,p_expected_cents:expected});
   if(error)return out({error:error.message||'Checkout cannot be started'},409);
-  const checkout=recurringCheckout({...cfg,cents:attempt.amount_cents,nonce:attempt.checkout_nonce,days:attempt.period_days});
-  return out({checkout_url:checkout,amount_cents:attempt.amount_cents,currency:'USD',period_days:30,
+  if(attempt.period_days!==days||(expected!==undefined&&attempt.amount_cents!==expected))return out({error:'Membership price or term changed; review again'},409);
+  const checkout=(days===30?recurringCheckout:prepaidCheckout)({...cfg,cents:attempt.amount_cents,nonce:attempt.checkout_nonce,days:attempt.period_days});
+  return out({checkout_url:checkout,amount_cents:attempt.amount_cents,currency:'USD',period_days:attempt.period_days,
    expires_at:attempt.expires_at,note:'A return redirect never activates membership; a verified payment callback is required.'},201);
  }catch{return out({error:'Billing is temporarily unavailable. No membership changes were applied.'},503);}
 });

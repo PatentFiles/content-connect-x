@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
-import {recurringCheckout,moneyCents,relaySignature,relayMessage,verifyRelay,parseEvent,providerTime,membershipEvent} from '../supabase/functions/_shared/ccbillPolicy.mjs';
+import {recurringCheckout,prepaidCheckout,moneyCents,relaySignature,relayMessage,verifyRelay,parseEvent,providerTime,membershipEvent} from '../supabase/functions/_shared/ccbillPolicy.mjs';
 import {membershipConfig} from '../supabase/functions/_shared/membershipBillingConfig.mjs';
 import worker,{allowedSource} from '../deploy/ccbill-relay/worker.mjs';
 const cfg={account:'900100',subaccount:'0001',flexId:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',salt:'test-salt-not-real',cents:1999,nonce:'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'};
@@ -58,4 +58,25 @@ test('relay rejects non-provider sources without contacting any backend',async()
  for(const ip of ['64.38.212.1','64.38.215.254','64.38.240.21','64.38.241.11'])assert.equal(allowedSource(ip),true);
  const req=new Request('https://relay.test/membership',{method:'POST',headers:{'cf-connecting-ip':'64.38.212.1'},body:'{}'});
  assert.equal((await worker.fetch(req,{})).status,403,'a forged header outside Cloudflare is not trusted');
+});
+
+test('prepaid checkout digest is single billing and does not request rebills',()=>{
+ for(const [days,cents] of [[180,10795],[365,19190]]){
+  const u=new URL(prepaidCheckout({...cfg,days,cents}));
+  assert.equal(u.searchParams.get('initialPeriod'),String(days));
+  assert.equal(u.searchParams.get('formDigest'),createHash('md5').update((cents/100).toFixed(2)+days+'840'+cfg.salt).digest('hex'));
+  for(const field of ['recurringPrice','recurringPeriod','numRebills'])assert.equal(u.searchParams.has(field),false);
+ }
+ assert.throws(()=>prepaidCheckout({...cfg,days:30}));
+});
+test('prepaid sale carries exact term and rejects recurring configuration',()=>{
+ for(const days of [180,365]){
+  const data={...event(),initialPeriod:String(days),recurringPeriod:'0',subscriptionRecurringPrice:'0.00',rebills:'0',nextRenewalDate:undefined};
+  const e=membershipEvent(data,cfg,'America/Phoenix');
+  assert.equal(e.billing_mode,'prepaid');assert.equal(e.period_days,days);
+  assert.equal(Date.parse(e.period_end)-Date.parse(e.occurred_at),days*86400000);
+  assert.throws(()=>membershipEvent({...data,rebills:'99'},cfg,'America/Phoenix'));
+  assert.throws(()=>membershipEvent({...data,rebills:undefined},cfg,'America/Phoenix'));
+  assert.throws(()=>membershipEvent({...data,recurringPeriod:'30'},cfg,'America/Phoenix'));
+ }
 });

@@ -17,6 +17,18 @@ export function recurringCheckout({account,subaccount,flexId,salt,cents,nonce,da
   recurringPrice:price,recurringPeriod:period,numRebills:rebills,currencyCode:'840',formDigest:digest,'X-ccx_membership':nonce}))url.searchParams.set(k,v);
  return url.href;
 }
+/** CCBill single billing. Caller enforces merchant-approved amount ceiling. */
+export function prepaidCheckout({account,subaccount,flexId,salt,cents,nonce,days}){
+ if(!/^\d{6}$/.test(account)||!/^\d{4}$/.test(subaccount)||!uuid(flexId)||!uuid(nonce)||
+   typeof salt!=='string'||salt.length<8||!Number.isSafeInteger(cents)||cents<300||cents>1000000||![180,365].includes(days))
+  throw Error('Invalid prepaid checkout configuration');
+ const price=(cents/100).toFixed(2),period=String(days);
+ const digest=createHash('md5').update(price+period+'840'+salt,'utf8').digest('hex');
+ const url=new URL('https://api.ccbill.com/wap-frontflex/flexforms/'+flexId);
+ for(const [k,v] of Object.entries({clientAccnum:account,clientSubacc:subaccount,initialPrice:price,initialPeriod:period,
+  currencyCode:'840',formDigest:digest,'X-ccx_membership':nonce}))url.searchParams.set(k,v);
+ return url.href;
+}
 export function canonicalQuery(query){
  const p=new URLSearchParams(query);p.sort();return p.toString();
 }
@@ -82,20 +94,30 @@ export function membershipEvent(data,expected,timeZone){
  if(type.startsWith('NewSale')&&!uuid(nonce))throw Error('Unknown checkout reference');
  if(type!=='NewSaleFailure'&&!data.subscriptionId)throw Error('Missing subscription');
  const success=type==='NewSaleSuccess'||type==='RenewalSuccess';
- let cents=null,until=null;
+ let cents=null,until=null,prepaidDays=null;
  if(success){
   cents=moneyCents(type==='NewSaleSuccess'?data.subscriptionInitialPrice:data.billedAmount);
   const currency=String(type==='NewSaleSuccess'?data.subscriptionCurrencyCode:data.billedCurrencyCode);
   if(currency!=='840')throw Error('Unsupported membership currency');
-  if(type==='NewSaleSuccess'&&(Number(data.initialPeriod)!==30||Number(data.recurringPeriod)!==30||moneyCents(data.subscriptionRecurringPrice)!==cents))throw Error('Recurring terms mismatch');
-  if(!data.transactionId||!data.nextRenewalDate)throw Error('Missing paid-through evidence');
-  until=providerTime(data.nextRenewalDate,timeZone);
-  if(Date.parse(until)<=Date.parse(at)||Date.parse(until)>Date.parse(at)+32*86400000)throw Error('Invalid recurring period');
+  if(!data.transactionId)throw Error('Missing transaction reference');
+  const initial=Number(data.initialPeriod);
+  if(type==='NewSaleSuccess'&&[180,365].includes(initial)){
+   // Explicit single-payment terms; no recurring amount, period or rebills.
+   if(!['0',0].includes(data.rebills)||Number(data.recurringPeriod||0)!==0||Number(data.subscriptionRecurringPrice||0)!==0||data.lifeTimeSubscription===1||data.lifeTimeSubscription==='1')
+    throw Error('Prepaid terms must not rebill or grant lifetime access');
+   prepaidDays=initial;until=new Date(Date.parse(at)+initial*86400000).toISOString();
+  }else{
+   if(type==='NewSaleSuccess'&&(initial!==30||Number(data.recurringPeriod)!==30||moneyCents(data.subscriptionRecurringPrice)!==cents))throw Error('Recurring terms mismatch');
+   if(!data.nextRenewalDate)throw Error('Missing paid-through evidence');
+   until=providerTime(data.nextRenewalDate,timeZone);
+   if(Date.parse(until)<=Date.parse(at)||Date.parse(until)>Date.parse(at)+32*86400000)throw Error('Invalid recurring period');
+  }
  }
  const id=hexHash([expected.account,expected.subaccount,type,data.subscriptionId||nonce,data.transactionId||'',at].join('|'));
  return {event_id:id,event_type:type,account:expected.account,subaccount:expected.subaccount,
   subscription_id:data.subscriptionId||null,transaction_id:data.transactionId||null,checkout_nonce:nonce,
-  occurred_at:at,period_end:until,amount_cents:cents,currency:success?'USD':null};
+  occurred_at:at,period_end:until,amount_cents:cents,currency:success?'USD':null,
+  ...(prepaidDays?{period_days:prepaidDays,billing_mode:'prepaid'}:{})};
 }
 
 /** Bound memory use before parsing externally supplied callback payloads. */
