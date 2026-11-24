@@ -64,7 +64,7 @@ BEGIN
   THEN RAISE EXCEPTION 'Incorrect plan price %',p.plan_code; END IF;
   checks:=checks+1;
  END LOOP;
- INSERT INTO provider_check_results VALUES('every_professional_role_has_prepaid_prices',checks>=15 AND (SELECT count(DISTINCT role_type) FROM public.membership_plan_catalog WHERE active)=13);
+ INSERT INTO provider_check_results VALUES('every_professional_role_has_prepaid_prices',checks=13 AND (SELECT count(DISTINCT role_type) FROM public.membership_plan_catalog WHERE active)=11);
  INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES
  (u,'prepaid-six-'||u||'@example.invalid','{}'::jsonb),
  (v,'prepaid-year-'||v||'@example.invalid','{}'::jsonb),

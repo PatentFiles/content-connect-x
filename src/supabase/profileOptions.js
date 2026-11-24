@@ -20,8 +20,8 @@ export const roleOptions=[
  ['agent','Agent / manager'],['studio','Studio / production team'],
  ['director_producer','Director / producer'],['hair_stylist','Hair stylist'],
  ['makeup_artist','Makeup artist'],['wardrobe_stylist','Wardrobe stylist'],
- ['equipment_rental','Equipment rental provider'],['chef','Chef / catering services'],
- ['spa_provider','Spa / wellness services'],['host','Host / property owner']
+ ['equipment_rental','Equipment rental provider'],
+ ['host','Host / property owner']
 ];
 export const genderOptions=[
  ['','Prefer not to say'],['man','Man'],['woman','Woman'],

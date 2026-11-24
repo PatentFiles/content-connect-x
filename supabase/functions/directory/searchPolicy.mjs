@@ -5,7 +5,7 @@
  */
 export const DIRECTORY_ROLES=Object.freeze([
  'creator','photographer','videographer','video_editor','agent','studio','host',
- 'director_producer','hair_stylist','makeup_artist','wardrobe_stylist','equipment_rental','chef','spa_provider'
+ 'director_producer','hair_stylist','makeup_artist','wardrobe_stylist','equipment_rental'
 ]);
 const clean=(value,max=80)=>typeof value==='string'
  ?value.replace(/[\u0000-\u001f\u007f]/g,' ').trim().replace(/\s+/g,' ').slice(0,max)

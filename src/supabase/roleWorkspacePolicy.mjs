@@ -1,7 +1,7 @@
 /** Role presentation only. All mutations are authorized again by Supabase. */
 import {countryAliases,displayRegion} from '../../supabase/functions/directory/locationPolicy.mjs';
-export const CREATIVE_ROLES=Object.freeze(['creator','agent','studio','photographer','videographer','video_editor','director_producer','hair_stylist','makeup_artist','wardrobe_stylist','equipment_rental','chef','spa_provider']);
-export const PORTFOLIO_ROLES=Object.freeze(['photographer','videographer','video_editor','director_producer','hair_stylist','makeup_artist','wardrobe_stylist','equipment_rental','chef','spa_provider']);
+export const CREATIVE_ROLES=Object.freeze(['creator','agent','studio','photographer','videographer','video_editor','director_producer','hair_stylist','makeup_artist','wardrobe_stylist','equipment_rental']);
+export const PORTFOLIO_ROLES=Object.freeze(['photographer','videographer','video_editor','director_producer','hair_stylist','makeup_artist','wardrobe_stylist','equipment_rental']);
 export const ROSTER_ROLES=Object.freeze(['agent','studio']);
 /** Only the member's first chosen name belongs in the welcome heading.
  * Display/stage names take precedence over private/legal details; company
@@ -20,7 +20,7 @@ export function dashboardGreetingName(profile={}){
  }
  return 'there';
 }
-export const roleTitle=role=>({creator:'Creator',agent:'Agent',studio:'Studio',photographer:'Photographer',videographer:'Videographer',video_editor:'Video Editor',director_producer:'Director / Producer',hair_stylist:'Hair Stylist',makeup_artist:'Makeup Artist',wardrobe_stylist:'Wardrobe Stylist',equipment_rental:'Equipment Rental',chef:'Chef / Catering',spa_provider:'Spa / Wellness'}[role]||'Member');
+export const roleTitle=role=>({creator:'Creator',agent:'Agent',studio:'Studio',photographer:'Photographer',videographer:'Videographer',video_editor:'Video Editor',director_producer:'Director / Producer',hair_stylist:'Hair Stylist',makeup_artist:'Makeup Artist',wardrobe_stylist:'Wardrobe Stylist',equipment_rental:'Equipment Rental'}[role]||'Member');
 export function effectiveWorkspaceRole(profileRole,previewRole,isAdmin=false){return isAdmin&&CREATIVE_ROLES.includes(previewRole)?previewRole:profileRole||'creator';}
 export function professionalSections(role){const base=[['basic','Basic information'],['location','Location']];if(role==='agent')return [...base,['agency','Agency details'],['roster','Roster'],['privacy','Discoverability']];if(role==='studio')return [...base,['studio','Studio details'],['roster','Roster'],['privacy','Discoverability']];if(PORTFOLIO_ROLES.includes(role))return [...base,['services',role==='video_editor'?'Editing services':'Services & rates'],['portfolio','Portfolio'],['privacy','Discoverability']];return base;}
 export function localDiscoveryFilters(profile={}){const country=countryAliases(profile.country)[0]||'';return {query:'',role:'',country,state:displayRegion(profile.state,country),city:profile.city||'',category:'',gender:''};}

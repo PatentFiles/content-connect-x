@@ -8,8 +8,6 @@ export const PROFESSIONAL_ROLES=Object.freeze([
  {id:'makeup_artist',label:'Makeup Artist'},
  {id:'wardrobe_stylist',label:'Wardrobe Stylist'},
  {id:'equipment_rental',label:'Equipment Rental'},
- {id:'chef',label:'Chef / Catering'},
- {id:'spa_provider',label:'Spa / Wellness'}
 ]);
 export const FREE_BENEFITS=Object.freeze([
  'Create a professional profile after mandatory 18+ verification',
@@ -63,8 +61,6 @@ export const ROLE_BENEFITS=Object.freeze({
  makeup_artist:{description:'Provide makeup services for shoots.',items:['Professional makeup portfolio and services','Verified-member discovery and project enquiries']},
  wardrobe_stylist:{description:'Style production wardrobes.',items:['Professional wardrobe portfolio and services','Verified-member discovery and project enquiries']},
  equipment_rental:{description:'List production equipment and rental services.',items:['Equipment provider portfolio','Verified-member discovery and project enquiries']},
- chef:{description:'Offer catering or chef services to production teams.',items:['Service provider portfolio','Verified-member discovery and enquiries']},
- spa_provider:{description:'Offer professional spa and wellness services.',items:['Service provider portfolio','Verified-member discovery and enquiries']}
 });
 export const DEFAULT_PREMIUM_PLANS=Object.freeze([
  {plan_code:'creator_pro',role_type:'creator',monthly_cents:1999,label:'Creator Premium',roster_seats:null},
@@ -80,8 +76,6 @@ export const DEFAULT_PREMIUM_PLANS=Object.freeze([
  {plan_code:'makeup_artist_pro',role_type:'makeup_artist',monthly_cents:1999,label:'Makeup Artist Premium',roster_seats:null},
  {plan_code:'wardrobe_stylist_pro',role_type:'wardrobe_stylist',monthly_cents:1999,label:'Wardrobe Stylist Premium',roster_seats:null},
  {plan_code:'equipment_rental_pro',role_type:'equipment_rental',monthly_cents:1999,label:'Equipment Rental Premium',roster_seats:null},
- {plan_code:'chef_pro',role_type:'chef',monthly_cents:1999,label:'Chef / Catering Premium',roster_seats:null},
- {plan_code:'spa_provider_pro',role_type:'spa_provider',monthly_cents:1999,label:'Spa / Wellness Premium',roster_seats:null}
 ]);
 
 /** Integer-cent totals match ccx_membership_term_price. Discounts compare with six or twelve monthly charges. */

@@ -7,8 +7,9 @@ const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('monthly pricing excludes Host and includes configured agent capacities',()=>{
  assert.equal(PROFESSIONAL_ROLES.some(p=>p.id==='host'),false);
  assert.deepEqual(DEFAULT_PREMIUM_PLANS.slice(0,8).map(p=>p.monthly_cents),[1999,2999,4999,4999,4999,9999,24999,24999]);
- assert.equal(DEFAULT_PREMIUM_PLANS.length,15);
+ assert.equal(DEFAULT_PREMIUM_PLANS.length,13);
  for(const role of PROFESSIONAL_ROLES)assert.ok(DEFAULT_PREMIUM_PLANS.some(p=>p.role_type===role.id));
+ assert.equal(PROFESSIONAL_ROLES.length,11);
  assert.deepEqual(DEFAULT_PREMIUM_PLANS.filter(p=>p.role_type==='agent').map(p=>p.roster_seats),[10,25,null]);
  assert.equal(FREE_BENEFITS.some(s=>s.includes('25-mile')),true);
  for(const role of PROFESSIONAL_ROLES)assert.ok(ROLE_BENEFITS[role.id].items.length>=2,role.id+' needs a description without invented paid plans');

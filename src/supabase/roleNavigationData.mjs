@@ -14,8 +14,6 @@ export const ROLE_ROUTES=Object.freeze({
  makeup_artist:['Dashboard','Discovery','Favorites','Connections','Groups','Messages','Collaborations','Contracts','Portfolio','Verification','Properties','Shop','Profile','Settings'],
  wardrobe_stylist:['Dashboard','Discovery','Favorites','Connections','Groups','Messages','Collaborations','Contracts','Portfolio','Verification','Properties','Shop','Profile','Settings'],
  equipment_rental:['Dashboard','Discovery','Favorites','Connections','Groups','Messages','Collaborations','Contracts','Portfolio','Verification','Properties','Shop','Profile','Settings'],
- chef:['Dashboard','Discovery','Favorites','Connections','Groups','Messages','Collaborations','Contracts','Portfolio','Verification','Properties','Shop','Profile','Settings'],
- spa_provider:['Dashboard','Discovery','Favorites','Connections','Groups','Messages','Collaborations','Contracts','Portfolio','Verification','Properties','Shop','Profile','Settings']
 });
 export const navigationForRole=role=>(ROLE_ROUTES[role]||['Profile','Settings']).map(path=>({path,label:items[path][0],iconName:path==='Portfolio'?(role==='video_editor'?'Film':role==='videographer'?'Video':'Camera'):items[path][1]}));
 export const TAB_FOR_PAGE=Object.freeze({Dashboard:'dashboard',Testing:'testing',Discovery:'directory',Search:'directory',Favorites:'favorites',Connections:'connections',Groups:'groups',Messages:'messages',Collaborations:'collaborations',Contracts:'contracts',Verification:'verification',Properties:'hosting',Shop:'shop',Roster:'roster',Representations:'roster',Portfolio:'portfolio',Profile:'profile',Settings:'settings'});

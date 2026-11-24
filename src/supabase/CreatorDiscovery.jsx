@@ -80,7 +80,7 @@ export default function CreatorDiscovery({user,approved,paid,mode='discovery',on
     </button>
     {filtersOpen&&<div id="ccx-discovery-filter-fields" className="space-y-4"><div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
     <label className="text-sm">Name<input className={input+' mt-2'} value={filters.query} onChange={e=>change('query',e.target.value)} placeholder="Display name"/></label>
-    <label className="text-sm">Professional role<select className={input+' mt-2'} value={filters.role} onChange={e=>change('role',e.target.value)}><option value="">All roles</option>{roleOptions.filter(([key])=>!['host','chef','spa_provider'].includes(key)).map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
+    <label className="text-sm">Professional role<select className={input+' mt-2'} value={filters.role} onChange={e=>change('role',e.target.value)}><option value="">All roles</option>{roleOptions.filter(([key])=>key!=='host').map(([key,label])=><option key={key} value={key}>{label}</option>)}</select></label>
     <div className="md:col-span-3">
      <GeoLocationSelect idPrefix="ccx-professional-discovery" allowAny compact value={{
       ...EMPTY_GEO,country:filters.country,state:filters.state,city:filters.city
