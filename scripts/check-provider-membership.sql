@@ -1,31 +1,34 @@
 -- No real approvals or money are created: every fixture is rolled back.
 BEGIN;
+SET LOCAL lock_timeout='2s';
+SET LOCAL statement_timeout='20s';
 CREATE TEMP TABLE provider_check_results(name text,passed boolean);
 DO $$
 DECLARE u uuid:=gen_random_uuid();v uuid:=gen_random_uuid();s uuid;ps text:=gen_random_uuid()::text;
- a jsonb;e jsonb;outcome jsonb;denied boolean;until_at timestamptz:=now()+interval '30 days';at_time timestamptz:=now();i integer;
+ a jsonb;e jsonb;outcome jsonb;denied boolean;until_at timestamptz:=now()+interval '30 days';at_time timestamptz:=now();
 BEGIN
  INSERT INTO auth.users(id,email,raw_user_meta_data) VALUES(u,'provider-test-'||u||'@example.invalid','{"display_name":"Fixture host","admin":true,"age_verified":true}'::jsonb),(v,'provider-test-'||v||'@example.invalid','{}'::jsonb);
  INSERT INTO provider_check_results SELECT 'signup_cannot_self_admit_or_make_admin',NOT EXISTS(SELECT 1 FROM public.member_admissions WHERE user_id=u) AND NOT (SELECT admin FROM public.account_security WHERE user_id=u);
  INSERT INTO provider_check_results SELECT 'display_name_saved_without_identity_claim',(SELECT display_name='Fixture host' FROM public.member_profiles WHERE id=u);
  denied:=false;BEGIN INSERT INTO public.age_verification_requests(user_id,status,provider,verified_at) VALUES(u,'approved','manual',now());EXCEPTION WHEN OTHERS THEN denied:=true;END;
  INSERT INTO provider_check_results VALUES('manual_age_approval_rejected',denied);
- FOR i IN 1..5 LOOP IF NOT public.ccx_reserve_yoti_start(u) THEN RAISE EXCEPTION 'Expected five rate reservations';END IF;END LOOP;
- INSERT INTO provider_check_results VALUES('sixth_yoti_start_rejected',NOT public.ccx_reserve_yoti_start(u));
- INSERT INTO public.ccx_age_provider_sessions(user_id,provider_session_id,mode,status,expires_at,policy_version) VALUES(u,ps,'age_gate','pending',now()+interval '15 minutes','document_selfie_v1') RETURNING id INTO s;
- denied:=false;BEGIN PERFORM public.ccx_finish_yoti_session(v,s,'age_confirmed','DOC_SCAN','evidence',repeat('a',64));EXCEPTION WHEN OTHERS THEN denied:=true;END;
- INSERT INTO provider_check_results VALUES('other_user_cannot_finalize_session',denied);
- denied:=false;BEGIN PERFORM public.ccx_finish_yoti_session(u,s,'age_confirmed','AGE_ESTIMATION','evidence',repeat('a',64));EXCEPTION WHEN OTHERS THEN denied:=true;END;
- INSERT INTO provider_check_results VALUES('weaker_method_cannot_admit',denied);
- outcome:=public.ccx_finish_yoti_session(u,s,'age_confirmed','DOC_SCAN','fixture-evidence',repeat('a',64));
- INSERT INTO provider_check_results SELECT 'valid_server_document_result_creates_admission',outcome->>'status'='age_confirmed' AND EXISTS(SELECT 1 FROM public.member_admissions WHERE user_id=u AND source='age_verification');
+ -- Retired Yoti must never grant an admission, even via the former service RPC.
+ INSERT INTO public.ccx_age_provider_sessions(user_id,provider_session_id,mode,status,expires_at,policy_version)
+ VALUES(u,ps,'age_gate','pending',now()+interval '15 minutes','document_selfie_v1') RETURNING id INTO s;
+ denied:=false;BEGIN
+  PERFORM public.ccx_finish_yoti_session(u,s,'age_confirmed','DOC_SCAN','fixture-evidence',repeat('a',64));
+ EXCEPTION WHEN OTHERS THEN denied:=true;END;
+ INSERT INTO provider_check_results SELECT 'retired_vendor_cannot_admit',denied AND NOT EXISTS(SELECT 1 FROM public.member_admissions WHERE user_id=u);
+ -- Checkout must reject the unadmitted user. Only then seed the synthetic test
+ -- admission inside this rollback-only billing fixture; no live identity claim.
  denied:=false;BEGIN PERFORM public.ccx_start_membership_checkout(v,'creator_pro','900100','0001');EXCEPTION WHEN OTHERS THEN denied:=true;END;
  INSERT INTO provider_check_results VALUES('unadmitted_user_cannot_checkout',denied);
+ INSERT INTO public.member_admissions(user_id,source) VALUES(u,'legacy_admin');
  denied:=false;BEGIN PERFORM public.ccx_start_membership_checkout(u,'agent_25','900100','0001');EXCEPTION WHEN OTHERS THEN denied:=true;END;
  INSERT INTO provider_check_results VALUES('plan_must_match_actual_role',denied);
  a:=public.ccx_start_membership_checkout(u,'creator_pro','900100','0001');
  INSERT INTO provider_check_results VALUES('checkout_nonce_reused',a->>'checkout_nonce'=public.ccx_start_membership_checkout(u,'creator_pro','900100','0001')->>'checkout_nonce');
- e:=jsonb_build_object('event_id',repeat('1',64),'event_type','NewSaleSuccess','account','900100','subaccount','0001','subscription_id','fixture-'||u,'transaction_id','fixture-tx','checkout_nonce',a->>'checkout_nonce','occurred_at',at_time,'period_end',until_at,'amount_cents',(a->>'amount_cents')::integer,'currency','USD');
+ e:=jsonb_build_object('event_id',encode(extensions.digest(u::text||':sale','sha256'),'hex'),'event_type','NewSaleSuccess','account','900100','subaccount','0001','subscription_id','fixture-'||u,'transaction_id','fixture-tx-'||u,'checkout_nonce',a->>'checkout_nonce','occurred_at',at_time,'period_end',until_at,'amount_cents',(a->>'amount_cents')::integer,'currency','USD');
  outcome:=public.ccx_apply_membership_event(e,repeat('b',64));
  INSERT INTO provider_check_results SELECT 'validated_sale_activates_correct_plan',outcome->>'status'='applied' AND EXISTS(SELECT 1 FROM public.member_subscriptions WHERE user_id=u AND status='active' AND plan_id='creator_pro' AND period_end=until_at);
  outcome:=public.ccx_apply_membership_event(e,repeat('b',64));
@@ -34,16 +37,16 @@ BEGIN
  INSERT INTO provider_check_results VALUES('conflicting_duplicate_denied',denied);
  denied:=false;BEGIN PERFORM public.ccx_start_membership_checkout(u,'creator_pro','900100','0001');EXCEPTION WHEN OTHERS THEN denied:=true;END;
  INSERT INTO provider_check_results VALUES('active_membership_blocks_duplicate_checkout',denied);
- e:=e||jsonb_build_object('event_id',repeat('2',64),'event_type','Cancellation','occurred_at',at_time+interval '1 second','period_end',NULL,'amount_cents',NULL,'currency',NULL);
+ e:=e||jsonb_build_object('event_id',encode(extensions.digest(u::text||':cancel','sha256'),'hex'),'event_type','Cancellation','occurred_at',at_time+interval '1 second','period_end',NULL,'amount_cents',NULL,'currency',NULL);
  PERFORM public.ccx_apply_membership_event(e,repeat('d',64));
  INSERT INTO provider_check_results SELECT 'cancel_preserves_paid_period',(SELECT status='active' AND period_end=until_at FROM public.member_subscriptions WHERE user_id=u) AND (SELECT cancel_at_period_end FROM public.ccx_membership_contracts WHERE user_id=u);
- e:=e||jsonb_build_object('event_id',repeat('3',64),'event_type','Expiration','occurred_at',at_time-interval '1 second');
+ e:=e||jsonb_build_object('event_id',encode(extensions.digest(u::text||':expire','sha256'),'hex'),'event_type','Expiration','occurred_at',at_time-interval '1 second');
  outcome:=public.ccx_apply_membership_event(e,repeat('e',64));
  INSERT INTO provider_check_results SELECT 'old_expiration_cannot_overwrite_newer_state',outcome->>'status'='ignored' AND (SELECT status='active' FROM public.member_subscriptions WHERE user_id=u);
- e:=e||jsonb_build_object('event_id',repeat('4',64),'event_type','Refund','occurred_at',at_time+interval '2 seconds');
+ e:=e||jsonb_build_object('event_id',encode(extensions.digest(u::text||':refund','sha256'),'hex'),'event_type','Refund','occurred_at',at_time+interval '2 seconds');
  PERFORM public.ccx_apply_membership_event(e,repeat('f',64));
  INSERT INTO provider_check_results SELECT 'verified_latest_refund_revokes_entitlement',(SELECT status='cancelled' FROM public.member_subscriptions WHERE user_id=u);
- INSERT INTO provider_check_results SELECT 'browser_cannot_spoof_provider_rpc',NOT has_function_privilege('authenticated','public.ccx_apply_membership_event(jsonb,text)','EXECUTE') AND NOT has_function_privilege('anon','public.ccx_finish_yoti_session(uuid,uuid,text,text,text,text)','EXECUTE');
+ INSERT INTO provider_check_results SELECT 'browser_cannot_spoof_provider_rpc',NOT has_function_privilege('authenticated','public.ccx_apply_membership_event(jsonb,text)','EXECUTE') AND NOT has_function_privilege('anon','public.ccx_finish_yoti_session(uuid,uuid,text,text,text,text)','EXECUTE') AND NOT has_function_privilege('anon','public.ccx_apply_membership_event(jsonb,text)','EXECUTE') AND NOT has_function_privilege('authenticated','public.ccx_finish_yoti_session(uuid,uuid,text,text,text,text)','EXECUTE');
  IF EXISTS(SELECT 1 FROM provider_check_results WHERE NOT passed OR passed IS NULL) THEN RAISE EXCEPTION 'A provider regression failed';END IF;
 END $$;
 SELECT jsonb_agg(jsonb_build_object('test',name,'passed',passed)) AS checks FROM provider_check_results;
