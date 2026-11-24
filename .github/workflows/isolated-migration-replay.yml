@@ -20,6 +20,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
+      # Official Docker Hub image namespace; ECR anonymous pulls hit a quota.
+      SUPABASE_INTERNAL_IMAGE_REGISTRY: docker.io
       PGHOST: 127.0.0.1
       PGPORT: '54322'
       PGUSER: postgres

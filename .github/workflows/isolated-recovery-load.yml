@@ -40,11 +40,16 @@ jobs:
       PGUSER: postgres
       PGDATABASE: ccx_idv_ci
       PGPASSWORD: fixture-only-disposable-database
-      PG_CONTAINER: ${{ job.services.postgres.id }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
           persist-credentials: false
+      - name: Bind the CI database service container
+        env:
+          FIXTURE_CONTAINER: ${{ job.services.postgres.id }}
+        run: |
+          test -n "$FIXTURE_CONTAINER"
+          printf 'PG_CONTAINER=%s\n' "$FIXTURE_CONTAINER" >> "$GITHUB_ENV"
       - name: Exercise actual identity SQL in a disposable database
         run: |
           set -euo pipefail
