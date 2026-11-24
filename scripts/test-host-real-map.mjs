@@ -49,4 +49,17 @@ try{
  assert.ok(fallback,'WebGL-disabled renderer did not recover to visible raster markers');
  assert.equal(await evaluate(()=>{document.querySelector('.host-map-price-pin')?.click();return document.body.dataset.selected;}),'fixture-one');
  console.log('PASS: no-WebGL fallback retains both property markers and click behavior');
-}finally{socket?.close();browser?.kill();server.kill();fs.rmSync(html,{force:true});fs.rmSync(jsx,{force:true});fs.rmSync(temp,{recursive:true,force:true});}
+ }finally{
+ socket?.close();
+ const stop=async child=>{
+  if(!child||child.exitCode!==null||child.signalCode!==null)return;
+  await new Promise(resolve=>{
+   const timeout=setTimeout(()=>{child.kill('SIGKILL');resolve();},5000);
+   child.once('exit',()=>{clearTimeout(timeout);resolve();});
+   child.kill();
+  });
+ };
+ await Promise.all([stop(browser),stop(server)]);
+ fs.rmSync(html,{force:true});fs.rmSync(jsx,{force:true});
+ fs.rmSync(temp,{recursive:true,force:true,maxRetries:10,retryDelay:200});
+}
