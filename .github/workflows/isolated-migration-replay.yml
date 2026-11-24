@@ -48,19 +48,24 @@ jobs:
           "$RUNNER_TEMP/supabase" init
           "$RUNNER_TEMP/supabase" start -x studio,logflare,vector,supavisor,edge-runtime,imgproxy,realtime
           test "$(psql -XAt -v ON_ERROR_STOP=1 -c 'select inet_server_port()')" = 5432
-          # Disable scheduled jobs before applying repository migrations.
-          if test "$(psql -XAt -v ON_ERROR_STOP=1 -c "select count(*) from pg_settings where name='cron.launch_active_jobs'")" = 1; then
-            psql -X -v ON_ERROR_STOP=1 -c "alter system set cron.launch_active_jobs = 'off'"
-            psql -X -v ON_ERROR_STOP=1 -c 'select pg_reload_conf()'
-            test "$(psql -XAt -v ON_ERROR_STOP=1 -c 'show cron.launch_active_jobs')" = off
-          fi
-          # The local database cannot initiate connections to outside services.
+          # First isolate the local database from initiating network connections.
           db="$(docker ps --filter name=supabase_db_ --format '{{.ID}}')"
           test "$(printf '%s\n' "$db" | wc -l)" = 1
           test -n "$db"
           ip="$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "$db")"
           [[ "$ip" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]
           sudo iptables -I DOCKER-USER 1 -s "$ip" -m conntrack --ctstate NEW -j REJECT
+          # Supabase's local postgres login is not a superuser. Use the
+          # container's local administrative role, never a hosted credential.
+          if test "$(psql -XAt -v ON_ERROR_STOP=1 -c "select count(*) from pg_settings where name='cron.launch_active_jobs'")" = 1; then
+            docker exec -e PGPASSWORD=postgres "$db" psql -U supabase_admin -d postgres -X -v ON_ERROR_STOP=1 -c "alter system set cron.launch_active_jobs = 'off'"
+            docker exec -e PGPASSWORD=postgres "$db" psql -U supabase_admin -d postgres -X -v ON_ERROR_STOP=1 -c 'select pg_reload_conf()'
+            for attempt in 1 2 3 4 5; do
+              if test "$(psql -XAt -v ON_ERROR_STOP=1 -c 'show cron.launch_active_jobs')" = off; then break; fi
+              sleep 1
+            done
+            test "$(psql -XAt -v ON_ERROR_STOP=1 -c 'show cron.launch_active_jobs')" = off
+          fi
       - name: Replay every committed migration with no production credentials
         run: |
           set -euo pipefail
