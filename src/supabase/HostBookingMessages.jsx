@@ -27,8 +27,8 @@ export default function HostBookingMessages({bookingId,action,userId='',onBack=(
   setSending(true);setError('');setNotice('');
   const key=pending.current||crypto.randomUUID();pending.current=key;
   try{
-   await action('booking_message_send',{booking_id:bookingId,content:draft.trim(),client_request_id:key});
-   pending.current=null;setDraft('');await load();setNotice('Message shared with authorized booking participants on both websites.');
+   const result=await action('booking_message_send',{booking_id:bookingId,content:draft.trim(),client_request_id:key});
+   pending.current=null;setDraft('');await load();setNotice(result.note||'Message shared with authorized booking participants on both websites.');
   }catch(e){setError(e.message||'Message was not sent. Retry safely.');}finally{setSending(false);}
  };
  return <section className="space-y-4 rounded-2xl border border-[var(--cc-border)] bg-[var(--cc-surface)] p-5" data-host-booking-chat="true">

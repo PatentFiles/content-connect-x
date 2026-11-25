@@ -1,3 +1,4 @@
+import {isDemoActive} from '../demo/demoRuntime.mjs';
 /** Separate public Host Storage client ONLY for signed evidence upload.
  * Never caches Host credentials or signs into Host Auth for a CCX member.
  * A fresh short-lived upload token is issued by Host Marketplace only after
@@ -8,6 +9,7 @@ const storage=createClient('https://szfdoqkfewwpdkapqptp.supabase.co',"sb_publis
  auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}
 });
 export async function uploadHostGuestEvidence({path,token,file}){
+ if(isDemoActive())throw Error('Live property evidence uploads are disabled in demo mode.');
  if(!file||!['image/jpeg','image/png','image/webp'].includes(file.type)||file.size>10485760)
   throw Error('Choose a JPEG, PNG or WebP image under 10 MB.');
  const {error}=await storage.storage.from('hc-guest-issues').uploadToSignedUrl(

@@ -33,7 +33,10 @@
     "audit:ui-controls": "node scripts/audit-interactive-controls.mjs",
     "audit:db-contract": "node scripts/audit-backend-schema-contract.mjs",
     "test:enterprise": "node --test tests/enterprise-audit.test.mjs tests/enterprise-runtime.test.mjs",
-    "test:ui-theme": "node --experimental-websocket scripts/test-professional-theme-browser.mjs"
+    "test:ui-theme": "node --experimental-websocket scripts/test-professional-theme-browser.mjs",
+    "test:demo": "node --test tests/marketing-demo.test.mjs",
+    "test:demo:browser": "node scripts/test-marketing-browser.mjs",
+    "demo:assets": "node scripts/marketing-assets.mjs"
   },
   "dependencies": {
     "@flagsmith/flagsmith": "12.5.0",

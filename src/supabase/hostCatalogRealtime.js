@@ -1,3 +1,4 @@
+import {isDemoActive} from '../demo/demoRuntime.mjs';
 /** Public read-only invalidations from the same HCX project on both sites. */
 import {createClient} from '@supabase/supabase-js';
 const HCX_ORIGIN='https://szfdoqkfewwpdkapqptp.supabase.co';
@@ -5,7 +6,7 @@ const HCX_ORIGIN='https://szfdoqkfewwpdkapqptp.supabase.co';
 const HCX_PUBLIC='sb_publishable_QTazzjv_XMv4AWBIcpamCQ_NPOj66_P';
 let client=null;
 export function subscribeHostCatalog(refresh){
- if(typeof window==='undefined')return ()=>{};
+ if(typeof window==='undefined'||isDemoActive())return ()=>{};
  if(!client)client=createClient(HCX_ORIGIN,HCX_PUBLIC,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},realtime:{params:{eventsPerSecond:5}}});
  let timer=0,closed=false;
  const trigger=()=>{if(closed)return;window.clearTimeout(timer);timer=window.setTimeout(()=>{if(!closed&&document.visibilityState==='visible')refresh();},350);};

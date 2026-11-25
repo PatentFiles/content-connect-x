@@ -105,9 +105,6 @@
  border-radius:12px!important;
  box-shadow:0 1px 3px rgba(17,24,39,.045)!important;
 }
-:root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-dashboard-card::before{
- display:none!important;
-}
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-primary,
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-action-primary,
 :root[data-ccx-appearance="workspace"] .ccx-original-shell .ccx-solid-action,

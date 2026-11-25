@@ -24,7 +24,7 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
   if(result.session!==undefined){setState(old=>mergeIdentitySnapshot(old,result));setCorrection(result.session?.expected_name||'');}
   else setState(result);
   // A pilot result is never an onboarding-completion callback, even if all checks pass.
-  if(!testing)await approvalGate.current(result.session,()=>approval.current?.());
+  if(!testing&&!result.demo&&!result.session?.demo)await approvalGate.current(result.session,()=>approval.current?.());
  };
  const refresh=(quiet=false)=>{
   if(refreshInFlight.current)return refreshInFlight.current;
@@ -95,6 +95,7 @@ export default function IdentityVerification({onApproval=()=>{},onboarding=false
   <ShieldCheck className="mx-auto mb-3 text-[var(--cc-link)]" size={36}/>
   <h1 id="identity-heading" className="text-center text-2xl font-bold">{testing?'Private identity test':'Identity and age verification'}</h1>
   <p className="mt-3 text-sm leading-6 text-[var(--cc-text-secondary)]">{testing?'Test your own government-issued photo ID and live camera capture. Results are diagnostic only. Your account access and profile names will not change.':'Use a valid government-issued photo ID and a live camera capture. Your private legal name must match your ID. Your public display or stage name stays separate.'}</p>
+  {state?.demo&&<div className="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900" data-demo-verification="true"><strong>{session?.expected_name} · Age {session?.age}</strong><div className="mt-3 grid grid-cols-2 gap-3"><p>Age check<br/><strong>Passed</strong></p><p>Identity check<br/><strong>Passed</strong></p></div><p className="mt-3 text-xs">Completed {new Date(session?.completed_at).toLocaleDateString()}. Fictional demo results; no account permissions are changed.</p></div>}
   {!state&&<p role="status" className="mt-5">Loading verification…</p>}
   {state?.enabled===false&&<p role="status" className="mt-5 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">{testing?'Private testing is paused, expired, or awaiting a successful cleanup check. No test uploads are accepted. Your existing access is unchanged.':'Identity verification is not available yet. Your account remains restricted until the service is connected and verification succeeds. No ID uploads are accepted while it is unavailable.'}</p>}
   {state&&!state.email_confirmed&&<p role="status" className="mt-4 text-sm">Confirm your email address before continuing.</p>}

@@ -1,3 +1,4 @@
+import {isDemoActive} from '../demo/demoRuntime.mjs';
 /** One OpenFreeMap canvas per mounted search. Update pins without reinitializing the map. */
 import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {MapPin,RefreshCw} from 'lucide-react';
@@ -50,7 +51,7 @@ export default function HostRoadMap({properties=[],onOpen=(_id)=>{void _id;},onB
    if(disposed||!node.current)return;
    libRef.current=lib;
    if(typeof lib.supported==='function'&&!lib.supported()){unavailable();return;}
-   const map=new lib.Map({container:node.current,style:ROAD_STYLE,center:[-98.5,39.5],zoom:3.6,minZoom:2,maxZoom:15,cooperativeGestures:true,attributionControl:true,renderWorldCopies:false});
+   const map=new lib.Map({container:node.current,style:ROAD_STYLE,center:isDemoActive()?[-118.35,34.08]:[-98.5,39.5],zoom:isDemoActive()?10:3.6,minZoom:2,maxZoom:15,cooperativeGestures:true,attributionControl:true,renderWorldCopies:false});
    mapRef.current=map;
    map.addControl(new lib.NavigationControl({showCompass:false}),'top-right');
    map.on('load',()=>{if(disposed)return;loaded=true;window.clearTimeout(loadTimer);styleRoads(map);map.resize();setReady(true);setError('');});
@@ -99,6 +100,6 @@ export default function HostRoadMap({properties=[],onOpen=(_id)=>{void _id;},onB
   {!rows.length&&ready&&<div className="absolute bottom-16 left-3 right-3 rounded-xl bg-white/95 p-3 text-xs text-[#193246] shadow"><MapPin size={16} className="mr-1 inline"/>No matching mapped properties in these results. Move the map or change filters.</div>}
   {!ready&&<button type="button" className="absolute bottom-20 right-3 z-10 rounded-lg bg-white px-3 py-2 text-xs font-semibold text-[#193246] shadow" onClick={()=>setFallback(true)}>Use compatibility map</button>}
   {error&&<div className="absolute inset-x-3 bottom-16 z-10 rounded-xl bg-white/95 p-3 text-xs text-[#193246] shadow-md" role="alert">{error} <button type="button" onClick={()=>setAttempt(v=>v+1)} className="ml-2 underline"><RefreshCw size={14} className="inline"/> Retry map</button></div>}
-  <div className="absolute inset-x-3 bottom-8 rounded-lg bg-white/95 p-2 text-center text-[11px] text-[#486379] shadow-sm">Approximate city-area pins · exact addresses remain private. <a className="underline" href="https://openfreemap.org/" target="_blank" rel="noopener noreferrer">OpenFreeMap</a> · © <a className="underline" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a></div>
+  <div className="absolute inset-x-3 bottom-8 rounded-lg bg-white/95 p-2 text-center text-[11px] text-[#486379] shadow-sm">Approximate locations · exact addresses remain private. <a className="underline" href="https://openfreemap.org/" target="_blank" rel="noopener noreferrer">OpenFreeMap</a> · © <a className="underline" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a></div>
  </div>;
 }

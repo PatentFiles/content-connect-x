@@ -1,0 +1,292 @@
+{
+  "dataset_version": "connectx-los-angeles-2026.11.25-v2",
+  "recording_clock": "2026-11-25T19:00:00.000Z",
+  "application": "Content Connect X",
+  "unit_tests": {
+    "passed": 591,
+    "failed": 0
+  },
+  "lint": "passed",
+  "typecheck": "passed",
+  "production_build": "passed",
+  "browser": {
+    "kind": "Actual page components with isolated demo adapter; not deployed authentication end-to-end testing",
+    "engine": "Headless Microsoft Edge / Chromium",
+    "cases": 49,
+    "widths": [
+      360,
+      390,
+      768,
+      1024,
+      1440,
+      1920
+    ],
+    "zero_unexpected_live_data_service_calls": true,
+    "zero_render_errors": true,
+    "zero_horizontal_overflow": true,
+    "zero_broken_current_fallback_images": true,
+    "checks": [
+      {
+        "screen": "dashboard",
+        "width": 1440,
+        "status": "passed"
+      },
+      {
+        "screen": "properties",
+        "width": 1440,
+        "status": "passed"
+      },
+      {
+        "screen": "directory",
+        "width": 1440,
+        "status": "passed"
+      },
+      {
+        "screen": "favorites",
+        "width": 1440,
+        "status": "passed"
+      },
+      {
+        "screen": "connections",
+        "width": 1440,
+        "status": "passed"
+      },
+      {
+        "screen": "groups",
+        "width": 1440,
+        "status": "passed"
+      },
+      {
+        "screen": "messages",
+        "width": 1440,
+        "status": "passed"
+      },
+      {
+        "screen": "collaborations",
+        "width": 1440,
+        "status": "passed"
+      },
+      {
+        "screen": "contracts",
+        "width": 1440,
+        "status": "passed"
+      },
+      {
+        "screen": "representations",
+        "width": 1440,
+        "status": "passed"
+      },
+      {
+        "screen": "testing",
+        "width": 1440,
+        "status": "passed"
+      },
+      {
+        "screen": "verification",
+        "width": 1440,
+        "status": "passed"
+      },
+      {
+        "screen": "public-profile",
+        "width": 1440,
+        "status": "passed"
+      },
+      {
+        "screen": "profile",
+        "width": 1440,
+        "status": "passed"
+      },
+      {
+        "screen": "annual-recap",
+        "width": 1440,
+        "status": "passed"
+      },
+      {
+        "screen": "notifications",
+        "width": 1440,
+        "status": "passed"
+      },
+      {
+        "screen": "shop",
+        "width": 1440,
+        "status": "passed"
+      },
+      {
+        "screen": "dashboard",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "properties",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "directory",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "favorites",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "connections",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "groups",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "messages",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "collaborations",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "contracts",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "representations",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "testing",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "verification",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "public-profile",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "profile",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "annual-recap",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "notifications",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "shop",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "properties",
+        "width": 1920,
+        "status": "passed"
+      },
+      {
+        "screen": "messages",
+        "width": 1920,
+        "status": "passed"
+      },
+      {
+        "screen": "shop",
+        "width": 1920,
+        "status": "passed"
+      },
+      {
+        "screen": "properties",
+        "width": 1024,
+        "status": "passed"
+      },
+      {
+        "screen": "messages",
+        "width": 1024,
+        "status": "passed"
+      },
+      {
+        "screen": "shop",
+        "width": 1024,
+        "status": "passed"
+      },
+      {
+        "screen": "properties",
+        "width": 768,
+        "status": "passed"
+      },
+      {
+        "screen": "messages",
+        "width": 768,
+        "status": "passed"
+      },
+      {
+        "screen": "shop",
+        "width": 768,
+        "status": "passed"
+      },
+      {
+        "screen": "properties",
+        "width": 360,
+        "status": "passed"
+      },
+      {
+        "screen": "messages",
+        "width": 360,
+        "status": "passed"
+      },
+      {
+        "screen": "shop",
+        "width": 360,
+        "status": "passed"
+      },
+      {
+        "screen": "messages",
+        "width": 390,
+        "status": "passed"
+      },
+      {
+        "screen": "messages",
+        "width": 360,
+        "status": "passed"
+      },
+      {
+        "screen": "messages",
+        "width": 768,
+        "status": "passed"
+      }
+    ]
+  },
+  "cross_site_catalog_parity": "passed",
+  "catalog_sha256": "df151b71918c2ea34f31a5f6108624d3f0751513edf22211526cf066ed185fce",
+  "properties": 100,
+  "assets": {
+    "required_primary_images": 176,
+    "approved": 0,
+    "missing": 176,
+    "recording_ready": false
+  },
+  "limitations": [
+    "Realistic property, adult portrait and product imagery has not been installed. Existing artwork, initials and icons remain.",
+    "Demo changes are local to each browser session and do not synchronize between separate sites.",
+    "Live photo/video messaging remains capability-gated; no private media backend or storage migration was deployed.",
+    "No production database seeding, payments, signatures, medical or identity approvals were performed.",
+    "Deployed login and third-party integrations were not end-to-end tested. A source push does not establish a successful deployment."
+  ]
+}

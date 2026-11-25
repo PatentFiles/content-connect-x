@@ -1,7 +1,7 @@
 /** Community Groups. Membership is private; public search shows only site-reviewed
  * groups, while invite-only groups are discoverable only to their invitees.
  */
-import React,{useCallback,useEffect,useState} from 'react';
+import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {Plus,RefreshCw,Search,ShieldCheck,Lock,Globe,ArrowLeft} from 'lucide-react';
 import {supabase} from '@/api/supabaseClient';
 import MemberPicker from './MemberPicker';
@@ -72,6 +72,8 @@ export default function ConnectGroups({userId,paid=false,isAdmin=false,onNavigat
   setBusy(true);setError('');
   try{const r=await request('admin_queue');setModeration(r.items||[]);}catch(e){setError(e.message);}finally{setBusy(false);}
  };
+ const openedFromRoute=useRef('');
+ useEffect(()=>{const target=window.history.state?.memberContext?.groupId;if(target&&!loading&&!busy&&[...mine,...discover].some(g=>g.id===target)&&openedFromRoute.current!==target){openedFromRoute.current=target;void open(target);}},[mine,discover,loading,busy]);
  const selected=detail;
  return <section className="mx-auto max-w-7xl space-y-5" data-connect-groups="true">
   <header className="flex flex-wrap items-start justify-between gap-3">
@@ -123,7 +125,7 @@ export default function ConnectGroups({userId,paid=false,isAdmin=false,onNavigat
      <button type="submit" className={primary+' self-end'} disabled={loading}><Search size={17}/>Search</button>
     </form>
     <div className="grid gap-3 sm:grid-cols-2">{discover.map(g=><button key={g.id} type="button" onClick={()=>void open(g.id)} className="min-h-24 rounded-xl border border-[var(--cc-border)] p-4 text-left text-sm">
-     <span className="flex items-center gap-2 font-semibold"><Globe size={16}/>{g.name}</span>
+     {g.cover_url&&<img src={g.cover_url} alt="" loading="lazy" className="mb-3 aspect-[16/7] w-full rounded-xl object-cover"/>}<span className="flex items-center gap-2 font-semibold"><Globe size={16}/>{g.name}</span><span className="mt-2 block text-xs text-[var(--cc-text-secondary)]">{g.location||g.city}{Number.isFinite(g.members)?' · '+g.members.toLocaleString()+' members':''}</span>
      <span className="mt-2 block line-clamp-3 break-words text-[var(--cc-text-secondary)]">{g.description||'No description provided.'}</span>
     </button>)}</div>
     {!discover.length&&!loading&&<p className="text-sm text-[var(--cc-text-secondary)]">No approved public groups match your search.</p>}
@@ -133,7 +135,7 @@ export default function ConnectGroups({userId,paid=false,isAdmin=false,onNavigat
    <button className={secondary} onClick={()=>{setSelectedId(null);setDetail(null);setRequests([]);setMembers([]);}}><ArrowLeft size={16}/>Back to groups</button>
    <div className={surface+' space-y-3'}>
     <div className="flex items-center gap-2"><span>{selected.visibility==='private'?<Lock size={18}/>:<Globe size={18}/>}</span><h2 className="text-xl font-bold">{selected.name}</h2></div>
-    <p className="text-sm whitespace-pre-wrap break-words">{selected.description}</p>
+    {selected.cover_url&&<img src={selected.cover_url} alt="" className="max-h-64 w-full rounded-xl object-cover"/>}<p className="text-sm whitespace-pre-wrap break-words">{selected.description}</p>{selected.location&&<p className="text-sm text-[var(--cc-text-secondary)]">{selected.location}</p>}
     <p className="text-xs text-[var(--cc-text-secondary)]">Rules: {selected.rules||'Please follow the platform community policy.'}</p>
     <p className="text-xs text-[var(--cc-text-secondary)]">{selected.visibility==='private'?'Private — never publicly listed':'Public — platform-reviewed'} · {selected.members} approved members · {statuses[selected.member_status]||selected.state}</p>
     {selected.state==='pending_platform'&&<p className="text-xs">This public group awaits platform review. New members cannot apply or view posts until approval.</p>}

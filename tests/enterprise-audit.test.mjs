@@ -6,7 +6,7 @@ import {parseDate,parseEvents} from '../supabase/functions/hosting-calendar/cale
 import {validJobBearer} from '../supabase/functions/_shared/jobAuth.mjs';
 import {sanitizeMonitoringEvent} from '../src/supabase/monitoringPrivacy.mjs';
 import {waitForActiveWorker} from '../src/supabase/pushLifecycle.mjs';
-const read=path=>readFileSync(path,'utf8');
+const read=path=>readFileSync(path,'utf8').replace(/\r\n/g,'\n');
 const jwt=payload=>['eyJhbGciOiJIUzI1NiJ9',Buffer.from(JSON.stringify(payload)).toString('base64url'),'signature'].join('.');
 const feed=extra=>`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nBEGIN:VEVENT\r\nUID:booking-1\r\nDTSTART:20301117T120000Z\r\nDTEND:20301117T180000Z\r\n${extra}END:VEVENT\r\nEND:VCALENDAR\r\n`;
 

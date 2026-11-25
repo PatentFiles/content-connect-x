@@ -5,6 +5,8 @@ export const finitePoint=p=>typeof p?.approx_lat==='number'&&typeof p.approx_lng
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
 export function markerPosition(p){
  if(!finitePoint(p))return null;
+ // Fictional positions are already deliberately approximate and stable across sites.
+ if(p.demo===true)return [p.approx_lng,p.approx_lat];
  let hash=2166136261;
  for(const ch of String(p.id))hash=Math.imul(hash^ch.charCodeAt(0),16777619)>>>0;
  const a=hash/4294967296*2*Math.PI,r=.006+(hash%17)*.00045;

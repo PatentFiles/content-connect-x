@@ -465,3 +465,7 @@ Regression coverage: `tests/enterprise-audit.test.mjs` now asserts role-preview 
 
 ### Production property features (2026-11-23)
 Both Connect X apps use the identical `supabase/functions/_shared/propertyFeatureCatalog.mjs` contract: 67 selectable host-declared features in six ordered sections (12/12/12/12/11/8). Free parking and other retired lodging filters are not selectable; Off Street Parking remains separate. Host Connect X is the authoritative property marketplace; Content Connect X maintains the matching compatibility catalog. Do not infer accessibility, privacy or production permissions from other features. The regression test `tests/production-property-feature-catalog.test.mjs` protects the exact approved labels, order, and validation.
+
+## Isolated marketing demonstration
+
+The normal pages can display a shared, session-only Los Angeles demo catalog through the existing administrator Mock data toggle. See [the recording guide and current image limitations](docs/demo/marketing-demo.md), [the asset handoff](docs/demo/asset-manifest.json), and [the canonical catalog fingerprint](docs/demo/catalog-lock.json). Validate with `npm run test:demo`; check cross-site parity with `npm run demo:assets -- --compare <other-repository>`. No production records, approvals, payments or signatures are created.

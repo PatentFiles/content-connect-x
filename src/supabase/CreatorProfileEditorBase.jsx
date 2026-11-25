@@ -1,3 +1,4 @@
+import {isDemoActive} from '../demo/demoRuntime.mjs';
 /**
  * Complete creator profile editor. Sensitive orientation, identity and collaboration
  * preferences live in an owner-only table, never in public member_profiles.
@@ -57,7 +58,7 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
    for(const kind of ['avatar','cover']){
     const path=profile?.[kind+'_path'];
     if(!path)continue;
-    let url=path.startsWith('https://')?path:'';
+    let url=path.startsWith('https://')||(profile?.demo===true&&path.startsWith('/demo-assets/'))?path:'';
     if(!url&&path.startsWith(user.id+'/profile/')){
      const {data,error}=await supabase.storage.from('member-private').createSignedUrl(path,3600);
      if(!error)url=data?.signedUrl||'';
@@ -83,6 +84,7 @@ export default function CreatorProfileEditor({user,profile,onSaved,approved=fals
   }catch(e){setError(e.message||'Bio generator unavailable');}finally{setGeneratingBio(false);}
  };
  const uploadProfileAsset=async(kind,file)=>{
+  if(user.id.startsWith('demo-')&&!isDemoActive())throw Error('Demo mode has ended. No image was uploaded.');
   if(!file)return;
   setUploading(kind);setError('');setNotice('');
   try{

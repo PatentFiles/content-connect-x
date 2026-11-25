@@ -1,3 +1,4 @@
+import {isDemoActive,demoHostAction,hasDemoIdentifier} from '../demo/demoRuntime.mjs';
 /**
  * Content Connect X -> canonical Host Connect X marketplace.
  * No shared credentials and no copied inventory. Authenticated CCX tokens
@@ -7,6 +8,8 @@
 import {supabase} from '@/api/supabaseClient';
 export const HOST_CONNECT_API='https://szfdoqkfewwpdkapqptp.supabase.co/functions/v1/host-marketplace';
 export async function hostConnectAction(action,args={}){
+ if(isDemoActive())return demoHostAction(action,arguments[1]||{});
+ if(hasDemoIdentifier(arguments[1]))throw Error('This demo record cannot be submitted to the live Host service.');
  const {data:{session},error:sessionError}=await supabase.auth.getSession();
  if(sessionError)throw Error('Could not verify your Content Connect X session.');
  const response=await fetch(HOST_CONNECT_API,{
@@ -22,6 +25,7 @@ export async function hostConnectAction(action,args={}){
  * settings. The independent Host backend validates this exact CCX session.
  */
 export async function hostRentalAgreementAction(action,args={}){
+ if(isDemoActive())throw Error('Real rental signatures are unavailable in demo mode.');
  const {data:{session},error}=await supabase.auth.getSession();
  if(error||!session?.access_token)throw Error('Sign in to view your rental agreement.');
  const response=await fetch('https://szfdoqkfewwpdkapqptp.supabase.co/functions/v1/host-rental-agreements',{

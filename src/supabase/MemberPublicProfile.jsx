@@ -79,7 +79,7 @@ export default function MemberPublicProfile({onNavigate,viewerId,paid=false}){
       <div className="relative grid h-24 w-24 shrink-0 place-items-center overflow-hidden rounded-full border-4 border-[var(--cc-surface)] bg-[var(--cc-surface-hover)]">
        {profile.avatar_url?<img src={profile.avatar_url} alt={(profile.display_name||'Member')+' profile photo'} className="h-full w-full object-cover"/>:<UserRound size={36} aria-hidden="true"/>}
       </div>
-      <div className="min-w-0 flex-1 pb-2"><h2 className="break-words text-xl font-bold">{profile.display_name||'Profile name not set'}</h2><p className="text-sm capitalize text-[var(--cc-text-secondary)]">{roleTitle(profile.role_type)}</p></div>
+      <div className="min-w-0 flex-1 pb-2"><h2 className="break-words text-xl font-bold">{profile.display_name||'Profile name not set'}{Number.isFinite(profile.profile_age)?', '+profile.profile_age:''}</h2><p className="text-sm capitalize text-[var(--cc-text-secondary)]">{roleTitle(profile.role_type)}</p></div>
       {profile.age_verified&&<span className="inline-flex items-center gap-1 rounded-full border border-emerald-400 px-3 py-1 text-xs"><ShieldCheck size={14}/>Verified adult</span>}
      </div>
      {activeTab==='about'&&<>

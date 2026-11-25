@@ -69,7 +69,7 @@ test('only icon buttons remain in composer, and audience/view selectors live in 
  assert.match(settings,/Default post audience/);
  assert.match(settings,/saveFeedPreferences\(supabase,userId,value\)/);
  assert.match(member,/<FeedPreferencesSettings userId=\{user\?\.id\}/);
- assert.match(app,/<FeedPreferencesSettings userId=\{user\.id\}/);
+ assert.match(app,/<FeedPreferencesSettings userId=\{displayUser\.id\}/);
 });
 test('Discovery filters start collapsed on desktop and mobile and remain user expandable',()=>{
  const file=fs.readFileSync('src/supabase/CreatorDiscovery.jsx','utf8');

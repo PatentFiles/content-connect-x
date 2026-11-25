@@ -1,6 +1,6 @@
 /** Content ConnectX — Supabase application, backed by protected Edge Functions. */
 import React, { useCallback, useEffect, useLayoutEffect, useState } from 'react';
-import { supabase, requireSupabase } from '@/api/supabaseClient';
+import { liveSupabase as supabase, requireSupabase } from '@/api/supabaseClient';
 import { platformAction } from './platformApi';
 import MemberWorkspace from './MemberWorkspace';
 import NotificationCenter from './NotificationCenter';
@@ -36,7 +36,6 @@ import CreatorDiscovery from './CreatorDiscovery';
 import {scrollToNewPage} from './navigationScroll.mjs';
 import IdentityVerification from './IdentityVerification';
 import PublicLandingSections from './PublicLandingSections';
-import AdminDemoWorkspace from './AdminDemoWorkspace';
 import {useAdminDemo} from './useAdminDemo';
 import {useAuthAppearance} from './authAppearance';
 import PublicPricing from './PublicPricing';
@@ -450,41 +449,43 @@ export default function SupabaseApp() {
       setTab('dashboard');
     }).catch(e=>setError(e.message||'Unable to sign out.'));
   };
-  return <OriginalShell user={user} profile={profile} approved={approved}
+  const displayUser=demo.enabled?{...user,id:demo.data.self.id,email:'tommy@example.invalid',user_metadata:{display_name:demo.data.self.display_name}}:user;
+  const displayProfile=demo.enabled?demo.data.self:profile;
+  return <OriginalShell key={user.id+(demo.enabled?':demo':':live')} user={displayUser} profile={displayProfile} approved={approved}
     isAdmin={isAdmin} tab={tab} featureFlags={visibleFeatures} isPremiumMember={activePaid}
     onNavigate={navigateInWorkspace} onSignOut={signOut}
     onRolePreviewChange={setRolePreview} demo={demo}>
     {demo.error&&<ErrorMessage message={demo.error}/>}
-    {demo.enabled?<AdminDemoWorkspace data={demo.data} section={tab} brand="ccx" onNavigate={navigateInWorkspace}/>:<>
+    <>
     <ErrorMessage message={error}/>
     {notice&&<p role="status" className="my-3 text-green-800">{notice}</p>}
     {suspended?<div className="space-y-4">
       <div className={panel}><AlertTriangle className="mb-2 text-red-800"/>
       Account access is suspended. You can still review or withdraw your existing consent.</div>
-      <ConsentCenter user={user} canGrant={false}/>
-      <ProductionManager user={user} paid={false} isAdmin={false}/>
+      <ConsentCenter user={displayUser} canGrant={false}/>
+      <ProductionManager user={displayUser} paid={false} isAdmin={false}/>
     </div>:approved&&!isModuleEnabled(tab,visibleFeatures)?<section className={panel+' space-y-3'}>
       <h2 className="text-xl font-semibold">This module is currently turned off</h2>
       <p className="text-sm text-[var(--cc-text-secondary)]">Your existing records remain stored. An administrator can enable this feature from Platform Controls.</p>
       <button className={primary} onClick={()=>navigateInWorkspace('dashboard')}>Return to dashboard</button>
     </section>:<>
-    {tab==='dashboard'&&<OriginalRoleDashboard profile={profile} verified={ageVerified}
+    {tab==='dashboard'&&<OriginalRoleDashboard profile={displayProfile} verified={ageVerified}
       paid={paid} onNavigate={navigateInWorkspace}
       roleOverride={isAdmin?rolePreview:null} features={visibleFeatures}/>}
-    {tab==='profile'&&<><CreatorProfileEditor user={user} profile={profile} approved={ageVerified}
+    {tab==='profile'&&<><CreatorProfileEditor user={displayUser} profile={displayProfile} approved={ageVerified}
       paid={paid} isAdmin={isAdmin} onNavigate={navigateInWorkspace}
-      onSaved={()=>refresh(session)}/>
+      onSaved={()=>demo.enabled?Promise.resolve():refresh(session)}/>
       <section className="mx-auto mt-6 max-w-4xl space-y-3 px-3" aria-label="Your profile posts">
        <h2 className="text-xl font-bold">Your profile posts</h2>
        <p className="text-sm text-[var(--cc-text-secondary)]">Only approved posts visible to each viewer appear on your timeline. Create new posts from Connect Feed on your dashboard.</p>
-       <ConnectFeed key={user.id} userId={user.id} profileId={user.id}/>
+       <ConnectFeed key={displayUser.id} userId={displayUser.id} profileId={displayUser.id}/>
       </section>
     </>}
-    {tab==='public-profile'&&approved&&<MemberPublicProfile onNavigate={navigateInWorkspace} viewerId={user.id} paid={paid}/>}
+    {tab==='public-profile'&&approved&&<MemberPublicProfile onNavigate={navigateInWorkspace} viewerId={displayUser.id} paid={paid}/>}
     {tab==='annual-recap'&&approved&&<AnnualRecap/>}
-    {tab==='verification'&&<div className="mx-auto max-w-md"><IdentityVerification onApproval={()=>refresh(session)}/></div>}
+    {tab==='verification'&&<div className="mx-auto max-w-md"><IdentityVerification onApproval={()=>demo.enabled?Promise.resolve():refresh(session)}/></div>}
     {['directory','favorites'].includes(tab)&&
-      <CreatorDiscovery key={tab} user={user} approved={approved} paid={paid}
+      <CreatorDiscovery key={tab} user={displayUser} approved={approved} paid={paid}
        mode={tab==='directory'?'discovery':tab} onNavigate={navigateInWorkspace}/>}
     {tab==='reviews'&&isAdmin&&approved&&<div className="space-y-4"><div className="flex justify-between items-center"><h2 className="text-xl font-semibold">Age verification records</h2><button className={primary} onClick={loadReviews} disabled={busy}><RefreshCw size={16}/></button></div><p className={muted}>Historical verification records are read-only. New members use our first-party Railway ID and live-selfie verification. Manual account admission from this historical record screen remains unavailable.</p>{reviews.map(request=><div key={request.id} className={`${panel} space-y-2`}><p className="text-sm">Request {request.id} · {request.status}</p><p className={muted}>{new Date(request.created_at).toLocaleString()}</p><div className="flex flex-wrap gap-2"><button className={primary} onClick={()=>openReviewDocument(request.id,'id')} disabled={busy}>View ID</button><button className={primary} onClick={()=>openReviewDocument(request.id,'selfie')} disabled={busy}>View selfie</button></div></div>)}{reviews.length===0&&<p className={muted}>Select refresh to load recent review requests.</p>}</div>}
     {['workspace','messages','connections','collaborations','contracts'].includes(tab)&&(
@@ -495,40 +496,40 @@ export default function SupabaseApp() {
           Existing creator records are preserved and remain protected.</p>
         <button className={primary} onClick={()=>navigateInWorkspace('membership')}>Membership details</button>
       </div>:
-      <MemberWorkspace key={tab} user={user} paid={paid} flags={visibleFeatures||{}} onNavigate={navigateInWorkspace}
+      <MemberWorkspace key={tab} user={displayUser} paid={paid} flags={visibleFeatures||{}} onNavigate={navigateInWorkspace}
        initialSection={['messages','connections','collaborations','contracts','notifications'].includes(tab)?tab:'collaborations'}/>
     )}
-    {tab==='notifications'&&approved&&<NotificationCenter user={user} onNavigate={navigateInWorkspace}/>}
+    {tab==='notifications'&&approved&&<NotificationCenter user={displayUser} onNavigate={navigateInWorkspace}/>}
     {tab==='meeting'&&approved&&<MeetingStudio
      scope={new URLSearchParams(window.location.search).get('scope')||window.history.state?.memberContext?.scope}
      scopeId={new URLSearchParams(window.location.search).get('room')||window.history.state?.memberContext?.scopeId}
-     userId={user.id} onNavigate={navigateInWorkspace}/>}
+     userId={displayUser.id} onNavigate={navigateInWorkspace}/>}
     {tab==='trust' && paid && approved && <TrustCenter isAdmin={isAdmin}/> }
-    {tab==='consent' && <ConsentCenter user={user} canGrant={Boolean(paid && approved)}/> }
+    {tab==='consent' && <ConsentCenter user={displayUser} canGrant={Boolean(paid && approved)}/> }
     {tab==='account-security' && <SecurityCenter/>}
     {tab==='safety' && approved && <SafetyPanel/>}
-    {tab==='community' && approved && <CommunityHub paid={paid} userId={user.id}/>}
-    {tab==='groups' && approved && <ConnectGroups userId={user.id} paid={paid} isAdmin={isAdmin} onNavigate={navigateInWorkspace}/>}
+    {tab==='community' && approved && <CommunityHub paid={paid} userId={displayUser.id}/>}
+    {tab==='groups' && approved && <ConnectGroups userId={displayUser.id} paid={paid} isAdmin={isAdmin} onNavigate={navigateInWorkspace}/>}
     {tab==='feedback' && approved && <FeedbackHub admin={isAdmin}/>}
-    {tab==='media' && approved && <MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
-    {tab==='schedule' && approved && paid && <ScheduleHub paid={paid} userId={user.id} creatorBookingEnabled={Boolean(visibleFeatures?.creator_booking)}/>}
-    {tab==='production' && approved && <ProductionManager user={user} paid={paid} isAdmin={isAdmin}/>}
+    {tab==='media' && approved && <MediaGallery userId={displayUser.id} paid={paid} admin={isAdmin}/>}
+    {tab==='schedule' && approved && paid && <ScheduleHub paid={paid} userId={displayUser.id} creatorBookingEnabled={Boolean(visibleFeatures?.creator_booking)}/>}
+    {tab==='production' && approved && <ProductionManager user={displayUser} paid={paid} isAdmin={isAdmin}/>}
     {['hosting','host','host-settings'].includes(tab)&&(
        !approved?<div className={panel}>Complete account onboarding to enter the marketplace.</div>:
-       <div className="host-connect-theme">
+       <div className="host-connect-theme ccx-property-workspace">
        <React.Suspense fallback={<div className={panel}>Loading hosting marketplace…</div>}>
-        <HostCrossMarketplace key={tab} user={user} paid={paid}/>
+        <HostCrossMarketplace key={tab} user={displayUser} paid={paid}/>
        </React.Suspense>
        </div>)}
-    {tab==='portfolio'&&approved&&<MediaGallery userId={user.id} paid={paid} admin={isAdmin}/>}
+    {tab==='portfolio'&&approved&&<MediaGallery userId={displayUser.id} paid={paid} admin={isAdmin}/>}
     {tab==='testing'&&approved&&<PassClearanceHub isAdmin={isAdmin}/>}
     {tab==='settings'&&(isAdmin&&!rolePreview?<div className="space-y-5">
-        <FeedPreferencesSettings userId={user.id}/>
+        <FeedPreferencesSettings userId={displayUser.id}/>
         <AdminConsole key={tab} initialSection="features"
          onFeatureChange={()=>refreshFeatureFlags().catch(()=>setVisibleFeatures({}))}/>
-       </div>:<MemberSettings user={user} onNavigate={navigateInWorkspace}/>)}
-    {tab==='roster'&&approved&&<ProductionManager user={user} paid={paid} isAdmin={isAdmin}/>}
-    {tab==='representations'&&<RepresentationAgreements role={profile?.role_type||'creator'}/>}
+       </div>:<MemberSettings user={displayUser} onNavigate={navigateInWorkspace}/>)}
+    {tab==='roster'&&approved&&<ProductionManager user={displayUser} paid={paid} isAdmin={isAdmin}/>}
+    {tab==='representations'&&<RepresentationAgreements role={displayProfile?.role_type||'creator'}/>}
     {tab==='developer'&&isAdmin&&<div className={panel}>
       The original developer documentation is preserved in the repository’s
       pre-migration reference branch.</div>}
@@ -541,5 +542,5 @@ export default function SupabaseApp() {
     {tab==='shop'&&approved&&<AffiliateShop isAdmin={isAdmin}/>}
     {tab==='membership'&&<PublicPricing signedIn onNavigate={navigateInWorkspace} initialRole={profile?.role_type||'creator'}/>}
 
-  </>}</>}</OriginalShell>;
+  </>}</></OriginalShell>;
 }

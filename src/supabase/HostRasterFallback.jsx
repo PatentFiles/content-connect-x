@@ -14,8 +14,10 @@ export default function HostRasterFallback({properties=[],onOpen=(_id)=>{void _i
  useEffect(()=>{
   if(fitted.current||!properties.length)return;fitted.current=true;
   const first=markerPosition(properties[0]);if(!first)return;
-  const sameCity=properties.every(p=>Math.abs(p.approx_lat-properties[0].approx_lat)<.5&&Math.abs(p.approx_lng-properties[0].approx_lng)<.5);
-  if(sameCity)setView({longitude:first[0],latitude:first[1],zoom:10});
+  const points=properties.map(markerPosition).filter(Boolean);
+  const west=Math.min(...points.map(p=>p[0])),east=Math.max(...points.map(p=>p[0])),south=Math.min(...points.map(p=>p[1])),north=Math.max(...points.map(p=>p[1]));
+  let zoom=12;for(;zoom>2;zoom--){const a=project(west,north,zoom),b=project(east,south,zoom);if(Math.abs(b.x-a.x)<Math.max(160,size.width-100)&&Math.abs(b.y-a.y)<Math.max(160,size.height-100))break;}
+  setView({longitude:(west+east)/2,latitude:(north+south)/2,zoom});
  },[properties]);
  const bounds=mapBounds(view,size.width,size.height,view.zoom);
  useEffect(()=>{if(!changed.current||!search)return;const timer=window.setTimeout(()=>callback.current(mapBounds(view,size.width,size.height,view.zoom)),450);return()=>window.clearTimeout(timer);},[view,size.width,size.height,search]);

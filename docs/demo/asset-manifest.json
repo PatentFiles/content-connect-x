@@ -1,0 +1,1414 @@
+{
+  "version": "connectx-los-angeles-2026.11.25-v2",
+  "notice": "All described people, properties and products are fictional. No asset is approved until it is installed and its rights are recorded.",
+  "assets": [
+    {
+      "entity_id": "demo-la-venue-001",
+      "path": "/demo-assets/properties/demo-la-venue-001.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-002",
+      "path": "/demo-assets/properties/demo-la-venue-002.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in West Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in West Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-003",
+      "path": "/demo-assets/properties/demo-la-venue-003.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in Arts District, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in Arts District, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-004",
+      "path": "/demo-assets/properties/demo-la-venue-004.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in Studio City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in Studio City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-005",
+      "path": "/demo-assets/properties/demo-la-venue-005.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in Culver City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in Culver City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-006",
+      "path": "/demo-assets/properties/demo-la-venue-006.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in Beverly Grove, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in Beverly Grove, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-007",
+      "path": "/demo-assets/properties/demo-la-venue-007.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-008",
+      "path": "/demo-assets/properties/demo-la-venue-008.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in West Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in West Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-009",
+      "path": "/demo-assets/properties/demo-la-venue-009.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in Arts District, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in Arts District, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-010",
+      "path": "/demo-assets/properties/demo-la-venue-010.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in Studio City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in Studio City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-011",
+      "path": "/demo-assets/properties/demo-la-venue-011.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in Culver City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in Culver City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-012",
+      "path": "/demo-assets/properties/demo-la-venue-012.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in Beverly Grove, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in Beverly Grove, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-013",
+      "path": "/demo-assets/properties/demo-la-venue-013.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-014",
+      "path": "/demo-assets/properties/demo-la-venue-014.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in West Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in West Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-015",
+      "path": "/demo-assets/properties/demo-la-venue-015.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in Arts District, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in Arts District, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-016",
+      "path": "/demo-assets/properties/demo-la-venue-016.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in Studio City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in Studio City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-017",
+      "path": "/demo-assets/properties/demo-la-venue-017.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in Culver City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in Culver City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-018",
+      "path": "/demo-assets/properties/demo-la-venue-018.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional house production location in Beverly Grove, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged house in Beverly Grove, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-019",
+      "path": "/demo-assets/properties/demo-la-venue-019.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional warehouse production location in Studio City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged warehouse in Studio City, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-020",
+      "path": "/demo-assets/properties/demo-la-venue-020.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional warehouse production location in Culver City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged warehouse in Culver City, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-021",
+      "path": "/demo-assets/properties/demo-la-venue-021.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional warehouse production location in Beverly Grove, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged warehouse in Beverly Grove, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-022",
+      "path": "/demo-assets/properties/demo-la-venue-022.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional warehouse production location in Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged warehouse in Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-023",
+      "path": "/demo-assets/properties/demo-la-venue-023.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional warehouse production location in West Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged warehouse in West Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-024",
+      "path": "/demo-assets/properties/demo-la-venue-024.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional warehouse production location in Arts District, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged warehouse in Arts District, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-025",
+      "path": "/demo-assets/properties/demo-la-venue-025.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional warehouse production location in Studio City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged warehouse in Studio City, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-026",
+      "path": "/demo-assets/properties/demo-la-venue-026.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional warehouse production location in Culver City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged warehouse in Culver City, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-027",
+      "path": "/demo-assets/properties/demo-la-venue-027.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional warehouse production location in Beverly Grove, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged warehouse in Beverly Grove, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-028",
+      "path": "/demo-assets/properties/demo-la-venue-028.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional warehouse production location in Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged warehouse in Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-029",
+      "path": "/demo-assets/properties/demo-la-venue-029.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional warehouse production location in West Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged warehouse in West Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-030",
+      "path": "/demo-assets/properties/demo-la-venue-030.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional warehouse production location in Arts District, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged warehouse in Arts District, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-031",
+      "path": "/demo-assets/properties/demo-la-venue-031.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional condo production location in Studio City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged condo in Studio City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-032",
+      "path": "/demo-assets/properties/demo-la-venue-032.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional condo production location in Culver City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged condo in Culver City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-033",
+      "path": "/demo-assets/properties/demo-la-venue-033.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional condo production location in Beverly Grove, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged condo in Beverly Grove, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-034",
+      "path": "/demo-assets/properties/demo-la-venue-034.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional condo production location in Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged condo in Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-035",
+      "path": "/demo-assets/properties/demo-la-venue-035.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional condo production location in West Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged condo in West Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-036",
+      "path": "/demo-assets/properties/demo-la-venue-036.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional condo production location in Arts District, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged condo in Arts District, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-037",
+      "path": "/demo-assets/properties/demo-la-venue-037.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional condo production location in Studio City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged condo in Studio City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-038",
+      "path": "/demo-assets/properties/demo-la-venue-038.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional condo production location in Culver City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged condo in Culver City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-039",
+      "path": "/demo-assets/properties/demo-la-venue-039.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional condo production location in Beverly Grove, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged condo in Beverly Grove, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-040",
+      "path": "/demo-assets/properties/demo-la-venue-040.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional condo production location in Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged condo in Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-041",
+      "path": "/demo-assets/properties/demo-la-venue-041.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional soundstage production location in Arts District, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged soundstage in Arts District, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-042",
+      "path": "/demo-assets/properties/demo-la-venue-042.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional soundstage production location in Studio City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged soundstage in Studio City, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-043",
+      "path": "/demo-assets/properties/demo-la-venue-043.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional soundstage production location in Culver City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged soundstage in Culver City, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-044",
+      "path": "/demo-assets/properties/demo-la-venue-044.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional soundstage production location in Beverly Grove, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged soundstage in Beverly Grove, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-045",
+      "path": "/demo-assets/properties/demo-la-venue-045.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional soundstage production location in Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged soundstage in Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-046",
+      "path": "/demo-assets/properties/demo-la-venue-046.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional soundstage production location in West Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged soundstage in West Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-047",
+      "path": "/demo-assets/properties/demo-la-venue-047.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional soundstage production location in Arts District, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged soundstage in Arts District, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-048",
+      "path": "/demo-assets/properties/demo-la-venue-048.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional soundstage production location in Studio City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged soundstage in Studio City, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-049",
+      "path": "/demo-assets/properties/demo-la-venue-049.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional soundstage production location in Culver City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged soundstage in Culver City, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-050",
+      "path": "/demo-assets/properties/demo-la-venue-050.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional soundstage production location in Beverly Grove, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged soundstage in Beverly Grove, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-051",
+      "path": "/demo-assets/properties/demo-la-venue-051.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional loft production location in West Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged loft in West Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-052",
+      "path": "/demo-assets/properties/demo-la-venue-052.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional loft production location in Arts District, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged loft in Arts District, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-053",
+      "path": "/demo-assets/properties/demo-la-venue-053.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional loft production location in Studio City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged loft in Studio City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-054",
+      "path": "/demo-assets/properties/demo-la-venue-054.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional loft production location in Culver City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged loft in Culver City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-055",
+      "path": "/demo-assets/properties/demo-la-venue-055.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional loft production location in Beverly Grove, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged loft in Beverly Grove, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-056",
+      "path": "/demo-assets/properties/demo-la-venue-056.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional loft production location in Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged loft in Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-057",
+      "path": "/demo-assets/properties/demo-la-venue-057.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional loft production location in West Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged loft in West Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-058",
+      "path": "/demo-assets/properties/demo-la-venue-058.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional loft production location in Arts District, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged loft in Arts District, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-059",
+      "path": "/demo-assets/properties/demo-la-venue-059.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional photo studio production location in Beverly Grove, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged photo studio in Beverly Grove, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-060",
+      "path": "/demo-assets/properties/demo-la-venue-060.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional photo studio production location in Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged photo studio in Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-061",
+      "path": "/demo-assets/properties/demo-la-venue-061.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional photo studio production location in West Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged photo studio in West Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-062",
+      "path": "/demo-assets/properties/demo-la-venue-062.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional photo studio production location in Arts District, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged photo studio in Arts District, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-063",
+      "path": "/demo-assets/properties/demo-la-venue-063.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional photo studio production location in Studio City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged photo studio in Studio City, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-064",
+      "path": "/demo-assets/properties/demo-la-venue-064.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional photo studio production location in Culver City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged photo studio in Culver City, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-065",
+      "path": "/demo-assets/properties/demo-la-venue-065.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional photo studio production location in Beverly Grove, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged photo studio in Beverly Grove, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-066",
+      "path": "/demo-assets/properties/demo-la-venue-066.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional photo studio production location in Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged photo studio in Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. A spacious working floor, loading access and configurable lighting suit ambitious productions."
+    },
+    {
+      "entity_id": "demo-la-venue-067",
+      "path": "/demo-assets/properties/demo-la-venue-067.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional villa production location in Studio City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged villa in Studio City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-068",
+      "path": "/demo-assets/properties/demo-la-venue-068.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional villa production location in Culver City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged villa in Culver City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-069",
+      "path": "/demo-assets/properties/demo-la-venue-069.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional villa production location in Beverly Grove, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged villa in Beverly Grove, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-070",
+      "path": "/demo-assets/properties/demo-la-venue-070.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional villa production location in Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged villa in Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-071",
+      "path": "/demo-assets/properties/demo-la-venue-071.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional villa production location in West Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged villa in West Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-072",
+      "path": "/demo-assets/properties/demo-la-venue-072.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional villa production location in Arts District, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged villa in Arts District, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-073",
+      "path": "/demo-assets/properties/demo-la-venue-073.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional villa production location in Studio City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged villa in Studio City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-074",
+      "path": "/demo-assets/properties/demo-la-venue-074.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional villa production location in Culver City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged villa in Culver City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-075",
+      "path": "/demo-assets/properties/demo-la-venue-075.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional private set production location in West Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged private set in West Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-076",
+      "path": "/demo-assets/properties/demo-la-venue-076.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional private set production location in Arts District, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged private set in Arts District, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-077",
+      "path": "/demo-assets/properties/demo-la-venue-077.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional private set production location in Studio City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged private set in Studio City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-078",
+      "path": "/demo-assets/properties/demo-la-venue-078.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional private set production location in Culver City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged private set in Culver City, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-079",
+      "path": "/demo-assets/properties/demo-la-venue-079.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional coastal location production location in Malibu, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged coastal location in Malibu, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-080",
+      "path": "/demo-assets/properties/demo-la-venue-080.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional coastal location production location in Malibu, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged coastal location in Malibu, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-081",
+      "path": "/demo-assets/properties/demo-la-venue-081.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional coastal location production location in Santa Monica, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged coastal location in Santa Monica, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-082",
+      "path": "/demo-assets/properties/demo-la-venue-082.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional coastal location production location in Venice, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged coastal location in Venice, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-083",
+      "path": "/demo-assets/properties/demo-la-venue-083.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional garden production location in Beverly Grove, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged garden in Beverly Grove, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-084",
+      "path": "/demo-assets/properties/demo-la-venue-084.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional garden production location in Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged garden in Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-085",
+      "path": "/demo-assets/properties/demo-la-venue-085.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional garden production location in West Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged garden in West Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-086",
+      "path": "/demo-assets/properties/demo-la-venue-086.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional garden production location in Arts District, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged garden in Arts District, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-087",
+      "path": "/demo-assets/properties/demo-la-venue-087.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional garden production location in Studio City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged garden in Studio City, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-088",
+      "path": "/demo-assets/properties/demo-la-venue-088.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional garden production location in Culver City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged garden in Culver City, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-089",
+      "path": "/demo-assets/properties/demo-la-venue-089.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional pool retreat production location in Arts District, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged pool retreat in Arts District, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-090",
+      "path": "/demo-assets/properties/demo-la-venue-090.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional pool retreat production location in Studio City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged pool retreat in Studio City, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-091",
+      "path": "/demo-assets/properties/demo-la-venue-091.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional pool retreat production location in Culver City, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged pool retreat in Culver City, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-092",
+      "path": "/demo-assets/properties/demo-la-venue-092.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional pool retreat production location in Beverly Grove, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged pool retreat in Beverly Grove, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-093",
+      "path": "/demo-assets/properties/demo-la-venue-093.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional pool retreat production location in Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged pool retreat in Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-094",
+      "path": "/demo-assets/properties/demo-la-venue-094.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional pool retreat production location in West Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged pool retreat in West Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-095",
+      "path": "/demo-assets/properties/demo-la-venue-095.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional hotel suite production location in Beverly Grove, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged hotel suite in Beverly Grove, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-096",
+      "path": "/demo-assets/properties/demo-la-venue-096.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional hotel suite production location in Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged hotel suite in Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-097",
+      "path": "/demo-assets/properties/demo-la-venue-097.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional resort production location in Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged resort in Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-098",
+      "path": "/demo-assets/properties/demo-la-venue-098.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional resort production location in West Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged resort in West Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Open-air settings and carefully chosen backdrops offer a range of daylight looks."
+    },
+    {
+      "entity_id": "demo-la-venue-099",
+      "path": "/demo-assets/properties/demo-la-venue-099.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional estate production location in West Hollywood, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged estate in West Hollywood, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-la-venue-100",
+      "path": "/demo-assets/properties/demo-la-venue-100.webp",
+      "width": 1600,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic fictional estate production location in Arts District, Los Angeles area. Empty, no people, signs, logos or explicit activity. Architectural editorial photography. A privately arranged estate in Arts District, with flexible staging areas, dedicated crew access and a considered production layout. Bright interiors, layered textures and comfortable preparation spaces keep the shoot moving."
+    },
+    {
+      "entity_id": "demo-person-tommy-ryder",
+      "path": "/demo-assets/people/demo-person-tommy-ryder.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult man, age 32. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Tommy Ryder."
+    },
+    {
+      "entity_id": "demo-person-jade-ryder",
+      "path": "/demo-assets/people/demo-person-jade-ryder.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult woman, age 35. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Jade Ryder."
+    },
+    {
+      "entity_id": "demo-person-avery-lane",
+      "path": "/demo-assets/people/demo-person-avery-lane.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult woman, age 29. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Avery Lane."
+    },
+    {
+      "entity_id": "demo-person-jordan-vale",
+      "path": "/demo-assets/people/demo-person-jordan-vale.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult man, age 31. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Jordan Vale."
+    },
+    {
+      "entity_id": "demo-person-morgan-ellis",
+      "path": "/demo-assets/people/demo-person-morgan-ellis.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult woman, age 28. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Morgan Ellis."
+    },
+    {
+      "entity_id": "demo-person-cameron-reed",
+      "path": "/demo-assets/people/demo-person-cameron-reed.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult man, age 34. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Cameron Reed."
+    },
+    {
+      "entity_id": "demo-person-riley-brooks",
+      "path": "/demo-assets/people/demo-person-riley-brooks.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult woman, age 27. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Riley Brooks."
+    },
+    {
+      "entity_id": "demo-person-drew-parker",
+      "path": "/demo-assets/people/demo-person-drew-parker.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult man, age 30. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Drew Parker."
+    },
+    {
+      "entity_id": "demo-person-sage-monroe",
+      "path": "/demo-assets/people/demo-person-sage-monroe.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult woman, age 36. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Sage Monroe."
+    },
+    {
+      "entity_id": "demo-person-blake-rowan",
+      "path": "/demo-assets/people/demo-person-blake-rowan.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult man, age 33. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Blake Rowan."
+    },
+    {
+      "entity_id": "demo-person-ellis-quinn",
+      "path": "/demo-assets/people/demo-person-ellis-quinn.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult woman, age 30. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Ellis Quinn."
+    },
+    {
+      "entity_id": "demo-person-harper-wells",
+      "path": "/demo-assets/people/demo-person-harper-wells.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult woman, age 38. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Harper Wells."
+    },
+    {
+      "entity_id": "demo-person-finley-stone",
+      "path": "/demo-assets/people/demo-person-finley-stone.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult man, age 41. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Finley Stone."
+    },
+    {
+      "entity_id": "demo-person-casey-hart",
+      "path": "/demo-assets/people/demo-person-casey-hart.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult man, age 35. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Casey Hart."
+    },
+    {
+      "entity_id": "demo-person-skyler-west",
+      "path": "/demo-assets/people/demo-person-skyler-west.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult woman, age 26. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Skyler West."
+    },
+    {
+      "entity_id": "demo-person-reese-taylor",
+      "path": "/demo-assets/people/demo-person-reese-taylor.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult woman, age 30. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Reese Taylor."
+    },
+    {
+      "entity_id": "demo-person-jamie-flores",
+      "path": "/demo-assets/people/demo-person-jamie-flores.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult man, age 29. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Jamie Flores."
+    },
+    {
+      "entity_id": "demo-person-taylor-lane",
+      "path": "/demo-assets/people/demo-person-taylor-lane.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult man, age 28. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Taylor Lane."
+    },
+    {
+      "entity_id": "demo-person-nico-bennett",
+      "path": "/demo-assets/people/demo-person-nico-bennett.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult man, age 33. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Nico Bennett."
+    },
+    {
+      "entity_id": "demo-person-maya-sterling",
+      "path": "/demo-assets/people/demo-person-maya-sterling.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult woman, age 31. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Maya Sterling."
+    },
+    {
+      "entity_id": "demo-person-lena-hartwell",
+      "path": "/demo-assets/people/demo-person-lena-hartwell.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult woman, age 28. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Lena Hartwell."
+    },
+    {
+      "entity_id": "demo-person-noah-laurent",
+      "path": "/demo-assets/people/demo-person-noah-laurent.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult man, age 36. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Noah Laurent."
+    },
+    {
+      "entity_id": "demo-person-zoe-mercer",
+      "path": "/demo-assets/people/demo-person-zoe-mercer.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult woman, age 32. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Zoe Mercer."
+    },
+    {
+      "entity_id": "demo-person-adrian-cole",
+      "path": "/demo-assets/people/demo-person-adrian-cole.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult man, age 27. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Adrian Cole."
+    },
+    {
+      "entity_id": "demo-person-sienna-blake",
+      "path": "/demo-assets/people/demo-person-sienna-blake.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult woman, age 29. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Sienna Blake."
+    },
+    {
+      "entity_id": "demo-person-miles-avery",
+      "path": "/demo-assets/people/demo-person-miles-avery.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult man, age 34. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Miles Avery."
+    },
+    {
+      "entity_id": "demo-person-keira-santos",
+      "path": "/demo-assets/people/demo-person-keira-santos.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult woman, age 30. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Keira Santos."
+    },
+    {
+      "entity_id": "demo-person-ethan-rhodes",
+      "path": "/demo-assets/people/demo-person-ethan-rhodes.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult man, age 37. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Ethan Rhodes."
+    },
+    {
+      "entity_id": "demo-person-aria-bell",
+      "path": "/demo-assets/people/demo-person-aria-bell.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult woman, age 26. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Aria Bell."
+    },
+    {
+      "entity_id": "demo-person-lucas-west",
+      "path": "/demo-assets/people/demo-person-lucas-west.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult man, age 31. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Lucas West."
+    },
+    {
+      "entity_id": "demo-person-isla-quinn",
+      "path": "/demo-assets/people/demo-person-isla-quinn.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult woman, age 40. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Isla Quinn."
+    },
+    {
+      "entity_id": "demo-person-owen-chase",
+      "path": "/demo-assets/people/demo-person-owen-chase.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult man, age 28. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Owen Chase."
+    },
+    {
+      "entity_id": "demo-person-naomi-ellis",
+      "path": "/demo-assets/people/demo-person-naomi-ellis.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult woman, age 35. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Naomi Ellis."
+    },
+    {
+      "entity_id": "demo-person-leo-marlow",
+      "path": "/demo-assets/people/demo-person-leo-marlow.webp",
+      "width": 800,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Photorealistic professional portrait of a fictional adult man, age 30. Friendly natural expression, fully clothed, soft daylight, neutral background. Not based on a real person. Unique face for Leo Marlow."
+    },
+    {
+      "entity_id": "demo-product-lingerie-1",
+      "path": "/demo-assets/products/demo-product-lingerie-1.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Satin Robe, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-lingerie-2",
+      "path": "/demo-assets/products/demo-product-lingerie-2.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Lace Bodysuit, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-lingerie-3",
+      "path": "/demo-assets/products/demo-product-lingerie-3.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Studio Bralette, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-lingerie-4",
+      "path": "/demo-assets/products/demo-product-lingerie-4.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Silk Lounge Set, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-lingerie-5",
+      "path": "/demo-assets/products/demo-product-lingerie-5.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Mesh Layer Set, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-lingerie-6",
+      "path": "/demo-assets/products/demo-product-lingerie-6.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Velvet Wrap, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-lubricants-1",
+      "path": "/demo-assets/products/demo-product-lubricants-1.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Water-Based Lubricant, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-lubricants-2",
+      "path": "/demo-assets/products/demo-product-lubricants-2.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Silicone Lubricant, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-lubricants-3",
+      "path": "/demo-assets/products/demo-product-lubricants-3.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Sensitive Formula, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-lubricants-4",
+      "path": "/demo-assets/products/demo-product-lubricants-4.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Travel Lubricant Set, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-lubricants-5",
+      "path": "/demo-assets/products/demo-product-lubricants-5.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Massage Gel, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-lubricants-6",
+      "path": "/demo-assets/products/demo-product-lubricants-6.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Water-Based Refill, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-dildos-1",
+      "path": "/demo-assets/products/demo-product-dildos-1.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Classic Silicone, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-dildos-2",
+      "path": "/demo-assets/products/demo-product-dildos-2.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Compact Silicone, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-dildos-3",
+      "path": "/demo-assets/products/demo-product-dildos-3.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Curved Silicone, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-dildos-4",
+      "path": "/demo-assets/products/demo-product-dildos-4.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Dual-Density Silicone, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-dildos-5",
+      "path": "/demo-assets/products/demo-product-dildos-5.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Suction-Base Silicone, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-dildos-6",
+      "path": "/demo-assets/products/demo-product-dildos-6.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Premium Silicone, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-vibrators-1",
+      "path": "/demo-assets/products/demo-product-vibrators-1.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Compact Massager, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-vibrators-2",
+      "path": "/demo-assets/products/demo-product-vibrators-2.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Rechargeable Massager, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-vibrators-3",
+      "path": "/demo-assets/products/demo-product-vibrators-3.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Travel Massager, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-vibrators-4",
+      "path": "/demo-assets/products/demo-product-vibrators-4.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Quiet Massager, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-vibrators-5",
+      "path": "/demo-assets/products/demo-product-vibrators-5.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Wand Massager, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-vibrators-6",
+      "path": "/demo-assets/products/demo-product-vibrators-6.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Precision Massager, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-couples-1",
+      "path": "/demo-assets/products/demo-product-couples-1.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Couples Kit, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-couples-2",
+      "path": "/demo-assets/products/demo-product-couples-2.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Massage Candle Set, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-couples-3",
+      "path": "/demo-assets/products/demo-product-couples-3.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Satin Eye Mask, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-couples-4",
+      "path": "/demo-assets/products/demo-product-couples-4.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Date Night Kit, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-couples-5",
+      "path": "/demo-assets/products/demo-product-couples-5.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Sensory Kit, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-couples-6",
+      "path": "/demo-assets/products/demo-product-couples-6.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Comfort Cushion, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-restraints-1",
+      "path": "/demo-assets/products/demo-product-restraints-1.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Soft Cuff Set, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-restraints-2",
+      "path": "/demo-assets/products/demo-product-restraints-2.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Adjustable Cuffs, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-restraints-3",
+      "path": "/demo-assets/products/demo-product-restraints-3.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Padded Ankle Cuffs, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-restraints-4",
+      "path": "/demo-assets/products/demo-product-restraints-4.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Quick-Release Set, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-restraints-5",
+      "path": "/demo-assets/products/demo-product-restraints-5.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Storage Roll, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-restraints-6",
+      "path": "/demo-assets/products/demo-product-restraints-6.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Satin Ties, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-care-1",
+      "path": "/demo-assets/products/demo-product-care-1.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Care Spray, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-care-2",
+      "path": "/demo-assets/products/demo-product-care-2.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Travel Pouch, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-care-3",
+      "path": "/demo-assets/products/demo-product-care-3.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Protective Case, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-care-4",
+      "path": "/demo-assets/products/demo-product-care-4.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Cleaning Kit, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-care-5",
+      "path": "/demo-assets/products/demo-product-care-5.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Storage Box, no people or logos. Clean seamless background."
+    },
+    {
+      "entity_id": "demo-product-care-6",
+      "path": "/demo-assets/products/demo-product-care-6.webp",
+      "width": 1000,
+      "height": 1000,
+      "status": "awaiting-image",
+      "brief": "Neutral non-graphic catalog still life of Care Cloth Set, no people or logos. Clean seamless background."
+    }
+  ]
+}

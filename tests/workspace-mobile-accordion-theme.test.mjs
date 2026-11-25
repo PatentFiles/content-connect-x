@@ -78,11 +78,12 @@ test('authenticated Content Connect X adopts the public cyan, violet and pink id
  for(const value of ['#09d3f7','#8d69ff','#f800b8'])
   assert.ok(palette.includes(value),'Missing public brand tone '+value);
  for(const selector of ['.ccx-shell-fixed-header','.ccx-nav-panel','.ccx-dashboard-welcome',
-  '.ccx-primary','.ccx-dashboard-card::before','.ccx-member-firstname'])
+  '.ccx-primary','.ccx-member-firstname'])
   assert.ok(palette.includes(selector),'Missing branded workspace component '+selector);
  assert.match(palette,/--ccx-gradient:linear-gradient\(112deg/);
  assert.match(palette,/background:linear-gradient\(112deg,#126ea7/);
  assert.match(palette,/prefers-reduced-motion:reduce/);
+ assert.doesNotMatch(palette,/\.ccx-dashboard-card::before/,'Decorative card stripes must stay removed');
  const activeSelectors=palette.replace(/\/\*[\s\S]*?\*\//g,'');
  assert.doesNotMatch(activeSelectors,/\.oh-app|data-ccx-appearance="public"/,
   'Host Connect or logged-out branding must not be overridden by workspace palette');

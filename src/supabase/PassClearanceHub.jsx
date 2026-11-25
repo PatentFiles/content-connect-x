@@ -24,7 +24,7 @@ export default function PassClearanceHub({isAdmin=false}){
  const [history,setHistory]=useState([]);
  const [dateFilter,setDateFilter]=useState({from:'',to:''});
  const [weekdaySearch,setWeekdaySearch]=useState('');
- const [showHistory,setShowHistory]=useState(false);
+ const [showHistory,setShowHistory]=useState(true);
  const [reviewItems,setReviewItems]=useState([]),[dates,setDates]=useState({}),[confirm,setConfirm]=useState({});
  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState('');
  const load=async()=>{
@@ -95,6 +95,7 @@ export default function PassClearanceHub({isAdmin=false}){
   {label:'All time',from:'',to:''}
  ];
  return <div className="space-y-4">
+  {clearance?.tested_at&&<section className="ccx-surface space-y-4 rounded-2xl p-5" aria-label="Latest testing record"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-wider text-[var(--cc-text-secondary)]">Latest testing record</p><h2 className="mt-2 text-2xl font-bold">{new Date(clearance.tested_at).toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'})}</h2></div><span className="rounded-full border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-900">{clearance.demo?'Passed · sample result':clearance.status==='current'?'Current':'Review status'}</span></div>{clearance.demo&&<p className="text-xs text-[var(--cc-text-secondary)]">Fictional demonstration only. This is not a medical result or a clearance for a real person.</p>}</section>}
   <section className="ccx-surface space-y-3 p-5">
    <h3 className="flex items-center gap-2 font-semibold"><ShieldCheck size={18} className="text-[var(--cc-link)]"/>PASS work-clearance connection</h3>
    <p className="text-sm text-[var(--cc-text-secondary)]">PASS is the adult-industry work-clearance standard. It tracks a 14-day yes/no status—not private lab panel results. Partner API access needs written approval and technical onboarding.</p>
@@ -147,7 +148,7 @@ export default function PassClearanceHub({isAdmin=false}){
         const isDoc=item.kind==='document';
         const statusColor=item.status==='verified_offsite'||item.clearance_confirmed===true?'text-emerald-800':
           item.status==='rejected'?'text-red-800':'text-amber-800';
-        const statusText=isDoc?(item.status||'').replaceAll('_',' '):(item.clearance_confirmed?'Cleared':'Not cleared');
+        const statusText=item.demo?(item.status==='current'?'Passed · example':'Historical · expired'):isDoc?(item.status||'').replaceAll('_',' '):(item.clearance_confirmed?'Cleared':'Not cleared');
         return <div key={item.id} className="rounded-lg border border-[var(--cc-border)] bg-[var(--cc-surface-subtle)] p-3">
           <div className="flex items-start justify-between gap-2 flex-wrap">
             <div className="min-w-0 flex-1">

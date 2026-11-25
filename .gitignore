@@ -32,3 +32,7 @@ base44/.app.jsonc
 
 # Generated, lockfile-pinned map assets
 /public/vendor/maplibre-6.19.0/
+
+# Temporary browser component audit (never a production entry point)
+/marketing-audit-ci.html
+/marketing-audit-ci.jsx

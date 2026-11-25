@@ -34,7 +34,7 @@ test('workplace reuses the actual public cyan, violet and fuchsia palette',()=>{
  for(const color of ['#09d3f7','#8d69ff','#f800b8'])
   assert.ok(css.includes(color),'Workspace must reuse public brand tone '+color);
  assert.match(css,/\.ccx-shell-fixed-header::after/);
- assert.match(css,/\.ccx-dashboard-card::before/);
+ assert.doesNotMatch(css,/\.ccx-dashboard-card::before/,'Cards must not regain decorative left stripes');
  assert.match(css,/\.ccx-member-firstname/);
  assert.match(css,/\.ccx-nav-link\.is-active/);
  assert.match(css,/prefers-reduced-motion:reduce/);

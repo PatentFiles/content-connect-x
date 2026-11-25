@@ -155,7 +155,7 @@ export default function AnnualRecap(){
      <div className="bg-slate-900 p-6 text-white sm:p-8">
       <p className="text-xs font-semibold uppercase tracking-widest text-cyan-300">Content ConnectX</p>
       <p className="mt-3 text-6xl font-bold tabular-nums sm:text-7xl">{report.year}</p>
-      <h2 className="mt-2 text-2xl font-semibold">Your Year in Review</h2>
+      <h2 className="mt-2 text-2xl font-semibold">{report.year_to_date?'Your Year to Date':'Your Year in Review'}</h2>{report.as_of&&<p className="mt-2 text-sm text-slate-200">Through {new Date(report.as_of).toLocaleDateString()} {report.demo?'· Fictional demonstration':''}</p>}
       <p className="mt-2 text-sm text-slate-200">{report.displayName} · {report.roleLabel}</p>
      </div>
      <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4 sm:p-6">

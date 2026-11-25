@@ -1,3 +1,4 @@
+import {isDemoActive} from '../demo/demoRuntime.mjs';
 /** Content ConnectX property discovery and booking.
  * Host ConnectX owns every listing, blackout and reservation; this component
  * is a read/write *client* of that canonical inventory, never a local cache.
@@ -99,13 +100,15 @@ export default function HostCrossMarketplace({paid=false,user=null}){
   setModal(false);setAck(false);setSelected(null);setQuote(null);setNotice(response.note||'Venue request submitted.');await refresh();setView('bookings');
   requestKey.current=null;
  });
+ const openedFromRoute=useRef('');
+ useEffect(()=>{const target=window.history.state?.memberContext?.propertyId;if(target&&!busy&&items.some(p=>p.id===target)&&openedFromRoute.current!==target){openedFromRoute.current=target;void open(target);}},[items,busy]);
  const cancel=b=>run(async()=>{if(!window.confirm('Cancel this unpaid venue request?'))return;
   await hostConnectAction('booking_cancel',{booking_id:b.id});await refresh();setNotice('Booking request cancelled.');});
  return <div className="space-y-5" data-ccx-host-connect="true">
   <div className="flex flex-wrap items-start justify-between gap-3">
    <div><p className="text-xs font-bold uppercase tracking-wider text-[var(--cc-link)]">Host ConnectX venues</p>
     <h1 className="mt-1 text-2xl font-bold">Find a production location</h1>
-    <p className="text-sm text-[var(--cc-text-secondary)]">Live approved spaces and dates from Host ConnectX. One booking calendar on both websites.</p></div>
+    <p className="text-sm text-[var(--cc-text-secondary)]">{isDemoActive()?'The same fictional Los Angeles catalog as Host Connect X. Preview actions stay local.':'Live approved spaces and dates from Host ConnectX. One booking calendar on both websites.'}</p></div>
 
   </div>
   <div className="flex flex-wrap gap-2" role="group" aria-label="Property marketplace sections">

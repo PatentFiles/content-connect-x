@@ -19,7 +19,7 @@ import HostingHost from './HostingHost';
 import {PropertyPreviewCard} from './HostPortfolio';
 import PropertyPhotoGallery from './PropertyPhotoGallery';
 import HostingAreaMap from './HostingAreaMap';
-import HostingDateRange from './HostingDateRange';
+import HostingDateRange from './HostingDateRange.jsx';
 import {validRange,nightsBetween,datePortion,venueDateToIso} from './hostingDateRange.mjs';
 import {hostingAdvanced} from './hostingBusinessApi';
 import HostingBookingOperations from './HostingBookingOperations';

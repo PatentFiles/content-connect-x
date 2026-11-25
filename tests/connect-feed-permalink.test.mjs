@@ -51,7 +51,7 @@ test('Legacy inbound post links and public profile timelines remain permission-s
  assert.match(feed,/Checking your permission to view this post/);
  assert.match(feed,/URLSearchParams\(window.location.search\)/);
  assert.match(app,/Your profile posts/);
- assert.match(app,/profileId=\{user.id\}/);
+ assert.match(app,/profileId=\{displayUser.id\}/);
  assert.match(discovery,/Profile posts/);
  assert.match(discovery,/profileId=\{selected.id\}/);
 });

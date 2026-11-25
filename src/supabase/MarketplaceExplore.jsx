@@ -1,3 +1,5 @@
+import './marketing-layout.css';
+import {isDemoActive} from '../demo/demoRuntime.mjs';
 /** Production-space discovery UI — shared between Host ConnectX and CCX.
  * Reference-locked to a photo-first two-column browsing pattern (Refero:
  * Airbnb discovery + Tripadvisor map), using ORIGINAL Host ConnectX blue.
@@ -90,12 +92,13 @@ function FilterModal({value,onChange,onClose,onApply,matching}){
   </section>
  </div>;
 }
-export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filters)=>{void _filters;},onOpen=(_id)=>{void _id;},onBecomeHost=()=>{},site='host',demo=false}){
+export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filters)=>{void _filters;},onOpen=(_id)=>{void _id;},onBecomeHost=()=>{},site='host',initialCategory='',demo=isDemoActive(),embedded=site==='ccx'}){
  const [geo,setGeo]=useState({...EMPTY_GEO});
  const [keyword,setKeyword]=useState(''),[from,setFrom]=useState(''),[to,setTo]=useState('');
  const [crew,setCrew]=useState(Object.fromEntries(crewRoles.map(([key])=>[key,0])));
- const [crewOpen,setCrewOpen]=useState(false),[filterOpen,setFilterOpen]=useState(false),[filters,setFilters]=useState({...DEFAULT_FILTERS});
- const [showMap,setShowMap]=useState(true),[rateUnit,setRateUnit]=useState('day');
+ const [crewOpen,setCrewOpen]=useState(false),[filterOpen,setFilterOpen]=useState(false),[filters,setFilters]=useState(()=>({...DEFAULT_FILTERS,types:initialCategory?[initialCategory]:[]}));
+ const [showMap,setShowMap]=useState(()=>typeof window!=='undefined'&&window.matchMedia('(min-width:1024px)').matches),[rateUnit,setRateUnit]=useState('day');
+ const [searchOpen,setSearchOpen]=useState(false);
  const applied=React.useRef({});
  const count=Object.values(crew).reduce((sum,n)=>sum+Number(n||0),0);
  const displayed=useMemo(()=>items.filter(p=>{
@@ -114,7 +117,7 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
  const apply=(nextFilters=filters)=>{const params={
   query:keyword,country:geo.country,state:geo.state,city:geo.city,
   categories:nextFilters.types,
-  ...(from&&to?{start_date:from,end_date:to}:{}),
+    ...(from&&to?{start_date:from,end_date:to}:{}),
   ...(count>0?{crew_size:count}:{}),
   ...(nextFilters.amenities.length?{amenities:nextFilters.amenities}:{}),
   ...(nextFilters.access.length?{accessibility:nextFilters.access}:{}),
@@ -124,19 +127,21 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
   ...(nextFilters.maxPrice!==''?{max_price:Number(nextFilters.maxPrice)}:{})
  };applied.current=params;onSearch(params);};
  const mapSearch=bounds=>onSearch({...applied.current,bounds});
+ useEffect(()=>{
+  if(initialCategory)onSearch({categories:[initialCategory]});
+ // Category is set by a user selecting an exact venue from the homepage.
+ },[initialCategory]);
  const data=displayed;
  return <div className="space-y-5 text-[#193246]" data-host-discovery="true">
-  <div className="flex flex-wrap items-center justify-between gap-3">
+  {!embedded&&<div className="flex flex-wrap items-center justify-between gap-3">
    <div><p className="text-xs font-bold uppercase tracking-[.15em] text-[#12698f]">Host ConnectX</p>
     <h2 className="mt-1 text-2xl font-bold">Find your next production location</h2>
-    <p className="mt-1 text-sm text-[#61778a]">{demo?'Fictional venues for this administrator walkthrough.':'Browse approved spaces without signing in. Booking requires a verified account.'}</p></div>
-   {!demo&&site==='host'&&<button type="button" className={secondary} onClick={onBecomeHost}><Home size={16}/> Become a host</button>}
-  </div>
-  <HostVenueCategoryRail selectedTypes={filters.types} onChangeTypes={types=>{
-   const next={...filters,types};
-   setFilters(next);apply(next);
-  }}/>
-   <form className={panel+' relative grid gap-3 p-4 lg:grid-cols-[2.4fr_1fr_1fr_1.2fr_auto] lg:items-end'} onSubmit={e=>{e.preventDefault();apply();}}>
+    <p className="mt-1 text-sm text-[#61778a]">{demo?'Los Angeles production locations · fictional demonstration catalog.':'Browse approved spaces without signing in. Booking requires a verified account.'}</p></div>
+   {!demo&&<button type="button" className={secondary} onClick={onBecomeHost}><Home size={16}/> Become a host</button>}
+  </div>}
+  <HostVenueCategoryRail selectedTypes={filters.types} onChangeTypes={types=>{const next={...filters,types};setFilters(next);apply(next);}}/>
+   <button type="button" className="venue-search-summary lg:hidden" aria-expanded={searchOpen} aria-controls={'venue-search-'+site} onClick={()=>setSearchOpen(v=>!v)}><span className="flex items-center justify-between gap-3"><strong className="flex items-center gap-2 text-sm"><Search size={18}/>Search locations, dates &amp; crew</strong><ChevronRight size={18} className={searchOpen?'rotate-90':''}/></span><span className="mt-1 block text-xs text-[#627789]">{geo.city||geo.state||geo.country||'Choose location'} · {from?(from+(to?' to '+to:'')):'Choose dates'} · {count?count+' crew':'Add crew'}</span></button>
+   <form id={'venue-search-'+site} className={panel+' venue-search-card relative gap-3 lg:grid-cols-[2.4fr_1fr_1fr_1.2fr_auto] lg:items-end '+(searchOpen?'grid':'hidden lg:grid')} onSubmit={e=>{e.preventDefault();apply();setSearchOpen(false);}}>
     <div className="space-y-2">
      <label className="text-xs font-bold">Where</label>
      <GeoLocationSelect idPrefix={'discovery-'+site} compact allowAny value={geo} onChange={setGeo}/>
@@ -165,7 +170,7 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
     <div className="flex flex-wrap gap-2">
      <button type="button" className={secondary} onClick={()=>setFilterOpen(true)}><SlidersHorizontal size={16}/> Filters</button>
      <label className="flex items-center gap-2 rounded-full border border-[#d5e2e9] bg-white px-3 text-sm font-semibold">Rate <select className="bg-transparent p-2" value={rateUnit} onChange={e=>setRateUnit(e.target.value)}><option value="day">Daily</option><option value="hour">Hourly</option></select></label>
-     <button type="button" className={secondary} aria-pressed={showMap} onClick={()=>setShowMap(x=>!x)}><Map size={16}/>{showMap?'Hide map':'Show map'}</button>
+     <button type="button" className={secondary} aria-pressed={showMap} onClick={()=>setShowMap(x=>!x)}><Map size={16}/>{showMap?'Show properties':'Show map'}</button>
      {filters.amenities.length+filters.access.length>0&&<span className="inline-flex items-center rounded-full bg-[#eaf5fb] px-3 text-xs font-semibold">{filters.amenities.length+filters.access.length} property features</span>}
      {filters.types.length>0&&<span className="inline-flex items-center rounded-full bg-[#eaf5fb] px-3 text-xs font-semibold">{filters.types.length} property types</span>}
     </div>
@@ -174,8 +179,8 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
    {(from||to)&&<p className="rounded-lg bg-[#f0f6fa] px-4 py-2 text-xs text-[#315267]">
     Selected dates {from||'—'} to {to||'—'}. Search verifies property-local blocked/held dates; submit a booking request to recheck the exact live quote.
    </p>}
-   <div className={'grid min-w-0 gap-5 '+(showMap?'lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]':'')}>
-    <section className="min-w-0 space-y-4" aria-label="Venue search results">
+   <div className={'venue-results-layout grid min-w-0 gap-5 '+(showMap?'lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]':'')} data-map-open={String(showMap)}>
+    <section className={"min-w-0 space-y-4 "+(showMap?"hidden lg:block":"")} aria-label="Venue search results">
      <h3 className="font-bold">{data.length} {demo?'sample':'approved'} spaces{geo.city?' in '+geo.city:''}</h3>
      {data.length===0?<div className={panel+' p-8 text-center'}>
       <Search className="mx-auto mb-3 text-[#12698f]" size={35}/>
@@ -186,18 +191,13 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
        {data.map(p=>
         <button type="button" key={p.id} className={'group overflow-hidden rounded-2xl border border-[#e1e9ef] bg-white text-left transition hover:shadow-md '+(showMap?'grid grid-cols-[minmax(105px,38%)_minmax(0,1fr)] gap-3':'')}
          onClick={()=>onOpen(p.id)}>
-         <div className={'relative overflow-hidden rounded-xl bg-[#eff5f8] '+(showMap?'min-h-[138px] h-full':'aspect-[5/4]')}>
-          {p.cover_url?<img src={p.cover_url} alt={p.title} className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.025]"/>:
-           <div className="grid h-full w-full place-items-center bg-[#eff5f8] text-[#12698f]">
-            {venueArtworkFor(p.category,{listingPlaceholder:true})?
-             <img src={venueArtworkFor(p.category,{listingPlaceholder:true})} alt="" loading="lazy" decoding="async"
-              className="h-32 w-32 max-w-[75%] object-contain opacity-75" />:
-             <Home size={46} strokeWidth={1.5}/>}
-           </div>}
+         <div className={'venue-card-photo relative overflow-hidden rounded-xl bg-[#eff5f8] '+(showMap?'min-h-[138px] h-full':'aspect-[5/4]')}>
+          {p.cover_url?<img src={p.cover_url} alt={p.title} loading="lazy" decoding="async" className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.025]"/>:
+           <div className="grid h-full w-full place-items-center text-[#12698f]">{venueArtworkFor(p.category,{listingPlaceholder:true})?<img src={venueArtworkFor(p.category,{listingPlaceholder:true})} alt="" loading="lazy" decoding="async" className="h-32 w-32 max-w-[75%] object-contain opacity-75"/>:<Home size={46} strokeWidth={1.5}/>}</div>}
           <span className="absolute left-3 top-3 rounded-full bg-white/95 px-3 py-1 text-[11px] font-semibold text-[#20394a] shadow-sm"><img src={VENUE_ARTWORK[p.category]||VENUE_ARTWORK.other} alt="" className="mr-1 inline h-5 w-5 object-contain"/>{kinds.find(x=>x.id===p.category)?.label||'Production venue'}</span>
          </div>
-         <div className="space-y-1 px-1 pb-3 pt-3">
-          <h4 className="truncate text-sm font-bold">{p.title}</h4>
+         <div className="venue-card-copy min-w-0 space-y-1">
+          <h4 className="line-clamp-2 text-sm font-bold">{p.title}</h4>
           <p className="truncate text-xs text-[#627789]">{[p.city,p.state,p.country].filter(Boolean).join(', ')}</p>
           <p className="text-xs text-[#627789]">Up to {p.capacity||'—'} crew · {p.bedrooms||0} bedrooms · {p.bathrooms||0} bathrooms</p>
           <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1"><p className="text-sm font-bold">{money(p.daily_rate_cents)} <span className="font-normal text-[#627789]">/ day</span></p>
@@ -207,7 +207,7 @@ export default function MarketplaceExplore({items=[],busy=false,onSearch=(_filte
         </button>)}
       </div>}
     </section>
-    {showMap&&<aside className="sticky top-24 h-fit" aria-label="Approximate production location map">
+    {showMap&&<aside className="venue-map-column h-fit" aria-label="Approximate production location map">
      <HostRoadMap properties={data} onOpen={onOpen} onBounds={mapSearch} categorySelected={filters.types.length>0} unit={rateUnit}/>
     </aside>}
    </div>

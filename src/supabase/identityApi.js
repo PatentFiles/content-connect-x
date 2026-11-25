@@ -1,3 +1,4 @@
+import {isDemoActive} from '../demo/demoRuntime.mjs';
 import {supabase,supabaseConfiguration,requireSupabase} from '@/api/supabaseClient';
 import {transferIdentityEvidence} from './identityTransfer.mjs';
 /** No worker credentials, file URLs or verification verdicts enter browser storage. */
@@ -15,6 +16,7 @@ export async function identityAction(action,values={}){
  * @param {{onProgress?: (progress: {phase:string,percent:number|null}) => void, signal?: AbortSignal}} options
  */
 export function identityUploadTo(endpoint,sessionId,kind,file,options={}){
+ if(isDemoActive())throw Error('Identity evidence is never uploaded in demo mode.');
  const {onProgress,signal}=options;
  const client=requireSupabase();
  return transferIdentityEvidence({projectUrl:supabaseConfiguration.url,publicKey:supabaseConfiguration.key,
